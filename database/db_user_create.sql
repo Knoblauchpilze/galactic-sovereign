@@ -1,0 +1,3 @@
+
+CREATE USER user_service_admin
+  WITH CREATEDB PASSWORD 'VCNNGJjsLSmoU5nxnSBBs';
