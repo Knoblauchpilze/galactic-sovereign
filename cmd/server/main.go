@@ -1,11 +1,10 @@
 package main
 
 import (
-	"github.com/KnoblauchPilze/template-go/cmd/server/routes"
+	"github.com/KnoblauchPilze/user-service/cmd/server/routes"
 )
 
 func main() {
-	e := routes.NewServer()
-
-	e.Logger.Fatal(e.Start(":1323"))
+	s := routes.NewServer()
+	s.Start(":60000")
 }
