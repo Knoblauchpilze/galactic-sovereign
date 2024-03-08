@@ -33,7 +33,7 @@ test:
 # https://stackoverflow.com/questions/6273608/how-to-pass-argument-to-makefile-from-command-line
 run:
 	@echo "$(COLOR_HIGHLIGHT_BLUE)Running $(filter-out $@,$(MAKECMDGOALS))...$(COLOR_CLEAR)"
-	@cd bin && run.sh --app-name $(filter-out $@,$(MAKECMDGOALS))
+	@cd bin && ./run.sh --app-name $(filter-out $@,$(MAKECMDGOALS))
 
 %:
 	@:
