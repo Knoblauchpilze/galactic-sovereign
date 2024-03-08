@@ -3,14 +3,34 @@ package routes
 import (
 	"os"
 
+	"github.com/KnoblauchPilze/user-service/pkg/logger"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 )
 
-func NewServer() *echo.Echo {
+type Server struct {
+	echoServer *echo.Echo
+}
+
+func NewServer() *Server {
+
+	s := &Server{
+		echoServer: createEchoContext(),
+	}
+
+	return s
+}
+
+func (s *Server) Start(address string) {
+
+	s.echoServer.Logger.Fatal(s.echoServer.Start(":1323"))
+}
+
+func createEchoContext() *echo.Echo {
 	e := echo.New()
 	e.HideBanner = true
 	e.HidePort = true
+	e.Logger = logger.New()
 
 	setupLogMiddleware(e)
 	setupRecoverMiddleware(e)
