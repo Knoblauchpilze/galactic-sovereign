@@ -1,10 +1,10 @@
 package routes
 
-import "net/http"
+import "github.com/labstack/echo"
 
 type Route struct {
 	Path        string
-	GetRoute    http.HandlerFunc
-	PostRoute   http.HandlerFunc
-	DeleteRoute http.HandlerFunc
+	GetRoute    echo.HandlerFunc
+	PostRoute   echo.HandlerFunc
+	DeleteRoute echo.HandlerFunc
 }
