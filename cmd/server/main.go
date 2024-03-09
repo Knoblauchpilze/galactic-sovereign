@@ -5,6 +5,9 @@ import (
 )
 
 func main() {
-	s := routes.NewServer()
-	s.Start(":60000")
+	s := routes.NewServer("/users", uint16(60000))
+
+	s.Register(routes.UserRoutes())
+
+	s.Start()
 }
