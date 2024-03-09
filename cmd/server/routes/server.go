@@ -2,9 +2,8 @@ package routes
 
 import (
 	"github.com/KnoblauchPilze/user-service/pkg/logger"
-	mw "github.com/KnoblauchPilze/user-service/pkg/middleware"
+	"github.com/KnoblauchPilze/user-service/pkg/middleware"
 	"github.com/labstack/echo"
-	"github.com/labstack/echo/middleware"
 )
 
 type Server struct {
@@ -31,18 +30,10 @@ func createEchoContext() *echo.Echo {
 	e.HidePort = true
 	e.Logger = logger.New("server")
 
-	e.Use(mw.RequestTiming())
-	setupRecoverMiddleware(e)
+	e.Use(middleware.RequestTiming())
+	e.Use(middleware.Recover())
+
 	setupRoutes(e)
 
 	return e
-}
-
-func setupRecoverMiddleware(e *echo.Echo) {
-	recoverMiddleware := middleware.RecoverWithConfig(middleware.RecoverConfig{
-		DisableStackAll:   true,
-		DisablePrintStack: false,
-	})
-
-	e.Use(recoverMiddleware)
 }
