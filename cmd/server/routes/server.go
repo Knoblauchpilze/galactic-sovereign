@@ -30,7 +30,7 @@ func createEchoContext() *echo.Echo {
 	e := echo.New()
 	e.HideBanner = true
 	e.HidePort = true
-	e.Logger = logger.New()
+	e.Logger = logger.New("server")
 
 	setupLogMiddleware(e)
 	setupRecoverMiddleware(e)
