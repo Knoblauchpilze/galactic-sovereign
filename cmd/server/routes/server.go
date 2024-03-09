@@ -1,9 +1,8 @@
 package routes
 
 import (
-	"os"
-
 	"github.com/KnoblauchPilze/user-service/pkg/logger"
+	mw "github.com/KnoblauchPilze/user-service/pkg/middleware"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 )
@@ -32,21 +31,11 @@ func createEchoContext() *echo.Echo {
 	e.HidePort = true
 	e.Logger = logger.New("server")
 
-	setupLogMiddleware(e)
+	e.Use(mw.RequestTiming())
 	setupRecoverMiddleware(e)
 	setupRoutes(e)
 
 	return e
-}
-
-func setupLogMiddleware(e *echo.Echo) {
-	logMiddleware := middleware.LoggerWithConfig(middleware.LoggerConfig{
-		Format:           `${time_rfc3339_nano} ${method} ${uri} -> ${status}` + "\n",
-		CustomTimeFormat: "2006-01-02 15:04:05.00000",
-		Output:           os.Stdout,
-	})
-
-	e.Use(logMiddleware)
 }
 
 func setupRecoverMiddleware(e *echo.Echo) {
