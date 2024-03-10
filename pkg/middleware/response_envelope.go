@@ -42,9 +42,7 @@ func ResponseEnvelope() echo.MiddlewareFunc {
 			}
 			c.Response().Writer = w
 
-			next(c)
-
-			return nil
+			return next(c)
 		}
 	}
 }
