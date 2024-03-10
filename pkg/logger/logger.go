@@ -1,6 +1,6 @@
 package logger
 
-import "github.com/labstack/echo"
+import "github.com/labstack/echo/v4"
 
 func New(prefix string) echo.Logger {
 	l := loggerImpl{

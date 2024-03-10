@@ -6,7 +6,7 @@ import (
 	"runtime/debug"
 
 	"github.com/KnoblauchPilze/user-service/pkg/logger"
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 )
 
 func Recover() echo.MiddlewareFunc {
