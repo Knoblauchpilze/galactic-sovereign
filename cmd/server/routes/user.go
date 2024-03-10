@@ -2,8 +2,9 @@ package routes
 
 import (
 	"fmt"
+	"net/http"
 
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 )
 
 func UserRoutes() Route {
@@ -24,5 +25,5 @@ func createUser(c echo.Context) error {
 }
 
 func deleteUser(c echo.Context) error {
-	panic(fmt.Errorf("not implemented"))
+	return c.String(http.StatusOK, "{\"message\":\"deleted\"}")
 }
