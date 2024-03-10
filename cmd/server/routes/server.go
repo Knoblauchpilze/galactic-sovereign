@@ -6,7 +6,7 @@ import (
 
 	"github.com/KnoblauchPilze/user-service/pkg/logger"
 	"github.com/KnoblauchPilze/user-service/pkg/middleware"
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 )
 
 type Server struct {
@@ -35,10 +35,10 @@ func (s *Server) Register(route Route) {
 		s.echoServer.GET(path, route.GetRoute)
 	}
 	if route.PostRoute != nil {
-		s.echoServer.POST(path, route.GetRoute)
+		s.echoServer.POST(path, route.PostRoute)
 	}
 	if route.DeleteRoute != nil {
-		s.echoServer.DELETE(path, route.GetRoute)
+		s.echoServer.DELETE(path, route.DeleteRoute)
 	}
 }
 
@@ -49,6 +49,7 @@ func createEchoContext() *echo.Echo {
 	e.Logger = logger.New("server")
 
 	e.Use(middleware.RequestTiming())
+	e.Use(middleware.ResponseEnvelope())
 	e.Use(middleware.Recover())
 
 	return e
