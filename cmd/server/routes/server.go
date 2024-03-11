@@ -50,6 +50,7 @@ func createEchoContext() *echo.Echo {
 
 	e.Use(middleware.RequestTiming())
 	e.Use(middleware.ResponseEnvelope())
+	e.Use(middleware.ErrorMiddleware())
 	e.Use(middleware.Recover())
 
 	return e
