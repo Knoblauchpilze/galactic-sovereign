@@ -3,6 +3,8 @@
 
 The definition of a service to manager users and authentication.
 
+[![codecov](https://codecov.io/gh/Knoblauchpilze/user-service/branch/master/badge.svg?token=WNLIZF0FBL)](https://codecov.io/gh/Knoblauchpilze/user-service)
+
 # Installation
 
 ## Prerequisite
