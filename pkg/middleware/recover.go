@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"runtime/debug"
 
-	"github.com/KnoblauchPilze/user-service/pkg/logger"
 	"github.com/labstack/echo/v4"
 )
 
@@ -29,13 +28,7 @@ func Recover() echo.MiddlewareFunc {
 				stack := debug.Stack()
 
 				c.Error(err)
-				logger.Errorf(createErrorLog(req, res, string(stack), err))
-
-				// stack := make([]byte, config.StackSize)
-				// length := runtime.Stack(stack, !config.DisableStackAll)
-				// if !config.DisablePrintStack {
-				// 	c.Logger().Printf("[PANIC RECOVER] %v %s\n", err, stack[:length])
-				// }
+				c.Logger().Errorf(createErrorLog(req, res, string(stack), err))
 			}()
 
 			return next(c)
