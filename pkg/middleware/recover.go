@@ -32,7 +32,6 @@ func Recover() echo.MiddlewareFunc {
 			}()
 
 			return next(c)
-
 		}
 	}
 }
