@@ -2,6 +2,7 @@ package logger
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 
 	"github.com/labstack/gommon/log"
@@ -44,6 +45,19 @@ func (l *loggerImpl) SetHeader(header string) {
 	l.header = header
 }
 
+func (l *loggerImpl) prependPrefixAndHeaderIfNeeded(in string) string {
+	out := in
+
+	if l.prefix != "" {
+		out = fmt.Sprintf("[%s] %s", l.prefix, out)
+	}
+	if l.header != "" {
+		out = fmt.Sprintf("[%s] %s", l.header, out)
+	}
+
+	return out
+}
+
 func (l *loggerImpl) addPrefixAndHeaderIfNeeded(event *zerolog.Event) {
 	if l.header != "" {
 		event.Str("header", l.header)
@@ -55,7 +69,7 @@ func (l *loggerImpl) addPrefixAndHeaderIfNeeded(event *zerolog.Event) {
 
 func (l *loggerImpl) msgF(event *zerolog.Event, format string, args ...interface{}) {
 	event.Timestamp()
-	l.addPrefixAndHeaderIfNeeded(event)
+	format = l.prependPrefixAndHeaderIfNeeded(format)
 	event.Msgf(format, args...)
 }
 

@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/KnoblauchPilze/user-service/pkg/logger"
 	"github.com/labstack/echo/v4"
 )
 
@@ -20,10 +19,10 @@ func RequestTiming() echo.MiddlewareFunc {
 			elapsed := time.Since(start)
 
 			if err == nil {
-				logger.Infof(createTimingLog(req, res, elapsed))
+				c.Logger().Infof(createTimingLog(req, res, elapsed))
 			} else {
 				c.Error(err)
-				logger.Warnf(createTimingLog(req, res, elapsed))
+				c.Logger().Warnf(createTimingLog(req, res, elapsed))
 			}
 
 			return nil
