@@ -5,7 +5,7 @@ import (
 	"github.com/rs/zerolog"
 )
 
-func fromLogLevel(level log.Lvl) zerolog.Level {
+func fromEchoLogLevel(level log.Lvl) zerolog.Level {
 	switch level {
 	case log.DEBUG:
 		return zerolog.DebugLevel
@@ -29,6 +29,10 @@ func fromZerologLevel(level zerolog.Level) log.Lvl {
 	case zerolog.WarnLevel:
 		return log.WARN
 	case zerolog.ErrorLevel:
+		fallthrough
+	case zerolog.PanicLevel:
+		fallthrough
+	case zerolog.FatalLevel:
 		return log.ERROR
 	default:
 		return log.OFF

@@ -21,7 +21,7 @@ func (l *loggerImpl) Level() log.Lvl {
 }
 
 func (l *loggerImpl) SetLevel(level log.Lvl) {
-	l.log = l.log.Level(fromLogLevel(level))
+	l.log = l.log.Level(fromEchoLogLevel(level))
 }
 
 func (l *loggerImpl) Prefix() string {
