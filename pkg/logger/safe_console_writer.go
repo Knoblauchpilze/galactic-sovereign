@@ -10,11 +10,11 @@ import (
 )
 
 // https://github.com/rs/zerolog?tab=readme-ov-file#pretty-logging
-var consoleWriter = zerolog.ConsoleWriter{Out: os.Stdout, TimeFormat: time.DateTime}
+var consoleWriter io.Writer = zerolog.ConsoleWriter{Out: os.Stdout, TimeFormat: time.DateTime}
 
 type safeConsoleWriter struct {
 	lock   sync.Mutex
-	writer zerolog.ConsoleWriter
+	writer io.Writer
 }
 
 func newSafeConsoleWriter() io.Writer {
