@@ -43,6 +43,7 @@ func Newf(format string, args ...interface{}) error {
 
 func Wrap(cause error, message string) error {
 	return errorImpl{
+		Value:   GenericErrorCode,
 		Message: message,
 		Cause:   cause,
 	}
@@ -59,6 +60,7 @@ func WrapCode(cause error, code ErrorCode) error {
 
 func Wrapf(cause error, format string, args ...interface{}) error {
 	return errorImpl{
+		Value:   GenericErrorCode,
 		Message: fmt.Sprintf(format, args...),
 		Cause:   cause,
 	}
