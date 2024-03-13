@@ -31,5 +31,9 @@ func concatenateEndpoints(endpoint string, path string) string {
 	endpoint = sanitizePath(endpoint, addPrefix)
 	path = sanitizePath(path, trimPrefix)
 
+	if len(path) == 0 {
+		return endpoint
+	}
+
 	return fmt.Sprintf("%s/%s", strings.TrimSuffix(endpoint, "/"), path)
 }
