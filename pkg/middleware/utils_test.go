@@ -80,16 +80,3 @@ func TestFormatHttpStatusCode_5XX(t *testing.T) {
 	actual = formatHttpStatusCode(http.StatusBadGateway)
 	assert.Equal("\x1b[1;31m502\x1b[0m", actual)
 }
-
-// func formatHttpStatusCode(status int) string {
-// 	switch {
-// 	case status >= 500:
-// 		return logger.FormatWithColor(status, logger.Red)
-// 	case status >= 400:
-// 		return logger.FormatWithColor(status, logger.Yellow)
-// 	case status >= 300:
-// 		return logger.FormatWithColor(status, logger.Cyan)
-// 	default:
-// 		return logger.FormatWithColor(status, logger.Green)
-// 	}
-// }
