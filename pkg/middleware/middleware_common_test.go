@@ -34,11 +34,15 @@ type mockEchoContext struct {
 
 type mockEchoLogger struct{}
 
-func newMockEchoContext(req *http.Request, res *echo.Response) *mockEchoContext {
+func newMockEchoContext(code int) *mockEchoContext {
 	return &mockEchoContext{
-		request:  req,
-		response: res,
-		logger:   &mockEchoLogger{},
+		request: &http.Request{
+			Method: "GET",
+		},
+		response: &echo.Response{
+			Status: code,
+		},
+		logger: &mockEchoLogger{},
 	}
 }
 

@@ -67,14 +67,7 @@ func createPanickingHandlerFunc(err interface{}) echo.HandlerFunc {
 
 func TestRecoverMiddleware_SetsContextErrorOnPanic(t *testing.T) {
 	assert := assert.New(t)
-
-	req := &http.Request{
-		Method: "GET",
-	}
-	res := &echo.Response{
-		Status: http.StatusConflict,
-	}
-	m := newMockEchoContext(req, res)
+	m := newMockEchoContext(http.StatusConflict)
 	next := createPanickingHandlerFunc(errDefault)
 
 	em := Recover()
@@ -86,14 +79,7 @@ func TestRecoverMiddleware_SetsContextErrorOnPanic(t *testing.T) {
 
 func TestRecoverMiddleware_ConvertsToErrorUnknownPanic(t *testing.T) {
 	assert := assert.New(t)
-
-	req := &http.Request{
-		Method: "GET",
-	}
-	res := &echo.Response{
-		Status: http.StatusConflict,
-	}
-	m := newMockEchoContext(req, res)
+	m := newMockEchoContext(http.StatusConflict)
 	next := createPanickingHandlerFunc(36)
 
 	em := Recover()
@@ -103,31 +89,3 @@ func TestRecoverMiddleware_ConvertsToErrorUnknownPanic(t *testing.T) {
 	expected := fmt.Errorf("%v", 36)
 	assert.Equal(expected, m.reportedError)
 }
-
-// func Recover() echo.MiddlewareFunc {
-// 	return func(next echo.HandlerFunc) echo.HandlerFunc {
-// 		return func(c echo.Context) error {
-// 			defer func() {
-// 				maybeErr := recover()
-// 				if maybeErr == nil {
-// 					return
-// 				}
-
-// 				err, ok := maybeErr.(error)
-// 				if !ok {
-// 					err = fmt.Errorf("%v", maybeErr)
-// 				}
-
-// 				req := c.Request()
-// 				res := c.Response()
-
-// 				stack := debug.Stack()
-
-// 				c.Error(err)
-// 				c.Logger().Errorf(createErrorLog(req, res, string(stack), err))
-// 			}()
-
-// 			return next(c)
-// 		}
-// 	}
-// }
