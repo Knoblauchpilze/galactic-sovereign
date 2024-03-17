@@ -7,8 +7,12 @@ import (
 )
 
 func pathFromRequest(req *http.Request) string {
+	if req == nil {
+		return ""
+	}
+
 	out := req.Host
-	if req.URL.Path != "" {
+	if req.URL != nil && req.URL.Path != "" {
 		out += req.URL.Path
 	}
 	return out
