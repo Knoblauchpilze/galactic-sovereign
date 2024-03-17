@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestRecoverMiddleware_CallsNext(t *testing.T) {
+func TestRecoverMiddleware_CallsNextMiddleware(t *testing.T) {
 	assert := assert.New(t)
 	m := mockEchoContext{}
 	next, called := createHandlerFuncWithCalledBoolean()
