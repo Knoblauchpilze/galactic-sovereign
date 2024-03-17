@@ -155,6 +155,44 @@ func TestLogger_Errorf(t *testing.T) {
 	assert.True(matcher.MatchString(actual))
 }
 
+func TestLogger_Panicf(t *testing.T) {
+	assert := assert.New(t)
+	t.Cleanup(resetDefaultLogger)
+
+	m := mockIoWriter{}
+	consoleWriter = zerolog.ConsoleWriter{Out: &m, TimeFormat: time.DateTime}
+
+	l := New("prefix")
+	f := func() {
+		l.Panicf("%s", "hello")
+	}
+
+	assert.PanicsWithValuef("[prefix] hello", f, "")
+
+	assert.Equal(1, m.called)
+	actual := string(m.data[0])
+	matcher := regexp.MustCompile(`\x1b\[90m[0-9]+-[0-9]+-[0-9]+ [0-9]+:[0-9]+:[0-9]+\x1b\[0m \x1b\[31mPNC\x1b\[0m \x1b\[1m\[prefix\] hello\x1b\[0m\n`)
+	assert.True(matcher.MatchString(actual))
+}
+
+func TestLogger_WithHeader(t *testing.T) {
+	assert := assert.New(t)
+	t.Cleanup(resetDefaultLogger)
+
+	m := mockIoWriter{}
+	consoleWriter = zerolog.ConsoleWriter{Out: &m, TimeFormat: time.DateTime}
+
+	l := New("prefix")
+	l.SetHeader("header")
+
+	l.Debugf("%s", "hello")
+
+	assert.Equal(1, m.called)
+	actual := string(m.data[0])
+	matcher := regexp.MustCompile(`\x1b\[90m[0-9]+-[0-9]+-[0-9]+ [0-9]+:[0-9]+:[0-9]+\x1b\[0m DBG \[header\] \[prefix\] hello\n`)
+	assert.True(matcher.MatchString(actual))
+}
+
 func resetDefaultLogger() {
 	prettyLogger = zerolog.New(nil).Output(newSafeConsoleWriter())
 }
@@ -175,10 +213,6 @@ func resetDefaultLogger() {
 // 	l.log = prettyLogger.Output(l.out)
 
 // 	return &l
-// }
-
-// func (l *loggerImpl) SetHeader(header string) {
-// 	l.header = header
 // }
 
 // func (l *loggerImpl) prependPrefixAndHeaderIfNeeded(in string) string {
@@ -255,20 +289,12 @@ func resetDefaultLogger() {
 // 	l.fields(l.log.Debug(), i...)
 // }
 
-// func (l *loggerImpl) Debugf(format string, args ...interface{}) {
-// 	l.msgF(l.log.Debug(), format, args...)
-// }
-
 // func (l *loggerImpl) Debugj(data log.JSON) {
 // 	l.json(l.log.Debug(), data)
 // }
 
 // func (l *loggerImpl) Info(i ...interface{}) {
 // 	l.fields(l.log.Info(), i...)
-// }
-
-// func (l *loggerImpl) Infof(format string, args ...interface{}) {
-// 	l.msgF(l.log.Info(), format, args...)
 // }
 
 // func (l *loggerImpl) Infoj(data log.JSON) {
@@ -279,10 +305,6 @@ func resetDefaultLogger() {
 // 	l.fields(l.log.Warn(), i...)
 // }
 
-// func (l *loggerImpl) Warnf(format string, args ...interface{}) {
-// 	l.msgF(l.log.Warn(), format, args...)
-// }
-
 // func (l *loggerImpl) Warnj(data log.JSON) {
 // 	l.json(l.log.Warn(), data)
 // }
@@ -291,20 +313,12 @@ func resetDefaultLogger() {
 // 	l.fields(l.log.Error(), i...)
 // }
 
-// func (l *loggerImpl) Errorf(format string, args ...interface{}) {
-// 	l.msgF(l.log.Error(), format, args...)
-// }
-
 // func (l *loggerImpl) Errorj(data log.JSON) {
 // 	l.json(l.log.Error(), data)
 // }
 
 // func (l *loggerImpl) Panic(i ...interface{}) {
 // 	l.fields(l.log.Panic(), i...)
-// }
-
-// func (l *loggerImpl) Panicf(format string, args ...interface{}) {
-// 	l.msgF(l.log.Panic(), format, args...)
 // }
 
 // func (l *loggerImpl) Panicj(data log.JSON) {
