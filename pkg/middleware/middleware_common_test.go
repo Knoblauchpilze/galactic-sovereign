@@ -9,6 +9,15 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+func createHandlerFuncWithCalledBoolean() (echo.HandlerFunc, *bool) {
+	called := false
+	call := func(c echo.Context) error {
+		called = true
+		return nil
+	}
+	return call, &called
+}
+
 func createHandlerFuncReturning(err error) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		return err
