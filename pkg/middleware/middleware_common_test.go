@@ -7,6 +7,7 @@ import (
 	"net/url"
 
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/gommon/log"
 )
 
 func createHandlerFuncWithCalledBoolean() (echo.HandlerFunc, *bool) {
@@ -24,15 +25,30 @@ func createHandlerFuncReturning(err error) echo.HandlerFunc {
 	}
 }
 
-type mockEchoContext struct{}
+type mockEchoContext struct {
+	request       *http.Request
+	response      *echo.Response
+	logger        echo.Logger
+	reportedError error
+}
 
-func (m *mockEchoContext) Request() *http.Request { return nil }
+type mockEchoLogger struct{}
+
+func newMockEchoContext(req *http.Request, res *echo.Response) *mockEchoContext {
+	return &mockEchoContext{
+		request:  req,
+		response: res,
+		logger:   &mockEchoLogger{},
+	}
+}
+
+func (m *mockEchoContext) Request() *http.Request { return m.request }
 
 func (m *mockEchoContext) SetRequest(r *http.Request) {}
 
 func (m *mockEchoContext) SetResponse(r *echo.Response) {}
 
-func (m *mockEchoContext) Response() *echo.Response { return nil }
+func (m *mockEchoContext) Response() *echo.Response { return m.response }
 
 func (m *mockEchoContext) IsTLS() bool { return false }
 
@@ -122,16 +138,74 @@ func (m *mockEchoContext) NoContent(code int) error { return nil }
 
 func (m *mockEchoContext) Redirect(code int, url string) error { return nil }
 
-func (m *mockEchoContext) Error(err error) {}
+func (m *mockEchoContext) Error(err error) {
+	m.reportedError = err
+}
 
 func (m *mockEchoContext) Handler() echo.HandlerFunc { return nil }
 
 func (m *mockEchoContext) SetHandler(h echo.HandlerFunc) {}
 
-func (m *mockEchoContext) Logger() echo.Logger { return nil }
+func (m *mockEchoContext) Logger() echo.Logger { return m.logger }
 
 func (m *mockEchoContext) SetLogger(l echo.Logger) {}
 
 func (m *mockEchoContext) Echo() *echo.Echo { return nil }
 
 func (m *mockEchoContext) Reset(r *http.Request, w http.ResponseWriter) {}
+
+func (m *mockEchoLogger) Output() io.Writer { return nil }
+
+func (m *mockEchoLogger) SetOutput(w io.Writer) {}
+
+func (m *mockEchoLogger) Prefix() string { return "" }
+
+func (m *mockEchoLogger) SetPrefix(p string) {}
+
+func (m *mockEchoLogger) Level() log.Lvl { return log.DEBUG }
+
+func (m *mockEchoLogger) SetLevel(v log.Lvl) {}
+
+func (m *mockEchoLogger) SetHeader(h string) {}
+
+func (m *mockEchoLogger) Print(i ...interface{}) {}
+
+func (m *mockEchoLogger) Printf(format string, args ...interface{}) {}
+
+func (m *mockEchoLogger) Printj(j log.JSON) {}
+
+func (m *mockEchoLogger) Debug(i ...interface{}) {}
+
+func (m *mockEchoLogger) Debugf(format string, args ...interface{}) {}
+
+func (m *mockEchoLogger) Debugj(j log.JSON) {}
+
+func (m *mockEchoLogger) Info(i ...interface{}) {}
+
+func (m *mockEchoLogger) Infof(format string, args ...interface{}) {}
+
+func (m *mockEchoLogger) Infoj(j log.JSON) {}
+
+func (m *mockEchoLogger) Warn(i ...interface{}) {}
+
+func (m *mockEchoLogger) Warnf(format string, args ...interface{}) {}
+
+func (m *mockEchoLogger) Warnj(j log.JSON) {}
+
+func (m *mockEchoLogger) Error(i ...interface{}) {}
+
+func (m *mockEchoLogger) Errorf(format string, args ...interface{}) {}
+
+func (m *mockEchoLogger) Errorj(j log.JSON) {}
+
+func (m *mockEchoLogger) Fatal(i ...interface{}) {}
+
+func (m *mockEchoLogger) Fatalj(j log.JSON) {}
+
+func (m *mockEchoLogger) Fatalf(format string, args ...interface{}) {}
+
+func (m *mockEchoLogger) Panic(i ...interface{}) {}
+
+func (m *mockEchoLogger) Panicj(j log.JSON) {}
+
+func (m *mockEchoLogger) Panicf(format string, args ...interface{}) {}
