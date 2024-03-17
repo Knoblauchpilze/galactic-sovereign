@@ -193,40 +193,115 @@ func TestLogger_WithHeader(t *testing.T) {
 	assert.True(matcher.MatchString(actual))
 }
 
+func TestLogger_Debugj(t *testing.T) {
+	assert := assert.New(t)
+	t.Cleanup(resetDefaultLogger)
+
+	m := mockIoWriter{}
+	consoleWriter = zerolog.ConsoleWriter{Out: &m, TimeFormat: time.DateTime}
+
+	l := New("prefix")
+
+	l.Debugj(map[string]interface{}{"key": "value"})
+
+	assert.Equal(1, m.called)
+	actual := string(m.data[0])
+	matcher := regexp.MustCompile(`\x1b\[90m[0-9]+-[0-9]+-[0-9]+ [0-9]+:[0-9]+:[0-9]+\x1b\[0m DBG \x1b\[36mid=\x1b\[0mprefix \x1b\[36mkey=\x1b\[0mvalue\n`)
+	assert.True(matcher.MatchString(actual))
+}
+
+func TestLogger_Infoj(t *testing.T) {
+	assert := assert.New(t)
+	t.Cleanup(resetDefaultLogger)
+
+	m := mockIoWriter{}
+	consoleWriter = zerolog.ConsoleWriter{Out: &m, TimeFormat: time.DateTime}
+
+	l := New("prefix")
+
+	l.Infoj(map[string]interface{}{"key": "value"})
+
+	assert.Equal(1, m.called)
+	actual := string(m.data[0])
+	matcher := regexp.MustCompile(`\x1b\[90m[0-9]+-[0-9]+-[0-9]+ [0-9]+:[0-9]+:[0-9]+\x1b\[0m \x1b\[32mINF\x1b\[0m \x1b\[36mid=\x1b\[0mprefix \x1b\[36mkey=\x1b\[0mvalue\n`)
+	assert.True(matcher.MatchString(actual))
+}
+
+func TestLogger_Warnj(t *testing.T) {
+	assert := assert.New(t)
+	t.Cleanup(resetDefaultLogger)
+
+	m := mockIoWriter{}
+	consoleWriter = zerolog.ConsoleWriter{Out: &m, TimeFormat: time.DateTime}
+
+	l := New("prefix")
+
+	l.Warnj(map[string]interface{}{"key": "value"})
+
+	assert.Equal(1, m.called)
+	actual := string(m.data[0])
+	matcher := regexp.MustCompile(`\x1b\[90m[0-9]+-[0-9]+-[0-9]+ [0-9]+:[0-9]+:[0-9]+\x1b\[0m \x1b\[33mWRN\x1b\[0m \x1b\[36mid=\x1b\[0mprefix \x1b\[36mkey=\x1b\[0mvalue\n`)
+	assert.True(matcher.MatchString(actual))
+}
+
+func TestLogger_Errorj(t *testing.T) {
+	assert := assert.New(t)
+	t.Cleanup(resetDefaultLogger)
+
+	m := mockIoWriter{}
+	consoleWriter = zerolog.ConsoleWriter{Out: &m, TimeFormat: time.DateTime}
+
+	l := New("prefix")
+
+	l.Errorj(map[string]interface{}{"key": "value"})
+
+	assert.Equal(1, m.called)
+	actual := string(m.data[0])
+	matcher := regexp.MustCompile(`\x1b\[90m[0-9]+-[0-9]+-[0-9]+ [0-9]+:[0-9]+:[0-9]+\x1b\[0m \x1b\[31mERR\x1b\[0m \x1b\[36mid=\x1b\[0mprefix \x1b\[36mkey=\x1b\[0mvalue\n`)
+	assert.True(matcher.MatchString(actual))
+}
+
+func TestLogger_Panicj(t *testing.T) {
+	assert := assert.New(t)
+	t.Cleanup(resetDefaultLogger)
+
+	m := mockIoWriter{}
+	consoleWriter = zerolog.ConsoleWriter{Out: &m, TimeFormat: time.DateTime}
+
+	l := New("prefix")
+	f := func() {
+		l.Panicj(map[string]interface{}{"key": "value"})
+	}
+
+	assert.PanicsWithValuef("", f, "")
+
+	assert.Equal(1, m.called)
+	actual := string(m.data[0])
+	matcher := regexp.MustCompile(`\x1b\[90m[0-9]+-[0-9]+-[0-9]+ [0-9]+:[0-9]+:[0-9]+\x1b\[0m \x1b\[31mPNC\x1b\[0m \x1b\[36mid=\x1b\[0mprefix \x1b\[36mkey=\x1b\[0mvalue\n`)
+	assert.True(matcher.MatchString(actual))
+}
+
+func TestLogger_JsonWithHeader(t *testing.T) {
+	assert := assert.New(t)
+	t.Cleanup(resetDefaultLogger)
+
+	m := mockIoWriter{}
+	consoleWriter = zerolog.ConsoleWriter{Out: &m, TimeFormat: time.DateTime}
+
+	l := New("prefix")
+	l.SetHeader("header")
+
+	l.Debugj(map[string]interface{}{"key": "value"})
+
+	assert.Equal(1, m.called)
+	actual := string(m.data[0])
+	matcher := regexp.MustCompile(`\x1b\[90m[0-9]+-[0-9]+-[0-9]+ [0-9]+:[0-9]+:[0-9]+\x1b\[0m DBG \x1b\[36mheader=\x1b\[0mheader \x1b\[36mid=\x1b\[0mprefix \x1b\[36mkey=\x1b\[0mvalue\n`)
+	assert.True(matcher.MatchString(actual))
+}
+
 func resetDefaultLogger() {
 	prettyLogger = zerolog.New(nil).Output(newSafeConsoleWriter())
 }
-
-// type loggerImpl struct {
-// 	header string
-// 	prefix string
-// 	out    io.Writer
-// 	log    zerolog.Logger
-// }
-
-// func New(prefix string) echo.Logger {
-// 	l := loggerImpl{
-// 		prefix: prefix,
-// 		out:    newSafeConsoleWriter(),
-// 	}
-
-// 	l.log = prettyLogger.Output(l.out)
-
-// 	return &l
-// }
-
-// func (l *loggerImpl) prependPrefixAndHeaderIfNeeded(in string) string {
-// 	out := in
-
-// 	if l.prefix != "" {
-// 		out = fmt.Sprintf("[%s] %s", l.prefix, out)
-// 	}
-// 	if l.header != "" {
-// 		out = fmt.Sprintf("[%s] %s", l.header, out)
-// 	}
-
-// 	return out
-// }
 
 // func (l *loggerImpl) addPrefixAndHeaderIfNeeded(event *zerolog.Event) {
 // 	if l.header != "" {
@@ -235,12 +310,6 @@ func resetDefaultLogger() {
 // 	if l.prefix != "" {
 // 		event.Str("id", l.prefix)
 // 	}
-// }
-
-// func (l *loggerImpl) msgF(event *zerolog.Event, format string, args ...interface{}) {
-// 	event.Timestamp()
-// 	format = l.prependPrefixAndHeaderIfNeeded(format)
-// 	event.Msgf(format, args...)
 // }
 
 // func (l *loggerImpl) json(event *zerolog.Event, data log.JSON) {
@@ -289,40 +358,20 @@ func resetDefaultLogger() {
 // 	l.fields(l.log.Debug(), i...)
 // }
 
-// func (l *loggerImpl) Debugj(data log.JSON) {
-// 	l.json(l.log.Debug(), data)
-// }
-
 // func (l *loggerImpl) Info(i ...interface{}) {
 // 	l.fields(l.log.Info(), i...)
-// }
-
-// func (l *loggerImpl) Infoj(data log.JSON) {
-// 	l.json(l.log.Info(), data)
 // }
 
 // func (l *loggerImpl) Warn(i ...interface{}) {
 // 	l.fields(l.log.Warn(), i...)
 // }
 
-// func (l *loggerImpl) Warnj(data log.JSON) {
-// 	l.json(l.log.Warn(), data)
-// }
-
 // func (l *loggerImpl) Error(i ...interface{}) {
 // 	l.fields(l.log.Error(), i...)
 // }
 
-// func (l *loggerImpl) Errorj(data log.JSON) {
-// 	l.json(l.log.Error(), data)
-// }
-
 // func (l *loggerImpl) Panic(i ...interface{}) {
 // 	l.fields(l.log.Panic(), i...)
-// }
-
-// func (l *loggerImpl) Panicj(data log.JSON) {
-// 	l.json(l.log.Panic(), data)
 // }
 
 // func (l *loggerImpl) Fatal(i ...interface{}) {
