@@ -59,7 +59,7 @@ func TestRecoverMiddleware_PropagatesError(t *testing.T) {
 	assert.Equal(actual, errDefault)
 }
 
-func createPanickingHandlerFunc(err error) echo.HandlerFunc {
+func createPanickingHandlerFunc(err interface{}) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		panic(err)
 	}
@@ -82,6 +82,26 @@ func TestRecoverMiddleware_SetsContextErrorOnPanic(t *testing.T) {
 	callable(m)
 
 	assert.Equal(errDefault, m.reportedError)
+}
+
+func TestRecoverMiddleware_ConvertsToErrorUnknownPanic(t *testing.T) {
+	assert := assert.New(t)
+
+	req := &http.Request{
+		Method: "GET",
+	}
+	res := &echo.Response{
+		Status: http.StatusConflict,
+	}
+	m := newMockEchoContext(req, res)
+	next := createPanickingHandlerFunc(36)
+
+	em := Recover()
+	callable := em(next)
+	callable(m)
+
+	expected := fmt.Errorf("%v", 36)
+	assert.Equal(expected, m.reportedError)
 }
 
 // func Recover() echo.MiddlewareFunc {
