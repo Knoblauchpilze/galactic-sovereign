@@ -29,10 +29,25 @@ type mockEchoContext struct {
 	request       *http.Request
 	response      *echo.Response
 	logger        echo.Logger
+	values        map[string]interface{}
+	loggerChanged bool
 	reportedError error
 }
 
 type mockEchoLogger struct{}
+
+type mockResponseWriter struct {
+	headerCalled int
+	header       http.Header
+
+	writeCalled int
+	data        []byte
+	written     int
+	writeErr    error
+
+	writeHeaderCalled int
+	code              int
+}
 
 func newMockEchoContext(code int) *mockEchoContext {
 	return &mockEchoContext{
@@ -41,8 +56,10 @@ func newMockEchoContext(code int) *mockEchoContext {
 		},
 		response: &echo.Response{
 			Status: code,
+			Writer: &mockResponseWriter{},
 		},
 		logger: &mockEchoLogger{},
+		values: map[string]interface{}{},
 	}
 }
 
@@ -98,7 +115,9 @@ func (m *mockEchoContext) Cookies() []*http.Cookie { return nil }
 
 func (m *mockEchoContext) Get(key string) interface{} { return nil }
 
-func (m *mockEchoContext) Set(key string, val interface{}) {}
+func (m *mockEchoContext) Set(key string, val interface{}) {
+	m.values[key] = val
+}
 
 func (m *mockEchoContext) Bind(i interface{}) error { return nil }
 
@@ -152,7 +171,9 @@ func (m *mockEchoContext) SetHandler(h echo.HandlerFunc) {}
 
 func (m *mockEchoContext) Logger() echo.Logger { return m.logger }
 
-func (m *mockEchoContext) SetLogger(l echo.Logger) {}
+func (m *mockEchoContext) SetLogger(l echo.Logger) {
+	m.loggerChanged = true
+}
 
 func (m *mockEchoContext) Echo() *echo.Echo { return nil }
 
@@ -213,3 +234,19 @@ func (m *mockEchoLogger) Panic(i ...interface{}) {}
 func (m *mockEchoLogger) Panicj(j log.JSON) {}
 
 func (m *mockEchoLogger) Panicf(format string, args ...interface{}) {}
+
+func (m *mockResponseWriter) Header() http.Header {
+	m.headerCalled++
+	return m.header
+}
+
+func (m *mockResponseWriter) Write(out []byte) (int, error) {
+	m.writeCalled++
+	m.data = out
+	return m.written, m.writeErr
+}
+
+func (m *mockResponseWriter) WriteHeader(statusCode int) {
+	m.writeHeaderCalled++
+	m.code = statusCode
+}
