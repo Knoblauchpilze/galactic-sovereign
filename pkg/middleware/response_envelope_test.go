@@ -76,26 +76,3 @@ func TestResponseEnvelopeMiddleware_OverridesResponseWriter(t *testing.T) {
 	actualW := actual.(*envelopeResponseWriter).writer
 	assert.Equal(w, actualW)
 }
-
-// func ResponseEnvelope() echo.MiddlewareFunc {
-// 	return func(next echo.HandlerFunc) echo.HandlerFunc {
-// 		return func(c echo.Context) error {
-// 			id := uuid.Must(uuid.NewRandom())
-// 			log := logger.New(id.String())
-
-// 			c.Set(RequestIdKey, id)
-// 			c.SetLogger(log)
-
-// 			w := &envelopeResponseWriter{
-// 				response: responseEnvelope{
-// 					RequestId: id,
-// 				},
-// 				writer: c.Response().Writer,
-// 				logger: log,
-// 			}
-// 			c.Response().Writer = w
-
-// 			return next(c)
-// 		}
-// 	}
-// }
