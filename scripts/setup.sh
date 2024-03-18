@@ -2,10 +2,14 @@
 
 echo "Configuring project..."
 
-echo "Creating build folders..."
+echo "Creating bin folders..."
 if [ ! -d "bin" ]; then
-  mkdir bin
+  mkdir -p bin bin/configs
 fi
+
+echo "Generating configuration files..."
+cp configs/server-template-dev.yml configs/server-dev.yml
+cp -r configs/*.yml bin/configs
 
 echo "Copying scripts..."
 cp scripts/run.sh bin
