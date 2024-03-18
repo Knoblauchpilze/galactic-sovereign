@@ -21,16 +21,18 @@ type serverImpl struct {
 	echoServer *echo.Echo
 }
 
-func New(endpoint string, port uint16) Server {
+func New(conf Config) Server {
 	return &serverImpl{
-		endpoint:   strings.TrimSuffix(endpoint, "/"),
-		port:       port,
+		endpoint:   strings.TrimSuffix(conf.Endpoint, "/"),
+		port:       conf.Port,
 		echoServer: createEchoContext(),
 	}
 }
 
 func (s *serverImpl) Start() {
 	address := fmt.Sprintf(":%d", s.port)
+
+	s.echoServer.Logger.Infof("Starting server at %s%s", s.endpoint, address)
 	s.echoServer.Logger.Fatal(s.echoServer.Start(address))
 }
 

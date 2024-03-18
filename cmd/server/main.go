@@ -1,20 +1,22 @@
 package main
 
 import (
-	"fmt"
+	"os"
 
+	"github.com/KnoblauchPilze/user-service/cmd/server/config"
 	"github.com/KnoblauchPilze/user-service/cmd/server/routes"
 	"github.com/KnoblauchPilze/user-service/cmd/server/server"
+	"github.com/KnoblauchPilze/user-service/pkg/logger"
 )
 
-const ENDPOINT = "users"
-const PORT = uint16(60000)
-const VERSION = 1
-
 func main() {
-	endpoint := fmt.Sprintf("/v%d/%s", VERSION, ENDPOINT)
-	s := server.New(endpoint, PORT)
+	conf, err := config.Load()
+	if err != nil {
+		logger.Errorf("Failed to load configuration: %v", err)
+		os.Exit(1)
+	}
 
+	s := server.New(conf.Server)
 	s.Register(routes.UserRoutes())
 
 	s.Start()
