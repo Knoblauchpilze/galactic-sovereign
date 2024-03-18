@@ -1,4 +1,5 @@
 Server:
+  Endpoint: "/v1/users"
   Port: 60001
 Database:
   Host: "localhost"
