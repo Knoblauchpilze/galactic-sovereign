@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/KnoblauchPilze/user-service/cmd/server/routes"
+	"github.com/KnoblauchPilze/user-service/cmd/server/server"
 )
 
 const ENDPOINT = "users"
@@ -12,7 +13,7 @@ const VERSION = 1
 
 func main() {
 	endpoint := fmt.Sprintf("/v%d/%s", VERSION, ENDPOINT)
-	s := routes.NewServer(endpoint, PORT)
+	s := server.New(endpoint, PORT)
 
 	s.Register(routes.UserRoutes())
 
