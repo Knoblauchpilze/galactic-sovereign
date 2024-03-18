@@ -1,0 +1,12 @@
+Server:
+  Port: 60001
+Database:
+  Host: "localhost"
+  Port: 5500
+  ConnectionsPoolSize: 2
+  Name: DB_NAME
+  User: DB_USER
+  Password: DB_PASSWORD
+  # https://stackoverflow.com/questions/75853288/how-to-mention-time-duration-in-days-so-that-golang-viper-config-can-be-loaded-w
+  ConnectionTimeout: 5s
+  QueryTimeout: 1s
