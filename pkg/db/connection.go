@@ -11,13 +11,19 @@ type Connection interface {
 	Close()
 }
 
+type pgxDbConnection interface {
+	Close()
+	Query(sql string, args ...interface{}) (*pgx.Rows, error)
+	Exec(sql string, arguments ...interface{}) (pgx.CommandTag, error)
+}
+
 var pgxConnectionFunc = pgx.NewConnPool
 
 type connectionImpl struct {
 	config Config
 
 	lock sync.Mutex
-	pool *pgx.ConnPool
+	pool pgxDbConnection
 }
 
 func New(config Config) Connection {
