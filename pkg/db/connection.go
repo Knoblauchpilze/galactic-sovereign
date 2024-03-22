@@ -9,11 +9,14 @@ import (
 type Connection interface {
 	Connect() error
 	Close()
+
+	Query(sql string, arguments ...interface{}) Rows
+	Exec(sql string, arguments ...interface{}) (string, error)
 }
 
 type pgxDbConnection interface {
 	Close()
-	Query(sql string, args ...interface{}) (*pgx.Rows, error)
+	Query(sql string, arguments ...interface{}) (*pgx.Rows, error)
 	Exec(sql string, arguments ...interface{}) (pgx.CommandTag, error)
 }
 
@@ -26,7 +29,7 @@ type connectionImpl struct {
 	pool pgxDbConnection
 }
 
-func New(config Config) Connection {
+func NewConnection(config Config) Connection {
 	return &connectionImpl{
 		config: config,
 	}
@@ -54,4 +57,14 @@ func (c *connectionImpl) Close() {
 	}
 
 	c.pool.Close()
+}
+
+func (c *connectionImpl) Query(sql string, args ...interface{}) Rows {
+	rows, err := c.pool.Query(sql, args...)
+	return newRows(rows, err)
+}
+
+func (c *connectionImpl) Exec(sql string, args ...interface{}) (string, error) {
+	tag, err := c.pool.Exec(sql, args...)
+	return string(tag), err
 }
