@@ -11,15 +11,21 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func UserRoutes(conn db.Connection) Route {
+func UserEndpoint(conn db.Connection) Routes {
 	repo := repositories.NewUserRepository(conn)
 
-	return Route{
-		Path:        "users",
-		GetRoute:    wrapWithDb(getUser, repo),
-		PostRoute:   wrapWithDb(createUser, repo),
-		DeleteRoute: wrapWithDb(deleteUser, repo),
-	}
+	path := "/users"
+
+	get := NewRoute("GET", path, wrapWithDb(getUser, repo))
+	post := NewRoute("POST", path, wrapWithDb(createUser, repo))
+	delete := NewRoute("DELETE", path, wrapWithDb(deleteUser, repo))
+
+	var routes Routes
+	routes = append(routes, get)
+	routes = append(routes, post)
+	routes = append(routes, delete)
+
+	return routes
 }
 
 type userHttpHandler func(echo.Context, repositories.UserRepository) error
