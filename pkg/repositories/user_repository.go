@@ -2,26 +2,17 @@ package repositories
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/KnoblauchPilze/user-service/pkg/db"
 	"github.com/KnoblauchPilze/user-service/pkg/errors"
+	"github.com/KnoblauchPilze/user-service/pkg/persistence"
 	"github.com/google/uuid"
 )
 
-type User struct {
-	id       uuid.UUID
-	email    string
-	password string
-
-	createdAt  time.Time
-	updated_at time.Time
-}
-
 type UserRepository interface {
-	Create(user User) error
-	Get(id uuid.UUID) (User, error)
-	Update(user User) (User, error)
+	Create(user persistence.User) error
+	Get(id uuid.UUID) (persistence.User, error)
+	Update(user persistence.User) (persistence.User, error)
 	Delete(id uuid.UUID) error
 }
 
@@ -35,33 +26,33 @@ func NewUserRepository(conn db.Connection) UserRepository {
 	}
 }
 
-func (r *userRepositoryImpl) Create(user User) error {
+func (r *userRepositoryImpl) Create(user persistence.User) error {
 	return errors.NewCode(errors.NotImplementedCode)
 }
 
 const sqlQueryUserTemplate = "select id, email, password created_at, updated_at from api_user where id = '%s'"
 
-func (r *userRepositoryImpl) Get(id uuid.UUID) (User, error) {
+func (r *userRepositoryImpl) Get(id uuid.UUID) (persistence.User, error) {
 	query := fmt.Sprintf(sqlQueryUserTemplate, id)
 	res := r.conn.Query(query)
 	if err := res.Err(); err != nil {
-		return User{}, err
+		return persistence.User{}, err
 	}
 
-	var out User
+	var out persistence.User
 	parser := func(rows db.Scannable) error {
-		return rows.Scan(out.id, out.email, out.password, out.createdAt, out.updated_at)
+		return rows.Scan(out.Id, out.Email, out.Password, out.CreatedAt, out.Updated_at)
 	}
 
 	if err := res.GetSingleValue(parser); err != nil {
-		return User{}, err
+		return persistence.User{}, err
 	}
 
 	return out, nil
 }
 
-func (r *userRepositoryImpl) Update(user User) (User, error) {
-	return User{}, errors.NewCode(errors.NotImplementedCode)
+func (r *userRepositoryImpl) Update(user persistence.User) (persistence.User, error) {
+	return persistence.User{}, errors.NewCode(errors.NotImplementedCode)
 }
 
 func (r *userRepositoryImpl) Delete(id uuid.UUID) error {

@@ -6,6 +6,7 @@ import (
 
 	"github.com/KnoblauchPilze/user-service/pkg/db"
 	"github.com/KnoblauchPilze/user-service/pkg/errors"
+	"github.com/KnoblauchPilze/user-service/pkg/persistence"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 )
@@ -35,7 +36,7 @@ func TestUserRepository_Create_NotImplemented(t *testing.T) {
 	mc := &mockConnection{}
 	repo := NewUserRepository(mc)
 
-	err := repo.Create(User{})
+	err := repo.Create(persistence.User{})
 	assert.True(errors.IsErrorWithCode(err, errors.NotImplementedCode))
 }
 
@@ -122,7 +123,7 @@ func TestUserRepository_Update_NotImplemented(t *testing.T) {
 	mc := &mockConnection{}
 	repo := NewUserRepository(mc)
 
-	_, err := repo.Update(User{})
+	_, err := repo.Update(persistence.User{})
 	assert.True(errors.IsErrorWithCode(err, errors.NotImplementedCode))
 }
 
