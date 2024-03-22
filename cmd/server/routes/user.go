@@ -3,6 +3,7 @@ package routes
 import (
 	"net/http"
 
+	"github.com/KnoblauchPilze/user-service/pkg/communication"
 	"github.com/KnoblauchPilze/user-service/pkg/db"
 	"github.com/KnoblauchPilze/user-service/pkg/errors"
 	"github.com/KnoblauchPilze/user-service/pkg/repositories"
@@ -36,7 +37,7 @@ func getUser(c echo.Context, repo repositories.UserRepository) error {
 		return c.JSON(http.StatusBadRequest, "Invalid id syntax")
 	}
 
-	out, err := repo.Get(id)
+	user, err := repo.Get(id)
 	if err != nil {
 		if errors.IsErrorWithCode(err, db.NoMatchingSqlRows) {
 			return c.JSON(http.StatusNotFound, "No such user")
@@ -44,6 +45,8 @@ func getUser(c echo.Context, repo repositories.UserRepository) error {
 
 		return c.JSON(http.StatusInternalServerError, err)
 	}
+
+	out := communication.FromUser(user)
 
 	return c.JSON(http.StatusOK, out)
 }
