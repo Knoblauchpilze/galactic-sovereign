@@ -62,11 +62,13 @@ func (c *connectionImpl) Close() {
 }
 
 func (c *connectionImpl) Query(sql string, args ...interface{}) Rows {
+	logger.Debugf("Query: %s (%d)", sql, len(args))
 	rows, err := c.pool.Query(sql, args...)
 	return newRows(rows, err)
 }
 
 func (c *connectionImpl) Exec(sql string, args ...interface{}) (string, error) {
+	logger.Debugf("Exec: %s (%d)", sql, len(args))
 	tag, err := c.pool.Exec(sql, args...)
 	return string(tag), err
 }
