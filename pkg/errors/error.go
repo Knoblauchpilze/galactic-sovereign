@@ -7,7 +7,10 @@ import (
 
 type ErrorCode int
 
-const GenericErrorCode ErrorCode = 1
+const (
+	GenericErrorCode   ErrorCode = 1
+	NotImplementedCode ErrorCode = 2
+)
 
 type ErrorWithCode interface {
 	Code() ErrorCode
