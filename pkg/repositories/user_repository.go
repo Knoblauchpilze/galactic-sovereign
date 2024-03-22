@@ -39,7 +39,7 @@ func (r *userRepositoryImpl) Create(user User) error {
 	return errors.NewCode(errors.NotImplementedCode)
 }
 
-const sqlQueryUserTemplate = "select id, mail, password created_at, updated_at from api_user where id = '%s'"
+const sqlQueryUserTemplate = "select id, email, password created_at, updated_at from api_user where id = '%s'"
 
 func (r *userRepositoryImpl) Get(id uuid.UUID) (User, error) {
 	query := fmt.Sprintf(sqlQueryUserTemplate, id)
