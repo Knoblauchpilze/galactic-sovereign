@@ -58,7 +58,7 @@ func TestUserRepository_Get_GeneratesValidSql(t *testing.T) {
 
 	repo.Get(defaultUuid)
 
-	assert.Equal("select id, mail, password created_at, updated_at from api_user where id = '08ce96a3-3430-48a8-a3b2-b1c987a207ca'", mc.sqlQuery)
+	assert.Equal("select id, email, password created_at, updated_at from api_user where id = '08ce96a3-3430-48a8-a3b2-b1c987a207ca'", mc.sqlQuery)
 	assert.Equal(0, len(mc.args))
 }
 
