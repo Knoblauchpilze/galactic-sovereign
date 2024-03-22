@@ -1,4 +1,4 @@
-package server
+package routes
 
 import (
 	"testing"
@@ -81,7 +81,7 @@ func TestSanitizePath_AddPrefix_PreservesPath(t *testing.T) {
 func TestConcatenateEndpoints_AllEmpty(t *testing.T) {
 	assert := assert.New(t)
 
-	actual := concatenateEndpoints("", "")
+	actual := ConcatenateEndpoints("", "")
 
 	assert.Equal("/", actual)
 }
@@ -89,7 +89,7 @@ func TestConcatenateEndpoints_AllEmpty(t *testing.T) {
 func TestConcatenateEndpoints_EmptyEndpoint(t *testing.T) {
 	assert := assert.New(t)
 
-	actual := concatenateEndpoints("", "/some/path")
+	actual := ConcatenateEndpoints("", "/some/path")
 
 	assert.Equal("/some/path", actual)
 }
@@ -97,7 +97,7 @@ func TestConcatenateEndpoints_EmptyEndpoint(t *testing.T) {
 func TestConcatenateEndpoints_EmptyPath(t *testing.T) {
 	assert := assert.New(t)
 
-	actual := concatenateEndpoints("/some/endpoint", "")
+	actual := ConcatenateEndpoints("/some/endpoint", "")
 
 	assert.Equal("/some/endpoint", actual)
 }
@@ -105,7 +105,7 @@ func TestConcatenateEndpoints_EmptyPath(t *testing.T) {
 func TestConcatenateEndpoints_DoesNotGenerateDoubleSlash(t *testing.T) {
 	assert := assert.New(t)
 
-	actual := concatenateEndpoints("/some/endpoint", "/some/path")
+	actual := ConcatenateEndpoints("/some/endpoint", "/some/path")
 
 	assert.Equal("/some/endpoint/some/path", actual)
 }
@@ -113,7 +113,7 @@ func TestConcatenateEndpoints_DoesNotGenerateDoubleSlash(t *testing.T) {
 func TestConcatenateEndpoints_ConcatenateCorrectly(t *testing.T) {
 	assert := assert.New(t)
 
-	actual := concatenateEndpoints("/some/endpoint", "some/path")
+	actual := ConcatenateEndpoints("/some/endpoint", "some/path")
 
 	assert.Equal("/some/endpoint/some/path", actual)
 }

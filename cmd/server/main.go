@@ -29,7 +29,11 @@ func main() {
 	installCleanup(conn)
 
 	s := server.New(conf.Server)
-	s.Register(routes.UserRoutes(conn))
+
+	userRoutes := routes.UserEndpoint(conn)
+	for _, route := range userRoutes {
+		s.Register(route)
+	}
 
 	if err := s.Start(); err != nil {
 		logger.Errorf("Error while servier was running: %v", err)
