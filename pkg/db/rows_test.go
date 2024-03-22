@@ -96,10 +96,10 @@ func (m *mockParser) ScanRow(row Scannable) error {
 func TestRows_GetSingleValue_WhenError_Fails(t *testing.T) {
 	assert := assert.New(t)
 
-	mp := &mockParser{}
+	mp := mockParser{}
 
 	r := newRows(nil, errDefault)
-	err := r.GetSingleValue(mp)
+	err := r.GetSingleValue(mp.ScanRow)
 	assert.Equal(errDefault, err)
 	assert.Equal(0, mp.scanCalled)
 }
@@ -110,7 +110,7 @@ func TestRows_GetSingleValue_WhenNilRows_Fails(t *testing.T) {
 	mp := &mockParser{}
 
 	r := newRows(nil, nil)
-	err := r.GetSingleValue(mp)
+	err := r.GetSingleValue(mp.ScanRow)
 	assert.True(errors.IsErrorWithCode(err, NoMatchingSqlRows))
 	assert.Equal(0, mp.scanCalled)
 }
@@ -122,7 +122,7 @@ func TestRows_GetAll_WhenNoRows_Fails(t *testing.T) {
 	mp := &mockParser{}
 
 	r := newRows(mr, nil)
-	err := r.GetSingleValue(mp)
+	err := r.GetSingleValue(mp.ScanRow)
 
 	assert.True(errors.IsErrorWithCode(err, NoMatchingSqlRows))
 	assert.Equal(0, mr.closeCalls)
@@ -138,7 +138,7 @@ func TestRows_GetSingleValue_WhenRows_Succeeds(t *testing.T) {
 	mp := &mockParser{}
 
 	r := newRows(mr, nil)
-	err := r.GetSingleValue(mp)
+	err := r.GetSingleValue(mp.ScanRow)
 
 	assert.Nil(err)
 	assert.Equal(1, mp.scanCalled)
@@ -153,7 +153,7 @@ func TestRows_GetSingleValue_CallsClose(t *testing.T) {
 	mp := &mockParser{}
 
 	r := newRows(mr, nil)
-	r.GetSingleValue(mp)
+	r.GetSingleValue(mp.ScanRow)
 
 	assert.Equal(1, mr.closeCalls)
 }
@@ -169,7 +169,7 @@ func TestRows_GetSingleValue_ParserError(t *testing.T) {
 	}
 
 	r := newRows(mr, nil)
-	err := r.GetSingleValue(mp)
+	err := r.GetSingleValue(mp.ScanRow)
 
 	assert.Equal(errDefault, err)
 	assert.Equal(1, mr.closeCalls)
@@ -185,7 +185,7 @@ func TestRows_GetSingleValue_WithMultipleValues(t *testing.T) {
 	mp := &mockParser{}
 
 	r := newRows(mr, nil)
-	err := r.GetSingleValue(mp)
+	err := r.GetSingleValue(mp.ScanRow)
 
 	assert.True(errors.IsErrorWithCode(err, MoreThanOneMatchingSqlRows))
 	assert.Equal(1, mr.closeCalls)
@@ -198,7 +198,7 @@ func TestRows_GetAll_WhenError_Fails(t *testing.T) {
 	mp := &mockParser{}
 
 	r := newRows(nil, errDefault)
-	err := r.GetAll(mp)
+	err := r.GetAll(mp.ScanRow)
 	assert.Equal(errDefault, err)
 	assert.Equal(0, mp.scanCalled)
 }
@@ -209,7 +209,7 @@ func TestRows_GetAll_WhenNilRows_Succeeds(t *testing.T) {
 	mp := &mockParser{}
 
 	r := newRows(nil, nil)
-	err := r.GetAll(mp)
+	err := r.GetAll(mp.ScanRow)
 
 	assert.Nil(err)
 	assert.Equal(0, mp.scanCalled)
@@ -222,7 +222,7 @@ func TestRows_GetAll_WhenNoRows_Succeeds(t *testing.T) {
 	mp := &mockParser{}
 
 	r := newRows(mr, nil)
-	err := r.GetAll(mp)
+	err := r.GetAll(mp.ScanRow)
 
 	assert.Nil(err)
 	assert.Equal(1, mr.closeCalls)
@@ -238,7 +238,7 @@ func TestRows_GetAll_WhenRows_Succeeds(t *testing.T) {
 	mp := &mockParser{}
 
 	r := newRows(mr, nil)
-	err := r.GetAll(mp)
+	err := r.GetAll(mp.ScanRow)
 
 	assert.Nil(err)
 	assert.Equal(2, mp.scanCalled)
@@ -254,7 +254,7 @@ func TestRows_GetAll_CallsClose(t *testing.T) {
 	mp := &mockParser{}
 
 	r := newRows(mr, nil)
-	r.GetAll(mp)
+	r.GetAll(mp.ScanRow)
 
 	assert.Equal(1, mr.closeCalls)
 }
@@ -270,22 +270,9 @@ func TestRows_GetAll_ParserError(t *testing.T) {
 	}
 
 	r := newRows(mr, nil)
-	err := r.GetAll(mp)
+	err := r.GetAll(mp.ScanRow)
 
 	assert.Equal(errDefault, err)
 	assert.Equal(1, mr.closeCalls)
 	assert.Equal(1, mp.scanCalled)
 }
-
-// func TestRows_GetAll(t *testing.T) {
-// 	assert := assert.New(t)
-
-// 	mp := &mockParser{}
-// 	m := &mockSqlRows{
-// 		numberOfRows: 2,
-// 	}
-// 	r := newRows(m, nil)
-// 	err := r.GetAll(mp)
-// 	assert.Nil(err)
-// 	assert.Equal(2, mp.parseCalled)
-// }

@@ -19,9 +19,7 @@ type Scannable interface {
 	Scan(dest ...interface{}) error
 }
 
-type RowParser interface {
-	ScanRow(row Scannable) error
-}
+type RowParser func(row Scannable) error
 
 type sqlRows interface {
 	Next() bool
@@ -72,7 +70,7 @@ func (r *rowsImpl) GetSingleValue(parser RowParser) error {
 
 	defer r.Close()
 
-	if err := parser.ScanRow(r.rows); err != nil {
+	if err := parser(r.rows); err != nil {
 		return err
 	}
 
@@ -92,7 +90,7 @@ func (r *rowsImpl) GetAll(parser RowParser) error {
 	defer r.Close()
 
 	for r.next {
-		if err := parser.ScanRow(r.rows); err != nil {
+		if err := parser(r.rows); err != nil {
 			return err
 		}
 
