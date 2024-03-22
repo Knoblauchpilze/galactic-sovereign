@@ -40,12 +40,20 @@ func (s *serverImpl) Register(route routes.Route) {
 	path := concatenateEndpoints(s.endpoint, route.Path)
 
 	if route.GetRoute != nil {
-		s.echoServer.GET(path, route.GetRoute)
+		getPath := concatenateEndpoints(path, ":id")
+		s.echoServer.Logger.Debugf("Adding route GET %s", getPath)
+		s.echoServer.GET(getPath, route.GetRoute)
+	}
+	if route.ListRoute != nil {
+		s.echoServer.Logger.Debugf("Adding route GET %s", path)
+		s.echoServer.GET(path, route.ListRoute)
 	}
 	if route.PostRoute != nil {
+		s.echoServer.Logger.Debugf("Adding route POST %s", path)
 		s.echoServer.POST(path, route.PostRoute)
 	}
 	if route.DeleteRoute != nil {
+		s.echoServer.Logger.Debugf("Adding route DELETE %s", path)
 		s.echoServer.DELETE(path, route.DeleteRoute)
 	}
 }

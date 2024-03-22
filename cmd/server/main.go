@@ -17,15 +17,15 @@ func main() {
 		os.Exit(1)
 	}
 
-	db := db.NewConnection(conf.Database)
-	if err := db.Connect(); err != nil {
+	conn := db.NewConnection(conf.Database)
+	if err := conn.Connect(); err != nil {
 		logger.Errorf("Failed to connect to the database: %v", err)
 		os.Exit(1)
 	}
-	defer db.Close()
+	defer conn.Close()
 
 	s := server.New(conf.Server)
-	s.Register(routes.UserRoutes())
+	s.Register(routes.UserRoutes(conn))
 
 	s.Start()
 }
