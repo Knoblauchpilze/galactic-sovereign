@@ -1,3 +1,10 @@
 Server:
   Endpoint: "/v1/users"
   Port: 60001
+Database:
+  Host: "localhost"
+  Port: 5432
+  ConnectionsPoolSize: 2
+  Name: DB_NAME
+  User: DB_USER
+  Password: DB_PASSWORD

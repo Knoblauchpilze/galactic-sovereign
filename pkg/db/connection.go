@@ -3,6 +3,7 @@ package db
 import (
 	"sync"
 
+	"github.com/KnoblauchPilze/user-service/pkg/logger"
 	"github.com/jackc/pgx"
 )
 
@@ -36,6 +37,7 @@ func NewConnection(config Config) Connection {
 }
 
 func (c *connectionImpl) Connect() error {
+	logger.Infof("Connecting to %s at %s:%d with user %s", c.config.Name, c.config.Host, c.config.Port, c.config.User)
 	pool, err := pgxConnectionFunc(c.config.toConnPoolConfig())
 	if err != nil {
 		return err

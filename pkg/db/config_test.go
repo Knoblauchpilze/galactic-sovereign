@@ -13,7 +13,7 @@ func TestConfig_ToConnPoolConfig(t *testing.T) {
 	c := Config{
 		Host:     "host",
 		Port:     36,
-		Database: "db",
+		Name:     "db",
 		User:     "user",
 		Password: "password",
 
