@@ -27,5 +27,8 @@ func main() {
 	s := server.New(conf.Server)
 	s.Register(routes.UserRoutes(conn))
 
-	s.Start()
+	if err := s.Start(); err != nil {
+		logger.Errorf("Error while servier was running: %v", err)
+		os.Exit(1)
+	}
 }

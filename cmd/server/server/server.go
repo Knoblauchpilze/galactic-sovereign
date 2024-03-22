@@ -11,7 +11,7 @@ import (
 )
 
 type Server interface {
-	Start()
+	Start() error
 	Register(route routes.Route)
 }
 
@@ -29,11 +29,11 @@ func New(conf Config) Server {
 	}
 }
 
-func (s *serverImpl) Start() {
+func (s *serverImpl) Start() error {
 	address := fmt.Sprintf(":%d", s.port)
 
 	s.echoServer.Logger.Infof("Starting server at %s%s", s.endpoint, address)
-	s.echoServer.Logger.Fatal(s.echoServer.Start(address))
+	return s.echoServer.Start(address)
 }
 
 func (s *serverImpl) Register(route routes.Route) {
