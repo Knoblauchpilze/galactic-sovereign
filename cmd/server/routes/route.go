@@ -4,22 +4,34 @@ import "github.com/labstack/echo/v4"
 
 type Route interface {
 	Method() string
-	Register(path string, e *echo.Echo)
+	Handler() echo.HandlerFunc
+	GeneratePath(endpoint string) string
 }
 
 type Routes []Route
 
 type routeImpl struct {
-	method  string
-	path    string
-	handler echo.HandlerFunc
+	method      string
+	path        string
+	addIdInPath bool
+	handler     echo.HandlerFunc
 }
 
 func NewRoute(method string, path string, handler echo.HandlerFunc) Route {
 	return &routeImpl{
-		method:  method,
-		path:    path,
-		handler: handler,
+		method:      method,
+		path:        path,
+		addIdInPath: false,
+		handler:     handler,
+	}
+}
+
+func NewResourceRoute(method string, path string, handler echo.HandlerFunc) Route {
+	return &routeImpl{
+		method:      method,
+		path:        path,
+		addIdInPath: true,
+		handler:     handler,
 	}
 }
 
@@ -27,15 +39,15 @@ func (r *routeImpl) Method() string {
 	return r.method
 }
 
-func (r *routeImpl) Register(path string, e *echo.Echo) {
-	path = concatenateEndpoints(path, r.path)
+func (r *routeImpl) Handler() echo.HandlerFunc {
+	return r.handler
+}
 
-	switch r.method {
-	case "GET":
-		registerGetRoute(path, r.handler, e)
-	case "POST":
-		registerPostRoute(path, r.handler, e)
-	case "DELETE":
-		registerDeleteRoute(path, r.handler, e)
+func (r *routeImpl) GeneratePath(endpoint string) string {
+	path := concatenateEndpoints(endpoint, r.path)
+	if r.addIdInPath {
+		path = concatenateEndpoints(path, ":id")
 	}
+
+	return path
 }

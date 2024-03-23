@@ -1,8 +1,10 @@
 package server
 
 import (
+	"net/http"
 	"testing"
 
+	"github.com/KnoblauchPilze/user-service/pkg/errors"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 )
@@ -10,19 +12,31 @@ import (
 type mockRoute struct {
 	method string
 
-	registerCalled int
-	path           string
+	generatePathCalled int
+	endpoint           string
 }
 
-func TestServer_Register_DelegatesToRoute(t *testing.T) {
+var defaultHandler = func(c echo.Context) error { return nil }
+
+func TestServer_Register_UsesPathFromRoute(t *testing.T) {
 	assert := assert.New(t)
 
 	mr := &mockRoute{}
 
-	s := New(Config{})
-	s.Register(mr)
+	New(Config{}).Register(mr)
+	assert.Equal(1, mr.generatePathCalled)
+}
 
-	assert.Equal(1, mr.registerCalled)
+func TestServer_Register_PropagatesPathFromConfig(t *testing.T) {
+	assert := assert.New(t)
+
+	mr := &mockRoute{}
+	c := Config{
+		Endpoint: "some-endpoint",
+	}
+
+	New(c).Register(mr)
+	assert.Equal(c.Endpoint, mr.endpoint)
 }
 
 func TestServer_Register_SanitizesPath(t *testing.T) {
@@ -33,31 +47,74 @@ func TestServer_Register_SanitizesPath(t *testing.T) {
 		Endpoint: "some-endpoint/",
 	}
 
-	s := New(c)
-	s.Register(mr)
-
-	assert.Equal("some-endpoint", mr.path)
+	New(c).Register(mr)
+	assert.Equal("some-endpoint", mr.endpoint)
 }
 
-func TestServer_Register_UsesPathFromConfig(t *testing.T) {
+func TestServer_Register_SupportsGet(t *testing.T) {
 	assert := assert.New(t)
 
-	mr := &mockRoute{}
-	c := Config{
-		Endpoint: "some-endpoint",
+	mr := &mockRoute{
+		method: http.MethodGet,
 	}
 
-	s := New(c)
-	s.Register(mr)
+	err := New(Config{}).Register(mr)
+	assert.Nil(err)
+}
 
-	assert.Equal(c.Endpoint, mr.path)
+func TestServer_Register_SupportsPost(t *testing.T) {
+	assert := assert.New(t)
+
+	mr := &mockRoute{
+		method: http.MethodPost,
+	}
+
+	err := New(Config{}).Register(mr)
+	assert.Nil(err)
+}
+
+func TestServer_Register_SupportsDelete(t *testing.T) {
+	assert := assert.New(t)
+
+	mr := &mockRoute{
+		method: http.MethodDelete,
+	}
+
+	err := New(Config{}).Register(mr)
+	assert.Nil(err)
+}
+
+func TestServer_Register_FailsForUnsupportedMethod(t *testing.T) {
+	assert := assert.New(t)
+
+	testMethods := []string{
+		http.MethodPatch,
+		"not-a-http-method",
+	}
+
+	for _, method := range testMethods {
+		t.Run(method, func(t *testing.T) {
+			mr := &mockRoute{
+				method: method,
+			}
+
+			err := New(Config{}).Register(mr)
+			assert.True(errors.IsErrorWithCode(err, UnsupportedMethod))
+		})
+	}
+
 }
 
 func (m *mockRoute) Method() string {
 	return m.method
 }
 
-func (m *mockRoute) Register(path string, e *echo.Echo) {
-	m.registerCalled++
-	m.path = path
+func (m *mockRoute) Handler() echo.HandlerFunc {
+	return defaultHandler
+}
+
+func (m *mockRoute) GeneratePath(endpoint string) string {
+	m.generatePathCalled++
+	m.endpoint = endpoint
+	return ""
 }
