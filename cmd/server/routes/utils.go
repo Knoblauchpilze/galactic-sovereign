@@ -27,7 +27,7 @@ func sanitizePath(route string, slashPrefixMode slashPrefix) string {
 	return route
 }
 
-func ConcatenateEndpoints(endpoint string, path string) string {
+func concatenateEndpoints(endpoint string, path string) string {
 	endpoint = sanitizePath(endpoint, addPrefix)
 	path = sanitizePath(path, trimPrefix)
 

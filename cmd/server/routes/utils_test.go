@@ -78,42 +78,42 @@ func TestSanitizePath_AddPrefix_PreservesPath(t *testing.T) {
 	assert.Equal("/route/with/path", actual)
 }
 
-func TestConcatenateEndpoints_AllEmpty(t *testing.T) {
+func TestconcatenateEndpoints_AllEmpty(t *testing.T) {
 	assert := assert.New(t)
 
-	actual := ConcatenateEndpoints("", "")
+	actual := concatenateEndpoints("", "")
 
 	assert.Equal("/", actual)
 }
 
-func TestConcatenateEndpoints_EmptyEndpoint(t *testing.T) {
+func TestconcatenateEndpoints_EmptyEndpoint(t *testing.T) {
 	assert := assert.New(t)
 
-	actual := ConcatenateEndpoints("", "/some/path")
+	actual := concatenateEndpoints("", "/some/path")
 
 	assert.Equal("/some/path", actual)
 }
 
-func TestConcatenateEndpoints_EmptyPath(t *testing.T) {
+func TestconcatenateEndpoints_EmptyPath(t *testing.T) {
 	assert := assert.New(t)
 
-	actual := ConcatenateEndpoints("/some/endpoint", "")
+	actual := concatenateEndpoints("/some/endpoint", "")
 
 	assert.Equal("/some/endpoint", actual)
 }
 
-func TestConcatenateEndpoints_DoesNotGenerateDoubleSlash(t *testing.T) {
+func TestconcatenateEndpoints_DoesNotGenerateDoubleSlash(t *testing.T) {
 	assert := assert.New(t)
 
-	actual := ConcatenateEndpoints("/some/endpoint", "/some/path")
+	actual := concatenateEndpoints("/some/endpoint", "/some/path")
 
 	assert.Equal("/some/endpoint/some/path", actual)
 }
 
-func TestConcatenateEndpoints_ConcatenateCorrectly(t *testing.T) {
+func TestconcatenateEndpoints_ConcatenateCorrectly(t *testing.T) {
 	assert := assert.New(t)
 
-	actual := ConcatenateEndpoints("/some/endpoint", "some/path")
+	actual := concatenateEndpoints("/some/endpoint", "some/path")
 
 	assert.Equal("/some/endpoint/some/path", actual)
 }
