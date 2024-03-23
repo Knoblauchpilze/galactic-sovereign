@@ -2,9 +2,11 @@ package server
 
 import (
 	"fmt"
+	"net/http"
 	"strings"
 
 	"github.com/KnoblauchPilze/user-service/cmd/server/routes"
+	"github.com/KnoblauchPilze/user-service/pkg/errors"
 	"github.com/KnoblauchPilze/user-service/pkg/logger"
 	"github.com/KnoblauchPilze/user-service/pkg/middleware"
 	"github.com/labstack/echo/v4"
@@ -12,7 +14,7 @@ import (
 
 type Server interface {
 	Start() error
-	Register(route routes.Route)
+	Register(route routes.Route) error
 }
 
 type serverImpl struct {
@@ -36,8 +38,23 @@ func (s *serverImpl) Start() error {
 	return s.echoServer.Start(address)
 }
 
-func (s *serverImpl) Register(route routes.Route) {
-	route.Register(s.endpoint, s.echoServer)
+func (s *serverImpl) Register(route routes.Route) error {
+	path := route.GeneratePath(s.endpoint)
+
+	switch route.Method() {
+	case http.MethodGet:
+		s.echoServer.GET(path, route.Handler())
+	case http.MethodPost:
+		s.echoServer.POST(path, route.Handler())
+	case http.MethodDelete:
+		s.echoServer.DELETE(path, route.Handler())
+	default:
+		return errors.NewCode(UnsupportedMethod)
+	}
+
+	s.echoServer.Logger.Debugf("Registered %s %s", route.Method(), path)
+
+	return nil
 }
 
 func createEchoContext() *echo.Echo {
