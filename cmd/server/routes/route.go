@@ -28,7 +28,7 @@ func (r *routeImpl) Method() string {
 }
 
 func (r *routeImpl) Register(path string, e *echo.Echo) {
-	path = ConcatenateEndpoints(path, r.path)
+	path = concatenateEndpoints(path, r.path)
 
 	switch r.method {
 	case "GET":
