@@ -6,7 +6,7 @@ import (
 	"syscall"
 
 	"github.com/KnoblauchPilze/user-service/cmd/server/config"
-	"github.com/KnoblauchPilze/user-service/cmd/server/routes"
+	"github.com/KnoblauchPilze/user-service/cmd/server/controllers"
 	"github.com/KnoblauchPilze/user-service/cmd/server/server"
 	"github.com/KnoblauchPilze/user-service/pkg/db"
 	"github.com/KnoblauchPilze/user-service/pkg/logger"
@@ -30,8 +30,7 @@ func main() {
 
 	s := server.New(conf.Server)
 
-	userRoutes := routes.UserEndpoint(conn)
-	for _, route := range userRoutes {
+	for _, route := range controllers.UserEndpoints(conn) {
 		s.Register(route)
 	}
 

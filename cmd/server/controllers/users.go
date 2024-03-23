@@ -1,8 +1,9 @@
-package routes
+package controllers
 
 import (
 	"net/http"
 
+	"github.com/KnoblauchPilze/user-service/cmd/server/routes"
 	"github.com/KnoblauchPilze/user-service/pkg/communication"
 	"github.com/KnoblauchPilze/user-service/pkg/db"
 	"github.com/KnoblauchPilze/user-service/pkg/errors"
@@ -11,29 +12,24 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func UserEndpoint(conn db.Connection) Routes {
+func UserEndpoints(conn db.Connection) routes.Routes {
 	repo := repositories.NewUserRepository(conn)
 
-	path := "/users"
+	var out routes.Routes
 
-	get := NewRoute("GET", path, wrapWithDb(getUser, repo))
-	post := NewRoute("POST", path, wrapWithDb(createUser, repo))
-	delete := NewRoute("DELETE", path, wrapWithDb(deleteUser, repo))
+	getHandler := generateEchoHandler(getUser, repo)
+	get := routes.NewResourceRoute(http.MethodGet, "/users", getHandler)
+	out = append(out, get)
 
-	var routes Routes
-	routes = append(routes, get)
-	routes = append(routes, post)
-	routes = append(routes, delete)
+	postHandler := generateEchoHandler(createUser, repo)
+	post := routes.NewRoute(http.MethodPost, "/users", postHandler)
+	out = append(out, post)
 
-	return routes
-}
+	deleteHandler := generateEchoHandler(deleteUser, repo)
+	delete := routes.NewResourceRoute(http.MethodDelete, "/users", deleteHandler)
+	out = append(out, delete)
 
-type userHttpHandler func(echo.Context, repositories.UserRepository) error
-
-func wrapWithDb(handler userHttpHandler, repo repositories.UserRepository) echo.HandlerFunc {
-	return func(c echo.Context) error {
-		return handler(c, repo)
-	}
+	return out
 }
 
 func getUser(c echo.Context, repo repositories.UserRepository) error {
@@ -57,10 +53,10 @@ func getUser(c echo.Context, repo repositories.UserRepository) error {
 	return c.JSON(http.StatusOK, out)
 }
 
-func createUser(c echo.Context, repo repositories.UserRepository) error {
+func createUser(echo.Context, repositories.UserRepository) error {
 	return errors.NewCode(errors.NotImplementedCode)
 }
 
-func deleteUser(c echo.Context, repo repositories.UserRepository) error {
+func deleteUser(c echo.Context, _ repositories.UserRepository) error {
 	return c.String(http.StatusOK, "{\"message\":\"deleted\"}")
 }
