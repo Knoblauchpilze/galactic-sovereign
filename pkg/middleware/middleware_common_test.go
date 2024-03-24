@@ -26,12 +26,13 @@ type mockEchoContext struct {
 	// See Embedding Interfaces in the page.
 	echo.Context
 
-	request       *http.Request
-	response      *echo.Response
-	logger        echo.Logger
-	values        map[string]interface{}
-	loggerChanged bool
-	reportedError error
+	request        *http.Request
+	response       *echo.Response
+	logger         echo.Logger
+	values         map[string]interface{}
+	loggerChanged  bool
+	requestChanged bool
+	reportedError  error
 }
 
 type mockEchoLogger struct {
@@ -67,6 +68,11 @@ func newMockEchoContext(code int) *mockEchoContext {
 }
 
 func (m *mockEchoContext) Request() *http.Request { return m.request }
+
+func (m *mockEchoContext) SetRequest(req *http.Request) {
+	m.requestChanged = true
+	m.request = req
+}
 
 func (m *mockEchoContext) Response() *echo.Response { return m.response }
 
