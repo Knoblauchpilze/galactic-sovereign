@@ -1,6 +1,7 @@
 package db
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -70,14 +71,14 @@ func (m *mockDbConnection) Close() {
 	m.closeCalled++
 }
 
-func (m *mockDbConnection) Query(sql string, arguments ...interface{}) (*pgx.Rows, error) {
+func (m *mockDbConnection) QueryEx(ctx context.Context, sql string, options *pgx.QueryExOptions, arguments ...interface{}) (*pgx.Rows, error) {
 	m.queryCalled++
 	m.sqlQuery = sql
 	m.args = append(m.args, arguments...)
 	return nil, m.err
 }
 
-func (m *mockDbConnection) Exec(sql string, arguments ...interface{}) (pgx.CommandTag, error) {
+func (m *mockDbConnection) ExecEx(ctx context.Context, sql string, options *pgx.QueryExOptions, arguments ...interface{}) (pgx.CommandTag, error) {
 	m.execCalled++
 	m.sqlQuery = sql
 	m.args = append(m.args, arguments...)
@@ -111,7 +112,7 @@ func TestConnection_Query_DelegatesToPool(t *testing.T) {
 		pool: m,
 	}
 
-	conn.Query(exampleSqlQuery)
+	conn.Query(context.Background(), exampleSqlQuery)
 
 	assert.Equal(1, m.queryCalled)
 }
@@ -124,7 +125,7 @@ func TestConnection_Query_PropagatesSqlQuery(t *testing.T) {
 		pool: m,
 	}
 
-	conn.Query(exampleSqlQuery)
+	conn.Query(context.Background(), exampleSqlQuery)
 
 	assert.Equal(exampleSqlQuery, m.sqlQuery)
 }
@@ -137,7 +138,7 @@ func TestConnection_Query_PropagatesSqlArguments(t *testing.T) {
 		pool: m,
 	}
 
-	conn.Query(exampleSqlQuery, 1, "test-str")
+	conn.Query(context.Background(), exampleSqlQuery, 1, "test-str")
 
 	assert.Equal([]interface{}{1, "test-str"}, m.args)
 }
@@ -150,7 +151,7 @@ func TestConnection_Query_DoesNotCreateError(t *testing.T) {
 		pool: m,
 	}
 
-	res := conn.Query(exampleSqlQuery)
+	res := conn.Query(context.Background(), exampleSqlQuery)
 
 	assert.Nil(res.Err())
 }
@@ -165,7 +166,7 @@ func TestConnection_Query_PropagatesPoolError(t *testing.T) {
 		pool: m,
 	}
 
-	res := conn.Query(exampleSqlQuery)
+	res := conn.Query(context.Background(), exampleSqlQuery)
 
 	assert.Equal(errDefault, res.Err())
 }
@@ -180,7 +181,7 @@ func TestConnection_Exec_DelegatesToPool(t *testing.T) {
 		pool: m,
 	}
 
-	conn.Exec(exampleExecQuery)
+	conn.Exec(context.Background(), exampleExecQuery)
 
 	assert.Equal(1, m.execCalled)
 }
@@ -193,7 +194,7 @@ func TestConnection_Exec_PropagatesSqlQuery(t *testing.T) {
 		pool: m,
 	}
 
-	conn.Exec(exampleExecQuery)
+	conn.Exec(context.Background(), exampleExecQuery)
 
 	assert.Equal(exampleExecQuery, m.sqlQuery)
 }
@@ -206,7 +207,7 @@ func TestConnection_Exec_PropagatesSqlArguments(t *testing.T) {
 		pool: m,
 	}
 
-	conn.Exec(exampleExecQuery, 1, "test-str")
+	conn.Exec(context.Background(), exampleExecQuery, 1, "test-str")
 
 	assert.Equal([]interface{}{1, "test-str"}, m.args)
 }
@@ -219,7 +220,7 @@ func TestConnection_Exec_DoesNotCreateError(t *testing.T) {
 		pool: m,
 	}
 
-	_, err := conn.Exec(exampleExecQuery)
+	_, err := conn.Exec(context.Background(), exampleExecQuery)
 
 	assert.Nil(err)
 }
@@ -234,7 +235,7 @@ func TestConnection_Exec_PropagatesPoolError(t *testing.T) {
 		pool: m,
 	}
 
-	_, err := conn.Exec(exampleExecQuery)
+	_, err := conn.Exec(context.Background(), exampleExecQuery)
 
 	assert.Equal(errDefault, err)
 }

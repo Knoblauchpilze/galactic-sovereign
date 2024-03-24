@@ -1,6 +1,7 @@
 package db
 
 import (
+	"context"
 	"sync"
 
 	"github.com/KnoblauchPilze/user-service/pkg/logger"
@@ -11,14 +12,14 @@ type Connection interface {
 	Connect() error
 	Close()
 
-	Query(sql string, arguments ...interface{}) Rows
-	Exec(sql string, arguments ...interface{}) (string, error)
+	Query(ctx context.Context, sql string, arguments ...interface{}) Rows
+	Exec(ctx context.Context, sql string, arguments ...interface{}) (string, error)
 }
 
 type pgxDbConnection interface {
 	Close()
-	Query(sql string, arguments ...interface{}) (*pgx.Rows, error)
-	Exec(sql string, arguments ...interface{}) (pgx.CommandTag, error)
+	QueryEx(ctx context.Context, sql string, options *pgx.QueryExOptions, arguments ...interface{}) (*pgx.Rows, error)
+	ExecEx(ctx context.Context, sql string, options *pgx.QueryExOptions, arguments ...interface{}) (pgx.CommandTag, error)
 }
 
 var pgxConnectionFunc = pgx.NewConnPool
@@ -61,14 +62,14 @@ func (c *connectionImpl) Close() {
 	c.pool.Close()
 }
 
-func (c *connectionImpl) Query(sql string, args ...interface{}) Rows {
+func (c *connectionImpl) Query(ctx context.Context, sql string, args ...interface{}) Rows {
 	logger.Debugf("Query: %s (%d)", sql, len(args))
-	rows, err := c.pool.Query(sql, args...)
+	rows, err := c.pool.QueryEx(ctx, sql, nil, args...)
 	return newRows(rows, err)
 }
 
-func (c *connectionImpl) Exec(sql string, args ...interface{}) (string, error) {
+func (c *connectionImpl) Exec(ctx context.Context, sql string, args ...interface{}) (string, error) {
 	logger.Debugf("Exec: %s (%d)", sql, len(args))
-	tag, err := c.pool.Exec(sql, args...)
+	tag, err := c.pool.ExecEx(ctx, sql, nil, args...)
 	return string(tag), err
 }
