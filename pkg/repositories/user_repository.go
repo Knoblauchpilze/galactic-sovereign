@@ -27,7 +27,7 @@ func NewUserRepository(conn db.Connection) UserRepository {
 const sqlCreateUserTemplate = "INSERT INTO api_user (id, email, password, created_at) VALUES($1, $2, $3, $4)"
 
 func (r *userRepositoryImpl) Create(user persistence.User) error {
-	tag, err := r.conn.Exec(sqlCreateUserTemplate, user.Id, user.Email, user.Password, user.CreatedAt)
+	_, err := r.conn.Exec(sqlCreateUserTemplate, user.Id, user.Email, user.Password, user.CreatedAt)
 	if err != nil {
 		return err
 	}
