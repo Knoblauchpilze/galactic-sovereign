@@ -49,5 +49,5 @@ curl -X GET http://localhost:60001/v1/users/users/08ce96a3-3430-48a8-a3b2-b1c987
 
 ## Create new user
 ```bash
-curl -X POST http://localhost:60001/v1/users/users -d '{"name":"some-user","password":"1234"}'| jq
+curl -H "Content-Type: application/json" -X POST http://localhost:60001/v1/users/users -d '{"email":"some-user@mail.com","password":"1234"}'| jq
 ```

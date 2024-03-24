@@ -1,8 +1,6 @@
 package repositories
 
 import (
-	"fmt"
-
 	"github.com/KnoblauchPilze/user-service/pkg/db"
 	"github.com/KnoblauchPilze/user-service/pkg/errors"
 	"github.com/KnoblauchPilze/user-service/pkg/persistence"
@@ -26,15 +24,21 @@ func NewUserRepository(conn db.Connection) UserRepository {
 	}
 }
 
+const sqlCreateUserTemplate = "INSERT INTO api_user (id, email, password, created_at) VALUES($1, $2, $3, $4)"
+
 func (r *userRepositoryImpl) Create(user persistence.User) error {
-	return errors.NewCode(errors.NotImplementedCode)
+	tag, err := r.conn.Exec(sqlCreateUserTemplate, user.Id, user.Email, user.Password, user.CreatedAt)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
-const sqlQueryUserTemplate = "select id, email, password, created_at, updated_at from api_user where id = '%s'"
+const sqlQueryUserTemplate = "SELECT id, email, password, created_at, updated_at FROM api_user WHERE id = $1"
 
 func (r *userRepositoryImpl) Get(id uuid.UUID) (persistence.User, error) {
-	query := fmt.Sprintf(sqlQueryUserTemplate, id)
-	res := r.conn.Query(query)
+	res := r.conn.Query(sqlQueryUserTemplate, id)
 	if err := res.Err(); err != nil {
 		return persistence.User{}, err
 	}
