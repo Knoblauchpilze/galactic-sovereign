@@ -37,6 +37,15 @@ func NewCode(code ErrorCode) error {
 	return e
 }
 
+func NewCodeWithDetails(code ErrorCode, details string) error {
+	e := errorImpl{
+		Value:   code,
+		Message: details,
+	}
+
+	return e
+}
+
 func Newf(format string, args ...interface{}) error {
 	return errorImpl{
 		Value:   GenericErrorCode,
