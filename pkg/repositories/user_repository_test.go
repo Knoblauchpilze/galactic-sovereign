@@ -3,6 +3,7 @@ package repositories
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/KnoblauchPilze/user-service/pkg/db"
 	"github.com/KnoblauchPilze/user-service/pkg/errors"
@@ -13,6 +14,9 @@ import (
 
 type mockConnection struct {
 	queryCalled int
+	execCalled  int
+
+	execErr error
 
 	sqlQuery string
 	args     []interface{}
@@ -29,15 +33,52 @@ type mockRows struct {
 }
 
 var defaultUuid = uuid.MustParse("08ce96a3-3430-48a8-a3b2-b1c987a207ca")
+var defaultUser = persistence.User{
+	Id:        defaultUuid,
+	Email:     "e.mail@domain.com",
+	Password:  "password",
+	CreatedAt: time.Date(2009, 11, 17, 20, 34, 58, 651387237, time.UTC),
+	UpdatedAt: time.Date(2009, 11, 17, 20, 34, 59, 651387237, time.UTC),
+}
 
-func TestUserRepository_Create_NotImplemented(t *testing.T) {
+func TestUserRepository_Create_UsesConnectionToExec(t *testing.T) {
 	assert := assert.New(t)
 
 	mc := &mockConnection{}
 	repo := NewUserRepository(mc)
 
-	err := repo.Create(persistence.User{})
-	assert.True(errors.IsErrorWithCode(err, errors.NotImplementedCode))
+	repo.Create(defaultUser)
+
+	assert.Equal(1, mc.execCalled)
+}
+
+func TestUserRepository_Create_GeneratesValidSql(t *testing.T) {
+	assert := assert.New(t)
+
+	mc := &mockConnection{}
+	repo := NewUserRepository(mc)
+
+	repo.Create(defaultUser)
+
+	assert.Equal("INSERT INTO api_user (id, email, password, created_at) VALUES($1, $2, $3, $4)", mc.sqlQuery)
+	assert.Equal(4, len(mc.args))
+	assert.Equal(defaultUser.Id, mc.args[0])
+	assert.Equal(defaultUser.Email, mc.args[1])
+	assert.Equal(defaultUser.Password, mc.args[2])
+	assert.Equal(defaultUser.CreatedAt, mc.args[3])
+}
+
+func TestUserRepository_Create_PropagatesQueryFailure(t *testing.T) {
+	assert := assert.New(t)
+
+	mc := &mockConnection{
+		execErr: errDefault,
+	}
+	repo := NewUserRepository(mc)
+
+	err := repo.Create(defaultUser)
+
+	assert.Equal(errDefault, err)
 }
 
 func TestUserRepository_Get_UsesConnectionToQuery(t *testing.T) {
@@ -61,9 +102,7 @@ func TestUserRepository_Get_GeneratesValidSql(t *testing.T) {
 
 	assert.Equal("SELECT id, email, password, created_at, updated_at FROM api_user WHERE id = $1", mc.sqlQuery)
 	assert.Equal(1, len(mc.args))
-	id, ok := mc.args[0].(uuid.UUID)
-	assert.True(ok)
-	assert.Equal(defaultUuid, id)
+	assert.Equal(defaultUuid, mc.args[0])
 }
 
 var errDefault = fmt.Errorf("some error")
@@ -151,7 +190,12 @@ func (m *mockConnection) Query(sql string, arguments ...interface{}) db.Rows {
 	return &m.rows
 }
 
-func (m *mockConnection) Exec(sql string, arguments ...interface{}) (string, error) { return "", nil }
+func (m *mockConnection) Exec(sql string, arguments ...interface{}) (string, error) {
+	m.execCalled++
+	m.sqlQuery = sql
+	m.args = append(m.args, arguments...)
+	return "", m.execErr
+}
 
 func (m *mockRows) Err() error { return m.err }
 
