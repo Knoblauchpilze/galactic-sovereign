@@ -15,7 +15,7 @@ type UserDto struct {
 	CreatedAt time.Time
 }
 
-func FromUser(user persistence.User) UserDto {
+func ToUserDto(user persistence.User) UserDto {
 	return UserDto{
 		Id:       user.Id,
 		Email:    user.Email,

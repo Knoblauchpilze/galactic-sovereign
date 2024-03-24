@@ -23,7 +23,7 @@ func TestFromUser(t *testing.T) {
 		CreatedAt: someTime,
 	}
 
-	actual := FromUser(u)
+	actual := ToUserDto(u)
 
 	assert.Equal(defaultUuid, actual.Id)
 	assert.Equal("email", actual.Email)

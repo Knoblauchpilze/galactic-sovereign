@@ -48,7 +48,7 @@ func getUser(c echo.Context, repo repositories.UserRepository) error {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 
-	out := communication.FromUser(user)
+	out := communication.ToUserDto(user)
 
 	return c.JSON(http.StatusOK, out)
 }
