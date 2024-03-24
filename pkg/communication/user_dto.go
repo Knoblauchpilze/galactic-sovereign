@@ -7,7 +7,12 @@ import (
 	"github.com/google/uuid"
 )
 
-type UserDto struct {
+type UserDtoRequest struct {
+	Email    string `form:"email"`
+	Password string `form:"password"`
+}
+
+type UserDtoResponse struct {
 	Id       uuid.UUID
 	Email    string
 	Password string
@@ -15,12 +20,24 @@ type UserDto struct {
 	CreatedAt time.Time
 }
 
-func ToUserDto(user persistence.User) UserDto {
-	return UserDto{
+func ToUserDtoResponse(user persistence.User) UserDtoResponse {
+	return UserDtoResponse{
 		Id:       user.Id,
 		Email:    user.Email,
 		Password: user.Password,
 
 		CreatedAt: user.CreatedAt,
+	}
+}
+
+func FromUserDtoRequest(user UserDtoRequest) persistence.User {
+	t := time.Now()
+	return persistence.User{
+		Id:       uuid.New(),
+		Email:    user.Email,
+		Password: user.Password,
+
+		CreatedAt: t,
+		UpdatedAt: t,
 	}
 }
