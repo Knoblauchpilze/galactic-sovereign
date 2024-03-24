@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"context"
 	"net/http"
 	"testing"
 
@@ -30,7 +31,7 @@ func TestResponseEnvelopeMiddleware_SetsRequestId(t *testing.T) {
 	callable := em(next)
 	callable(m)
 
-	actual, ok := m.values[requestIdKey]
+	actual, ok := m.values[string(requestIdKey)]
 	assert.True(ok)
 	assert.IsType(uuid.UUID{}, actual)
 }
@@ -93,4 +94,42 @@ func TestResponseEnvelopeMiddleware_PropagatesError(t *testing.T) {
 	actual := callable(m)
 
 	assert.Equal(errDefault, actual)
+}
+
+func TestGetLoggerFromContext_ReturnsSetLogger(t *testing.T) {
+	assert := assert.New(t)
+
+	log := &mockEchoLogger{}
+	ctx := context.WithValue(context.Background(), logKey, log)
+
+	actual := GetLoggerFromContext(ctx)
+	assert.Equal(log, actual)
+}
+
+func TestGetLoggerFromContext_WhenLoggerButWithDifferentType_UsesKey(t *testing.T) {
+	assert := assert.New(t)
+
+	ctx := context.WithValue(context.Background(), logKey, "not-a-logger")
+	ctx = context.WithValue(ctx, requestIdKey, defaultUuid)
+
+	log := GetLoggerFromContext(ctx)
+	assert.Equal(defaultUuid.String(), log.Prefix())
+}
+
+var defaultUuid = uuid.MustParse("08ce96a3-3430-48a8-a3b2-b1c987a207ca")
+
+func TestGetLoggerFromContext_WhenNoLoggerButARequestKey_UsesIt(t *testing.T) {
+	assert := assert.New(t)
+
+	ctx := context.WithValue(context.Background(), requestIdKey, defaultUuid)
+
+	log := GetLoggerFromContext(ctx)
+	assert.Equal(defaultUuid.String(), log.Prefix())
+}
+
+func TestGetLoggerFromContext_WhenNoLoggerAndNoKey_ReturnsDefaultLogger(t *testing.T) {
+	assert := assert.New(t)
+
+	log := GetLoggerFromContext(context.Background())
+	assert.Equal("", log.Prefix())
 }

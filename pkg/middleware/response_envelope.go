@@ -8,11 +8,10 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-const requestIdKey = "requestIdKey"
+type keyType string
 
-type loggerKey string
-
-const logKey loggerKey = "loggerKey"
+const requestIdKey keyType = "requestIdKey"
+const logKey keyType = "loggerKey"
 
 func ResponseEnvelope() echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
@@ -20,7 +19,7 @@ func ResponseEnvelope() echo.MiddlewareFunc {
 			id := uuid.Must(uuid.NewRandom())
 			log := logger.New(id.String())
 
-			c.Set(requestIdKey, id)
+			c.Set(string(requestIdKey), id)
 			c.SetLogger(log)
 
 			ctx := context.WithValue(c.Request().Context(), logKey, log)
@@ -36,12 +35,15 @@ func ResponseEnvelope() echo.MiddlewareFunc {
 }
 
 func GetLoggerFromContext(ctx context.Context) echo.Logger {
-	log := ctx.Value(logKey).(echo.Logger)
-	if log != nil {
+	log, ok := ctx.Value(logKey).(echo.Logger)
+	if ok && log != nil {
 		return log
 	}
 
-	id := ctx.Value(requestIdKey).(uuid.UUID)
+	id, ok := ctx.Value(requestIdKey).(uuid.UUID)
+	if ok {
+		return logger.New(id.String())
+	}
 
-	return logger.New(id.String())
+	return logger.New("")
 }
