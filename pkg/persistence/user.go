@@ -11,6 +11,6 @@ type User struct {
 	Email    string
 	Password string
 
-	CreatedAt  time.Time
-	Updated_at time.Time
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }

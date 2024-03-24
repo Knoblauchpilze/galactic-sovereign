@@ -41,7 +41,7 @@ func (r *userRepositoryImpl) Get(id uuid.UUID) (persistence.User, error) {
 
 	var out persistence.User
 	parser := func(rows db.Scannable) error {
-		return rows.Scan(out.Id, out.Email, out.Password, out.CreatedAt, out.Updated_at)
+		return rows.Scan(out.Id, out.Email, out.Password, out.CreatedAt, out.UpdatedAt)
 	}
 
 	if err := res.GetSingleValue(parser); err != nil {
