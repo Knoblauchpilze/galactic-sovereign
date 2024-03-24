@@ -5,6 +5,7 @@ import (
 	"sync"
 
 	"github.com/KnoblauchPilze/user-service/pkg/logger"
+	"github.com/KnoblauchPilze/user-service/pkg/middleware"
 	"github.com/jackc/pgx"
 )
 
@@ -60,16 +61,21 @@ func (c *connectionImpl) Close() {
 	}
 
 	c.pool.Close()
+	logger.Infof("Closed connection to %s at %s:%d with user %s", c.config.Name, c.config.Host, c.config.Port, c.config.User)
 }
 
 func (c *connectionImpl) Query(ctx context.Context, sql string, args ...interface{}) Rows {
-	logger.Debugf("Query: %s (%d)", sql, len(args))
+	log := middleware.GetLoggerFromContext(ctx)
+	log.Debugf("Query: %s (%d)", sql, len(args))
+
 	rows, err := c.pool.QueryEx(ctx, sql, nil, args...)
 	return newRows(rows, err)
 }
 
 func (c *connectionImpl) Exec(ctx context.Context, sql string, args ...interface{}) (string, error) {
-	logger.Debugf("Exec: %s (%d)", sql, len(args))
+	log := middleware.GetLoggerFromContext(ctx)
+	log.Debugf("Exec: %s (%d)", sql, len(args))
+
 	tag, err := c.pool.ExecEx(ctx, sql, nil, args...)
 	return string(tag), err
 }
