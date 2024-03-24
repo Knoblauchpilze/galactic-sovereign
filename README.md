@@ -34,3 +34,20 @@ make migrate
 ```
 
 You should then be able to connect to the database with `make connect` and inspect the content.
+
+# Cheat sheet
+
+## Query existing user
+```bash
+curl -X GET http://localhost:60001/v1/users/users/08ce96a3-3430-48a8-a3b2-b1c987a207cb | jq
+```
+
+## Query non existing user
+```bash
+curl -X GET http://localhost:60001/v1/users/users/08ce96a3-3430-48a8-a3b2-b1c987a207ca | jq
+```
+
+## Create new user
+```bash
+curl -X POST http://localhost:60001/v1/users/users -d '{"name":"some-user","password":"1234"}'| jq
+```
