@@ -28,11 +28,7 @@ const sqlCreateUserTemplate = "INSERT INTO api_user (id, email, password, create
 
 func (r *userRepositoryImpl) Create(user persistence.User) error {
 	_, err := r.conn.Exec(sqlCreateUserTemplate, user.Id, user.Email, user.Password, user.CreatedAt)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return err
 }
 
 const sqlQueryUserTemplate = "SELECT id, email, password, created_at, updated_at FROM api_user WHERE id = $1"
