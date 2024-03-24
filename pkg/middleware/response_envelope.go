@@ -26,7 +26,7 @@ func ResponseEnvelope() echo.MiddlewareFunc {
 			req := c.Request().WithContext(ctx)
 			c.SetRequest(req)
 
-			w := new(c.Response().Writer)
+			w := new(c.Response().Writer, id, log)
 			c.Response().Writer = w
 
 			return next(c)
