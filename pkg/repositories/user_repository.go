@@ -30,7 +30,7 @@ func (r *userRepositoryImpl) Create(user persistence.User) error {
 	return errors.NewCode(errors.NotImplementedCode)
 }
 
-const sqlQueryUserTemplate = "select id, email, password created_at, updated_at from api_user where id = '%s'"
+const sqlQueryUserTemplate = "select id, email, password, created_at, updated_at from api_user where id = '%s'"
 
 func (r *userRepositoryImpl) Get(id uuid.UUID) (persistence.User, error) {
 	query := fmt.Sprintf(sqlQueryUserTemplate, id)
@@ -41,7 +41,7 @@ func (r *userRepositoryImpl) Get(id uuid.UUID) (persistence.User, error) {
 
 	var out persistence.User
 	parser := func(rows db.Scannable) error {
-		return rows.Scan(out.Id, out.Email, out.Password, out.CreatedAt, out.UpdatedAt)
+		return rows.Scan(&out.Id, &out.Email, &out.Password, &out.CreatedAt, &out.UpdatedAt)
 	}
 
 	if err := res.GetSingleValue(parser); err != nil {
