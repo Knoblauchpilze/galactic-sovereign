@@ -36,6 +36,27 @@ func TestError_NewCode(t *testing.T) {
 	assert.Equal(someCode, impl.Value)
 }
 
+func TestError_NewCode_WhenGenericCode_ExpectMessage(t *testing.T) {
+	assert := assert.New(t)
+
+	testCases := []struct {
+		code            ErrorCode
+		expectedMessage string
+	}{
+		{code: NotImplementedCode, expectedMessage: "Not implemented"},
+		{code: GenericErrorCode, expectedMessage: "An unexpected error occurred"},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.expectedMessage, func(t *testing.T) {
+			err := NewCode(testCase.code)
+			impl, ok := err.(errorImpl)
+			assert.True(ok)
+			assert.Equal(testCase.expectedMessage, impl.Message)
+		})
+	}
+}
+
 func TestError_NewCodeWithDetails(t *testing.T) {
 	assert := assert.New(t)
 

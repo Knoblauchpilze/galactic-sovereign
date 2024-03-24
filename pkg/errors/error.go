@@ -31,7 +31,8 @@ func New(message string) error {
 
 func NewCode(code ErrorCode) error {
 	e := errorImpl{
-		Value: code,
+		Value:   code,
+		Message: determineCommonErrorMessage(code),
 	}
 
 	return e
@@ -63,8 +64,9 @@ func Wrap(cause error, message string) error {
 
 func WrapCode(cause error, code ErrorCode) error {
 	e := errorImpl{
-		Value: code,
-		Cause: cause,
+		Value:   code,
+		Message: determineCommonErrorMessage(code),
+		Cause:   cause,
 	}
 
 	return e
@@ -148,4 +150,15 @@ func (e errorImpl) marshalCause() json.RawMessage {
 	}
 
 	return out
+}
+
+func determineCommonErrorMessage(code ErrorCode) string {
+	switch code {
+	case GenericErrorCode:
+		return "An unexpected error occurred"
+	case NotImplementedCode:
+		return "Not implemented"
+	default:
+		return ""
+	}
 }
