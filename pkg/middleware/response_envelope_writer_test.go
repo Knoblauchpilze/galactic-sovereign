@@ -13,9 +13,29 @@ func TestEnvelopeResponseWriter_UsesProvidedWriter(t *testing.T) {
 	assert := assert.New(t)
 	m := &mockResponseWriter{}
 
-	erw := new(m)
+	erw := new(m, defaultUuid, nil)
 
 	assert.Equal(m, erw.writer)
+}
+
+func TestEnvelopeResponseWriter_AutomaticallySetsSuccessStatusWhenNoStatusIsUsed(t *testing.T) {
+	assert := assert.New(t)
+	m := &mockResponseWriter{}
+
+	erw := new(m, defaultUuid, nil)
+	erw.Write(sampleJsonData)
+
+	assert.Equal(`{"RequestId":"08ce96a3-3430-48a8-a3b2-b1c987a207ca","Status":"SUCCESS","Details":{"value":12}}`, string(m.data))
+}
+
+func TestEnvelopeResponseWriter_UsesProvidedRequestId(t *testing.T) {
+	assert := assert.New(t)
+	m := &mockResponseWriter{}
+
+	erw := new(m, defaultUuid, nil)
+	erw.Write(sampleJsonData)
+
+	assert.Equal(`{"RequestId":"08ce96a3-3430-48a8-a3b2-b1c987a207ca","Status":"SUCCESS","Details":{"value":12}}`, string(m.data))
 }
 
 func TestEnvelopeResponseWriter_ForwardsProvidedWriterHeaders(t *testing.T) {
@@ -26,7 +46,7 @@ func TestEnvelopeResponseWriter_ForwardsProvidedWriterHeaders(t *testing.T) {
 		},
 	}
 
-	erw := new(m)
+	erw := new(m, defaultUuid, nil)
 
 	actual := erw.Header()
 
@@ -38,7 +58,7 @@ func TestEnvelopeResponseWriter_WriteHeaderForwardsCallToProvidedWriter(t *testi
 	assert := assert.New(t)
 	m := &mockResponseWriter{}
 
-	erw := new(m)
+	erw := new(m, defaultUuid, nil)
 
 	erw.WriteHeader(http.StatusUnauthorized)
 
@@ -50,7 +70,7 @@ func TestEnvelopeResponseWriter_WriteHeaderUpdatesResponseEnvelopeStatus(t *test
 	assert := assert.New(t)
 	m := &mockResponseWriter{}
 
-	erw := new(m)
+	erw := new(m, defaultUuid, nil)
 
 	erw.WriteHeader(http.StatusUnauthorized)
 	assert.Equal("ERROR", erw.response.Status)
@@ -65,21 +85,21 @@ func TestEnvelopeResponseWriter_WriteForwardsCallToProvidedWriter(t *testing.T) 
 	assert := assert.New(t)
 	m := &mockResponseWriter{}
 
-	erw := new(m)
+	erw := new(m, defaultUuid, nil)
 
 	erw.Write(sampleJsonData)
 
 	assert.Equal(1, m.writeCalled)
 }
 
-var matcherStr = `{"RequestId":"[a-z0-9-]+","Status":"${STATUS}","Details":{"value":12}}`
+var matcherStr = `{"RequestId":"08ce96a3-3430-48a8-a3b2-b1c987a207ca","Status":"${STATUS}","Details":{"value":12}}`
 var pattern = `${STATUS}`
 
 func TestEnvelopeResponseWriter_WriteWrapsSuccessDataWithEnvelope(t *testing.T) {
 	assert := assert.New(t)
 	m := &mockResponseWriter{}
 
-	erw := new(m)
+	erw := new(m, defaultUuid, nil)
 
 	erw.WriteHeader(http.StatusAccepted)
 	erw.Write(sampleJsonData)
@@ -91,7 +111,7 @@ func TestEnvelopeResponseWriter_WriteWrapsFailureDataWithEnvelope(t *testing.T) 
 	assert := assert.New(t)
 	m := &mockResponseWriter{}
 
-	erw := new(m)
+	erw := new(m, defaultUuid, nil)
 
 	erw.WriteHeader(http.StatusUnprocessableEntity)
 	erw.Write(sampleJsonData)
@@ -104,7 +124,7 @@ func TestEnvelopeResponseWriter_UsesProvidedDataWhenNotJsonData(t *testing.T) {
 	m := &mockResponseWriter{}
 	data := []byte("some-data")
 
-	erw := new(m)
+	erw := new(m, defaultUuid, nil)
 
 	erw.Write(data)
 
