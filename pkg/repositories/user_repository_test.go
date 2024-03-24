@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"context"
 	"fmt"
 	"testing"
 	"time"
@@ -47,7 +48,7 @@ func TestUserRepository_Create_UsesConnectionToExec(t *testing.T) {
 	mc := &mockConnection{}
 	repo := NewUserRepository(mc)
 
-	repo.Create(defaultUser)
+	repo.Create(context.Background(), defaultUser)
 
 	assert.Equal(1, mc.execCalled)
 }
@@ -58,7 +59,7 @@ func TestUserRepository_Create_GeneratesValidSql(t *testing.T) {
 	mc := &mockConnection{}
 	repo := NewUserRepository(mc)
 
-	repo.Create(defaultUser)
+	repo.Create(context.Background(), defaultUser)
 
 	assert.Equal("INSERT INTO api_user (id, email, password, created_at) VALUES($1, $2, $3, $4)", mc.sqlQuery)
 	assert.Equal(4, len(mc.args))
@@ -76,7 +77,7 @@ func TestUserRepository_Create_PropagatesQueryFailure(t *testing.T) {
 	}
 	repo := NewUserRepository(mc)
 
-	err := repo.Create(defaultUser)
+	err := repo.Create(context.Background(), defaultUser)
 
 	assert.Equal(errDefault, err)
 }
@@ -87,7 +88,7 @@ func TestUserRepository_Get_UsesConnectionToQuery(t *testing.T) {
 	mc := &mockConnection{}
 	repo := NewUserRepository(mc)
 
-	repo.Get(uuid.UUID{})
+	repo.Get(context.Background(), uuid.UUID{})
 
 	assert.Equal(1, mc.queryCalled)
 }
@@ -98,7 +99,7 @@ func TestUserRepository_Get_GeneratesValidSql(t *testing.T) {
 	mc := &mockConnection{}
 	repo := NewUserRepository(mc)
 
-	repo.Get(defaultUuid)
+	repo.Get(context.Background(), defaultUuid)
 
 	assert.Equal("SELECT id, email, password, created_at, updated_at FROM api_user WHERE id = $1", mc.sqlQuery)
 	assert.Equal(1, len(mc.args))
@@ -117,7 +118,7 @@ func TestUserRepository_Get_PropagatesQueryFailure(t *testing.T) {
 	}
 	repo := NewUserRepository(mc)
 
-	_, err := repo.Get(defaultUuid)
+	_, err := repo.Get(context.Background(), defaultUuid)
 
 	assert.Equal(errDefault, err)
 }
@@ -128,7 +129,7 @@ func TestUserRepository_Get_CallsGetSingleValue(t *testing.T) {
 	mc := &mockConnection{}
 	repo := NewUserRepository(mc)
 
-	repo.Get(defaultUuid)
+	repo.Get(context.Background(), defaultUuid)
 
 	assert.Equal(1, mc.rows.singleValueCalled)
 }
@@ -143,7 +144,7 @@ func TestUserRepository_Get_WhenResultReturnsError_Fails(t *testing.T) {
 	}
 	repo := NewUserRepository(mc)
 
-	_, err := repo.Get(defaultUuid)
+	_, err := repo.Get(context.Background(), defaultUuid)
 
 	assert.Equal(errDefault, err)
 }
@@ -154,7 +155,7 @@ func TestUserRepository_Get_WhenResultSucceeds_Success(t *testing.T) {
 	mc := &mockConnection{}
 	repo := NewUserRepository(mc)
 
-	_, err := repo.Get(defaultUuid)
+	_, err := repo.Get(context.Background(), defaultUuid)
 
 	assert.Nil(err)
 }
@@ -165,7 +166,7 @@ func TestUserRepository_Update_NotImplemented(t *testing.T) {
 	mc := &mockConnection{}
 	repo := NewUserRepository(mc)
 
-	_, err := repo.Update(persistence.User{})
+	_, err := repo.Update(context.Background(), persistence.User{})
 	assert.True(errors.IsErrorWithCode(err, errors.NotImplementedCode))
 }
 
@@ -175,7 +176,7 @@ func TestUserRepository_Delete_NotImplemented(t *testing.T) {
 	mc := &mockConnection{}
 	repo := NewUserRepository(mc)
 
-	err := repo.Delete(uuid.UUID{})
+	err := repo.Delete(context.Background(), uuid.UUID{})
 	assert.True(errors.IsErrorWithCode(err, errors.NotImplementedCode))
 }
 
@@ -183,14 +184,14 @@ func (m *mockConnection) Connect() error { return nil }
 
 func (m *mockConnection) Close() {}
 
-func (m *mockConnection) Query(sql string, arguments ...interface{}) db.Rows {
+func (m *mockConnection) Query(ctx context.Context, sql string, arguments ...interface{}) db.Rows {
 	m.queryCalled++
 	m.sqlQuery = sql
 	m.args = append(m.args, arguments...)
 	return &m.rows
 }
 
-func (m *mockConnection) Exec(sql string, arguments ...interface{}) (string, error) {
+func (m *mockConnection) Exec(ctx context.Context, sql string, arguments ...interface{}) (string, error) {
 	m.execCalled++
 	m.sqlQuery = sql
 	m.args = append(m.args, arguments...)

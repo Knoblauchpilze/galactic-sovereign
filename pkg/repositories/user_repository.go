@@ -1,6 +1,8 @@
 package repositories
 
 import (
+	"context"
+
 	"github.com/KnoblauchPilze/user-service/pkg/db"
 	"github.com/KnoblauchPilze/user-service/pkg/errors"
 	"github.com/KnoblauchPilze/user-service/pkg/persistence"
@@ -8,10 +10,10 @@ import (
 )
 
 type UserRepository interface {
-	Create(user persistence.User) error
-	Get(id uuid.UUID) (persistence.User, error)
-	Update(user persistence.User) (persistence.User, error)
-	Delete(id uuid.UUID) error
+	Create(ctx context.Context, user persistence.User) error
+	Get(ctx context.Context, id uuid.UUID) (persistence.User, error)
+	Update(ctx context.Context, user persistence.User) (persistence.User, error)
+	Delete(ctx context.Context, id uuid.UUID) error
 }
 
 type userRepositoryImpl struct {
@@ -26,15 +28,15 @@ func NewUserRepository(conn db.Connection) UserRepository {
 
 const sqlCreateUserTemplate = "INSERT INTO api_user (id, email, password, created_at) VALUES($1, $2, $3, $4)"
 
-func (r *userRepositoryImpl) Create(user persistence.User) error {
-	_, err := r.conn.Exec(sqlCreateUserTemplate, user.Id, user.Email, user.Password, user.CreatedAt)
+func (r *userRepositoryImpl) Create(ctx context.Context, user persistence.User) error {
+	_, err := r.conn.Exec(ctx, sqlCreateUserTemplate, user.Id, user.Email, user.Password, user.CreatedAt)
 	return err
 }
 
 const sqlQueryUserTemplate = "SELECT id, email, password, created_at, updated_at FROM api_user WHERE id = $1"
 
-func (r *userRepositoryImpl) Get(id uuid.UUID) (persistence.User, error) {
-	res := r.conn.Query(sqlQueryUserTemplate, id)
+func (r *userRepositoryImpl) Get(ctx context.Context, id uuid.UUID) (persistence.User, error) {
+	res := r.conn.Query(ctx, sqlQueryUserTemplate, id)
 	if err := res.Err(); err != nil {
 		return persistence.User{}, err
 	}
@@ -51,10 +53,10 @@ func (r *userRepositoryImpl) Get(id uuid.UUID) (persistence.User, error) {
 	return out, nil
 }
 
-func (r *userRepositoryImpl) Update(user persistence.User) (persistence.User, error) {
+func (r *userRepositoryImpl) Update(ctx context.Context, user persistence.User) (persistence.User, error) {
 	return persistence.User{}, errors.NewCode(errors.NotImplementedCode)
 }
 
-func (r *userRepositoryImpl) Delete(id uuid.UUID) error {
+func (r *userRepositoryImpl) Delete(ctx context.Context, id uuid.UUID) error {
 	return errors.NewCode(errors.NotImplementedCode)
 }

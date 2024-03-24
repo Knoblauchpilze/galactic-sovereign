@@ -39,7 +39,7 @@ func getUser(c echo.Context, repo repositories.UserRepository) error {
 		return c.JSON(http.StatusBadRequest, "Invalid id syntax")
 	}
 
-	user, err := repo.Get(id)
+	user, err := repo.Get(c.Request().Context(), id)
 	if err != nil {
 		if errors.IsErrorWithCode(err, db.NoMatchingSqlRows) {
 			return c.JSON(http.StatusNotFound, "No such user")
@@ -61,7 +61,7 @@ func createUser(c echo.Context, repo repositories.UserRepository) error {
 	}
 
 	user := communication.FromUserDtoRequest(userDtoRequest)
-	err = repo.Create(user)
+	err = repo.Create(c.Request().Context(), user)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
@@ -77,7 +77,7 @@ func deleteUser(c echo.Context, repo repositories.UserRepository) error {
 		return c.JSON(http.StatusBadRequest, "Invalid id syntax")
 	}
 
-	err = repo.Delete(id)
+	err = repo.Delete(c.Request().Context(), id)
 	if err != nil {
 		if errors.IsErrorWithCode(err, db.NoMatchingSqlRows) {
 			return c.JSON(http.StatusNotFound, "No such user")
