@@ -24,7 +24,7 @@ func TestError_New(t *testing.T) {
 	assert.Equal(GenericErrorCode, impl.Value)
 }
 
-func TestError_NewFromCode(t *testing.T) {
+func TestError_NewCode(t *testing.T) {
 	assert := assert.New(t)
 
 	err := NewCode(someCode)
@@ -32,6 +32,18 @@ func TestError_NewFromCode(t *testing.T) {
 	impl, ok := err.(errorImpl)
 	assert.True(ok)
 	assert.Equal("", impl.Message)
+	assert.Nil(impl.Cause)
+	assert.Equal(someCode, impl.Value)
+}
+
+func TestError_NewCodeWithDetails(t *testing.T) {
+	assert := assert.New(t)
+
+	err := NewCodeWithDetails(someCode, "message")
+
+	impl, ok := err.(errorImpl)
+	assert.True(ok)
+	assert.Equal("message", impl.Message)
 	assert.Nil(impl.Cause)
 	assert.Equal(someCode, impl.Value)
 }
