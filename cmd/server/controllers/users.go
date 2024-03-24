@@ -48,15 +48,45 @@ func getUser(c echo.Context, repo repositories.UserRepository) error {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 
-	out := communication.ToUserDto(user)
-
+	out := communication.ToUserDtoResponse(user)
 	return c.JSON(http.StatusOK, out)
 }
 
-func createUser(echo.Context, repositories.UserRepository) error {
-	return errors.NewCode(errors.NotImplementedCode)
+func createUser(c echo.Context, repo repositories.UserRepository) error {
+	// https://echo.labstack.com/docs/binding
+	var userDtoRequest communication.UserDtoRequest
+	err := c.Bind(&userDtoRequest)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, "Invalid user syntax")
+	}
+
+	user := communication.FromUserDtoRequest(userDtoRequest)
+	err = repo.Create(user)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, err)
+	}
+
+	out := communication.ToUserDtoResponse(user)
+	return c.JSON(http.StatusCreated, out)
 }
 
-func deleteUser(c echo.Context, _ repositories.UserRepository) error {
-	return c.String(http.StatusOK, "{\"message\":\"deleted\"}")
+func deleteUser(c echo.Context, repo repositories.UserRepository) error {
+	maybeId := c.Param("id")
+	id, err := uuid.Parse(maybeId)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, "Invalid id syntax")
+	}
+
+	err = repo.Delete(id)
+	if err != nil {
+		if errors.IsErrorWithCode(err, db.NoMatchingSqlRows) {
+			return c.JSON(http.StatusNotFound, "No such user")
+		}
+
+		return c.JSON(http.StatusInternalServerError, err)
+	}
+
+	c.Response().Status = http.StatusNoContent
+
+	return nil
 }
