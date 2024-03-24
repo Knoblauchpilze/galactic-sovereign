@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
+	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -29,7 +30,7 @@ func TestResponseEnvelopeMiddleware_SetsRequestId(t *testing.T) {
 	callable := em(next)
 	callable(m)
 
-	actual, ok := m.values[RequestIdKey]
+	actual, ok := m.values[requestIdKey]
 	assert.True(ok)
 	assert.IsType(uuid.UUID{}, actual)
 }
@@ -46,16 +47,21 @@ func TestResponseEnvelopeMiddleware_AssignsNewLogger(t *testing.T) {
 	assert.True(m.loggerChanged)
 }
 
-func TestResponseEnvelopeMiddleware_PropagatesError(t *testing.T) {
+func TestResponseEnvelopeMiddleware_AddLogKeyToRequestContext(t *testing.T) {
 	assert := assert.New(t)
 	m := newMockEchoContext(http.StatusOK)
-	next := createHandlerFuncReturning(errDefault)
+	next := createHandlerFuncReturning(nil)
 
 	em := ResponseEnvelope()
 	callable := em(next)
-	actual := callable(m)
+	callable(m)
 
-	assert.Equal(errDefault, actual)
+	assert.True(m.requestChanged)
+	ctx := m.request.Context()
+	actual := ctx.Value(logKey)
+	assert.NotNil(actual)
+	_, ok := actual.(echo.Logger)
+	assert.True(ok)
 }
 
 func TestResponseEnvelopeMiddleware_OverridesResponseWriter(t *testing.T) {
@@ -75,4 +81,16 @@ func TestResponseEnvelopeMiddleware_OverridesResponseWriter(t *testing.T) {
 	assert.IsType(&envelopeResponseWriter{}, actual)
 	actualW := actual.(*envelopeResponseWriter).writer
 	assert.Equal(w, actualW)
+}
+
+func TestResponseEnvelopeMiddleware_PropagatesError(t *testing.T) {
+	assert := assert.New(t)
+	m := newMockEchoContext(http.StatusOK)
+	next := createHandlerFuncReturning(errDefault)
+
+	em := ResponseEnvelope()
+	callable := em(next)
+	actual := callable(m)
+
+	assert.Equal(errDefault, actual)
 }
