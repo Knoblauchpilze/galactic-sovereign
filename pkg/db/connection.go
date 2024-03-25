@@ -14,7 +14,7 @@ type Connection interface {
 	Close()
 
 	Query(ctx context.Context, sql string, arguments ...interface{}) Rows
-	Exec(ctx context.Context, sql string, arguments ...interface{}) (string, error)
+	Exec(ctx context.Context, sql string, arguments ...interface{}) (int, error)
 }
 
 type pgxDbConnection interface {
@@ -72,10 +72,10 @@ func (c *connectionImpl) Query(ctx context.Context, sql string, args ...interfac
 	return newRows(rows, err)
 }
 
-func (c *connectionImpl) Exec(ctx context.Context, sql string, args ...interface{}) (string, error) {
+func (c *connectionImpl) Exec(ctx context.Context, sql string, args ...interface{}) (int, error) {
 	log := middleware.GetLoggerFromContext(ctx)
 	log.Debugf("Exec: %s (%d)", sql, len(args))
 
 	tag, err := c.pool.ExecEx(ctx, sql, nil, args...)
-	return string(tag), err
+	return int(tag.RowsAffected()), err
 }
