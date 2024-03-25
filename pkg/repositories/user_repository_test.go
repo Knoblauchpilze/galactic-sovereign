@@ -220,6 +220,19 @@ func TestUserRepository_Delete_WhenAffectedRowsIsNotOne_Fails(t *testing.T) {
 	assert.True(errors.IsErrorWithCode(err, db.NoMatchingSqlRows))
 }
 
+func TestUserRepository_Delete_WhenAffectedRowsIsOne_Succeeds(t *testing.T) {
+	assert := assert.New(t)
+
+	mc := &mockConnection{
+		affectedRows: 1,
+	}
+	repo := NewUserRepository(mc)
+
+	err := repo.Delete(context.Background(), defaultUuid)
+
+	assert.Nil(err)
+}
+
 func (m *mockConnection) Connect() error { return nil }
 
 func (m *mockConnection) Close() {}
