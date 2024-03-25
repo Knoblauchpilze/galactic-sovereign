@@ -17,7 +17,8 @@ type mockConnection struct {
 	queryCalled int
 	execCalled  int
 
-	execErr error
+	affectedRows int
+	execErr      error
 
 	sqlQuery string
 	args     []interface{}
@@ -33,6 +34,7 @@ type mockRows struct {
 	allCalled         int
 }
 
+var errDefault = fmt.Errorf("some error")
 var defaultUuid = uuid.MustParse("08ce96a3-3430-48a8-a3b2-b1c987a207ca")
 var defaultUser = persistence.User{
 	Id:        defaultUuid,
@@ -106,8 +108,6 @@ func TestUserRepository_Get_GeneratesValidSql(t *testing.T) {
 	assert.Equal(defaultUuid, mc.args[0])
 }
 
-var errDefault = fmt.Errorf("some error")
-
 func TestUserRepository_Get_PropagatesQueryFailure(t *testing.T) {
 	assert := assert.New(t)
 
@@ -170,14 +170,54 @@ func TestUserRepository_Update_NotImplemented(t *testing.T) {
 	assert.True(errors.IsErrorWithCode(err, errors.NotImplementedCode))
 }
 
-func TestUserRepository_Delete_NotImplemented(t *testing.T) {
+func TestUserRepository_Delete_UsesConnectionToQuery(t *testing.T) {
 	assert := assert.New(t)
 
 	mc := &mockConnection{}
 	repo := NewUserRepository(mc)
 
-	err := repo.Delete(context.Background(), uuid.UUID{})
-	assert.True(errors.IsErrorWithCode(err, errors.NotImplementedCode))
+	repo.Delete(context.Background(), uuid.UUID{})
+
+	assert.Equal(1, mc.execCalled)
+}
+
+func TestUserRepository_Delete_GeneratesValidSql(t *testing.T) {
+	assert := assert.New(t)
+
+	mc := &mockConnection{}
+	repo := NewUserRepository(mc)
+
+	repo.Delete(context.Background(), defaultUuid)
+
+	assert.Equal("DELETE FROM api_user WHERE id = $1", mc.sqlQuery)
+	assert.Equal(1, len(mc.args))
+	assert.Equal(defaultUuid, mc.args[0])
+}
+
+func TestUserRepository_Delete_PropagatesQueryFailure(t *testing.T) {
+	assert := assert.New(t)
+
+	mc := &mockConnection{
+		execErr: errDefault,
+	}
+	repo := NewUserRepository(mc)
+
+	err := repo.Delete(context.Background(), defaultUuid)
+
+	assert.Equal(errDefault, err)
+}
+
+func TestUserRepository_Delete_WhenAffectedRowsIsNotOne_Fails(t *testing.T) {
+	assert := assert.New(t)
+
+	mc := &mockConnection{
+		affectedRows: 2,
+	}
+	repo := NewUserRepository(mc)
+
+	err := repo.Delete(context.Background(), defaultUuid)
+
+	assert.True(errors.IsErrorWithCode(err, db.NoMatchingSqlRows))
 }
 
 func (m *mockConnection) Connect() error { return nil }
@@ -195,7 +235,7 @@ func (m *mockConnection) Exec(ctx context.Context, sql string, arguments ...inte
 	m.execCalled++
 	m.sqlQuery = sql
 	m.args = append(m.args, arguments...)
-	return 0, m.execErr
+	return m.affectedRows, m.execErr
 }
 
 func (m *mockRows) Err() error { return m.err }

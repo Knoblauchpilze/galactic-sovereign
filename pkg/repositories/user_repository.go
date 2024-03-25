@@ -61,9 +61,11 @@ const deleteUserSqlTemplate = "DELETE FROM api_user WHERE id = $1"
 
 func (r *userRepositoryImpl) Delete(ctx context.Context, id uuid.UUID) error {
 	affected, err := r.conn.Exec(ctx, deleteUserSqlTemplate, id)
+	if err != nil {
+		return err
+	}
 	if affected != 1 {
 		return errors.NewCode(db.NoMatchingSqlRows)
 	}
-
-	return err
+	return nil
 }
