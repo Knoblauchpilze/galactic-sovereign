@@ -26,17 +26,17 @@ func NewUserRepository(conn db.Connection) UserRepository {
 	}
 }
 
-const sqlCreateUserTemplate = "INSERT INTO api_user (id, email, password, created_at) VALUES($1, $2, $3, $4)"
+const createUserSqlTemplate = "INSERT INTO api_user (id, email, password, created_at) VALUES($1, $2, $3, $4)"
 
 func (r *userRepositoryImpl) Create(ctx context.Context, user persistence.User) error {
-	_, err := r.conn.Exec(ctx, sqlCreateUserTemplate, user.Id, user.Email, user.Password, user.CreatedAt)
+	_, err := r.conn.Exec(ctx, createUserSqlTemplate, user.Id, user.Email, user.Password, user.CreatedAt)
 	return err
 }
 
-const sqlQueryUserTemplate = "SELECT id, email, password, created_at, updated_at FROM api_user WHERE id = $1"
+const getUserSqlTemplate = "SELECT id, email, password, created_at, updated_at FROM api_user WHERE id = $1"
 
 func (r *userRepositoryImpl) Get(ctx context.Context, id uuid.UUID) (persistence.User, error) {
-	res := r.conn.Query(ctx, sqlQueryUserTemplate, id)
+	res := r.conn.Query(ctx, getUserSqlTemplate, id)
 	if err := res.Err(); err != nil {
 		return persistence.User{}, err
 	}
@@ -57,6 +57,13 @@ func (r *userRepositoryImpl) Update(ctx context.Context, user persistence.User) 
 	return persistence.User{}, errors.NewCode(errors.NotImplementedCode)
 }
 
+const deleteUserSqlTemplate = "DELETE FROM api_user WHERE id = $1"
+
 func (r *userRepositoryImpl) Delete(ctx context.Context, id uuid.UUID) error {
-	return errors.NewCode(errors.NotImplementedCode)
+	affected, err := r.conn.Exec(ctx, deleteUserSqlTemplate, id)
+	if affected != 1 {
+		return errors.NewCode(db.NoMatchingSqlRows)
+	}
+
+	return err
 }

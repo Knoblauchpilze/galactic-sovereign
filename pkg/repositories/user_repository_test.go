@@ -191,11 +191,11 @@ func (m *mockConnection) Query(ctx context.Context, sql string, arguments ...int
 	return &m.rows
 }
 
-func (m *mockConnection) Exec(ctx context.Context, sql string, arguments ...interface{}) (string, error) {
+func (m *mockConnection) Exec(ctx context.Context, sql string, arguments ...interface{}) (int, error) {
 	m.execCalled++
 	m.sqlQuery = sql
 	m.args = append(m.args, arguments...)
-	return "", m.execErr
+	return 0, m.execErr
 }
 
 func (m *mockRows) Err() error { return m.err }
