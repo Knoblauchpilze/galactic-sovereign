@@ -53,8 +53,17 @@ func (r *userRepositoryImpl) Get(ctx context.Context, id uuid.UUID) (persistence
 	return out, nil
 }
 
+const updateUserSqlTemplate = "UPDATE api_user SET email = $1, password = $2 WHERE id = $3"
+
 func (r *userRepositoryImpl) Update(ctx context.Context, user persistence.User) (persistence.User, error) {
-	return persistence.User{}, errors.NewCode(errors.NotImplementedCode)
+	affected, err := r.conn.Exec(ctx, updateUserSqlTemplate, user.Email, user.Password, user.Id)
+	if err != nil {
+		return user, err
+	}
+	if affected != 1 {
+		return user, errors.NewCode(db.NoMatchingSqlRows)
+	}
+	return user, nil
 }
 
 const deleteUserSqlTemplate = "DELETE FROM api_user WHERE id = $1"
