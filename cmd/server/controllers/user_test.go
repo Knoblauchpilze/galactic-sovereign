@@ -35,6 +35,7 @@ type mockUserRepository struct {
 	err  error
 
 	createCalled int
+	createdUser  persistence.User
 	getCalled    int
 	updateCalled int
 	updatedUser  persistence.User
@@ -46,6 +47,10 @@ type mockDbConnection struct {
 }
 
 var defaultUuid = uuid.MustParse("08ce96a3-3430-48a8-a3b2-b1c987a207ca")
+var defaultUserRequest = communication.UserDtoRequest{
+	Email:    "e.mail@domain.com",
+	Password: "password",
+}
 var defaultUser = persistence.User{
 	Id:        defaultUuid,
 	Email:     "e.mail@domain.com",
@@ -59,6 +64,102 @@ var defaultUserDto = communication.UserDtoResponse{
 	Password: "password",
 
 	CreatedAt: time.Date(2009, 11, 17, 20, 34, 58, 651387237, time.UTC),
+}
+
+func TestCreateUser_WhenBindFails_SetsStatusToBadRequest(t *testing.T) {
+	assert := assert.New(t)
+
+	mc := &mockContext{
+		bindErr: errDefault,
+	}
+	mr := &mockUserRepository{}
+
+	err := createUser(mc, mr)
+
+	assert.Nil(err)
+	assert.Equal(http.StatusBadRequest, mc.status)
+	assert.Equal("Invalid user syntax", mc.data)
+}
+
+func TestCreateUser_CallsRepositoryCreate(t *testing.T) {
+	assert := assert.New(t)
+
+	mc := &mockContext{}
+	mr := &mockUserRepository{}
+
+	createUser(mc, mr)
+
+	assert.Equal(1, mr.createCalled)
+}
+
+func TestCreateUser_WhenRepositorySucceeds_SetsStatusToCreated(t *testing.T) {
+	assert := assert.New(t)
+
+	mc := &mockContext{}
+	mr := &mockUserRepository{}
+
+	err := createUser(mc, mr)
+
+	assert.Nil(err)
+	assert.Equal(http.StatusCreated, mc.status)
+}
+
+func TestCreateUser_WhenRepositorySucceeds_ReturnsExpectedUser(t *testing.T) {
+	assert := assert.New(t)
+
+	mc := &mockContext{
+		body: defaultUserRequest,
+	}
+	mr := &mockUserRepository{
+		user: defaultUser,
+	}
+
+	createUser(mc, mr)
+
+	actual, ok := mc.data.(communication.UserDtoResponse)
+	assert.True(ok)
+
+	_, err := uuid.Parse(actual.Id.String())
+	assert.Nil(err)
+	assert.Equal(defaultUserRequest.Email, actual.Email)
+	assert.Equal(defaultUserRequest.Password, actual.Password)
+	assert.True(actual.CreatedAt.Before(time.Now()))
+}
+
+func TestCreateUser_WhenRepositorySucceeds_SavesExpectedUser(t *testing.T) {
+	assert := assert.New(t)
+
+	mc := &mockContext{
+		body: defaultUserRequest,
+	}
+	mr := &mockUserRepository{
+		user: defaultUser,
+	}
+
+	createUser(mc, mr)
+
+	actual := mr.createdUser
+	_, err := uuid.Parse(actual.Id.String())
+	assert.Nil(err)
+	assert.Equal(defaultUserRequest.Email, actual.Email)
+	assert.Equal(defaultUserRequest.Password, actual.Password)
+	n := time.Now()
+	assert.True(actual.CreatedAt.Before(n))
+	assert.True(actual.UpdatedAt.Before(n))
+}
+
+func TestCreateUser_WhenRepositoryFailsWithUnknownError_SetsStatusToInternalServerError(t *testing.T) {
+	assert := assert.New(t)
+
+	mc := &mockContext{}
+	mr := &mockUserRepository{
+		err: errDefault,
+	}
+
+	err := createUser(mc, mr)
+
+	assert.Nil(err)
+	assert.Equal(http.StatusInternalServerError, mc.status)
 }
 
 func TestUserEndpoints_GeneratesExpectedRoutes(t *testing.T) {
@@ -485,6 +586,7 @@ func (m *mockContext) NoContent(status int) error {
 
 func (m *mockUserRepository) Create(ctx context.Context, user persistence.User) error {
 	m.createCalled++
+	m.createdUser = user
 	return m.err
 }
 
