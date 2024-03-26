@@ -37,6 +37,11 @@ You should then be able to connect to the database with `make connect` and inspe
 
 # Cheat sheet
 
+## Create new user
+```bash
+curl -H "Content-Type: application/json" -X POST http://localhost:60001/v1/users/users -d '{"email":"some-user@mail.com","password":"1234"}' | jq
+```
+
 ## Query existing user
 ```bash
 curl -X GET http://localhost:60001/v1/users/users/08ce96a3-3430-48a8-a3b2-b1c987a207cb | jq
@@ -47,9 +52,9 @@ curl -X GET http://localhost:60001/v1/users/users/08ce96a3-3430-48a8-a3b2-b1c987
 curl -X GET http://localhost:60001/v1/users/users/08ce96a3-3430-48a8-a3b2-b1c987a207ca | jq
 ```
 
-## Create new user
+## Patch existing user
 ```bash
-curl -H "Content-Type: application/json" -X POST http://localhost:60001/v1/users/users -d '{"email":"some-user@mail.com","password":"1234"}' | jq
+curl -H "Content-Type: application/json" -X PATCH http://localhost:60001/v1/users/users/f16c01cd-a6cc-4645-b4f8-3fd2e6837af8 -d '{"email":"some-other-user@mail.com","password":"1235"}'| jq
 ```
 
 ## Delete user
