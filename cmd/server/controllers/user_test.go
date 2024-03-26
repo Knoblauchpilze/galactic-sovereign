@@ -5,7 +5,9 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
+	"github.com/KnoblauchPilze/user-service/pkg/communication"
 	"github.com/KnoblauchPilze/user-service/pkg/db"
 	"github.com/KnoblauchPilze/user-service/pkg/errors"
 	"github.com/KnoblauchPilze/user-service/pkg/persistence"
@@ -27,12 +29,143 @@ type mockContext struct {
 type mockUserRepository struct {
 	repositories.UserRepository
 
-	err error
+	user persistence.User
+	err  error
 
 	createCalled int
 	getCalled    int
 	updateCalled int
 	deleteCalled int
+}
+
+var defaultUuid = uuid.MustParse("08ce96a3-3430-48a8-a3b2-b1c987a207ca")
+var defaultUser = persistence.User{
+	Id:        defaultUuid,
+	Email:     "e.mail@domain.com",
+	Password:  "password",
+	CreatedAt: time.Date(2009, 11, 17, 20, 34, 58, 651387237, time.UTC),
+	UpdatedAt: time.Date(2009, 11, 17, 20, 34, 59, 651387237, time.UTC),
+}
+var defaultUserDto = communication.UserDtoResponse{
+	Id:       defaultUuid,
+	Email:    "e.mail@domain.com",
+	Password: "password",
+
+	CreatedAt: time.Date(2009, 11, 17, 20, 34, 58, 651387237, time.UTC),
+}
+
+func TestGetUser_WhenNoId_SetsStatusToBadRequest(t *testing.T) {
+	assert := assert.New(t)
+
+	mc := &mockContext{}
+	mr := &mockUserRepository{}
+
+	err := getUser(mc, mr)
+
+	assert.Nil(err)
+	assert.Equal(http.StatusBadRequest, mc.status)
+	assert.Equal("Invalid id syntax", mc.data)
+}
+
+func TestGetUser_WhenIdSyntaxIsWrong_SetsStatusToBadRequest(t *testing.T) {
+	assert := assert.New(t)
+
+	mc := &mockContext{
+		params: map[string]string{
+			"id": "not-a-valid-id",
+		},
+	}
+	mr := &mockUserRepository{}
+
+	err := getUser(mc, mr)
+
+	assert.Nil(err)
+	assert.Equal(http.StatusBadRequest, mc.status)
+	assert.Equal("Invalid id syntax", mc.data)
+}
+
+func TestGetUser_CallsRepositoryGet(t *testing.T) {
+	assert := assert.New(t)
+
+	mc := &mockContext{
+		params: map[string]string{
+			"id": defaultUuid.String(),
+		},
+	}
+	mr := &mockUserRepository{}
+
+	getUser(mc, mr)
+
+	assert.Equal(1, mr.getCalled)
+}
+
+func TestGetUser_WhenRepositorySucceeds_SetsStatusToOk(t *testing.T) {
+	assert := assert.New(t)
+
+	mc := &mockContext{
+		params: map[string]string{
+			"id": defaultUuid.String(),
+		},
+	}
+	mr := &mockUserRepository{}
+
+	err := getUser(mc, mr)
+
+	assert.Nil(err)
+	assert.Equal(http.StatusOK, mc.status)
+}
+
+func TestGetUser_WhenRepositorySucceeds_ReturnsExpectedUser(t *testing.T) {
+	assert := assert.New(t)
+
+	mc := &mockContext{
+		params: map[string]string{
+			"id": defaultUuid.String(),
+		},
+	}
+	mr := &mockUserRepository{
+		user: defaultUser,
+	}
+
+	getUser(mc, mr)
+
+	assert.Equal(defaultUserDto, mc.data)
+}
+
+func TestGetUser_WhenRepositoryFailsWithUnknownError_SetsStatusToInternalServerError(t *testing.T) {
+	assert := assert.New(t)
+
+	mc := &mockContext{
+		params: map[string]string{
+			"id": defaultUuid.String(),
+		},
+	}
+	mr := &mockUserRepository{
+		err: errDefault,
+	}
+
+	err := getUser(mc, mr)
+
+	assert.Nil(err)
+	assert.Equal(http.StatusInternalServerError, mc.status)
+}
+
+func TestGetUser_WhenRepositoryFailsWithNoMatchingRows_SetsStatusToNotFound(t *testing.T) {
+	assert := assert.New(t)
+
+	mc := &mockContext{
+		params: map[string]string{
+			"id": defaultUuid.String(),
+		},
+	}
+	mr := &mockUserRepository{
+		err: errors.NewCode(db.NoMatchingSqlRows),
+	}
+
+	err := getUser(mc, mr)
+
+	assert.Nil(err)
+	assert.Equal(http.StatusNotFound, mc.status)
 }
 
 func TestDeleteUser_WhenNoId_SetsStatusToBadRequest(t *testing.T) {
@@ -64,8 +197,6 @@ func TestDeleteUser_WhenIdSyntaxIsWrong_SetsStatusToBadRequest(t *testing.T) {
 	assert.Equal(http.StatusBadRequest, mc.status)
 	assert.Equal("Invalid id syntax", mc.data)
 }
-
-var defaultUuid = uuid.MustParse("08ce96a3-3430-48a8-a3b2-b1c987a207ca")
 
 func TestDeleteUser_CallsRepositoryDelete(t *testing.T) {
 	assert := assert.New(t)
@@ -168,12 +299,12 @@ func (m *mockUserRepository) Create(ctx context.Context, user persistence.User) 
 
 func (m *mockUserRepository) Get(ctx context.Context, id uuid.UUID) (persistence.User, error) {
 	m.getCalled++
-	return persistence.User{}, m.err
+	return m.user, m.err
 }
 
 func (m *mockUserRepository) Update(ctx context.Context, user persistence.User) (persistence.User, error) {
 	m.updateCalled++
-	return persistence.User{}, m.err
+	return m.user, m.err
 }
 
 func (m *mockUserRepository) Delete(ctx context.Context, id uuid.UUID) error {
