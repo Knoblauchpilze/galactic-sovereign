@@ -160,14 +160,82 @@ func TestUserRepository_Get_WhenResultSucceeds_Success(t *testing.T) {
 	assert.Nil(err)
 }
 
-func TestUserRepository_Update_NotImplemented(t *testing.T) {
+func TestUserRepository_Update_UsesConnectionToQuery(t *testing.T) {
 	assert := assert.New(t)
 
 	mc := &mockConnection{}
 	repo := NewUserRepository(mc)
 
-	_, err := repo.Update(context.Background(), persistence.User{})
-	assert.True(errors.IsErrorWithCode(err, errors.NotImplementedCode))
+	repo.Update(context.Background(), defaultUser)
+
+	assert.Equal(1, mc.execCalled)
+}
+
+func TestUserRepository_Update_GeneratesValidSql(t *testing.T) {
+	assert := assert.New(t)
+
+	mc := &mockConnection{}
+	repo := NewUserRepository(mc)
+
+	repo.Update(context.Background(), defaultUser)
+
+	assert.Equal("UPDATE api_user SET email = $1, password = $2 WHERE id = $3", mc.sqlQuery)
+	assert.Equal(3, len(mc.args))
+	assert.Equal(defaultUser.Email, mc.args[0])
+	assert.Equal(defaultUser.Password, mc.args[1])
+	assert.Equal(defaultUser.Id, mc.args[2])
+}
+
+func TestUserRepository_Update_PropagatesQueryFailure(t *testing.T) {
+	assert := assert.New(t)
+
+	mc := &mockConnection{
+		execErr: errDefault,
+	}
+	repo := NewUserRepository(mc)
+
+	_, err := repo.Update(context.Background(), defaultUser)
+
+	assert.Equal(errDefault, err)
+}
+
+func TestUserRepository_Update_WhenAffectedRowsIsNotOne_Fails(t *testing.T) {
+	assert := assert.New(t)
+
+	mc := &mockConnection{
+		affectedRows: 2,
+	}
+	repo := NewUserRepository(mc)
+
+	_, err := repo.Update(context.Background(), defaultUser)
+
+	assert.True(errors.IsErrorWithCode(err, db.NoMatchingSqlRows))
+}
+
+func TestUserRepository_Update_WhenAffectedRowsIsOne_Succeeds(t *testing.T) {
+	assert := assert.New(t)
+
+	mc := &mockConnection{
+		affectedRows: 1,
+	}
+	repo := NewUserRepository(mc)
+
+	_, err := repo.Update(context.Background(), defaultUser)
+
+	assert.Nil(err)
+}
+
+func TestUserRepository_Update_ReturnsUpdatedUser(t *testing.T) {
+	assert := assert.New(t)
+
+	mc := &mockConnection{
+		affectedRows: 1,
+	}
+	repo := NewUserRepository(mc)
+
+	actual, _ := repo.Update(context.Background(), defaultUser)
+
+	assert.Equal(defaultUser, actual)
 }
 
 func TestUserRepository_Delete_UsesConnectionToQuery(t *testing.T) {
