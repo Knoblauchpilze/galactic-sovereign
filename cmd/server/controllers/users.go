@@ -96,7 +96,7 @@ func updateUser(c echo.Context, repo repositories.UserRepository) error {
 	}
 
 	out := communication.ToUserDtoResponse(user)
-	return c.JSON(http.StatusCreated, out)
+	return c.JSON(http.StatusOK, out)
 }
 
 func deleteUser(c echo.Context, repo repositories.UserRepository) error {
