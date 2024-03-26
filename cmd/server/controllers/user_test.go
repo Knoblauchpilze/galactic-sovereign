@@ -41,6 +41,10 @@ type mockUserRepository struct {
 	deleteCalled int
 }
 
+type mockDbConnection struct {
+	db.Connection
+}
+
 var defaultUuid = uuid.MustParse("08ce96a3-3430-48a8-a3b2-b1c987a207ca")
 var defaultUser = persistence.User{
 	Id:        defaultUuid,
@@ -55,6 +59,21 @@ var defaultUserDto = communication.UserDtoResponse{
 	Password: "password",
 
 	CreatedAt: time.Date(2009, 11, 17, 20, 34, 58, 651387237, time.UTC),
+}
+
+func TestUserEndpoints_GeneratesExpectedRoutes(t *testing.T) {
+	assert := assert.New(t)
+
+	actualRoutes := make(map[string]int)
+	for _, r := range UserEndpoints(&mockDbConnection{}) {
+		actualRoutes[r.Method()]++
+	}
+
+	assert.Equal(4, len(actualRoutes))
+	assert.Equal(1, actualRoutes[http.MethodPost])
+	assert.Equal(1, actualRoutes[http.MethodGet])
+	assert.Equal(1, actualRoutes[http.MethodPatch])
+	assert.Equal(1, actualRoutes[http.MethodDelete])
 }
 
 func TestGetUser_WhenNoId_SetsStatusToBadRequest(t *testing.T) {
