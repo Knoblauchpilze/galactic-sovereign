@@ -51,6 +51,17 @@ func TestServer_Register_SanitizesPath(t *testing.T) {
 	assert.Equal("some-endpoint", mr.endpoint)
 }
 
+func TestServer_Register_SupportsPost(t *testing.T) {
+	assert := assert.New(t)
+
+	mr := &mockRoute{
+		method: http.MethodPost,
+	}
+
+	err := New(Config{}).Register(mr)
+	assert.Nil(err)
+}
+
 func TestServer_Register_SupportsGet(t *testing.T) {
 	assert := assert.New(t)
 
@@ -62,11 +73,11 @@ func TestServer_Register_SupportsGet(t *testing.T) {
 	assert.Nil(err)
 }
 
-func TestServer_Register_SupportsPost(t *testing.T) {
+func TestServer_Register_SupportsPatch(t *testing.T) {
 	assert := assert.New(t)
 
 	mr := &mockRoute{
-		method: http.MethodPost,
+		method: http.MethodPatch,
 	}
 
 	err := New(Config{}).Register(mr)
@@ -88,7 +99,7 @@ func TestServer_Register_FailsForUnsupportedMethod(t *testing.T) {
 	assert := assert.New(t)
 
 	testMethods := []string{
-		http.MethodPatch,
+		http.MethodPut,
 		"not-a-http-method",
 	}
 
