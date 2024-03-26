@@ -11,10 +11,6 @@ import (
 
 var errDefault = fmt.Errorf("some error")
 
-type mockUserRepository struct {
-	repositories.UserRepository
-}
-
 type mockEchoContext struct {
 	echo.Context
 }
@@ -28,7 +24,7 @@ func TestGenerateEchoHandler_CallsHandler(t *testing.T) {
 		return nil
 	}
 
-	h := generateEchoHandler(in, mockUserRepository{})
+	h := generateEchoHandler(in, &mockUserRepository{})
 
 	err := h(mockEchoContext{})
 	assert.Nil(err)
@@ -42,7 +38,7 @@ func TestGenerateEchoHandler_PropagatesError(t *testing.T) {
 		return errDefault
 	}
 
-	h := generateEchoHandler(in, mockUserRepository{})
+	h := generateEchoHandler(in, &mockUserRepository{})
 
 	err := h(mockEchoContext{})
 	assert.Equal(errDefault, err)
