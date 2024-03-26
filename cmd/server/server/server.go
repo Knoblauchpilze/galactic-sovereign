@@ -48,6 +48,8 @@ func (s *serverImpl) Register(route routes.Route) error {
 		s.echoServer.POST(path, route.Handler())
 	case http.MethodDelete:
 		s.echoServer.DELETE(path, route.Handler())
+	case http.MethodPatch:
+		s.echoServer.PATCH(path, route.Handler())
 	default:
 		return errors.NewCode(UnsupportedMethod)
 	}
