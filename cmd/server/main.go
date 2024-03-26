@@ -31,7 +31,10 @@ func main() {
 	s := server.New(conf.Server)
 
 	for _, route := range controllers.UserEndpoints(conn) {
-		s.Register(route)
+		if err := s.Register(route); err != nil {
+			logger.Errorf("Failed to register route: %v", err)
+			os.Exit(1)
+		}
 	}
 
 	if err := s.Start(); err != nil {
