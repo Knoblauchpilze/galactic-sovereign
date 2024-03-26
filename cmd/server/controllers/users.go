@@ -92,6 +92,10 @@ func updateUser(c echo.Context, repo repositories.UserRepository) error {
 
 	user, err = repo.Update(c.Request().Context(), user)
 	if err != nil {
+		if errors.IsErrorWithCode(err, db.NoMatchingSqlRows) {
+			return c.JSON(http.StatusNotFound, "No such user")
+		}
+
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 
