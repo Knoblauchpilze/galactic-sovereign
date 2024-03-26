@@ -115,7 +115,5 @@ func deleteUser(c echo.Context, repo repositories.UserRepository) error {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 
-	c.Response().Status = http.StatusNoContent
-
-	return nil
+	return c.NoContent(http.StatusNoContent)
 }
