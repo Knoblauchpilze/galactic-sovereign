@@ -29,6 +29,7 @@ type mockConnection struct {
 type mockRows struct {
 	err            error
 	singleValueErr error
+	allErr         error
 
 	singleValueCalled int
 	allCalled         int
@@ -158,6 +159,70 @@ func TestUserRepository_Get_WhenResultSucceeds_Success(t *testing.T) {
 	_, err := repo.Get(context.Background(), defaultUuid)
 
 	assert.Nil(err)
+}
+
+func TestUserRepository_List_UsesConnectionToQuery(t *testing.T) {
+	assert := assert.New(t)
+
+	mc := &mockConnection{}
+	repo := NewUserRepository(mc)
+
+	repo.List(context.Background())
+
+	assert.Equal(1, mc.queryCalled)
+}
+
+func TestUserRepository_List_GeneratesValidSql(t *testing.T) {
+	assert := assert.New(t)
+
+	mc := &mockConnection{}
+	repo := NewUserRepository(mc)
+
+	repo.List(context.Background())
+
+	assert.Equal("SELECT id FROM api_user", mc.sqlQuery)
+	assert.Equal(0, len(mc.args))
+}
+
+func TestUserRepository_List_PropagatesQueryFailure(t *testing.T) {
+	assert := assert.New(t)
+
+	mc := &mockConnection{
+		rows: mockRows{
+			err: errDefault,
+		},
+	}
+	repo := NewUserRepository(mc)
+
+	_, err := repo.List(context.Background())
+
+	assert.Equal(errDefault, err)
+}
+
+func TestUserRepository_List_CallsGetAll(t *testing.T) {
+	assert := assert.New(t)
+
+	mc := &mockConnection{}
+	repo := NewUserRepository(mc)
+
+	repo.List(context.Background())
+
+	assert.Equal(1, mc.rows.allCalled)
+}
+
+func TestUserRepository_List_WhenResultReturnsError_Fails(t *testing.T) {
+	assert := assert.New(t)
+
+	mc := &mockConnection{
+		rows: mockRows{
+			allErr: errDefault,
+		},
+	}
+	repo := NewUserRepository(mc)
+
+	_, err := repo.List(context.Background())
+
+	assert.Equal(errDefault, err)
 }
 
 func TestUserRepository_Update_UsesConnectionToQuery(t *testing.T) {
@@ -332,5 +397,5 @@ func (m *mockRows) GetSingleValue(parser db.RowParser) error {
 
 func (m *mockRows) GetAll(parser db.RowParser) error {
 	m.allCalled++
-	return nil
+	return m.allErr
 }

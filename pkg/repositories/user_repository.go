@@ -12,6 +12,7 @@ import (
 type UserRepository interface {
 	Create(ctx context.Context, user persistence.User) error
 	Get(ctx context.Context, id uuid.UUID) (persistence.User, error)
+	List(ctx context.Context) ([]uuid.UUID, error)
 	Update(ctx context.Context, user persistence.User) (persistence.User, error)
 	Delete(ctx context.Context, id uuid.UUID) error
 }
@@ -48,6 +49,33 @@ func (r *userRepositoryImpl) Get(ctx context.Context, id uuid.UUID) (persistence
 
 	if err := res.GetSingleValue(parser); err != nil {
 		return persistence.User{}, err
+	}
+
+	return out, nil
+}
+
+const listUserSqlTemplate = "SELECT id FROM api_user"
+
+func (r *userRepositoryImpl) List(ctx context.Context) ([]uuid.UUID, error) {
+	res := r.conn.Query(ctx, listUserSqlTemplate)
+	if err := res.Err(); err != nil {
+		return []uuid.UUID{}, err
+	}
+
+	var out []uuid.UUID
+	parser := func(rows db.Scannable) error {
+		var id uuid.UUID
+		err := rows.Scan(&id)
+		if err != nil {
+			return err
+		}
+
+		out = append(out, id)
+		return nil
+	}
+
+	if err := res.GetAll(parser); err != nil {
+		return []uuid.UUID{}, err
 	}
 
 	return out, nil
