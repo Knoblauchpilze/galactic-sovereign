@@ -52,6 +52,11 @@ curl -X GET http://localhost:60001/v1/users/users/08ce96a3-3430-48a8-a3b2-b1c987
 curl -X GET http://localhost:60001/v1/users/users/08ce96a3-3430-48a8-a3b2-b1c987a207ca | jq
 ```
 
+## List users
+```bash
+curl -X GET http://localhost:60001/v1/users/users | jq
+```
+
 ## Patch existing user
 ```bash
 curl -H "Content-Type: application/json" -X PATCH http://localhost:60001/v1/users/users/f16c01cd-a6cc-4645-b4f8-3fd2e6837af8 -d '{"email":"some-other-user@mail.com","password":"1235"}'| jq
