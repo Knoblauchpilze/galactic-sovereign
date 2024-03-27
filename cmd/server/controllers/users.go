@@ -25,6 +25,10 @@ func UserEndpoints(conn db.Connection) routes.Routes {
 	get := routes.NewResourceRoute(http.MethodGet, "/users", getHandler)
 	out = append(out, get)
 
+	listHandler := generateEchoHandler(listUsers, repo)
+	list := routes.NewRoute(http.MethodGet, "/users", listHandler)
+	out = append(out, list)
+
 	updateHandler := generateEchoHandler(updateUser, repo)
 	update := routes.NewResourceRoute(http.MethodPatch, "/users", updateHandler)
 	out = append(out, update)
@@ -71,6 +75,15 @@ func getUser(c echo.Context, repo repositories.UserRepository) error {
 	}
 
 	out := communication.ToUserDtoResponse(user)
+	return c.JSON(http.StatusOK, out)
+}
+
+func listUsers(c echo.Context, repo repositories.UserRepository) error {
+	out, err := repo.List(c.Request().Context())
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, err)
+	}
+
 	return c.JSON(http.StatusOK, out)
 }
 

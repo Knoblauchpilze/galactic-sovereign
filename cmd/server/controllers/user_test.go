@@ -32,11 +32,13 @@ type mockUserRepository struct {
 	repositories.UserRepository
 
 	user persistence.User
+	ids  []uuid.UUID
 	err  error
 
 	createCalled int
 	createdUser  persistence.User
 	getCalled    int
+	listCalled   int
 	updateCalled int
 	updatedUser  persistence.User
 	deleteCalled int
@@ -172,7 +174,7 @@ func TestUserEndpoints_GeneratesExpectedRoutes(t *testing.T) {
 
 	assert.Equal(4, len(actualRoutes))
 	assert.Equal(1, actualRoutes[http.MethodPost])
-	assert.Equal(1, actualRoutes[http.MethodGet])
+	assert.Equal(2, actualRoutes[http.MethodGet])
 	assert.Equal(1, actualRoutes[http.MethodPatch])
 	assert.Equal(1, actualRoutes[http.MethodDelete])
 }
@@ -289,6 +291,60 @@ func TestGetUser_WhenRepositoryFailsWithNoMatchingRows_SetsStatusToNotFound(t *t
 
 	assert.Nil(err)
 	assert.Equal(http.StatusNotFound, mc.status)
+}
+
+func TestListUser_CallsRepositoryList(t *testing.T) {
+	assert := assert.New(t)
+
+	mc := &mockContext{
+		params: map[string]string{
+			"id": defaultUuid.String(),
+		},
+	}
+	mr := &mockUserRepository{}
+
+	listUsers(mc, mr)
+
+	assert.Equal(1, mr.listCalled)
+}
+
+func TestListUser_WhenRepositoryFails_SetsStatusToInternalServerError(t *testing.T) {
+	assert := assert.New(t)
+
+	mc := &mockContext{}
+	mr := &mockUserRepository{
+		err: errDefault,
+	}
+
+	err := listUsers(mc, mr)
+
+	assert.Nil(err)
+	assert.Equal(http.StatusInternalServerError, mc.status)
+}
+
+func TestListUser_WhenRepositorySucceeds_SetsStatusToOk(t *testing.T) {
+	assert := assert.New(t)
+
+	mc := &mockContext{}
+	mr := &mockUserRepository{}
+
+	err := listUsers(mc, mr)
+
+	assert.Nil(err)
+	assert.Equal(http.StatusOK, mc.status)
+}
+
+func TestListUser_WhenRepositorySucceeds_ReturnsExpectedIds(t *testing.T) {
+	assert := assert.New(t)
+
+	mc := &mockContext{}
+	mr := &mockUserRepository{
+		ids: []uuid.UUID{defaultUuid},
+	}
+
+	listUsers(mc, mr)
+
+	assert.Equal(mr.ids, mc.data)
 }
 
 func TestUpdateUser_WhenNoId_SetsStatusToBadRequest(t *testing.T) {
@@ -593,6 +649,11 @@ func (m *mockUserRepository) Create(ctx context.Context, user persistence.User) 
 func (m *mockUserRepository) Get(ctx context.Context, id uuid.UUID) (persistence.User, error) {
 	m.getCalled++
 	return m.user, m.err
+}
+
+func (m *mockUserRepository) List(ctx context.Context) ([]uuid.UUID, error) {
+	m.listCalled++
+	return m.ids, m.err
 }
 
 func (m *mockUserRepository) Update(ctx context.Context, user persistence.User) (persistence.User, error) {
