@@ -33,6 +33,14 @@ type mockRows struct {
 
 	singleValueCalled int
 	allCalled         int
+	scanner           *mockScannable
+}
+
+type mockScannable struct {
+	err error
+
+	scannCalled int
+	props       []interface{}
 }
 
 var errDefault = fmt.Errorf("some error")
@@ -161,6 +169,47 @@ func TestUserRepository_Get_WhenResultSucceeds_Success(t *testing.T) {
 	assert.Nil(err)
 }
 
+func TestUserRepository_Get_PropagatesScanErrors(t *testing.T) {
+	assert := assert.New(t)
+
+	mc := &mockConnection{
+		rows: mockRows{
+			scanner: &mockScannable{
+				err: errDefault,
+			},
+		},
+	}
+	repo := NewUserRepository(mc)
+
+	_, err := repo.Get(context.Background(), defaultUuid)
+
+	assert.Equal(errDefault, err)
+}
+
+func TestUserRepository_Get_ScansUserProperties(t *testing.T) {
+	assert := assert.New(t)
+
+	mc := &mockConnection{
+		rows: mockRows{
+			scanner: &mockScannable{},
+		},
+	}
+	repo := NewUserRepository(mc)
+
+	_, err := repo.Get(context.Background(), defaultUuid)
+
+	assert.Nil(err)
+
+	props := mc.rows.scanner.props
+	assert.Equal(5, len(props))
+	assert.IsType(&uuid.UUID{}, props[0])
+	var str string
+	assert.IsType(&str, props[1])
+	assert.IsType(&str, props[2])
+	assert.IsType(&time.Time{}, props[3])
+	assert.IsType(&time.Time{}, props[4])
+}
+
 func TestUserRepository_List_UsesConnectionToQuery(t *testing.T) {
 	assert := assert.New(t)
 
@@ -223,6 +272,42 @@ func TestUserRepository_List_WhenResultReturnsError_Fails(t *testing.T) {
 	_, err := repo.List(context.Background())
 
 	assert.Equal(errDefault, err)
+}
+
+func TestUserRepository_List_PropagatesScanErrors(t *testing.T) {
+	assert := assert.New(t)
+
+	mc := &mockConnection{
+		rows: mockRows{
+			scanner: &mockScannable{
+				err: errDefault,
+			},
+		},
+	}
+	repo := NewUserRepository(mc)
+
+	_, err := repo.List(context.Background())
+
+	assert.Equal(errDefault, err)
+}
+
+func TestUserRepository_List_ScansIds(t *testing.T) {
+	assert := assert.New(t)
+
+	mc := &mockConnection{
+		rows: mockRows{
+			scanner: &mockScannable{},
+		},
+	}
+	repo := NewUserRepository(mc)
+
+	_, err := repo.List(context.Background())
+
+	assert.Nil(err)
+
+	props := mc.rows.scanner.props
+	assert.Equal(1, len(props))
+	assert.IsType(&uuid.UUID{}, props[0])
 }
 
 func TestUserRepository_Update_UsesConnectionToQuery(t *testing.T) {
@@ -392,10 +477,22 @@ func (m *mockRows) Close() {}
 
 func (m *mockRows) GetSingleValue(parser db.RowParser) error {
 	m.singleValueCalled++
+	if m.scanner != nil {
+		return parser(m.scanner)
+	}
 	return m.singleValueErr
 }
 
 func (m *mockRows) GetAll(parser db.RowParser) error {
 	m.allCalled++
+	if m.scanner != nil {
+		return parser(m.scanner)
+	}
 	return m.allErr
+}
+
+func (m *mockScannable) Scan(dest ...interface{}) error {
+	m.scannCalled++
+	m.props = append(m.props, dest...)
+	return m.err
 }
