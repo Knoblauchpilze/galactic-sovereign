@@ -14,5 +14,6 @@ type User struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 
+	// https://stackoverflow.com/questions/129329/optimistic-vs-pessimistic-locking
 	Version int
 }

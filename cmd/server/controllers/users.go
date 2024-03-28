@@ -109,15 +109,13 @@ func updateUser(c echo.Context, repo repositories.UserRepository) error {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 
-	c.Logger().Infof("fetched %+v", user)
-
 	user.Email = userDtoRequest.Email
 	user.Password = userDtoRequest.Password
 
 	user, err = repo.Update(c.Request().Context(), user)
 	if err != nil {
-		if errors.IsErrorWithCode(err, db.NoMatchingSqlRows) {
-			return c.JSON(http.StatusNotFound, "No such user")
+		if errors.IsErrorWithCode(err, db.OptimisticLockException) {
+			return c.JSON(http.StatusConflict, "User is not up to date")
 		}
 
 		return c.JSON(http.StatusInternalServerError, err)

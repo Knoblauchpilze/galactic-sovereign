@@ -31,13 +31,15 @@ type mockContext struct {
 type mockUserRepository struct {
 	repositories.UserRepository
 
-	user persistence.User
-	ids  []uuid.UUID
-	err  error
+	user      persistence.User
+	ids       []uuid.UUID
+	err       error
+	updateErr error
 
 	createCalled int
 	createdUser  persistence.User
 	getCalled    int
+	getId        uuid.UUID
 	listCalled   int
 	updateCalled int
 	updatedUser  persistence.User
@@ -395,6 +397,58 @@ func TestUpdateUser_WhenIdIsCorrectButBindFails_SetsStatusToBadRequest(t *testin
 	assert.Equal("Invalid user syntax", mc.data)
 }
 
+func TestUpdateUser_AttemptsToFetchUser(t *testing.T) {
+	assert := assert.New(t)
+
+	mc := &mockContext{
+		params: map[string]string{
+			"id": defaultUuid.String(),
+		},
+	}
+	mr := &mockUserRepository{}
+
+	updateUser(mc, mr)
+
+	assert.Equal(1, mr.getCalled)
+	assert.Equal(defaultUuid, mr.getId)
+}
+
+func TestUpdateUser_WhenGetUserFailsWithUnknownError_SetsStatusToInternalServerError(t *testing.T) {
+	assert := assert.New(t)
+
+	mc := &mockContext{
+		params: map[string]string{
+			"id": defaultUuid.String(),
+		},
+	}
+	mr := &mockUserRepository{
+		err: errDefault,
+	}
+
+	err := updateUser(mc, mr)
+
+	assert.Nil(err)
+	assert.Equal(http.StatusInternalServerError, mc.status)
+}
+
+func TestUpdateUser_WhenGetUserFailsWithNoWithNoMatchingRows_SetsStatusToNotFound(t *testing.T) {
+	assert := assert.New(t)
+
+	mc := &mockContext{
+		params: map[string]string{
+			"id": defaultUuid.String(),
+		},
+	}
+	mr := &mockUserRepository{
+		err: errors.NewCode(db.NoMatchingSqlRows),
+	}
+
+	err := updateUser(mc, mr)
+
+	assert.Nil(err)
+	assert.Equal(http.StatusNotFound, mc.status)
+}
+
 func TestUpdateUser_CallsRepositoryUpdate(t *testing.T) {
 	assert := assert.New(t)
 
@@ -492,7 +546,7 @@ func TestUpdateUser_WhenRepositoryFailsWithUnknownError_SetsStatusToInternalServ
 	assert.Equal(http.StatusInternalServerError, mc.status)
 }
 
-func TestUpdateUser_WhenRepositoryFailsWithNoMatchingRows_SetsStatusToNotFound(t *testing.T) {
+func TestUpdateUser_WhenRepositoryFailsWithOptimisticLocking_SetsStatusToConflict(t *testing.T) {
 	assert := assert.New(t)
 
 	mc := &mockContext{
@@ -501,13 +555,13 @@ func TestUpdateUser_WhenRepositoryFailsWithNoMatchingRows_SetsStatusToNotFound(t
 		},
 	}
 	mr := &mockUserRepository{
-		err: errors.NewCode(db.NoMatchingSqlRows),
+		updateErr: errors.NewCode(db.OptimisticLockException),
 	}
 
 	err := updateUser(mc, mr)
 
 	assert.Nil(err)
-	assert.Equal(http.StatusNotFound, mc.status)
+	assert.Equal(http.StatusConflict, mc.status)
 }
 
 func TestDeleteUser_WhenNoId_SetsStatusToBadRequest(t *testing.T) {
@@ -648,6 +702,7 @@ func (m *mockUserRepository) Create(ctx context.Context, user persistence.User) 
 
 func (m *mockUserRepository) Get(ctx context.Context, id uuid.UUID) (persistence.User, error) {
 	m.getCalled++
+	m.getId = id
 	return m.user, m.err
 }
 
@@ -659,7 +714,7 @@ func (m *mockUserRepository) List(ctx context.Context) ([]uuid.UUID, error) {
 func (m *mockUserRepository) Update(ctx context.Context, user persistence.User) (persistence.User, error) {
 	m.updateCalled++
 	m.updatedUser = user
-	return m.user, m.err
+	return m.user, m.updateErr
 }
 
 func (m *mockUserRepository) Delete(ctx context.Context, id uuid.UUID) error {
