@@ -537,7 +537,7 @@ func TestUpdateUser_WhenRepositoryFailsWithUnknownError_SetsStatusToInternalServ
 		},
 	}
 	mr := &mockUserRepository{
-		err: errDefault,
+		updateErr: errDefault,
 	}
 
 	err := updateUser(mc, mr)
