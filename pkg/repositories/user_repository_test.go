@@ -51,6 +51,7 @@ var defaultUser = persistence.User{
 	Password:  "password",
 	CreatedAt: time.Date(2009, 11, 17, 20, 34, 58, 651387237, time.UTC),
 	UpdatedAt: time.Date(2009, 11, 17, 20, 34, 59, 651387237, time.UTC),
+	Version:   4,
 }
 
 func TestUserRepository_Create_UsesConnectionToExec(t *testing.T) {
@@ -112,7 +113,7 @@ func TestUserRepository_Get_GeneratesValidSql(t *testing.T) {
 
 	repo.Get(context.Background(), defaultUuid)
 
-	assert.Equal("SELECT id, email, password, created_at, updated_at FROM api_user WHERE id = $1", mc.sqlQuery)
+	assert.Equal("SELECT id, email, password, created_at, updated_at, version FROM api_user WHERE id = $1", mc.sqlQuery)
 	assert.Equal(1, len(mc.args))
 	assert.Equal(defaultUuid, mc.args[0])
 }
@@ -201,13 +202,15 @@ func TestUserRepository_Get_ScansUserProperties(t *testing.T) {
 	assert.Nil(err)
 
 	props := mc.rows.scanner.props
-	assert.Equal(5, len(props))
+	assert.Equal(6, len(props))
 	assert.IsType(&uuid.UUID{}, props[0])
 	var str string
 	assert.IsType(&str, props[1])
 	assert.IsType(&str, props[2])
 	assert.IsType(&time.Time{}, props[3])
 	assert.IsType(&time.Time{}, props[4])
+	var itg int
+	assert.IsType(&itg, props[5])
 }
 
 func TestUserRepository_List_UsesConnectionToQuery(t *testing.T) {
@@ -329,11 +332,13 @@ func TestUserRepository_Update_GeneratesValidSql(t *testing.T) {
 
 	repo.Update(context.Background(), defaultUser)
 
-	assert.Equal("UPDATE api_user SET email = $1, password = $2 WHERE id = $3", mc.sqlQuery)
-	assert.Equal(3, len(mc.args))
+	assert.Equal("UPDATE api_user SET email = $1, password = $2, version = $3 WHERE id = $4 AND version = $5", mc.sqlQuery)
+	assert.Equal(5, len(mc.args))
 	assert.Equal(defaultUser.Email, mc.args[0])
 	assert.Equal(defaultUser.Password, mc.args[1])
-	assert.Equal(defaultUser.Id, mc.args[2])
+	assert.Equal(defaultUser.Version+1, mc.args[2])
+	assert.Equal(defaultUser.Id, mc.args[3])
+	assert.Equal(defaultUser.Version, mc.args[4])
 }
 
 func TestUserRepository_Update_PropagatesQueryFailure(t *testing.T) {

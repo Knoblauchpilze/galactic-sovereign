@@ -5,6 +5,7 @@ CREATE TABLE api_user (
   password TEXT NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP WITH TIME ZONE,
+  version INTEGER DEFAULT 0,
   PRIMARY KEY (id),
   UNIQUE (email)
 );
