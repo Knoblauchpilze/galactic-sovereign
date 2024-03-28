@@ -89,9 +89,8 @@ func (r *userRepositoryImpl) Update(ctx context.Context, user persistence.User) 
 	if err != nil {
 		return user, err
 	}
-	// TODO: Handle version not changed
 	if affected != 1 {
-		return user, errors.NewCode(db.NoMatchingSqlRows)
+		return user, errors.NewCode(db.OptimisticLockException)
 	}
 	return user, nil
 }

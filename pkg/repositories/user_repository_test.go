@@ -364,7 +364,7 @@ func TestUserRepository_Update_WhenAffectedRowsIsNotOne_Fails(t *testing.T) {
 
 	_, err := repo.Update(context.Background(), defaultUser)
 
-	assert.True(errors.IsErrorWithCode(err, db.NoMatchingSqlRows))
+	assert.True(errors.IsErrorWithCode(err, db.OptimisticLockException))
 }
 
 func TestUserRepository_Update_WhenAffectedRowsIsOne_Succeeds(t *testing.T) {
