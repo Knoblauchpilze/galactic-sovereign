@@ -100,8 +100,19 @@ func updateUser(c echo.Context, repo repositories.UserRepository) error {
 		return c.JSON(http.StatusBadRequest, "Invalid user syntax")
 	}
 
-	user := communication.FromUserDtoRequest(userDtoRequest)
-	user.Id = id
+	user, err := repo.Get(c.Request().Context(), id)
+	if err != nil {
+		if errors.IsErrorWithCode(err, db.NoMatchingSqlRows) {
+			return c.JSON(http.StatusNotFound, "No such user")
+		}
+
+		return c.JSON(http.StatusInternalServerError, err)
+	}
+
+	c.Logger().Infof("fetched %+v", user)
+
+	user.Email = userDtoRequest.Email
+	user.Password = userDtoRequest.Password
 
 	user, err = repo.Update(c.Request().Context(), user)
 	if err != nil {
