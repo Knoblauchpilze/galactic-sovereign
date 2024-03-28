@@ -34,7 +34,7 @@ func (r *userRepositoryImpl) Create(ctx context.Context, user persistence.User) 
 	return err
 }
 
-const getUserSqlTemplate = "SELECT id, email, password, created_at, updated_at FROM api_user WHERE id = $1"
+const getUserSqlTemplate = "SELECT id, email, password, created_at, updated_at, version FROM api_user WHERE id = $1"
 
 func (r *userRepositoryImpl) Get(ctx context.Context, id uuid.UUID) (persistence.User, error) {
 	res := r.conn.Query(ctx, getUserSqlTemplate, id)
@@ -44,7 +44,7 @@ func (r *userRepositoryImpl) Get(ctx context.Context, id uuid.UUID) (persistence
 
 	var out persistence.User
 	parser := func(rows db.Scannable) error {
-		return rows.Scan(&out.Id, &out.Email, &out.Password, &out.CreatedAt, &out.UpdatedAt)
+		return rows.Scan(&out.Id, &out.Email, &out.Password, &out.CreatedAt, &out.UpdatedAt, &out.Version)
 	}
 
 	if err := res.GetSingleValue(parser); err != nil {
@@ -81,13 +81,15 @@ func (r *userRepositoryImpl) List(ctx context.Context) ([]uuid.UUID, error) {
 	return out, nil
 }
 
-const updateUserSqlTemplate = "UPDATE api_user SET email = $1, password = $2 WHERE id = $3"
+const updateUserSqlTemplate = "UPDATE api_user SET email = $1, password = $2, version = $3 WHERE id = $4 AND version = $5"
 
 func (r *userRepositoryImpl) Update(ctx context.Context, user persistence.User) (persistence.User, error) {
-	affected, err := r.conn.Exec(ctx, updateUserSqlTemplate, user.Email, user.Password, user.Id)
+	version := user.Version + 1
+	affected, err := r.conn.Exec(ctx, updateUserSqlTemplate, user.Email, user.Password, version, user.Id, user.Version)
 	if err != nil {
 		return user, err
 	}
+	// TODO: Handle version not changed
 	if affected != 1 {
 		return user, errors.NewCode(db.NoMatchingSqlRows)
 	}
