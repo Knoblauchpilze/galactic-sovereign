@@ -66,3 +66,8 @@ curl -H "Content-Type: application/json" -X PATCH http://localhost:60001/v1/user
 ```bash
 curl -X DELETE http://localhost:60001/v1/users/users/08ce96a3-3430-48a8-a3b2-b1c987a207cc | jq
 ```
+
+## Run the docker container
+```bash
+docker run --network=host user-service
+```
