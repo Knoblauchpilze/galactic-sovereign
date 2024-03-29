@@ -37,5 +37,9 @@ run:
 	@echo "$(COLOR_HIGHLIGHT_BLUE)Running $(filter-out $@,$(MAKECMDGOALS))...$(COLOR_CLEAR)"
 	@cd bin && ./run.sh --app-name $(filter-out $@,$(MAKECMDGOALS))
 
+docker:
+	@echo "$(COLOR_HIGHLIGHT_BLUE)Building docker...$(COLOR_CLEAR)"
+	docker build --tag user-service .
+
 %:
 	@:
