@@ -16,7 +16,7 @@ func LoadConfiguration() (Configuration, error) {
 	viper.SetConfigType("yaml")
 	viper.AddConfigPath("configs")
 
-	viper.SetConfigName("server-dev")
+	viper.SetConfigName("users-dev")
 	if err := viper.ReadInConfig(); err != nil {
 		return defaultConf(), err
 	}

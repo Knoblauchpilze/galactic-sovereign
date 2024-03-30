@@ -1,0 +1,10 @@
+Server:
+  Endpoint: "/v1/users"
+  Port: 60001
+Database:
+  Host: "localhost"
+  Port: 5432
+  ConnectionsPoolSize: 2
+  Name: db_user_service
+  User: user_service_admin
+  Password: DB_PASSWORD
