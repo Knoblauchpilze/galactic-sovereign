@@ -5,8 +5,8 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/KnoblauchPilze/user-service/cmd/server/config"
-	"github.com/KnoblauchPilze/user-service/cmd/server/controllers"
+	"github.com/KnoblauchPilze/user-service/cmd/users/config"
+	"github.com/KnoblauchPilze/user-service/cmd/users/controllers"
 	"github.com/KnoblauchPilze/user-service/pkg/db"
 	"github.com/KnoblauchPilze/user-service/pkg/logger"
 	"github.com/KnoblauchPilze/user-service/pkg/rest"
