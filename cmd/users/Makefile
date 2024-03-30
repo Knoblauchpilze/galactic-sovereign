@@ -1,6 +1,6 @@
-# Default variables
+
 INSTALL_FOLDER ?= ../../bin
-APPLICATION ?= server
+APPLICATION ?= users
 
 BRANCH ?= master
 TAG ?= ${BRANCH}
@@ -10,9 +10,13 @@ install: release
 
 setup:
 	mkdir -p build
+	mkdir -p build/bin
 
 release: setup
-	go build -o build/server main.go
+	go build -o build/bin/${APPLICATION} main.go
+
+run: release
+	./build/bin/${APPLICATION}
 
 clean:
 	rm -rf build
