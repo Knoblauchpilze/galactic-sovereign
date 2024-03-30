@@ -1,6 +1,8 @@
 package internal
 
 import (
+	"strings"
+
 	"github.com/KnoblauchPilze/user-service/pkg/db"
 	"github.com/KnoblauchPilze/user-service/pkg/rest"
 	"github.com/spf13/viper"
@@ -20,6 +22,10 @@ func LoadConfiguration() (Configuration, error) {
 	if err := viper.ReadInConfig(); err != nil {
 		return defaultConf(), err
 	}
+
+	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+	viper.SetEnvPrefix("ENV")
+	viper.AutomaticEnv()
 
 	var out Configuration
 	if err := viper.Unmarshal(&out); err != nil {
