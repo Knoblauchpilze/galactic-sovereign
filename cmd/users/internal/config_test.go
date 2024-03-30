@@ -1,9 +1,11 @@
 package internal
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/KnoblauchPilze/user-service/pkg/rest"
+	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -65,4 +67,165 @@ func TestDefaultConfig_Database_DoesNotDefinePassword(t *testing.T) {
 	conf := defaultConf()
 
 	assert.Equal("", conf.Database.Password)
+}
+
+type mockConfigurationParser struct {
+	confType       string
+	confPaths      []string
+	confName       string
+	envKeyReplacer *strings.Replacer
+	envPrefix      string
+	automaticEnv   bool
+
+	readCalled int
+	readErr    error
+
+	unmarshalVal  interface{}
+	unmarshalOpts []viper.DecoderConfigOption
+	unmarshalErr  error
+}
+
+func TestLoadConfiguration_LooksForYamlFiles(t *testing.T) {
+	assert := assert.New(t)
+	t.Cleanup(resetConfigurationParser)
+
+	m := mockConfigurationParser{}
+	configurator = &m
+
+	LoadConfiguration()
+
+	assert.Equal("yaml", m.confType)
+}
+
+func TestLoadConfiguration_LooksForFilesInExpectedPath(t *testing.T) {
+	assert := assert.New(t)
+	t.Cleanup(resetConfigurationParser)
+
+	m := mockConfigurationParser{}
+	configurator = &m
+
+	LoadConfiguration()
+
+	assert.Equal([]string{"configs"}, m.confPaths)
+}
+
+func TestLoadConfiguration_LooksForTheRightFile(t *testing.T) {
+	assert := assert.New(t)
+	t.Cleanup(resetConfigurationParser)
+
+	m := mockConfigurationParser{}
+	configurator = &m
+
+	LoadConfiguration()
+
+	assert.Equal("users-dev", m.confName)
+}
+
+func TestLoadConfiguration_AppliesEnvironmentOverrides(t *testing.T) {
+	assert := assert.New(t)
+	t.Cleanup(resetConfigurationParser)
+
+	m := mockConfigurationParser{}
+	configurator = &m
+
+	LoadConfiguration()
+
+	assert.True(m.automaticEnv)
+	assert.Equal("ENV", m.envPrefix)
+	assert.Equal(strings.NewReplacer(".", "_"), m.envKeyReplacer)
+}
+
+func TestLoadConfiguration_ReadsConfiguration(t *testing.T) {
+	assert := assert.New(t)
+	t.Cleanup(resetConfigurationParser)
+
+	m := mockConfigurationParser{}
+	configurator = &m
+
+	LoadConfiguration()
+
+	assert.Equal(1, m.readCalled)
+}
+
+func TestLoadConfiguration_WhenError_ExpectDefaultAndError(t *testing.T) {
+	assert := assert.New(t)
+	t.Cleanup(resetConfigurationParser)
+
+	m := mockConfigurationParser{
+		readErr: errDefault,
+	}
+	configurator = &m
+
+	conf, err := LoadConfiguration()
+
+	assert.Equal(errDefault, err)
+	assert.Equal(defaultConf(), conf)
+}
+
+func TestLoadConfiguration_UnmarshalsInConfiguration(t *testing.T) {
+	assert := assert.New(t)
+	t.Cleanup(resetConfigurationParser)
+
+	m := mockConfigurationParser{}
+	configurator = &m
+
+	LoadConfiguration()
+
+	assert.IsType(&Configuration{}, m.unmarshalVal)
+	assert.Equal(0, len(m.unmarshalOpts))
+}
+
+func TestLoadConfiguration_WhenUnmarshalFails_ExpectDefaultAndError(t *testing.T) {
+	assert := assert.New(t)
+	t.Cleanup(resetConfigurationParser)
+
+	m := mockConfigurationParser{
+		unmarshalErr: errDefault,
+	}
+	configurator = &m
+
+	conf, err := LoadConfiguration()
+
+	assert.Equal(errDefault, err)
+	assert.Equal(defaultConf(), conf)
+}
+
+func resetConfigurationParser() {
+	configurator = viper.New()
+}
+
+func (m *mockConfigurationParser) SetConfigType(extension string) {
+	m.confType = extension
+}
+
+func (m *mockConfigurationParser) AddConfigPath(path string) {
+	m.confPaths = append(m.confPaths, path)
+}
+
+func (m *mockConfigurationParser) SetConfigName(fileName string) {
+	m.confName = fileName
+}
+
+func (m *mockConfigurationParser) SetEnvKeyReplacer(replacer *strings.Replacer) {
+	m.envKeyReplacer = replacer
+}
+
+func (m *mockConfigurationParser) SetEnvPrefix(envPrefix string) {
+	m.envPrefix = envPrefix
+}
+
+func (m *mockConfigurationParser) AutomaticEnv() {
+	m.automaticEnv = true
+}
+
+func (m *mockConfigurationParser) ReadInConfig() error {
+	m.readCalled++
+	return m.readErr
+}
+
+func (m *mockConfigurationParser) Unmarshal(rawVal any, opts ...viper.DecoderConfigOption) error {
+	m.unmarshalVal = rawVal
+	m.unmarshalOpts = append(m.unmarshalOpts, opts...)
+
+	return m.unmarshalErr
 }
