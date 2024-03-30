@@ -45,9 +45,6 @@ func defaultConf() Configuration {
 		Database: db.Config{
 			Host:                "localhost",
 			Port:                5432,
-			Name:                "database",
-			User:                "user",
-			Password:            "password",
 			ConnectionsPoolSize: 1,
 		},
 	}
