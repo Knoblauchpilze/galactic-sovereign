@@ -1,4 +1,4 @@
-package config
+package internal
 
 import (
 	"github.com/KnoblauchPilze/user-service/pkg/db"
@@ -11,7 +11,7 @@ type Configuration struct {
 	Database db.Config
 }
 
-func Load() (Configuration, error) {
+func LoadConfiguration() (Configuration, error) {
 	// https://github.com/spf13/viper#reading-config-files
 	viper.SetConfigType("yaml")
 	viper.AddConfigPath("configs")
