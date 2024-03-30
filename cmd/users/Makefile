@@ -1,19 +1,20 @@
 
-INSTALL_FOLDER ?= ../../bin
 APPLICATION ?= users
 
 BRANCH ?= master
 TAG ?= ${BRANCH}
 
-install: release
-	cp -r build/* ${INSTALL_FOLDER}
-
 setup:
-	mkdir -p build
-	mkdir -p build/bin
+	mkdir -p build build/configs build/bin
+	cp configs/users-template-dev.yml configs/users-dev.yml
 
-release: setup
+config:
+	cp configs/users-dev.yml build/configs/users-dev.yml
+
+release:
 	go build -o build/bin/${APPLICATION} main.go
+
+install: release config
 
 run: release
 	./build/bin/${APPLICATION}
