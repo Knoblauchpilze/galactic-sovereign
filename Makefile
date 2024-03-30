@@ -8,8 +8,6 @@ all: setup install
 install:
 	@echo "$(COLOR_HIGHLIGHT_BLUE)Building apps...$(COLOR_CLEAR)"
 	cd cmd/server && make install
-	@echo "$(COLOR_HIGHLIGHT_BLUE)Copying configuration files...$(COLOR_CLEAR)"
-	rsync -av --exclude '*template*.yml' --include '*.yml' configs/ cmd/server/build/configs
 	@echo "$(COLOR_HIGHLIGHT_GREEN)Success!$(COLOR_CLEAR)"
 
 setup:
