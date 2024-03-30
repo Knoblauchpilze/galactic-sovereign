@@ -1,11 +1,10 @@
-package server
+package rest
 
 import (
 	"fmt"
 	"net/http"
 	"strings"
 
-	"github.com/KnoblauchPilze/user-service/cmd/server/routes"
 	"github.com/KnoblauchPilze/user-service/pkg/errors"
 	"github.com/KnoblauchPilze/user-service/pkg/logger"
 	"github.com/KnoblauchPilze/user-service/pkg/middleware"
@@ -14,7 +13,7 @@ import (
 
 type Server interface {
 	Start() error
-	Register(route routes.Route) error
+	Register(route Route) error
 }
 
 type serverImpl struct {
@@ -23,7 +22,7 @@ type serverImpl struct {
 	echoServer *echo.Echo
 }
 
-func New(conf Config) Server {
+func NewServer(conf Config) Server {
 	return &serverImpl{
 		endpoint:   strings.TrimSuffix(conf.Endpoint, "/"),
 		port:       conf.Port,
@@ -38,7 +37,7 @@ func (s *serverImpl) Start() error {
 	return s.echoServer.Start(address)
 }
 
-func (s *serverImpl) Register(route routes.Route) error {
+func (s *serverImpl) Register(route Route) error {
 	path := route.GeneratePath(s.endpoint)
 
 	switch route.Method() {

@@ -1,4 +1,4 @@
-package server
+package rest
 
 type Config struct {
 	Endpoint string

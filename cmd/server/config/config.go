@@ -1,13 +1,13 @@
 package config
 
 import (
-	"github.com/KnoblauchPilze/user-service/cmd/server/server"
 	"github.com/KnoblauchPilze/user-service/pkg/db"
+	"github.com/KnoblauchPilze/user-service/pkg/rest"
 	"github.com/spf13/viper"
 )
 
 type Configuration struct {
-	Server   server.Config
+	Server   rest.Config
 	Database db.Config
 }
 
@@ -31,7 +31,7 @@ func Load() (Configuration, error) {
 
 func defaultConf() Configuration {
 	return Configuration{
-		Server: server.Config{
+		Server: rest.Config{
 			Endpoint: "/v1/users/",
 			Port:     uint16(60000),
 		},

@@ -7,9 +7,9 @@ import (
 
 	"github.com/KnoblauchPilze/user-service/cmd/server/config"
 	"github.com/KnoblauchPilze/user-service/cmd/server/controllers"
-	"github.com/KnoblauchPilze/user-service/cmd/server/server"
 	"github.com/KnoblauchPilze/user-service/pkg/db"
 	"github.com/KnoblauchPilze/user-service/pkg/logger"
+	"github.com/KnoblauchPilze/user-service/pkg/rest"
 )
 
 func main() {
@@ -28,7 +28,7 @@ func main() {
 
 	installCleanup(conn)
 
-	s := server.New(conf.Server)
+	s := rest.NewServer(conf.Server)
 
 	for _, route := range controllers.UserEndpoints(conn) {
 		if err := s.Register(route); err != nil {

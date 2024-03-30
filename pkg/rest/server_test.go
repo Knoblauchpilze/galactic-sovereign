@@ -1,4 +1,4 @@
-package server
+package rest
 
 import (
 	"net/http"
@@ -16,14 +16,12 @@ type mockRoute struct {
 	endpoint           string
 }
 
-var defaultHandler = func(c echo.Context) error { return nil }
-
 func TestServer_Register_UsesPathFromRoute(t *testing.T) {
 	assert := assert.New(t)
 
 	mr := &mockRoute{}
 
-	New(Config{}).Register(mr)
+	NewServer(Config{}).Register(mr)
 	assert.Equal(1, mr.generatePathCalled)
 }
 
@@ -35,7 +33,7 @@ func TestServer_Register_PropagatesPathFromConfig(t *testing.T) {
 		Endpoint: "some-endpoint",
 	}
 
-	New(c).Register(mr)
+	NewServer(c).Register(mr)
 	assert.Equal(c.Endpoint, mr.endpoint)
 }
 
@@ -47,7 +45,7 @@ func TestServer_Register_SanitizesPath(t *testing.T) {
 		Endpoint: "some-endpoint/",
 	}
 
-	New(c).Register(mr)
+	NewServer(c).Register(mr)
 	assert.Equal("some-endpoint", mr.endpoint)
 }
 
@@ -58,7 +56,7 @@ func TestServer_Register_SupportsPost(t *testing.T) {
 		method: http.MethodPost,
 	}
 
-	err := New(Config{}).Register(mr)
+	err := NewServer(Config{}).Register(mr)
 	assert.Nil(err)
 }
 
@@ -69,7 +67,7 @@ func TestServer_Register_SupportsGet(t *testing.T) {
 		method: http.MethodGet,
 	}
 
-	err := New(Config{}).Register(mr)
+	err := NewServer(Config{}).Register(mr)
 	assert.Nil(err)
 }
 
@@ -80,7 +78,7 @@ func TestServer_Register_SupportsPatch(t *testing.T) {
 		method: http.MethodPatch,
 	}
 
-	err := New(Config{}).Register(mr)
+	err := NewServer(Config{}).Register(mr)
 	assert.Nil(err)
 }
 
@@ -91,7 +89,7 @@ func TestServer_Register_SupportsDelete(t *testing.T) {
 		method: http.MethodDelete,
 	}
 
-	err := New(Config{}).Register(mr)
+	err := NewServer(Config{}).Register(mr)
 	assert.Nil(err)
 }
 
@@ -109,7 +107,7 @@ func TestServer_Register_FailsForUnsupportedMethod(t *testing.T) {
 				method: method,
 			}
 
-			err := New(Config{}).Register(mr)
+			err := NewServer(Config{}).Register(mr)
 			assert.True(errors.IsErrorWithCode(err, UnsupportedMethod))
 		})
 	}
