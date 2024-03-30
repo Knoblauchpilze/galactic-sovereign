@@ -13,5 +13,7 @@ COPY --from=builder build/bin bin/
 # https://stackoverflow.com/questions/21553353/what-is-the-difference-between-cmd-and-entrypoint-in-a-dockerfile
 WORKDIR /app/bin
 ENV ENV_DATABASE_PORT=5500
+# https://stackoverflow.com/questions/68173651/connecting-to-a-localhost-postgres-database-from-within-a-docker-container
+ENV ENV_DATABASE_HOST="172.17.0.1"
 EXPOSE 60001
 CMD ["./users"]
