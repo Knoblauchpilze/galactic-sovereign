@@ -23,6 +23,7 @@ func LoadConfiguration() (Configuration, error) {
 		return defaultConf(), err
 	}
 
+	// https://stackoverflow.com/questions/61585304/issues-with-overriding-config-using-env-variables-in-viper
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	viper.SetEnvPrefix("ENV")
 	viper.AutomaticEnv()
