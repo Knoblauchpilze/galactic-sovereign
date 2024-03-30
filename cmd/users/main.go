@@ -5,15 +5,14 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/KnoblauchPilze/user-service/cmd/users/config"
-	"github.com/KnoblauchPilze/user-service/cmd/users/controllers"
+	"github.com/KnoblauchPilze/user-service/cmd/users/internal"
 	"github.com/KnoblauchPilze/user-service/pkg/db"
 	"github.com/KnoblauchPilze/user-service/pkg/logger"
 	"github.com/KnoblauchPilze/user-service/pkg/rest"
 )
 
 func main() {
-	conf, err := config.Load()
+	conf, err := internal.LoadConfiguration()
 	if err != nil {
 		logger.Errorf("Failed to load configuration: %v", err)
 		os.Exit(1)
@@ -30,7 +29,7 @@ func main() {
 
 	s := rest.NewServer(conf.Server)
 
-	for _, route := range controllers.UserEndpoints(conn) {
+	for _, route := range internal.UserEndpoints(conn) {
 		if err := s.Register(route); err != nil {
 			logger.Errorf("Failed to register route: %v", err)
 			os.Exit(1)
