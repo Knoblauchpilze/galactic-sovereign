@@ -1,7 +1,7 @@
 
 SET client_encoding = 'UTF8';
 
-SET search_path = public, pg_catalog;
+SET search_path = user_service_schema, pg_catalog;
 SET default_tablespace = '';
 
 CREATE OR REPLACE FUNCTION update_updated_at() RETURNS TRIGGER AS $$
