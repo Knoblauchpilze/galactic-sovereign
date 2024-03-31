@@ -1,6 +1,6 @@
 
 CREATE TABLE api_user (
-  id UUID,
+  id UUID NOT NULL,
   email TEXT NOT NULL,
   password TEXT NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
