@@ -59,6 +59,7 @@ var defaultUser = persistence.User{
 	Id:        defaultUuid,
 	Email:     "e.mail@domain.com",
 	Password:  "password",
+	ApiKeys:   []uuid.UUID{},
 	CreatedAt: time.Date(2009, 11, 17, 20, 34, 58, 651387237, time.UTC),
 	UpdatedAt: time.Date(2009, 11, 17, 20, 34, 59, 651387237, time.UTC),
 }
@@ -66,6 +67,8 @@ var defaultUserDto = communication.UserDtoResponse{
 	Id:       defaultUuid,
 	Email:    "e.mail@domain.com",
 	Password: "password",
+
+	ApiKeys: []uuid.UUID{},
 
 	CreatedAt: time.Date(2009, 11, 17, 20, 34, 58, 651387237, time.UTC),
 }
