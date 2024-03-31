@@ -6,5 +6,5 @@ Database:
   Port: 5432
   ConnectionsPoolSize: 2
   Name: db_user_service
-  User: user_service_admin
+  User: user_service_manager
   Password: DB_PASSWORD
