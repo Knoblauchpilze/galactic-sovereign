@@ -44,12 +44,12 @@ curl -H "Content-Type: application/json" -X POST http://localhost:60001/v1/users
 
 ## Query existing user
 ```bash
-curl -X GET http://localhost:60001/v1/users/users/08ce96a3-3430-48a8-a3b2-b1c987a207cb | jq
+curl -X GET http://localhost:60001/v1/users/users/0463ed3d-bfc9-4c10-b6ee-c223bbca0fab | jq
 ```
 
 ## Query non existing user
 ```bash
-curl -X GET http://localhost:60001/v1/users/users/08ce96a3-3430-48a8-a3b2-b1c987a207ca | jq
+curl -X GET http://localhost:60001/v1/users/users/0463ed3d-bfc9-4c10-b6ee-c223bbca0fac | jq
 ```
 
 ## List users
@@ -59,12 +59,12 @@ curl -X GET http://localhost:60001/v1/users/users | jq
 
 ## Patch existing user
 ```bash
-curl -H "Content-Type: application/json" -X PATCH http://localhost:60001/v1/users/users/f16c01cd-a6cc-4645-b4f8-3fd2e6837af8 -d '{"email":"some-other-user@mail.com","password":"1235"}'| jq
+curl -H "Content-Type: application/json" -X PATCH http://localhost:60001/v1/users/users/0463ed3d-bfc9-4c10-b6ee-c223bbca0fab -d '{"email":"some-other-user@mail.com","password":"1235"}'| jq
 ```
 
 ## Delete user
 ```bash
-curl -X DELETE http://localhost:60001/v1/users/users/08ce96a3-3430-48a8-a3b2-b1c987a207cc | jq
+curl -X DELETE http://localhost:60001/v1/users/users/0463ed3d-bfc9-4c10-b6ee-c223bbca0fab | jq
 ```
 
 ## Run the docker container
