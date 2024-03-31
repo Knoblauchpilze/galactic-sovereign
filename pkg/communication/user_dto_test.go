@@ -26,7 +26,7 @@ func TestToUserDtoResponse(t *testing.T) {
 		CreatedAt: someTime,
 	}
 
-	actual := ToUserDtoResponse(u)
+	actual := ToUserDtoResponse(u, true)
 
 	assert.Equal(defaultUuid, actual.Id)
 	assert.Equal("email", actual.Email)
@@ -48,7 +48,25 @@ func TestToUserDtoResponse_WhenApiKeysIsNull_OutptusAnEmptySlice(t *testing.T) {
 		CreatedAt: someTime,
 	}
 
-	actual := ToUserDtoResponse(u)
+	actual := ToUserDtoResponse(u, true)
+
+	assert.Equal([]uuid.UUID{}, actual.ApiKeys)
+}
+
+func TestToUserDtoResponse_WhenApiKeysIsValidButRequestedToNotPersisteThem_OutptusAnEmptySlice(t *testing.T) {
+	assert := assert.New(t)
+
+	u := persistence.User{
+		Id:       defaultUuid,
+		Email:    "email",
+		Password: "password",
+
+		ApiKeys: []uuid.UUID{defaultApiKey},
+
+		CreatedAt: someTime,
+	}
+
+	actual := ToUserDtoResponse(u, false)
 
 	assert.Equal([]uuid.UUID{}, actual.ApiKeys)
 }
