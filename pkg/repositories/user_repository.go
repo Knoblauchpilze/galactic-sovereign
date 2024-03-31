@@ -10,7 +10,7 @@ import (
 )
 
 type UserRepository interface {
-	Create(ctx context.Context, user persistence.User) error
+	Create(ctx context.Context, user persistence.User) (persistence.User, error)
 	Get(ctx context.Context, id uuid.UUID) (persistence.User, error)
 	List(ctx context.Context) ([]uuid.UUID, error)
 	Update(ctx context.Context, user persistence.User) (persistence.User, error)
@@ -29,9 +29,9 @@ func NewUserRepository(conn db.Connection) UserRepository {
 
 const createUserSqlTemplate = "INSERT INTO api_user (id, email, password, created_at) VALUES($1, $2, $3, $4)"
 
-func (r *userRepositoryImpl) Create(ctx context.Context, user persistence.User) error {
+func (r *userRepositoryImpl) Create(ctx context.Context, user persistence.User) (persistence.User, error) {
 	_, err := r.conn.Exec(ctx, createUserSqlTemplate, user.Id, user.Email, user.Password, user.CreatedAt)
-	return err
+	return user, err
 }
 
 const getUserSqlTemplate = "SELECT id, email, password, created_at, updated_at, version FROM api_user WHERE id = $1"

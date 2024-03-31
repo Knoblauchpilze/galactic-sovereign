@@ -49,12 +49,12 @@ func createUser(c echo.Context, repo repositories.UserRepository) error {
 	}
 
 	user := communication.FromUserDtoRequest(userDtoRequest)
-	err = repo.Create(c.Request().Context(), user)
+	created, err := repo.Create(c.Request().Context(), user)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 
-	out := communication.ToUserDtoResponse(user)
+	out := communication.ToUserDtoResponse(created, true)
 	return c.JSON(http.StatusCreated, out)
 }
 
@@ -74,7 +74,8 @@ func getUser(c echo.Context, repo repositories.UserRepository) error {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 
-	out := communication.ToUserDtoResponse(user)
+	out := communication.ToUserDtoResponse(user, false)
+
 	return c.JSON(http.StatusOK, out)
 }
 
@@ -121,7 +122,7 @@ func updateUser(c echo.Context, repo repositories.UserRepository) error {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 
-	out := communication.ToUserDtoResponse(user)
+	out := communication.ToUserDtoResponse(user, false)
 	return c.JSON(http.StatusOK, out)
 }
 

@@ -89,9 +89,21 @@ func TestUserRepository_Create_PropagatesQueryFailure(t *testing.T) {
 	}
 	repo := NewUserRepository(mc)
 
-	err := repo.Create(context.Background(), defaultUser)
+	_, err := repo.Create(context.Background(), defaultUser)
 
 	assert.Equal(errDefault, err)
+}
+
+func TestUserRepository_Create_ReturnsInputUser(t *testing.T) {
+	assert := assert.New(t)
+
+	mc := &mockConnection{}
+	repo := NewUserRepository(mc)
+
+	actual, err := repo.Create(context.Background(), defaultUser)
+
+	assert.Nil(err)
+	assert.Equal(defaultUser, actual)
 }
 
 func TestUserRepository_Get_UsesConnectionToQuery(t *testing.T) {

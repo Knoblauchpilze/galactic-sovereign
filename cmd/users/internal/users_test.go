@@ -51,6 +51,7 @@ type mockDbConnection struct {
 }
 
 var defaultUuid = uuid.MustParse("08ce96a3-3430-48a8-a3b2-b1c987a207ca")
+var defaultApiKey = uuid.MustParse("cc1742fa-77b4-4f5f-ac92-058c2e47a5d6")
 var defaultUserRequest = communication.UserDtoRequest{
 	Email:    "e.mail@domain.com",
 	Password: "password",
@@ -59,7 +60,7 @@ var defaultUser = persistence.User{
 	Id:        defaultUuid,
 	Email:     "e.mail@domain.com",
 	Password:  "password",
-	ApiKeys:   []uuid.UUID{},
+	ApiKeys:   []uuid.UUID{defaultApiKey},
 	CreatedAt: time.Date(2009, 11, 17, 20, 34, 58, 651387237, time.UTC),
 	UpdatedAt: time.Date(2009, 11, 17, 20, 34, 59, 651387237, time.UTC),
 }
@@ -128,9 +129,17 @@ func TestCreateUser_WhenRepositorySucceeds_ReturnsExpectedUser(t *testing.T) {
 
 	_, err := uuid.Parse(actual.Id.String())
 	assert.Nil(err)
-	assert.Equal(defaultUserRequest.Email, actual.Email)
-	assert.Equal(defaultUserRequest.Password, actual.Password)
-	assert.True(actual.CreatedAt.Before(time.Now()))
+
+	expected := communication.UserDtoResponse{
+		Id:       defaultUuid,
+		Email:    "e.mail@domain.com",
+		Password: "password",
+
+		ApiKeys: []uuid.UUID{defaultApiKey},
+
+		CreatedAt: time.Date(2009, 11, 17, 20, 34, 58, 651387237, time.UTC),
+	}
+	assert.Equal(expected, actual)
 }
 
 func TestCreateUser_WhenRepositorySucceeds_SavesExpectedUser(t *testing.T) {
@@ -697,10 +706,10 @@ func (m *mockContext) NoContent(status int) error {
 	return nil
 }
 
-func (m *mockUserRepository) Create(ctx context.Context, user persistence.User) error {
+func (m *mockUserRepository) Create(ctx context.Context, user persistence.User) (persistence.User, error) {
 	m.createCalled++
 	m.createdUser = user
-	return m.err
+	return m.user, m.err
 }
 
 func (m *mockUserRepository) Get(ctx context.Context, id uuid.UUID) (persistence.User, error) {
