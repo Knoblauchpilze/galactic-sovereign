@@ -41,7 +41,7 @@ func UserEndpoints(conn db.Connection, service service.UserService) rest.Routes 
 	return out
 }
 
-func createUser(c echo.Context, repo repositories.UserRepository, users service.UserService) error {
+func createUser(c echo.Context, repo repositories.UserRepository, service service.UserService) error {
 	// https://echo.labstack.com/docs/binding
 	var userDtoRequest communication.UserDtoRequest
 	err := c.Bind(&userDtoRequest)
@@ -59,7 +59,7 @@ func createUser(c echo.Context, repo repositories.UserRepository, users service.
 	return c.JSON(http.StatusCreated, out)
 }
 
-func getUser(c echo.Context, repo repositories.UserRepository, users service.UserService) error {
+func getUser(c echo.Context, repo repositories.UserRepository, service service.UserService) error {
 	maybeId := c.Param("id")
 	id, err := uuid.Parse(maybeId)
 	if err != nil {
@@ -80,8 +80,8 @@ func getUser(c echo.Context, repo repositories.UserRepository, users service.Use
 	return c.JSON(http.StatusOK, out)
 }
 
-func listUsers(c echo.Context, repo repositories.UserRepository, users service.UserService) error {
-	out, err := repo.List(c.Request().Context())
+func listUsers(c echo.Context, repo repositories.UserRepository, service service.UserService) error {
+	out, err := service.List(c.Request().Context())
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
@@ -89,7 +89,7 @@ func listUsers(c echo.Context, repo repositories.UserRepository, users service.U
 	return c.JSON(http.StatusOK, out)
 }
 
-func updateUser(c echo.Context, repo repositories.UserRepository, users service.UserService) error {
+func updateUser(c echo.Context, repo repositories.UserRepository, service service.UserService) error {
 	maybeId := c.Param("id")
 	id, err := uuid.Parse(maybeId)
 	if err != nil {
@@ -127,7 +127,7 @@ func updateUser(c echo.Context, repo repositories.UserRepository, users service.
 	return c.JSON(http.StatusOK, out)
 }
 
-func deleteUser(c echo.Context, repo repositories.UserRepository, users service.UserService) error {
+func deleteUser(c echo.Context, repo repositories.UserRepository, service service.UserService) error {
 	maybeId := c.Param("id")
 	id, err := uuid.Parse(maybeId)
 	if err != nil {
