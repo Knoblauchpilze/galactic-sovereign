@@ -3,6 +3,7 @@ package controller
 import (
 	"net/http"
 
+	"github.com/KnoblauchPilze/user-service/internal/users/service"
 	"github.com/KnoblauchPilze/user-service/pkg/communication"
 	"github.com/KnoblauchPilze/user-service/pkg/db"
 	"github.com/KnoblauchPilze/user-service/pkg/errors"
@@ -12,7 +13,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func UserEndpoints(conn db.Connection) rest.Routes {
+func UserEndpoints(conn db.Connection, service service.UserService) rest.Routes {
 	repo := repositories.NewUserRepository(conn)
 
 	var out rest.Routes

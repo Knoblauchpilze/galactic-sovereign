@@ -7,8 +7,10 @@ import (
 
 	"github.com/KnoblauchPilze/user-service/cmd/users/internal"
 	"github.com/KnoblauchPilze/user-service/internal/users/controller"
+	"github.com/KnoblauchPilze/user-service/internal/users/service"
 	"github.com/KnoblauchPilze/user-service/pkg/db"
 	"github.com/KnoblauchPilze/user-service/pkg/logger"
+	"github.com/KnoblauchPilze/user-service/pkg/repositories"
 	"github.com/KnoblauchPilze/user-service/pkg/rest"
 )
 
@@ -30,7 +32,10 @@ func main() {
 
 	s := rest.NewServer(conf.Server)
 
-	for _, route := range controller.UserEndpoints(conn) {
+	repo := repositories.NewUserRepository(conn)
+	userService := service.NewUserService(repo)
+
+	for _, route := range controller.UserEndpoints(conn, userService) {
 		if err := s.Register(route); err != nil {
 			logger.Errorf("Failed to register route: %v", err)
 			os.Exit(1)
