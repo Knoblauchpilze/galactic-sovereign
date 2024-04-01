@@ -17,18 +17,18 @@ type UserService interface {
 }
 
 type userServiceImpl struct {
-	repo repositories.UserRepository
+	userRepo repositories.UserRepository
 }
 
-func NewUserService(repo repositories.UserRepository) UserService {
+func NewUserService(userRepo repositories.UserRepository) UserService {
 	return &userServiceImpl{
-		repo: repo,
+		userRepo: userRepo,
 	}
 }
 
 func (s *userServiceImpl) Create(ctx context.Context, userDto communication.UserDtoRequest) (communication.UserDtoResponse, error) {
 	user := communication.FromUserDtoRequest(userDto)
-	created, err := s.repo.Create(ctx, user)
+	created, err := s.userRepo.Create(ctx, user)
 	if err != nil {
 		return communication.UserDtoResponse{}, err
 	}
@@ -39,7 +39,7 @@ func (s *userServiceImpl) Create(ctx context.Context, userDto communication.User
 }
 
 func (s *userServiceImpl) Get(ctx context.Context, id uuid.UUID) (communication.UserDtoResponse, error) {
-	user, err := s.repo.Get(ctx, id)
+	user, err := s.userRepo.Get(ctx, id)
 	if err != nil {
 		return communication.UserDtoResponse{}, err
 	}
@@ -50,11 +50,11 @@ func (s *userServiceImpl) Get(ctx context.Context, id uuid.UUID) (communication.
 }
 
 func (s *userServiceImpl) List(ctx context.Context) ([]uuid.UUID, error) {
-	return s.repo.List(ctx)
+	return s.userRepo.List(ctx)
 }
 
 func (s *userServiceImpl) Update(ctx context.Context, id uuid.UUID, userDto communication.UserDtoRequest) (communication.UserDtoResponse, error) {
-	user, err := s.repo.Get(ctx, id)
+	user, err := s.userRepo.Get(ctx, id)
 	if err != nil {
 		return communication.UserDtoResponse{}, err
 	}
@@ -62,7 +62,7 @@ func (s *userServiceImpl) Update(ctx context.Context, id uuid.UUID, userDto comm
 	user.Email = userDto.Email
 	user.Password = userDto.Password
 
-	updated, err := s.repo.Update(ctx, user)
+	updated, err := s.userRepo.Update(ctx, user)
 	if err != nil {
 		return communication.UserDtoResponse{}, err
 	}
@@ -73,5 +73,5 @@ func (s *userServiceImpl) Update(ctx context.Context, id uuid.UUID, userDto comm
 }
 
 func (s *userServiceImpl) Delete(ctx context.Context, id uuid.UUID) error {
-	return s.repo.Delete(ctx, id)
+	return s.userRepo.Delete(ctx, id)
 }
