@@ -30,12 +30,12 @@ func main() {
 
 	installCleanup(conn)
 
-	s := rest.NewServer(conf.Server)
-
 	repo := repositories.NewUserRepository(conn)
 	userService := service.NewUserService(repo)
 
-	for _, route := range controller.UserEndpoints(conn, userService) {
+	s := rest.NewServer(conf.Server)
+
+	for _, route := range controller.UserEndpoints(userService) {
 		if err := s.Register(route); err != nil {
 			logger.Errorf("Failed to register route: %v", err)
 			os.Exit(1)

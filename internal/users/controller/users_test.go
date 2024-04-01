@@ -10,8 +10,6 @@ import (
 	"github.com/KnoblauchPilze/user-service/pkg/communication"
 	"github.com/KnoblauchPilze/user-service/pkg/db"
 	"github.com/KnoblauchPilze/user-service/pkg/errors"
-	"github.com/KnoblauchPilze/user-service/pkg/persistence"
-	"github.com/KnoblauchPilze/user-service/pkg/repositories"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
@@ -26,28 +24,6 @@ type mockContext struct {
 
 	status int
 	data   interface{}
-}
-
-type mockUserRepository struct {
-	repositories.UserRepository
-
-	user      persistence.User
-	ids       []uuid.UUID
-	err       error
-	updateErr error
-
-	createCalled int
-	createdUser  persistence.User
-	getCalled    int
-	getId        uuid.UUID
-	listCalled   int
-	updateCalled int
-	updatedUser  persistence.User
-	deleteCalled int
-}
-
-type mockDbConnection struct {
-	db.Connection
 }
 
 type mockUserService struct {
@@ -66,18 +42,9 @@ type mockUserService struct {
 }
 
 var defaultUuid = uuid.MustParse("08ce96a3-3430-48a8-a3b2-b1c987a207ca")
-var defaultApiKey = uuid.MustParse("cc1742fa-77b4-4f5f-ac92-058c2e47a5d6")
 var defaultUserRequest = communication.UserDtoRequest{
 	Email:    "e.mail@domain.com",
 	Password: "password",
-}
-var defaultUser = persistence.User{
-	Id:        defaultUuid,
-	Email:     "e.mail@domain.com",
-	Password:  "password",
-	ApiKeys:   []uuid.UUID{defaultApiKey},
-	CreatedAt: time.Date(2024, 04, 01, 11, 8, 47, 651387237, time.UTC),
-	UpdatedAt: time.Date(2024, 04, 01, 11, 8, 47, 651387237, time.UTC),
 }
 var defaultUserDtoResponse = communication.UserDtoResponse{
 	Id:       defaultUuid,
@@ -93,7 +60,7 @@ func TestUserEndpoints_GeneratesExpectedRoutes(t *testing.T) {
 	assert := assert.New(t)
 
 	actualRoutes := make(map[string]int)
-	for _, r := range UserEndpoints(&mockDbConnection{}, &mockUserService{}) {
+	for _, r := range UserEndpoints(&mockUserService{}) {
 		actualRoutes[r.Method()]++
 	}
 
@@ -110,10 +77,9 @@ func TestCreateUser_WhenBindFails_SetsStatusToBadRequest(t *testing.T) {
 	mc := &mockContext{
 		bindErr: errDefault,
 	}
-	mr := &mockUserRepository{}
 	ms := &mockUserService{}
 
-	err := createUser(mc, mr, ms)
+	err := createUser(mc, ms)
 
 	assert.Nil(err)
 	assert.Equal(http.StatusBadRequest, mc.status)
@@ -124,10 +90,9 @@ func TestCreateUser_CallsServiceCreate(t *testing.T) {
 	assert := assert.New(t)
 
 	mc := &mockContext{}
-	mr := &mockUserRepository{}
 	ms := &mockUserService{}
 
-	err := createUser(mc, mr, ms)
+	err := createUser(mc, ms)
 
 	assert.Nil(err)
 	assert.Equal(1, ms.createCalled)
@@ -137,12 +102,11 @@ func TestCreateUser_WhenServiceFails_SetsStatusToInternalServerError(t *testing.
 	assert := assert.New(t)
 
 	mc := &mockContext{}
-	mr := &mockUserRepository{}
 	ms := &mockUserService{
 		err: errDefault,
 	}
 
-	err := createUser(mc, mr, ms)
+	err := createUser(mc, ms)
 
 	assert.Nil(err)
 	assert.Equal(http.StatusInternalServerError, mc.status)
@@ -152,10 +116,9 @@ func TestCreateUser_SetsStatusToCreated(t *testing.T) {
 	assert := assert.New(t)
 
 	mc := &mockContext{}
-	mr := &mockUserRepository{}
 	ms := &mockUserService{}
 
-	err := createUser(mc, mr, ms)
+	err := createUser(mc, ms)
 
 	assert.Nil(err)
 	assert.Equal(http.StatusCreated, mc.status)
@@ -167,12 +130,11 @@ func TestCreateUser_SavesExpectedUser(t *testing.T) {
 	mc := &mockContext{
 		body: defaultUserRequest,
 	}
-	mr := &mockUserRepository{}
 	ms := &mockUserService{
 		user: defaultUserDtoResponse,
 	}
 
-	err := createUser(mc, mr, ms)
+	err := createUser(mc, ms)
 
 	assert.Nil(err)
 	assert.Equal(defaultUserRequest, ms.inUser)
@@ -184,12 +146,11 @@ func TestCreateUser_ReturnsExpectedUser(t *testing.T) {
 	mc := &mockContext{
 		body: defaultUserRequest,
 	}
-	mr := &mockUserRepository{}
 	ms := &mockUserService{
 		user: defaultUserDtoResponse,
 	}
 
-	err := createUser(mc, mr, ms)
+	err := createUser(mc, ms)
 
 	assert.Nil(err)
 	actual, ok := mc.data.(communication.UserDtoResponse)
@@ -201,10 +162,9 @@ func TestGetUser_WhenNoId_SetsStatusToBadRequest(t *testing.T) {
 	assert := assert.New(t)
 
 	mc := &mockContext{}
-	mr := &mockUserRepository{}
 	ms := &mockUserService{}
 
-	err := getUser(mc, mr, ms)
+	err := getUser(mc, ms)
 
 	assert.Nil(err)
 	assert.Equal(http.StatusBadRequest, mc.status)
@@ -219,10 +179,9 @@ func TestGetUser_WhenIdSyntaxIsWrong_SetsStatusToBadRequest(t *testing.T) {
 			"id": "not-a-valid-id",
 		},
 	}
-	mr := &mockUserRepository{}
 	ms := &mockUserService{}
 
-	err := getUser(mc, mr, ms)
+	err := getUser(mc, ms)
 
 	assert.Nil(err)
 	assert.Equal(http.StatusBadRequest, mc.status)
@@ -237,10 +196,9 @@ func TestGetUser_CallsServiceGet(t *testing.T) {
 			"id": defaultUuid.String(),
 		},
 	}
-	mr := &mockUserRepository{}
 	ms := &mockUserService{}
 
-	err := getUser(mc, mr, ms)
+	err := getUser(mc, ms)
 
 	assert.Nil(err)
 	assert.Equal(1, ms.getCalled)
@@ -255,12 +213,11 @@ func TestGetUser_WhenServiceFailsWithUnknownError_SetsStatusToInternalServerErro
 			"id": defaultUuid.String(),
 		},
 	}
-	mr := &mockUserRepository{}
 	ms := &mockUserService{
 		err: errDefault,
 	}
 
-	err := getUser(mc, mr, ms)
+	err := getUser(mc, ms)
 
 	assert.Nil(err)
 	assert.Equal(http.StatusInternalServerError, mc.status)
@@ -274,12 +231,11 @@ func TestGetUser_WhenServiceFailsWithNoMatchingRows_SetsStatusToNotFound(t *test
 			"id": defaultUuid.String(),
 		},
 	}
-	mr := &mockUserRepository{}
 	ms := &mockUserService{
 		err: errors.NewCode(db.NoMatchingSqlRows),
 	}
 
-	err := getUser(mc, mr, ms)
+	err := getUser(mc, ms)
 
 	assert.Nil(err)
 	assert.Equal(http.StatusNotFound, mc.status)
@@ -293,10 +249,9 @@ func TestGetUser_SetsStatusToOk(t *testing.T) {
 			"id": defaultUuid.String(),
 		},
 	}
-	mr := &mockUserRepository{}
 	ms := &mockUserService{}
 
-	err := getUser(mc, mr, ms)
+	err := getUser(mc, ms)
 
 	assert.Nil(err)
 	assert.Equal(http.StatusOK, mc.status)
@@ -310,12 +265,11 @@ func TestGetUser_ReturnsExpectedUser(t *testing.T) {
 			"id": defaultUuid.String(),
 		},
 	}
-	mr := &mockUserRepository{}
 	ms := &mockUserService{
 		user: defaultUserDtoResponse,
 	}
 
-	err := getUser(mc, mr, ms)
+	err := getUser(mc, ms)
 
 	assert.Nil(err)
 	assert.Equal(defaultUserDtoResponse, mc.data)
@@ -329,10 +283,9 @@ func TestListUser_CallsServiceList(t *testing.T) {
 			"id": defaultUuid.String(),
 		},
 	}
-	mr := &mockUserRepository{}
 	ms := &mockUserService{}
 
-	err := listUsers(mc, mr, ms)
+	err := listUsers(mc, ms)
 
 	assert.Nil(err)
 	assert.Equal(1, ms.listCalled)
@@ -342,12 +295,11 @@ func TestListUser_WhenServiceFails_SetsStatusToInternalServerError(t *testing.T)
 	assert := assert.New(t)
 
 	mc := &mockContext{}
-	mr := &mockUserRepository{}
 	ms := &mockUserService{
 		err: errDefault,
 	}
 
-	err := listUsers(mc, mr, ms)
+	err := listUsers(mc, ms)
 
 	assert.Nil(err)
 	assert.Equal(http.StatusInternalServerError, mc.status)
@@ -357,10 +309,9 @@ func TestListUser_SetsStatusToOk(t *testing.T) {
 	assert := assert.New(t)
 
 	mc := &mockContext{}
-	mr := &mockUserRepository{}
 	ms := &mockUserService{}
 
-	err := listUsers(mc, mr, ms)
+	err := listUsers(mc, ms)
 
 	assert.Nil(err)
 	assert.Equal(http.StatusOK, mc.status)
@@ -370,12 +321,11 @@ func TestListUser_ReturnsExpectedIds(t *testing.T) {
 	assert := assert.New(t)
 
 	mc := &mockContext{}
-	mr := &mockUserRepository{}
 	ms := &mockUserService{
 		ids: []uuid.UUID{defaultUuid},
 	}
 
-	err := listUsers(mc, mr, ms)
+	err := listUsers(mc, ms)
 
 	assert.Nil(err)
 	assert.Equal(ms.ids, mc.data)
@@ -385,10 +335,9 @@ func TestUpdateUser_WhenNoId_SetsStatusToBadRequest(t *testing.T) {
 	assert := assert.New(t)
 
 	mc := &mockContext{}
-	mr := &mockUserRepository{}
 	ms := &mockUserService{}
 
-	err := updateUser(mc, mr, ms)
+	err := updateUser(mc, ms)
 
 	assert.Nil(err)
 	assert.Equal(http.StatusBadRequest, mc.status)
@@ -403,10 +352,9 @@ func TestUpdateUser_WhenIdSyntaxIsWrong_SetsStatusToBadRequest(t *testing.T) {
 			"id": "not-a-valid-id",
 		},
 	}
-	mr := &mockUserRepository{}
 	ms := &mockUserService{}
 
-	err := updateUser(mc, mr, ms)
+	err := updateUser(mc, ms)
 
 	assert.Nil(err)
 	assert.Equal(http.StatusBadRequest, mc.status)
@@ -422,10 +370,9 @@ func TestUpdateUser_WhenIdIsCorrectButBindFails_SetsStatusToBadRequest(t *testin
 		},
 		bindErr: errDefault,
 	}
-	mr := &mockUserRepository{}
 	ms := &mockUserService{}
 
-	err := updateUser(mc, mr, ms)
+	err := updateUser(mc, ms)
 
 	assert.Nil(err)
 	assert.Equal(http.StatusBadRequest, mc.status)
@@ -441,10 +388,9 @@ func TestUpdateUser_CallsServiceUpdate(t *testing.T) {
 		},
 		body: defaultUserRequest,
 	}
-	mr := &mockUserRepository{}
 	ms := &mockUserService{}
 
-	err := updateUser(mc, mr, ms)
+	err := updateUser(mc, ms)
 
 	assert.Nil(err)
 	assert.Equal(1, ms.updateCalled)
@@ -461,12 +407,11 @@ func TestUpdateUser_WhenServiceFailsWithUnknownError_SetsStatusToInternalServerE
 		},
 		body: defaultUserRequest,
 	}
-	mr := &mockUserRepository{}
 	ms := &mockUserService{
 		err: errDefault,
 	}
 
-	err := updateUser(mc, mr, ms)
+	err := updateUser(mc, ms)
 
 	assert.Nil(err)
 	assert.Equal(http.StatusInternalServerError, mc.status)
@@ -481,12 +426,11 @@ func TestUpdateUser_WhenServiceFailsWithNoSuchRows_SetsStatusToNotFound(t *testi
 		},
 		body: defaultUserRequest,
 	}
-	mr := &mockUserRepository{}
 	ms := &mockUserService{
 		err: errors.NewCode(db.NoMatchingSqlRows),
 	}
 
-	err := updateUser(mc, mr, ms)
+	err := updateUser(mc, ms)
 
 	assert.Nil(err)
 	assert.Equal(http.StatusNotFound, mc.status)
@@ -501,12 +445,11 @@ func TestUpdateUser_WhenServiceFailsWithOptimisticLockException_SetsStatusToConf
 		},
 		body: defaultUserRequest,
 	}
-	mr := &mockUserRepository{}
 	ms := &mockUserService{
 		err: errors.NewCode(db.OptimisticLockException),
 	}
 
-	err := updateUser(mc, mr, ms)
+	err := updateUser(mc, ms)
 
 	assert.Nil(err)
 	assert.Equal(http.StatusConflict, mc.status)
@@ -521,10 +464,9 @@ func TestUpdateUser_SetsStatusToOk(t *testing.T) {
 		},
 		body: defaultUserRequest,
 	}
-	mr := &mockUserRepository{}
 	ms := &mockUserService{}
 
-	err := getUser(mc, mr, ms)
+	err := getUser(mc, ms)
 
 	assert.Nil(err)
 	assert.Equal(http.StatusOK, mc.status)
@@ -544,12 +486,11 @@ func TestUpdateUser_ReturnsExpectedUser(t *testing.T) {
 		},
 		body: updatedUser,
 	}
-	mr := &mockUserRepository{}
 	ms := &mockUserService{
 		user: defaultUserDtoResponse,
 	}
 
-	err := updateUser(mc, mr, ms)
+	err := updateUser(mc, ms)
 
 	assert.Nil(err)
 	assert.Equal(defaultUserDtoResponse, mc.data)
@@ -559,10 +500,9 @@ func TestDeleteUser_WhenNoId_SetsStatusToBadRequest(t *testing.T) {
 	assert := assert.New(t)
 
 	mc := &mockContext{}
-	mr := &mockUserRepository{}
 	ms := &mockUserService{}
 
-	err := deleteUser(mc, mr, ms)
+	err := deleteUser(mc, ms)
 
 	assert.Nil(err)
 	assert.Equal(http.StatusBadRequest, mc.status)
@@ -577,10 +517,9 @@ func TestDeleteUser_WhenIdSyntaxIsWrong_SetsStatusToBadRequest(t *testing.T) {
 			"id": "not-a-valid-id",
 		},
 	}
-	mr := &mockUserRepository{}
 	ms := &mockUserService{}
 
-	err := deleteUser(mc, mr, ms)
+	err := deleteUser(mc, ms)
 
 	assert.Nil(err)
 	assert.Equal(http.StatusBadRequest, mc.status)
@@ -595,10 +534,9 @@ func TestDeleteUser_CallsServiceDelete(t *testing.T) {
 			"id": defaultUuid.String(),
 		},
 	}
-	mr := &mockUserRepository{}
 	ms := &mockUserService{}
 
-	err := deleteUser(mc, mr, ms)
+	err := deleteUser(mc, ms)
 
 	assert.Nil(err)
 	assert.Equal(1, ms.deleteCalled)
@@ -613,12 +551,11 @@ func TestDeleteUser_WhenServiceFailsWithUnknownError_SetsStatusToInternalServerE
 			"id": defaultUuid.String(),
 		},
 	}
-	mr := &mockUserRepository{}
 	ms := &mockUserService{
 		err: errDefault,
 	}
 
-	err := deleteUser(mc, mr, ms)
+	err := deleteUser(mc, ms)
 
 	assert.Nil(err)
 	assert.Equal(http.StatusInternalServerError, mc.status)
@@ -632,12 +569,11 @@ func TestDeleteUser_WhenServiceFailsWithNoMatchingRows_SetsStatusToNotFound(t *t
 			"id": defaultUuid.String(),
 		},
 	}
-	mr := &mockUserRepository{}
 	ms := &mockUserService{
 		err: errors.NewCode(db.NoMatchingSqlRows),
 	}
 
-	err := deleteUser(mc, mr, ms)
+	err := deleteUser(mc, ms)
 
 	assert.Nil(err)
 	assert.Equal(http.StatusNotFound, mc.status)
@@ -651,10 +587,9 @@ func TestDeleteUser_SetsStatusToNoContent(t *testing.T) {
 			"id": defaultUuid.String(),
 		},
 	}
-	mr := &mockUserRepository{}
 	ms := &mockUserService{}
 
-	err := deleteUser(mc, mr, ms)
+	err := deleteUser(mc, ms)
 
 	assert.Nil(err)
 	assert.Equal(http.StatusNoContent, mc.status)
@@ -691,34 +626,6 @@ func (m *mockContext) JSON(status int, message interface{}) error {
 func (m *mockContext) NoContent(status int) error {
 	m.status = status
 	return nil
-}
-
-func (m *mockUserRepository) Create(ctx context.Context, user persistence.User) (persistence.User, error) {
-	m.createCalled++
-	m.createdUser = user
-	return m.user, m.err
-}
-
-func (m *mockUserRepository) Get(ctx context.Context, id uuid.UUID) (persistence.User, error) {
-	m.getCalled++
-	m.getId = id
-	return m.user, m.err
-}
-
-func (m *mockUserRepository) List(ctx context.Context) ([]uuid.UUID, error) {
-	m.listCalled++
-	return m.ids, m.err
-}
-
-func (m *mockUserRepository) Update(ctx context.Context, user persistence.User) (persistence.User, error) {
-	m.updateCalled++
-	m.updatedUser = user
-	return m.user, m.updateErr
-}
-
-func (m *mockUserRepository) Delete(ctx context.Context, id uuid.UUID) error {
-	m.deleteCalled++
-	return m.err
 }
 
 func (m *mockUserService) Create(ctx context.Context, user communication.UserDtoRequest) (communication.UserDtoResponse, error) {
