@@ -4,6 +4,9 @@ import (
 	"context"
 
 	"github.com/KnoblauchPilze/user-service/pkg/communication"
+	"github.com/KnoblauchPilze/user-service/pkg/db"
+	"github.com/KnoblauchPilze/user-service/pkg/middleware"
+	"github.com/KnoblauchPilze/user-service/pkg/persistence"
 	"github.com/KnoblauchPilze/user-service/pkg/repositories"
 	"github.com/google/uuid"
 )
@@ -17,24 +20,59 @@ type UserService interface {
 }
 
 type userServiceImpl struct {
-	userRepo repositories.UserRepository
+	conn       db.ConnectionPool
+	userRepo   repositories.UserRepository
+	apiKeyRepo repositories.ApiKeyRepository
 }
 
-func NewUserService(userRepo repositories.UserRepository) UserService {
+func NewUserService(conn db.ConnectionPool, userRepo repositories.UserRepository, apiKeyRepo repositories.ApiKeyRepository) UserService {
 	return &userServiceImpl{
-		userRepo: userRepo,
+		conn:       conn,
+		userRepo:   userRepo,
+		apiKeyRepo: apiKeyRepo,
 	}
 }
 
 func (s *userServiceImpl) Create(ctx context.Context, userDto communication.UserDtoRequest) (communication.UserDtoResponse, error) {
 	user := communication.FromUserDtoRequest(userDto)
-	created, err := s.userRepo.Create(ctx, user)
-	if err != nil {
-		return communication.UserDtoResponse{}, err
+
+	apiKey := persistence.ApiKey{
+		Id:      uuid.New(),
+		Key:     uuid.New(),
+		ApiUser: user.Id,
+		Enabled: true,
 	}
 
-	// TODO: Fetch the API keys
-	out := communication.ToUserDtoResponse(created, []uuid.UUID{})
+	var userErr, keyErr, txErr error
+	var createdUser persistence.User
+	var createdKey persistence.ApiKey
+
+	func() {
+		var tx db.Transaction
+		tx, txErr = s.conn.BeginTransaction(ctx)
+
+		defer func() {
+			err := tx.Close(ctx)
+			if err != nil {
+				middleware.GetLoggerFromContext(ctx).Warnf("")
+			}
+		}()
+
+		createdUser, userErr = s.userRepo.TransactionalCreate(ctx, tx, user)
+		createdKey, keyErr = s.apiKeyRepo.TransactionalCreate(ctx, tx, apiKey)
+	}()
+
+	if userErr != nil {
+		return communication.UserDtoResponse{}, userErr
+	}
+	if keyErr != nil {
+		return communication.UserDtoResponse{}, keyErr
+	}
+	if txErr != nil {
+		return communication.UserDtoResponse{}, txErr
+	}
+
+	out := communication.ToUserDtoResponse(createdUser, []uuid.UUID{createdKey.Id})
 	return out, nil
 }
 
