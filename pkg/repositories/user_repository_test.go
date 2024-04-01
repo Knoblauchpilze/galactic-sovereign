@@ -28,6 +28,23 @@ type mockConnectionPool struct {
 	rows mockRows
 }
 
+type mockTransaction struct {
+	db.Transaction
+
+	queryCalled int
+	execCalled  int
+
+	affectedRows int
+	execErr      error
+
+	sqlQuery string
+	args     []interface{}
+
+	rows mockRows
+
+	closeErr error
+}
+
 type mockRows struct {
 	err            error
 	singleValueErr error
@@ -116,6 +133,77 @@ func TestUserRepository_Create_ReturnsInputUser(t *testing.T) {
 	repo := NewUserRepository(mc)
 
 	actual, err := repo.Create(context.Background(), defaultUser)
+
+	assert.Nil(err)
+	assert.Equal(defaultUser, actual)
+}
+
+func TestUserRepository_TransactionalCreate_UsesTransactionToExec(t *testing.T) {
+	assert := assert.New(t)
+
+	mc := &mockConnectionPool{}
+	repo := NewUserRepository(mc)
+	mt := &mockTransaction{}
+
+	repo.TransactionalCreate(context.Background(), mt, defaultUser)
+
+	assert.Equal(0, mc.execCalled)
+	assert.Equal(1, mt.execCalled)
+}
+
+func TestUserRepository_TransactionalCreate_GeneratesValidSql(t *testing.T) {
+	assert := assert.New(t)
+
+	mc := &mockConnectionPool{}
+	repo := NewUserRepository(mc)
+	mt := &mockTransaction{}
+
+	repo.TransactionalCreate(context.Background(), mt, defaultUser)
+
+	assert.Equal("INSERT INTO api_user (id, email, password, created_at) VALUES($1, $2, $3, $4)", mt.sqlQuery)
+	assert.Equal(4, len(mt.args))
+	assert.Equal(defaultUser.Id, mt.args[0])
+	assert.Equal(defaultUser.Email, mt.args[1])
+	assert.Equal(defaultUser.Password, mt.args[2])
+	assert.Equal(defaultUser.CreatedAt, mt.args[3])
+}
+
+func TestUserRepository_TransactionalCreate_PropagatesQueryFailure(t *testing.T) {
+	assert := assert.New(t)
+
+	mc := &mockConnectionPool{}
+	repo := NewUserRepository(mc)
+	mt := &mockTransaction{
+		execErr: errDefault,
+	}
+
+	_, err := repo.TransactionalCreate(context.Background(), mt, defaultUser)
+
+	assert.Equal(errDefault, err)
+}
+
+func TestUserRepository_TransactionalCreate_WhenQueryIndicatesDuplicatedKey_ReturnsDuplicatedKey(t *testing.T) {
+	assert := assert.New(t)
+
+	mc := &mockConnectionPool{}
+	repo := NewUserRepository(mc)
+	mt := &mockTransaction{
+		execErr: fmt.Errorf(`duplicate key value violates unique constraint "api_user_email_key" (SQLSTATE 23505)`),
+	}
+
+	_, err := repo.TransactionalCreate(context.Background(), mt, defaultUser)
+
+	assert.True(errors.IsErrorWithCode(err, db.DuplicatedKeySqlKey))
+}
+
+func TestUserRepository_TransactionalCreate_ReturnsInputUser(t *testing.T) {
+	assert := assert.New(t)
+
+	mc := &mockConnectionPool{}
+	repo := NewUserRepository(mc)
+	mt := &mockTransaction{}
+
+	actual, err := repo.TransactionalCreate(context.Background(), mt, defaultUser)
 
 	assert.Nil(err)
 	assert.Equal(defaultUser, actual)
@@ -515,6 +603,24 @@ func (m *mockConnectionPool) Query(ctx context.Context, sql string, arguments ..
 }
 
 func (m *mockConnectionPool) Exec(ctx context.Context, sql string, arguments ...interface{}) (int, error) {
+	m.execCalled++
+	m.sqlQuery = sql
+	m.args = append(m.args, arguments...)
+	return m.affectedRows, m.execErr
+}
+
+func (m *mockTransaction) Close(ctx context.Context) error {
+	return m.closeErr
+}
+
+func (m *mockTransaction) Query(ctx context.Context, sql string, arguments ...interface{}) db.Rows {
+	m.queryCalled++
+	m.sqlQuery = sql
+	m.args = append(m.args, arguments...)
+	return &m.rows
+}
+
+func (m *mockTransaction) Exec(ctx context.Context, sql string, arguments ...interface{}) (int, error) {
 	m.execCalled++
 	m.sqlQuery = sql
 	m.args = append(m.args, arguments...)

@@ -12,6 +12,7 @@ import (
 
 type UserRepository interface {
 	Create(ctx context.Context, user persistence.User) (persistence.User, error)
+	TransactionalCreate(ctx context.Context, tx db.Transaction, user persistence.User) (persistence.User, error)
 	Get(ctx context.Context, id uuid.UUID) (persistence.User, error)
 	List(ctx context.Context) ([]uuid.UUID, error)
 	Update(ctx context.Context, user persistence.User) (persistence.User, error)
@@ -34,6 +35,15 @@ var duplicatedKeySqlErrorRegexp = regexp.MustCompile(`duplicate key value violat
 
 func (r *userRepositoryImpl) Create(ctx context.Context, user persistence.User) (persistence.User, error) {
 	_, err := r.conn.Exec(ctx, createUserSqlTemplate, user.Id, user.Email, user.Password, user.CreatedAt)
+	if err != nil && duplicatedKeySqlErrorRegexp.MatchString(err.Error()) {
+		return persistence.User{}, errors.NewCode(db.DuplicatedKeySqlKey)
+	}
+
+	return user, err
+}
+
+func (r *userRepositoryImpl) TransactionalCreate(ctx context.Context, tx db.Transaction, user persistence.User) (persistence.User, error) {
+	_, err := tx.Exec(ctx, createUserSqlTemplate, user.Id, user.Email, user.Password, user.CreatedAt)
 	if err != nil && duplicatedKeySqlErrorRegexp.MatchString(err.Error()) {
 		return persistence.User{}, errors.NewCode(db.DuplicatedKeySqlKey)
 	}
