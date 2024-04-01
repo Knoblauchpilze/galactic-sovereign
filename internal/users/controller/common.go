@@ -1,4 +1,4 @@
-package internal
+package controller
 
 import (
 	"github.com/KnoblauchPilze/user-service/pkg/repositories"

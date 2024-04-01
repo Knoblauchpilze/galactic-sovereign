@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 
@@ -8,6 +9,8 @@ import (
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 )
+
+var errDefault = fmt.Errorf("some error")
 
 func TestDefaultConfig_Server(t *testing.T) {
 	assert := assert.New(t)
