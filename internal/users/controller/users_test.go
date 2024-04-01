@@ -74,6 +74,21 @@ var defaultUserDto = communication.UserDtoResponse{
 	CreatedAt: time.Date(2009, 11, 17, 20, 34, 58, 651387237, time.UTC),
 }
 
+func TestUserEndpoints_GeneratesExpectedRoutes(t *testing.T) {
+	assert := assert.New(t)
+
+	actualRoutes := make(map[string]int)
+	for _, r := range UserEndpoints(&mockDbConnection{}) {
+		actualRoutes[r.Method()]++
+	}
+
+	assert.Equal(4, len(actualRoutes))
+	assert.Equal(1, actualRoutes[http.MethodPost])
+	assert.Equal(2, actualRoutes[http.MethodGet])
+	assert.Equal(1, actualRoutes[http.MethodPatch])
+	assert.Equal(1, actualRoutes[http.MethodDelete])
+}
+
 func TestCreateUser_WhenBindFails_SetsStatusToBadRequest(t *testing.T) {
 	assert := assert.New(t)
 
@@ -176,21 +191,6 @@ func TestCreateUser_WhenRepositoryFailsWithUnknownError_SetsStatusToInternalServ
 
 	assert.Nil(err)
 	assert.Equal(http.StatusInternalServerError, mc.status)
-}
-
-func TestUserEndpoints_GeneratesExpectedRoutes(t *testing.T) {
-	assert := assert.New(t)
-
-	actualRoutes := make(map[string]int)
-	for _, r := range UserEndpoints(&mockDbConnection{}) {
-		actualRoutes[r.Method()]++
-	}
-
-	assert.Equal(4, len(actualRoutes))
-	assert.Equal(1, actualRoutes[http.MethodPost])
-	assert.Equal(2, actualRoutes[http.MethodGet])
-	assert.Equal(1, actualRoutes[http.MethodPatch])
-	assert.Equal(1, actualRoutes[http.MethodDelete])
 }
 
 func TestGetUser_WhenNoId_SetsStatusToBadRequest(t *testing.T) {
