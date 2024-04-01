@@ -21,12 +21,10 @@ func TestToUserDtoResponse(t *testing.T) {
 		Email:    "email",
 		Password: "password",
 
-		ApiKeys: []uuid.UUID{defaultApiKey},
-
 		CreatedAt: someTime,
 	}
 
-	actual := ToUserDtoResponse(u, true)
+	actual := ToUserDtoResponse(u, []uuid.UUID{defaultApiKey})
 
 	assert.Equal(defaultUuid, actual.Id)
 	assert.Equal("email", actual.Email)
@@ -43,30 +41,10 @@ func TestToUserDtoResponse_WhenApiKeysIsNull_OutptusAnEmptySlice(t *testing.T) {
 		Email:    "email",
 		Password: "password",
 
-		ApiKeys: nil,
-
 		CreatedAt: someTime,
 	}
 
-	actual := ToUserDtoResponse(u, true)
-
-	assert.Equal([]uuid.UUID{}, actual.ApiKeys)
-}
-
-func TestToUserDtoResponse_WhenApiKeysIsValidButRequestedToNotPersisteThem_OutptusAnEmptySlice(t *testing.T) {
-	assert := assert.New(t)
-
-	u := persistence.User{
-		Id:       defaultUuid,
-		Email:    "email",
-		Password: "password",
-
-		ApiKeys: []uuid.UUID{defaultApiKey},
-
-		CreatedAt: someTime,
-	}
-
-	actual := ToUserDtoResponse(u, false)
+	actual := ToUserDtoResponse(u, nil)
 
 	assert.Equal([]uuid.UUID{}, actual.ApiKeys)
 }
@@ -86,7 +64,6 @@ func TestFromUserDtoRequest(t *testing.T) {
 	assert.Nil(uuid.Validate(actual.Id.String()))
 	assert.Equal("email", actual.Email)
 	assert.Equal("password", actual.Password)
-	assert.Nil(actual.ApiKeys)
 	assert.True(actual.CreatedAt.After(beforeConversion))
 	assert.Equal(actual.CreatedAt, actual.UpdatedAt)
 }
