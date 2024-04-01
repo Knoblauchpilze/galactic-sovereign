@@ -66,7 +66,7 @@ func getUser(c echo.Context, repo repositories.UserRepository, service service.U
 		return c.JSON(http.StatusBadRequest, "Invalid id syntax")
 	}
 
-	user, err := repo.Get(c.Request().Context(), id)
+	out, err := service.Get(c.Request().Context(), id)
 	if err != nil {
 		if errors.IsErrorWithCode(err, db.NoMatchingSqlRows) {
 			return c.JSON(http.StatusNotFound, "No such user")
@@ -74,8 +74,6 @@ func getUser(c echo.Context, repo repositories.UserRepository, service service.U
 
 		return c.JSON(http.StatusInternalServerError, err)
 	}
-
-	out := communication.ToUserDtoResponse(user, false)
 
 	return c.JSON(http.StatusOK, out)
 }
@@ -134,7 +132,7 @@ func deleteUser(c echo.Context, repo repositories.UserRepository, service servic
 		return c.JSON(http.StatusBadRequest, "Invalid id syntax")
 	}
 
-	err = repo.Delete(c.Request().Context(), id)
+	err = service.Delete(c.Request().Context(), id)
 	if err != nil {
 		if errors.IsErrorWithCode(err, db.NoMatchingSqlRows) {
 			return c.JSON(http.StatusNotFound, "No such user")
