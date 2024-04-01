@@ -94,6 +94,19 @@ func TestUserRepository_Create_PropagatesQueryFailure(t *testing.T) {
 	assert.Equal(errDefault, err)
 }
 
+func TestUserRepository_Create_WhenQueryIndicatesDuplicatedKey_ReturnsDuplicatedKey(t *testing.T) {
+	assert := assert.New(t)
+
+	mc := &mockConnection{
+		execErr: fmt.Errorf(`duplicate key value violates unique constraint "api_user_email_key" (SQLSTATE 23505)`),
+	}
+	repo := NewUserRepository(mc)
+
+	_, err := repo.Create(context.Background(), defaultUser)
+
+	assert.True(errors.IsErrorWithCode(err, db.DuplicatedKeySqlKey))
+}
+
 func TestUserRepository_Create_ReturnsInputUser(t *testing.T) {
 	assert := assert.New(t)
 
