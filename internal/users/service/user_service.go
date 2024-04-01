@@ -37,6 +37,8 @@ func (s *userServiceImpl) Create(ctx context.Context, userDto communication.User
 	user := communication.FromUserDtoRequest(userDto)
 
 	apiKey := persistence.ApiKey{
+		// TODO: Reactivate this to force a failure in the transaction
+		//Id:      uuid.MustParse("d5826856-63f8-41c8-a643-8bb80d5feb78"),
 		Id:      uuid.New(),
 		Key:     uuid.New(),
 		ApiUser: user.Id,
