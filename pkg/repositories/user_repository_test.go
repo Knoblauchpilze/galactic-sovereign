@@ -366,7 +366,20 @@ func TestUserRepository_Update_PropagatesQueryFailure(t *testing.T) {
 	assert.Equal(errDefault, err)
 }
 
-func TestUserRepository_Update_WhenAffectedRowsIsNotOne_Fails(t *testing.T) {
+func TestUserRepository_Update_WhenAffectedRowsIsZero_ReturnsOptimisticLockException(t *testing.T) {
+	assert := assert.New(t)
+
+	mc := &mockConnection{
+		affectedRows: 0,
+	}
+	repo := NewUserRepository(mc)
+
+	_, err := repo.Update(context.Background(), defaultUser)
+
+	assert.True(errors.IsErrorWithCode(err, db.OptimisticLockException))
+}
+
+func TestUserRepository_Update_WhenAffectedRowsIsGreaterThanOne_Fails(t *testing.T) {
 	assert := assert.New(t)
 
 	mc := &mockConnection{
@@ -376,7 +389,7 @@ func TestUserRepository_Update_WhenAffectedRowsIsNotOne_Fails(t *testing.T) {
 
 	_, err := repo.Update(context.Background(), defaultUser)
 
-	assert.True(errors.IsErrorWithCode(err, db.OptimisticLockException))
+	assert.True(errors.IsErrorWithCode(err, db.MoreThanOneMatchingSqlRows))
 }
 
 func TestUserRepository_Update_WhenAffectedRowsIsOne_Succeeds(t *testing.T) {
