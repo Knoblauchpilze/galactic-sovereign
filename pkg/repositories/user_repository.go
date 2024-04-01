@@ -92,6 +92,9 @@ func (r *userRepositoryImpl) Update(ctx context.Context, user persistence.User) 
 	if affected != 1 {
 		return user, errors.NewCode(db.OptimisticLockException)
 	}
+
+	user.Version = version
+
 	return user, nil
 }
 

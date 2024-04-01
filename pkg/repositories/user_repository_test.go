@@ -402,7 +402,20 @@ func TestUserRepository_Update_ReturnsUpdatedUser(t *testing.T) {
 
 	actual, _ := repo.Update(context.Background(), defaultUser)
 
-	assert.Equal(defaultUser, actual)
+	expected := persistence.User{
+		Id:       defaultUser.Id,
+		Email:    defaultUser.Email,
+		Password: defaultUser.Password,
+
+		ApiKeys: defaultUser.ApiKeys,
+
+		CreatedAt: defaultUser.CreatedAt,
+		UpdatedAt: defaultUser.UpdatedAt,
+
+		Version: defaultUser.Version + 1,
+	}
+
+	assert.Equal(expected, actual)
 }
 
 func TestUserRepository_Delete_UsesConnectionToQuery(t *testing.T) {
