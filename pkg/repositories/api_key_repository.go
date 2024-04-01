@@ -18,10 +18,10 @@ type ApiKeyRepository interface {
 }
 
 type apiUserRepositoryImpl struct {
-	conn db.Connection
+	conn db.ConnectionPool
 }
 
-func NewApiKeyRepository(conn db.Connection) ApiKeyRepository {
+func NewApiKeyRepository(conn db.ConnectionPool) ApiKeyRepository {
 	return &apiUserRepositoryImpl{
 		conn: conn,
 	}

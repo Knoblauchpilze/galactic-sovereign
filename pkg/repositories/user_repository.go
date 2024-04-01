@@ -19,10 +19,10 @@ type UserRepository interface {
 }
 
 type userRepositoryImpl struct {
-	conn db.Connection
+	conn db.ConnectionPool
 }
 
-func NewUserRepository(conn db.Connection) UserRepository {
+func NewUserRepository(conn db.ConnectionPool) UserRepository {
 	return &userRepositoryImpl{
 		conn: conn,
 	}
