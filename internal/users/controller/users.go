@@ -49,13 +49,11 @@ func createUser(c echo.Context, repo repositories.UserRepository, service servic
 		return c.JSON(http.StatusBadRequest, "Invalid user syntax")
 	}
 
-	user := communication.FromUserDtoRequest(userDtoRequest)
-	created, err := repo.Create(c.Request().Context(), user)
+	out, err := service.Create(c.Request().Context(), userDtoRequest)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 
-	out := communication.ToUserDtoResponse(created, true)
 	return c.JSON(http.StatusCreated, out)
 }
 
@@ -100,20 +98,12 @@ func updateUser(c echo.Context, repo repositories.UserRepository, service servic
 		return c.JSON(http.StatusBadRequest, "Invalid user syntax")
 	}
 
-	user, err := repo.Get(c.Request().Context(), id)
+	out, err := service.Update(c.Request().Context(), id, userDtoRequest)
 	if err != nil {
 		if errors.IsErrorWithCode(err, db.NoMatchingSqlRows) {
 			return c.JSON(http.StatusNotFound, "No such user")
 		}
 
-		return c.JSON(http.StatusInternalServerError, err)
-	}
-
-	user.Email = userDtoRequest.Email
-	user.Password = userDtoRequest.Password
-
-	user, err = repo.Update(c.Request().Context(), user)
-	if err != nil {
 		if errors.IsErrorWithCode(err, db.OptimisticLockException) {
 			return c.JSON(http.StatusConflict, "User is not up to date")
 		}
@@ -121,7 +111,6 @@ func updateUser(c echo.Context, repo repositories.UserRepository, service servic
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 
-	out := communication.ToUserDtoResponse(user, false)
 	return c.JSON(http.StatusOK, out)
 }
 
