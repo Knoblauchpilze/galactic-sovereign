@@ -11,8 +11,6 @@ type User struct {
 	Email    string
 	Password string
 
-	ApiKeys []uuid.UUID
-
 	CreatedAt time.Time
 	UpdatedAt time.Time
 

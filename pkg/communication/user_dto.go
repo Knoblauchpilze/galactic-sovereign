@@ -22,10 +22,9 @@ type UserDtoResponse struct {
 	CreatedAt time.Time
 }
 
-func ToUserDtoResponse(user persistence.User, copyApiKeys bool) UserDtoResponse {
-	apiKeys := make([]uuid.UUID, 0)
-	if copyApiKeys && user.ApiKeys != nil {
-		apiKeys = user.ApiKeys
+func ToUserDtoResponse(user persistence.User, apiKeys []uuid.UUID) UserDtoResponse {
+	if apiKeys == nil {
+		apiKeys = make([]uuid.UUID, 0)
 	}
 
 	return UserDtoResponse{

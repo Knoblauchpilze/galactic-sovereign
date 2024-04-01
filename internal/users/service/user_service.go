@@ -33,7 +33,8 @@ func (s *userServiceImpl) Create(ctx context.Context, userDto communication.User
 		return communication.UserDtoResponse{}, err
 	}
 
-	out := communication.ToUserDtoResponse(created, true)
+	// TODO: Fetch the API keys
+	out := communication.ToUserDtoResponse(created, []uuid.UUID{})
 	return out, nil
 }
 
@@ -43,7 +44,8 @@ func (s *userServiceImpl) Get(ctx context.Context, id uuid.UUID) (communication.
 		return communication.UserDtoResponse{}, err
 	}
 
-	out := communication.ToUserDtoResponse(user, false)
+	// TODO: Fetch the API keys
+	out := communication.ToUserDtoResponse(user, []uuid.UUID{})
 	return out, nil
 }
 
@@ -65,7 +67,8 @@ func (s *userServiceImpl) Update(ctx context.Context, id uuid.UUID, userDto comm
 		return communication.UserDtoResponse{}, err
 	}
 
-	out := communication.ToUserDtoResponse(updated, false)
+	// TODO: Fetch the API keys
+	out := communication.ToUserDtoResponse(updated, []uuid.UUID{})
 	return out, nil
 }
 

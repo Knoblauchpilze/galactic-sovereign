@@ -435,8 +435,6 @@ func TestUserRepository_Update_ReturnsUpdatedUser(t *testing.T) {
 		Email:    defaultUser.Email,
 		Password: defaultUser.Password,
 
-		ApiKeys: defaultUser.ApiKeys,
-
 		CreatedAt: defaultUser.CreatedAt,
 		UpdatedAt: defaultUser.UpdatedAt,
 
