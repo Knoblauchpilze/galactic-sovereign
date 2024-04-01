@@ -23,7 +23,7 @@ type pgxDbTransaction interface {
 	RollbackEx(ctx context.Context) error
 	CommitEx(ctx context.Context) error
 
-	QueryEx(ctx context.Context, sql string, options *pgx.QueryExOptions, args ...interface{}) (*pgx.Rows, error)
+	QueryEx(ctx context.Context, sql string, options *pgx.QueryExOptions, arguments ...interface{}) (*pgx.Rows, error)
 	ExecEx(ctx context.Context, sql string, options *pgx.QueryExOptions, arguments ...interface{}) (commandTag pgx.CommandTag, err error)
 
 	Err() error
@@ -61,19 +61,26 @@ func newTransactionFromPool(ctx context.Context, pool pgxDbConnectionPool) (Tran
 }
 
 func (t *transactionImpl) Close(ctx context.Context) error {
+	var err error
 	if t.err != nil {
-		t.tx.RollbackEx(ctx)
+		err = t.tx.RollbackEx(ctx)
 	} else {
-		t.tx.CommitEx(ctx)
+		err = t.tx.CommitEx(ctx)
 	}
 
-	err := t.tx.Err()
-	err2 := t.conn.Close()
+	err2 := t.tx.Err()
+	var err3 error
+	if t.conn != nil {
+		t.conn.Close()
+	}
 
 	if err != nil {
 		return err
 	}
-	return err2
+	if err2 != nil {
+		return err2
+	}
+	return err3
 }
 
 func (t *transactionImpl) Query(ctx context.Context, sql string, arguments ...interface{}) Rows {
