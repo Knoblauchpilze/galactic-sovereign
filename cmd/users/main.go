@@ -30,8 +30,9 @@ func main() {
 
 	installCleanup(pool)
 
-	repo := repositories.NewUserRepository(pool)
-	userService := service.NewUserService(repo)
+	userRepo := repositories.NewUserRepository(pool)
+	apiKeyRepo := repositories.NewApiKeyRepository(pool)
+	userService := service.NewUserService(pool, userRepo, apiKeyRepo)
 
 	s := rest.NewServer(conf.Server)
 

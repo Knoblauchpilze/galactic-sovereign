@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/KnoblauchPilze/user-service/pkg/communication"
+	"github.com/KnoblauchPilze/user-service/pkg/db"
 	"github.com/KnoblauchPilze/user-service/pkg/persistence"
 	"github.com/KnoblauchPilze/user-service/pkg/repositories"
 	"github.com/google/uuid"
@@ -31,6 +32,14 @@ type mockUserRepository struct {
 	deleteCalled int
 }
 
+type mockApiKeyRepository struct {
+	repositories.ApiKeyRepository
+}
+
+type mockConnectionPool struct {
+	db.ConnectionPool
+}
+
 var errDefault = fmt.Errorf("some error")
 var defaultUuid = uuid.MustParse("08ce96a3-3430-48a8-a3b2-b1c987a207ca")
 
@@ -52,21 +61,25 @@ var defaultUser = persistence.User{
 func TestUserService_Create_CallsRepositoryCreate(t *testing.T) {
 	assert := assert.New(t)
 
-	mr := &mockUserRepository{}
-	s := NewUserService(mr)
+	mur := &mockUserRepository{}
+	mkr := &mockApiKeyRepository{}
+	mc := &mockConnectionPool{}
+	s := NewUserService(mc, mur, mkr)
 
 	s.Create(context.Background(), defaultUserDtoRequest)
 
-	assert.Equal(1, mr.createCalled)
+	assert.Equal(1, mur.createCalled)
 }
 
 func TestUserService_Create_WhenRepositoryFails_ExpectError(t *testing.T) {
 	assert := assert.New(t)
 
-	mr := &mockUserRepository{
+	mur := &mockUserRepository{
 		err: errDefault,
 	}
-	s := NewUserService(mr)
+	mkr := &mockApiKeyRepository{}
+	mc := &mockConnectionPool{}
+	s := NewUserService(mc, mur, mkr)
 
 	_, err := s.Create(context.Background(), defaultUserDtoRequest)
 
@@ -77,10 +90,12 @@ func TestUserService_Create_WhenRepositoryFails_ExpectError(t *testing.T) {
 func TestUserService_Create_ReturnsCreatedUserIncludingApiKey(t *testing.T) {
 	assert := assert.New(t)
 
-	mr := &mockUserRepository{
+	mur := &mockUserRepository{
 		user: defaultUser,
 	}
-	s := NewUserService(mr)
+	mkr := &mockApiKeyRepository{}
+	mc := &mockConnectionPool{}
+	s := NewUserService(mc, mur, mkr)
 
 	actual, err := s.Create(context.Background(), defaultUserDtoRequest)
 
@@ -102,21 +117,25 @@ func TestUserService_Create_ReturnsCreatedUserIncludingApiKey(t *testing.T) {
 func TestUserService_Get_CallsRepositoryGet(t *testing.T) {
 	assert := assert.New(t)
 
-	mr := &mockUserRepository{}
-	s := NewUserService(mr)
+	mur := &mockUserRepository{}
+	mkr := &mockApiKeyRepository{}
+	mc := &mockConnectionPool{}
+	s := NewUserService(mc, mur, mkr)
 
 	s.Get(context.Background(), defaultUuid)
 
-	assert.Equal(1, mr.getCalled)
+	assert.Equal(1, mur.getCalled)
 }
 
 func TestUserService_Get_WhenRepositoryFails_ExpectError(t *testing.T) {
 	assert := assert.New(t)
 
-	mr := &mockUserRepository{
+	mur := &mockUserRepository{
 		err: errDefault,
 	}
-	s := NewUserService(mr)
+	mkr := &mockApiKeyRepository{}
+	mc := &mockConnectionPool{}
+	s := NewUserService(mc, mur, mkr)
 
 	_, err := s.Get(context.Background(), defaultUuid)
 
@@ -126,15 +145,17 @@ func TestUserService_Get_WhenRepositoryFails_ExpectError(t *testing.T) {
 func TestUserService_Get_ReturnsUserOmitingApiKey(t *testing.T) {
 	assert := assert.New(t)
 
-	mr := &mockUserRepository{
+	mur := &mockUserRepository{
 		user: defaultUser,
 	}
-	s := NewUserService(mr)
+	mkr := &mockApiKeyRepository{}
+	mc := &mockConnectionPool{}
+	s := NewUserService(mc, mur, mkr)
 
 	actual, err := s.Get(context.Background(), defaultUuid)
 
 	assert.Nil(err)
-	assert.Equal(defaultUuid, mr.getId)
+	assert.Equal(defaultUuid, mur.getId)
 
 	expected := communication.UserDtoResponse{
 		Id:       defaultUser.Id,
@@ -151,21 +172,25 @@ func TestUserService_Get_ReturnsUserOmitingApiKey(t *testing.T) {
 func TestUserService_List_CallsRepositoryList(t *testing.T) {
 	assert := assert.New(t)
 
-	mr := &mockUserRepository{}
-	s := NewUserService(mr)
+	mur := &mockUserRepository{}
+	mkr := &mockApiKeyRepository{}
+	mc := &mockConnectionPool{}
+	s := NewUserService(mc, mur, mkr)
 
 	s.List(context.Background())
 
-	assert.Equal(1, mr.listCalled)
+	assert.Equal(1, mur.listCalled)
 }
 
 func TestUserService_List_WhenRepositoryFails_ExpectError(t *testing.T) {
 	assert := assert.New(t)
 
-	mr := &mockUserRepository{
+	mur := &mockUserRepository{
 		err: errDefault,
 	}
-	s := NewUserService(mr)
+	mkr := &mockApiKeyRepository{}
+	mc := &mockConnectionPool{}
+	s := NewUserService(mc, mur, mkr)
 
 	_, err := s.List(context.Background())
 
@@ -175,40 +200,46 @@ func TestUserService_List_WhenRepositoryFails_ExpectError(t *testing.T) {
 func TestUserService_List_ReturnsAllUsers(t *testing.T) {
 	assert := assert.New(t)
 
-	mr := &mockUserRepository{
+	mur := &mockUserRepository{
 		ids: []uuid.UUID{
 			uuid.MustParse("07e0eb01-c388-4148-bb45-286b09fdbc50"),
 			uuid.MustParse("c759bc0d-ec75-4a55-b582-7b56b2e0710e"),
 		},
 	}
-	s := NewUserService(mr)
+	mkr := &mockApiKeyRepository{}
+	mc := &mockConnectionPool{}
+	s := NewUserService(mc, mur, mkr)
 
 	actual, err := s.List(context.Background())
 
 	assert.Nil(err)
-	assert.Equal(mr.ids, actual)
+	assert.Equal(mur.ids, actual)
 }
 
 func TestUserService_Update_CallsRepositoryGetAndUpdate(t *testing.T) {
 	assert := assert.New(t)
 
-	mr := &mockUserRepository{}
-	s := NewUserService(mr)
+	mur := &mockUserRepository{}
+	mkr := &mockApiKeyRepository{}
+	mc := &mockConnectionPool{}
+	s := NewUserService(mc, mur, mkr)
 
 	s.Update(context.Background(), defaultUuid, defaultUserDtoRequest)
 
-	assert.Equal(1, mr.getCalled)
-	assert.Equal(defaultUuid, mr.getId)
-	assert.Equal(1, mr.updateCalled)
+	assert.Equal(1, mur.getCalled)
+	assert.Equal(defaultUuid, mur.getId)
+	assert.Equal(1, mur.updateCalled)
 }
 
 func TestUserService_Update_WhenGetFails_ExpectError(t *testing.T) {
 	assert := assert.New(t)
 
-	mr := &mockUserRepository{
+	mur := &mockUserRepository{
 		err: errDefault,
 	}
-	s := NewUserService(mr)
+	mkr := &mockApiKeyRepository{}
+	mc := &mockConnectionPool{}
+	s := NewUserService(mc, mur, mkr)
 
 	_, err := s.Update(context.Background(), defaultUuid, defaultUserDtoRequest)
 
@@ -218,10 +249,12 @@ func TestUserService_Update_WhenGetFails_ExpectError(t *testing.T) {
 func TestUserService_Update_CallsUpdateWithUpdatedValues(t *testing.T) {
 	assert := assert.New(t)
 
-	mr := &mockUserRepository{
+	mur := &mockUserRepository{
 		user: defaultUser,
 	}
-	s := NewUserService(mr)
+	mkr := &mockApiKeyRepository{}
+	mc := &mockConnectionPool{}
+	s := NewUserService(mc, mur, mkr)
 
 	s.Update(context.Background(), defaultUuid, defaultUserDtoRequest)
 
@@ -232,16 +265,18 @@ func TestUserService_Update_CallsUpdateWithUpdatedValues(t *testing.T) {
 		CreatedAt: defaultUser.CreatedAt,
 		UpdatedAt: defaultUser.UpdatedAt,
 	}
-	assert.Equal(expected, mr.updatedUser)
+	assert.Equal(expected, mur.updatedUser)
 }
 
 func TestUserService_Update_WhenUpdateFails_ExpectError(t *testing.T) {
 	assert := assert.New(t)
 
-	mr := &mockUserRepository{
+	mur := &mockUserRepository{
 		updateErr: errDefault,
 	}
-	s := NewUserService(mr)
+	mkr := &mockApiKeyRepository{}
+	mc := &mockConnectionPool{}
+	s := NewUserService(mc, mur, mkr)
 
 	_, err := s.Update(context.Background(), defaultUuid, defaultUserDtoRequest)
 
@@ -251,15 +286,17 @@ func TestUserService_Update_WhenUpdateFails_ExpectError(t *testing.T) {
 func TestUserService_Update_ReturnsUpdatedUserOmitingApiKey(t *testing.T) {
 	assert := assert.New(t)
 
-	mr := &mockUserRepository{
+	mur := &mockUserRepository{
 		user: defaultUser,
 	}
-	s := NewUserService(mr)
+	mkr := &mockApiKeyRepository{}
+	mc := &mockConnectionPool{}
+	s := NewUserService(mc, mur, mkr)
 
 	actual, err := s.Update(context.Background(), defaultUuid, defaultUserDtoRequest)
 
 	assert.Nil(err)
-	assert.Equal(defaultUuid, mr.getId)
+	assert.Equal(defaultUuid, mur.getId)
 
 	expected := communication.UserDtoResponse{
 		Id:       defaultUser.Id,
@@ -276,21 +313,25 @@ func TestUserService_Update_ReturnsUpdatedUserOmitingApiKey(t *testing.T) {
 func TestUserService_Delete_CallsRepositoryDelete(t *testing.T) {
 	assert := assert.New(t)
 
-	mr := &mockUserRepository{}
-	s := NewUserService(mr)
+	mur := &mockUserRepository{}
+	mkr := &mockApiKeyRepository{}
+	mc := &mockConnectionPool{}
+	s := NewUserService(mc, mur, mkr)
 
 	s.Delete(context.Background(), defaultUuid)
 
-	assert.Equal(1, mr.deleteCalled)
+	assert.Equal(1, mur.deleteCalled)
 }
 
 func TestUserService_Delete_WhenRepositoryFails_ExpectError(t *testing.T) {
 	assert := assert.New(t)
 
-	mr := &mockUserRepository{
+	mur := &mockUserRepository{
 		err: errDefault,
 	}
-	s := NewUserService(mr)
+	mkr := &mockApiKeyRepository{}
+	mc := &mockConnectionPool{}
+	s := NewUserService(mc, mur, mkr)
 
 	err := s.Delete(context.Background(), defaultUuid)
 
@@ -300,8 +341,10 @@ func TestUserService_Delete_WhenRepositoryFails_ExpectError(t *testing.T) {
 func TestUserService_Delete_WhenRepositorySucceeds_ExpectSuccess(t *testing.T) {
 	assert := assert.New(t)
 
-	mr := &mockUserRepository{}
-	s := NewUserService(mr)
+	mur := &mockUserRepository{}
+	mkr := &mockApiKeyRepository{}
+	mc := &mockConnectionPool{}
+	s := NewUserService(mc, mur, mkr)
 
 	err := s.Delete(context.Background(), defaultUuid)
 
