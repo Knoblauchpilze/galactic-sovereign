@@ -8,8 +8,8 @@ import (
 
 type repositoriesAwareHttpHandler func(echo.Context, repositories.UserRepository, service.UserService) error
 
-func generateEchoHandler(handler repositoriesAwareHttpHandler, repo repositories.UserRepository, users service.UserService) echo.HandlerFunc {
+func generateEchoHandler(handler repositoriesAwareHttpHandler, repo repositories.UserRepository, service service.UserService) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		return handler(c, repo, users)
+		return handler(c, repo, service)
 	}
 }

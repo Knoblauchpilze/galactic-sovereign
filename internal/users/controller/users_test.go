@@ -50,7 +50,12 @@ type mockDbConnection struct {
 	db.Connection
 }
 
-type mockUserService struct{}
+type mockUserService struct {
+	ids []uuid.UUID
+	err error
+
+	listCalled int
+}
 
 var defaultUuid = uuid.MustParse("08ce96a3-3430-48a8-a3b2-b1c987a207ca")
 var defaultApiKey = uuid.MustParse("cc1742fa-77b4-4f5f-ac92-058c2e47a5d6")
@@ -322,7 +327,7 @@ func TestGetUser_WhenRepositoryFailsWithNoMatchingRows_SetsStatusToNotFound(t *t
 	assert.Equal(http.StatusNotFound, mc.status)
 }
 
-func TestListUser_CallsRepositoryList(t *testing.T) {
+func TestListUser_CallsServiceList(t *testing.T) {
 	assert := assert.New(t)
 
 	mc := &mockContext{
@@ -335,17 +340,17 @@ func TestListUser_CallsRepositoryList(t *testing.T) {
 
 	listUsers(mc, mr, ms)
 
-	assert.Equal(1, mr.listCalled)
+	assert.Equal(1, ms.listCalled)
 }
 
-func TestListUser_WhenRepositoryFails_SetsStatusToInternalServerError(t *testing.T) {
+func TestListUser_WhenServiceFails_SetsStatusToInternalServerError(t *testing.T) {
 	assert := assert.New(t)
 
 	mc := &mockContext{}
-	mr := &mockUserRepository{
+	mr := &mockUserRepository{}
+	ms := &mockUserService{
 		err: errDefault,
 	}
-	ms := &mockUserService{}
 
 	err := listUsers(mc, mr, ms)
 
@@ -353,7 +358,7 @@ func TestListUser_WhenRepositoryFails_SetsStatusToInternalServerError(t *testing
 	assert.Equal(http.StatusInternalServerError, mc.status)
 }
 
-func TestListUser_WhenRepositorySucceeds_SetsStatusToOk(t *testing.T) {
+func TestListUser_WhenServiceSucceeds_SetsStatusToOk(t *testing.T) {
 	assert := assert.New(t)
 
 	mc := &mockContext{}
@@ -366,18 +371,18 @@ func TestListUser_WhenRepositorySucceeds_SetsStatusToOk(t *testing.T) {
 	assert.Equal(http.StatusOK, mc.status)
 }
 
-func TestListUser_WhenRepositorySucceeds_ReturnsExpectedIds(t *testing.T) {
+func TestListUser_ReturnsExpectedIds(t *testing.T) {
 	assert := assert.New(t)
 
 	mc := &mockContext{}
-	mr := &mockUserRepository{
+	mr := &mockUserRepository{}
+	ms := &mockUserService{
 		ids: []uuid.UUID{defaultUuid},
 	}
-	ms := &mockUserService{}
 
 	listUsers(mc, mr, ms)
 
-	assert.Equal(mr.ids, mc.data)
+	assert.Equal(ms.ids, mc.data)
 }
 
 func TestUpdateUser_WhenNoId_SetsStatusToBadRequest(t *testing.T) {
@@ -780,7 +785,8 @@ func (m *mockUserService) Get(ctx context.Context, id uuid.UUID) (communication.
 }
 
 func (m *mockUserService) List(ctx context.Context) ([]uuid.UUID, error) {
-	return []uuid.UUID{}, errors.NewCode(errors.NotImplementedCode)
+	m.listCalled++
+	return m.ids, m.err
 }
 
 func (m *mockUserService) Update(ctx context.Context, id uuid.UUID, user communication.UserDtoRequest) (communication.UserDtoResponse, error) {
