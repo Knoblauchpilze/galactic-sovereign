@@ -98,8 +98,9 @@ func TestCreateUser_WhenBindFails_SetsStatusToBadRequest(t *testing.T) {
 		bindErr: errDefault,
 	}
 	mr := &mockUserRepository{}
+	ms := &mockUserService{}
 
-	err := createUser(mc, mr)
+	err := createUser(mc, mr, ms)
 
 	assert.Nil(err)
 	assert.Equal(http.StatusBadRequest, mc.status)
@@ -111,8 +112,9 @@ func TestCreateUser_CallsRepositoryCreate(t *testing.T) {
 
 	mc := &mockContext{}
 	mr := &mockUserRepository{}
+	ms := &mockUserService{}
 
-	createUser(mc, mr)
+	createUser(mc, mr, ms)
 
 	assert.Equal(1, mr.createCalled)
 }
@@ -122,8 +124,9 @@ func TestCreateUser_WhenRepositorySucceeds_SetsStatusToCreated(t *testing.T) {
 
 	mc := &mockContext{}
 	mr := &mockUserRepository{}
+	ms := &mockUserService{}
 
-	err := createUser(mc, mr)
+	err := createUser(mc, mr, ms)
 
 	assert.Nil(err)
 	assert.Equal(http.StatusCreated, mc.status)
@@ -138,8 +141,9 @@ func TestCreateUser_WhenRepositorySucceeds_ReturnsExpectedUser(t *testing.T) {
 	mr := &mockUserRepository{
 		user: defaultUser,
 	}
+	ms := &mockUserService{}
 
-	createUser(mc, mr)
+	createUser(mc, mr, ms)
 
 	actual, ok := mc.data.(communication.UserDtoResponse)
 	assert.True(ok)
@@ -168,8 +172,9 @@ func TestCreateUser_WhenRepositorySucceeds_SavesExpectedUser(t *testing.T) {
 	mr := &mockUserRepository{
 		user: defaultUser,
 	}
+	ms := &mockUserService{}
 
-	createUser(mc, mr)
+	createUser(mc, mr, ms)
 
 	actual := mr.createdUser
 	_, err := uuid.Parse(actual.Id.String())
@@ -188,8 +193,9 @@ func TestCreateUser_WhenRepositoryFailsWithUnknownError_SetsStatusToInternalServ
 	mr := &mockUserRepository{
 		err: errDefault,
 	}
+	ms := &mockUserService{}
 
-	err := createUser(mc, mr)
+	err := createUser(mc, mr, ms)
 
 	assert.Nil(err)
 	assert.Equal(http.StatusInternalServerError, mc.status)
@@ -200,8 +206,9 @@ func TestGetUser_WhenNoId_SetsStatusToBadRequest(t *testing.T) {
 
 	mc := &mockContext{}
 	mr := &mockUserRepository{}
+	ms := &mockUserService{}
 
-	err := getUser(mc, mr)
+	err := getUser(mc, mr, ms)
 
 	assert.Nil(err)
 	assert.Equal(http.StatusBadRequest, mc.status)
@@ -217,8 +224,9 @@ func TestGetUser_WhenIdSyntaxIsWrong_SetsStatusToBadRequest(t *testing.T) {
 		},
 	}
 	mr := &mockUserRepository{}
+	ms := &mockUserService{}
 
-	err := getUser(mc, mr)
+	err := getUser(mc, mr, ms)
 
 	assert.Nil(err)
 	assert.Equal(http.StatusBadRequest, mc.status)
@@ -234,8 +242,9 @@ func TestGetUser_CallsRepositoryGet(t *testing.T) {
 		},
 	}
 	mr := &mockUserRepository{}
+	ms := &mockUserService{}
 
-	getUser(mc, mr)
+	getUser(mc, mr, ms)
 
 	assert.Equal(1, mr.getCalled)
 }
@@ -249,8 +258,9 @@ func TestGetUser_WhenRepositorySucceeds_SetsStatusToOk(t *testing.T) {
 		},
 	}
 	mr := &mockUserRepository{}
+	ms := &mockUserService{}
 
-	err := getUser(mc, mr)
+	err := getUser(mc, mr, ms)
 
 	assert.Nil(err)
 	assert.Equal(http.StatusOK, mc.status)
@@ -267,8 +277,9 @@ func TestGetUser_WhenRepositorySucceeds_ReturnsExpectedUser(t *testing.T) {
 	mr := &mockUserRepository{
 		user: defaultUser,
 	}
+	ms := &mockUserService{}
 
-	getUser(mc, mr)
+	getUser(mc, mr, ms)
 
 	assert.Equal(defaultUserDto, mc.data)
 }
@@ -284,8 +295,9 @@ func TestGetUser_WhenRepositoryFailsWithUnknownError_SetsStatusToInternalServerE
 	mr := &mockUserRepository{
 		err: errDefault,
 	}
+	ms := &mockUserService{}
 
-	err := getUser(mc, mr)
+	err := getUser(mc, mr, ms)
 
 	assert.Nil(err)
 	assert.Equal(http.StatusInternalServerError, mc.status)
@@ -302,8 +314,9 @@ func TestGetUser_WhenRepositoryFailsWithNoMatchingRows_SetsStatusToNotFound(t *t
 	mr := &mockUserRepository{
 		err: errors.NewCode(db.NoMatchingSqlRows),
 	}
+	ms := &mockUserService{}
 
-	err := getUser(mc, mr)
+	err := getUser(mc, mr, ms)
 
 	assert.Nil(err)
 	assert.Equal(http.StatusNotFound, mc.status)
@@ -318,8 +331,9 @@ func TestListUser_CallsRepositoryList(t *testing.T) {
 		},
 	}
 	mr := &mockUserRepository{}
+	ms := &mockUserService{}
 
-	listUsers(mc, mr)
+	listUsers(mc, mr, ms)
 
 	assert.Equal(1, mr.listCalled)
 }
@@ -331,8 +345,9 @@ func TestListUser_WhenRepositoryFails_SetsStatusToInternalServerError(t *testing
 	mr := &mockUserRepository{
 		err: errDefault,
 	}
+	ms := &mockUserService{}
 
-	err := listUsers(mc, mr)
+	err := listUsers(mc, mr, ms)
 
 	assert.Nil(err)
 	assert.Equal(http.StatusInternalServerError, mc.status)
@@ -343,8 +358,9 @@ func TestListUser_WhenRepositorySucceeds_SetsStatusToOk(t *testing.T) {
 
 	mc := &mockContext{}
 	mr := &mockUserRepository{}
+	ms := &mockUserService{}
 
-	err := listUsers(mc, mr)
+	err := listUsers(mc, mr, ms)
 
 	assert.Nil(err)
 	assert.Equal(http.StatusOK, mc.status)
@@ -357,8 +373,9 @@ func TestListUser_WhenRepositorySucceeds_ReturnsExpectedIds(t *testing.T) {
 	mr := &mockUserRepository{
 		ids: []uuid.UUID{defaultUuid},
 	}
+	ms := &mockUserService{}
 
-	listUsers(mc, mr)
+	listUsers(mc, mr, ms)
 
 	assert.Equal(mr.ids, mc.data)
 }
@@ -368,8 +385,9 @@ func TestUpdateUser_WhenNoId_SetsStatusToBadRequest(t *testing.T) {
 
 	mc := &mockContext{}
 	mr := &mockUserRepository{}
+	ms := &mockUserService{}
 
-	err := updateUser(mc, mr)
+	err := updateUser(mc, mr, ms)
 
 	assert.Nil(err)
 	assert.Equal(http.StatusBadRequest, mc.status)
@@ -385,8 +403,9 @@ func TestUpdateUser_WhenIdSyntaxIsWrong_SetsStatusToBadRequest(t *testing.T) {
 		},
 	}
 	mr := &mockUserRepository{}
+	ms := &mockUserService{}
 
-	err := updateUser(mc, mr)
+	err := updateUser(mc, mr, ms)
 
 	assert.Nil(err)
 	assert.Equal(http.StatusBadRequest, mc.status)
@@ -403,8 +422,9 @@ func TestUpdateUser_WhenIdIsCorrectButBindFails_SetsStatusToBadRequest(t *testin
 		bindErr: errDefault,
 	}
 	mr := &mockUserRepository{}
+	ms := &mockUserService{}
 
-	err := updateUser(mc, mr)
+	err := updateUser(mc, mr, ms)
 
 	assert.Nil(err)
 	assert.Equal(http.StatusBadRequest, mc.status)
@@ -420,8 +440,9 @@ func TestUpdateUser_AttemptsToFetchUser(t *testing.T) {
 		},
 	}
 	mr := &mockUserRepository{}
+	ms := &mockUserService{}
 
-	updateUser(mc, mr)
+	updateUser(mc, mr, ms)
 
 	assert.Equal(1, mr.getCalled)
 	assert.Equal(defaultUuid, mr.getId)
@@ -438,8 +459,9 @@ func TestUpdateUser_WhenGetUserFailsWithUnknownError_SetsStatusToInternalServerE
 	mr := &mockUserRepository{
 		err: errDefault,
 	}
+	ms := &mockUserService{}
 
-	err := updateUser(mc, mr)
+	err := updateUser(mc, mr, ms)
 
 	assert.Nil(err)
 	assert.Equal(http.StatusInternalServerError, mc.status)
@@ -456,8 +478,9 @@ func TestUpdateUser_WhenGetUserFailsWithNoWithNoMatchingRows_SetsStatusToNotFoun
 	mr := &mockUserRepository{
 		err: errors.NewCode(db.NoMatchingSqlRows),
 	}
+	ms := &mockUserService{}
 
-	err := updateUser(mc, mr)
+	err := updateUser(mc, mr, ms)
 
 	assert.Nil(err)
 	assert.Equal(http.StatusNotFound, mc.status)
@@ -472,8 +495,9 @@ func TestUpdateUser_CallsRepositoryUpdate(t *testing.T) {
 		},
 	}
 	mr := &mockUserRepository{}
+	ms := &mockUserService{}
 
-	updateUser(mc, mr)
+	updateUser(mc, mr, ms)
 
 	assert.Equal(1, mr.updateCalled)
 }
@@ -487,8 +511,9 @@ func TestUpdateUser_WhenRepositorySucceeds_SetsStatusToOk(t *testing.T) {
 		},
 	}
 	mr := &mockUserRepository{}
+	ms := &mockUserService{}
 
-	err := getUser(mc, mr)
+	err := getUser(mc, mr, ms)
 
 	assert.Nil(err)
 	assert.Equal(http.StatusOK, mc.status)
@@ -511,8 +536,9 @@ func TestUpdateUser_WhenRepositorySucceeds_ReturnsExpectedUser(t *testing.T) {
 	mr := &mockUserRepository{
 		user: defaultUser,
 	}
+	ms := &mockUserService{}
 
-	updateUser(mc, mr)
+	updateUser(mc, mr, ms)
 
 	assert.Equal(defaultUserDto, mc.data)
 }
@@ -534,8 +560,9 @@ func TestUpdateUser_UpdatesUserWithBodyInfo(t *testing.T) {
 	mr := &mockUserRepository{
 		user: defaultUser,
 	}
+	ms := &mockUserService{}
 
-	updateUser(mc, mr)
+	updateUser(mc, mr, ms)
 
 	assert.Equal(defaultUuid, mr.updatedUser.Id)
 	assert.Equal(updatedUser.Email, mr.updatedUser.Email)
@@ -553,8 +580,9 @@ func TestUpdateUser_WhenRepositoryFailsWithUnknownError_SetsStatusToInternalServ
 	mr := &mockUserRepository{
 		updateErr: errDefault,
 	}
+	ms := &mockUserService{}
 
-	err := updateUser(mc, mr)
+	err := updateUser(mc, mr, ms)
 
 	assert.Nil(err)
 	assert.Equal(http.StatusInternalServerError, mc.status)
@@ -571,8 +599,9 @@ func TestUpdateUser_WhenRepositoryFailsWithOptimisticLocking_SetsStatusToConflic
 	mr := &mockUserRepository{
 		updateErr: errors.NewCode(db.OptimisticLockException),
 	}
+	ms := &mockUserService{}
 
-	err := updateUser(mc, mr)
+	err := updateUser(mc, mr, ms)
 
 	assert.Nil(err)
 	assert.Equal(http.StatusConflict, mc.status)
@@ -583,8 +612,9 @@ func TestDeleteUser_WhenNoId_SetsStatusToBadRequest(t *testing.T) {
 
 	mc := &mockContext{}
 	mr := &mockUserRepository{}
+	ms := &mockUserService{}
 
-	err := deleteUser(mc, mr)
+	err := deleteUser(mc, mr, ms)
 
 	assert.Nil(err)
 	assert.Equal(http.StatusBadRequest, mc.status)
@@ -600,8 +630,9 @@ func TestDeleteUser_WhenIdSyntaxIsWrong_SetsStatusToBadRequest(t *testing.T) {
 		},
 	}
 	mr := &mockUserRepository{}
+	ms := &mockUserService{}
 
-	err := deleteUser(mc, mr)
+	err := deleteUser(mc, mr, ms)
 
 	assert.Nil(err)
 	assert.Equal(http.StatusBadRequest, mc.status)
@@ -617,8 +648,9 @@ func TestDeleteUser_CallsRepositoryDelete(t *testing.T) {
 		},
 	}
 	mr := &mockUserRepository{}
+	ms := &mockUserService{}
 
-	deleteUser(mc, mr)
+	deleteUser(mc, mr, ms)
 
 	assert.Equal(1, mr.deleteCalled)
 }
@@ -632,8 +664,9 @@ func TestDeleteUser_WhenRepositorySucceeds_SetsStatusToNoContent(t *testing.T) {
 		},
 	}
 	mr := &mockUserRepository{}
+	ms := &mockUserService{}
 
-	err := deleteUser(mc, mr)
+	err := deleteUser(mc, mr, ms)
 
 	assert.Nil(err)
 	assert.Equal(http.StatusNoContent, mc.status)
@@ -650,8 +683,9 @@ func TestDeleteUser_WhenRepositoryFailsWithUnknownError_SetsStatusToInternalServ
 	mr := &mockUserRepository{
 		err: errDefault,
 	}
+	ms := &mockUserService{}
 
-	err := deleteUser(mc, mr)
+	err := deleteUser(mc, mr, ms)
 
 	assert.Nil(err)
 	assert.Equal(http.StatusInternalServerError, mc.status)
@@ -668,8 +702,9 @@ func TestDeleteUser_WhenRepositoryFailsWithNoMatchingRows_SetsStatusToNotFound(t
 	mr := &mockUserRepository{
 		err: errors.NewCode(db.NoMatchingSqlRows),
 	}
+	ms := &mockUserService{}
 
-	err := deleteUser(mc, mr)
+	err := deleteUser(mc, mr, ms)
 
 	assert.Nil(err)
 	assert.Equal(http.StatusNotFound, mc.status)

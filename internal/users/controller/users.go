@@ -18,30 +18,30 @@ func UserEndpoints(conn db.Connection, service service.UserService) rest.Routes 
 
 	var out rest.Routes
 
-	postHandler := generateEchoHandler(createUser, repo)
+	postHandler := generateEchoHandler(createUser, repo, service)
 	post := rest.NewRoute(http.MethodPost, "/users", postHandler)
 	out = append(out, post)
 
-	getHandler := generateEchoHandler(getUser, repo)
+	getHandler := generateEchoHandler(getUser, repo, service)
 	get := rest.NewResourceRoute(http.MethodGet, "/users", getHandler)
 	out = append(out, get)
 
-	listHandler := generateEchoHandler(listUsers, repo)
+	listHandler := generateEchoHandler(listUsers, repo, service)
 	list := rest.NewRoute(http.MethodGet, "/users", listHandler)
 	out = append(out, list)
 
-	updateHandler := generateEchoHandler(updateUser, repo)
+	updateHandler := generateEchoHandler(updateUser, repo, service)
 	update := rest.NewResourceRoute(http.MethodPatch, "/users", updateHandler)
 	out = append(out, update)
 
-	deleteHandler := generateEchoHandler(deleteUser, repo)
+	deleteHandler := generateEchoHandler(deleteUser, repo, service)
 	delete := rest.NewResourceRoute(http.MethodDelete, "/users", deleteHandler)
 	out = append(out, delete)
 
 	return out
 }
 
-func createUser(c echo.Context, repo repositories.UserRepository) error {
+func createUser(c echo.Context, repo repositories.UserRepository, users service.UserService) error {
 	// https://echo.labstack.com/docs/binding
 	var userDtoRequest communication.UserDtoRequest
 	err := c.Bind(&userDtoRequest)
@@ -59,7 +59,7 @@ func createUser(c echo.Context, repo repositories.UserRepository) error {
 	return c.JSON(http.StatusCreated, out)
 }
 
-func getUser(c echo.Context, repo repositories.UserRepository) error {
+func getUser(c echo.Context, repo repositories.UserRepository, users service.UserService) error {
 	maybeId := c.Param("id")
 	id, err := uuid.Parse(maybeId)
 	if err != nil {
@@ -80,7 +80,7 @@ func getUser(c echo.Context, repo repositories.UserRepository) error {
 	return c.JSON(http.StatusOK, out)
 }
 
-func listUsers(c echo.Context, repo repositories.UserRepository) error {
+func listUsers(c echo.Context, repo repositories.UserRepository, users service.UserService) error {
 	out, err := repo.List(c.Request().Context())
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err)
@@ -89,7 +89,7 @@ func listUsers(c echo.Context, repo repositories.UserRepository) error {
 	return c.JSON(http.StatusOK, out)
 }
 
-func updateUser(c echo.Context, repo repositories.UserRepository) error {
+func updateUser(c echo.Context, repo repositories.UserRepository, users service.UserService) error {
 	maybeId := c.Param("id")
 	id, err := uuid.Parse(maybeId)
 	if err != nil {
@@ -127,7 +127,7 @@ func updateUser(c echo.Context, repo repositories.UserRepository) error {
 	return c.JSON(http.StatusOK, out)
 }
 
-func deleteUser(c echo.Context, repo repositories.UserRepository) error {
+func deleteUser(c echo.Context, repo repositories.UserRepository, users service.UserService) error {
 	maybeId := c.Param("id")
 	id, err := uuid.Parse(maybeId)
 	if err != nil {
