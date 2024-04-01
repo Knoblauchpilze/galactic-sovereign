@@ -50,6 +50,8 @@ type mockDbConnection struct {
 	db.Connection
 }
 
+type mockUserService struct{}
+
 var defaultUuid = uuid.MustParse("08ce96a3-3430-48a8-a3b2-b1c987a207ca")
 var defaultApiKey = uuid.MustParse("cc1742fa-77b4-4f5f-ac92-058c2e47a5d6")
 var defaultUserRequest = communication.UserDtoRequest{
@@ -78,7 +80,7 @@ func TestUserEndpoints_GeneratesExpectedRoutes(t *testing.T) {
 	assert := assert.New(t)
 
 	actualRoutes := make(map[string]int)
-	for _, r := range UserEndpoints(&mockDbConnection{}) {
+	for _, r := range UserEndpoints(&mockDbConnection{}, &mockUserService{}) {
 		actualRoutes[r.Method()]++
 	}
 
@@ -732,4 +734,24 @@ func (m *mockUserRepository) Update(ctx context.Context, user persistence.User) 
 func (m *mockUserRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	m.deleteCalled++
 	return m.err
+}
+
+func (m *mockUserService) Create(ctx context.Context, user communication.UserDtoRequest) (communication.UserDtoResponse, error) {
+	return communication.UserDtoResponse{}, errors.NewCode(errors.NotImplementedCode)
+}
+
+func (m *mockUserService) Get(ctx context.Context, id uuid.UUID) (communication.UserDtoResponse, error) {
+	return communication.UserDtoResponse{}, errors.NewCode(errors.NotImplementedCode)
+}
+
+func (m *mockUserService) List(ctx context.Context) ([]uuid.UUID, error) {
+	return []uuid.UUID{}, errors.NewCode(errors.NotImplementedCode)
+}
+
+func (m *mockUserService) Update(ctx context.Context, id uuid.UUID, user communication.UserDtoRequest) (communication.UserDtoResponse, error) {
+	return communication.UserDtoResponse{}, errors.NewCode(errors.NotImplementedCode)
+}
+
+func (m *mockUserService) Delete(ctx context.Context, id uuid.UUID) error {
+	return errors.NewCode(errors.NotImplementedCode)
 }
