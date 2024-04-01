@@ -13,6 +13,7 @@ type ConnectionPool interface {
 	Connect() error
 	Close()
 
+	BeginTransaction(ctx context.Context) (Transaction, error)
 	Query(ctx context.Context, sql string, arguments ...interface{}) Rows
 	Exec(ctx context.Context, sql string, arguments ...interface{}) (int, error)
 }
@@ -25,6 +26,7 @@ type pgxDbConnectionPool interface {
 }
 
 var pgxConnectionFunc = pgx.NewConnPool
+var pgxTransactionFunc = newTransactionFromPool
 
 type connectionPoolImpl struct {
 	config Config
@@ -63,6 +65,10 @@ func (c *connectionPoolImpl) Close() {
 
 	c.pool.Close()
 	logger.Infof("Closed connection to %s at %s:%d with user %s", c.config.Name, c.config.Host, c.config.Port, c.config.User)
+}
+
+func (c *connectionPoolImpl) BeginTransaction(ctx context.Context) (Transaction, error) {
+	return pgxTransactionFunc(ctx, c.pool)
 }
 
 func (c *connectionPoolImpl) Query(ctx context.Context, sql string, arguments ...interface{}) Rows {
