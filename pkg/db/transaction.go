@@ -62,6 +62,7 @@ func newTransactionFromPool(ctx context.Context, pool pgxDbConnectionPool) (Tran
 
 func (t *transactionImpl) Close(ctx context.Context) error {
 	var err error
+
 	if t.err != nil {
 		err = t.tx.RollbackEx(ctx)
 	} else {
@@ -71,7 +72,8 @@ func (t *transactionImpl) Close(ctx context.Context) error {
 	err2 := t.tx.Err()
 	var err3 error
 	if t.conn != nil {
-		t.conn.Close()
+		// TODO: Should call t.pool.Release(t.conn)
+		err3 = t.conn.Close()
 	}
 
 	if err != nil {
