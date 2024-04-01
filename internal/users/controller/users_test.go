@@ -112,6 +112,24 @@ func TestCreateUser_WhenServiceFails_SetsStatusToInternalServerError(t *testing.
 	assert.Equal(http.StatusInternalServerError, mc.status)
 }
 
+func TestCreateUser_WhenServiceFailsWithDuplicatedSqlKey_SetsStatusToConflict(t *testing.T) {
+	assert := assert.New(t)
+
+	mc := &mockContext{
+		params: map[string]string{
+			"id": defaultUuid.String(),
+		},
+	}
+	ms := &mockUserService{
+		err: errors.NewCode(db.DuplicatedKeySqlKey),
+	}
+
+	err := createUser(mc, ms)
+
+	assert.Nil(err)
+	assert.Equal(http.StatusConflict, mc.status)
+}
+
 func TestCreateUser_SetsStatusToCreated(t *testing.T) {
 	assert := assert.New(t)
 

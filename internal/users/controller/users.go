@@ -48,6 +48,10 @@ func createUser(c echo.Context, service service.UserService) error {
 
 	out, err := service.Create(c.Request().Context(), userDtoRequest)
 	if err != nil {
+		if errors.IsErrorWithCode(err, db.DuplicatedKeySqlKey) {
+			return c.JSON(http.StatusConflict, "Email already used")
+		}
+
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 
