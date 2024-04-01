@@ -6,4 +6,8 @@ type ApiKey struct {
 	Id      uuid.UUID
 	Key     uuid.UUID
 	ApiUser uuid.UUID
+
+	Enabled bool
+
+	Version int
 }

@@ -13,6 +13,7 @@ type ApiKeyRepository interface {
 	Create(ctx context.Context, apiKey persistence.ApiKey) error
 	Get(ctx context.Context, id uuid.UUID) (persistence.ApiKey, error)
 	List(ctx context.Context) ([]uuid.UUID, error)
+	Update(ctx context.Context, apiKey persistence.ApiKey) (persistence.ApiKey, error)
 	Delete(ctx context.Context, id uuid.UUID) error
 }
 
@@ -78,6 +79,25 @@ func (r *apiUserRepositoryImpl) List(ctx context.Context) ([]uuid.UUID, error) {
 	}
 
 	return out, nil
+}
+
+const updateApiKeySqlTemplate = "UPDATE api_key SET enabled = $1, version = $2 WHERE id = $3 AND version = $4"
+
+func (r *apiUserRepositoryImpl) Update(ctx context.Context, apiKey persistence.ApiKey) (persistence.ApiKey, error) {
+	version := apiKey.Version + 1
+	affected, err := r.conn.Exec(ctx, updateApiKeySqlTemplate, apiKey.Enabled, version, apiKey.Id, apiKey.Version)
+	if err != nil {
+		return apiKey, err
+	}
+	if affected == 0 {
+		return apiKey, errors.NewCode(db.OptimisticLockException)
+	} else if affected != 1 {
+		return apiKey, errors.NewCode(db.MoreThanOneMatchingSqlRows)
+	}
+
+	apiKey.Version = version
+
+	return apiKey, nil
 }
 
 const deleteApiKeySqlTemplate = "DELETE FROM api_key WHERE id = $1"
