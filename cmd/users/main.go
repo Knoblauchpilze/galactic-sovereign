@@ -21,16 +21,16 @@ func main() {
 		os.Exit(1)
 	}
 
-	conn := db.NewConnection(conf.Database)
-	if err := conn.Connect(); err != nil {
+	pool := db.NewConnectionPool(conf.Database)
+	if err := pool.Connect(); err != nil {
 		logger.Errorf("Failed to connect to the database: %v", err)
 		os.Exit(1)
 	}
-	defer conn.Close()
+	defer pool.Close()
 
-	installCleanup(conn)
+	installCleanup(pool)
 
-	repo := repositories.NewUserRepository(conn)
+	repo := repositories.NewUserRepository(pool)
 	userService := service.NewUserService(repo)
 
 	s := rest.NewServer(conf.Server)
@@ -48,7 +48,7 @@ func main() {
 	}
 }
 
-func installCleanup(conn db.Connection) {
+func installCleanup(conn db.ConnectionPool) {
 	// https://stackoverflow.com/questions/11268943/is-it-possible-to-capture-a-ctrlc-signal-sigint-and-run-a-cleanup-function-i
 	interruptChannel := make(chan os.Signal, 2)
 	signal.Notify(interruptChannel, os.Interrupt, syscall.SIGTERM)

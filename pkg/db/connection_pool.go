@@ -9,7 +9,7 @@ import (
 	"github.com/jackc/pgx"
 )
 
-type Connection interface {
+type ConnectionPool interface {
 	Connect() error
 	Close()
 
@@ -17,28 +17,29 @@ type Connection interface {
 	Exec(ctx context.Context, sql string, arguments ...interface{}) (int, error)
 }
 
-type pgxDbConnection interface {
+type pgxDbConnectionPool interface {
 	Close()
+	AcquireEx(ctx context.Context) (*pgx.Conn, error)
 	QueryEx(ctx context.Context, sql string, options *pgx.QueryExOptions, arguments ...interface{}) (*pgx.Rows, error)
 	ExecEx(ctx context.Context, sql string, options *pgx.QueryExOptions, arguments ...interface{}) (pgx.CommandTag, error)
 }
 
 var pgxConnectionFunc = pgx.NewConnPool
 
-type connectionImpl struct {
+type connectionPoolImpl struct {
 	config Config
 
 	lock sync.Mutex
-	pool pgxDbConnection
+	pool pgxDbConnectionPool
 }
 
-func NewConnection(config Config) Connection {
-	return &connectionImpl{
+func NewConnectionPool(config Config) ConnectionPool {
+	return &connectionPoolImpl{
 		config: config,
 	}
 }
 
-func (c *connectionImpl) Connect() error {
+func (c *connectionPoolImpl) Connect() error {
 	logger.Infof("Connecting to %s at %s:%d with user %s", c.config.Name, c.config.Host, c.config.Port, c.config.User)
 	pool, err := pgxConnectionFunc(c.config.toConnPoolConfig())
 	if err != nil {
@@ -52,7 +53,7 @@ func (c *connectionImpl) Connect() error {
 	return nil
 }
 
-func (c *connectionImpl) Close() {
+func (c *connectionPoolImpl) Close() {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 
@@ -64,18 +65,18 @@ func (c *connectionImpl) Close() {
 	logger.Infof("Closed connection to %s at %s:%d with user %s", c.config.Name, c.config.Host, c.config.Port, c.config.User)
 }
 
-func (c *connectionImpl) Query(ctx context.Context, sql string, args ...interface{}) Rows {
+func (c *connectionPoolImpl) Query(ctx context.Context, sql string, arguments ...interface{}) Rows {
 	log := middleware.GetLoggerFromContext(ctx)
-	log.Debugf("Query: %s (%d)", sql, len(args))
+	log.Debugf("Query: %s (%d)", sql, len(arguments))
 
-	rows, err := c.pool.QueryEx(ctx, sql, nil, args...)
+	rows, err := c.pool.QueryEx(ctx, sql, nil, arguments...)
 	return newRows(rows, err)
 }
 
-func (c *connectionImpl) Exec(ctx context.Context, sql string, args ...interface{}) (int, error) {
+func (c *connectionPoolImpl) Exec(ctx context.Context, sql string, arguments ...interface{}) (int, error) {
 	log := middleware.GetLoggerFromContext(ctx)
-	log.Debugf("Exec: %s (%d)", sql, len(args))
+	log.Debugf("Exec: %s (%d)", sql, len(arguments))
 
-	tag, err := c.pool.ExecEx(ctx, sql, nil, args...)
+	tag, err := c.pool.ExecEx(ctx, sql, nil, arguments...)
 	return int(tag.RowsAffected()), err
 }
