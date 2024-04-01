@@ -13,7 +13,9 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-type mockConnection struct {
+type mockConnectionPool struct {
+	db.ConnectionPool
+
 	queryCalled int
 	execCalled  int
 
@@ -57,7 +59,7 @@ var defaultUser = persistence.User{
 func TestUserRepository_Create_UsesConnectionToExec(t *testing.T) {
 	assert := assert.New(t)
 
-	mc := &mockConnection{}
+	mc := &mockConnectionPool{}
 	repo := NewUserRepository(mc)
 
 	repo.Create(context.Background(), defaultUser)
@@ -68,7 +70,7 @@ func TestUserRepository_Create_UsesConnectionToExec(t *testing.T) {
 func TestUserRepository_Create_GeneratesValidSql(t *testing.T) {
 	assert := assert.New(t)
 
-	mc := &mockConnection{}
+	mc := &mockConnectionPool{}
 	repo := NewUserRepository(mc)
 
 	repo.Create(context.Background(), defaultUser)
@@ -84,7 +86,7 @@ func TestUserRepository_Create_GeneratesValidSql(t *testing.T) {
 func TestUserRepository_Create_PropagatesQueryFailure(t *testing.T) {
 	assert := assert.New(t)
 
-	mc := &mockConnection{
+	mc := &mockConnectionPool{
 		execErr: errDefault,
 	}
 	repo := NewUserRepository(mc)
@@ -97,7 +99,7 @@ func TestUserRepository_Create_PropagatesQueryFailure(t *testing.T) {
 func TestUserRepository_Create_WhenQueryIndicatesDuplicatedKey_ReturnsDuplicatedKey(t *testing.T) {
 	assert := assert.New(t)
 
-	mc := &mockConnection{
+	mc := &mockConnectionPool{
 		execErr: fmt.Errorf(`duplicate key value violates unique constraint "api_user_email_key" (SQLSTATE 23505)`),
 	}
 	repo := NewUserRepository(mc)
@@ -110,7 +112,7 @@ func TestUserRepository_Create_WhenQueryIndicatesDuplicatedKey_ReturnsDuplicated
 func TestUserRepository_Create_ReturnsInputUser(t *testing.T) {
 	assert := assert.New(t)
 
-	mc := &mockConnection{}
+	mc := &mockConnectionPool{}
 	repo := NewUserRepository(mc)
 
 	actual, err := repo.Create(context.Background(), defaultUser)
@@ -122,7 +124,7 @@ func TestUserRepository_Create_ReturnsInputUser(t *testing.T) {
 func TestUserRepository_Get_UsesConnectionToQuery(t *testing.T) {
 	assert := assert.New(t)
 
-	mc := &mockConnection{}
+	mc := &mockConnectionPool{}
 	repo := NewUserRepository(mc)
 
 	repo.Get(context.Background(), uuid.UUID{})
@@ -133,7 +135,7 @@ func TestUserRepository_Get_UsesConnectionToQuery(t *testing.T) {
 func TestUserRepository_Get_GeneratesValidSql(t *testing.T) {
 	assert := assert.New(t)
 
-	mc := &mockConnection{}
+	mc := &mockConnectionPool{}
 	repo := NewUserRepository(mc)
 
 	repo.Get(context.Background(), defaultUuid)
@@ -146,7 +148,7 @@ func TestUserRepository_Get_GeneratesValidSql(t *testing.T) {
 func TestUserRepository_Get_PropagatesQueryFailure(t *testing.T) {
 	assert := assert.New(t)
 
-	mc := &mockConnection{
+	mc := &mockConnectionPool{
 		rows: mockRows{
 			err: errDefault,
 		},
@@ -161,7 +163,7 @@ func TestUserRepository_Get_PropagatesQueryFailure(t *testing.T) {
 func TestUserRepository_Get_CallsGetSingleValue(t *testing.T) {
 	assert := assert.New(t)
 
-	mc := &mockConnection{}
+	mc := &mockConnectionPool{}
 	repo := NewUserRepository(mc)
 
 	repo.Get(context.Background(), defaultUuid)
@@ -172,7 +174,7 @@ func TestUserRepository_Get_CallsGetSingleValue(t *testing.T) {
 func TestUserRepository_Get_WhenResultReturnsError_Fails(t *testing.T) {
 	assert := assert.New(t)
 
-	mc := &mockConnection{
+	mc := &mockConnectionPool{
 		rows: mockRows{
 			singleValueErr: errDefault,
 		},
@@ -187,7 +189,7 @@ func TestUserRepository_Get_WhenResultReturnsError_Fails(t *testing.T) {
 func TestUserRepository_Get_WhenResultSucceeds_Success(t *testing.T) {
 	assert := assert.New(t)
 
-	mc := &mockConnection{}
+	mc := &mockConnectionPool{}
 	repo := NewUserRepository(mc)
 
 	_, err := repo.Get(context.Background(), defaultUuid)
@@ -198,7 +200,7 @@ func TestUserRepository_Get_WhenResultSucceeds_Success(t *testing.T) {
 func TestUserRepository_Get_PropagatesScanErrors(t *testing.T) {
 	assert := assert.New(t)
 
-	mc := &mockConnection{
+	mc := &mockConnectionPool{
 		rows: mockRows{
 			scanner: &mockScannable{
 				err: errDefault,
@@ -215,7 +217,7 @@ func TestUserRepository_Get_PropagatesScanErrors(t *testing.T) {
 func TestUserRepository_Get_ScansUserProperties(t *testing.T) {
 	assert := assert.New(t)
 
-	mc := &mockConnection{
+	mc := &mockConnectionPool{
 		rows: mockRows{
 			scanner: &mockScannable{},
 		},
@@ -241,7 +243,7 @@ func TestUserRepository_Get_ScansUserProperties(t *testing.T) {
 func TestUserRepository_List_UsesConnectionToQuery(t *testing.T) {
 	assert := assert.New(t)
 
-	mc := &mockConnection{}
+	mc := &mockConnectionPool{}
 	repo := NewUserRepository(mc)
 
 	repo.List(context.Background())
@@ -252,7 +254,7 @@ func TestUserRepository_List_UsesConnectionToQuery(t *testing.T) {
 func TestUserRepository_List_GeneratesValidSql(t *testing.T) {
 	assert := assert.New(t)
 
-	mc := &mockConnection{}
+	mc := &mockConnectionPool{}
 	repo := NewUserRepository(mc)
 
 	repo.List(context.Background())
@@ -264,7 +266,7 @@ func TestUserRepository_List_GeneratesValidSql(t *testing.T) {
 func TestUserRepository_List_PropagatesQueryFailure(t *testing.T) {
 	assert := assert.New(t)
 
-	mc := &mockConnection{
+	mc := &mockConnectionPool{
 		rows: mockRows{
 			err: errDefault,
 		},
@@ -279,7 +281,7 @@ func TestUserRepository_List_PropagatesQueryFailure(t *testing.T) {
 func TestUserRepository_List_CallsGetAll(t *testing.T) {
 	assert := assert.New(t)
 
-	mc := &mockConnection{}
+	mc := &mockConnectionPool{}
 	repo := NewUserRepository(mc)
 
 	repo.List(context.Background())
@@ -290,7 +292,7 @@ func TestUserRepository_List_CallsGetAll(t *testing.T) {
 func TestUserRepository_List_WhenResultReturnsError_Fails(t *testing.T) {
 	assert := assert.New(t)
 
-	mc := &mockConnection{
+	mc := &mockConnectionPool{
 		rows: mockRows{
 			allErr: errDefault,
 		},
@@ -305,7 +307,7 @@ func TestUserRepository_List_WhenResultReturnsError_Fails(t *testing.T) {
 func TestUserRepository_List_PropagatesScanErrors(t *testing.T) {
 	assert := assert.New(t)
 
-	mc := &mockConnection{
+	mc := &mockConnectionPool{
 		rows: mockRows{
 			scanner: &mockScannable{
 				err: errDefault,
@@ -322,7 +324,7 @@ func TestUserRepository_List_PropagatesScanErrors(t *testing.T) {
 func TestUserRepository_List_ScansIds(t *testing.T) {
 	assert := assert.New(t)
 
-	mc := &mockConnection{
+	mc := &mockConnectionPool{
 		rows: mockRows{
 			scanner: &mockScannable{},
 		},
@@ -341,7 +343,7 @@ func TestUserRepository_List_ScansIds(t *testing.T) {
 func TestUserRepository_Update_UsesConnectionToQuery(t *testing.T) {
 	assert := assert.New(t)
 
-	mc := &mockConnection{}
+	mc := &mockConnectionPool{}
 	repo := NewUserRepository(mc)
 
 	repo.Update(context.Background(), defaultUser)
@@ -352,7 +354,7 @@ func TestUserRepository_Update_UsesConnectionToQuery(t *testing.T) {
 func TestUserRepository_Update_GeneratesValidSql(t *testing.T) {
 	assert := assert.New(t)
 
-	mc := &mockConnection{}
+	mc := &mockConnectionPool{}
 	repo := NewUserRepository(mc)
 
 	repo.Update(context.Background(), defaultUser)
@@ -369,7 +371,7 @@ func TestUserRepository_Update_GeneratesValidSql(t *testing.T) {
 func TestUserRepository_Update_PropagatesQueryFailure(t *testing.T) {
 	assert := assert.New(t)
 
-	mc := &mockConnection{
+	mc := &mockConnectionPool{
 		execErr: errDefault,
 	}
 	repo := NewUserRepository(mc)
@@ -382,7 +384,7 @@ func TestUserRepository_Update_PropagatesQueryFailure(t *testing.T) {
 func TestUserRepository_Update_WhenAffectedRowsIsZero_ReturnsOptimisticLockException(t *testing.T) {
 	assert := assert.New(t)
 
-	mc := &mockConnection{
+	mc := &mockConnectionPool{
 		affectedRows: 0,
 	}
 	repo := NewUserRepository(mc)
@@ -395,7 +397,7 @@ func TestUserRepository_Update_WhenAffectedRowsIsZero_ReturnsOptimisticLockExcep
 func TestUserRepository_Update_WhenAffectedRowsIsGreaterThanOne_Fails(t *testing.T) {
 	assert := assert.New(t)
 
-	mc := &mockConnection{
+	mc := &mockConnectionPool{
 		affectedRows: 2,
 	}
 	repo := NewUserRepository(mc)
@@ -408,7 +410,7 @@ func TestUserRepository_Update_WhenAffectedRowsIsGreaterThanOne_Fails(t *testing
 func TestUserRepository_Update_WhenAffectedRowsIsOne_Succeeds(t *testing.T) {
 	assert := assert.New(t)
 
-	mc := &mockConnection{
+	mc := &mockConnectionPool{
 		affectedRows: 1,
 	}
 	repo := NewUserRepository(mc)
@@ -421,7 +423,7 @@ func TestUserRepository_Update_WhenAffectedRowsIsOne_Succeeds(t *testing.T) {
 func TestUserRepository_Update_ReturnsUpdatedUser(t *testing.T) {
 	assert := assert.New(t)
 
-	mc := &mockConnection{
+	mc := &mockConnectionPool{
 		affectedRows: 1,
 	}
 	repo := NewUserRepository(mc)
@@ -447,7 +449,7 @@ func TestUserRepository_Update_ReturnsUpdatedUser(t *testing.T) {
 func TestUserRepository_Delete_UsesConnectionToQuery(t *testing.T) {
 	assert := assert.New(t)
 
-	mc := &mockConnection{}
+	mc := &mockConnectionPool{}
 	repo := NewUserRepository(mc)
 
 	repo.Delete(context.Background(), uuid.UUID{})
@@ -458,7 +460,7 @@ func TestUserRepository_Delete_UsesConnectionToQuery(t *testing.T) {
 func TestUserRepository_Delete_GeneratesValidSql(t *testing.T) {
 	assert := assert.New(t)
 
-	mc := &mockConnection{}
+	mc := &mockConnectionPool{}
 	repo := NewUserRepository(mc)
 
 	repo.Delete(context.Background(), defaultUuid)
@@ -471,7 +473,7 @@ func TestUserRepository_Delete_GeneratesValidSql(t *testing.T) {
 func TestUserRepository_Delete_PropagatesQueryFailure(t *testing.T) {
 	assert := assert.New(t)
 
-	mc := &mockConnection{
+	mc := &mockConnectionPool{
 		execErr: errDefault,
 	}
 	repo := NewUserRepository(mc)
@@ -484,7 +486,7 @@ func TestUserRepository_Delete_PropagatesQueryFailure(t *testing.T) {
 func TestUserRepository_Delete_WhenAffectedRowsIsNotOne_Fails(t *testing.T) {
 	assert := assert.New(t)
 
-	mc := &mockConnection{
+	mc := &mockConnectionPool{
 		affectedRows: 2,
 	}
 	repo := NewUserRepository(mc)
@@ -497,7 +499,7 @@ func TestUserRepository_Delete_WhenAffectedRowsIsNotOne_Fails(t *testing.T) {
 func TestUserRepository_Delete_WhenAffectedRowsIsOne_Succeeds(t *testing.T) {
 	assert := assert.New(t)
 
-	mc := &mockConnection{
+	mc := &mockConnectionPool{
 		affectedRows: 1,
 	}
 	repo := NewUserRepository(mc)
@@ -507,18 +509,14 @@ func TestUserRepository_Delete_WhenAffectedRowsIsOne_Succeeds(t *testing.T) {
 	assert.Nil(err)
 }
 
-func (m *mockConnection) Connect() error { return nil }
-
-func (m *mockConnection) Close() {}
-
-func (m *mockConnection) Query(ctx context.Context, sql string, arguments ...interface{}) db.Rows {
+func (m *mockConnectionPool) Query(ctx context.Context, sql string, arguments ...interface{}) db.Rows {
 	m.queryCalled++
 	m.sqlQuery = sql
 	m.args = append(m.args, arguments...)
 	return &m.rows
 }
 
-func (m *mockConnection) Exec(ctx context.Context, sql string, arguments ...interface{}) (int, error) {
+func (m *mockConnectionPool) Exec(ctx context.Context, sql string, arguments ...interface{}) (int, error) {
 	m.execCalled++
 	m.sqlQuery = sql
 	m.args = append(m.args, arguments...)
