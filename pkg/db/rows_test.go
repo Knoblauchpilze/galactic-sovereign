@@ -14,7 +14,7 @@ func TestRows_Err_NoError(t *testing.T) {
 	assert.Nil(r.Err())
 }
 
-func TestRows_Err_SomeError(t *testing.T) {
+func TestRows_Err_WithError(t *testing.T) {
 	assert := assert.New(t)
 
 	r := newRows(nil, errDefault)
@@ -28,78 +28,35 @@ func TestRows_Close_DoesNotPanicWhenRowsIsNil(t *testing.T) {
 	assert.NotPanics(r.Close)
 }
 
-func TestRows_Close_ClosesRows(t *testing.T) {
-	assert := assert.New(t)
-
-	m := mockSqlRows{}
-	r := newRows(&m, nil)
-	r.Close()
-	assert.Equal(1, m.closeCalls)
-}
-
-type mockSqlRows struct {
+type mockPgxRows struct {
 	row        int
 	rowsCount  int
 	scanError  error
 	closeCalls int
 }
 
-func (m *mockSqlRows) Next() bool {
-	out := m.row < m.rowsCount
-	m.row++
-	return out
-}
-
-func (m *mockSqlRows) Scan(dest ...interface{}) error {
-	return m.scanError
-}
-
-func (m *mockSqlRows) Close() {
-	m.closeCalls++
-}
-
-func TestRows_Empty_NoRows(t *testing.T) {
+func TestRows_Close_ClosesRows(t *testing.T) {
 	assert := assert.New(t)
 
-	r := newRows(nil, nil)
-	assert.True(r.Empty())
-}
-
-func TestRows_Empty_EmptyRows(t *testing.T) {
-	assert := assert.New(t)
-
-	mr := &mockSqlRows{}
-	r := newRows(mr, nil)
-	assert.True(r.Empty())
-}
-
-func TestRows_Empty_SomeRows(t *testing.T) {
-	assert := assert.New(t)
-
-	mr := &mockSqlRows{
-		rowsCount: 1,
-	}
-	r := newRows(mr, nil)
-	assert.False(r.Empty())
+	m := mockPgxRows{}
+	r := newRows(&m, nil)
+	r.Close()
+	assert.Equal(1, m.closeCalls)
 }
 
 type mockParser struct {
 	scanCalled int
-	scanErr    error
-}
-
-func (m *mockParser) ScanRow(row Scannable) error {
-	m.scanCalled++
-	return m.scanErr
+	err        error
 }
 
 func TestRows_GetSingleValue_WhenError_Fails(t *testing.T) {
 	assert := assert.New(t)
 
-	mp := mockParser{}
+	mp := &mockParser{}
 
 	r := newRows(nil, errDefault)
 	err := r.GetSingleValue(mp.ScanRow)
+
 	assert.Equal(errDefault, err)
 	assert.Equal(0, mp.scanCalled)
 }
@@ -111,6 +68,7 @@ func TestRows_GetSingleValue_WhenNilRows_Fails(t *testing.T) {
 
 	r := newRows(nil, nil)
 	err := r.GetSingleValue(mp.ScanRow)
+
 	assert.True(errors.IsErrorWithCode(err, NoMatchingSqlRows))
 	assert.Equal(0, mp.scanCalled)
 }
@@ -118,7 +76,7 @@ func TestRows_GetSingleValue_WhenNilRows_Fails(t *testing.T) {
 func TestRows_GetAll_WhenNoRows_Fails(t *testing.T) {
 	assert := assert.New(t)
 
-	mr := &mockSqlRows{}
+	mr := &mockPgxRows{}
 	mp := &mockParser{}
 
 	r := newRows(mr, nil)
@@ -129,25 +87,40 @@ func TestRows_GetAll_WhenNoRows_Fails(t *testing.T) {
 	assert.Equal(0, mp.scanCalled)
 }
 
-func TestRows_GetSingleValue_WhenRows_Succeeds(t *testing.T) {
+func TestRows_GetSingleValue_CallsScan(t *testing.T) {
 	assert := assert.New(t)
 
-	mr := &mockSqlRows{
+	mr := &mockPgxRows{
 		rowsCount: 1,
 	}
 	mp := &mockParser{}
 
 	r := newRows(mr, nil)
+	r.GetSingleValue(mp.ScanRow)
+
+	assert.Equal(1, mp.scanCalled)
+}
+
+func TestRows_GetSingleValue_ReturnsScanError(t *testing.T) {
+	assert := assert.New(t)
+
+	mr := &mockPgxRows{
+		rowsCount: 1,
+	}
+	mp := &mockParser{
+		err: errDefault,
+	}
+
+	r := newRows(mr, nil)
 	err := r.GetSingleValue(mp.ScanRow)
 
-	assert.Nil(err)
-	assert.Equal(1, mp.scanCalled)
+	assert.Equal(errDefault, err)
 }
 
 func TestRows_GetSingleValue_CallsClose(t *testing.T) {
 	assert := assert.New(t)
 
-	mr := &mockSqlRows{
+	mr := &mockPgxRows{
 		rowsCount: 1,
 	}
 	mp := &mockParser{}
@@ -158,28 +131,26 @@ func TestRows_GetSingleValue_CallsClose(t *testing.T) {
 	assert.Equal(1, mr.closeCalls)
 }
 
-func TestRows_GetSingleValue_ParserError(t *testing.T) {
+func TestRows_GetSingleValue_CallsCloseAlsoWhenScanFails(t *testing.T) {
 	assert := assert.New(t)
 
-	mr := &mockSqlRows{
+	mr := &mockPgxRows{
 		rowsCount: 1,
 	}
 	mp := &mockParser{
-		scanErr: errDefault,
+		err: errDefault,
 	}
 
 	r := newRows(mr, nil)
-	err := r.GetSingleValue(mp.ScanRow)
+	r.GetSingleValue(mp.ScanRow)
 
-	assert.Equal(errDefault, err)
-	assert.Equal(1, mr.closeCalls)
 	assert.Equal(1, mp.scanCalled)
 }
 
-func TestRows_GetSingleValue_WithMultipleValues(t *testing.T) {
+func TestRows_GetSingleValue_WithMultipleValues_Fails(t *testing.T) {
 	assert := assert.New(t)
 
-	mr := &mockSqlRows{
+	mr := &mockPgxRows{
 		rowsCount: 2,
 	}
 	mp := &mockParser{}
@@ -188,7 +159,6 @@ func TestRows_GetSingleValue_WithMultipleValues(t *testing.T) {
 	err := r.GetSingleValue(mp.ScanRow)
 
 	assert.True(errors.IsErrorWithCode(err, MoreThanOneMatchingSqlRows))
-	assert.Equal(1, mr.closeCalls)
 	assert.Equal(1, mp.scanCalled)
 }
 
@@ -199,6 +169,7 @@ func TestRows_GetAll_WhenError_Fails(t *testing.T) {
 
 	r := newRows(nil, errDefault)
 	err := r.GetAll(mp.ScanRow)
+
 	assert.Equal(errDefault, err)
 	assert.Equal(0, mp.scanCalled)
 }
@@ -218,21 +189,20 @@ func TestRows_GetAll_WhenNilRows_Succeeds(t *testing.T) {
 func TestRows_GetAll_WhenNoRows_Succeeds(t *testing.T) {
 	assert := assert.New(t)
 
-	mr := &mockSqlRows{}
+	mr := &mockPgxRows{}
 	mp := &mockParser{}
 
 	r := newRows(mr, nil)
 	err := r.GetAll(mp.ScanRow)
 
 	assert.Nil(err)
-	assert.Equal(1, mr.closeCalls)
 	assert.Equal(0, mp.scanCalled)
 }
 
 func TestRows_GetAll_WhenRows_Succeeds(t *testing.T) {
 	assert := assert.New(t)
 
-	mr := &mockSqlRows{
+	mr := &mockPgxRows{
 		rowsCount: 2,
 	}
 	mp := &mockParser{}
@@ -242,13 +212,12 @@ func TestRows_GetAll_WhenRows_Succeeds(t *testing.T) {
 
 	assert.Nil(err)
 	assert.Equal(2, mp.scanCalled)
-	assert.Equal(1, mr.closeCalls)
 }
 
 func TestRows_GetAll_CallsClose(t *testing.T) {
 	assert := assert.New(t)
 
-	mr := &mockSqlRows{
+	mr := &mockPgxRows{
 		rowsCount: 1,
 	}
 	mp := &mockParser{}
@@ -259,20 +228,54 @@ func TestRows_GetAll_CallsClose(t *testing.T) {
 	assert.Equal(1, mr.closeCalls)
 }
 
-func TestRows_GetAll_ParserError(t *testing.T) {
+func TestRows_GetAll_ReturnsScanError(t *testing.T) {
 	assert := assert.New(t)
 
-	mr := &mockSqlRows{
+	mr := &mockPgxRows{
 		rowsCount: 2,
 	}
 	mp := &mockParser{
-		scanErr: errDefault,
+		err: errDefault,
 	}
 
 	r := newRows(mr, nil)
 	err := r.GetAll(mp.ScanRow)
 
 	assert.Equal(errDefault, err)
-	assert.Equal(1, mr.closeCalls)
 	assert.Equal(1, mp.scanCalled)
+}
+
+func TestRows_GetAll_CallsCloseAlsoWhenScanFails(t *testing.T) {
+	assert := assert.New(t)
+
+	mr := &mockPgxRows{
+		rowsCount: 1,
+	}
+	mp := &mockParser{
+		err: errDefault,
+	}
+
+	r := newRows(mr, nil)
+	r.GetAll(mp.ScanRow)
+
+	assert.Equal(1, mp.scanCalled)
+}
+
+func (m *mockPgxRows) Next() bool {
+	out := m.row < m.rowsCount
+	m.row++
+	return out
+}
+
+func (m *mockPgxRows) Scan(dest ...interface{}) error {
+	return m.scanError
+}
+
+func (m *mockPgxRows) Close() {
+	m.closeCalls++
+}
+
+func (m *mockParser) ScanRow(row Scannable) error {
+	m.scanCalled++
+	return m.err
 }
