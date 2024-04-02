@@ -36,8 +36,6 @@ func (s *userServiceImpl) Create(ctx context.Context, userDto communication.User
 	user := communication.FromUserDtoRequest(userDto)
 
 	apiKey := persistence.ApiKey{
-		// TODO: Reactivate this to force a failure in the transaction
-		//Id:      uuid.MustParse("d5826856-63f8-41c8-a643-8bb80d5feb78"),
 		Id:      uuid.New(),
 		Key:     uuid.New(),
 		ApiUser: user.Id,
@@ -69,7 +67,6 @@ func (s *userServiceImpl) Get(ctx context.Context, id uuid.UUID) (communication.
 		return communication.UserDtoResponse{}, err
 	}
 
-	// TODO: Fetch the API keys
 	out := communication.ToUserDtoResponse(user, []uuid.UUID{})
 	return out, nil
 }
@@ -92,11 +89,11 @@ func (s *userServiceImpl) Update(ctx context.Context, id uuid.UUID, userDto comm
 		return communication.UserDtoResponse{}, err
 	}
 
-	// TODO: Fetch the API keys
 	out := communication.ToUserDtoResponse(updated, []uuid.UUID{})
 	return out, nil
 }
 
 func (s *userServiceImpl) Delete(ctx context.Context, id uuid.UUID) error {
+	// TODO: Delete the API keys
 	return s.userRepo.Delete(ctx, id)
 }
