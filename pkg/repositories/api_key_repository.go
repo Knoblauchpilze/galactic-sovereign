@@ -10,7 +10,6 @@ import (
 )
 
 type ApiKeyRepository interface {
-	Create(ctx context.Context, apiKey persistence.ApiKey) (persistence.ApiKey, error)
 	TransactionalCreate(ctx context.Context, tx db.Transaction, apiKey persistence.ApiKey) (persistence.ApiKey, error)
 	Get(ctx context.Context, id uuid.UUID) (persistence.ApiKey, error)
 	List(ctx context.Context) ([]uuid.UUID, error)
@@ -29,11 +28,6 @@ func NewApiKeyRepository(conn db.ConnectionPool) ApiKeyRepository {
 }
 
 const createApiKeySqlTemplate = "INSERT INTO api_key (id, key, api_user) VALUES($1, $2, $3)"
-
-func (r *apiUserRepositoryImpl) Create(ctx context.Context, apiKey persistence.ApiKey) (persistence.ApiKey, error) {
-	_, err := r.conn.Exec(ctx, createApiKeySqlTemplate, apiKey.Id, apiKey.Key, apiKey.ApiUser)
-	return apiKey, err
-}
 
 func (r *apiUserRepositoryImpl) TransactionalCreate(ctx context.Context, tx db.Transaction, apiKey persistence.ApiKey) (persistence.ApiKey, error) {
 	_, err := tx.Exec(ctx, createApiKeySqlTemplate, apiKey.Id, apiKey.Key, apiKey.ApiUser)
