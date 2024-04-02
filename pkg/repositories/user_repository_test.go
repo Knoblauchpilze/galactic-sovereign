@@ -41,8 +41,6 @@ type mockTransaction struct {
 	args     []interface{}
 
 	rows mockRows
-
-	closeErr error
 }
 
 type mockRows struct {
@@ -609,9 +607,7 @@ func (m *mockConnectionPool) Exec(ctx context.Context, sql string, arguments ...
 	return m.affectedRows, m.execErr
 }
 
-func (m *mockTransaction) Close(ctx context.Context) error {
-	return m.closeErr
-}
+func (m *mockTransaction) Close(ctx context.Context) {}
 
 func (m *mockTransaction) Query(ctx context.Context, sql string, arguments ...interface{}) db.Rows {
 	m.queryCalled++
