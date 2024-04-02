@@ -5,7 +5,6 @@ import (
 
 	"github.com/KnoblauchPilze/user-service/pkg/communication"
 	"github.com/KnoblauchPilze/user-service/pkg/db"
-	"github.com/KnoblauchPilze/user-service/pkg/middleware"
 	"github.com/KnoblauchPilze/user-service/pkg/persistence"
 	"github.com/KnoblauchPilze/user-service/pkg/repositories"
 	"github.com/google/uuid"
@@ -45,36 +44,22 @@ func (s *userServiceImpl) Create(ctx context.Context, userDto communication.User
 		Enabled: true,
 	}
 
-	var userErr, keyErr, txErr error
-	var createdUser persistence.User
-	var createdKey persistence.ApiKey
-
-	func() {
-		var tx db.Transaction
-		tx, txErr = s.conn.BeginTransaction(ctx)
-
-		defer func() {
-			err := tx.Close(ctx)
-			if err != nil {
-				middleware.GetLoggerFromContext(ctx).Warnf("")
-			}
-		}()
-
-		createdUser, userErr = s.userRepo.TransactionalCreate(ctx, tx, user)
-		createdKey, keyErr = s.apiKeyRepo.TransactionalCreate(ctx, tx, apiKey)
-	}()
-
-	if userErr != nil {
-		return communication.UserDtoResponse{}, userErr
+	tx, err := s.conn.StartTransaction(ctx)
+	if err != nil {
+		return communication.UserDtoResponse{}, err
 	}
-	if keyErr != nil {
-		return communication.UserDtoResponse{}, keyErr
+	defer tx.Close(ctx)
+
+	createdUser, err := s.userRepo.TransactionalCreate(ctx, tx, user)
+	if err != nil {
+		return communication.UserDtoResponse{}, err
 	}
-	if txErr != nil {
-		return communication.UserDtoResponse{}, txErr
+	createdKey, err := s.apiKeyRepo.TransactionalCreate(ctx, tx, apiKey)
+	if err != nil {
+		return communication.UserDtoResponse{}, err
 	}
 
-	out := communication.ToUserDtoResponse(createdUser, []uuid.UUID{createdKey.Id})
+	out := communication.ToUserDtoResponse(createdUser, []uuid.UUID{createdKey.Key})
 	return out, nil
 }
 
