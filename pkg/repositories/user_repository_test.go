@@ -61,79 +61,14 @@ type mockScannable struct {
 }
 
 var errDefault = fmt.Errorf("some error")
-var defaultUuid = uuid.MustParse("08ce96a3-3430-48a8-a3b2-b1c987a207ca")
+var defaultUserId = uuid.MustParse("08ce96a3-3430-48a8-a3b2-b1c987a207ca")
 var defaultUser = persistence.User{
-	Id:        defaultUuid,
+	Id:        defaultUserId,
 	Email:     "e.mail@domain.com",
 	Password:  "password",
 	CreatedAt: time.Date(2009, 11, 17, 20, 34, 58, 651387237, time.UTC),
 	UpdatedAt: time.Date(2009, 11, 17, 20, 34, 59, 651387237, time.UTC),
 	Version:   4,
-}
-
-func TestUserRepository_Create_UsesConnectionToExec(t *testing.T) {
-	assert := assert.New(t)
-
-	mc := &mockConnectionPool{}
-	repo := NewUserRepository(mc)
-
-	repo.Create(context.Background(), defaultUser)
-
-	assert.Equal(1, mc.execCalled)
-}
-
-func TestUserRepository_Create_GeneratesValidSql(t *testing.T) {
-	assert := assert.New(t)
-
-	mc := &mockConnectionPool{}
-	repo := NewUserRepository(mc)
-
-	repo.Create(context.Background(), defaultUser)
-
-	assert.Equal("INSERT INTO api_user (id, email, password, created_at) VALUES($1, $2, $3, $4)", mc.sqlQuery)
-	assert.Equal(4, len(mc.args))
-	assert.Equal(defaultUser.Id, mc.args[0])
-	assert.Equal(defaultUser.Email, mc.args[1])
-	assert.Equal(defaultUser.Password, mc.args[2])
-	assert.Equal(defaultUser.CreatedAt, mc.args[3])
-}
-
-func TestUserRepository_Create_PropagatesQueryFailure(t *testing.T) {
-	assert := assert.New(t)
-
-	mc := &mockConnectionPool{
-		execErr: errDefault,
-	}
-	repo := NewUserRepository(mc)
-
-	_, err := repo.Create(context.Background(), defaultUser)
-
-	assert.Equal(errDefault, err)
-}
-
-func TestUserRepository_Create_WhenQueryIndicatesDuplicatedKey_ReturnsDuplicatedKey(t *testing.T) {
-	assert := assert.New(t)
-
-	mc := &mockConnectionPool{
-		execErr: fmt.Errorf(`duplicate key value violates unique constraint "api_user_email_key" (SQLSTATE 23505)`),
-	}
-	repo := NewUserRepository(mc)
-
-	_, err := repo.Create(context.Background(), defaultUser)
-
-	assert.True(errors.IsErrorWithCode(err, db.DuplicatedKeySqlKey))
-}
-
-func TestUserRepository_Create_ReturnsInputUser(t *testing.T) {
-	assert := assert.New(t)
-
-	mc := &mockConnectionPool{}
-	repo := NewUserRepository(mc)
-
-	actual, err := repo.Create(context.Background(), defaultUser)
-
-	assert.Nil(err)
-	assert.Equal(defaultUser, actual)
 }
 
 func TestUserRepository_TransactionalCreate_UsesTransactionToExec(t *testing.T) {
@@ -224,11 +159,11 @@ func TestUserRepository_Get_GeneratesValidSql(t *testing.T) {
 	mc := &mockConnectionPool{}
 	repo := NewUserRepository(mc)
 
-	repo.Get(context.Background(), defaultUuid)
+	repo.Get(context.Background(), defaultUserId)
 
 	assert.Equal("SELECT id, email, password, created_at, updated_at, version FROM api_user WHERE id = $1", mc.sqlQuery)
 	assert.Equal(1, len(mc.args))
-	assert.Equal(defaultUuid, mc.args[0])
+	assert.Equal(defaultUserId, mc.args[0])
 }
 
 func TestUserRepository_Get_PropagatesQueryFailure(t *testing.T) {
@@ -241,7 +176,7 @@ func TestUserRepository_Get_PropagatesQueryFailure(t *testing.T) {
 	}
 	repo := NewUserRepository(mc)
 
-	_, err := repo.Get(context.Background(), defaultUuid)
+	_, err := repo.Get(context.Background(), defaultUserId)
 
 	assert.Equal(errDefault, err)
 }
@@ -252,7 +187,7 @@ func TestUserRepository_Get_CallsGetSingleValue(t *testing.T) {
 	mc := &mockConnectionPool{}
 	repo := NewUserRepository(mc)
 
-	repo.Get(context.Background(), defaultUuid)
+	repo.Get(context.Background(), defaultUserId)
 
 	assert.Equal(1, mc.rows.singleValueCalled)
 }
@@ -267,7 +202,7 @@ func TestUserRepository_Get_WhenResultReturnsError_Fails(t *testing.T) {
 	}
 	repo := NewUserRepository(mc)
 
-	_, err := repo.Get(context.Background(), defaultUuid)
+	_, err := repo.Get(context.Background(), defaultUserId)
 
 	assert.Equal(errDefault, err)
 }
@@ -278,7 +213,7 @@ func TestUserRepository_Get_WhenResultSucceeds_Success(t *testing.T) {
 	mc := &mockConnectionPool{}
 	repo := NewUserRepository(mc)
 
-	_, err := repo.Get(context.Background(), defaultUuid)
+	_, err := repo.Get(context.Background(), defaultUserId)
 
 	assert.Nil(err)
 }
@@ -295,7 +230,7 @@ func TestUserRepository_Get_PropagatesScanErrors(t *testing.T) {
 	}
 	repo := NewUserRepository(mc)
 
-	_, err := repo.Get(context.Background(), defaultUuid)
+	_, err := repo.Get(context.Background(), defaultUserId)
 
 	assert.Equal(errDefault, err)
 }
@@ -310,7 +245,7 @@ func TestUserRepository_Get_ScansUserProperties(t *testing.T) {
 	}
 	repo := NewUserRepository(mc)
 
-	_, err := repo.Get(context.Background(), defaultUuid)
+	_, err := repo.Get(context.Background(), defaultUserId)
 
 	assert.Nil(err)
 
@@ -536,7 +471,7 @@ func TestUserRepository_Delete_UsesConnectionToQuery(t *testing.T) {
 	mc := &mockConnectionPool{}
 	repo := NewUserRepository(mc)
 
-	repo.Delete(context.Background(), uuid.UUID{})
+	repo.Delete(context.Background(), defaultUserId)
 
 	assert.Equal(1, mc.execCalled)
 }
@@ -547,11 +482,11 @@ func TestUserRepository_Delete_GeneratesValidSql(t *testing.T) {
 	mc := &mockConnectionPool{}
 	repo := NewUserRepository(mc)
 
-	repo.Delete(context.Background(), defaultUuid)
+	repo.Delete(context.Background(), defaultUserId)
 
 	assert.Equal("DELETE FROM api_user WHERE id = $1", mc.sqlQuery)
 	assert.Equal(1, len(mc.args))
-	assert.Equal(defaultUuid, mc.args[0])
+	assert.Equal(defaultUserId, mc.args[0])
 }
 
 func TestUserRepository_Delete_PropagatesQueryFailure(t *testing.T) {
@@ -562,7 +497,7 @@ func TestUserRepository_Delete_PropagatesQueryFailure(t *testing.T) {
 	}
 	repo := NewUserRepository(mc)
 
-	err := repo.Delete(context.Background(), defaultUuid)
+	err := repo.Delete(context.Background(), defaultUserId)
 
 	assert.Equal(errDefault, err)
 }
@@ -575,7 +510,7 @@ func TestUserRepository_Delete_WhenAffectedRowsIsNotOne_Fails(t *testing.T) {
 	}
 	repo := NewUserRepository(mc)
 
-	err := repo.Delete(context.Background(), defaultUuid)
+	err := repo.Delete(context.Background(), defaultUserId)
 
 	assert.True(errors.IsErrorWithCode(err, db.NoMatchingSqlRows))
 }
@@ -588,7 +523,7 @@ func TestUserRepository_Delete_WhenAffectedRowsIsOne_Succeeds(t *testing.T) {
 	}
 	repo := NewUserRepository(mc)
 
-	err := repo.Delete(context.Background(), defaultUuid)
+	err := repo.Delete(context.Background(), defaultUserId)
 
 	assert.Nil(err)
 }

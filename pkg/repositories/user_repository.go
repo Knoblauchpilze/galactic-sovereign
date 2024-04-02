@@ -11,7 +11,6 @@ import (
 )
 
 type UserRepository interface {
-	Create(ctx context.Context, user persistence.User) (persistence.User, error)
 	TransactionalCreate(ctx context.Context, tx db.Transaction, user persistence.User) (persistence.User, error)
 	Get(ctx context.Context, id uuid.UUID) (persistence.User, error)
 	List(ctx context.Context) ([]uuid.UUID, error)
