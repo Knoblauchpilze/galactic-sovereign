@@ -32,15 +32,6 @@ const createUserSqlTemplate = "INSERT INTO api_user (id, email, password, create
 
 var duplicatedKeySqlErrorRegexp = regexp.MustCompile(`duplicate key value violates unique constraint ".*" \(SQLSTATE 23505\)`)
 
-func (r *userRepositoryImpl) Create(ctx context.Context, user persistence.User) (persistence.User, error) {
-	_, err := r.conn.Exec(ctx, createUserSqlTemplate, user.Id, user.Email, user.Password, user.CreatedAt)
-	if err != nil && duplicatedKeySqlErrorRegexp.MatchString(err.Error()) {
-		return persistence.User{}, errors.NewCode(db.DuplicatedKeySqlKey)
-	}
-
-	return user, err
-}
-
 func (r *userRepositoryImpl) TransactionalCreate(ctx context.Context, tx db.Transaction, user persistence.User) (persistence.User, error) {
 	_, err := tx.Exec(ctx, createUserSqlTemplate, user.Id, user.Email, user.Password, user.CreatedAt)
 	if err != nil && duplicatedKeySqlErrorRegexp.MatchString(err.Error()) {
