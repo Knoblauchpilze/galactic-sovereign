@@ -7,60 +7,12 @@ import (
 	"github.com/jackc/pgx"
 )
 
-type Transaction interface {
-	Close(ctx context.Context) error
-
-	Query(ctx context.Context, sql string, arguments ...interface{}) Rows
-	Exec(ctx context.Context, sql string, arguments ...interface{}) (int, error)
-}
-
-type pgxDbConnection interface {
-	Close() error
-	BeginEx(ctx context.Context, opts *pgx.TxOptions) (*pgx.Tx, error)
-}
-
-type pgxDbTransaction interface {
-	RollbackEx(ctx context.Context) error
-	CommitEx(ctx context.Context) error
-
-	QueryEx(ctx context.Context, sql string, options *pgx.QueryExOptions, arguments ...interface{}) (*pgx.Rows, error)
-	ExecEx(ctx context.Context, sql string, options *pgx.QueryExOptions, arguments ...interface{}) (commandTag pgx.CommandTag, err error)
-
-	Err() error
-}
-
 type transactionImpl struct {
-	conn pgxDbConnection
-	tx   pgxDbTransaction
-	err  error
+	tx  pgxTransaction
+	err error
 }
 
-func defaultCreateTransactionFromPgxConnection(ctx context.Context, conn *pgx.Conn) (pgxDbTransaction, error) {
-	return conn.BeginEx(ctx, nil)
-}
-
-var createTransactionFromPgxConn = defaultCreateTransactionFromPgxConnection
-
-func newTransactionFromPool(ctx context.Context, pool pgxDbConnectionPool) (Transaction, error) {
-	conn, err := pool.AcquireEx(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	tx, err := createTransactionFromPgxConn(ctx, conn)
-	if err != nil {
-		return nil, err
-	}
-
-	transactionImpl := transactionImpl{
-		conn: conn,
-		tx:   tx,
-	}
-
-	return &transactionImpl, nil
-}
-
-func (t *transactionImpl) Close(ctx context.Context) error {
+func (t *transactionImpl) Close(ctx context.Context) {
 	var err error
 
 	if t.err != nil {
@@ -69,20 +21,13 @@ func (t *transactionImpl) Close(ctx context.Context) error {
 		err = t.tx.CommitEx(ctx)
 	}
 
-	err2 := t.tx.Err()
-	var err3 error
-	if t.conn != nil {
-		// TODO: Should call t.pool.Release(t.conn)
-		err3 = t.conn.Close()
+	if err != nil {
+		middleware.GetLoggerFromContext(ctx).Warnf("Failed to finalize transaction: %v", err)
 	}
 
-	if err != nil {
-		return err
+	if err := t.tx.Err(); err != nil && err != pgx.ErrTxClosed {
+		middleware.GetLoggerFromContext(ctx).Warnf("Transaction ended in error state: %v", err)
 	}
-	if err2 != nil {
-		return err2
-	}
-	return err3
 }
 
 func (t *transactionImpl) Query(ctx context.Context, sql string, arguments ...interface{}) Rows {

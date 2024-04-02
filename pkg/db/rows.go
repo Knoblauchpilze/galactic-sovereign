@@ -5,35 +5,19 @@ import (
 	"github.com/KnoblauchPilze/user-service/pkg/errors"
 )
 
-type Rows interface {
-	Err() error
-	Empty() bool
-
-	Close()
-
-	GetSingleValue(parser RowParser) error
-	GetAll(parser RowParser) error
-}
-
 type Scannable interface {
 	Scan(dest ...interface{}) error
 }
 
 type RowParser func(row Scannable) error
 
-type sqlRows interface {
-	Next() bool
-	Scan(dest ...interface{}) error
-	Close()
-}
-
 type rowsImpl struct {
-	rows sqlRows
+	rows pgxRows
 	next bool
 	err  error
 }
 
-func newRows(rows sqlRows, err error) Rows {
+func newRows(rows pgxRows, err error) Rows {
 	r := rowsImpl{
 		rows: rows,
 		err:  err,
@@ -46,12 +30,12 @@ func newRows(rows sqlRows, err error) Rows {
 	return &r
 }
 
-func (r *rowsImpl) Err() error {
-	return r.err
+func (r *rowsImpl) empty() bool {
+	return r.rows == nil || !r.next
 }
 
-func (r *rowsImpl) Empty() bool {
-	return r.rows == nil || !r.next
+func (r *rowsImpl) Err() error {
+	return r.err
 }
 
 func (r *rowsImpl) Close() {
@@ -64,7 +48,7 @@ func (r *rowsImpl) GetSingleValue(parser RowParser) error {
 	if err := r.Err(); err != nil {
 		return err
 	}
-	if r.Empty() {
+	if r.empty() {
 		return errors.NewCode(NoMatchingSqlRows)
 	}
 
