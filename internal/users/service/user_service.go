@@ -52,7 +52,7 @@ func (s *userServiceImpl) Create(ctx context.Context, userDto communication.User
 	if err != nil {
 		return communication.UserDtoResponse{}, err
 	}
-	createdKey, err := s.apiKeyRepo.TransactionalCreate(ctx, tx, apiKey)
+	createdKey, err := s.apiKeyRepo.Create(ctx, tx, apiKey)
 	if err != nil {
 		return communication.UserDtoResponse{}, err
 	}
@@ -94,6 +94,25 @@ func (s *userServiceImpl) Update(ctx context.Context, id uuid.UUID, userDto comm
 }
 
 func (s *userServiceImpl) Delete(ctx context.Context, id uuid.UUID) error {
-	// TODO: Delete the API keys
-	return s.userRepo.Delete(ctx, id)
+	tx, err := s.conn.StartTransaction(ctx)
+	if err != nil {
+		return err
+	}
+	defer tx.Close(ctx)
+
+	apiKeys, err := s.apiKeyRepo.GetForUser(ctx, tx, id)
+	if err != nil {
+		return err
+	}
+
+	err = s.apiKeyRepo.Delete(ctx, tx, apiKeys)
+	if err != nil {
+		return err
+	}
+	err = s.userRepo.TransactionalDelete(ctx, tx, id)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
