@@ -16,6 +16,7 @@ type UserRepository interface {
 	List(ctx context.Context) ([]uuid.UUID, error)
 	Update(ctx context.Context, user persistence.User) (persistence.User, error)
 	Delete(ctx context.Context, id uuid.UUID) error
+	TransactionalDelete(ctx context.Context, tx db.Transaction, id uuid.UUID) error
 }
 
 type userRepositoryImpl struct {
@@ -111,6 +112,17 @@ const deleteUserSqlTemplate = "DELETE FROM api_user WHERE id = $1"
 
 func (r *userRepositoryImpl) Delete(ctx context.Context, id uuid.UUID) error {
 	affected, err := r.conn.Exec(ctx, deleteUserSqlTemplate, id)
+	if err != nil {
+		return err
+	}
+	if affected != 1 {
+		return errors.NewCode(db.NoMatchingSqlRows)
+	}
+	return nil
+}
+
+func (r *userRepositoryImpl) TransactionalDelete(ctx context.Context, tx db.Transaction, id uuid.UUID) error {
+	affected, err := tx.Exec(ctx, deleteUserSqlTemplate, id)
 	if err != nil {
 		return err
 	}
