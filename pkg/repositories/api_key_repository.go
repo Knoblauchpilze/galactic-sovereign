@@ -15,6 +15,7 @@ type ApiKeyRepository interface {
 	List(ctx context.Context) ([]uuid.UUID, error)
 	Update(ctx context.Context, apiKey persistence.ApiKey) (persistence.ApiKey, error)
 	Delete(ctx context.Context, id uuid.UUID) error
+	TransactionalDelete(ctx context.Context, tx db.Transaction, id uuid.UUID) error
 }
 
 type apiUserRepositoryImpl struct {
@@ -104,6 +105,17 @@ const deleteApiKeySqlTemplate = "DELETE FROM api_key WHERE id = $1"
 
 func (r *apiUserRepositoryImpl) Delete(ctx context.Context, id uuid.UUID) error {
 	affected, err := r.conn.Exec(ctx, deleteApiKeySqlTemplate, id)
+	if err != nil {
+		return err
+	}
+	if affected != 1 {
+		return errors.NewCode(db.NoMatchingSqlRows)
+	}
+	return nil
+}
+
+func (r *apiUserRepositoryImpl) TransactionalDelete(ctx context.Context, tx db.Transaction, id uuid.UUID) error {
+	affected, err := tx.Exec(ctx, deleteApiKeySqlTemplate, id)
 	if err != nil {
 		return err
 	}
