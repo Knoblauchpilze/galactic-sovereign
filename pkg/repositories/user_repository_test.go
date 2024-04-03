@@ -528,6 +528,75 @@ func TestUserRepository_Delete_WhenAffectedRowsIsOne_Succeeds(t *testing.T) {
 	assert.Nil(err)
 }
 
+func TestUserRepository_TransactionalDelete_UsesTransactionToExec(t *testing.T) {
+	assert := assert.New(t)
+
+	mc := &mockConnectionPool{}
+	repo := NewUserRepository(mc)
+	mt := &mockTransaction{}
+
+	repo.TransactionalDelete(context.Background(), mt, defaultUserId)
+
+	assert.Equal(0, mc.execCalled)
+	assert.Equal(1, mt.execCalled)
+}
+
+func TestUserRepository_TransactionalDelete_GeneratesValidSql(t *testing.T) {
+	assert := assert.New(t)
+
+	mc := &mockConnectionPool{}
+	repo := NewUserRepository(mc)
+	mt := &mockTransaction{}
+
+	repo.TransactionalDelete(context.Background(), mt, defaultUserId)
+
+	assert.Equal("DELETE FROM api_user WHERE id = $1", mt.sqlQuery)
+	assert.Equal(1, len(mt.args))
+	assert.Equal(defaultUserId, mt.args[0])
+}
+
+func TestUserRepository_TransactionalDelete_PropagatesQueryFailure(t *testing.T) {
+	assert := assert.New(t)
+
+	mc := &mockConnectionPool{}
+	repo := NewUserRepository(mc)
+	mt := &mockTransaction{
+		execErr: errDefault,
+	}
+
+	err := repo.TransactionalDelete(context.Background(), mt, defaultUserId)
+
+	assert.Equal(errDefault, err)
+}
+
+func TestUserRepository_TransactionalDelete_WhenAffectedRowsIsNotOne_Fails(t *testing.T) {
+	assert := assert.New(t)
+
+	mc := &mockConnectionPool{}
+	repo := NewUserRepository(mc)
+	mt := &mockTransaction{
+		affectedRows: 2,
+	}
+
+	err := repo.TransactionalDelete(context.Background(), mt, defaultUserId)
+
+	assert.True(errors.IsErrorWithCode(err, db.NoMatchingSqlRows))
+}
+
+func TestUserRepository_TransactionalDelete_WhenAffectedRowsIsOne_Succeeds(t *testing.T) {
+	assert := assert.New(t)
+
+	mc := &mockConnectionPool{}
+	repo := NewUserRepository(mc)
+	mt := &mockTransaction{
+		affectedRows: 1,
+	}
+
+	err := repo.TransactionalDelete(context.Background(), mt, defaultUserId)
+
+	assert.Nil(err)
+}
+
 func (m *mockConnectionPool) Query(ctx context.Context, sql string, arguments ...interface{}) db.Rows {
 	m.queryCalled++
 	m.sqlQuery = sql
