@@ -250,6 +250,7 @@ func TestUserRepository_Get_ScansUserProperties(t *testing.T) {
 	assert.Nil(err)
 
 	props := mc.rows.scanner.props
+	assert.Equal(1, mc.rows.scanner.scannCalled)
 	assert.Equal(6, len(props))
 	assert.IsType(&uuid.UUID{}, props[0])
 	var str string
@@ -357,6 +358,7 @@ func TestUserRepository_List_ScansIds(t *testing.T) {
 	assert.Nil(err)
 
 	props := mc.rows.scanner.props
+	assert.Equal(1, mc.rows.scanner.scannCalled)
 	assert.Equal(1, len(props))
 	assert.IsType(&uuid.UUID{}, props[0])
 }
