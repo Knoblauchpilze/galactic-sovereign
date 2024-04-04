@@ -48,7 +48,7 @@ func (s *userServiceImpl) Create(ctx context.Context, userDto communication.User
 	}
 	defer tx.Close(ctx)
 
-	createdUser, err := s.userRepo.TransactionalCreate(ctx, tx, user)
+	createdUser, err := s.userRepo.Create(ctx, tx, user)
 	if err != nil {
 		return communication.UserDtoResponse{}, err
 	}
@@ -109,7 +109,7 @@ func (s *userServiceImpl) Delete(ctx context.Context, id uuid.UUID) error {
 	if err != nil {
 		return err
 	}
-	err = s.userRepo.TransactionalDelete(ctx, tx, id)
+	err = s.userRepo.Delete(ctx, tx, id)
 	if err != nil {
 		return err
 	}

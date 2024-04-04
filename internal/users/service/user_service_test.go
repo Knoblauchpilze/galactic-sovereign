@@ -35,11 +35,18 @@ type mockUserRepository struct {
 type mockApiKeyRepository struct {
 	repositories.ApiKeyRepository
 
-	apiKey persistence.ApiKey
-	err    error
+	apiKey    persistence.ApiKey
+	apiKeyIds []uuid.UUID
+	createErr error
+	getErr    error
+	deleteErr error
 
-	createCalled  int
-	createdApiKey persistence.ApiKey
+	createCalled     int
+	createdApiKey    persistence.ApiKey
+	getForUserCalled int
+	userId           uuid.UUID
+	deleteCalled     int
+	deleteIds        []uuid.UUID
 }
 
 type mockConnectionPool struct {
@@ -138,7 +145,7 @@ func TestUserService_Create_WhenApiKeyRepositoryFails_ExpectError(t *testing.T) 
 
 	mur := &mockUserRepository{}
 	mkr := &mockApiKeyRepository{
-		err: errDefault,
+		createErr: errDefault,
 	}
 	mc := &mockConnectionPool{}
 	s := NewUserService(mc, mur, mkr)
@@ -383,9 +390,52 @@ func TestUserService_Delete_CallsRepositoryDelete(t *testing.T) {
 	s.Delete(context.Background(), defaultUserId)
 
 	assert.Equal(1, mur.deleteCalled)
+	assert.Equal(1, mkr.deleteCalled)
 }
 
-func TestUserService_Delete_WhenRepositoryFails_ExpectError(t *testing.T) {
+func TestUserService_Delete_CallsTransactionClose(t *testing.T) {
+	assert := assert.New(t)
+
+	mur := &mockUserRepository{}
+	mkr := &mockApiKeyRepository{}
+	mc := &mockConnectionPool{}
+	s := NewUserService(mc, mur, mkr)
+
+	s.Delete(context.Background(), defaultUserId)
+
+	assert.Equal(1, mc.tx.closeCalled)
+}
+
+func TestUserService_Delete_FetchesUsersKeys(t *testing.T) {
+	assert := assert.New(t)
+
+	mur := &mockUserRepository{}
+	mkr := &mockApiKeyRepository{}
+	mc := &mockConnectionPool{}
+	s := NewUserService(mc, mur, mkr)
+
+	s.Delete(context.Background(), defaultUserId)
+
+	assert.Equal(1, mkr.getForUserCalled)
+	assert.Equal(defaultUserId, mkr.userId)
+}
+
+func TestUserService_Delete_DeletesTheRightKeys(t *testing.T) {
+	assert := assert.New(t)
+
+	mur := &mockUserRepository{}
+	mkr := &mockApiKeyRepository{
+		apiKeyIds: []uuid.UUID{defaultApiKeyId},
+	}
+	mc := &mockConnectionPool{}
+	s := NewUserService(mc, mur, mkr)
+
+	s.Delete(context.Background(), defaultUserId)
+
+	assert.Equal(mkr.apiKeyIds, mkr.deleteIds)
+}
+
+func TestUserService_Delete_WhenUserRepositoryFails_ExpectError(t *testing.T) {
 	assert := assert.New(t)
 
 	mur := &mockUserRepository{
@@ -400,7 +450,37 @@ func TestUserService_Delete_WhenRepositoryFails_ExpectError(t *testing.T) {
 	assert.Equal(errDefault, err)
 }
 
-func TestUserService_Delete_WhenRepositorySucceeds_ExpectSuccess(t *testing.T) {
+func TestUserService_Delete_WhenApiKeyRepositoryGetFails_ExpectError(t *testing.T) {
+	assert := assert.New(t)
+
+	mur := &mockUserRepository{}
+	mkr := &mockApiKeyRepository{
+		getErr: errDefault,
+	}
+	mc := &mockConnectionPool{}
+	s := NewUserService(mc, mur, mkr)
+
+	err := s.Delete(context.Background(), defaultUserId)
+
+	assert.Equal(errDefault, err)
+}
+
+func TestUserService_Delete_WhenApiKeyRepositoryDeleteFails_ExpectError(t *testing.T) {
+	assert := assert.New(t)
+
+	mur := &mockUserRepository{}
+	mkr := &mockApiKeyRepository{
+		deleteErr: errDefault,
+	}
+	mc := &mockConnectionPool{}
+	s := NewUserService(mc, mur, mkr)
+
+	err := s.Delete(context.Background(), defaultUserId)
+
+	assert.Equal(errDefault, err)
+}
+
+func TestUserService_Delete_WhenRepositoriesSucceeds_ExpectSuccess(t *testing.T) {
 	assert := assert.New(t)
 
 	mur := &mockUserRepository{}
@@ -413,7 +493,7 @@ func TestUserService_Delete_WhenRepositorySucceeds_ExpectSuccess(t *testing.T) {
 	assert.Nil(err)
 }
 
-func (m *mockUserRepository) TransactionalCreate(ctx context.Context, tx db.Transaction, user persistence.User) (persistence.User, error) {
+func (m *mockUserRepository) Create(ctx context.Context, tx db.Transaction, user persistence.User) (persistence.User, error) {
 	m.createCalled++
 	m.createdUser = user
 	return m.user, m.err
@@ -436,15 +516,27 @@ func (m *mockUserRepository) Update(ctx context.Context, user persistence.User) 
 	return m.updatedUser, m.updateErr
 }
 
-func (m *mockUserRepository) Delete(ctx context.Context, id uuid.UUID) error {
+func (m *mockUserRepository) Delete(ctx context.Context, tx db.Transaction, id uuid.UUID) error {
 	m.deleteCalled++
 	return m.err
 }
 
-func (m *mockApiKeyRepository) TransactionalCreate(ctx context.Context, tx db.Transaction, apiKey persistence.ApiKey) (persistence.ApiKey, error) {
+func (m *mockApiKeyRepository) Create(ctx context.Context, tx db.Transaction, apiKey persistence.ApiKey) (persistence.ApiKey, error) {
 	m.createCalled++
 	m.createdApiKey = apiKey
-	return m.apiKey, m.err
+	return m.apiKey, m.createErr
+}
+
+func (m *mockApiKeyRepository) GetForUser(ctx context.Context, tx db.Transaction, user uuid.UUID) ([]uuid.UUID, error) {
+	m.getForUserCalled++
+	m.userId = user
+	return m.apiKeyIds, m.getErr
+}
+
+func (m *mockApiKeyRepository) Delete(ctx context.Context, tx db.Transaction, ids []uuid.UUID) error {
+	m.deleteCalled++
+	m.deleteIds = ids
+	return m.deleteErr
 }
 
 func (m *mockConnectionPool) StartTransaction(ctx context.Context) (db.Transaction, error) {

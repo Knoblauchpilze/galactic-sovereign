@@ -71,27 +71,27 @@ var defaultUser = persistence.User{
 	Version:   4,
 }
 
-func TestUserRepository_TransactionalCreate_UsesTransactionToExec(t *testing.T) {
+func TestUserRepository_Create_UsesTransactionToExec(t *testing.T) {
 	assert := assert.New(t)
 
 	mc := &mockConnectionPool{}
 	repo := NewUserRepository(mc)
 	mt := &mockTransaction{}
 
-	repo.TransactionalCreate(context.Background(), mt, defaultUser)
+	repo.Create(context.Background(), mt, defaultUser)
 
 	assert.Equal(0, mc.execCalled)
 	assert.Equal(1, mt.execCalled)
 }
 
-func TestUserRepository_TransactionalCreate_GeneratesValidSql(t *testing.T) {
+func TestUserRepository_Create_GeneratesValidSql(t *testing.T) {
 	assert := assert.New(t)
 
 	mc := &mockConnectionPool{}
 	repo := NewUserRepository(mc)
 	mt := &mockTransaction{}
 
-	repo.TransactionalCreate(context.Background(), mt, defaultUser)
+	repo.Create(context.Background(), mt, defaultUser)
 
 	assert.Equal("INSERT INTO api_user (id, email, password, created_at) VALUES($1, $2, $3, $4)", mt.sqlQuery)
 	assert.Equal(4, len(mt.args))
@@ -101,7 +101,7 @@ func TestUserRepository_TransactionalCreate_GeneratesValidSql(t *testing.T) {
 	assert.Equal(defaultUser.CreatedAt, mt.args[3])
 }
 
-func TestUserRepository_TransactionalCreate_PropagatesQueryFailure(t *testing.T) {
+func TestUserRepository_Create_PropagatesQueryFailure(t *testing.T) {
 	assert := assert.New(t)
 
 	mc := &mockConnectionPool{}
@@ -110,12 +110,12 @@ func TestUserRepository_TransactionalCreate_PropagatesQueryFailure(t *testing.T)
 		execErr: errDefault,
 	}
 
-	_, err := repo.TransactionalCreate(context.Background(), mt, defaultUser)
+	_, err := repo.Create(context.Background(), mt, defaultUser)
 
 	assert.Equal(errDefault, err)
 }
 
-func TestUserRepository_TransactionalCreate_WhenQueryIndicatesDuplicatedKey_ReturnsDuplicatedKey(t *testing.T) {
+func TestUserRepository_Create_WhenQueryIndicatesDuplicatedKey_ReturnsDuplicatedKey(t *testing.T) {
 	assert := assert.New(t)
 
 	mc := &mockConnectionPool{}
@@ -124,19 +124,19 @@ func TestUserRepository_TransactionalCreate_WhenQueryIndicatesDuplicatedKey_Retu
 		execErr: fmt.Errorf(`duplicate key value violates unique constraint "api_user_email_key" (SQLSTATE 23505)`),
 	}
 
-	_, err := repo.TransactionalCreate(context.Background(), mt, defaultUser)
+	_, err := repo.Create(context.Background(), mt, defaultUser)
 
 	assert.True(errors.IsErrorWithCode(err, db.DuplicatedKeySqlKey))
 }
 
-func TestUserRepository_TransactionalCreate_ReturnsInputUser(t *testing.T) {
+func TestUserRepository_Create_ReturnsInputUser(t *testing.T) {
 	assert := assert.New(t)
 
 	mc := &mockConnectionPool{}
 	repo := NewUserRepository(mc)
 	mt := &mockTransaction{}
 
-	actual, err := repo.TransactionalCreate(context.Background(), mt, defaultUser)
+	actual, err := repo.Create(context.Background(), mt, defaultUser)
 
 	assert.Nil(err)
 	assert.Equal(defaultUser, actual)
@@ -465,15 +465,17 @@ func TestUserRepository_Update_ReturnsUpdatedUser(t *testing.T) {
 	assert.Equal(expected, actual)
 }
 
-func TestUserRepository_Delete_UsesConnectionToQuery(t *testing.T) {
+func TestUserRepository_Delete_UsesTransactionToExec(t *testing.T) {
 	assert := assert.New(t)
 
 	mc := &mockConnectionPool{}
 	repo := NewUserRepository(mc)
+	mt := &mockTransaction{}
 
-	repo.Delete(context.Background(), defaultUserId)
+	repo.Delete(context.Background(), mt, defaultUserId)
 
-	assert.Equal(1, mc.execCalled)
+	assert.Equal(0, mc.execCalled)
+	assert.Equal(1, mt.execCalled)
 }
 
 func TestUserRepository_Delete_GeneratesValidSql(t *testing.T) {
@@ -481,23 +483,25 @@ func TestUserRepository_Delete_GeneratesValidSql(t *testing.T) {
 
 	mc := &mockConnectionPool{}
 	repo := NewUserRepository(mc)
+	mt := &mockTransaction{}
 
-	repo.Delete(context.Background(), defaultUserId)
+	repo.Delete(context.Background(), mt, defaultUserId)
 
-	assert.Equal("DELETE FROM api_user WHERE id = $1", mc.sqlQuery)
-	assert.Equal(1, len(mc.args))
-	assert.Equal(defaultUserId, mc.args[0])
+	assert.Equal("DELETE FROM api_user WHERE id = $1", mt.sqlQuery)
+	assert.Equal(1, len(mt.args))
+	assert.Equal(defaultUserId, mt.args[0])
 }
 
 func TestUserRepository_Delete_PropagatesQueryFailure(t *testing.T) {
 	assert := assert.New(t)
 
-	mc := &mockConnectionPool{
+	mc := &mockConnectionPool{}
+	repo := NewUserRepository(mc)
+	mt := &mockTransaction{
 		execErr: errDefault,
 	}
-	repo := NewUserRepository(mc)
 
-	err := repo.Delete(context.Background(), defaultUserId)
+	err := repo.Delete(context.Background(), mt, defaultUserId)
 
 	assert.Equal(errDefault, err)
 }
@@ -505,12 +509,13 @@ func TestUserRepository_Delete_PropagatesQueryFailure(t *testing.T) {
 func TestUserRepository_Delete_WhenAffectedRowsIsNotOne_Fails(t *testing.T) {
 	assert := assert.New(t)
 
-	mc := &mockConnectionPool{
+	mc := &mockConnectionPool{}
+	repo := NewUserRepository(mc)
+	mt := &mockTransaction{
 		affectedRows: 2,
 	}
-	repo := NewUserRepository(mc)
 
-	err := repo.Delete(context.Background(), defaultUserId)
+	err := repo.Delete(context.Background(), mt, defaultUserId)
 
 	assert.True(errors.IsErrorWithCode(err, db.NoMatchingSqlRows))
 }
@@ -518,81 +523,13 @@ func TestUserRepository_Delete_WhenAffectedRowsIsNotOne_Fails(t *testing.T) {
 func TestUserRepository_Delete_WhenAffectedRowsIsOne_Succeeds(t *testing.T) {
 	assert := assert.New(t)
 
-	mc := &mockConnectionPool{
-		affectedRows: 1,
-	}
-	repo := NewUserRepository(mc)
-
-	err := repo.Delete(context.Background(), defaultUserId)
-
-	assert.Nil(err)
-}
-
-func TestUserRepository_TransactionalDelete_UsesTransactionToExec(t *testing.T) {
-	assert := assert.New(t)
-
-	mc := &mockConnectionPool{}
-	repo := NewUserRepository(mc)
-	mt := &mockTransaction{}
-
-	repo.TransactionalDelete(context.Background(), mt, defaultUserId)
-
-	assert.Equal(0, mc.execCalled)
-	assert.Equal(1, mt.execCalled)
-}
-
-func TestUserRepository_TransactionalDelete_GeneratesValidSql(t *testing.T) {
-	assert := assert.New(t)
-
-	mc := &mockConnectionPool{}
-	repo := NewUserRepository(mc)
-	mt := &mockTransaction{}
-
-	repo.TransactionalDelete(context.Background(), mt, defaultUserId)
-
-	assert.Equal("DELETE FROM api_user WHERE id = $1", mt.sqlQuery)
-	assert.Equal(1, len(mt.args))
-	assert.Equal(defaultUserId, mt.args[0])
-}
-
-func TestUserRepository_TransactionalDelete_PropagatesQueryFailure(t *testing.T) {
-	assert := assert.New(t)
-
-	mc := &mockConnectionPool{}
-	repo := NewUserRepository(mc)
-	mt := &mockTransaction{
-		execErr: errDefault,
-	}
-
-	err := repo.TransactionalDelete(context.Background(), mt, defaultUserId)
-
-	assert.Equal(errDefault, err)
-}
-
-func TestUserRepository_TransactionalDelete_WhenAffectedRowsIsNotOne_Fails(t *testing.T) {
-	assert := assert.New(t)
-
-	mc := &mockConnectionPool{}
-	repo := NewUserRepository(mc)
-	mt := &mockTransaction{
-		affectedRows: 2,
-	}
-
-	err := repo.TransactionalDelete(context.Background(), mt, defaultUserId)
-
-	assert.True(errors.IsErrorWithCode(err, db.NoMatchingSqlRows))
-}
-
-func TestUserRepository_TransactionalDelete_WhenAffectedRowsIsOne_Succeeds(t *testing.T) {
-	assert := assert.New(t)
-
 	mc := &mockConnectionPool{}
 	repo := NewUserRepository(mc)
 	mt := &mockTransaction{
 		affectedRows: 1,
 	}
 
-	err := repo.TransactionalDelete(context.Background(), mt, defaultUserId)
+	err := repo.Delete(context.Background(), mt, defaultUserId)
 
 	assert.Nil(err)
 }
