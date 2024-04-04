@@ -8,3 +8,5 @@ CREATE TABLE api_key (
   PRIMARY KEY (id),
   FOREIGN KEY (api_user) REFERENCES api_user(id)
 );
+
+CREATE INDEX api_key_api_user_index ON api_key (api_user);
