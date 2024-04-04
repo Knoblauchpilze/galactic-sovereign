@@ -406,6 +406,21 @@ func TestUserService_Delete_CallsTransactionClose(t *testing.T) {
 	assert.Equal(1, mc.tx.closeCalled)
 }
 
+func TestUserService_Delete_WhenCreatingTransactionFails_ExpectError(t *testing.T) {
+	assert := assert.New(t)
+
+	mur := &mockUserRepository{}
+	mkr := &mockApiKeyRepository{}
+	mc := &mockConnectionPool{
+		err: errDefault,
+	}
+	s := NewUserService(mc, mur, mkr)
+
+	err := s.Delete(context.Background(), defaultUserId)
+
+	assert.Equal(errDefault, err)
+}
+
 func TestUserService_Delete_FetchesUsersKeys(t *testing.T) {
 	assert := assert.New(t)
 
