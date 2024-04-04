@@ -16,7 +16,7 @@ type ApiKeyRepository interface {
 	GetForUser(ctx context.Context, tx db.Transaction, user uuid.UUID) ([]uuid.UUID, error)
 	List(ctx context.Context) ([]uuid.UUID, error)
 	Update(ctx context.Context, apiKey persistence.ApiKey) (persistence.ApiKey, error)
-	Delete(ctx context.Context, tx db.Transaction, id []uuid.UUID) error
+	Delete(ctx context.Context, tx db.Transaction, ids []uuid.UUID) error
 }
 
 type apiUserRepositoryImpl struct {

@@ -11,12 +11,11 @@ import (
 )
 
 type UserRepository interface {
-	TransactionalCreate(ctx context.Context, tx db.Transaction, user persistence.User) (persistence.User, error)
+	Create(ctx context.Context, tx db.Transaction, user persistence.User) (persistence.User, error)
 	Get(ctx context.Context, id uuid.UUID) (persistence.User, error)
 	List(ctx context.Context) ([]uuid.UUID, error)
 	Update(ctx context.Context, user persistence.User) (persistence.User, error)
-	Delete(ctx context.Context, id uuid.UUID) error
-	TransactionalDelete(ctx context.Context, tx db.Transaction, id uuid.UUID) error
+	Delete(ctx context.Context, tx db.Transaction, id uuid.UUID) error
 }
 
 type userRepositoryImpl struct {
@@ -33,7 +32,7 @@ const createUserSqlTemplate = "INSERT INTO api_user (id, email, password, create
 
 var duplicatedKeySqlErrorRegexp = regexp.MustCompile(`duplicate key value violates unique constraint ".*" \(SQLSTATE 23505\)`)
 
-func (r *userRepositoryImpl) TransactionalCreate(ctx context.Context, tx db.Transaction, user persistence.User) (persistence.User, error) {
+func (r *userRepositoryImpl) Create(ctx context.Context, tx db.Transaction, user persistence.User) (persistence.User, error) {
 	_, err := tx.Exec(ctx, createUserSqlTemplate, user.Id, user.Email, user.Password, user.CreatedAt)
 	if err != nil && duplicatedKeySqlErrorRegexp.MatchString(err.Error()) {
 		return persistence.User{}, errors.NewCode(db.DuplicatedKeySqlKey)
@@ -110,18 +109,7 @@ func (r *userRepositoryImpl) Update(ctx context.Context, user persistence.User) 
 
 const deleteUserSqlTemplate = "DELETE FROM api_user WHERE id = $1"
 
-func (r *userRepositoryImpl) Delete(ctx context.Context, id uuid.UUID) error {
-	affected, err := r.conn.Exec(ctx, deleteUserSqlTemplate, id)
-	if err != nil {
-		return err
-	}
-	if affected != 1 {
-		return errors.NewCode(db.NoMatchingSqlRows)
-	}
-	return nil
-}
-
-func (r *userRepositoryImpl) TransactionalDelete(ctx context.Context, tx db.Transaction, id uuid.UUID) error {
+func (r *userRepositoryImpl) Delete(ctx context.Context, tx db.Transaction, id uuid.UUID) error {
 	affected, err := tx.Exec(ctx, deleteUserSqlTemplate, id)
 	if err != nil {
 		return err
