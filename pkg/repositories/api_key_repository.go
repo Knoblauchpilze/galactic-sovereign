@@ -56,7 +56,7 @@ func (r *apiUserRepositoryImpl) Get(ctx context.Context, id uuid.UUID) (persiste
 const getApiKeyForUserSqlTemplate = "SELECT id FROM api_key WHERE api_user = $1"
 
 func (r *apiUserRepositoryImpl) GetForUser(ctx context.Context, tx db.Transaction, user uuid.UUID) ([]uuid.UUID, error) {
-	res := r.conn.Query(ctx, getApiKeyForUserSqlTemplate, user)
+	res := tx.Query(ctx, getApiKeyForUserSqlTemplate, user)
 	if err := res.Err(); err != nil {
 		return []uuid.UUID{}, err
 	}
