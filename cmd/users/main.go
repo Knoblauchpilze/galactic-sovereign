@@ -34,7 +34,7 @@ func main() {
 	apiKeyRepo := repositories.NewApiKeyRepository(pool)
 	userService := service.NewUserService(pool, userRepo, apiKeyRepo)
 
-	s := rest.NewServer(conf.Server)
+	s := rest.NewServer(conf.Server, apiKeyRepo)
 
 	for _, route := range controller.UserEndpoints(userService) {
 		if err := s.Register(route); err != nil {

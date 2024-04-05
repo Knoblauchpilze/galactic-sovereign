@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/KnoblauchPilze/user-service/pkg/errors"
+	"github.com/KnoblauchPilze/user-service/pkg/repositories"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 )
@@ -16,12 +17,16 @@ type mockRoute struct {
 	endpoint           string
 }
 
+type mockApiKeyRepository struct {
+	repositories.ApiKeyRepository
+}
+
 func TestServer_Register_UsesPathFromRoute(t *testing.T) {
 	assert := assert.New(t)
 
 	mr := &mockRoute{}
 
-	NewServer(Config{}).Register(mr)
+	NewServer(Config{}, &mockApiKeyRepository{}).Register(mr)
 	assert.Equal(1, mr.generatePathCalled)
 }
 
@@ -33,7 +38,7 @@ func TestServer_Register_PropagatesPathFromConfig(t *testing.T) {
 		Endpoint: "some-endpoint",
 	}
 
-	NewServer(c).Register(mr)
+	NewServer(c, &mockApiKeyRepository{}).Register(mr)
 	assert.Equal(c.Endpoint, mr.endpoint)
 }
 
@@ -45,7 +50,7 @@ func TestServer_Register_SanitizesPath(t *testing.T) {
 		Endpoint: "some-endpoint/",
 	}
 
-	NewServer(c).Register(mr)
+	NewServer(c, &mockApiKeyRepository{}).Register(mr)
 	assert.Equal("some-endpoint", mr.endpoint)
 }
 
@@ -56,7 +61,7 @@ func TestServer_Register_SupportsPost(t *testing.T) {
 		method: http.MethodPost,
 	}
 
-	err := NewServer(Config{}).Register(mr)
+	err := NewServer(Config{}, &mockApiKeyRepository{}).Register(mr)
 	assert.Nil(err)
 }
 
@@ -67,7 +72,7 @@ func TestServer_Register_SupportsGet(t *testing.T) {
 		method: http.MethodGet,
 	}
 
-	err := NewServer(Config{}).Register(mr)
+	err := NewServer(Config{}, &mockApiKeyRepository{}).Register(mr)
 	assert.Nil(err)
 }
 
@@ -78,7 +83,7 @@ func TestServer_Register_SupportsPatch(t *testing.T) {
 		method: http.MethodPatch,
 	}
 
-	err := NewServer(Config{}).Register(mr)
+	err := NewServer(Config{}, &mockApiKeyRepository{}).Register(mr)
 	assert.Nil(err)
 }
 
@@ -89,7 +94,7 @@ func TestServer_Register_SupportsDelete(t *testing.T) {
 		method: http.MethodDelete,
 	}
 
-	err := NewServer(Config{}).Register(mr)
+	err := NewServer(Config{}, &mockApiKeyRepository{}).Register(mr)
 	assert.Nil(err)
 }
 
@@ -107,7 +112,7 @@ func TestServer_Register_FailsForUnsupportedMethod(t *testing.T) {
 				method: method,
 			}
 
-			err := NewServer(Config{}).Register(mr)
+			err := NewServer(Config{}, &mockApiKeyRepository{}).Register(mr)
 			assert.True(errors.IsErrorWithCode(err, UnsupportedMethod))
 		})
 	}
