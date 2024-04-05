@@ -10,3 +10,4 @@ CREATE TABLE api_key (
 );
 
 CREATE INDEX api_key_api_user_index ON api_key (api_user);
+CREATE INDEX api_key_key_index ON api_key (key);
