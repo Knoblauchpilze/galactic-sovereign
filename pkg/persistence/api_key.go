@@ -8,6 +8,4 @@ type ApiKey struct {
 	ApiUser uuid.UUID
 
 	Enabled bool
-
-	Version int
 }
