@@ -33,6 +33,9 @@ type mockEchoContext struct {
 	loggerChanged  bool
 	requestChanged bool
 	reportedError  error
+
+	reportedCode int
+	jsonContent  interface{}
 }
 
 type mockEchoLogger struct {
@@ -67,28 +70,42 @@ func newMockEchoContext(code int) *mockEchoContext {
 	}
 }
 
-func (m *mockEchoContext) Request() *http.Request { return m.request }
+func (m *mockEchoContext) Request() *http.Request {
+	return m.request
+}
 
 func (m *mockEchoContext) SetRequest(req *http.Request) {
 	m.requestChanged = true
 	m.request = req
 }
 
-func (m *mockEchoContext) Response() *echo.Response { return m.response }
+func (m *mockEchoContext) Response() *echo.Response {
+	return m.response
+}
 
 func (m *mockEchoContext) Set(key string, val interface{}) {
 	m.values[key] = val
+}
+
+func (m *mockEchoContext) JSON(code int, i interface{}) error {
+	m.reportedCode = code
+	m.jsonContent = i
+	return nil
 }
 
 func (m *mockEchoContext) Error(err error) {
 	m.reportedError = err
 }
 
-func (m *mockEchoContext) Logger() echo.Logger { return m.logger }
+func (m *mockEchoContext) Logger() echo.Logger {
+	return m.logger
+}
 
 func (m *mockEchoContext) SetLogger(l echo.Logger) {
 	m.loggerChanged = true
 }
+
+func (m *mockEchoLogger) Warnf(format string, args ...interface{}) {}
 
 func (m *mockEchoLogger) Errorf(format string, args ...interface{}) {}
 
