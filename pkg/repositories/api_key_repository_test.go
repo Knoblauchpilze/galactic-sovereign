@@ -10,9 +10,10 @@ import (
 )
 
 var defaultApiKeyId = uuid.MustParse("cc1742fa-77b4-4f5f-ac92-058c2e47a5d6")
+var defaultApiKeyValue = uuid.MustParse("b01b9b1f-b651-4702-9b58-905b19584d69")
 var defaultApiKey = persistence.ApiKey{
-	Id:      uuid.MustParse("5bda15f9-85f1-4700-867c-0a7cbda0f82c"),
-	Key:     defaultApiKeyId,
+	Id:      defaultApiKeyId,
+	Key:     defaultApiKeyValue,
 	ApiUser: defaultUserId,
 }
 
@@ -176,6 +177,121 @@ func TestApiKeyRepository_Get_ScansApiKeyProperties(t *testing.T) {
 	repo := NewApiKeyRepository(mc)
 
 	_, err := repo.Get(context.Background(), defaultApiKeyId)
+
+	assert.Nil(err)
+
+	props := mc.rows.scanner.props
+	assert.Equal(1, mc.rows.scanner.scannCalled)
+	assert.Equal(3, len(props))
+	assert.IsType(&uuid.UUID{}, props[0])
+	assert.IsType(&uuid.UUID{}, props[1])
+	assert.IsType(&uuid.UUID{}, props[2])
+}
+
+func TestApiKeyRepository_GetForKey_UsesConnectionToQuery(t *testing.T) {
+	assert := assert.New(t)
+
+	mc := &mockConnectionPool{}
+	repo := NewApiKeyRepository(mc)
+
+	repo.GetForKey(context.Background(), defaultApiKeyValue)
+
+	assert.Equal(1, mc.queryCalled)
+}
+
+func TestApiKeyRepository_GetForKey_GeneratesValidSql(t *testing.T) {
+	assert := assert.New(t)
+
+	mc := &mockConnectionPool{}
+	repo := NewApiKeyRepository(mc)
+
+	repo.GetForKey(context.Background(), defaultApiKeyValue)
+
+	assert.Equal("SELECT id, key, api_user FROM api_key WHERE key = $1", mc.sqlQuery)
+	assert.Equal(1, len(mc.args))
+	assert.Equal(defaultApiKeyValue, mc.args[0])
+}
+
+func TestApiKeyRepository_GetForKey_PropagatesQueryFailure(t *testing.T) {
+	assert := assert.New(t)
+
+	mc := &mockConnectionPool{
+		rows: mockRows{
+			err: errDefault,
+		},
+	}
+	repo := NewApiKeyRepository(mc)
+
+	_, err := repo.GetForKey(context.Background(), defaultApiKeyValue)
+
+	assert.Equal(errDefault, err)
+}
+
+func TestApiKeyRepository_GetForKey_CallsGetSingleValue(t *testing.T) {
+	assert := assert.New(t)
+
+	mc := &mockConnectionPool{}
+	repo := NewApiKeyRepository(mc)
+
+	repo.GetForKey(context.Background(), defaultApiKeyValue)
+
+	assert.Equal(1, mc.rows.singleValueCalled)
+}
+
+func TestApiKeyRepository_GetForKey_WhenResultReturnsError_Fails(t *testing.T) {
+	assert := assert.New(t)
+
+	mc := &mockConnectionPool{
+		rows: mockRows{
+			singleValueErr: errDefault,
+		},
+	}
+	repo := NewApiKeyRepository(mc)
+
+	_, err := repo.GetForKey(context.Background(), defaultApiKeyValue)
+
+	assert.Equal(errDefault, err)
+}
+
+func TestApiKeyRepository_GetForKey_WhenResultSucceeds_Success(t *testing.T) {
+	assert := assert.New(t)
+
+	mc := &mockConnectionPool{}
+	repo := NewApiKeyRepository(mc)
+
+	_, err := repo.GetForKey(context.Background(), defaultApiKeyValue)
+
+	assert.Nil(err)
+}
+
+func TestApiKeyRepository_GetForKey_PropagatesScanErrors(t *testing.T) {
+	assert := assert.New(t)
+
+	mc := &mockConnectionPool{
+		rows: mockRows{
+			scanner: &mockScannable{
+				err: errDefault,
+			},
+		},
+	}
+	repo := NewApiKeyRepository(mc)
+
+	_, err := repo.GetForKey(context.Background(), defaultApiKeyValue)
+
+	assert.Equal(errDefault, err)
+}
+
+func TestApiKeyRepository_GetForKey_ScansApiKeyProperties(t *testing.T) {
+	assert := assert.New(t)
+
+	mc := &mockConnectionPool{
+		rows: mockRows{
+			scanner: &mockScannable{},
+		},
+	}
+	repo := NewApiKeyRepository(mc)
+
+	_, err := repo.GetForKey(context.Background(), defaultApiKeyValue)
 
 	assert.Nil(err)
 
