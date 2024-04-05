@@ -8,6 +8,7 @@ import (
 	"github.com/KnoblauchPilze/user-service/pkg/errors"
 	"github.com/KnoblauchPilze/user-service/pkg/logger"
 	"github.com/KnoblauchPilze/user-service/pkg/middleware"
+	"github.com/KnoblauchPilze/user-service/pkg/repositories"
 	"github.com/labstack/echo/v4"
 )
 
@@ -22,11 +23,11 @@ type serverImpl struct {
 	echoServer *echo.Echo
 }
 
-func NewServer(conf Config) Server {
+func NewServer(conf Config, apiKeyRepository repositories.ApiKeyRepository) Server {
 	return &serverImpl{
 		endpoint:   strings.TrimSuffix(conf.Endpoint, "/"),
 		port:       conf.Port,
-		echoServer: createEchoContext(),
+		echoServer: createEchoContext(apiKeyRepository),
 	}
 }
 
@@ -58,7 +59,7 @@ func (s *serverImpl) Register(route Route) error {
 	return nil
 }
 
-func createEchoContext() *echo.Echo {
+func createEchoContext(apiKeyRepository repositories.ApiKeyRepository) *echo.Echo {
 	e := echo.New()
 	e.HideBanner = true
 	e.HidePort = true
@@ -68,6 +69,7 @@ func createEchoContext() *echo.Echo {
 	e.Use(middleware.ResponseEnvelope())
 	e.Use(middleware.ErrorMiddleware())
 	e.Use(middleware.Recover())
+	e.Use(middleware.ApiKeyMiddleware(apiKeyRepository))
 
 	return e
 }
