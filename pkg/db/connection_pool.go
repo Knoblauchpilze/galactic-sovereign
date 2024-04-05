@@ -5,7 +5,6 @@ import (
 	"sync"
 
 	"github.com/KnoblauchPilze/user-service/pkg/logger"
-	"github.com/KnoblauchPilze/user-service/pkg/middleware"
 	"github.com/jackc/pgx"
 )
 
@@ -69,7 +68,7 @@ func (c *connectionPoolImpl) StartTransaction(ctx context.Context) (Transaction,
 }
 
 func (c *connectionPoolImpl) Query(ctx context.Context, sql string, arguments ...interface{}) Rows {
-	log := middleware.GetLoggerFromContext(ctx)
+	log := logger.GetRequestLogger(ctx)
 	log.Debugf("Query: %s (%d)", sql, len(arguments))
 
 	rows, err := c.pool.QueryEx(ctx, sql, nil, arguments...)
@@ -77,7 +76,7 @@ func (c *connectionPoolImpl) Query(ctx context.Context, sql string, arguments ..
 }
 
 func (c *connectionPoolImpl) Exec(ctx context.Context, sql string, arguments ...interface{}) (int, error) {
-	log := middleware.GetLoggerFromContext(ctx)
+	log := logger.GetRequestLogger(ctx)
 	log.Debugf("Exec: %s (%d)", sql, len(arguments))
 
 	tag, err := c.pool.ExecEx(ctx, sql, nil, arguments...)
