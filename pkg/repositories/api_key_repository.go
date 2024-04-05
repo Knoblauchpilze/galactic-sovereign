@@ -54,7 +54,7 @@ func (r *apiUserRepositoryImpl) Get(ctx context.Context, id uuid.UUID) (persiste
 	return out, nil
 }
 
-const getApiKeyForKeySqlTemplate = "SELECT id, key, api_user FROM api_key WHERE key = $1"
+const getApiKeyForKeySqlTemplate = "SELECT id, key, api_user, enabled FROM api_key WHERE key = $1"
 
 func (r *apiUserRepositoryImpl) GetForKey(ctx context.Context, apiKey uuid.UUID) (persistence.ApiKey, error) {
 	res := r.conn.Query(ctx, getApiKeyForKeySqlTemplate, apiKey)
@@ -64,7 +64,7 @@ func (r *apiUserRepositoryImpl) GetForKey(ctx context.Context, apiKey uuid.UUID)
 
 	var out persistence.ApiKey
 	parser := func(rows db.Scannable) error {
-		return rows.Scan(&out.Id, &out.Key, &out.ApiUser)
+		return rows.Scan(&out.Id, &out.Key, &out.ApiUser, &out.Enabled)
 	}
 
 	if err := res.GetSingleValue(parser); err != nil {

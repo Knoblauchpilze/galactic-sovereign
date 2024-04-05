@@ -207,7 +207,7 @@ func TestApiKeyRepository_GetForKey_GeneratesValidSql(t *testing.T) {
 
 	repo.GetForKey(context.Background(), defaultApiKeyValue)
 
-	assert.Equal("SELECT id, key, api_user FROM api_key WHERE key = $1", mc.sqlQuery)
+	assert.Equal("SELECT id, key, api_user, enabled FROM api_key WHERE key = $1", mc.sqlQuery)
 	assert.Equal(1, len(mc.args))
 	assert.Equal(defaultApiKeyValue, mc.args[0])
 }
@@ -297,10 +297,12 @@ func TestApiKeyRepository_GetForKey_ScansApiKeyProperties(t *testing.T) {
 
 	props := mc.rows.scanner.props
 	assert.Equal(1, mc.rows.scanner.scannCalled)
-	assert.Equal(3, len(props))
+	assert.Equal(4, len(props))
 	assert.IsType(&uuid.UUID{}, props[0])
 	assert.IsType(&uuid.UUID{}, props[1])
 	assert.IsType(&uuid.UUID{}, props[2])
+	var b bool
+	assert.IsType(&b, props[3])
 }
 
 func TestApiKeyRepository_GetForUser_UsesConnectionToQuery(t *testing.T) {
