@@ -15,6 +15,3 @@ jobs:
         run: |
           cd cmd/users
           make release
-          ls
-          ls build
-          ls build/bin
