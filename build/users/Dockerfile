@@ -8,6 +8,8 @@ RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o bin/users cmd/users/main.g
 COPY cmd/users/configs bin/configs
 
 FROM alpine AS user-service
+ARG GIT_COMMIT_HASH="undefined"
+ENV GIT_COMMIT_HASH=$GIT_COMMIT_HASH
 WORKDIR /app
 COPY --from=builder build/bin bin/
 # https://stackoverflow.com/questions/21553353/what-is-the-difference-between-cmd-and-entrypoint-in-a-dockerfile
