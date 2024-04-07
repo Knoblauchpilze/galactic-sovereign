@@ -1,6 +1,9 @@
-# https://docs.github.com/en/actions/creating-actions/creating-a-composite-action
 name: Go
 on: [push]
+
+# https://docs.github.com/en/actions/learn-github-actions/variables
+env:
+  GO_VERSION: '1.22.x'
 
 jobs:
   build:
@@ -11,7 +14,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v4
         with:
-          go-version: '1.22.x'
+          go-version: '${GO_VERSION}'
       - name: Install dependencies
         run: go get ./...
       - name: Build
