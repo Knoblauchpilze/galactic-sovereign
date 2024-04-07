@@ -44,7 +44,7 @@ func main() {
 	}
 
 	if err := s.Start(); err != nil {
-		logger.Errorf("Error while servier was running: %v", err)
+		logger.Errorf("Error while servier was runninsg: %v", err)
 		os.Exit(1)
 	}
 }
