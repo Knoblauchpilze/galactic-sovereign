@@ -20,5 +20,6 @@ jobs:
         with:
           context: .
           file: ./build/users/Dockerfile
+          build-args: GIT_COMMIT_HASH=${{ env.GIT_COMMIT_HASH }}
           push: true
           tags: totocorpsoftwareinc/user-service:${{ env.GIT_COMMIT_HASH }}
