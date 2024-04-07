@@ -1,4 +1,4 @@
-name: Go
+name: Build
 on: [push]
 
 # https://docs.github.com/en/actions/learn-github-actions/variables
@@ -14,7 +14,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v4
         with:
-          go-version: '${GO_VERSION}'
+          go-version: '$GO_VERSION'
       - name: Install dependencies
         run: go get ./...
       - name: Build
