@@ -1,21 +1,29 @@
-name: Go
-on: [push]
+# https://docs.github.com/en/actions/creating-actions/creating-a-composite-action
+name: Build
+on:
+  push:
+    branches:
+      - 'main'
 
 jobs:
-  build:
+  docker:
     runs-on: ubuntu-latest
-
     steps:
-      - uses: actions/checkout@v3
-      - name: Setup Go
-        uses: actions/setup-go@v4
+      -
+        name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      -
+        name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      -
+        name: Login to Docker Hub
+        uses: docker/login-action@v3
         with:
-          go-version: '1.22.x'
-      - name: Install dependencies
-        run: go get ./...
-      - name: Build
-        run: go build -v ./...
-      - name: Tests
-        run: go test ./... -coverpkg=./... -race -covermode=atomic -coverprofile=coverage.out
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      -
+        name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          push: true
+          tags: user/app:latest
