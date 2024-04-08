@@ -5,7 +5,7 @@ RUN go mod download
 COPY . .
 # https://stackoverflow.com/questions/34729748/installed-go-binary-not-found-in-path-on-alpine-linux-docker
 RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o bin/users cmd/users/main.go
-COPY cmd/users/configs bin/configs
+COPY cmd/users/configs/*-prod.yml bin/configs/
 
 FROM alpine AS user-service
 ARG GIT_COMMIT_HASH="undefined"
@@ -17,6 +17,5 @@ WORKDIR /app/bin
 # https://stackoverflow.com/questions/68173651/connecting-to-a-localhost-postgres-database-from-within-a-docker-container
 ENV ENV_DATABASE_HOST="172.17.0.1"
 ENV ENV_DATABASE_PORT=5432
-ENV ENV_SERVER_PORT=60001
-EXPOSE 60001
+ENV ENV_SERVER_PORT=80
 CMD ["./users"]
