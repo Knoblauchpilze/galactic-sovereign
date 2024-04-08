@@ -1,9 +1,6 @@
 
 APPLICATION ?= users
 
-BRANCH ?= master
-TAG ?= ${BRANCH}
-
 setup:
 	mkdir -p build build/configs build/bin
 	cp configs/users-template-dev.yml configs/users-dev.yml
@@ -20,4 +17,4 @@ run: release
 	./build/bin/${APPLICATION} users-dev
 
 clean:
-	rm -rf build
+	rm -rf build configs/users-dev.yml
