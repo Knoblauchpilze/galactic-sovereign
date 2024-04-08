@@ -29,12 +29,12 @@ type configurationParser interface {
 
 var configurator configurationParser = viper.New()
 
-func LoadConfiguration() (Configuration, error) {
+func LoadConfiguration(configName string) (Configuration, error) {
 	// https://github.com/spf13/viper#reading-config-files
 	configurator.SetConfigType("yaml")
 	configurator.AddConfigPath("configs")
 
-	configurator.SetConfigName("users-dev")
+	configurator.SetConfigName(configName)
 	if err := configurator.ReadInConfig(); err != nil {
 		return defaultConf(), err
 	}

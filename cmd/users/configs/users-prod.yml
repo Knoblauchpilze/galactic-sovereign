@@ -1,0 +1,9 @@
+Server:
+  Endpoint: "/v1/users"
+  Port: 80
+Database:
+  Host: "localhost"
+  Port: 5432
+  ConnectionsPoolSize: 2
+  Name: db_user_service
+  User: user_service_manager

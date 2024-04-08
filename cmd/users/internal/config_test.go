@@ -88,6 +88,8 @@ type mockConfigurationParser struct {
 	unmarshalErr  error
 }
 
+const defaultConfigName = "some-config"
+
 func TestLoadConfiguration_LooksForYamlFiles(t *testing.T) {
 	assert := assert.New(t)
 	t.Cleanup(resetConfigurationParser)
@@ -95,7 +97,7 @@ func TestLoadConfiguration_LooksForYamlFiles(t *testing.T) {
 	m := mockConfigurationParser{}
 	configurator = &m
 
-	LoadConfiguration()
+	LoadConfiguration(defaultConfigName)
 
 	assert.Equal("yaml", m.confType)
 }
@@ -107,7 +109,7 @@ func TestLoadConfiguration_LooksForFilesInExpectedPath(t *testing.T) {
 	m := mockConfigurationParser{}
 	configurator = &m
 
-	LoadConfiguration()
+	LoadConfiguration(defaultConfigName)
 
 	assert.Equal([]string{"configs"}, m.confPaths)
 }
@@ -119,9 +121,9 @@ func TestLoadConfiguration_LooksForTheRightFile(t *testing.T) {
 	m := mockConfigurationParser{}
 	configurator = &m
 
-	LoadConfiguration()
+	LoadConfiguration(defaultConfigName)
 
-	assert.Equal("users-dev", m.confName)
+	assert.Equal(defaultConfigName, m.confName)
 }
 
 func TestLoadConfiguration_AppliesEnvironmentOverrides(t *testing.T) {
@@ -131,7 +133,7 @@ func TestLoadConfiguration_AppliesEnvironmentOverrides(t *testing.T) {
 	m := mockConfigurationParser{}
 	configurator = &m
 
-	LoadConfiguration()
+	LoadConfiguration(defaultConfigName)
 
 	assert.True(m.automaticEnv)
 	assert.Equal("ENV", m.envPrefix)
@@ -145,7 +147,7 @@ func TestLoadConfiguration_ReadsConfiguration(t *testing.T) {
 	m := mockConfigurationParser{}
 	configurator = &m
 
-	LoadConfiguration()
+	LoadConfiguration(defaultConfigName)
 
 	assert.Equal(1, m.readCalled)
 }
@@ -159,7 +161,7 @@ func TestLoadConfiguration_WhenError_ExpectDefaultAndError(t *testing.T) {
 	}
 	configurator = &m
 
-	conf, err := LoadConfiguration()
+	conf, err := LoadConfiguration(defaultConfigName)
 
 	assert.Equal(errDefault, err)
 	assert.Equal(defaultConf(), conf)
@@ -172,7 +174,7 @@ func TestLoadConfiguration_UnmarshalsInConfiguration(t *testing.T) {
 	m := mockConfigurationParser{}
 	configurator = &m
 
-	LoadConfiguration()
+	LoadConfiguration(defaultConfigName)
 
 	assert.IsType(&Configuration{}, m.unmarshalVal)
 	assert.Equal(0, len(m.unmarshalOpts))
@@ -187,7 +189,7 @@ func TestLoadConfiguration_WhenUnmarshalFails_ExpectDefaultAndError(t *testing.T
 	}
 	configurator = &m
 
-	conf, err := LoadConfiguration()
+	conf, err := LoadConfiguration(defaultConfigName)
 
 	assert.Equal(errDefault, err)
 	assert.Equal(defaultConf(), conf)

@@ -3,5 +3,4 @@
 
 # Ignore non template configuration files.
 # https://stackoverflow.com/questions/2820255/how-do-negated-patterns-work-in-gitignore
-*.yml
-!*template*.yml
+*-dev.yml
