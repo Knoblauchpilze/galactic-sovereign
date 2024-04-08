@@ -14,8 +14,17 @@ import (
 	"github.com/KnoblauchPilze/user-service/pkg/rest"
 )
 
+func determineConfigName() string {
+	if len(os.Args) < 2 {
+		return "users-prod.yml"
+	}
+
+	return os.Args[1]
+}
+
 func main() {
-	conf, err := internal.LoadConfiguration()
+
+	conf, err := internal.LoadConfiguration(determineConfigName())
 	if err != nil {
 		logger.Errorf("Failed to load configuration: %v", err)
 		os.Exit(1)

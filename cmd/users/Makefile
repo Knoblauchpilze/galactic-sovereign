@@ -17,7 +17,7 @@ release:
 install: release config
 
 run: release
-	./build/bin/${APPLICATION}
+	./build/bin/${APPLICATION} users-dev
 
 clean:
 	rm -rf build
