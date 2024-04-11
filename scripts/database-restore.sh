@@ -5,9 +5,9 @@ if [ "$#" -ne 1 ]; then
   exit 1
 fi
 
-DB_HOST="localhost"
-DB_NAME="db_user_service"
-DB_USER="user_service_admin"
+DB_HOST=${DATABASE_HOST:-localhost}
+DB_NAME=${DATABASE_NAME:-db_user_service}
+DB_USER=${DATABASE_USER:-user_service_admin}
 
 DB_DUMP=$1
 
