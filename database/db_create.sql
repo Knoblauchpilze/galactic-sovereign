@@ -1,5 +1,5 @@
 -- https://dba.stackexchange.com/questions/117109/how-to-manage-default-privileges-for-users-on-a-database-vs-schema/117661#117661
-CREATE DATABASE db_user_service;
+CREATE DATABASE db_user_service OWNER user_service_admin;
 REVOKE ALL ON DATABASE db_user_service FROM public;
 
 GRANT CONNECT ON DATABASE db_user_service TO user_service_user;
