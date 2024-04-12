@@ -6,6 +6,7 @@ DB_NAME=${DATABASE_NAME:-db_user_service}
 DB_USER=${DATABASE_USER:-user_service_user}
 
 S3_BUCKET_NAME=${S3_BUCKET:-s3://user-service-database-dumps}
+IAM_ROLE_NAME=${IAM_ROLE:-user-service-database-dev}
 
 # https://stackoverflow.com/questions/4018503/is-there-a-date-time-format-that-does-not-have-spaces
 DATE=$(date '+%F-%T' | tr ':' '_')
@@ -13,4 +14,8 @@ DATE=$(date '+%F-%T' | tr ':' '_')
 DB_DUMP="${DB_NAME}_dump_${DATE}.bck"
 
 # https://www.postgresql.org/docs/current/app-pgdump.html
+echo "Dumping database to ${DB_DUMP}..."
 pg_dump -h ${DB_HOST} -U ${DB_USER} -F c -f ${DB_DUMP} ${DB_NAME}
+
+echo "Uploading to ${S3_BUCKET_NAME}..."
+aws s3 cp ${DB_DUMP} ${S3_BUCKET_NAME} --profile ${IAM_ROLE_NAME}
