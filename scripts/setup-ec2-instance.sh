@@ -1,7 +1,10 @@
 #!/bin/bash
 
-# Install postgresql
+# Install utilities
 sudo apt-get update
+sudo apt-get install gridsite-clients
+
+# Install postgresql
 sudo apt-get install postgresql-14
 
 # Install docker
