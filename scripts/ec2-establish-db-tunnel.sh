@@ -23,6 +23,13 @@ if [ ! -f "${SSH_IDENTITY_FILE}" ]; then
   exit 1
 fi
 
+if [ -S "${PATH_TO_SOCKET}" ]; then
+  echo "SSH tunnel already in use, please close it first"
+  exit 0
+fi
+
+echo "Creating tunnel on port ${LOCAL_PORT}..."
+
 # https://linuxize.com/post/how-to-setup-ssh-tunneling/
 ssh -i ${SSH_IDENTITY_FILE} \
   -NfM \
