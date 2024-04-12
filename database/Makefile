@@ -3,7 +3,7 @@ DB_NAME ?= db_user_service
 DB_HOST ?= localhost
 DB_PORT ?= 5432
 DB_USER ?= user_service_admin
-DB_PASSWORD ?= VCNNGJjsLSmoU5nxnSBBs
+DB_PASSWORD ?= "comes-this-from-environment"
 MIGRATION_STEPS ?= 1
 
 # https://stackoverflow.com/questions/6405127/how-do-i-specify-a-password-to-psql-non-interactively
