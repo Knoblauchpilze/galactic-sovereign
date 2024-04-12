@@ -10,7 +10,7 @@ URL_ENCODED_PASSWORD=$(shell urlencode ${DB_PASSWORD})
 
 # https://stackoverflow.com/questions/6405127/how-do-i-specify-a-password-to-psql-non-interactively
 connect:
-	PGPASSWORD='${DB_PASSWORD}' psql -h ${DB_HOST} -p ${DB_PORT} -U ${DB_USER} -d ${DB_NAME}
+	psql postgres://${DB_USER}:${URL_ENCODED_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}
 
 .PHONY: migrate
 migrate:
