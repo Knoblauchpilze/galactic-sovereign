@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # https://stackoverflow.com/questions/39296472/how-to-check-if-an-environment-variable-exists-and-get-its-value
 DB_HOST=${DATABASE_HOST:-localhost}

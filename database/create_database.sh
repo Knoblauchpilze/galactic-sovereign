@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 DB_HOST=${DATABASE_HOST:-localhost}
 DB_PORT=${DATABASE_PORT:-5432}
