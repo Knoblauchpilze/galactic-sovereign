@@ -8,7 +8,7 @@ MIGRATION_STEPS ?= 1
 
 # https://stackoverflow.com/questions/6405127/how-do-i-specify-a-password-to-psql-non-interactively
 connect:
-	psql postgres://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}
+	PGPASSWORD='${DB_PASSWORD}' psql -h ${DB_HOST} -p ${DB_PORT} -U ${DB_USER} -d ${DB_NAME}
 
 .PHONY: migrate
 migrate:

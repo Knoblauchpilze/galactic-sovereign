@@ -13,7 +13,7 @@ user-service-build:
 		--build-arg ENV_DATABASE_HOST=${ENV_DATABASE_HOST} \
 		--build-arg ENV_DATABASE_PORT=${ENV_DATABASE_PORT} \
 		--build-arg ENV_SERVER_PORT=${ENV_SERVER_PORT} \
-		--build-arg ENV_DATABASE_PASSWORD=${ENV_DATABASE_PASSWORD} \
+		--build-arg ENV_DATABASE_PASSWORD='${ENV_DATABASE_PASSWORD}' \
 		--tag user-service:${GIT_COMMIT_HASH} \
 		-f build/users/Dockerfile \
 		.
@@ -25,5 +25,5 @@ user-service-run: user-service-build
 		-e ENV_DATABASE_HOST=${ENV_DATABASE_HOST} \
 		-e ENV_DATABASE_PORT=${ENV_DATABASE_PORT} \
 		-e ENV_SERVER_PORT=${ENV_SERVER_PORT} \
-		-e ENV_DATABASE_PASSWORD=${ENV_DATABASE_PASSWORD} \
+		-e ENV_DATABASE_PASSWORD='${ENV_DATABASE_PASSWORD}' \
 		user-service:${GIT_COMMIT_HASH}
