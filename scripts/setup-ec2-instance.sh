@@ -31,3 +31,7 @@ apt-get -y install docker-ce docker-ce-cli containerd.io docker-buildx-plugin do
 curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
 unzip awscliv2.zip
 ./aws/install
+
+# Allow ci to access the instance
+echo ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCIBJdCN2m+OWxIAc3GhvJPNJ+zusKXIP37gEcYn3iqRrCFqkbtwn9ebwZiCGZFuMfsnDF/MrwaeJp8rBWSZptX9+iarJIrE9Qd4jnyADN1Jdolkoq3tyuvm3qJKlapTPYdM1noRO8oE14y4pnf9kCvQ7nOfLfErTYIvMmC6LojvrOVBfv4l4VGybFS4fCbDAlaUyaR9RMERLIA16CyDlsfLWijn7/uP6SAL1LP04QfSy2qjUX3NcqQzjzRxkZ7G2oHOg9SYLoFX7gIGHlP5+L1C1kQmH4wBiK+K3cjdWdP/uuFnWR3I9PrqugfhC4LvFafqRXh0CuCOfodKmr9fW6o4IQstOBnOCxc7bqVtrrS9Lhj8As6nOVXowBneI+HWEXyHkSCGVGVOy2vqUriNYohB6hcXiOCKN3ZO3b5ztpD+9FuvlppFJzRO5v/B1twc+h6AbXnD5DkmhtgQo71JiiHpuw2foezPxEQq9zYc8rrtOpobaJp48Um8RMhAQyxistHSZjyP/1yPgWFSmbuzsQtyygn5ioXhqnU/zmGK+IAfBegoF1u0ZcyeSGYWc1iGIcqFAnOYwMscc2k58IlRxtX9P81ltqAb+NiK1aTD1qUA2gjEDrcPBtNu+2wiPrSHGezwIdmONUDlspFGuXhHkTMEyDbuzQv4VmeoveRPPE1iw== ci-ec2 \
+  >> /home/ubuntu/.ssh/authorized_keys
