@@ -18,7 +18,7 @@ user-service-build:
 		-f build/users/Dockerfile \
 		.
 
-user-service-run: user-service-build
+user-service-run:
 	docker run \
 		-p ${ENV_DATABASE_PORT} \
 		-p ${ENV_SERVER_PORT}:${ENV_SERVER_PORT} \
@@ -27,3 +27,5 @@ user-service-run: user-service-build
 		-e ENV_SERVER_PORT=${ENV_SERVER_PORT} \
 		-e ENV_DATABASE_PASSWORD='${ENV_DATABASE_PASSWORD}' \
 		user-service:${GIT_COMMIT_HASH}
+
+user-service-start: user-service-build user-service-run
