@@ -1,16 +1,14 @@
 name: Deploy
-on:
-  # https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#workflow_run
-  workflow_run:
-    workflows: [Build and push docker image]
-    types:
-      - completed
+on: push
 
 jobs:
+  tests:
+    uses: ./.github/workflows/tests.yml@master
+  build-docker-image:
+    uses: ./.github/workflows/push-docker-image.yml@master
   deploy:
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
-
+    # if: ${{ github.event.workflow_run.conclusion == 'success' }}
     # https://medium.com/ryanjang-devnotes/ci-cd-hands-on-github-actions-docker-hub-aws-ec2-ba09f80297e1
     steps:
       - name: Extract commit hash
