@@ -25,15 +25,18 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_DEPLOY_SSH_KEY }}
           passphrase: ${{ secrets.EC2_DEPLOY_SSH_KEY_PASSPHRASE }}
+          # For docker stop and rm steps:
+          # https://stackoverflow.com/questions/69943233/print-only-names-column-from-docker-container-ls-la-output
+          # https://stackoverflow.com/questions/74800773/how-to-avoid-getting-an-error-message-when-there-is-no-docker-container-image-vo
           script: |
             docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }}
             sudo docker pull totocorpsoftwareinc/user-service:${{ env.GIT_COMMIT_HASH }}
-            sudo docker stop user-service
-            sudo docker rm user-service
+            sudo docker container ls -la --format "{{.Names}}" | grep user-service | xargs --no-run-if-empty sudo docker stop user-service
+            sudo docker container ls -la --format "{{.Names}}" | grep user-service | xargs --no-run-if-empty sudo docker rm user-service
             sudo docker run \
               -p 5432 \
               -p 80:80 \
               -e ENV_DATABASE_PASSWORD='${{ env.ENV_DATABASE_PASSWORD }}' \
               --name user-service \
               -d \
-              user-service:${{ env.GIT_COMMIT_HASH }}
+              totocorpsoftwareinc/user-service:${{ env.GIT_COMMIT_HASH }}
