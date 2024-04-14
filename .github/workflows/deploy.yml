@@ -19,5 +19,6 @@ jobs:
           host: 52.47.209.109
           username: ubuntu
           key: ${{ secrets.EC2_DEPLOY_SSH_KEY }}
+          passphrase: ${{ secrets.EC2_DEPLOY_SSH_KEY_PASSPHRASE }}
           script: |
             docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }}
