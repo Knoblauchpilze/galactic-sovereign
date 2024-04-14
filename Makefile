@@ -28,4 +28,20 @@ user-service-run:
 		-e ENV_DATABASE_PASSWORD='${ENV_DATABASE_PASSWORD}' \
 		user-service:${GIT_COMMIT_HASH}
 
+user-service-run-detached:
+	docker run \
+		-p ${ENV_DATABASE_PORT} \
+		-p ${ENV_SERVER_PORT}:${ENV_SERVER_PORT} \
+		-e ENV_DATABASE_HOST=${ENV_DATABASE_HOST} \
+		-e ENV_DATABASE_PORT=${ENV_DATABASE_PORT} \
+		-e ENV_SERVER_PORT=${ENV_SERVER_PORT} \
+		-e ENV_DATABASE_PASSWORD='${ENV_DATABASE_PASSWORD}' \
+		--name user-service \
+		-d \
+		user-service:${GIT_COMMIT_HASH}
+
+user-service-stop:
+	docker stop user-service
+	docker rm user-service
+
 user-service-start: user-service-build user-service-run
