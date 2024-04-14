@@ -9,6 +9,9 @@ jobs:
       codecov-token: ${{ secrets.CODECOV_TOKEN }}
   build-docker-image:
     uses: ./.github/workflows/push-docker-image.yml
+    secrets:
+      dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
+      dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
   deploy:
     runs-on: ubuntu-latest
     # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idneeds
