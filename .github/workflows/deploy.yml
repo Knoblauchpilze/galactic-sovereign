@@ -12,8 +12,8 @@ jobs:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
 
     steps:
-      - name: Print github commit
-        run: echo ${{ github.event.workflow_run.head_sha }}
+      - name: Extract commit hash
+        run: echo "GIT_COMMIT_HASH=$(git rev-parse --short "${{ github.event.workflow_run.head_sha }}")" >> "$GITHUB_ENV"
       - name: Update running docker instance
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -24,4 +24,4 @@ jobs:
           passphrase: ${{ secrets.EC2_DEPLOY_SSH_KEY_PASSPHRASE }}
           script: |
             docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }} |
-            docker pull totocorpsoftwareinc/user-service:${{ github.event.workflow_run.head_sha }}
+            sudo docker pull totocorpsoftwareinc/user-service:${{ env.GIT_COMMIT_HASH }}
