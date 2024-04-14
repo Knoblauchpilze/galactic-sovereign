@@ -1,0 +1,14 @@
+name: Tests
+on:
+  workflow_run:
+    workflows: [Build and push docker image]
+    types:
+      - completed
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
+    steps:
+      - run: echo 'Should deploy'
