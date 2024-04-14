@@ -18,9 +18,9 @@ This projects uses:
 
 - Clone the repo: `git clone git@github.com:Knoblauchpilze/user-service.git`.
 - Install Go from [here](https://go.dev/doc/install). **NOTE**: this project expects Go 1.22 to be available on the system.
-- Go to the project's directory `cd ~/path/to/the/repo`.
-- Compile and install: `make`.
-- Execute any application with `make run app_name`.
+- Go to the project's directory: `cd ~/path/to/the/repo`.
+- Go to the server's directory: `cd cmd/users`.
+- Compile and install the server: `make run`.
 
 ## Setup the database
 
