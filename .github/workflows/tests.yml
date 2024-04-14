@@ -1,9 +1,10 @@
 name: Tests
 
-on: workflow_call
-  secrets:
-    codecov-token:
-      required: true
+on:
+  workflow_call:
+    secrets:
+      codecov-token:
+        required: true
 
 jobs:
   tests:
