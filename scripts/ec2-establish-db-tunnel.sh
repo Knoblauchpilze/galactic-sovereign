@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [ "$#" -ne 2 ]; then
-  echo "usage: ec2-establish-db-tunnel.sh path/to/identify/file ec2-ip-address"
+  echo "usage: ec2-ip-address ec2-establish-db-tunnel.sh path/to/identify/file"
   exit 1
 fi
 
