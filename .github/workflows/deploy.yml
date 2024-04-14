@@ -12,7 +12,9 @@ jobs:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
 
     steps:
-      - name: Docker login
+      - name: Print github commit
+        run: echo ${{ github.event.workflow_run.head_sha }}
+      - name: Update running docker instance
         uses: appleboy/ssh-action@v1.0.3
         with:
           # https://github.com/appleboy/ssh-action
@@ -21,4 +23,5 @@ jobs:
           key: ${{ secrets.EC2_DEPLOY_SSH_KEY }}
           passphrase: ${{ secrets.EC2_DEPLOY_SSH_KEY_PASSPHRASE }}
           script: |
-            docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }}
+            docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }} |
+            docker pull totocorpsoftwareinc/user-service:${{ github.event.workflow_run.head_sha }}
