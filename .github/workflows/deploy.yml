@@ -13,7 +13,6 @@ jobs:
 
     # https://medium.com/ryanjang-devnotes/ci-cd-hands-on-github-actions-docker-hub-aws-ec2-ba09f80297e1
     steps:
-      - uses: actions/checkout@v4
       - name: Extract commit hash
         run: echo "GIT_COMMIT_HASH=$(echo "${{ github.event.workflow_run.head_sha }}" | cut -c1-7)" >> "$GITHUB_ENV"
       - name: Inject database password
@@ -29,5 +28,15 @@ jobs:
           script: |
             docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }}
             sudo docker pull totocorpsoftwareinc/user-service:${{ env.GIT_COMMIT_HASH }}
-            make user-service-stop
-            make user-service-run-detached
+            sudo docker stop user-service
+            sudo docker rm user-service
+            sudo docker run \
+              -p 5432 \
+              -p 80:80 \
+              -e ENV_DATABASE_HOST=172.17.0.1 \
+              -e ENV_DATABASE_PORT=5432 \
+              -e ENV_SERVER_PORT=80 \
+              -e ENV_DATABASE_PASSWORD='${{ env.ENV_DATABASE_PASSWORD }}' \
+              --name user-service \
+              -d \
+              user-service:${{ env.GIT_COMMIT_HASH }}
