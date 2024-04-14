@@ -21,7 +21,7 @@ jobs:
         uses: appleboy/ssh-action@v1.0.3
         with:
           # https://github.com/appleboy/ssh-action
-          host: 52.47.209.109
+          host: 35.180.67.147
           username: ubuntu
           key: ${{ secrets.EC2_DEPLOY_SSH_KEY }}
           passphrase: ${{ secrets.EC2_DEPLOY_SSH_KEY_PASSPHRASE }}
