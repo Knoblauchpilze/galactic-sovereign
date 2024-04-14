@@ -2,7 +2,7 @@ name: Deploy
 
 on:
   push:
-    # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#example-excluding-paths
+    # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#example-including-paths
     paths:
       - 'cmd/**'
       - 'pkg/**'
