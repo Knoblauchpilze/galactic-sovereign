@@ -29,6 +29,10 @@ func main() {
 		logger.Errorf("Failed to load configuration: %v", err)
 		os.Exit(1)
 	}
+	if conf.Database.User == "" || conf.Database.Password == "" {
+		logger.Errorf("Please provide a user and password to connect to the database")
+		os.Exit(1)
+	}
 
 	pool := db.NewConnectionPool(conf.Database)
 	if err := pool.Connect(); err != nil {

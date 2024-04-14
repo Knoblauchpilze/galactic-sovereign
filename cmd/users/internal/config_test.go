@@ -19,17 +19,17 @@ func TestDefaultConfig_Server(t *testing.T) {
 
 	expected := rest.Config{
 		Endpoint: "/v1/users/",
-		Port:     uint16(60000),
+		Port:     uint16(80),
 	}
 	assert.Equal(expected, conf.Server)
 }
 
-func TestDefaultConfig_Database_AssumesLocalhost(t *testing.T) {
+func TestDefaultConfig_Database_AssumesDockerLocalhost(t *testing.T) {
 	assert := assert.New(t)
 
 	conf := defaultConf()
 
-	assert.Equal("localhost", conf.Database.Host)
+	assert.Equal("172.17.0.1", conf.Database.Host)
 }
 
 func TestDefaultConfig_Database_AssumesPort5432(t *testing.T) {
@@ -48,12 +48,12 @@ func TestDefaultConfig_Database_AssumesPoolSizeOfOne(t *testing.T) {
 	assert.Equal(uint(1), conf.Database.ConnectionsPoolSize)
 }
 
-func TestDefaultConfig_Database_DoesNotDefineDatabase(t *testing.T) {
+func TestDefaultConfig_Database_AssumesUserServiceDb(t *testing.T) {
 	assert := assert.New(t)
 
 	conf := defaultConf()
 
-	assert.Equal("", conf.Database.Name)
+	assert.Equal("db_user_service", conf.Database.Name)
 }
 
 func TestDefaultConfig_Database_DoesNotDefineUser(t *testing.T) {

@@ -34,17 +34,17 @@ func LoadConfiguration(configName string) (Configuration, error) {
 	configurator.SetConfigType("yaml")
 	configurator.AddConfigPath("configs")
 
-	configurator.SetConfigName(configName)
-	if err := configurator.ReadInConfig(); err != nil {
-		return defaultConf(), err
-	}
-
 	// https://stackoverflow.com/questions/61585304/issues-with-overriding-config-using-env-variables-in-viper
 	configurator.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	configurator.SetEnvPrefix("ENV")
 	configurator.AutomaticEnv()
 
-	var out Configuration
+	configurator.SetConfigName(configName)
+	if err := configurator.ReadInConfig(); err != nil {
+		return defaultConf(), err
+	}
+
+	out := defaultConf()
 	if err := configurator.Unmarshal(&out); err != nil {
 		return defaultConf(), err
 	}
@@ -56,11 +56,12 @@ func defaultConf() Configuration {
 	return Configuration{
 		Server: rest.Config{
 			Endpoint: "/v1/users/",
-			Port:     uint16(60000),
+			Port:     uint16(80),
 		},
 		Database: db.Config{
-			Host:                "localhost",
+			Host:                "172.17.0.1",
 			Port:                5432,
+			Name:                "db_user_service",
 			ConnectionsPoolSize: 1,
 		},
 	}
