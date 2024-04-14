@@ -1,6 +1,7 @@
 name: Build and push docker image
 on:
   workflow_call:
+    # https://docs.github.com/en/actions/using-workflows/reusing-workflows#passing-inputs-and-secrets-to-a-reusable-workflow
     secrets:
       dockerhub-username:
         required: true
