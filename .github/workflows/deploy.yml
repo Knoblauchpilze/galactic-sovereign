@@ -13,7 +13,7 @@ jobs:
 
     steps:
       - name: Extract commit hash
-        run: echo "GIT_COMMIT_HASH=$(git rev-parse --short "${{ github.event.workflow_run.head_sha }}")" >> "$GITHUB_ENV"
+        run: echo "GIT_COMMIT_HASH=$(echo "${{ github.event.workflow_run.head_sha }}" | cut -c1-7)" >> "$GITHUB_ENV"
       - name: Update running docker instance
         uses: appleboy/ssh-action@v1.0.3
         with:
