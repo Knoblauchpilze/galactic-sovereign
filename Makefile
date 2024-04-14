@@ -29,7 +29,7 @@ user-service-run:
 		user-service:${GIT_COMMIT_HASH}
 
 user-service-run-detached:
-	docker run \
+	sudo docker run \
 		-p ${ENV_DATABASE_PORT} \
 		-p ${ENV_SERVER_PORT}:${ENV_SERVER_PORT} \
 		-e ENV_DATABASE_HOST=${ENV_DATABASE_HOST} \
@@ -41,7 +41,7 @@ user-service-run-detached:
 		user-service:${GIT_COMMIT_HASH}
 
 user-service-stop:
-	docker stop user-service
-	docker rm user-service
+	sudo docker stop user-service
+	sudo docker rm user-service
 
 user-service-start: user-service-build user-service-run
