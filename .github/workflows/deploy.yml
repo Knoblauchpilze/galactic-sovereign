@@ -54,10 +54,10 @@ jobs:
             sudo docker container ls -la --format "{{.Names}}" | grep user-service | xargs --no-run-if-empty sudo docker stop user-service
             sudo docker container ls -la --format "{{.Names}}" | grep user-service | xargs --no-run-if-empty sudo docker rm user-service
             sudo docker run \
-              -p "${{ env.DATABASE_PORT}}" \
-              -p "${{ env.SERVER_PORT}}:${{ env.SERVER_PORT}}" \
+              -p ${{ env.DATABASE_PORT}} \
+              -p ${{ env.SERVER_PORT}}:${{ env.SERVER_PORT}} \
               -e ENV_DATABASE_PASSWORD='${{ env.ENV_DATABASE_PASSWORD }}' \
               --name user-service \
               -d \
-              --restart on-failure:"${{ env.RETRIES_COUNT}}" \
+              --restart on-failure:${{ env.RETRIES_COUNT}} \
               totocorpsoftwareinc/user-service:${{ env.GIT_COMMIT_HASH }}
