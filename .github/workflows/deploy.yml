@@ -41,7 +41,7 @@ jobs:
         uses: appleboy/ssh-action@v1.0.3
         with:
           # https://github.com/appleboy/ssh-action
-          host: "${EC2_HOST}"
+          host: "${{ env.EC2_HOST }}"
           username: ubuntu
           key: ${{ secrets.EC2_DEPLOY_SSH_KEY }}
           passphrase: ${{ secrets.EC2_DEPLOY_SSH_KEY_PASSPHRASE }}
@@ -54,10 +54,10 @@ jobs:
             sudo docker container ls -la --format "{{.Names}}" | grep user-service | xargs --no-run-if-empty sudo docker stop user-service
             sudo docker container ls -la --format "{{.Names}}" | grep user-service | xargs --no-run-if-empty sudo docker rm user-service
             sudo docker run \
-              -p "${DATABASE_PORT}" \
-              -p "${SERVER_PORT}:${SERVER_PORT}" \
+              -p "${{ env.DATABASE_PORT}}" \
+              -p "${{ env.SERVER_PORT}}:${{ env.SERVER_PORT}}" \
               -e ENV_DATABASE_PASSWORD='${{ env.ENV_DATABASE_PASSWORD }}' \
               --name user-service \
               -d \
-              --restart on-failure:"${RETRIES_COUNT}" \
+              --restart on-failure:"${{ env.RETRIES_COUNT}}" \
               totocorpsoftwareinc/user-service:${{ env.GIT_COMMIT_HASH }}
