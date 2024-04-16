@@ -10,6 +10,12 @@ on:
       - 'build/**'
       - '.github/**'
 
+env:
+  EC2_HOST: "35.180.67.147"
+  DATABASE_PORT: 5432
+  SERVER_PORT: 80
+  RETRIES_COUNT: 5
+
 jobs:
   # https://docs.github.com/en/actions/using-workflows/reusing-workflows#calling-a-reusable-workflow
   tests:
@@ -35,7 +41,7 @@ jobs:
         uses: appleboy/ssh-action@v1.0.3
         with:
           # https://github.com/appleboy/ssh-action
-          host: 35.180.67.147
+          host: ${EC2_HOST}
           username: ubuntu
           key: ${{ secrets.EC2_DEPLOY_SSH_KEY }}
           passphrase: ${{ secrets.EC2_DEPLOY_SSH_KEY_PASSPHRASE }}
@@ -48,9 +54,10 @@ jobs:
             sudo docker container ls -la --format "{{.Names}}" | grep user-service | xargs --no-run-if-empty sudo docker stop user-service
             sudo docker container ls -la --format "{{.Names}}" | grep user-service | xargs --no-run-if-empty sudo docker rm user-service
             sudo docker run \
-              -p 5432 \
-              -p 80:80 \
+              -p ${DATABASE_PORT} \
+              -p ${SERVER_PORT}:${SERVER_PORT} \
               -e ENV_DATABASE_PASSWORD='${{ env.ENV_DATABASE_PASSWORD }}' \
               --name user-service \
               -d \
+              --restart on-failure:${RETRIES_COUNT} \
               totocorpsoftwareinc/user-service:${{ env.GIT_COMMIT_HASH }}
