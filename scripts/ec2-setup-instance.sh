@@ -3,13 +3,14 @@
 # To be used as user-data when starting an ec2 instance. This will install
 # the utility scripts we need to manage the server.
 # https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/user-data.html
+POSTGRESQL_VERSION=14
 
 # Install utilities
 apt-get update
 apt-get -y install gridsite-clients unzip
 
 # Install postgresql
-apt-get -y install postgresql-14
+apt-get -y install postgresql-${POSTGRESQL_VERSION}
 
 # Install docker
 # https://docs.docker.com/engine/install/ubuntu/#install-using-the-repository
