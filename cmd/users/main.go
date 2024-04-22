@@ -41,8 +41,6 @@ func main() {
 	}
 	defer pool.Close()
 
-	installCleanup(pool)
-
 	userRepo := repositories.NewUserRepository(pool)
 	apiKeyRepo := repositories.NewApiKeyRepository(pool)
 	userService := service.NewUserService(pool, userRepo, apiKeyRepo)
@@ -56,19 +54,24 @@ func main() {
 		}
 	}
 
-	if err := s.Start(); err != nil {
+	close := s.Start()
+
+	installCleanup(pool, close)
+
+	if err := s.Wait(); err != nil {
 		logger.Errorf("Error while servier was running: %v", err)
 		os.Exit(1)
 	}
 }
 
-func installCleanup(conn db.ConnectionPool) {
+func installCleanup(conn db.ConnectionPool, close chan bool) {
 	// https://stackoverflow.com/questions/11268943/is-it-possible-to-capture-a-ctrlc-signal-sigint-and-run-a-cleanup-function-i
 	interruptChannel := make(chan os.Signal, 2)
 	signal.Notify(interruptChannel, os.Interrupt, syscall.SIGTERM)
 	go func() {
 		<-interruptChannel
 
+		close <- true
 		conn.Close()
 		os.Exit(1)
 	}()

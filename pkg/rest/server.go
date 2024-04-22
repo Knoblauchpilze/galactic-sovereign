@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"sync"
 
 	"github.com/KnoblauchPilze/user-service/pkg/errors"
 	"github.com/KnoblauchPilze/user-service/pkg/logger"
@@ -13,7 +14,8 @@ import (
 )
 
 type Server interface {
-	Start() error
+	Start() chan bool
+	Wait() error
 	Register(route Route) error
 }
 
@@ -21,21 +23,43 @@ type serverImpl struct {
 	endpoint   string
 	port       uint16
 	echoServer *echo.Echo
+
+	wg    sync.WaitGroup
+	close chan bool
+	err   error
 }
 
 func NewServer(conf Config, apiKeyRepository repositories.ApiKeyRepository) Server {
+	ctx, close := createContextAndMiddlewares(apiKeyRepository)
+
 	return &serverImpl{
 		endpoint:   strings.TrimSuffix(conf.Endpoint, "/"),
 		port:       conf.Port,
-		echoServer: createEchoContext(apiKeyRepository),
+		echoServer: ctx,
+		close:      close,
 	}
 }
 
-func (s *serverImpl) Start() error {
+func (s *serverImpl) Start() chan bool {
 	address := fmt.Sprintf(":%d", s.port)
 
-	s.echoServer.Logger.Infof("Starting server at %s%s", s.endpoint, address)
-	return s.echoServer.Start(address)
+	s.wg.Add(1)
+
+	go func() {
+		defer s.wg.Done()
+
+		s.echoServer.Logger.Infof("Starting server at %s%s", s.endpoint, address)
+		s.err = s.echoServer.Start(address)
+	}()
+
+	return s.close
+}
+
+func (s *serverImpl) Wait() error {
+	s.wg.Wait()
+	s.close <- true
+
+	return s.err
 }
 
 func (s *serverImpl) Register(route Route) error {
@@ -59,7 +83,7 @@ func (s *serverImpl) Register(route Route) error {
 	return nil
 }
 
-func createEchoContext(apiKeyRepository repositories.ApiKeyRepository) *echo.Echo {
+func createContextAndMiddlewares(apiKeyRepository repositories.ApiKeyRepository) (*echo.Echo, chan bool) {
 	e := echo.New()
 	e.HideBanner = true
 	e.HidePort = true
@@ -67,9 +91,11 @@ func createEchoContext(apiKeyRepository repositories.ApiKeyRepository) *echo.Ech
 
 	e.Use(middleware.RequestTiming())
 	e.Use(middleware.ResponseEnvelope())
+	handler, close := middleware.ThrottleMiddleware(2, 4)
+	e.Use(handler)
 	e.Use(middleware.ErrorMiddleware())
 	e.Use(middleware.Recover())
 	e.Use(middleware.ApiKeyMiddleware(apiKeyRepository))
 
-	return e
+	return e, close
 }
