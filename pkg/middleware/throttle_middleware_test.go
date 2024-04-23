@@ -77,13 +77,12 @@ func TestThrottleMiddleware_PropagatesError(t *testing.T) {
 func TestThrottleMiddleware_ConcurrentUse_ExpectFirstServed(t *testing.T) {
 	assert := assert.New(t)
 
+	em, close := ThrottleMiddleware(1, 1, 1)
 	next := createHandlerFuncReturningCode(http.StatusOK)
+	handler := em(next)
 
 	client1 := newMockEchoContext(http.StatusOK)
 	client2 := newMockEchoContext(http.StatusOK)
-
-	em, close := ThrottleMiddleware(1, 1, 1)
-	callable := em(next)
 
 	var wg sync.WaitGroup
 	wg.Add(2)
@@ -91,12 +90,12 @@ func TestThrottleMiddleware_ConcurrentUse_ExpectFirstServed(t *testing.T) {
 	c1 := func() {
 		defer wg.Done()
 
-		callable(client1)
+		handler(client1)
 		assert.Equal(http.StatusOK, client1.reportedCode)
 
 		time.Sleep(1500 * time.Millisecond)
 
-		callable(client1)
+		handler(client1)
 		assert.Equal(http.StatusTooManyRequests, client1.reportedCode)
 	}
 
@@ -105,7 +104,7 @@ func TestThrottleMiddleware_ConcurrentUse_ExpectFirstServed(t *testing.T) {
 
 		time.Sleep(1100 * time.Millisecond)
 
-		callable(client2)
+		handler(client2)
 		assert.Equal(http.StatusOK, client2.reportedCode)
 	}
 
