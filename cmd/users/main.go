@@ -54,9 +54,9 @@ func main() {
 		}
 	}
 
-	close := s.Start()
+	s.Start()
 
-	installCleanup(pool, close)
+	installCleanup(pool, s)
 
 	if err := s.Wait(); err != nil {
 		logger.Errorf("Error while servier was running: %v", err)
@@ -64,14 +64,14 @@ func main() {
 	}
 }
 
-func installCleanup(conn db.ConnectionPool, close chan bool) {
+func installCleanup(conn db.ConnectionPool, s rest.Server) {
 	// https://stackoverflow.com/questions/11268943/is-it-possible-to-capture-a-ctrlc-signal-sigint-and-run-a-cleanup-function-i
 	interruptChannel := make(chan os.Signal, 2)
 	signal.Notify(interruptChannel, os.Interrupt, syscall.SIGTERM)
 	go func() {
 		<-interruptChannel
 
-		close <- true
+		s.Stop()
 		conn.Close()
 		os.Exit(1)
 	}()
