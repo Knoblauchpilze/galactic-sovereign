@@ -14,8 +14,9 @@ import (
 )
 
 type Server interface {
-	Start() chan bool
+	Start()
 	Wait() error
+	Stop()
 	Register(route Route) error
 }
 
@@ -40,7 +41,7 @@ func NewServer(conf Config, apiKeyRepository repositories.ApiKeyRepository) Serv
 	}
 }
 
-func (s *serverImpl) Start() chan bool {
+func (s *serverImpl) Start() {
 	address := fmt.Sprintf(":%d", s.port)
 
 	s.wg.Add(1)
@@ -51,15 +52,17 @@ func (s *serverImpl) Start() chan bool {
 		s.echoServer.Logger.Infof("Starting server at %s%s", s.endpoint, address)
 		s.err = s.echoServer.Start(address)
 	}()
-
-	return s.close
 }
 
 func (s *serverImpl) Wait() error {
 	s.wg.Wait()
-	s.close <- true
+	s.Stop()
 
 	return s.err
+}
+
+func (s *serverImpl) Stop() {
+	s.close <- true
 }
 
 func (s *serverImpl) Register(route Route) error {
@@ -91,7 +94,7 @@ func createContextAndMiddlewares(apiKeyRepository repositories.ApiKeyRepository)
 
 	e.Use(middleware.RequestTiming())
 	e.Use(middleware.ResponseEnvelope())
-	handler, close := middleware.ThrottleMiddleware(2, 4)
+	handler, close := middleware.ThrottleMiddleware(4, 2, 4)
 	e.Use(handler)
 	e.Use(middleware.ErrorMiddleware())
 	e.Use(middleware.Recover())
