@@ -12,7 +12,7 @@ type throttle struct {
 	refillPerSecond int
 	capacity        int
 
-	lock   sync.RWMutex
+	lock   sync.Mutex
 	tokens int
 }
 
@@ -46,8 +46,8 @@ func ThrottleMiddleware(init int, refillPerSecond int, capacity int) (handler ec
 
 			allowed := false
 			func() {
-				data.lock.RLock()
-				defer data.lock.RUnlock()
+				data.lock.Lock()
+				defer data.lock.Unlock()
 
 				allowed = data.tokens > 0
 				if allowed {
