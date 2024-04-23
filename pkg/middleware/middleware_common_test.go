@@ -21,6 +21,12 @@ func createHandlerFuncReturning(err error) echo.HandlerFunc {
 	}
 }
 
+func createHandlerFuncReturningCode(code int) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		return c.JSON(code, "")
+	}
+}
+
 type mockEchoContext struct {
 	// https://www.myhatchpad.com/insight/mocking-techniques-for-go/
 	// See Embedding Interfaces in the page.

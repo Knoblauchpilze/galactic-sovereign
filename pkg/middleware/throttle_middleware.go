@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"fmt"
 	"net/http"
 	"sync"
 	"time"
@@ -17,21 +16,19 @@ type throttle struct {
 	tokens int
 }
 
-func ThrottleMiddleware(refillPerSecond int, capacity int) (handler echo.MiddlewareFunc, close chan bool) {
+func ThrottleMiddleware(init int, refillPerSecond int, capacity int) (handler echo.MiddlewareFunc, close chan bool) {
 	ticker := time.NewTicker(time.Second)
 
 	data := throttle{
 		refillPerSecond: refillPerSecond,
 		capacity:        capacity,
-		tokens:          capacity,
+		tokens:          init,
 	}
 
 	close = make(chan bool)
 
 	go func() {
 		defer ticker.Stop()
-
-		fmt.Println("starting")
 
 		running := true
 		for running {
@@ -42,7 +39,6 @@ func ThrottleMiddleware(refillPerSecond int, capacity int) (handler echo.Middlew
 				running = false
 			}
 		}
-		fmt.Println("closing")
 	}()
 
 	handler = func(next echo.HandlerFunc) echo.HandlerFunc {
@@ -79,8 +75,6 @@ func (t *throttle) refill() {
 	if updated > t.capacity {
 		updated = t.capacity
 	}
-
-	fmt.Printf("refilling %d\n", updated)
 
 	t.tokens = updated
 }
