@@ -45,7 +45,7 @@ var creationFunc = createServerFramework
 
 func NewServer(conf Config, apiKeyRepository repositories.ApiKeyRepository) Server {
 	s := creationFunc()
-	close := registerMiddlewares(s, apiKeyRepository)
+	close := registerMiddlewares(s, conf.RateLimit, apiKeyRepository)
 
 	return &serverImpl{
 		endpoint: strings.TrimSuffix(conf.Endpoint, "/"),
@@ -108,11 +108,13 @@ func createServerFramework() serverFramework {
 	return e
 }
 
-func registerMiddlewares(server serverFramework, apiKeyRepository repositories.ApiKeyRepository) chan bool {
+func registerMiddlewares(server serverFramework, rateLimit int, apiKeyRepository repositories.ApiKeyRepository) chan bool {
 	server.Use(middleware.RequestTiming())
 	server.Use(middleware.ResponseEnvelope())
-	handler, close := middleware.ThrottleMiddleware(4, 2, 4)
+
+	handler, close := middleware.ThrottleMiddleware(rateLimit, rateLimit, rateLimit)
 	server.Use(handler)
+
 	server.Use(middleware.ErrorMiddleware())
 	server.Use(middleware.Recover())
 	server.Use(middleware.ApiKeyMiddleware(apiKeyRepository))

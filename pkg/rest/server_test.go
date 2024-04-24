@@ -256,7 +256,7 @@ func TestRegisterMiddlewares_registersExpectedMiddlewareCount(t *testing.T) {
 
 	ms := mockServerFramework{}
 
-	c := registerMiddlewares(&ms, mockApiKeyRepository{})
+	c := registerMiddlewares(&ms, 1, mockApiKeyRepository{})
 	defer func() {
 		c <- true
 	}()
