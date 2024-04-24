@@ -20,24 +20,38 @@ type Server interface {
 	Register(route Route) error
 }
 
+type serverFramework interface {
+	GET(string, echo.HandlerFunc, ...echo.MiddlewareFunc) *echo.Route
+	POST(string, echo.HandlerFunc, ...echo.MiddlewareFunc) *echo.Route
+	DELETE(string, echo.HandlerFunc, ...echo.MiddlewareFunc) *echo.Route
+	PATCH(string, echo.HandlerFunc, ...echo.MiddlewareFunc) *echo.Route
+
+	Use(...echo.MiddlewareFunc)
+
+	Start(string) error
+}
+
 type serverImpl struct {
-	endpoint   string
-	port       uint16
-	echoServer *echo.Echo
+	endpoint string
+	port     uint16
+	server   serverFramework
 
 	wg    sync.WaitGroup
 	close chan bool
 	err   error
 }
 
+var creationFunc = createServerFramework
+
 func NewServer(conf Config, apiKeyRepository repositories.ApiKeyRepository) Server {
-	ctx, close := createContextAndMiddlewares(apiKeyRepository)
+	s := creationFunc()
+	close := registerMiddlewares(s, apiKeyRepository)
 
 	return &serverImpl{
-		endpoint:   strings.TrimSuffix(conf.Endpoint, "/"),
-		port:       conf.Port,
-		echoServer: ctx,
-		close:      close,
+		endpoint: strings.TrimSuffix(conf.Endpoint, "/"),
+		port:     conf.Port,
+		server:   s,
+		close:    close,
 	}
 }
 
@@ -49,8 +63,8 @@ func (s *serverImpl) Start() {
 	go func() {
 		defer s.wg.Done()
 
-		s.echoServer.Logger.Infof("Starting server at %s%s", s.endpoint, address)
-		s.err = s.echoServer.Start(address)
+		logger.Infof("Starting server at %s%s", s.endpoint, address)
+		s.err = s.server.Start(address)
 	}()
 }
 
@@ -70,35 +84,38 @@ func (s *serverImpl) Register(route Route) error {
 
 	switch route.Method() {
 	case http.MethodGet:
-		s.echoServer.GET(path, route.Handler())
+		s.server.GET(path, route.Handler())
 	case http.MethodPost:
-		s.echoServer.POST(path, route.Handler())
+		s.server.POST(path, route.Handler())
 	case http.MethodDelete:
-		s.echoServer.DELETE(path, route.Handler())
+		s.server.DELETE(path, route.Handler())
 	case http.MethodPatch:
-		s.echoServer.PATCH(path, route.Handler())
+		s.server.PATCH(path, route.Handler())
 	default:
 		return errors.NewCode(UnsupportedMethod)
 	}
 
-	s.echoServer.Logger.Debugf("Registered %s %s", route.Method(), path)
+	logger.Debugf("Registered %s %s", route.Method(), path)
 
 	return nil
 }
 
-func createContextAndMiddlewares(apiKeyRepository repositories.ApiKeyRepository) (*echo.Echo, chan bool) {
+func createServerFramework() serverFramework {
 	e := echo.New()
 	e.HideBanner = true
 	e.HidePort = true
 	e.Logger = logger.New("server")
+	return e
+}
 
-	e.Use(middleware.RequestTiming())
-	e.Use(middleware.ResponseEnvelope())
+func registerMiddlewares(server serverFramework, apiKeyRepository repositories.ApiKeyRepository) chan bool {
+	server.Use(middleware.RequestTiming())
+	server.Use(middleware.ResponseEnvelope())
 	handler, close := middleware.ThrottleMiddleware(4, 2, 4)
-	e.Use(handler)
-	e.Use(middleware.ErrorMiddleware())
-	e.Use(middleware.Recover())
-	e.Use(middleware.ApiKeyMiddleware(apiKeyRepository))
+	server.Use(handler)
+	server.Use(middleware.ErrorMiddleware())
+	server.Use(middleware.Recover())
+	server.Use(middleware.ApiKeyMiddleware(apiKeyRepository))
 
-	return e, close
+	return close
 }
