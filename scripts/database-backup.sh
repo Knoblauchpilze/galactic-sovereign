@@ -13,7 +13,7 @@ IAM_ROLE_NAME=${IAM_ROLE:-}
 # https://stackoverflow.com/questions/4018503/is-there-a-date-time-format-that-does-not-have-spaces
 DATE=$(date '+%F-%T' | tr ':' '_')
 
-DB_DUMP="${DB_NAME}_dump_${DATE}.bck"
+DB_DUMP="/tmp/${DB_NAME}_dump_${DATE}.bck"
 
 if [ "${DB_PASSWORD}" == "" ]; then
   echo "DB password is not configured, please define environment variable DATABASE_PASSWORD, aborting"
