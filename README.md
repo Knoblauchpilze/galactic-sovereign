@@ -43,6 +43,10 @@ In order to allow a user to SSH onto an instance, their keys need to be added to
 
 The idea is to include (among other things) the public key of the RSA key pair to automatically be installed when starting the instance.
 
+## Start an EC2 instance to host the service
+
+TODO: talk about the role to assign to the instance
+
 ## Setup the database
 
 In order to properly execute them, make sure that you know the `postgres` password (see [this SO link](https://stackoverflow.com/questions/27107557/what-is-the-default-password-for-postgres) to alter it if needed).
@@ -107,6 +111,87 @@ In case you set up a tunnel using [for remote access to the database](#in-case-o
 cd scripts
 ./ec2-close-db-tunnel.sh
 ```
+
+## Database back-up
+
+### General principle
+
+When the user-service is up and running it will perform some interactions with the database such as creating users or updating them. This means that in the event of a failure of this instance, we would loose some data.
+
+To defend against such cases this service relies on an automatic back-up task which periodically dumps the content of the database and saves it to a dedicated S3 bucket. In the event of a failure of the EC2 instance hosting the database we can restore to the latest available back-up.
+
+The back-up process is composed of two main components:
+* a cron job running regularly to dump the database
+* a S3 bucket to which the dumps are uploaded
+
+The bucket is named `user-service-database-dumps` and has a policy to only keep the back-ups for a couple of days: after that they anyway lose their relevance.
+
+### The back-up script
+
+A convenience script is provided to perform the back-up: [database-backup.sh](scripts/database-backup.sh). This script will call `pg_dump` with a user allowed to view the schema and data of the database and then proceed to upload the generated file to the S3 bucket. By default, the script is configured to try to connect to a local database with the correct properties.
+
+**It is necessary to copy this script on the EC2 instance hosting the database.**
+
+The script expects the database password to be provided as environment variable under `DATABASE_PASSWORD`. Alternatively and in order to make it simpler to use the script with a cron job (see corresponding [section](#setting-up-the-database-backup)), in the remote case it can be beneficial to modify the copied version of the script to directly include the password in it. So change the line as follows (do not change the initial `:-` sequence):
+```bash
+DB_PASSWORD=${DATABASE_PASSWORD:-the-actual-password}
+```
+
+A significant difference between the local and remote environment is the behavior of the `IAM_ROLE` environment variable. When starting the EC2 instance hosting the service, we recommend assigning it a role that allows to access the S3 bucket by default (see the [starting an EC2 instance](#start-an-ec2-instance-to-host-the-service) section). In a local environment this is most likely not the case.
+
+Assuming the user has an AWS profile and after the admin allowed the user's role to assume the right role, it is recommended to alter the `~/.aws/config` file to register the new profile, like so:
+
+![DB user role](resources/db-user-role.png)
+
+Once this is done, you can export an environment variable indicating to the script which role it should use to perform the upload as follows:
+```bash
+export IAM_ROLE=your-role-name
+```
+
+The script will then try to assume this role before uploading the backup to the bucket. By default the back-ups are named after the date at which they were taken:
+
+![S3 back-ups example](resources/db-s3-bucket-back-ups.png)
+
+### Setting up the database backup
+
+In order to automatically configure the back-up, we recommend using [cron](https://en.wikipedia.org/wiki/Cron). There are numerous articles explaining on how to make it work. We used the following article: [How do I set up a cron job](https://askubuntu.com/questions/2368/how-do-i-set-up-a-cron-job) on `askubuntu`.
+
+The idea here is to run and pick your favourite editor:
+```bash
+crontab -e
+```
+
+Once this is done, insert the following line:
+```bash
+*/20 * * * * /path/to/database-backup.sh
+```
+
+Most likely locally this will be the path to where the user cloned the repository and then `scripts/database-backup.sh` while in an EC2 instance it will be `/home/ubuntu/scripts/database-backup.sh` for example.
+
+This will make sure that the back-up is performed automatically every 20 minutes.
+
+### Restoring the database from a saved file
+
+In case of a failure of the EC2 instance or in general for any situation that would require to restore the database to an earlier state, we can use the [database-restore.sh](scripts/database-restore.sh) script.
+
+It works in a very similar way to the back-up one and expects a single argument representing the name of the database back-up to use to restore. The command line looks like so:
+```bash
+./database-restore.sh db_user_service_dump_2024-04-25-22_20_01.bck
+```
+
+Just like for the database backup case the script expects the database password to be available in the `DATABASE_PASSWORD` environment variable and the name of the IAM profile to use to access the data in the S3 bucket to be under `IAM_ROLE`. Note that the password for the database should be the one attached to the admin role.
+
+The script will attempt to assume the role to access to the S3 bucket, download the dump locally and restore the database to its previous state.
+
+A couple of useful considerations:
+* in case the download fails, no restoration will be attempted
+* in case the restore fails, the script stops at the first error
+
+In case something fails during the restore operation, the best course of action is probably to drop the database entirely and start fresh from the [create database](#creating-the-database) section before attempting the restore again.
+
+## Allowing docker containers to access the database
+
+## Deploying the service to an EC2 instance
 
 # Cheat sheet
 
