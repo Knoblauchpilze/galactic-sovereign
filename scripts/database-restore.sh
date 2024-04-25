@@ -29,14 +29,14 @@ if [ "${IAM_ROLE_NAME}" != "" ]; then
 fi
 
 echo "Downloading from ${S3_BUCKET_NAME}/${DB_DUMP}..."
-aws s3 cp ${S3_BUCKET_NAME}/${DB_DUMP} ${DB_DUMP} ${IAM_ROLE_OPTION}
+aws s3 cp ${S3_BUCKET_NAME}/${DB_DUMP} /tmp/${DB_DUMP} ${IAM_ROLE_OPTION}
 
 # https://stackoverflow.com/questions/40082346/how-to-check-if-a-file-exists-in-a-shell-script
-if [ ! -f "${DB_DUMP}" ]; then
+if [ ! -f "/tmp/${DB_DUMP}" ]; then
   echo "Failed to download ${DB_DUMP}, aborting"
   exit 1
 fi
 
 # https://www.postgresql.org/docs/current/app-pgrestore.html
 echo "Restoring database ${DB_NAME}..."
-pg_restore -ce --if-exists -d postgres://${DB_USER}:${URL_ENCODED_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME} ${DB_DUMP}
+pg_restore -ce --if-exists -d postgres://${DB_USER}:${URL_ENCODED_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME} /tmp/${DB_DUMP}
