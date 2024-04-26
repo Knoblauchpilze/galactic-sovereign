@@ -309,7 +309,35 @@ The deployment process offers a small amount of flexibility. As it is it will tr
 
 # How does the service work?
 
-TODO
+## General design
+
+This service exposes CRUD operations to manage users. A user is defined as a simple collection of an email and a password. Upon creation, a user is associated with an API key, which is required to perform interactions with the server.
+
+## API keys
+
+It is only possible to access the API key attached to a user on the response returned by the `POST` operation. All subsequent operations will erase the keys from the response. This is to make sure that only the client who initially created the user knows the keys. A typical response will look like so:
+
+![Create response](resources/service-api-keys.png)
+
+And a typical GET call will return:
+
+![Get response](resources/service-get-call.png)
+
+Even though no endpoint currently allows to do this, it is possible to de/activate API keys and each user may have more than one. Only the active ones are considered when returning them (in the CREATE operation).
+
+## Web framework
+
+We chose to use [echo](https://echo.labstack.com/) as a web framework for this project. This is used to instantiate the web server running the application and for interpreting the parameters provided by the input requests.
+
+## Throttling
+
+Because this server is supposed to be deployed on a internet facing instance, we want to make sure that we don't risk being subjected to too many requests from undesired attackers. In an attempt to mitigate this we implemented a throttling mechanism which by default allows 10 requests per second from any sources before returning `429` on new requests.
+
+# Future work
+
+As of now, **all** operations require to be using an API key to succeed. This is of course not optimal because how are you supposed to get an API key in the first place?
+
+Currently we also listen on `http://...` and don't provide anything in regards to `https`. This should be changed for enhanced security.
 
 # Cheat sheet
 
