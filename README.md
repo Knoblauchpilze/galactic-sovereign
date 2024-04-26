@@ -45,11 +45,111 @@ The idea is to include (among other things) the public key of the RSA key pair t
 
 ## Start an EC2 instance to host the service
 
-TODO: talk about the role to assign to the instance
+To start the instance on which the service will be running you need an account which can start EC2 instances on AWS. To be fully usable by the service, the CI and the back-up process the instance should fill a few criteria.
+
+### Network interface
+
+The instance should open the following ports:
+* allow incoming SSH connections (TCP 22)
+* allow outbound internet traffic (TCP 80 and 443 for http and https respectively)
+* allow incoming internet traffic (TCP 80 and 443 for http and https respectively)
+
+Note that we don't open the `postgres` server port: this is because it is generally advised (see [this SO article](https://stackoverflow.com/questions/76541185/how-to-connect-to-postgresql-server-running-on-ec2)) to not publicly expose the database to the outside world but instead to use another secured connection mechanism (e.g. SSH) to open a tunnel to the instance and then make the DB connection transit through this tunnel. This is described in more details in the [following section](#in-case-of-a-remote-environment) on how to connect to the database.
+
+### Instance role
+
+So as to be able to access the S3 bucket to push the back-ups of the database, the instance needs to be attached a role allowed to do so.
+
+### Software on the instance
+
+The service is running in a docker container and requires a `postgres` server to be available on the machine. The back-up process uses the the AWS cli to perform the S3 related operations.
+
+### Security keys
+
+In order to allow the CI to update and deploy the new versions of the service, the instance should be configured so that it can be accessed. This means adding the CI keys to the `authorized_keys` file.
+
+### Convenience template
+
+In the AWS console there's already a convenience template meeting all of these requirements. It uses the `User data` mechanism to perform some configuration on the machine when it's first being booted. Is is accessible under the `ec2-postgres-docker-aws-cli` template:
+![ec2 launch template](resources/ec2-launch-template.png)
+
+### A word on User data
+
+The User data mechanism allows, as per the AWS documentation, to:
+```
+Specify user data to provide commands or a command script to run when you launch your instance. Input is base64 encoded when you launch your instance unless you select the User data has already been base64 encoded check box.
+```
+
+This repository defines a script that can be copied directly in the User data section under [ec2-setup-instance.sh](scripts/ec2-setup-instance.sh). It will perform the installation of the necessary additional packages and configure the keys of the CI so that it can access the instance.
+
+The script will **not** setup the database (see the [creating the database](#creating-the-database) section for this). It will also not make sure that the service's docker container can properly access the local database server. This can be enabled by going to the section [just after](#allow-docker-containers-to-access-the-local-postgres-server) this one.
+
+### Allow docker containers to access the local postgres server
+
+When the service is up and running, it will attempt to access a remote `postgres` server from within the docker container. During local development, it is most common to use `localhost` as the host of the database to connect to a local `postgres` server.
+
+In the production case, the docker container is for now also connecting to a local `postgres` server on the same EC2 instance: the only difference is that it does so from within a docker container.
+
+The way docker exposes the `localhost` to application running within it is a bit different to how it works outside of it. This SO post describes [how to connect to localhost from inside a docker container](https://stackoverflow.com/questions/24319662/from-inside-of-a-docker-container-how-do-i-connect-to-the-localhost-of-the-mach) and goes into a bit of details on how it works. The TL;DR is that in the default network mode (bridge), the docker engine will associate an IP with a pattern like `172.17.X.Y` to reach localhost. This is already reflected in the [default config](cmd/users/internal/config.go) file.
+
+### Allow incoming connections to the postgres server from docker host 
+
+The previous step is just half of the work though. Now that the application within the docker container is successfully able to contact `localhost`, we need to instruct the `postgres` server to accept connections from this IP. By default, only connection from the local host are checked which does not work with the IP ranges assigned by the docker engine.
+
+Once again we found a nice explanatory [article on SO](https://stackoverflow.com/questions/31249112/allow-docker-container-to-connect-to-a-local-host-postgres-database) to solve this problem. The solution involves two steps.
+
+First, we need to instruct the `postgres` server to accept connections not only from local host but on a broader range of IPs. Reading what's indicated in the article, it can be done by editing a specific file:
+```bash
+POSTGRESQL_VERSION=14
+vim /etc/postgresql/${POSTGRESQL_VERSION}/main/postgresql.conf
+```
+
+Once the editor is started, you can look if the following line already exists: if not create it.
+```
+listen_addresses = '*'
+```
+This will instruct the `postgres` server to listen on all addresses instead of just on the local host (the default).
+
+Once this is done, we still need to instruct the `postgres` server about which authentication method it should expect for the new possible hosts. This can be achieved as described in [this SO article](https://dba.stackexchange.com/questions/83984/connect-to-postgresql-server-fatal-no-pg-hba-conf-entry-for-host).
+
+First, open the following file with your favourite editor:
+```bash
+POSTGRESQL_VERSION=14
+vim /etc/postgresql/${POSTGRESQL_VERSION}/main/pg_hba.conf
+```
+
+You can now add an entry for the IP range assigned by the docker host so as to allow connections from docker containers. We can try to keep things a bit more secure by not allowing all IPs but just the ones assigned by docker:
+```
+host  all  all  172.17.0.0/0  scram-sha-256
+```
+
+These modifications require to restart the `postgres` system to take effect. This can be done by running the following:
+```bash
+sudo systemctl restart postgresql
+```
+
+With all of this, the service running in the docker container should be able to connect to the database.
 
 ## Setup the database
 
 In order to properly execute them, make sure that you know the `postgres` password (see [this SO link](https://stackoverflow.com/questions/27107557/what-is-the-default-password-for-postgres) to alter it if needed).
+
+The general principle is to first start a shell for the `postgres` user with:
+```bash
+sudo -i -u postgres
+```
+
+After this you can start a `postgres` shell with:
+```bash
+psql
+```
+
+Once in the shell you can alter the password of the `postgres` user with:
+```sql
+ALTER USER postgres PASSWORD 'your-password';
+```
+
+After exiting the shells, you should know the password for the `postgres` password and can proceed with the rest of the setup process.
 
 ### In case of a remote environment
 
@@ -189,9 +289,13 @@ A couple of useful considerations:
 
 In case something fails during the restore operation, the best course of action is probably to drop the database entirely and start fresh from the [create database](#creating-the-database) section before attempting the restore again.
 
-## Allowing docker containers to access the database
-
 ## Deploying the service to an EC2 instance
+
+TODO
+
+# How does the service work?
+
+TODO
 
 # Cheat sheet
 
