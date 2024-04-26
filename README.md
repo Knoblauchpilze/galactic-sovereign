@@ -292,7 +292,20 @@ In case something fails during the restore operation, the best course of action 
 
 ## Deploying the service to an EC2 instance
 
-TODO
+In order to deploy the service to run on an EC2 instance, we dockerize it by building a docker image for it. This process is automated in the CI and runs on each push to the master branch after the tests and the build of the image completed successfully.
+
+The image is pushed to a dedicated dockerhub repository with a tag corresponding to the short SHA of the commit which generated the build:
+
+![Dockerhub repository](resources/dockerhub-repo.png)
+
+Images are publicly available and can be downloaded with a simple `docker pull` command such as:
+```bash
+docker up totocorpsoftwareinc/user-service:YOUR-TAG
+```
+
+To build the CI pipeline, we took a lot of inspiration from the content of [this article](https://medium.com/ryanjang-devnotes/ci-cd-hands-on-github-actions-docker-hub-aws-ec2-ba09f80297e1) by Minho Jang. It explains the steps to connect to the instance and update the running docker image.
+
+The deployment process offers a small amount of flexibility. As it is it will try to reach an EC2 instance with a known IP address (if the IP changes we need to update the CI) and start the container to listen on port `80`.
 
 # How does the service work?
 
@@ -302,35 +315,36 @@ TODO
 
 ## Create new user
 ```bash
-curl -H "Content-Type: application/json" -X POST http://localhost:60001/v1/users/users -d '{"email":"some-user@mail.com","password":"1234"}' | jq
+curl -X POST -H "Content-Type: application/json" http://localhost:60001/v1/users/users -d '{"email":"some-user@mail.com","password":"1234"}' | jq
 ```
 
 ## Query existing user
 ```bash
-curl -X GET http://localhost:60001/v1/users/users/0463ed3d-bfc9-4c10-b6ee-c223bbca0fab | jq
+curl -X GET -H "Content-Type: application/json" -H 'X-Api-Key: 2da3e9ec-7299-473a-be0f-d722d870f51a' http://localhost:60001/v1/users/users/4f26321f-d0ea-46a3-83dd-6aa1c6053aaf | jq
 ```
 
 ## Query non existing user
 ```bash
-curl -X GET http://localhost:60001/v1/users/users/0463ed3d-bfc9-4c10-b6ee-c223bbca0fac | jq
+curl -X GET -H "Content-Type: application/json" -H 'X-Api-Key: 2da3e9ec-7299-473a-be0f-d722d870f51a' http://localhost:60001/v1/users/users/4f26321f-d0ea-46a3-83dd-6aa1c6053aae | jq
+```
+
+## Query without API key
+```bash
+curl -X GET -H "Content-Type: application/json" http://localhost:60001/v1/users/users/4f26321f-d0ea-46a3-83dd-6aa1c6053aae | jq
 ```
 
 ## List users
 ```bash
-curl -X GET http://localhost:60001/v1/users/users | jq
+curl -X GET -H "Content-Type: application/json" -H 'X-Api-Key: 2da3e9ec-7299-473a-be0f-d722d870f51a' http://localhost:60001/v1/users/users | jq
 ```
 
 ## Patch existing user
 ```bash
-curl -H "Content-Type: application/json" -X PATCH http://localhost:60001/v1/users/users/0463ed3d-bfc9-4c10-b6ee-c223bbca0fab -d '{"email":"some-other-user@mail.com","password":"1235"}'| jq
+curl -X PATCH -H "Content-Type: application/json" -H 'X-Api-Key: 2da3e9ec-7299-473a-be0f-d722d870f51a' http://localhost:60001/v1/users/users/0463ed3d-bfc9-4c10-b6ee-c223bbca0fab -d '{"email":"test-user@real-provider.com","password":"strong-password"}'| jq
 ```
 
 ## Delete user
 ```bash
-curl -X DELETE http://localhost:60001/v1/users/users/0463ed3d-bfc9-4c10-b6ee-c223bbca0fab | jq
+curl -X DELETE -H "Content-Type: application/json" -H 'X-Api-Key: 2da3e9ec-7299-473a-be0f-d722d870f51a' http://localhost:60001/v1/users/users/0463ed3d-bfc9-4c10-b6ee-c223bbca0fab | jq
 ```
 
-## Run the docker container
-```bash
-docker run --network=host user-service
-```
