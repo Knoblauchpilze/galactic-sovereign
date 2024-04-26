@@ -315,7 +315,7 @@ TODO
 
 ## Create new user
 ```bash
-curl -X POST -H "Content-Type: application/json" http://localhost:60001/v1/users/users -d '{"email":"some-user@mail.com","password":"1234"}' | jq
+curl -X POST -H "Content-Type: application/json" -H 'X-Api-Key: 2da3e9ec-7299-473a-be0f-d722d870f51a' http://localhost:60001/v1/users/users -d '{"email":"user-1@mail.com","password":"password-for-user-1"}' | jq
 ```
 
 ## Query existing user
@@ -348,3 +348,12 @@ curl -X PATCH -H "Content-Type: application/json" -H 'X-Api-Key: 2da3e9ec-7299-4
 curl -X DELETE -H "Content-Type: application/json" -H 'X-Api-Key: 2da3e9ec-7299-473a-be0f-d722d870f51a' http://localhost:60001/v1/users/users/0463ed3d-bfc9-4c10-b6ee-c223bbca0fab | jq
 ```
 
+## Build the docker container
+```bash
+GIT_COMMIT_HASH=$(git rev-parse --short HEAD) ENV_DATABASE_PASSWORD='password' make user-service-build
+```
+
+## Run the docker container
+```bash
+GIT_COMMIT_HASH=$(git rev-parse --short HEAD) ENV_DATABASE_PASSWORD='password' make user-service-run
+```
