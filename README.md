@@ -76,7 +76,7 @@ In the AWS console there's already a convenience template meeting all of these r
 
 ### A word on User data
 
-The User data mechanism allows, as per the AWS documentation, to:
+The User data mechanism allows, as per the [AWS documentation](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/user-data.html?icmpid=docs_ec2_console), to:
 ```
 Specify user data to provide commands or a command script to run when you launch your instance. Input is base64 encoded when you launch your instance unless you select the User data has already been base64 encoded check box.
 ```
