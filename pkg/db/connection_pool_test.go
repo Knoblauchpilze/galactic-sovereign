@@ -33,7 +33,7 @@ func TestConnectionPool_ConnectUsesConnectionFunc(t *testing.T) {
 	p.Connect(context.Background())
 
 	assert.True(called)
-	expected := conf.toConnPoolConfig()
+	expected, _ := conf.toConnPoolConfig()
 	assert.Equal(expected, actualConf)
 }
 

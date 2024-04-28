@@ -31,7 +31,13 @@ func newConnectionPool(config Config, connFunc pgxConnectionFunc) ConnectionPool
 
 func (c *connectionPoolImpl) Connect(ctx context.Context) error {
 	logger.Infof("Connecting to %s at %s:%d with user %s", c.config.Name, c.config.Host, c.config.Port, c.config.User)
-	pool, err := c.connFunc(ctx, c.config.toConnPoolConfig())
+
+	conf, err := c.config.toConnPoolConfig()
+	if err != nil {
+		return err
+	}
+
+	pool, err := c.connFunc(ctx, conf)
 	if err != nil {
 		return err
 	}
