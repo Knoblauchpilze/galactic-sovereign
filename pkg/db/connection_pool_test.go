@@ -29,11 +29,13 @@ func TestConnectionPool_ConnectUsesConnectionFunc(t *testing.T) {
 		Host: "some-host",
 	}
 
-	p := newConnectionPool(conf, mockConnFunc)
-	p.Connect(context.Background())
+	p := newConnectionPool(defaultPoolConf, mockConnFunc)
+	err := p.Connect(context.Background())
 
+	assert.Nil(err)
 	assert.True(called)
 	expected, _ := conf.toConnPoolConfig()
+	// TODO: Refactor this to extract a second test to verify the conf
 	assert.Equal(expected, actualConf)
 }
 
@@ -44,7 +46,7 @@ func TestConnectionPool_ConnectPropagatesError(t *testing.T) {
 		return nil, errDefault
 	}
 
-	p := newConnectionPool(Config{}, mockConnFunc)
+	p := newConnectionPool(defaultPoolConf, mockConnFunc)
 	err := p.Connect(context.Background())
 
 	assert.Equal(errDefault, err)
