@@ -1,6 +1,7 @@
 package db
 
 import (
+	"encoding/base64"
 	"fmt"
 	"strconv"
 	"strings"
@@ -24,8 +25,9 @@ func (c Config) toConnPoolConfig() (*pgxpool.Config, error) {
 	// https://stackoverflow.com/questions/3582552/what-is-the-format-for-the-postgresql-connection-string-url
 	connStr := postgresqlConnectionStringTemplate
 	connStr = strings.ReplaceAll(connStr, "${user}", c.User)
-	// TODO: URL encode
-	connStr = strings.ReplaceAll(connStr, "${password}", c.Password)
+	// https://stackoverflow.com/questions/58419348/is-there-a-urlencode-function-in-golang
+	passwordEncoded := base64.URLEncoding.EncodeToString([]byte(c.Password))
+	connStr = strings.ReplaceAll(connStr, "${password}", passwordEncoded)
 	connStr = strings.ReplaceAll(connStr, "${host}", c.Host)
 	connStr = strings.ReplaceAll(connStr, "${port}", strconv.Itoa(int(c.Port)))
 	connStr = strings.ReplaceAll(connStr, "${dbname}", c.Name)
