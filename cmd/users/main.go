@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"os"
 	"os/signal"
 	"syscall"
@@ -35,7 +36,7 @@ func main() {
 	}
 
 	pool := db.NewConnectionPool(conf.Database)
-	if err := pool.Connect(); err != nil {
+	if err := pool.Connect(context.Background()); err != nil {
 		logger.Errorf("Failed to connect to the database: %v", err)
 		os.Exit(1)
 	}
