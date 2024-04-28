@@ -47,7 +47,6 @@ func (c Config) toConnPoolConfig() (*pgxpool.Config, error) {
 		conf, parseErr = pgxpool.ParseConfig(connStr)
 	}()
 
-	// TODO: Handle error
 	// TODO: Also set the logger?
 	// Logger            Logger
 	// LogLevel          LogLevel
