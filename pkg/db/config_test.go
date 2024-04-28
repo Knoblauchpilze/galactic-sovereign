@@ -2,7 +2,6 @@ package db
 
 import (
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -22,12 +21,11 @@ func TestConfig_ToConnPoolConfig(t *testing.T) {
 
 	actual := c.toConnPoolConfig()
 
-	assert.Equal("host", actual.Host)
-	assert.Equal(uint16(36), actual.Port)
-	assert.Equal("db", actual.Database)
-	assert.Equal("user", actual.User)
-	assert.Equal("password", actual.Password)
+	assert.Equal("host", actual.ConnConfig.Host)
+	assert.Equal(uint16(36), actual.ConnConfig.Port)
+	assert.Equal("db", actual.ConnConfig.Database)
+	assert.Equal("user", actual.ConnConfig.User)
+	assert.Equal("password", actual.ConnConfig.Password)
 
-	assert.Equal(2, actual.MaxConnections)
-	assert.Equal(time.Duration(0), actual.AcquireTimeout)
+	assert.Equal(int32(2), actual.MinConns)
 }

@@ -1,7 +1,11 @@
 package db
 
 import (
-	"github.com/jackc/pgx"
+	"fmt"
+	"strconv"
+	"strings"
+
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type Config struct {
@@ -13,20 +17,27 @@ type Config struct {
 	ConnectionsPoolSize uint
 }
 
-func (c Config) toConnPoolConfig() pgx.ConnPoolConfig {
-	return pgx.ConnPoolConfig{
-		ConnConfig: pgx.ConnConfig{
-			Host:     c.Host,
-			Port:     c.Port,
-			Database: c.Name,
-			User:     c.User,
-			Password: c.Password,
-		},
-		// TODO: Also set the logger?
-		// Logger            Logger
-		// LogLevel          LogLevel
+const postgresqlConnectionStringTemplate = "postgresql://${user}:${password}@${host}:${port}/${dbname}"
 
-		MaxConnections: int(c.ConnectionsPoolSize),
-		AcquireTimeout: 0,
+func (c Config) toConnPoolConfig() *pgxpool.Config {
+	// https://stackoverflow.com/questions/3582552/what-is-the-format-for-the-postgresql-connection-string-url
+	connStr := postgresqlConnectionStringTemplate
+	connStr = strings.ReplaceAll(connStr, "${user}", c.User)
+	// TODO: URL encode
+	connStr = strings.ReplaceAll(connStr, "${password}", c.Password)
+	connStr = strings.ReplaceAll(connStr, "${host}", c.Host)
+	connStr = strings.ReplaceAll(connStr, "${port}", strconv.Itoa(int(c.Port)))
+	connStr = strings.ReplaceAll(connStr, "${dbname}", c.Name)
+
+	// TODO: Handle error
+	// TODO: Also set the logger?
+	// Logger            Logger
+	// LogLevel          LogLevel
+	fmt.Printf("str: %s\n", connStr)
+	conn, err := pgxpool.ParseConfig(connStr)
+	if err != nil {
+		panic(err)
 	}
+
+	return conn
 }

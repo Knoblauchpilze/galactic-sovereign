@@ -3,6 +3,7 @@ package db
 import (
 	"github.com/KnoblauchPilze/user-service/pkg/common"
 	"github.com/KnoblauchPilze/user-service/pkg/errors"
+	"github.com/jackc/pgx/v5"
 )
 
 type Scannable interface {
@@ -12,12 +13,12 @@ type Scannable interface {
 type RowParser func(row Scannable) error
 
 type rowsImpl struct {
-	rows pgxRows
+	rows pgx.Rows
 	next bool
 	err  error
 }
 
-func newRows(rows pgxRows, err error) Rows {
+func newRows(rows pgx.Rows, err error) Rows {
 	r := rowsImpl{
 		rows: rows,
 		err:  err,

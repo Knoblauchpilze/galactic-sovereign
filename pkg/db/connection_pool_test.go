@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/jackc/pgx"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -15,9 +17,9 @@ func TestConnectionPool_ConnectUsesConnectionFunc(t *testing.T) {
 	assert := assert.New(t)
 
 	called := false
-	var actualConf pgx.ConnPoolConfig
+	var actualConf *pgxpool.Config
 
-	mockConnFunc := func(config pgx.ConnPoolConfig) (*pgx.ConnPool, error) {
+	mockConnFunc := func(ctx context.Context, config *pgxpool.Config) (*pgxpool.Pool, error) {
 		called = true
 		actualConf = config
 		return nil, nil
@@ -28,7 +30,7 @@ func TestConnectionPool_ConnectUsesConnectionFunc(t *testing.T) {
 	}
 
 	p := newConnectionPool(conf, mockConnFunc)
-	p.Connect()
+	p.Connect(context.Background())
 
 	assert.True(called)
 	expected := conf.toConnPoolConfig()
@@ -38,12 +40,12 @@ func TestConnectionPool_ConnectUsesConnectionFunc(t *testing.T) {
 func TestConnectionPool_ConnectPropagatesError(t *testing.T) {
 	assert := assert.New(t)
 
-	mockConnFunc := func(config pgx.ConnPoolConfig) (*pgx.ConnPool, error) {
+	mockConnFunc := func(ctx context.Context, config *pgxpool.Config) (*pgxpool.Pool, error) {
 		return nil, errDefault
 	}
 
 	p := newConnectionPool(Config{}, mockConnFunc)
-	err := p.Connect()
+	err := p.Connect(context.Background())
 
 	assert.Equal(errDefault, err)
 }
@@ -57,7 +59,7 @@ type mockPgxConnectionPool struct {
 	sqlQuery  string
 	arguments []interface{}
 
-	tx  *pgx.Tx
+	tx  pgx.Tx
 	err error
 }
 
@@ -106,7 +108,7 @@ func TestConnectionPool_StartTransaction_CreatesTransaction(t *testing.T) {
 	assert := assert.New(t)
 
 	m := &mockPgxConnectionPool{
-		tx: &pgx.Tx{},
+		tx: &mockPgxTransaction{},
 	}
 	p := connectionPoolImpl{
 		pool: m,
@@ -236,21 +238,21 @@ func (m *mockPgxConnectionPool) Close() {
 	m.closeCalled++
 }
 
-func (m *mockPgxConnectionPool) BeginEx(ctx context.Context, txOptions *pgx.TxOptions) (*pgx.Tx, error) {
+func (m *mockPgxConnectionPool) Begin(ctx context.Context) (pgx.Tx, error) {
 	m.beginCalled++
 	return m.tx, m.err
 }
 
-func (m *mockPgxConnectionPool) QueryEx(ctx context.Context, sql string, options *pgx.QueryExOptions, arguments ...interface{}) (*pgx.Rows, error) {
+func (m *mockPgxConnectionPool) Query(ctx context.Context, sql string, arguments ...any) (pgx.Rows, error) {
 	m.queryCalled++
 	m.sqlQuery = sql
 	m.arguments = append(m.arguments, arguments...)
 	return nil, m.err
 }
 
-func (m *mockPgxConnectionPool) ExecEx(ctx context.Context, sql string, options *pgx.QueryExOptions, arguments ...interface{}) (pgx.CommandTag, error) {
+func (m *mockPgxConnectionPool) Exec(ctx context.Context, sql string, arguments ...any) (pgconn.CommandTag, error) {
 	m.execCalled++
 	m.sqlQuery = sql
 	m.arguments = append(m.arguments, arguments...)
-	return pgx.CommandTag(""), m.err
+	return pgconn.NewCommandTag(""), m.err
 }
