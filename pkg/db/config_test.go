@@ -1,33 +1,61 @@
 package db
 
 import (
+	"encoding/base64"
 	"testing"
-	"time"
 
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/stretchr/testify/assert"
 )
+
+var defaultPoolConf = Config{
+	Host:     "host",
+	Port:     36,
+	Name:     "db",
+	User:     "user",
+	Password: "password",
+
+	ConnectionsPoolSize: 2,
+}
 
 func TestConfig_ToConnPoolConfig(t *testing.T) {
 	assert := assert.New(t)
 
-	c := Config{
-		Host:     "host",
-		Port:     36,
-		Name:     "db",
-		User:     "user",
-		Password: "password",
+	c := defaultPoolConf
+	actual, err := c.toConnPoolConfig()
 
-		ConnectionsPoolSize: 2,
-	}
+	assert.Nil(err)
+	assert.Equal("host", actual.ConnConfig.Host)
+	assert.Equal(uint16(36), actual.ConnConfig.Port)
+	assert.Equal("db", actual.ConnConfig.Database)
+	assert.Equal("user", actual.ConnConfig.User)
+	expectedPassword := base64.URLEncoding.EncodeToString([]byte(c.Password))
+	assert.Equal(expectedPassword, actual.ConnConfig.Password)
 
-	actual := c.toConnPoolConfig()
+	assert.Equal(int32(2), actual.MinConns)
+}
 
-	assert.Equal("host", actual.Host)
-	assert.Equal(uint16(36), actual.Port)
-	assert.Equal("db", actual.Database)
-	assert.Equal("user", actual.User)
-	assert.Equal("password", actual.Password)
+func TestConfig_ToConnPoolConfig_WhenInvalidPort_ExpectError(t *testing.T) {
+	assert := assert.New(t)
 
-	assert.Equal(2, actual.MaxConnections)
-	assert.Equal(time.Duration(0), actual.AcquireTimeout)
+	c := defaultPoolConf
+	c.Port = 0
+
+	_, err := c.toConnPoolConfig()
+
+	_, ok := err.(*pgconn.ParseConfigError)
+	assert.True(ok)
+}
+
+func TestConfig_ToConnPoolConfig_UrlEncodesPassword(t *testing.T) {
+	assert := assert.New(t)
+
+	c := defaultPoolConf
+	c.Password = "zefpoi*${oiz}"
+
+	conf, err := c.toConnPoolConfig()
+
+	assert.Nil(err)
+	expectedConnString := "postgresql://user:emVmcG9pKiR7b2l6fQ==@host:36/db?pool_min_conns=2"
+	assert.Equal(expectedConnString, conf.ConnString())
 }
