@@ -2,7 +2,6 @@ package db
 
 import (
 	"encoding/base64"
-	"fmt"
 	"strconv"
 	"strings"
 
@@ -33,29 +32,8 @@ func (c Config) toConnPoolConfig() (*pgxpool.Config, error) {
 	connStr = strings.ReplaceAll(connStr, "${dbname}", c.Name)
 	connStr = strings.ReplaceAll(connStr, "${min_connections}", strconv.Itoa(int(c.ConnectionsPoolSize)))
 
-	var conf *pgxpool.Config
-	var parseErr, recoverErr error
-	func() {
-		defer func() {
-			if maybeErr := recover(); maybeErr != nil {
-				if err, ok := maybeErr.(error); ok {
-					recoverErr = err
-				} else {
-					recoverErr = fmt.Errorf("%v", maybeErr)
-				}
-			}
-		}()
-
-		conf, parseErr = pgxpool.ParseConfig(connStr)
-	}()
-
 	// TODO: Also set the logger?
 	// Logger            Logger
 	// LogLevel          LogLevel
-	err := parseErr
-	if parseErr == nil && recoverErr != nil {
-		err = recoverErr
-	}
-
-	return conf, err
+	return pgxpool.ParseConfig(connStr)
 }
