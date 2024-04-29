@@ -52,7 +52,6 @@ func (c Config) toConnPoolConfig() (*pgxpool.Config, error) {
 	// TODO: Also set the logger?
 	// Logger            Logger
 	// LogLevel          LogLevel
-	fmt.Printf("str: %s\n", connStr)
 	err := parseErr
 	if parseErr == nil && recoverErr != nil {
 		err = recoverErr
