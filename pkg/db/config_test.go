@@ -1,7 +1,7 @@
 package db
 
 import (
-	"encoding/base64"
+	"net/url"
 	"testing"
 
 	"github.com/jackc/pgx/v5/pgconn"
@@ -29,7 +29,7 @@ func TestConfig_ToConnPoolConfig(t *testing.T) {
 	assert.Equal(uint16(36), actual.ConnConfig.Port)
 	assert.Equal("db", actual.ConnConfig.Database)
 	assert.Equal("user", actual.ConnConfig.User)
-	expectedPassword := base64.URLEncoding.EncodeToString([]byte(c.Password))
+	expectedPassword := url.QueryEscape(c.Password)
 	assert.Equal(expectedPassword, actual.ConnConfig.Password)
 
 	assert.Equal(int32(2), actual.MinConns)
@@ -56,6 +56,6 @@ func TestConfig_ToConnPoolConfig_UrlEncodesPassword(t *testing.T) {
 	conf, err := c.toConnPoolConfig()
 
 	assert.Nil(err)
-	expectedConnString := "postgresql://user:emVmcG9pKiR7b2l6fQ==@host:36/db?pool_min_conns=2"
+	expectedConnString := "postgresql://user:zefpoi%2A%24%7Boiz%7D@host:36/db?pool_min_conns=2"
 	assert.Equal(expectedConnString, conf.ConnString())
 }
