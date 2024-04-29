@@ -17,6 +17,5 @@ const (
 )
 
 func FormatWithColor(data interface{}, color Color) string {
-	// Voluntarily ignoring return values.
 	return fmt.Sprintf("\033[1;%dm%v\033[0m", color, data)
 }
