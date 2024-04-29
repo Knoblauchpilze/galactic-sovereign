@@ -17,26 +17,35 @@ func TestConnectionPool_ConnectUsesConnectionFunc(t *testing.T) {
 	assert := assert.New(t)
 
 	called := false
-	var actualConf *pgxpool.Config
 
 	mockConnFunc := func(ctx context.Context, config *pgxpool.Config) (*pgxpool.Pool, error) {
 		called = true
-		actualConf = config
 		return nil, nil
 	}
 
-	conf := Config{
-		Host: "some-host",
+	p := newConnectionPool(defaultPoolConf, mockConnFunc)
+	p.Connect(context.Background())
+
+	assert.True(called)
+}
+
+func TestConnectionPool_ConnectToExpectedDatabase(t *testing.T) {
+	assert := assert.New(t)
+
+	var actualConf *pgxpool.Config
+
+	mockConnFunc := func(ctx context.Context, config *pgxpool.Config) (*pgxpool.Pool, error) {
+		actualConf = config
+		return nil, nil
 	}
 
 	p := newConnectionPool(defaultPoolConf, mockConnFunc)
 	err := p.Connect(context.Background())
 
+	expected, _ := defaultPoolConf.toConnPoolConfig()
+
 	assert.Nil(err)
-	assert.True(called)
-	expected, _ := conf.toConnPoolConfig()
-	// TODO: Refactor this to extract a second test to verify the conf
-	assert.Equal(expected, actualConf)
+	assert.Equal(expected.ConnString(), actualConf.ConnString())
 }
 
 func TestConnectionPool_ConnectPropagatesError(t *testing.T) {
