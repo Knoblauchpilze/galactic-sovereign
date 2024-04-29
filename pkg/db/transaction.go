@@ -4,11 +4,11 @@ import (
 	"context"
 
 	"github.com/KnoblauchPilze/user-service/pkg/logger"
-	"github.com/jackc/pgx"
+	"github.com/jackc/pgx/v5"
 )
 
 type transactionImpl struct {
-	tx  pgxTransaction
+	tx  pgx.Tx
 	err error
 }
 
@@ -16,16 +16,12 @@ func (t *transactionImpl) Close(ctx context.Context) {
 	var err error
 
 	if t.err != nil {
-		err = t.tx.RollbackEx(ctx)
+		err = t.tx.Rollback(ctx)
 	} else {
-		err = t.tx.CommitEx(ctx)
+		err = t.tx.Commit(ctx)
 	}
 
-	if err != nil {
-		logger.GetRequestLogger(ctx).Warnf("Failed to finalize transaction: %v", err)
-	}
-
-	if err := t.tx.Err(); err != nil && err != pgx.ErrTxClosed {
+	if err != nil && err != pgx.ErrTxClosed {
 		logger.GetRequestLogger(ctx).Warnf("Transaction ended in error state: %v", err)
 	}
 }
@@ -34,7 +30,7 @@ func (t *transactionImpl) Query(ctx context.Context, sql string, arguments ...in
 	log := logger.GetRequestLogger(ctx)
 	log.Debugf("Query: %s (%d)", sql, len(arguments))
 
-	rows, err := t.tx.QueryEx(ctx, sql, nil, arguments...)
+	rows, err := t.tx.Query(ctx, sql, arguments...)
 	t.updateErrorStatus(err)
 	return newRows(rows, err)
 }
@@ -43,7 +39,7 @@ func (t *transactionImpl) Exec(ctx context.Context, sql string, arguments ...int
 	log := logger.GetRequestLogger(ctx)
 	log.Debugf("Exec: %s (%d)", sql, len(arguments))
 
-	tag, err := t.tx.ExecEx(ctx, sql, nil, arguments...)
+	tag, err := t.tx.Exec(ctx, sql, arguments...)
 	t.updateErrorStatus(err)
 	return int(tag.RowsAffected()), err
 }

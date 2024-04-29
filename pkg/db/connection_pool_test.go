@@ -5,45 +5,87 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/jackc/pgx"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/stretchr/testify/assert"
 )
 
 var errDefault = fmt.Errorf("some error")
 
+func TestConnectionPool_NewConnectionPool_UsesProvidedConfig(t *testing.T) {
+	assert := assert.New(t)
+
+	p := NewConnectionPool(defaultPoolConf)
+
+	actual, ok := p.(*connectionPoolImpl)
+
+	assert.True(ok)
+	assert.Equal(defaultPoolConf, actual.config)
+}
+
 func TestConnectionPool_ConnectUsesConnectionFunc(t *testing.T) {
 	assert := assert.New(t)
 
 	called := false
-	var actualConf pgx.ConnPoolConfig
 
-	mockConnFunc := func(config pgx.ConnPoolConfig) (*pgx.ConnPool, error) {
+	mockConnFunc := func(ctx context.Context, config *pgxpool.Config) (*pgxpool.Pool, error) {
 		called = true
+		return nil, nil
+	}
+
+	p := newConnectionPool(defaultPoolConf, mockConnFunc)
+	p.Connect(context.Background())
+
+	assert.True(called)
+}
+
+func TestConnectionPool_ConnectToExpectedDatabase(t *testing.T) {
+	assert := assert.New(t)
+
+	var actualConf *pgxpool.Config
+
+	mockConnFunc := func(ctx context.Context, config *pgxpool.Config) (*pgxpool.Pool, error) {
 		actualConf = config
 		return nil, nil
 	}
 
-	conf := Config{
-		Host: "some-host",
-	}
+	p := newConnectionPool(defaultPoolConf, mockConnFunc)
+	err := p.Connect(context.Background())
 
-	p := newConnectionPool(conf, mockConnFunc)
-	p.Connect()
+	expected, _ := defaultPoolConf.toConnPoolConfig()
 
-	assert.True(called)
-	expected := conf.toConnPoolConfig()
-	assert.Equal(expected, actualConf)
+	assert.Nil(err)
+	assert.Equal(expected.ConnString(), actualConf.ConnString())
 }
 
-func TestConnectionPool_ConnectPropagatesError(t *testing.T) {
+func TestConnectionPool_ConnectPropagatesConversionError(t *testing.T) {
 	assert := assert.New(t)
 
-	mockConnFunc := func(config pgx.ConnPoolConfig) (*pgx.ConnPool, error) {
+	mockConnFunc := func(ctx context.Context, config *pgxpool.Config) (*pgxpool.Pool, error) {
+		return nil, nil
+	}
+
+	conf := defaultPoolConf
+	conf.Port = 0
+
+	p := newConnectionPool(conf, mockConnFunc)
+	err := p.Connect(context.Background())
+
+	actual, ok := err.(*pgconn.ParseConfigError)
+	assert.True(ok)
+	assert.Contains(actual.Error(), "invalid port (outside range)")
+}
+
+func TestConnectionPool_ConnectPropagatesConnectionError(t *testing.T) {
+	assert := assert.New(t)
+
+	mockConnFunc := func(ctx context.Context, config *pgxpool.Config) (*pgxpool.Pool, error) {
 		return nil, errDefault
 	}
 
-	p := newConnectionPool(Config{}, mockConnFunc)
-	err := p.Connect()
+	p := newConnectionPool(defaultPoolConf, mockConnFunc)
+	err := p.Connect(context.Background())
 
 	assert.Equal(errDefault, err)
 }
@@ -57,7 +99,7 @@ type mockPgxConnectionPool struct {
 	sqlQuery  string
 	arguments []interface{}
 
-	tx  *pgx.Tx
+	tx  pgx.Tx
 	err error
 }
 
@@ -106,7 +148,7 @@ func TestConnectionPool_StartTransaction_CreatesTransaction(t *testing.T) {
 	assert := assert.New(t)
 
 	m := &mockPgxConnectionPool{
-		tx: &pgx.Tx{},
+		tx: &mockPgxTransaction{},
 	}
 	p := connectionPoolImpl{
 		pool: m,
@@ -236,21 +278,21 @@ func (m *mockPgxConnectionPool) Close() {
 	m.closeCalled++
 }
 
-func (m *mockPgxConnectionPool) BeginEx(ctx context.Context, txOptions *pgx.TxOptions) (*pgx.Tx, error) {
+func (m *mockPgxConnectionPool) Begin(ctx context.Context) (pgx.Tx, error) {
 	m.beginCalled++
 	return m.tx, m.err
 }
 
-func (m *mockPgxConnectionPool) QueryEx(ctx context.Context, sql string, options *pgx.QueryExOptions, arguments ...interface{}) (*pgx.Rows, error) {
+func (m *mockPgxConnectionPool) Query(ctx context.Context, sql string, arguments ...any) (pgx.Rows, error) {
 	m.queryCalled++
 	m.sqlQuery = sql
 	m.arguments = append(m.arguments, arguments...)
 	return nil, m.err
 }
 
-func (m *mockPgxConnectionPool) ExecEx(ctx context.Context, sql string, options *pgx.QueryExOptions, arguments ...interface{}) (pgx.CommandTag, error) {
+func (m *mockPgxConnectionPool) Exec(ctx context.Context, sql string, arguments ...any) (pgconn.CommandTag, error) {
 	m.execCalled++
 	m.sqlQuery = sql
 	m.arguments = append(m.arguments, arguments...)
-	return pgx.CommandTag(""), m.err
+	return pgconn.NewCommandTag(""), m.err
 }

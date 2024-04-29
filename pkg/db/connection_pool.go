@@ -5,10 +5,10 @@ import (
 	"sync"
 
 	"github.com/KnoblauchPilze/user-service/pkg/logger"
-	"github.com/jackc/pgx"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-type pgxConnectionFunc func(pgx.ConnPoolConfig) (*pgx.ConnPool, error)
+type pgxConnectionFunc func(context.Context, *pgxpool.Config) (*pgxpool.Pool, error)
 
 type connectionPoolImpl struct {
 	config Config
@@ -19,7 +19,7 @@ type connectionPoolImpl struct {
 }
 
 func NewConnectionPool(config Config) ConnectionPool {
-	return newConnectionPool(config, pgx.NewConnPool)
+	return newConnectionPool(config, pgxpool.NewWithConfig)
 }
 
 func newConnectionPool(config Config, connFunc pgxConnectionFunc) ConnectionPool {
@@ -29,9 +29,15 @@ func newConnectionPool(config Config, connFunc pgxConnectionFunc) ConnectionPool
 	}
 }
 
-func (c *connectionPoolImpl) Connect() error {
+func (c *connectionPoolImpl) Connect(ctx context.Context) error {
 	logger.Infof("Connecting to %s at %s:%d with user %s", c.config.Name, c.config.Host, c.config.Port, c.config.User)
-	pool, err := c.connFunc(c.config.toConnPoolConfig())
+
+	conf, err := c.config.toConnPoolConfig()
+	if err != nil {
+		return err
+	}
+
+	pool, err := c.connFunc(ctx, conf)
 	if err != nil {
 		return err
 	}
@@ -56,7 +62,7 @@ func (c *connectionPoolImpl) Close() {
 }
 
 func (c *connectionPoolImpl) StartTransaction(ctx context.Context) (Transaction, error) {
-	pgxTx, err := c.pool.BeginEx(ctx, nil)
+	pgxTx, err := c.pool.Begin(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -67,18 +73,18 @@ func (c *connectionPoolImpl) StartTransaction(ctx context.Context) (Transaction,
 	return &tx, nil
 }
 
-func (c *connectionPoolImpl) Query(ctx context.Context, sql string, arguments ...interface{}) Rows {
+func (c *connectionPoolImpl) Query(ctx context.Context, sql string, arguments ...any) Rows {
 	log := logger.GetRequestLogger(ctx)
 	log.Debugf("Query: %s (%d)", sql, len(arguments))
 
-	rows, err := c.pool.QueryEx(ctx, sql, nil, arguments...)
+	rows, err := c.pool.Query(ctx, sql, arguments...)
 	return newRows(rows, err)
 }
 
-func (c *connectionPoolImpl) Exec(ctx context.Context, sql string, arguments ...interface{}) (int, error) {
+func (c *connectionPoolImpl) Exec(ctx context.Context, sql string, arguments ...any) (int, error) {
 	log := logger.GetRequestLogger(ctx)
 	log.Debugf("Exec: %s (%d)", sql, len(arguments))
 
-	tag, err := c.pool.ExecEx(ctx, sql, nil, arguments...)
+	tag, err := c.pool.Exec(ctx, sql, arguments...)
 	return int(tag.RowsAffected()), err
 }

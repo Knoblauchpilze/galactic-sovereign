@@ -4,11 +4,14 @@ import (
 	"context"
 	"testing"
 
-	"github.com/jackc/pgx"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/stretchr/testify/assert"
 )
 
 type mockPgxTransaction struct {
+	pgx.Tx
+
 	queryCalled    int
 	execCalled     int
 	rollbackCalled int
@@ -17,7 +20,7 @@ type mockPgxTransaction struct {
 	sql       string
 	arguments []interface{}
 
-	tag pgx.CommandTag
+	tag pgconn.CommandTag
 	err error
 }
 
@@ -135,7 +138,7 @@ func TestTransaction_Exec_PropagatesCommandTag(t *testing.T) {
 	assert := assert.New(t)
 
 	mt := mockPgxTransaction{
-		tag: pgx.CommandTag("INSERT 0 1"),
+		tag: pgconn.NewCommandTag("INSERT 0 1"),
 	}
 	tx := transactionImpl{
 		tx: &mt,
@@ -173,30 +176,26 @@ func TestTransaction_Close_WhenNoError_CallsCommit(t *testing.T) {
 	assert.Equal(1, mt.commitCalled)
 }
 
-func (m *mockPgxTransaction) RollbackEx(ctx context.Context) error {
+func (m *mockPgxTransaction) Rollback(ctx context.Context) error {
 	m.rollbackCalled++
 	return m.err
 }
 
-func (m *mockPgxTransaction) CommitEx(ctx context.Context) error {
+func (m *mockPgxTransaction) Commit(ctx context.Context) error {
 	m.commitCalled++
 	return m.err
 }
 
-func (m *mockPgxTransaction) QueryEx(ctx context.Context, sql string, options *pgx.QueryExOptions, arguments ...interface{}) (*pgx.Rows, error) {
+func (m *mockPgxTransaction) Query(ctx context.Context, sql string, arguments ...interface{}) (pgx.Rows, error) {
 	m.queryCalled++
 	m.sql = sql
 	m.arguments = append(m.arguments, arguments...)
 	return nil, m.err
 }
 
-func (m *mockPgxTransaction) ExecEx(ctx context.Context, sql string, options *pgx.QueryExOptions, arguments ...interface{}) (commandTag pgx.CommandTag, err error) {
+func (m *mockPgxTransaction) Exec(ctx context.Context, sql string, arguments ...interface{}) (pgconn.CommandTag, error) {
 	m.execCalled++
 	m.sql = sql
 	m.arguments = append(m.arguments, arguments...)
 	return m.tag, m.err
-}
-
-func (m *mockPgxTransaction) Err() error {
-	return m.err
 }

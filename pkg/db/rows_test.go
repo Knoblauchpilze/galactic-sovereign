@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/KnoblauchPilze/user-service/pkg/errors"
+	"github.com/jackc/pgx/v5"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -29,6 +30,8 @@ func TestRows_Close_DoesNotPanicWhenRowsIsNil(t *testing.T) {
 }
 
 type mockPgxRows struct {
+	pgx.Rows
+
 	row        int
 	rowsCount  int
 	scanError  error
