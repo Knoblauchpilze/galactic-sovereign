@@ -1,7 +1,6 @@
 package db
 
 import (
-	"fmt"
 	"net/url"
 	"strconv"
 	"strings"
@@ -32,8 +31,6 @@ func (c Config) toConnPoolConfig() (*pgxpool.Config, error) {
 	connStr = strings.ReplaceAll(connStr, "${port}", strconv.Itoa(int(c.Port)))
 	connStr = strings.ReplaceAll(connStr, "${dbname}", c.Name)
 	connStr = strings.ReplaceAll(connStr, "${min_connections}", strconv.Itoa(int(c.ConnectionsPoolSize)))
-
-	fmt.Printf("%s\n", connStr)
 
 	// TODO: Also set the logger?
 	// Logger            Logger
