@@ -59,7 +59,25 @@ func TestConnectionPool_ConnectToExpectedDatabase(t *testing.T) {
 	assert.Equal(expected.ConnString(), actualConf.ConnString())
 }
 
-func TestConnectionPool_ConnectPropagatesError(t *testing.T) {
+func TestConnectionPool_ConnectPropagatesConversionError(t *testing.T) {
+	assert := assert.New(t)
+
+	mockConnFunc := func(ctx context.Context, config *pgxpool.Config) (*pgxpool.Pool, error) {
+		return nil, nil
+	}
+
+	conf := defaultPoolConf
+	conf.Port = 0
+
+	p := newConnectionPool(conf, mockConnFunc)
+	err := p.Connect(context.Background())
+
+	actual, ok := err.(*pgconn.ParseConfigError)
+	assert.True(ok)
+	assert.Contains(actual.Error(), "invalid port (outside range)")
+}
+
+func TestConnectionPool_ConnectPropagatesConnectionError(t *testing.T) {
 	assert := assert.New(t)
 
 	mockConnFunc := func(ctx context.Context, config *pgxpool.Config) (*pgxpool.Pool, error) {
