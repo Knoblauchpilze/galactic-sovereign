@@ -13,6 +13,17 @@ import (
 
 var errDefault = fmt.Errorf("some error")
 
+func TestConnectionPool_NewConnectionPool_UsesProvidedConfig(t *testing.T) {
+	assert := assert.New(t)
+
+	p := NewConnectionPool(defaultPoolConf)
+
+	actual, ok := p.(*connectionPoolImpl)
+
+	assert.True(ok)
+	assert.Equal(defaultPoolConf, actual.config)
+}
+
 func TestConnectionPool_ConnectUsesConnectionFunc(t *testing.T) {
 	assert := assert.New(t)
 
