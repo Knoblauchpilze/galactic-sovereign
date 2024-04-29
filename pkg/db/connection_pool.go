@@ -74,17 +74,11 @@ func (c *connectionPoolImpl) StartTransaction(ctx context.Context) (Transaction,
 }
 
 func (c *connectionPoolImpl) Query(ctx context.Context, sql string, arguments ...any) Rows {
-	log := logger.GetRequestLogger(ctx)
-	log.Debugf("Query: %s (%d)", sql, len(arguments))
-
 	rows, err := c.pool.Query(ctx, sql, arguments...)
 	return newRows(rows, err)
 }
 
 func (c *connectionPoolImpl) Exec(ctx context.Context, sql string, arguments ...any) (int, error) {
-	log := logger.GetRequestLogger(ctx)
-	log.Debugf("Exec: %s (%d)", sql, len(arguments))
-
 	tag, err := c.pool.Exec(ctx, sql, arguments...)
 	return int(tag.RowsAffected()), err
 }
