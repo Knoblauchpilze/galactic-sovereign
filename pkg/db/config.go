@@ -1,7 +1,8 @@
 package db
 
 import (
-	"encoding/base64"
+	"fmt"
+	"net/url"
 	"strconv"
 	"strings"
 
@@ -24,13 +25,15 @@ func (c Config) toConnPoolConfig() (*pgxpool.Config, error) {
 	// https://stackoverflow.com/questions/3582552/what-is-the-format-for-the-postgresql-connection-string-url
 	connStr := postgresqlConnectionStringTemplate
 	connStr = strings.ReplaceAll(connStr, "${user}", c.User)
-	// https://stackoverflow.com/questions/58419348/is-there-a-urlencode-function-in-golang
-	passwordEncoded := base64.URLEncoding.EncodeToString([]byte(c.Password))
+	// https://golang.cafe/blog/how-to-url-encode-string-in-golang-example.html
+	passwordEncoded := url.QueryEscape(c.Password)
 	connStr = strings.ReplaceAll(connStr, "${password}", passwordEncoded)
 	connStr = strings.ReplaceAll(connStr, "${host}", c.Host)
 	connStr = strings.ReplaceAll(connStr, "${port}", strconv.Itoa(int(c.Port)))
 	connStr = strings.ReplaceAll(connStr, "${dbname}", c.Name)
 	connStr = strings.ReplaceAll(connStr, "${min_connections}", strconv.Itoa(int(c.ConnectionsPoolSize)))
+
+	fmt.Printf("%s\n", connStr)
 
 	// TODO: Also set the logger?
 	// Logger            Logger
