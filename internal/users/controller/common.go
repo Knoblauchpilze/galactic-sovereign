@@ -7,7 +7,7 @@ import (
 
 type repositoriesAwareHttpHandler func(echo.Context, service.UserService) error
 
-func generateEchoHandler(handler repositoriesAwareHttpHandler, service service.UserService) echo.HandlerFunc {
+func fromRepositoriesAwareHttpHandler(handler repositoriesAwareHttpHandler, service service.UserService) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		return handler(c, service)
 	}

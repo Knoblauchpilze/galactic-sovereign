@@ -15,23 +15,23 @@ import (
 func UserEndpoints(service service.UserService) rest.Routes {
 	var out rest.Routes
 
-	postHandler := generateEchoHandler(createUser, service)
+	postHandler := fromRepositoriesAwareHttpHandler(createUser, service)
 	post := rest.NewRoute(http.MethodPost, "/users", postHandler)
 	out = append(out, post)
 
-	getHandler := generateEchoHandler(getUser, service)
+	getHandler := fromRepositoriesAwareHttpHandler(getUser, service)
 	get := rest.NewResourceRoute(http.MethodGet, "/users", getHandler)
 	out = append(out, get)
 
-	listHandler := generateEchoHandler(listUsers, service)
+	listHandler := fromRepositoriesAwareHttpHandler(listUsers, service)
 	list := rest.NewRoute(http.MethodGet, "/users", listHandler)
 	out = append(out, list)
 
-	updateHandler := generateEchoHandler(updateUser, service)
+	updateHandler := fromRepositoriesAwareHttpHandler(updateUser, service)
 	update := rest.NewResourceRoute(http.MethodPatch, "/users", updateHandler)
 	out = append(out, update)
 
-	deleteHandler := generateEchoHandler(deleteUser, service)
+	deleteHandler := fromRepositoriesAwareHttpHandler(deleteUser, service)
 	delete := rest.NewResourceRoute(http.MethodDelete, "/users", deleteHandler)
 	out = append(out, delete)
 
