@@ -5,35 +5,27 @@ import (
 	"strings"
 )
 
-type slashPrefix int
-
-const (
-	trimPrefix slashPrefix = 0
-	addPrefix  slashPrefix = 1
-)
-
-func sanitizePath(route string, slashPrefixMode slashPrefix) string {
+func sanitizePath(route string) string {
 	route = strings.TrimSuffix(route, "/")
-
-	switch slashPrefixMode {
-	case trimPrefix:
-		route = strings.TrimPrefix(route, "/")
-	case addPrefix:
-		if !strings.HasPrefix(route, "/") {
-			route = fmt.Sprintf("/%s", route)
-		}
+	if !strings.HasPrefix(route, "/") {
+		route = fmt.Sprintf("/%s", route)
 	}
 
 	return route
 }
 
-func concatenateEndpoints(endpoint string, path string) string {
-	endpoint = sanitizePath(endpoint, addPrefix)
-	path = sanitizePath(path, trimPrefix)
-
-	if len(path) == 0 {
-		return endpoint
+func concatenateEndpoints(basePath string, path string) string {
+	if len(basePath) == 0 && len(path) == 0 {
+		return "/"
 	}
 
-	return fmt.Sprintf("%s/%s", strings.TrimSuffix(endpoint, "/"), path)
+	if len(basePath) != 0 {
+		basePath = sanitizePath(basePath)
+	}
+
+	if len(path) != 0 {
+		path = sanitizePath(path)
+	}
+
+	return fmt.Sprintf("%s%s", basePath, path)
 }
