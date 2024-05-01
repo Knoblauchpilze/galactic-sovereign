@@ -19,7 +19,7 @@ func TestDefaultConfig_Server(t *testing.T) {
 	conf := defaultConf()
 
 	expected := rest.Config{
-		Endpoint:  "/v1/users/",
+		BasePath:  "/v1/users/",
 		Port:      uint16(80),
 		RateLimit: 10,
 	}

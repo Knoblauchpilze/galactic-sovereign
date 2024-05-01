@@ -1,7 +1,7 @@
 package rest
 
 type Config struct {
-	Endpoint  string
+	BasePath  string
 	Port      uint16
 	RateLimit int
 }

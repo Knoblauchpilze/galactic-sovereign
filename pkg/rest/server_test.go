@@ -16,7 +16,7 @@ type mockRoute struct {
 	method string
 
 	generatePathCalled int
-	endpoint           string
+	basePath           string
 }
 
 type mockApiKeyRepository struct {
@@ -60,14 +60,14 @@ func TestServer_Register_PropagatesPathFromConfig(t *testing.T) {
 
 	mr := &mockRoute{}
 	c := Config{
-		Endpoint: "some-endpoint",
+		BasePath: "some-path",
 	}
 
 	s := NewServer(c, &mockApiKeyRepository{})
 	defer s.Stop()
 
 	s.Register(mr)
-	assert.Equal(c.Endpoint, mr.endpoint)
+	assert.Equal(c.BasePath, mr.basePath)
 }
 
 func TestServer_Register_SanitizesPath(t *testing.T) {
@@ -75,14 +75,14 @@ func TestServer_Register_SanitizesPath(t *testing.T) {
 
 	mr := &mockRoute{}
 	c := Config{
-		Endpoint: "some-endpoint/",
+		BasePath: "some-path/",
 	}
 
 	s := NewServer(c, &mockApiKeyRepository{})
 	defer s.Stop()
 
 	s.Register(mr)
-	assert.Equal("some-endpoint", mr.endpoint)
+	assert.Equal("some-path", mr.basePath)
 }
 
 func TestServer_Register_SupportsPost(t *testing.T) {
@@ -286,9 +286,9 @@ func (m *mockRoute) Handler() echo.HandlerFunc {
 	return defaultHandler
 }
 
-func (m *mockRoute) GeneratePath(endpoint string) string {
+func (m *mockRoute) GeneratePath(basePath string) string {
 	m.generatePathCalled++
-	m.endpoint = endpoint
+	m.basePath = basePath
 	return ""
 }
 
