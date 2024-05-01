@@ -81,31 +81,25 @@ func TestRoute_WithResource_Handler(t *testing.T) {
 }
 
 type testCase struct {
-	endpoint string
 	path     string
 	expected string
 }
 
-func TestRoute_GeneratePath(t *testing.T) {
+func TestRoute_Path(t *testing.T) {
 	assert := assert.New(t)
 
 	tests := []testCase{
-		{endpoint: "endpoint", path: "path", expected: "/endpoint/path"},
-		{endpoint: "endpoint", path: "/path", expected: "/endpoint/path"},
-		{endpoint: "endpoint", path: "/path/", expected: "/endpoint/path"},
-		{endpoint: "/endpoint", path: "path", expected: "/endpoint/path"},
-		{endpoint: "/endpoint", path: "/path", expected: "/endpoint/path"},
-		{endpoint: "/endpoint", path: "/path/", expected: "/endpoint/path"},
-		{endpoint: "/endpoint/", path: "path", expected: "/endpoint/path"},
-		{endpoint: "/endpoint/", path: "/path", expected: "/endpoint/path"},
-		{endpoint: "/endpoint/", path: "/path/", expected: "/endpoint/path"},
+		{path: "path", expected: "/path"},
+		{path: "/path", expected: "/path"},
+		{path: "/path/", expected: "/path"},
+		{path: "path/", expected: "/path"},
 	}
 
 	for _, tc := range tests {
 		t.Run("", func(t *testing.T) {
 
 			r := NewRoute(http.MethodGet, false, tc.path, defaultHandler)
-			assert.Equal(tc.expected, r.GeneratePath(tc.endpoint))
+			assert.Equal(tc.expected, r.Path())
 		})
 	}
 }
@@ -114,22 +108,17 @@ func TestRoute_WithResource_GeneratePath(t *testing.T) {
 	assert := assert.New(t)
 
 	tests := []testCase{
-		{endpoint: "endpoint", path: "path", expected: "/endpoint/path/:id"},
-		{endpoint: "endpoint", path: "/path", expected: "/endpoint/path/:id"},
-		{endpoint: "endpoint", path: "/path/", expected: "/endpoint/path/:id"},
-		{endpoint: "/endpoint", path: "path", expected: "/endpoint/path/:id"},
-		{endpoint: "/endpoint", path: "/path", expected: "/endpoint/path/:id"},
-		{endpoint: "/endpoint", path: "/path/", expected: "/endpoint/path/:id"},
-		{endpoint: "/endpoint/", path: "path", expected: "/endpoint/path/:id"},
-		{endpoint: "/endpoint/", path: "/path", expected: "/endpoint/path/:id"},
-		{endpoint: "/endpoint/", path: "/path/", expected: "/endpoint/path/:id"},
+		{path: "path", expected: "/path/:id"},
+		{path: "/path", expected: "/path/:id"},
+		{path: "/path/", expected: "/path/:id"},
+		{path: "path/", expected: "/path/:id"},
 	}
 
 	for _, tc := range tests {
 		t.Run("", func(t *testing.T) {
 
 			r := NewResourceRoute(http.MethodGet, false, tc.path, defaultHandler)
-			assert.Equal(tc.expected, r.GeneratePath(tc.endpoint))
+			assert.Equal(tc.expected, r.Path())
 		})
 	}
 }
