@@ -15,7 +15,7 @@ type mockEchoContext struct {
 	echo.Context
 }
 
-func TestGenerateEchoHandler_CallsHandler(t *testing.T) {
+func TestFromRepositoriesAwareHttpHandler_CallsHandler(t *testing.T) {
 	assert := assert.New(t)
 
 	handlerCalled := false
@@ -24,21 +24,21 @@ func TestGenerateEchoHandler_CallsHandler(t *testing.T) {
 		return nil
 	}
 
-	h := generateEchoHandler(in, &mockUserService{})
+	h := fromRepositoriesAwareHttpHandler(in, &mockUserService{})
 
 	err := h(mockEchoContext{})
 	assert.Nil(err)
 	assert.True(handlerCalled)
 }
 
-func TestGenerateEchoHandler_PropagatesError(t *testing.T) {
+func TestFromRepositoriesAwareHttpHandler_PropagatesError(t *testing.T) {
 	assert := assert.New(t)
 
 	in := func(_ echo.Context, _ service.UserService) error {
 		return errDefault
 	}
 
-	h := generateEchoHandler(in, &mockUserService{})
+	h := fromRepositoriesAwareHttpHandler(in, &mockUserService{})
 
 	err := h(mockEchoContext{})
 	assert.Equal(errDefault, err)
