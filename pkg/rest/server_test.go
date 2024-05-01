@@ -282,6 +282,10 @@ func (m *mockRoute) Method() string {
 	return m.method
 }
 
+func (m *mockRoute) Authorized() bool {
+	return false
+}
+
 func (m *mockRoute) Handler() echo.HandlerFunc {
 	return defaultHandler
 }
