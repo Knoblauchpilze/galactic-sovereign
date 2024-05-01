@@ -5,7 +5,7 @@ import "github.com/labstack/echo/v4"
 type Route interface {
 	Method() string
 	Handler() echo.HandlerFunc
-	GeneratePath(endpoint string) string
+	GeneratePath(basePath string) string
 }
 
 type Routes []Route
@@ -43,8 +43,8 @@ func (r *routeImpl) Handler() echo.HandlerFunc {
 	return r.handler
 }
 
-func (r *routeImpl) GeneratePath(endpoint string) string {
-	path := concatenateEndpoints(endpoint, r.path)
+func (r *routeImpl) GeneratePath(basePath string) string {
+	path := concatenateEndpoints(basePath, r.path)
 	if r.addIdInPath {
 		path = concatenateEndpoints(path, ":id")
 	}

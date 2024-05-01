@@ -48,7 +48,7 @@ func NewServer(conf Config, apiKeyRepository repositories.ApiKeyRepository) Serv
 	close := registerMiddlewares(s, conf.RateLimit, apiKeyRepository)
 
 	return &serverImpl{
-		endpoint: strings.TrimSuffix(conf.Endpoint, "/"),
+		endpoint: strings.TrimSuffix(conf.BasePath, "/"),
 		port:     conf.Port,
 		server:   s,
 		close:    close,
