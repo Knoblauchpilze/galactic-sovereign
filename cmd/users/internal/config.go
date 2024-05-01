@@ -56,7 +56,7 @@ func LoadConfiguration(configName string) (Configuration, error) {
 func defaultConf() Configuration {
 	return Configuration{
 		Server: rest.Config{
-			BasePath:  "/v1/users/",
+			BasePath:  "/v1",
 			Port:      uint16(80),
 			RateLimit: 10,
 		},
