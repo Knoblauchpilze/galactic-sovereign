@@ -68,7 +68,8 @@ func (s *serverImpl) Stop() {
 }
 
 func (s *serverImpl) Register(route Route) error {
-	path := route.GeneratePath(s.endpoint)
+	path := route.Path()
+	path = concatenateEndpoints(s.endpoint, path)
 
 	switch route.Method() {
 	case http.MethodGet:

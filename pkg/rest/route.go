@@ -6,7 +6,7 @@ type Route interface {
 	Method() string
 	Authorized() bool
 	Handler() echo.HandlerFunc
-	GeneratePath(basePath string) string
+	Path() string
 }
 
 type Routes []Route
@@ -23,7 +23,7 @@ func NewRoute(method string, authorized bool, path string, handler echo.HandlerF
 	return &routeImpl{
 		method:      method,
 		authorized:  authorized,
-		path:        path,
+		path:        sanitizePath(path),
 		addIdInPath: false,
 		handler:     handler,
 	}
@@ -33,7 +33,7 @@ func NewResourceRoute(method string, authorized bool, path string, handler echo.
 	return &routeImpl{
 		method:      method,
 		authorized:  authorized,
-		path:        path,
+		path:        sanitizePath(path),
 		addIdInPath: true,
 		handler:     handler,
 	}
@@ -51,8 +51,8 @@ func (r *routeImpl) Handler() echo.HandlerFunc {
 	return r.handler
 }
 
-func (r *routeImpl) GeneratePath(basePath string) string {
-	path := concatenateEndpoints(basePath, r.path)
+func (r *routeImpl) Path() string {
+	path := r.path
 	if r.addIdInPath {
 		path = concatenateEndpoints(path, ":id")
 	}

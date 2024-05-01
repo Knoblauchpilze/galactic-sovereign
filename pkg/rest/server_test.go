@@ -14,9 +14,9 @@ import (
 
 type mockRoute struct {
 	method string
+	path   string
 
-	generatePathCalled int
-	basePath           string
+	pathCalled int
 }
 
 type mockApiKeyRepository struct {
@@ -52,37 +52,47 @@ func TestServer_Register_UsesPathFromRoute(t *testing.T) {
 	defer s.Stop()
 
 	s.Register(mr)
-	assert.Equal(1, mr.generatePathCalled)
+	assert.Equal(1, mr.pathCalled)
 }
 
 func TestServer_Register_PropagatesPathFromConfig(t *testing.T) {
 	assert := assert.New(t)
+	t.Cleanup(resetCreatorFunc)
 
-	mr := &mockRoute{}
+	mr := &mockRoute{
+		method: http.MethodGet,
+		path:   "path",
+	}
 	c := Config{
 		BasePath: "some-path",
 	}
+	ms := setupMockServer()
 
 	s := NewServer(c, &mockApiKeyRepository{})
 	defer s.Stop()
 
 	s.Register(mr)
-	assert.Equal(c.BasePath, mr.basePath)
+	assert.Equal("/some-path/path", ms.path)
 }
 
 func TestServer_Register_SanitizesPath(t *testing.T) {
 	assert := assert.New(t)
+	t.Cleanup(resetCreatorFunc)
 
-	mr := &mockRoute{}
+	mr := &mockRoute{
+		method: http.MethodGet,
+		path:   "/addition/",
+	}
 	c := Config{
 		BasePath: "some-path/",
 	}
+	ms := setupMockServer()
 
 	s := NewServer(c, &mockApiKeyRepository{})
 	defer s.Stop()
 
 	s.Register(mr)
-	assert.Equal("some-path", mr.basePath)
+	assert.Equal("/some-path/addition", ms.path)
 }
 
 func TestServer_Register_SupportsPost(t *testing.T) {
@@ -290,10 +300,9 @@ func (m *mockRoute) Handler() echo.HandlerFunc {
 	return defaultHandler
 }
 
-func (m *mockRoute) GeneratePath(basePath string) string {
-	m.generatePathCalled++
-	m.basePath = basePath
-	return ""
+func (m *mockRoute) Path() string {
+	m.pathCalled++
+	return m.path
 }
 
 func (m *mockServerFramework) GET(path string, handler echo.HandlerFunc, middlewares ...echo.MiddlewareFunc) *echo.Route {
