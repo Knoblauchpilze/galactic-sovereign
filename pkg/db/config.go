@@ -6,6 +6,8 @@ import (
 	"strings"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/jackc/pgx/v5/tracelog"
+	"github.com/labstack/gommon/log"
 )
 
 type Config struct {
@@ -15,6 +17,7 @@ type Config struct {
 	User                string
 	Password            string
 	ConnectionsPoolSize uint
+	LogLevel            log.Lvl
 }
 
 // https://github.com/jackc/pgx/blob/60a01d044a5b3f65b9eea866954fdeea1e7d3f00/pgxpool/pool.go#L286
@@ -32,8 +35,16 @@ func (c Config) toConnPoolConfig() (*pgxpool.Config, error) {
 	connStr = strings.ReplaceAll(connStr, "${dbname}", c.Name)
 	connStr = strings.ReplaceAll(connStr, "${min_connections}", strconv.Itoa(int(c.ConnectionsPoolSize)))
 
-	// TODO: Also set the logger?
-	// Logger            Logger
-	// LogLevel          LogLevel
-	return pgxpool.ParseConfig(connStr)
+	conf, err := pgxpool.ParseConfig(connStr)
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO: How to make sure that the request id is logged?
+	conf.ConnConfig.Tracer = &tracelog.TraceLog{
+		Logger:   new(true),
+		LogLevel: toTracelogLevel(c.LogLevel),
+	}
+
+	return conf, nil
 }

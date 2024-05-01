@@ -5,6 +5,7 @@ import (
 
 	"github.com/KnoblauchPilze/user-service/pkg/db"
 	"github.com/KnoblauchPilze/user-service/pkg/rest"
+	"github.com/labstack/gommon/log"
 	"github.com/spf13/viper"
 )
 
@@ -64,6 +65,7 @@ func defaultConf() Configuration {
 			Port:                5432,
 			Name:                "db_user_service",
 			ConnectionsPoolSize: 1,
+			LogLevel:            log.DEBUG,
 		},
 	}
 }

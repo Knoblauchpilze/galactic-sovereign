@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/KnoblauchPilze/user-service/pkg/rest"
+	"github.com/labstack/gommon/log"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 )
@@ -71,6 +72,14 @@ func TestDefaultConfig_Database_DoesNotDefinePassword(t *testing.T) {
 	conf := defaultConf()
 
 	assert.Equal("", conf.Database.Password)
+}
+
+func TestDefaultConfig_Database_UsesDebugLogLevel(t *testing.T) {
+	assert := assert.New(t)
+
+	conf := defaultConf()
+
+	assert.Equal(log.DEBUG, conf.Database.LogLevel)
 }
 
 type mockConfigurationParser struct {

@@ -27,18 +27,12 @@ func (t *transactionImpl) Close(ctx context.Context) {
 }
 
 func (t *transactionImpl) Query(ctx context.Context, sql string, arguments ...interface{}) Rows {
-	log := logger.GetRequestLogger(ctx)
-	log.Debugf("Query: %s (%d)", sql, len(arguments))
-
 	rows, err := t.tx.Query(ctx, sql, arguments...)
 	t.updateErrorStatus(err)
 	return newRows(rows, err)
 }
 
 func (t *transactionImpl) Exec(ctx context.Context, sql string, arguments ...interface{}) (int, error) {
-	log := logger.GetRequestLogger(ctx)
-	log.Debugf("Exec: %s (%d)", sql, len(arguments))
-
 	tag, err := t.tx.Exec(ctx, sql, arguments...)
 	t.updateErrorStatus(err)
 	return int(tag.RowsAffected()), err
