@@ -267,7 +267,7 @@ func TestRegisterMiddlewares_registersExpectedMiddlewareCount(t *testing.T) {
 func setupMockServer() *mockServerFramework {
 	server := &mockServerFramework{}
 
-	creationFunc = func() serverFramework {
+	creationFunc = func() echoServer {
 		return server
 	}
 
@@ -275,7 +275,7 @@ func setupMockServer() *mockServerFramework {
 }
 
 func resetCreatorFunc() {
-	creationFunc = createServerFramework
+	creationFunc = createEchoServer
 }
 
 func (m *mockRoute) Method() string {
@@ -313,6 +313,10 @@ func (m *mockServerFramework) DELETE(path string, handler echo.HandlerFunc, midd
 func (m *mockServerFramework) PATCH(path string, handler echo.HandlerFunc, middlewares ...echo.MiddlewareFunc) *echo.Route {
 	m.patchCalled++
 	m.path = path
+	return nil
+}
+
+func (m *mockServerFramework) Group(prefix string, middlewares ...echo.MiddlewareFunc) *echo.Group {
 	return nil
 }
 
