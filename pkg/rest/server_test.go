@@ -23,23 +23,28 @@ type mockApiKeyRepository struct {
 	repositories.ApiKeyRepository
 }
 
-type mockServerFramework struct {
+type mockEchoServer struct {
+	mockEchoRouter
+
+	groupCalled int
+
+	startCalled int
+
+	sleep time.Duration
+	err   error
+}
+
+type mockEchoRouter struct {
 	getCalled    int
 	postCalled   int
 	deleteCalled int
 	patchCalled  int
 
-	groupCalled int
-	useCalled   int
-
-	startCalled int
+	useCalled int
 
 	address     string
 	path        string
 	middlewares []echo.MiddlewareFunc
-
-	sleep time.Duration
-	err   error
 }
 
 var errDefault = fmt.Errorf("some error")
@@ -277,7 +282,7 @@ func TestServer_Wait_WhenStarted_TakesTime(t *testing.T) {
 func TestRegisterMiddlewares_registersExpectedMiddlewareCount(t *testing.T) {
 	assert := assert.New(t)
 
-	ms := mockServerFramework{}
+	ms := mockEchoServer{}
 
 	c := registerMiddlewares(&ms, 1, mockApiKeyRepository{})
 	defer func() {
@@ -287,8 +292,8 @@ func TestRegisterMiddlewares_registersExpectedMiddlewareCount(t *testing.T) {
 	assert.Equal(6, len(ms.middlewares))
 }
 
-func setupMockServer() *mockServerFramework {
-	server := &mockServerFramework{}
+func setupMockServer() *mockEchoServer {
+	server := &mockEchoServer{}
 
 	creationFunc = func() echoServer {
 		return server
@@ -318,43 +323,43 @@ func (m *mockRoute) Path() string {
 	return m.path
 }
 
-func (m *mockServerFramework) GET(path string, handler echo.HandlerFunc, middlewares ...echo.MiddlewareFunc) *echo.Route {
+func (m *mockEchoServer) Group(prefix string, middlewares ...echo.MiddlewareFunc) *echo.Group {
+	m.groupCalled++
+	return nil
+}
+
+func (m *mockEchoServer) Start(address string) error {
+	m.startCalled++
+	m.address = address
+	time.Sleep(m.sleep)
+	return m.err
+}
+
+func (m *mockEchoRouter) GET(path string, handler echo.HandlerFunc, middlewares ...echo.MiddlewareFunc) *echo.Route {
 	m.getCalled++
 	m.path = path
 	return nil
 }
 
-func (m *mockServerFramework) POST(path string, handler echo.HandlerFunc, middlewares ...echo.MiddlewareFunc) *echo.Route {
+func (m *mockEchoRouter) POST(path string, handler echo.HandlerFunc, middlewares ...echo.MiddlewareFunc) *echo.Route {
 	m.postCalled++
 	m.path = path
 	return nil
 }
 
-func (m *mockServerFramework) DELETE(path string, handler echo.HandlerFunc, middlewares ...echo.MiddlewareFunc) *echo.Route {
+func (m *mockEchoRouter) DELETE(path string, handler echo.HandlerFunc, middlewares ...echo.MiddlewareFunc) *echo.Route {
 	m.deleteCalled++
 	m.path = path
 	return nil
 }
 
-func (m *mockServerFramework) PATCH(path string, handler echo.HandlerFunc, middlewares ...echo.MiddlewareFunc) *echo.Route {
+func (m *mockEchoRouter) PATCH(path string, handler echo.HandlerFunc, middlewares ...echo.MiddlewareFunc) *echo.Route {
 	m.patchCalled++
 	m.path = path
 	return nil
 }
 
-func (m *mockServerFramework) Group(prefix string, middlewares ...echo.MiddlewareFunc) *echo.Group {
-	m.groupCalled++
-	return nil
-}
-
-func (m *mockServerFramework) Use(middlewares ...echo.MiddlewareFunc) {
+func (m *mockEchoRouter) Use(middlewares ...echo.MiddlewareFunc) {
 	m.useCalled++
 	m.middlewares = append(m.middlewares, middlewares...)
-}
-
-func (m *mockServerFramework) Start(address string) error {
-	m.startCalled++
-	m.address = address
-	time.Sleep(m.sleep)
-	return m.err
 }
