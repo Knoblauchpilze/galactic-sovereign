@@ -17,7 +17,7 @@ type echoRouter interface {
 type echoServer interface {
 	echoRouter
 
-	Group(string, ...echo.MiddlewareFunc) *echo.Group
+	Group(string, ...echo.MiddlewareFunc) echoRouter
 
 	Start(string) error
 }
@@ -27,5 +27,6 @@ func createEchoServer() echoServer {
 	e.HideBanner = true
 	e.HidePort = true
 	e.Logger = logger.New("server")
-	return e
+
+	return &echoServerImpl{e: e}
 }

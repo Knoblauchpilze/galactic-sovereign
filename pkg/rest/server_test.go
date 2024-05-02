@@ -13,8 +13,9 @@ import (
 )
 
 type mockRoute struct {
-	method string
-	path   string
+	method     string
+	path       string
+	authorized bool
 
 	pathCalled int
 }
@@ -23,10 +24,17 @@ type mockApiKeyRepository struct {
 	repositories.ApiKeyRepository
 }
 
+type groupData struct {
+	prefix      string
+	group       *mockEchoRouter
+	middlewares int
+}
+
 type mockEchoServer struct {
 	mockEchoRouter
 
 	groupCalled int
+	groups      []groupData
 
 	startCalled int
 
@@ -49,7 +57,7 @@ type mockEchoRouter struct {
 
 var errDefault = fmt.Errorf("some error")
 
-func TestServer_DefinesTwoGroups(t *testing.T) {
+func TestServer_DefinesTwoGroups_OneWithMiddleware(t *testing.T) {
 	assert := assert.New(t)
 	t.Cleanup(resetCreatorFunc)
 
@@ -59,12 +67,28 @@ func TestServer_DefinesTwoGroups(t *testing.T) {
 	defer s.Stop()
 
 	assert.Equal(2, ms.groupCalled)
+	assert.Equal(0, ms.groups[0].middlewares)
+	assert.Equal(1, ms.groups[1].middlewares)
 }
 
 func TestServer_Register_UsesPathFromRoute(t *testing.T) {
 	assert := assert.New(t)
 
 	mr := &mockRoute{}
+
+	s := NewServer(Config{}, &mockApiKeyRepository{})
+	defer s.Stop()
+
+	s.Register(mr)
+	assert.Equal(1, mr.pathCalled)
+}
+
+func TestServer_RegisterAuthorized_UsesPathFromRoute(t *testing.T) {
+	assert := assert.New(t)
+
+	mr := &mockRoute{
+		authorized: true,
+	}
 
 	s := NewServer(Config{}, &mockApiKeyRepository{})
 	defer s.Stop()
@@ -90,7 +114,28 @@ func TestServer_Register_PropagatesPathFromConfig(t *testing.T) {
 	defer s.Stop()
 
 	s.Register(mr)
-	assert.Equal("/some-path/path", ms.path)
+	assert.Equal("/some-path/path", ms.groups[0].group.path)
+}
+
+func TestServer_RegisterAuthorized_PropagatesPathFromConfig(t *testing.T) {
+	assert := assert.New(t)
+	t.Cleanup(resetCreatorFunc)
+
+	mr := &mockRoute{
+		method:     http.MethodGet,
+		path:       "path",
+		authorized: true,
+	}
+	c := Config{
+		BasePath: "some-path",
+	}
+	ms := setupMockServer()
+
+	s := NewServer(c, &mockApiKeyRepository{})
+	defer s.Stop()
+
+	s.Register(mr)
+	assert.Equal("/some-path/path", ms.groups[1].group.path)
 }
 
 func TestServer_Register_SanitizesPath(t *testing.T) {
@@ -110,7 +155,28 @@ func TestServer_Register_SanitizesPath(t *testing.T) {
 	defer s.Stop()
 
 	s.Register(mr)
-	assert.Equal("/some-path/addition", ms.path)
+	assert.Equal("/some-path/addition", ms.groups[0].group.path)
+}
+
+func TestServer_RegisterAuthorized_SanitizesPath(t *testing.T) {
+	assert := assert.New(t)
+	t.Cleanup(resetCreatorFunc)
+
+	mr := &mockRoute{
+		method:     http.MethodGet,
+		path:       "/addition/",
+		authorized: true,
+	}
+	c := Config{
+		BasePath: "some-path/",
+	}
+	ms := setupMockServer()
+
+	s := NewServer(c, &mockApiKeyRepository{})
+	defer s.Stop()
+
+	s.Register(mr)
+	assert.Equal("/some-path/addition", ms.groups[1].group.path)
 }
 
 func TestServer_Register_SupportsPost(t *testing.T) {
@@ -127,7 +193,25 @@ func TestServer_Register_SupportsPost(t *testing.T) {
 
 	err := s.Register(mr)
 	assert.Nil(err)
-	assert.Equal(1, ms.postCalled)
+	assert.Equal(1, ms.groups[0].group.postCalled)
+}
+
+func TestServer_RegisterAuthorized_SupportsPost(t *testing.T) {
+	assert := assert.New(t)
+	t.Cleanup(resetCreatorFunc)
+
+	ms := setupMockServer()
+	mr := &mockRoute{
+		method:     http.MethodPost,
+		authorized: true,
+	}
+
+	s := NewServer(Config{}, &mockApiKeyRepository{})
+	defer s.Stop()
+
+	err := s.Register(mr)
+	assert.Nil(err)
+	assert.Equal(1, ms.groups[1].group.postCalled)
 }
 
 func TestServer_Register_SupportsGet(t *testing.T) {
@@ -144,7 +228,25 @@ func TestServer_Register_SupportsGet(t *testing.T) {
 
 	err := s.Register(mr)
 	assert.Nil(err)
-	assert.Equal(1, ms.getCalled)
+	assert.Equal(1, ms.groups[0].group.getCalled)
+}
+
+func TestServer_RegisterAuthorized_SupportsGet(t *testing.T) {
+	assert := assert.New(t)
+	t.Cleanup(resetCreatorFunc)
+
+	ms := setupMockServer()
+	mr := &mockRoute{
+		method:     http.MethodGet,
+		authorized: true,
+	}
+
+	s := NewServer(Config{}, &mockApiKeyRepository{})
+	defer s.Stop()
+
+	err := s.Register(mr)
+	assert.Nil(err)
+	assert.Equal(1, ms.groups[1].group.getCalled)
 }
 
 func TestServer_Register_SupportsPatch(t *testing.T) {
@@ -161,7 +263,25 @@ func TestServer_Register_SupportsPatch(t *testing.T) {
 
 	err := s.Register(mr)
 	assert.Nil(err)
-	assert.Equal(1, ms.patchCalled)
+	assert.Equal(1, ms.groups[0].group.patchCalled)
+}
+
+func TestServer_RegisterAuthorized_SupportsPatch(t *testing.T) {
+	assert := assert.New(t)
+	t.Cleanup(resetCreatorFunc)
+
+	ms := setupMockServer()
+	mr := &mockRoute{
+		method:     http.MethodPatch,
+		authorized: true,
+	}
+
+	s := NewServer(Config{}, &mockApiKeyRepository{})
+	defer s.Stop()
+
+	err := s.Register(mr)
+	assert.Nil(err)
+	assert.Equal(1, ms.groups[1].group.patchCalled)
 }
 
 func TestServer_Register_SupportsDelete(t *testing.T) {
@@ -178,7 +298,25 @@ func TestServer_Register_SupportsDelete(t *testing.T) {
 
 	err := s.Register(mr)
 	assert.Nil(err)
-	assert.Equal(1, ms.deleteCalled)
+	assert.Equal(1, ms.groups[0].group.deleteCalled)
+}
+
+func TestServer_RegisterAuthorized_SupportsDelete(t *testing.T) {
+	assert := assert.New(t)
+	t.Cleanup(resetCreatorFunc)
+
+	ms := setupMockServer()
+	mr := &mockRoute{
+		method:     http.MethodDelete,
+		authorized: true,
+	}
+
+	s := NewServer(Config{}, &mockApiKeyRepository{})
+	defer s.Stop()
+
+	err := s.Register(mr)
+	assert.Nil(err)
+	assert.Equal(1, ms.groups[1].group.deleteCalled)
 }
 
 func TestServer_Register_FailsForUnsupportedMethod(t *testing.T) {
@@ -197,6 +335,34 @@ func TestServer_Register_FailsForUnsupportedMethod(t *testing.T) {
 
 			mr := &mockRoute{
 				method: method,
+			}
+
+			s := NewServer(Config{}, &mockApiKeyRepository{})
+			defer s.Stop()
+
+			err := s.Register(mr)
+			assert.True(errors.IsErrorWithCode(err, UnsupportedMethod))
+		})
+	}
+}
+
+func TestServer_RegisterAuthorized_FailsForUnsupportedMethod(t *testing.T) {
+	assert := assert.New(t)
+
+	testMethods := []string{
+		http.MethodPut,
+		"not-a-http-method",
+	}
+
+	for _, method := range testMethods {
+		t.Run(method, func(t *testing.T) {
+			t.Cleanup(resetCreatorFunc)
+
+			setupMockServer()
+
+			mr := &mockRoute{
+				method:     method,
+				authorized: true,
 			}
 
 			s := NewServer(Config{}, &mockApiKeyRepository{})
@@ -284,16 +450,18 @@ func TestRegisterMiddlewares_registersExpectedMiddlewareCount(t *testing.T) {
 
 	ms := mockEchoServer{}
 
-	c := registerMiddlewares(&ms, 1, mockApiKeyRepository{})
+	c := registerMiddlewares(&ms, 1)
 	defer func() {
 		c <- true
 	}()
 
-	assert.Equal(6, len(ms.middlewares))
+	assert.Equal(5, len(ms.middlewares))
 }
 
 func setupMockServer() *mockEchoServer {
-	server := &mockEchoServer{}
+	server := &mockEchoServer{
+		groups: []groupData{},
+	}
 
 	creationFunc = func() echoServer {
 		return server
@@ -311,7 +479,7 @@ func (m *mockRoute) Method() string {
 }
 
 func (m *mockRoute) Authorized() bool {
-	return false
+	return m.authorized
 }
 
 func (m *mockRoute) Handler() echo.HandlerFunc {
@@ -323,9 +491,17 @@ func (m *mockRoute) Path() string {
 	return m.path
 }
 
-func (m *mockEchoServer) Group(prefix string, middlewares ...echo.MiddlewareFunc) *echo.Group {
+func (m *mockEchoServer) Group(prefix string, middlewares ...echo.MiddlewareFunc) echoRouter {
 	m.groupCalled++
-	return nil
+
+	gd := groupData{
+		prefix:      prefix,
+		group:       &mockEchoRouter{},
+		middlewares: len(middlewares),
+	}
+
+	m.groups = append(m.groups, gd)
+	return gd.group
 }
 
 func (m *mockEchoServer) Start(address string) error {
