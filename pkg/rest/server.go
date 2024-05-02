@@ -36,7 +36,7 @@ var creationFunc = createEchoServer
 
 func NewServer(conf Config, apiKeyRepository repositories.ApiKeyRepository) Server {
 	s := creationFunc()
-	close := registerMiddlewares(s, conf.RateLimit, apiKeyRepository)
+	close := registerMiddlewares(s, conf.RateLimit)
 
 	// https://github.com/labstack/echo/issues/1737#issuecomment-753355711
 	publicRoutes := s.Group("")
@@ -82,15 +82,20 @@ func (s *serverImpl) Register(route Route) error {
 	path := route.Path()
 	path = concatenateEndpoints(s.endpoint, path)
 
+	router := s.publicRoutes
+	if route.Authorized() {
+		router = s.authorizedRoutes
+	}
+
 	switch route.Method() {
 	case http.MethodGet:
-		s.server.GET(path, route.Handler())
+		router.GET(path, route.Handler())
 	case http.MethodPost:
-		s.server.POST(path, route.Handler())
+		router.POST(path, route.Handler())
 	case http.MethodDelete:
-		s.server.DELETE(path, route.Handler())
+		router.DELETE(path, route.Handler())
 	case http.MethodPatch:
-		s.server.PATCH(path, route.Handler())
+		router.PATCH(path, route.Handler())
 	default:
 		return errors.NewCode(UnsupportedMethod)
 	}
@@ -100,7 +105,7 @@ func (s *serverImpl) Register(route Route) error {
 	return nil
 }
 
-func registerMiddlewares(server echoServer, rateLimit int, apiKeyRepository repositories.ApiKeyRepository) chan bool {
+func registerMiddlewares(server echoServer, rateLimit int) chan bool {
 	server.Use(middleware.RequestTiming())
 	server.Use(middleware.ResponseEnvelope())
 
@@ -109,7 +114,6 @@ func registerMiddlewares(server echoServer, rateLimit int, apiKeyRepository repo
 
 	server.Use(middleware.ErrorMiddleware())
 	server.Use(middleware.Recover())
-	server.Use(middleware.ApiKeyMiddleware(apiKeyRepository))
 
 	return close
 }
