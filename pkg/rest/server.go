@@ -22,7 +22,10 @@ type Server interface {
 type serverImpl struct {
 	endpoint string
 	port     uint16
-	server   echoServer
+
+	server           echoServer
+	publicRoutes     echoRouter
+	authorizedRoutes echoRouter
 
 	wg    sync.WaitGroup
 	close chan bool
@@ -35,11 +38,19 @@ func NewServer(conf Config, apiKeyRepository repositories.ApiKeyRepository) Serv
 	s := creationFunc()
 	close := registerMiddlewares(s, conf.RateLimit, apiKeyRepository)
 
+	// https://github.com/labstack/echo/issues/1737#issuecomment-753355711
+	publicRoutes := s.Group("")
+	authorizedRoutes := s.Group("", middleware.ApiKeyMiddleware(apiKeyRepository))
+
 	return &serverImpl{
 		endpoint: strings.TrimSuffix(conf.BasePath, "/"),
 		port:     conf.Port,
-		server:   s,
-		close:    close,
+
+		server:           s,
+		publicRoutes:     publicRoutes,
+		authorizedRoutes: authorizedRoutes,
+
+		close: close,
 	}
 }
 

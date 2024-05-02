@@ -29,7 +29,8 @@ type mockServerFramework struct {
 	deleteCalled int
 	patchCalled  int
 
-	useCalled int
+	groupCalled int
+	useCalled   int
 
 	startCalled int
 
@@ -42,6 +43,18 @@ type mockServerFramework struct {
 }
 
 var errDefault = fmt.Errorf("some error")
+
+func TestServer_DefinesTwoGroups(t *testing.T) {
+	assert := assert.New(t)
+	t.Cleanup(resetCreatorFunc)
+
+	ms := setupMockServer()
+
+	s := NewServer(Config{}, &mockApiKeyRepository{})
+	defer s.Stop()
+
+	assert.Equal(2, ms.groupCalled)
+}
 
 func TestServer_Register_UsesPathFromRoute(t *testing.T) {
 	assert := assert.New(t)
@@ -330,6 +343,7 @@ func (m *mockServerFramework) PATCH(path string, handler echo.HandlerFunc, middl
 }
 
 func (m *mockServerFramework) Group(prefix string, middlewares ...echo.MiddlewareFunc) *echo.Group {
+	m.groupCalled++
 	return nil
 }
 
