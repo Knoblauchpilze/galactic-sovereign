@@ -55,6 +55,13 @@ func main() {
 		}
 	}
 
+	for _, route := range controller.HealthCheckEndpoints(pool) {
+		if err := s.Register(route); err != nil {
+			logger.Errorf("Failed to register route: %v", err)
+			os.Exit(1)
+		}
+	}
+
 	s.Start()
 
 	installCleanup(pool, s)
