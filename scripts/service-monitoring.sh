@@ -8,6 +8,7 @@ CONTAINER_NAME=${SERVICE_NAME:-user-service}
 URL="http://localhost:${PORT}/${ENDPOINT}/healthcheck"
 
 echo "Pinging ${URL}..."
+# https://stackoverflow.com/questions/38906626/curl-to-return-http-status-code-along-with-the-response
 CODE=$(curl -o /dev/null -s -w "%{http_code}" ${URL})
 
 if [[ "${CODE}" -eq 200 ]]; then
