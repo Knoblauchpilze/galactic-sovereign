@@ -307,6 +307,28 @@ To build the CI pipeline, we took a lot of inspiration from the content of [this
 
 The deployment process offers a small amount of flexibility. As it is it will try to reach an EC2 instance with a known IP address (if the IP changes we need to update the CI) and start the container to listen on port `80`.
 
+## Monitoring the service
+
+In order to monitor the health of the service while deployed, it is possible to use the script [service-monitoring.sh](scripts/service-monitoring.sh). This script is meant to be ran as a cron job in a similar way to the database [backup script](#setting-up-the-database-backup).
+
+The script will attempt to curl the endpoint providing the healtcheck for the service and check the return code. For a healthy service this shoud be 200. Anything else will be interepreted as a unhealthy service and the script will attempt to stop the running docker container (if any) and start it again.
+
+**Note:** the script is expected to run as root or alternatively to run with a user having the permissions to run `docker` without `sudo`.
+
+To install the script, you first need to open the crontab:
+```bash
+crontab -e
+```
+
+Once this is done, insert the following line:
+```bash
+*/5 * * * * /path/to/service-monitoring.sh
+```
+
+Most likely locally this will be the path to where the user cloned the repository and then `scripts/service-monitoring.sh` while in an EC2 instance it will be `/home/ubuntu/scripts/service-monitoring.sh` for example.
+
+As it is presented here the cron job will trigger every 5 minutes and take actions appropriately.
+
 # How does the service work?
 
 ## General design
