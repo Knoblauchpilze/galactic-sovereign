@@ -92,6 +92,7 @@ func TestConnectionPool_ConnectPropagatesConnectionError(t *testing.T) {
 
 type mockPgxConnectionPool struct {
 	closeCalled int
+	pingCalled  int
 	beginCalled int
 	queryCalled int
 	execCalled  int
@@ -103,7 +104,7 @@ type mockPgxConnectionPool struct {
 	err error
 }
 
-func TestConnectionPool_CloseReleasesTheDbConnection(t *testing.T) {
+func TestConnectionPool_Close_ReleasesTheDbConnection(t *testing.T) {
 	assert := assert.New(t)
 
 	m := &mockPgxConnectionPool{}
@@ -114,6 +115,34 @@ func TestConnectionPool_CloseReleasesTheDbConnection(t *testing.T) {
 	p.Close()
 
 	assert.Equal(1, m.closeCalled)
+}
+
+func TestConnectionPool_Ping_DelegatesToPool(t *testing.T) {
+	assert := assert.New(t)
+
+	m := &mockPgxConnectionPool{}
+	p := connectionPoolImpl{
+		pool: m,
+	}
+
+	p.Ping(context.Background())
+
+	assert.Equal(1, m.pingCalled)
+}
+
+func TestConnectionPool_Ping_PropagatesPoolError(t *testing.T) {
+	assert := assert.New(t)
+
+	m := &mockPgxConnectionPool{
+		err: errDefault,
+	}
+	p := connectionPoolImpl{
+		pool: m,
+	}
+
+	err := p.Ping(context.Background())
+
+	assert.Equal(errDefault, err)
 }
 
 func TestConnectionPool_StartTransaction_DelegatesToPool(t *testing.T) {
@@ -276,6 +305,11 @@ func TestConnectionPool_Exec_PropagatesPoolError(t *testing.T) {
 
 func (m *mockPgxConnectionPool) Close() {
 	m.closeCalled++
+}
+
+func (m *mockPgxConnectionPool) Ping(ctx context.Context) error {
+	m.pingCalled++
+	return m.err
 }
 
 func (m *mockPgxConnectionPool) Begin(ctx context.Context) (pgx.Tx, error) {

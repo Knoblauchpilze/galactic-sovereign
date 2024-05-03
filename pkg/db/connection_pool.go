@@ -61,6 +61,10 @@ func (c *connectionPoolImpl) Close() {
 	logger.Infof("Closed connection to %s at %s:%d with user %s", c.config.Name, c.config.Host, c.config.Port, c.config.User)
 }
 
+func (c *connectionPoolImpl) Ping(ctx context.Context) error {
+	return c.pool.Ping(ctx)
+}
+
 func (c *connectionPoolImpl) StartTransaction(ctx context.Context) (Transaction, error) {
 	pgxTx, err := c.pool.Begin(ctx)
 	if err != nil {

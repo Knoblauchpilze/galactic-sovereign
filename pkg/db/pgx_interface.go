@@ -12,6 +12,8 @@ import (
 type pgxConnectionPool interface {
 	Close()
 
+	Ping(ctx context.Context) error
+
 	Begin(ctx context.Context) (pgx.Tx, error)
 
 	Query(ctx context.Context, sql string, arguments ...any) (pgx.Rows, error)
@@ -23,6 +25,8 @@ type pgxConnectionPool interface {
 type ConnectionPool interface {
 	Connect(ctx context.Context) error
 	Close()
+
+	Ping(ctx context.Context) error
 
 	StartTransaction(ctx context.Context) (Transaction, error)
 
