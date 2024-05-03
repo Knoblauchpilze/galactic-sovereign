@@ -365,7 +365,7 @@ Currently we also listen on `http://...` and don't provide anything in regards t
 
 ## Create new user
 ```bash
-curl -X POST -H "Content-Type: application/json" -H 'X-Api-Key: 2da3e9ec-7299-473a-be0f-d722d870f51a' http://localhost:60001/v1/users -d '{"email":"user-1@mail.com","password":"password-for-user-1"}' | jq
+curl -X POST -H "Content-Type: application/json" http://localhost:60001/v1/users -d '{"email":"user-1@mail.com","password":"password-for-user-1"}' | jq
 ```
 
 ## Query existing user
