@@ -176,9 +176,9 @@ With the `postgres` password at hand, you can navigate to the [database](databas
 
 Each script requires a few environment variables to be defined in order to properly work. A common one is `DATABASE_PORT` which should point to the port to reach the `postgres` server. Should be `5432` (default) locally and `5000` in case of remote.
 
-Additionally, [create_user.sh](database/create_user.sh) requires `ADMIN_PASSWORD`, `MANAGER_PASSWORD` and `USER_PASSWORD` which correspond to the three passwords you should have generated beforehand.
+Additionally, [create_user.sh](database/users/create_user.sh) requires `ADMIN_PASSWORD`, `MANAGER_PASSWORD` and `USER_PASSWORD` which correspond to the three passwords you should have generated beforehand.
 
-Finally the [Makefile](database/Makefile) to perform the migration requires to define the variables `DB_PORT` (same value as `DATABASE_PORT`) and `DB_PASSWORD` which should correspond to `ADMIN_PASSWORD`.
+Finally the [Makefile](database/users/Makefile) to perform the migration requires to define the variables `DB_PORT` (same value as `DATABASE_PORT`) and `DB_PASSWORD` which should correspond to `ADMIN_PASSWORD`.
 
 As a recap, here are the required steps for the remote case:
 ```bash
@@ -187,7 +187,7 @@ export ADMIN_PASSWORD='admin-password'
 export MANAGER_PASSWORD='manager-password'
 export USER_PASSWORD='user-password'
 
-cd database
+cd database/users
 ./create_user.sh
 ./create_database.sh
 
@@ -199,7 +199,7 @@ If everything goes well for the migration, you should obtain something like this
 
 ### Connect and inspect the database
 
-If you want to connect to the database to inspect its content, you can use the `connect` target defined in the [Makefile](database/Makefile). Just like for the migration, it expects the `DB_PORT` and `DB_PASSWORD` environment variables to be available. An example command would be:
+If you want to connect to the database to inspect its content, you can use the `connect` target defined in the [Makefile](database/users/Makefile). Just like for the migration, it expects the `DB_PORT` and `DB_PASSWORD` environment variables to be available. An example command would be:
 
 ```bash
 DB_PORT=5000 DB_PASSWORD='admin-password' make connect
