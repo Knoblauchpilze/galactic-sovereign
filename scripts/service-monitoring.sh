@@ -19,9 +19,9 @@ fi
 echo "Server returned ${CODE}, attempting to restart"
 
 echo "Stopping existing docker container..."
-sudo docker container ls -la --format "{{.Names}}" | \
+docker container ls -la --format "{{.Names}}" | \
   grep ${CONTAINER_NAME} | \
-  xargs --no-run-if-empty sudo docker stop ${CONTAINER_NAME}
+  xargs --no-run-if-empty docker stop ${CONTAINER_NAME}
 
 echo "Restarting docker container..."
-sudo docker start ${CONTAINER_NAME}
+docker start ${CONTAINER_NAME}
