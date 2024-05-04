@@ -3,6 +3,7 @@ package repositories
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/KnoblauchPilze/user-service/pkg/persistence"
 	"github.com/google/uuid"
@@ -39,11 +40,12 @@ func TestApiKeyRepository_Create_GeneratesValidSql(t *testing.T) {
 
 	repo.Create(context.Background(), mt, defaultApiKey)
 
-	assert.Equal("INSERT INTO api_key (id, key, api_user) VALUES($1, $2, $3)", mt.sqlQuery)
-	assert.Equal(3, len(mt.args))
+	assert.Equal("INSERT INTO api_key (id, key, api_user, valid_until) VALUES($1, $2, $3, $4)", mt.sqlQuery)
+	assert.Equal(4, len(mt.args))
 	assert.Equal(defaultApiKey.Id, mt.args[0])
 	assert.Equal(defaultApiKey.Key, mt.args[1])
 	assert.Equal(defaultApiKey.ApiUser, mt.args[2])
+	assert.Equal(defaultApiKey.ValidUntil, mt.args[3])
 }
 
 func TestApiKeyRepository_Create_PropagatesQueryFailure(t *testing.T) {
@@ -207,7 +209,7 @@ func TestApiKeyRepository_GetForKey_GeneratesValidSql(t *testing.T) {
 
 	repo.GetForKey(context.Background(), defaultApiKeyValue)
 
-	assert.Equal("SELECT id, key, api_user, enabled FROM api_key WHERE key = $1", mc.sqlQuery)
+	assert.Equal("SELECT id, key, api_user, valid_until FROM api_key WHERE key = $1", mc.sqlQuery)
 	assert.Equal(1, len(mc.args))
 	assert.Equal(defaultApiKeyValue, mc.args[0])
 }
@@ -301,8 +303,7 @@ func TestApiKeyRepository_GetForKey_ScansApiKeyProperties(t *testing.T) {
 	assert.IsType(&uuid.UUID{}, props[0])
 	assert.IsType(&uuid.UUID{}, props[1])
 	assert.IsType(&uuid.UUID{}, props[2])
-	var b bool
-	assert.IsType(&b, props[3])
+	assert.IsType(&time.Time{}, props[3])
 }
 
 func TestApiKeyRepository_GetForUser_UsesConnectionToQuery(t *testing.T) {

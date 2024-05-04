@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/KnoblauchPilze/user-service/pkg/db"
 	"github.com/KnoblauchPilze/user-service/pkg/errors"
@@ -37,9 +38,9 @@ func ApiKeyMiddleware(apiKeyRepository repositories.ApiKeyRepository) echo.Middl
 				return c.JSON(http.StatusInternalServerError, "Failed to verify API key")
 			}
 
-			if !apiKey.Enabled {
-				c.Logger().Errorf("API Key %v is disabled", apiKey.Id)
-				return c.JSON(http.StatusUnauthorized, "API key is disabled")
+			if time.Now().After(apiKey.ValidUntil) {
+				c.Logger().Errorf("API Key %v expired since %v", apiKey.Id, apiKey.ValidUntil)
+				return c.JSON(http.StatusUnauthorized, "API key expired")
 			}
 
 			return next(c)
