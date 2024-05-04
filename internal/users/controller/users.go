@@ -35,6 +35,14 @@ func UserEndpoints(service service.UserService) rest.Routes {
 	delete := rest.NewResourceRoute(http.MethodDelete, true, "/users", deleteHandler)
 	out = append(out, delete)
 
+	loginHandler := fromRepositoriesAwareHttpHandler(loginUser, service)
+	login := rest.NewRoute(http.MethodPost, false, "/users/:id/login", loginHandler)
+	out = append(out, login)
+
+	logoutHandler := fromRepositoriesAwareHttpHandler(logoutUser, service)
+	logout := rest.NewRoute(http.MethodPost, false, "/users/:id/logout", logoutHandler)
+	out = append(out, logout)
+
 	return out
 }
 
@@ -132,4 +140,36 @@ func deleteUser(c echo.Context, service service.UserService) error {
 	}
 
 	return c.NoContent(http.StatusNoContent)
+}
+
+func loginUser(c echo.Context, service service.UserService) error {
+	maybeId := c.Param("id")
+	id, err := uuid.Parse(maybeId)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, "Invalid id syntax")
+	}
+
+	out, err := service.Login(c.Request().Context(), id)
+	if err != nil {
+		// TODO: Better error handling?
+		return c.JSON(http.StatusInternalServerError, err)
+	}
+
+	return c.JSON(http.StatusCreated, out)
+}
+
+func logoutUser(c echo.Context, service service.UserService) error {
+	maybeId := c.Param("id")
+	id, err := uuid.Parse(maybeId)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, "Invalid id syntax")
+	}
+
+	err = service.Logout(c.Request().Context(), id)
+	if err != nil {
+		// TODO: Better error handling?
+		return c.JSON(http.StatusInternalServerError, err)
+	}
+
+	return c.JSON(http.StatusOK, "TODO: Correct message")
 }

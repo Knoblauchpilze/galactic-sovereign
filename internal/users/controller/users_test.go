@@ -63,7 +63,7 @@ func TestUserEndpoints_GeneratesExpectedRoutes(t *testing.T) {
 	}
 
 	assert.Equal(4, len(actualRoutes))
-	assert.Equal(1, actualRoutes[http.MethodPost])
+	assert.Equal(3, actualRoutes[http.MethodPost])
 	assert.Equal(2, actualRoutes[http.MethodGet])
 	assert.Equal(1, actualRoutes[http.MethodPatch])
 	assert.Equal(1, actualRoutes[http.MethodDelete])
@@ -671,5 +671,13 @@ func (m *mockUserService) Update(ctx context.Context, id uuid.UUID, user communi
 func (m *mockUserService) Delete(ctx context.Context, id uuid.UUID) error {
 	m.deleteCalled++
 	m.inId = id
+	return m.err
+}
+
+func (m *mockUserService) Login(ctx context.Context, id uuid.UUID) (communication.ApiKeyDtoResponse, error) {
+	return communication.ApiKeyDtoResponse{}, m.err
+}
+
+func (m *mockUserService) Logout(ctx context.Context, id uuid.UUID) error {
 	return m.err
 }

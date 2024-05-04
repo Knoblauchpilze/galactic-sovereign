@@ -6,6 +6,7 @@ import (
 
 	"github.com/KnoblauchPilze/user-service/pkg/communication"
 	"github.com/KnoblauchPilze/user-service/pkg/db"
+	"github.com/KnoblauchPilze/user-service/pkg/errors"
 	"github.com/KnoblauchPilze/user-service/pkg/repositories"
 	"github.com/google/uuid"
 )
@@ -16,6 +17,8 @@ type UserService interface {
 	List(ctx context.Context) ([]uuid.UUID, error)
 	Update(ctx context.Context, id uuid.UUID, user communication.UserDtoRequest) (communication.UserDtoResponse, error)
 	Delete(ctx context.Context, id uuid.UUID) error
+	Login(ctx context.Context, id uuid.UUID) (communication.ApiKeyDtoResponse, error)
+	Logout(ctx context.Context, id uuid.UUID) error
 }
 
 type userServiceImpl struct {
@@ -102,4 +105,12 @@ func (s *userServiceImpl) Delete(ctx context.Context, id uuid.UUID) error {
 	}
 
 	return nil
+}
+
+func (s *userServiceImpl) Login(ctx context.Context, id uuid.UUID) (communication.ApiKeyDtoResponse, error) {
+	return communication.ApiKeyDtoResponse{}, errors.NewCode(errors.NotImplementedCode)
+}
+
+func (s *userServiceImpl) Logout(ctx context.Context, id uuid.UUID) error {
+	return errors.NewCode(errors.NotImplementedCode)
 }
