@@ -44,7 +44,7 @@ func main() {
 
 	userRepo := repositories.NewUserRepository(pool)
 	apiKeyRepo := repositories.NewApiKeyRepository(pool)
-	userService := service.NewUserService(pool, userRepo, apiKeyRepo)
+	userService := service.NewUserService(conf.ApiKey, pool, userRepo, apiKeyRepo)
 
 	s := rest.NewServer(conf.Server, apiKeyRepo)
 
