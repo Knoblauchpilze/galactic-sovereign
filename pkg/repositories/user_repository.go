@@ -11,7 +11,7 @@ import (
 )
 
 type UserRepository interface {
-	Create(ctx context.Context, tx db.Transaction, user persistence.User) (persistence.User, error)
+	Create(ctx context.Context, user persistence.User) (persistence.User, error)
 	Get(ctx context.Context, id uuid.UUID) (persistence.User, error)
 	List(ctx context.Context) ([]uuid.UUID, error)
 	Update(ctx context.Context, user persistence.User) (persistence.User, error)
@@ -32,8 +32,8 @@ const createUserSqlTemplate = "INSERT INTO api_user (id, email, password, create
 
 var duplicatedKeySqlErrorRegexp = regexp.MustCompile(`duplicate key value violates unique constraint ".*" \(SQLSTATE 23505\)`)
 
-func (r *userRepositoryImpl) Create(ctx context.Context, tx db.Transaction, user persistence.User) (persistence.User, error) {
-	_, err := tx.Exec(ctx, createUserSqlTemplate, user.Id, user.Email, user.Password, user.CreatedAt)
+func (r *userRepositoryImpl) Create(ctx context.Context, user persistence.User) (persistence.User, error) {
+	_, err := r.conn.Exec(ctx, createUserSqlTemplate, user.Id, user.Email, user.Password, user.CreatedAt)
 	if err != nil && duplicatedKeySqlErrorRegexp.MatchString(err.Error()) {
 		return persistence.User{}, errors.NewCode(db.DuplicatedKeySqlKey)
 	}
