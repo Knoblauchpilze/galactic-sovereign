@@ -63,7 +63,6 @@ func defaultConf() Configuration {
 			Port:      uint16(80),
 			RateLimit: 10,
 		},
-		// TODO: Should be tested
 		ApiKey: service.Config{
 			ApiKeyValidity: time.Duration(3 * time.Hour),
 		},
