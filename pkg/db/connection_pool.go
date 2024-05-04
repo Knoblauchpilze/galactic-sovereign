@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"sync"
+	"time"
 
 	"github.com/KnoblauchPilze/user-service/pkg/logger"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -72,7 +73,8 @@ func (c *connectionPoolImpl) StartTransaction(ctx context.Context) (Transaction,
 	}
 
 	tx := transactionImpl{
-		tx: pgxTx,
+		tx:        pgxTx,
+		timeStamp: time.Now(),
 	}
 	return &tx, nil
 }

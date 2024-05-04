@@ -2,7 +2,9 @@ package internal
 
 import (
 	"strings"
+	"time"
 
+	"github.com/KnoblauchPilze/user-service/internal/users/service"
 	"github.com/KnoblauchPilze/user-service/pkg/db"
 	"github.com/KnoblauchPilze/user-service/pkg/rest"
 	"github.com/labstack/gommon/log"
@@ -11,6 +13,7 @@ import (
 
 type Configuration struct {
 	Server   rest.Config
+	ApiKey   service.Config
 	Database db.Config
 }
 
@@ -59,6 +62,10 @@ func defaultConf() Configuration {
 			BasePath:  "/v1",
 			Port:      uint16(80),
 			RateLimit: 10,
+		},
+		// TODO: Should be tested
+		ApiKey: service.Config{
+			ApiKeyValidity: time.Duration(3 * time.Hour),
 		},
 		Database: db.Config{
 			Host:                "172.17.0.1",

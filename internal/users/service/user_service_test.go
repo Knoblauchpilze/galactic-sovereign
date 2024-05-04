@@ -59,12 +59,15 @@ type mockConnectionPool struct {
 type mockTransaction struct {
 	db.Transaction
 
+	timeStamp time.Time
+
 	closeCalled int
 }
 
 var errDefault = fmt.Errorf("some error")
 var defaultUserId = uuid.MustParse("08ce96a3-3430-48a8-a3b2-b1c987a207ca")
 var defaultApiKeyId = uuid.MustParse("cc1742fa-77b4-4f5f-ac92-058c2e47a5d6")
+var testDate = time.Date(2024, 04, 01, 11, 8, 47, 651387237, time.UTC)
 
 var defaultUserDtoRequest = communication.UserDtoRequest{
 	Email:    "some-user@provider.com",
@@ -74,8 +77,8 @@ var defaultUser = persistence.User{
 	Id:        defaultUserId,
 	Email:     "e.mail@domain.com",
 	Password:  "password",
-	CreatedAt: time.Date(2024, 04, 01, 11, 8, 47, 651387237, time.UTC),
-	UpdatedAt: time.Date(2024, 04, 01, 11, 8, 47, 651387237, time.UTC),
+	CreatedAt: testDate,
+	UpdatedAt: testDate,
 }
 var defaultApiKey = persistence.ApiKey{
 	Id:      uuid.MustParse("5bda15f9-85f1-4700-867c-0a7cbda0f82c"),
@@ -89,12 +92,33 @@ func TestUserService_Create_CallsRepositoryCreate(t *testing.T) {
 	mur := &mockUserRepository{}
 	mkr := &mockApiKeyRepository{}
 	mc := &mockConnectionPool{}
-	s := NewUserService(mc, mur, mkr)
+	s := NewUserService(Config{}, mc, mur, mkr)
 
 	s.Create(context.Background(), defaultUserDtoRequest)
 
 	assert.Equal(1, mur.createCalled)
 	assert.Equal(1, mkr.createCalled)
+}
+
+func TestUserService_Create_ApiKeyHasConfiguredValidity(t *testing.T) {
+	assert := assert.New(t)
+
+	c := Config{
+		ApiKeyValidity: 13 * time.Minute,
+	}
+	mur := &mockUserRepository{}
+	mkr := &mockApiKeyRepository{}
+	mc := &mockConnectionPool{
+		tx: mockTransaction{
+			timeStamp: testDate,
+		},
+	}
+	s := NewUserService(c, mc, mur, mkr)
+
+	s.Create(context.Background(), defaultUserDtoRequest)
+
+	expected := testDate.Add(13 * time.Minute)
+	assert.Equal(expected, mkr.createdApiKey.ValidUntil)
 }
 
 func TestUserService_Create_CallsTransactionClose(t *testing.T) {
@@ -103,7 +127,7 @@ func TestUserService_Create_CallsTransactionClose(t *testing.T) {
 	mur := &mockUserRepository{}
 	mkr := &mockApiKeyRepository{}
 	mc := &mockConnectionPool{}
-	s := NewUserService(mc, mur, mkr)
+	s := NewUserService(Config{}, mc, mur, mkr)
 
 	s.Create(context.Background(), defaultUserDtoRequest)
 
@@ -118,7 +142,7 @@ func TestUserService_Create_WhenCreatingTransactionFails_ExpectError(t *testing.
 	mc := &mockConnectionPool{
 		err: errDefault,
 	}
-	s := NewUserService(mc, mur, mkr)
+	s := NewUserService(Config{}, mc, mur, mkr)
 
 	_, err := s.Create(context.Background(), defaultUserDtoRequest)
 
@@ -133,7 +157,7 @@ func TestUserService_Create_WhenUserRepositoryFails_ExpectError(t *testing.T) {
 	}
 	mkr := &mockApiKeyRepository{}
 	mc := &mockConnectionPool{}
-	s := NewUserService(mc, mur, mkr)
+	s := NewUserService(Config{}, mc, mur, mkr)
 
 	_, err := s.Create(context.Background(), defaultUserDtoRequest)
 
@@ -148,7 +172,7 @@ func TestUserService_Create_WhenApiKeyRepositoryFails_ExpectError(t *testing.T) 
 		createErr: errDefault,
 	}
 	mc := &mockConnectionPool{}
-	s := NewUserService(mc, mur, mkr)
+	s := NewUserService(Config{}, mc, mur, mkr)
 
 	_, err := s.Create(context.Background(), defaultUserDtoRequest)
 
@@ -165,7 +189,7 @@ func TestUserService_Create_ReturnsCreatedUserIncludingApiKey(t *testing.T) {
 		apiKey: defaultApiKey,
 	}
 	mc := &mockConnectionPool{}
-	s := NewUserService(mc, mur, mkr)
+	s := NewUserService(Config{}, mc, mur, mkr)
 
 	actual, err := s.Create(context.Background(), defaultUserDtoRequest)
 
@@ -189,7 +213,7 @@ func TestUserService_Get_CallsRepositoryGet(t *testing.T) {
 	mur := &mockUserRepository{}
 	mkr := &mockApiKeyRepository{}
 	mc := &mockConnectionPool{}
-	s := NewUserService(mc, mur, mkr)
+	s := NewUserService(Config{}, mc, mur, mkr)
 
 	s.Get(context.Background(), defaultUserId)
 
@@ -204,7 +228,7 @@ func TestUserService_Get_WhenRepositoryFails_ExpectError(t *testing.T) {
 	}
 	mkr := &mockApiKeyRepository{}
 	mc := &mockConnectionPool{}
-	s := NewUserService(mc, mur, mkr)
+	s := NewUserService(Config{}, mc, mur, mkr)
 
 	_, err := s.Get(context.Background(), defaultUserId)
 
@@ -219,7 +243,7 @@ func TestUserService_Get_ReturnsUserOmitingApiKey(t *testing.T) {
 	}
 	mkr := &mockApiKeyRepository{}
 	mc := &mockConnectionPool{}
-	s := NewUserService(mc, mur, mkr)
+	s := NewUserService(Config{}, mc, mur, mkr)
 
 	actual, err := s.Get(context.Background(), defaultUserId)
 
@@ -244,7 +268,7 @@ func TestUserService_List_CallsRepositoryList(t *testing.T) {
 	mur := &mockUserRepository{}
 	mkr := &mockApiKeyRepository{}
 	mc := &mockConnectionPool{}
-	s := NewUserService(mc, mur, mkr)
+	s := NewUserService(Config{}, mc, mur, mkr)
 
 	s.List(context.Background())
 
@@ -259,7 +283,7 @@ func TestUserService_List_WhenRepositoryFails_ExpectError(t *testing.T) {
 	}
 	mkr := &mockApiKeyRepository{}
 	mc := &mockConnectionPool{}
-	s := NewUserService(mc, mur, mkr)
+	s := NewUserService(Config{}, mc, mur, mkr)
 
 	_, err := s.List(context.Background())
 
@@ -277,7 +301,7 @@ func TestUserService_List_ReturnsAllUsers(t *testing.T) {
 	}
 	mkr := &mockApiKeyRepository{}
 	mc := &mockConnectionPool{}
-	s := NewUserService(mc, mur, mkr)
+	s := NewUserService(Config{}, mc, mur, mkr)
 
 	actual, err := s.List(context.Background())
 
@@ -291,7 +315,7 @@ func TestUserService_Update_CallsRepositoryGetAndUpdate(t *testing.T) {
 	mur := &mockUserRepository{}
 	mkr := &mockApiKeyRepository{}
 	mc := &mockConnectionPool{}
-	s := NewUserService(mc, mur, mkr)
+	s := NewUserService(Config{}, mc, mur, mkr)
 
 	s.Update(context.Background(), defaultUserId, defaultUserDtoRequest)
 
@@ -308,7 +332,7 @@ func TestUserService_Update_WhenGetFails_ExpectError(t *testing.T) {
 	}
 	mkr := &mockApiKeyRepository{}
 	mc := &mockConnectionPool{}
-	s := NewUserService(mc, mur, mkr)
+	s := NewUserService(Config{}, mc, mur, mkr)
 
 	_, err := s.Update(context.Background(), defaultUserId, defaultUserDtoRequest)
 
@@ -323,7 +347,7 @@ func TestUserService_Update_CallsUpdateWithUpdatedValues(t *testing.T) {
 	}
 	mkr := &mockApiKeyRepository{}
 	mc := &mockConnectionPool{}
-	s := NewUserService(mc, mur, mkr)
+	s := NewUserService(Config{}, mc, mur, mkr)
 
 	s.Update(context.Background(), defaultUserId, defaultUserDtoRequest)
 
@@ -345,7 +369,7 @@ func TestUserService_Update_WhenUpdateFails_ExpectError(t *testing.T) {
 	}
 	mkr := &mockApiKeyRepository{}
 	mc := &mockConnectionPool{}
-	s := NewUserService(mc, mur, mkr)
+	s := NewUserService(Config{}, mc, mur, mkr)
 
 	_, err := s.Update(context.Background(), defaultUserId, defaultUserDtoRequest)
 
@@ -360,7 +384,7 @@ func TestUserService_Update_ReturnsUpdatedUserOmitingApiKey(t *testing.T) {
 	}
 	mkr := &mockApiKeyRepository{}
 	mc := &mockConnectionPool{}
-	s := NewUserService(mc, mur, mkr)
+	s := NewUserService(Config{}, mc, mur, mkr)
 
 	actual, err := s.Update(context.Background(), defaultUserId, defaultUserDtoRequest)
 
@@ -385,7 +409,7 @@ func TestUserService_Delete_CallsRepositoryDelete(t *testing.T) {
 	mur := &mockUserRepository{}
 	mkr := &mockApiKeyRepository{}
 	mc := &mockConnectionPool{}
-	s := NewUserService(mc, mur, mkr)
+	s := NewUserService(Config{}, mc, mur, mkr)
 
 	s.Delete(context.Background(), defaultUserId)
 
@@ -399,7 +423,7 @@ func TestUserService_Delete_CallsTransactionClose(t *testing.T) {
 	mur := &mockUserRepository{}
 	mkr := &mockApiKeyRepository{}
 	mc := &mockConnectionPool{}
-	s := NewUserService(mc, mur, mkr)
+	s := NewUserService(Config{}, mc, mur, mkr)
 
 	s.Delete(context.Background(), defaultUserId)
 
@@ -414,7 +438,7 @@ func TestUserService_Delete_WhenCreatingTransactionFails_ExpectError(t *testing.
 	mc := &mockConnectionPool{
 		err: errDefault,
 	}
-	s := NewUserService(mc, mur, mkr)
+	s := NewUserService(Config{}, mc, mur, mkr)
 
 	err := s.Delete(context.Background(), defaultUserId)
 
@@ -427,7 +451,7 @@ func TestUserService_Delete_FetchesUsersKeys(t *testing.T) {
 	mur := &mockUserRepository{}
 	mkr := &mockApiKeyRepository{}
 	mc := &mockConnectionPool{}
-	s := NewUserService(mc, mur, mkr)
+	s := NewUserService(Config{}, mc, mur, mkr)
 
 	s.Delete(context.Background(), defaultUserId)
 
@@ -443,7 +467,7 @@ func TestUserService_Delete_DeletesTheRightKeys(t *testing.T) {
 		apiKeyIds: []uuid.UUID{defaultApiKeyId},
 	}
 	mc := &mockConnectionPool{}
-	s := NewUserService(mc, mur, mkr)
+	s := NewUserService(Config{}, mc, mur, mkr)
 
 	s.Delete(context.Background(), defaultUserId)
 
@@ -458,7 +482,7 @@ func TestUserService_Delete_WhenUserRepositoryFails_ExpectError(t *testing.T) {
 	}
 	mkr := &mockApiKeyRepository{}
 	mc := &mockConnectionPool{}
-	s := NewUserService(mc, mur, mkr)
+	s := NewUserService(Config{}, mc, mur, mkr)
 
 	err := s.Delete(context.Background(), defaultUserId)
 
@@ -473,7 +497,7 @@ func TestUserService_Delete_WhenApiKeyRepositoryGetFails_ExpectError(t *testing.
 		getErr: errDefault,
 	}
 	mc := &mockConnectionPool{}
-	s := NewUserService(mc, mur, mkr)
+	s := NewUserService(Config{}, mc, mur, mkr)
 
 	err := s.Delete(context.Background(), defaultUserId)
 
@@ -488,7 +512,7 @@ func TestUserService_Delete_WhenApiKeyRepositoryDeleteFails_ExpectError(t *testi
 		deleteErr: errDefault,
 	}
 	mc := &mockConnectionPool{}
-	s := NewUserService(mc, mur, mkr)
+	s := NewUserService(Config{}, mc, mur, mkr)
 
 	err := s.Delete(context.Background(), defaultUserId)
 
@@ -501,7 +525,7 @@ func TestUserService_Delete_WhenRepositoriesSucceeds_ExpectSuccess(t *testing.T)
 	mur := &mockUserRepository{}
 	mkr := &mockApiKeyRepository{}
 	mc := &mockConnectionPool{}
-	s := NewUserService(mc, mur, mkr)
+	s := NewUserService(Config{}, mc, mur, mkr)
 
 	err := s.Delete(context.Background(), defaultUserId)
 
@@ -560,4 +584,8 @@ func (m *mockConnectionPool) StartTransaction(ctx context.Context) (db.Transacti
 
 func (m *mockTransaction) Close(ctx context.Context) {
 	m.closeCalled++
+}
+
+func (m *mockTransaction) TimeStamp() time.Time {
+	return m.timeStamp
 }

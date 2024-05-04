@@ -23,32 +23,35 @@ type userServiceImpl struct {
 	conn       db.ConnectionPool
 	userRepo   repositories.UserRepository
 	apiKeyRepo repositories.ApiKeyRepository
+
+	apiKeyValidity time.Duration
 }
 
-func NewUserService(conn db.ConnectionPool, userRepo repositories.UserRepository, apiKeyRepo repositories.ApiKeyRepository) UserService {
+func NewUserService(config Config, conn db.ConnectionPool, userRepo repositories.UserRepository, apiKeyRepo repositories.ApiKeyRepository) UserService {
 	return &userServiceImpl{
 		conn:       conn,
 		userRepo:   userRepo,
 		apiKeyRepo: apiKeyRepo,
+
+		apiKeyValidity: config.ApiKeyValidity,
 	}
 }
 
 func (s *userServiceImpl) Create(ctx context.Context, userDto communication.UserDtoRequest) (communication.UserDtoResponse, error) {
 	user := communication.FromUserDtoRequest(userDto)
 
-	apiKey := persistence.ApiKey{
-		Id:      uuid.New(),
-		Key:     uuid.New(),
-		ApiUser: user.Id,
-		// TODO: Should be configurable
-		ValidUntil: time.Now().Add(1 * time.Hour),
-	}
-
 	tx, err := s.conn.StartTransaction(ctx)
 	if err != nil {
 		return communication.UserDtoResponse{}, err
 	}
 	defer tx.Close(ctx)
+
+	apiKey := persistence.ApiKey{
+		Id:         uuid.New(),
+		Key:        uuid.New(),
+		ApiUser:    user.Id,
+		ValidUntil: tx.TimeStamp().Add(s.apiKeyValidity),
+	}
 
 	createdUser, err := s.userRepo.Create(ctx, tx, user)
 	if err != nil {
