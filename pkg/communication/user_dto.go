@@ -17,22 +17,14 @@ type UserDtoResponse struct {
 	Email    string
 	Password string
 
-	ApiKeys []uuid.UUID
-
 	CreatedAt time.Time
 }
 
-func ToUserDtoResponse(user persistence.User, apiKeys []uuid.UUID) UserDtoResponse {
-	if apiKeys == nil {
-		apiKeys = make([]uuid.UUID, 0)
-	}
-
+func ToUserDtoResponse(user persistence.User) UserDtoResponse {
 	return UserDtoResponse{
 		Id:       user.Id,
 		Email:    user.Email,
 		Password: user.Password,
-
-		ApiKeys: apiKeys,
 
 		CreatedAt: user.CreatedAt,
 	}

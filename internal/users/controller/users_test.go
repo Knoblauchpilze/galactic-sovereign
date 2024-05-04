@@ -51,8 +51,6 @@ var defaultUserDtoResponse = communication.UserDtoResponse{
 	Email:    "e.mail@domain.com",
 	Password: "password",
 
-	ApiKeys: []uuid.UUID{},
-
 	CreatedAt: time.Date(2024, 04, 01, 11, 8, 47, 651387237, time.UTC),
 }
 

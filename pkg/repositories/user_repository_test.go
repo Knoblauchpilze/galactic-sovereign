@@ -71,17 +71,15 @@ var defaultUser = persistence.User{
 	Version:   4,
 }
 
-func TestUserRepository_Create_UsesTransactionToExec(t *testing.T) {
+func TestUserRepository_Create_UsesConnectionToExec(t *testing.T) {
 	assert := assert.New(t)
 
 	mc := &mockConnectionPool{}
 	repo := NewUserRepository(mc)
-	mt := &mockTransaction{}
 
-	repo.Create(context.Background(), mt, defaultUser)
+	repo.Create(context.Background(), defaultUser)
 
-	assert.Equal(0, mc.execCalled)
-	assert.Equal(1, mt.execCalled)
+	assert.Equal(1, mc.execCalled)
 }
 
 func TestUserRepository_Create_GeneratesValidSql(t *testing.T) {
@@ -89,28 +87,26 @@ func TestUserRepository_Create_GeneratesValidSql(t *testing.T) {
 
 	mc := &mockConnectionPool{}
 	repo := NewUserRepository(mc)
-	mt := &mockTransaction{}
 
-	repo.Create(context.Background(), mt, defaultUser)
+	repo.Create(context.Background(), defaultUser)
 
-	assert.Equal("INSERT INTO api_user (id, email, password, created_at) VALUES($1, $2, $3, $4)", mt.sqlQuery)
-	assert.Equal(4, len(mt.args))
-	assert.Equal(defaultUser.Id, mt.args[0])
-	assert.Equal(defaultUser.Email, mt.args[1])
-	assert.Equal(defaultUser.Password, mt.args[2])
-	assert.Equal(defaultUser.CreatedAt, mt.args[3])
+	assert.Equal("INSERT INTO api_user (id, email, password, created_at) VALUES($1, $2, $3, $4)", mc.sqlQuery)
+	assert.Equal(4, len(mc.args))
+	assert.Equal(defaultUser.Id, mc.args[0])
+	assert.Equal(defaultUser.Email, mc.args[1])
+	assert.Equal(defaultUser.Password, mc.args[2])
+	assert.Equal(defaultUser.CreatedAt, mc.args[3])
 }
 
 func TestUserRepository_Create_PropagatesQueryFailure(t *testing.T) {
 	assert := assert.New(t)
 
-	mc := &mockConnectionPool{}
-	repo := NewUserRepository(mc)
-	mt := &mockTransaction{
+	mc := &mockConnectionPool{
 		execErr: errDefault,
 	}
+	repo := NewUserRepository(mc)
 
-	_, err := repo.Create(context.Background(), mt, defaultUser)
+	_, err := repo.Create(context.Background(), defaultUser)
 
 	assert.Equal(errDefault, err)
 }
@@ -118,13 +114,12 @@ func TestUserRepository_Create_PropagatesQueryFailure(t *testing.T) {
 func TestUserRepository_Create_WhenQueryIndicatesDuplicatedKey_ReturnsDuplicatedKey(t *testing.T) {
 	assert := assert.New(t)
 
-	mc := &mockConnectionPool{}
-	repo := NewUserRepository(mc)
-	mt := &mockTransaction{
+	mc := &mockConnectionPool{
 		execErr: fmt.Errorf(`duplicate key value violates unique constraint "api_user_email_key" (SQLSTATE 23505)`),
 	}
+	repo := NewUserRepository(mc)
 
-	_, err := repo.Create(context.Background(), mt, defaultUser)
+	_, err := repo.Create(context.Background(), defaultUser)
 
 	assert.True(errors.IsErrorWithCode(err, db.DuplicatedKeySqlKey))
 }
@@ -134,9 +129,8 @@ func TestUserRepository_Create_ReturnsInputUser(t *testing.T) {
 
 	mc := &mockConnectionPool{}
 	repo := NewUserRepository(mc)
-	mt := &mockTransaction{}
 
-	actual, err := repo.Create(context.Background(), mt, defaultUser)
+	actual, err := repo.Create(context.Background(), defaultUser)
 
 	assert.Nil(err)
 	assert.Equal(defaultUser, actual)

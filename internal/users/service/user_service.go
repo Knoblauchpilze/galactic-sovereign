@@ -6,7 +6,6 @@ import (
 
 	"github.com/KnoblauchPilze/user-service/pkg/communication"
 	"github.com/KnoblauchPilze/user-service/pkg/db"
-	"github.com/KnoblauchPilze/user-service/pkg/persistence"
 	"github.com/KnoblauchPilze/user-service/pkg/repositories"
 	"github.com/google/uuid"
 )
@@ -40,29 +39,12 @@ func NewUserService(config Config, conn db.ConnectionPool, userRepo repositories
 func (s *userServiceImpl) Create(ctx context.Context, userDto communication.UserDtoRequest) (communication.UserDtoResponse, error) {
 	user := communication.FromUserDtoRequest(userDto)
 
-	tx, err := s.conn.StartTransaction(ctx)
-	if err != nil {
-		return communication.UserDtoResponse{}, err
-	}
-	defer tx.Close(ctx)
-
-	apiKey := persistence.ApiKey{
-		Id:         uuid.New(),
-		Key:        uuid.New(),
-		ApiUser:    user.Id,
-		ValidUntil: tx.TimeStamp().Add(s.apiKeyValidity),
-	}
-
-	createdUser, err := s.userRepo.Create(ctx, tx, user)
-	if err != nil {
-		return communication.UserDtoResponse{}, err
-	}
-	createdKey, err := s.apiKeyRepo.Create(ctx, tx, apiKey)
+	createdUser, err := s.userRepo.Create(ctx, user)
 	if err != nil {
 		return communication.UserDtoResponse{}, err
 	}
 
-	out := communication.ToUserDtoResponse(createdUser, []uuid.UUID{createdKey.Key})
+	out := communication.ToUserDtoResponse(createdUser)
 	return out, nil
 }
 
@@ -72,7 +54,7 @@ func (s *userServiceImpl) Get(ctx context.Context, id uuid.UUID) (communication.
 		return communication.UserDtoResponse{}, err
 	}
 
-	out := communication.ToUserDtoResponse(user, []uuid.UUID{})
+	out := communication.ToUserDtoResponse(user)
 	return out, nil
 }
 
@@ -94,7 +76,7 @@ func (s *userServiceImpl) Update(ctx context.Context, id uuid.UUID, userDto comm
 		return communication.UserDtoResponse{}, err
 	}
 
-	out := communication.ToUserDtoResponse(updated, []uuid.UUID{})
+	out := communication.ToUserDtoResponse(updated)
 	return out, nil
 }
 
