@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"time"
 
 	"github.com/KnoblauchPilze/user-service/pkg/communication"
 	"github.com/KnoblauchPilze/user-service/pkg/db"
@@ -39,7 +40,8 @@ func (s *userServiceImpl) Create(ctx context.Context, userDto communication.User
 		Id:      uuid.New(),
 		Key:     uuid.New(),
 		ApiUser: user.Id,
-		Enabled: true,
+		// TODO: Should be configurable
+		ValidUntil: time.Now().Add(1 * time.Hour),
 	}
 
 	tx, err := s.conn.StartTransaction(ctx)

@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/KnoblauchPilze/user-service/pkg/db"
 	"github.com/KnoblauchPilze/user-service/pkg/errors"
@@ -133,7 +134,7 @@ func TestApiKeyMiddleware_WhenApiKeyIsNotFound_SetsStatusToUnauthorized(t *testi
 
 var defaultApiKeyId = uuid.MustParse("5bda15f9-85f1-4700-867c-0a7cbda0f82c")
 
-func TestApiKeyMiddleware_WhenApiKeyIsDisabled_SetsStatusToUnauthorized(t *testing.T) {
+func TestApiKeyMiddleware_WhenApiKeyIsExpired_SetsStatusToUnauthorized(t *testing.T) {
 	assert := assert.New(t)
 	mc := newMockEchoContext(http.StatusOK)
 	mc.request.Header = map[string][]string{
@@ -141,10 +142,10 @@ func TestApiKeyMiddleware_WhenApiKeyIsDisabled_SetsStatusToUnauthorized(t *testi
 	}
 	mr := &mockApiKeyUserRepository{
 		apiKey: persistence.ApiKey{
-			Id:      defaultApiKeyId,
-			Key:     defaultApiKey1,
-			ApiUser: defaultUuid,
-			Enabled: false,
+			Id:         defaultApiKeyId,
+			Key:        defaultApiKey1,
+			ApiUser:    defaultUuid,
+			ValidUntil: time.Now().Add(-1 * time.Minute),
 		},
 	}
 	next, called := createHandlerFuncWithCalledBoolean()
@@ -165,10 +166,10 @@ func TestApiKeyMiddleware_WhenApiKeyIsValid_CallsNext(t *testing.T) {
 	}
 	mr := &mockApiKeyUserRepository{
 		apiKey: persistence.ApiKey{
-			Id:      defaultApiKeyId,
-			Key:     defaultApiKey1,
-			ApiUser: defaultUuid,
-			Enabled: true,
+			Id:         defaultApiKeyId,
+			Key:        defaultApiKey1,
+			ApiUser:    defaultUuid,
+			ValidUntil: time.Now().Add(1 * time.Minute),
 		},
 	}
 	next, called := createHandlerFuncWithCalledBoolean()
