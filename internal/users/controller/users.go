@@ -169,7 +169,6 @@ func logoutUser(c echo.Context, service service.UserService) error {
 	}
 
 	err = service.Logout(c.Request().Context(), id)
-	// TODO: Better error handling?
 	if err != nil {
 		if errors.IsErrorWithCode(err, db.NoMatchingSqlRows) {
 			return c.JSON(http.StatusNotFound, "No such user")

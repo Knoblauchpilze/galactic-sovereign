@@ -38,6 +38,7 @@ type mockUserService struct {
 	updateCalled int
 	deleteCalled int
 	loginCalled  int
+	logoutCalled int
 
 	inUser communication.UserDtoRequest
 	inId   uuid.UUID
@@ -751,6 +752,120 @@ func TestLoginUser_ReturnsUserToken(t *testing.T) {
 	assert.Equal(defaultApiKeyDtoResponse, actual)
 }
 
+func TestLogoutUser_WhenNoId_SetsStatusToBadRequest(t *testing.T) {
+	assert := assert.New(t)
+
+	mc := &mockContext{}
+	ms := &mockUserService{}
+
+	err := logoutUser(mc, ms)
+
+	assert.Nil(err)
+	assert.Equal(http.StatusBadRequest, mc.status)
+	assert.Equal("Invalid id syntax", mc.data)
+}
+
+func TestLogoutUser_WhenIdSyntaxIsWrong_SetsStatusToBadRequest(t *testing.T) {
+	assert := assert.New(t)
+
+	mc := &mockContext{
+		params: map[string]string{
+			"id": "not-a-valid-id",
+		},
+	}
+	ms := &mockUserService{}
+
+	err := logoutUser(mc, ms)
+
+	assert.Nil(err)
+	assert.Equal(http.StatusBadRequest, mc.status)
+	assert.Equal("Invalid id syntax", mc.data)
+}
+
+func TestLogoutUser_CallsServiceLogout(t *testing.T) {
+	assert := assert.New(t)
+
+	mc := &mockContext{
+		params: map[string]string{
+			"id": defaultUuid.String(),
+		},
+	}
+	ms := &mockUserService{}
+
+	err := logoutUser(mc, ms)
+
+	assert.Nil(err)
+	assert.Equal(1, ms.logoutCalled)
+}
+
+func TestLogoutUser_WhenServiceFailsWithUnknownError_SetsStatusToInternalServerError(t *testing.T) {
+	assert := assert.New(t)
+
+	mc := &mockContext{
+		params: map[string]string{
+			"id": defaultUuid.String(),
+		},
+	}
+	ms := &mockUserService{
+		err: errDefault,
+	}
+
+	err := logoutUser(mc, ms)
+
+	assert.Nil(err)
+	assert.Equal(http.StatusInternalServerError, mc.status)
+}
+
+func TestLogoutUser_WhenServiceFailsWithNoMatchingRows_SetsStatusToNotFound(t *testing.T) {
+	assert := assert.New(t)
+
+	mc := &mockContext{
+		params: map[string]string{
+			"id": defaultUuid.String(),
+		},
+	}
+	ms := &mockUserService{
+		err: errors.NewCode(db.NoMatchingSqlRows),
+	}
+
+	err := logoutUser(mc, ms)
+
+	assert.Nil(err)
+	assert.Equal(http.StatusNotFound, mc.status)
+}
+
+func TestLogoutUser_SetsStatusToNoContent(t *testing.T) {
+	assert := assert.New(t)
+
+	mc := &mockContext{
+		params: map[string]string{
+			"id": defaultUuid.String(),
+		},
+	}
+	ms := &mockUserService{}
+
+	err := logoutUser(mc, ms)
+
+	assert.Nil(err)
+	assert.Equal(http.StatusNoContent, mc.status)
+}
+
+func TestLogoutUser_LogsOutExpectedUser(t *testing.T) {
+	assert := assert.New(t)
+
+	mc := &mockContext{
+		params: map[string]string{
+			"id": defaultUuid.String(),
+		},
+	}
+	ms := &mockUserService{}
+
+	err := logoutUser(mc, ms)
+
+	assert.Nil(err)
+	assert.Equal(defaultUuid, ms.inId)
+}
+
 func (m *mockContext) Request() *http.Request {
 	return httptest.NewRequest(http.MethodGet, "http://localhost:3000", nil)
 }
@@ -821,5 +936,7 @@ func (m *mockUserService) Login(ctx context.Context, id uuid.UUID) (communicatio
 }
 
 func (m *mockUserService) Logout(ctx context.Context, id uuid.UUID) error {
+	m.logoutCalled++
+	m.inId = id
 	return m.err
 }
