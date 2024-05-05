@@ -10,7 +10,7 @@ import (
 )
 
 var defaultUuid = uuid.MustParse("08ce96a3-3430-48a8-a3b2-b1c987a207ca")
-var someTime = time.Date(2009, 11, 17, 20, 34, 58, 651387237, time.UTC)
+var someTime = time.Date(2024, 05, 05, 20, 50, 18, 651387237, time.UTC)
 
 func TestToUserDtoResponse(t *testing.T) {
 	assert := assert.New(t)

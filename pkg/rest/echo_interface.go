@@ -15,7 +15,7 @@ type echoRouter interface {
 }
 
 type echoServer interface {
-	echoRouter
+	Use(...echo.MiddlewareFunc)
 
 	Group(string, ...echo.MiddlewareFunc) echoRouter
 
