@@ -151,7 +151,10 @@ func loginUser(c echo.Context, service service.UserService) error {
 
 	out, err := service.Login(c.Request().Context(), id)
 	if err != nil {
-		// TODO: Better error handling?
+		if errors.IsErrorWithCode(err, db.NoMatchingSqlRows) {
+			return c.JSON(http.StatusNotFound, "No such user")
+		}
+
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 

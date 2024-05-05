@@ -27,15 +27,17 @@ type mockContext struct {
 }
 
 type mockUserService struct {
-	ids  []uuid.UUID
-	user communication.UserDtoResponse
-	err  error
+	ids    []uuid.UUID
+	user   communication.UserDtoResponse
+	apiKey communication.ApiKeyDtoResponse
+	err    error
 
 	createCalled int
 	getCalled    int
 	listCalled   int
 	updateCalled int
 	deleteCalled int
+	loginCalled  int
 
 	inUser communication.UserDtoRequest
 	inId   uuid.UUID
@@ -52,6 +54,10 @@ var defaultUserDtoResponse = communication.UserDtoResponse{
 	Password: "password",
 
 	CreatedAt: time.Date(2024, 04, 01, 11, 8, 47, 651387237, time.UTC),
+}
+var defaultApiKeyDtoResponse = communication.ApiKeyDtoResponse{
+	Key:        uuid.MustParse("9380e881-39c3-42f1-b594-b5d2010e67c0"),
+	ValidUntil: time.Date(2024, 05, 05, 21, 32, 55, 651387237, time.UTC),
 }
 
 func TestUserEndpoints_GeneratesExpectedRoutes(t *testing.T) {
@@ -611,6 +617,140 @@ func TestDeleteUser_SetsStatusToNoContent(t *testing.T) {
 	assert.Equal(http.StatusNoContent, mc.status)
 }
 
+func TestLoginUser_WhenNoId_SetsStatusToBadRequest(t *testing.T) {
+	assert := assert.New(t)
+
+	mc := &mockContext{}
+	ms := &mockUserService{}
+
+	err := loginUser(mc, ms)
+
+	assert.Nil(err)
+	assert.Equal(http.StatusBadRequest, mc.status)
+	assert.Equal("Invalid id syntax", mc.data)
+}
+
+func TestLoginUser_WhenIdSyntaxIsWrong_SetsStatusToBadRequest(t *testing.T) {
+	assert := assert.New(t)
+
+	mc := &mockContext{
+		params: map[string]string{
+			"id": "not-a-valid-id",
+		},
+	}
+	ms := &mockUserService{}
+
+	err := loginUser(mc, ms)
+
+	assert.Nil(err)
+	assert.Equal(http.StatusBadRequest, mc.status)
+	assert.Equal("Invalid id syntax", mc.data)
+}
+
+func TestLoginUser_CallsServiceLogin(t *testing.T) {
+	assert := assert.New(t)
+
+	mc := &mockContext{
+		params: map[string]string{
+			"id": defaultUuid.String(),
+		},
+	}
+	ms := &mockUserService{}
+
+	err := loginUser(mc, ms)
+
+	assert.Nil(err)
+	assert.Equal(1, ms.loginCalled)
+}
+
+func TestLoginUser_WhenServiceFailsWithUnknownError_SetsStatusToInternalServerError(t *testing.T) {
+	assert := assert.New(t)
+
+	mc := &mockContext{
+		params: map[string]string{
+			"id": defaultUuid.String(),
+		},
+	}
+	ms := &mockUserService{
+		err: errDefault,
+	}
+
+	err := loginUser(mc, ms)
+
+	assert.Nil(err)
+	assert.Equal(http.StatusInternalServerError, mc.status)
+}
+
+func TestLoginUser_WhenServiceFailsWithNoMatchingRows_SetsStatusToNotFound(t *testing.T) {
+	assert := assert.New(t)
+
+	mc := &mockContext{
+		params: map[string]string{
+			"id": defaultUuid.String(),
+		},
+	}
+	ms := &mockUserService{
+		err: errors.NewCode(db.NoMatchingSqlRows),
+	}
+
+	err := loginUser(mc, ms)
+
+	assert.Nil(err)
+	assert.Equal(http.StatusNotFound, mc.status)
+}
+
+func TestLoginUser_SetsStatusToCreated(t *testing.T) {
+	assert := assert.New(t)
+
+	mc := &mockContext{
+		params: map[string]string{
+			"id": defaultUuid.String(),
+		},
+	}
+	ms := &mockUserService{}
+
+	err := loginUser(mc, ms)
+
+	assert.Nil(err)
+	assert.Equal(http.StatusCreated, mc.status)
+}
+
+func TestLoginUser_LogsInExpectedUser(t *testing.T) {
+	assert := assert.New(t)
+
+	mc := &mockContext{
+		params: map[string]string{
+			"id": defaultUuid.String(),
+		},
+	}
+	ms := &mockUserService{}
+
+	err := loginUser(mc, ms)
+
+	assert.Nil(err)
+	assert.Equal(defaultUuid, ms.inId)
+}
+
+func TestLoginUser_ReturnsUserToken(t *testing.T) {
+	assert := assert.New(t)
+
+	mc := &mockContext{
+		params: map[string]string{
+			"id": defaultUuid.String(),
+		},
+	}
+	ms := &mockUserService{
+		apiKey: defaultApiKeyDtoResponse,
+	}
+
+	err := loginUser(mc, ms)
+
+	assert.Nil(err)
+	actual, ok := mc.data.(communication.ApiKeyDtoResponse)
+	assert.True(ok)
+	assert.Equal(defaultApiKeyDtoResponse, actual)
+}
+
 func (m *mockContext) Request() *http.Request {
 	return httptest.NewRequest(http.MethodGet, "http://localhost:3000", nil)
 }
@@ -675,7 +815,9 @@ func (m *mockUserService) Delete(ctx context.Context, id uuid.UUID) error {
 }
 
 func (m *mockUserService) Login(ctx context.Context, id uuid.UUID) (communication.ApiKeyDtoResponse, error) {
-	return communication.ApiKeyDtoResponse{}, m.err
+	m.loginCalled++
+	m.inId = id
+	return m.apiKey, m.err
 }
 
 func (m *mockUserService) Logout(ctx context.Context, id uuid.UUID) error {
