@@ -6,7 +6,7 @@ import (
 
 	"github.com/KnoblauchPilze/user-service/pkg/communication"
 	"github.com/KnoblauchPilze/user-service/pkg/db"
-	"github.com/KnoblauchPilze/user-service/pkg/errors"
+	"github.com/KnoblauchPilze/user-service/pkg/persistence"
 	"github.com/KnoblauchPilze/user-service/pkg/repositories"
 	"github.com/google/uuid"
 )
@@ -90,12 +90,12 @@ func (s *userServiceImpl) Delete(ctx context.Context, id uuid.UUID) error {
 	}
 	defer tx.Close(ctx)
 
-	apiKeys, err := s.apiKeyRepo.GetForUser(ctx, tx, id)
+	apiKeys, err := s.apiKeyRepo.GetForUserTx(ctx, tx, id)
 	if err != nil {
 		return err
 	}
 
-	err = s.apiKeyRepo.Delete(ctx, tx, apiKeys)
+	err = s.apiKeyRepo.DeleteTx(ctx, tx, apiKeys)
 	if err != nil {
 		return err
 	}
@@ -108,9 +108,37 @@ func (s *userServiceImpl) Delete(ctx context.Context, id uuid.UUID) error {
 }
 
 func (s *userServiceImpl) Login(ctx context.Context, id uuid.UUID) (communication.ApiKeyDtoResponse, error) {
-	return communication.ApiKeyDtoResponse{}, errors.NewCode(errors.NotImplementedCode)
+	user, err := s.userRepo.Get(ctx, id)
+	if err != nil {
+		return communication.ApiKeyDtoResponse{}, err
+	}
+
+	apiKey := persistence.ApiKey{
+		Id:         uuid.New(),
+		Key:        uuid.New(),
+		ApiUser:    user.Id,
+		ValidUntil: time.Now().Add(s.apiKeyValidity),
+	}
+
+	createdKey, err := s.apiKeyRepo.Create(ctx, apiKey)
+	if err != nil {
+		return communication.ApiKeyDtoResponse{}, err
+	}
+
+	out := communication.ToApiKeyDtoResponse(createdKey)
+	return out, nil
 }
 
 func (s *userServiceImpl) Logout(ctx context.Context, id uuid.UUID) error {
-	return errors.NewCode(errors.NotImplementedCode)
+	_, err := s.userRepo.Get(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	apiKeys, err := s.apiKeyRepo.GetForUser(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	return s.apiKeyRepo.Delete(ctx, apiKeys)
 }

@@ -41,12 +41,14 @@ type mockApiKeyRepository struct {
 	getErr    error
 	deleteErr error
 
-	createCalled     int
-	createdApiKey    persistence.ApiKey
-	getForUserCalled int
-	userId           uuid.UUID
-	deleteCalled     int
-	deleteIds        []uuid.UUID
+	createCalled       int
+	createdApiKey      persistence.ApiKey
+	getForUserCalled   int
+	getForUserTxCalled int
+	userId             uuid.UUID
+	deleteCalled       int
+	deleteTxCalled     int
+	deleteIds          []uuid.UUID
 }
 
 type mockConnectionPool struct {
@@ -336,7 +338,7 @@ func TestUserService_Delete_CallsRepositoryDelete(t *testing.T) {
 	s.Delete(context.Background(), defaultUserId)
 
 	assert.Equal(1, mur.deleteCalled)
-	assert.Equal(1, mkr.deleteCalled)
+	assert.Equal(1, mkr.deleteTxCalled)
 }
 
 func TestUserService_Delete_CallsTransactionClose(t *testing.T) {
@@ -377,7 +379,7 @@ func TestUserService_Delete_FetchesUsersKeys(t *testing.T) {
 
 	s.Delete(context.Background(), defaultUserId)
 
-	assert.Equal(1, mkr.getForUserCalled)
+	assert.Equal(1, mkr.getForUserTxCalled)
 	assert.Equal(defaultUserId, mkr.userId)
 }
 
@@ -482,20 +484,32 @@ func (m *mockUserRepository) Delete(ctx context.Context, tx db.Transaction, id u
 	return m.err
 }
 
-func (m *mockApiKeyRepository) Create(ctx context.Context, tx db.Transaction, apiKey persistence.ApiKey) (persistence.ApiKey, error) {
+func (m *mockApiKeyRepository) Create(ctx context.Context, apiKey persistence.ApiKey) (persistence.ApiKey, error) {
 	m.createCalled++
 	m.createdApiKey = apiKey
 	return m.apiKey, m.createErr
 }
 
-func (m *mockApiKeyRepository) GetForUser(ctx context.Context, tx db.Transaction, user uuid.UUID) ([]uuid.UUID, error) {
+func (m *mockApiKeyRepository) GetForUser(ctx context.Context, user uuid.UUID) ([]uuid.UUID, error) {
 	m.getForUserCalled++
 	m.userId = user
 	return m.apiKeyIds, m.getErr
 }
 
-func (m *mockApiKeyRepository) Delete(ctx context.Context, tx db.Transaction, ids []uuid.UUID) error {
+func (m *mockApiKeyRepository) GetForUserTx(ctx context.Context, tx db.Transaction, user uuid.UUID) ([]uuid.UUID, error) {
+	m.getForUserTxCalled++
+	m.userId = user
+	return m.apiKeyIds, m.getErr
+}
+
+func (m *mockApiKeyRepository) Delete(ctx context.Context, ids []uuid.UUID) error {
 	m.deleteCalled++
+	m.deleteIds = ids
+	return m.deleteErr
+}
+
+func (m *mockApiKeyRepository) DeleteTx(ctx context.Context, tx db.Transaction, ids []uuid.UUID) error {
+	m.deleteTxCalled++
 	m.deleteIds = ids
 	return m.deleteErr
 }

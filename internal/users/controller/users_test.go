@@ -63,10 +63,10 @@ func TestUserEndpoints_GeneratesExpectedRoutes(t *testing.T) {
 	}
 
 	assert.Equal(4, len(actualRoutes))
-	assert.Equal(3, actualRoutes[http.MethodPost])
+	assert.Equal(2, actualRoutes[http.MethodPost])
 	assert.Equal(2, actualRoutes[http.MethodGet])
 	assert.Equal(1, actualRoutes[http.MethodPatch])
-	assert.Equal(1, actualRoutes[http.MethodDelete])
+	assert.Equal(2, actualRoutes[http.MethodDelete])
 }
 
 func TestCreateUser_WhenBindFails_SetsStatusToBadRequest(t *testing.T) {

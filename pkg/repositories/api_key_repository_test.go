@@ -18,17 +18,15 @@ var defaultApiKey = persistence.ApiKey{
 	ApiUser: defaultUserId,
 }
 
-func TestApiKeyRepository_Create_UsesTransactionToExec(t *testing.T) {
+func TestApiKeyRepository_Create_UsesConnectionToExec(t *testing.T) {
 	assert := assert.New(t)
 
 	mc := &mockConnectionPool{}
 	repo := NewApiKeyRepository(mc)
-	mt := &mockTransaction{}
 
-	repo.Create(context.Background(), mt, defaultApiKey)
+	repo.Create(context.Background(), defaultApiKey)
 
-	assert.Equal(0, mc.execCalled)
-	assert.Equal(1, mt.execCalled)
+	assert.Equal(1, mc.execCalled)
 }
 
 func TestApiKeyRepository_Create_GeneratesValidSql(t *testing.T) {
@@ -36,28 +34,25 @@ func TestApiKeyRepository_Create_GeneratesValidSql(t *testing.T) {
 
 	mc := &mockConnectionPool{}
 	repo := NewApiKeyRepository(mc)
-	mt := &mockTransaction{}
 
-	repo.Create(context.Background(), mt, defaultApiKey)
+	repo.Create(context.Background(), defaultApiKey)
 
-	assert.Equal("INSERT INTO api_key (id, key, api_user, valid_until) VALUES($1, $2, $3, $4)", mt.sqlQuery)
-	assert.Equal(4, len(mt.args))
-	assert.Equal(defaultApiKey.Id, mt.args[0])
-	assert.Equal(defaultApiKey.Key, mt.args[1])
-	assert.Equal(defaultApiKey.ApiUser, mt.args[2])
-	assert.Equal(defaultApiKey.ValidUntil, mt.args[3])
+	assert.Equal("INSERT INTO api_key (id, key, api_user, valid_until) VALUES($1, $2, $3, $4)", mc.sqlQuery)
+	assert.Equal(4, len(mc.args))
+	assert.Equal(defaultApiKey.Id, mc.args[0])
+	assert.Equal(defaultApiKey.Key, mc.args[1])
+	assert.Equal(defaultApiKey.ApiUser, mc.args[2])
+	assert.Equal(defaultApiKey.ValidUntil, mc.args[3])
 }
 
 func TestApiKeyRepository_Create_PropagatesQueryFailure(t *testing.T) {
 	assert := assert.New(t)
 
-	mc := &mockConnectionPool{}
+	mc := &mockConnectionPool{
+		execErr: errDefault}
 	repo := NewApiKeyRepository(mc)
-	mt := &mockTransaction{
-		execErr: errDefault,
-	}
 
-	_, err := repo.Create(context.Background(), mt, defaultApiKey)
+	_, err := repo.Create(context.Background(), defaultApiKey)
 
 	assert.Equal(errDefault, err)
 }
@@ -67,9 +62,8 @@ func TestApiKeyRepository_Create_ReturnsInputApiKey(t *testing.T) {
 
 	mc := &mockConnectionPool{}
 	repo := NewApiKeyRepository(mc)
-	mt := &mockTransaction{}
 
-	actual, err := repo.Create(context.Background(), mt, defaultApiKey)
+	actual, err := repo.Create(context.Background(), defaultApiKey)
 
 	assert.Nil(err)
 	assert.Equal(defaultApiKey, actual)
@@ -306,34 +300,34 @@ func TestApiKeyRepository_GetForKey_ScansApiKeyProperties(t *testing.T) {
 	assert.IsType(&time.Time{}, props[3])
 }
 
-func TestApiKeyRepository_GetForUser_UsesConnectionToQuery(t *testing.T) {
+func TestApiKeyRepository_GetForUserTx_UsesConnectionToQuery(t *testing.T) {
 	assert := assert.New(t)
 
 	mc := &mockConnectionPool{}
 	repo := NewApiKeyRepository(mc)
 	mt := &mockTransaction{}
 
-	repo.GetForUser(context.Background(), mt, defaultUserId)
+	repo.GetForUserTx(context.Background(), mt, defaultUserId)
 
 	assert.Equal(0, mc.queryCalled)
 	assert.Equal(1, mt.queryCalled)
 }
 
-func TestApiKeyRepository_GetForUser_GeneratesValidSql(t *testing.T) {
+func TestApiKeyRepository_GetForUserTx_GeneratesValidSql(t *testing.T) {
 	assert := assert.New(t)
 
 	mc := &mockConnectionPool{}
 	repo := NewApiKeyRepository(mc)
 	mt := &mockTransaction{}
 
-	repo.GetForUser(context.Background(), mt, defaultUserId)
+	repo.GetForUserTx(context.Background(), mt, defaultUserId)
 
 	assert.Equal("SELECT id FROM api_key WHERE api_user = $1", mt.sqlQuery)
 	assert.Equal(1, len(mt.args))
 	assert.Equal(defaultUserId, mt.args[0])
 }
 
-func TestApiKeyRepository_GetForUser_PropagatesQueryFailure(t *testing.T) {
+func TestApiKeyRepository_GetForUserTx_PropagatesQueryFailure(t *testing.T) {
 	assert := assert.New(t)
 
 	mc := &mockConnectionPool{}
@@ -344,24 +338,24 @@ func TestApiKeyRepository_GetForUser_PropagatesQueryFailure(t *testing.T) {
 		},
 	}
 
-	_, err := repo.GetForUser(context.Background(), mt, defaultUserId)
+	_, err := repo.GetForUserTx(context.Background(), mt, defaultUserId)
 
 	assert.Equal(errDefault, err)
 }
 
-func TestApiKeyRepository_GetForUser_CallsGetAll(t *testing.T) {
+func TestApiKeyRepository_GetForUserTx_CallsGetAll(t *testing.T) {
 	assert := assert.New(t)
 
 	mc := &mockConnectionPool{}
 	repo := NewApiKeyRepository(mc)
 	mt := &mockTransaction{}
 
-	repo.GetForUser(context.Background(), mt, defaultUserId)
+	repo.GetForUserTx(context.Background(), mt, defaultUserId)
 
 	assert.Equal(1, mt.rows.allCalled)
 }
 
-func TestApiKeyRepository_GetForUser_WhenResultReturnsError_Fails(t *testing.T) {
+func TestApiKeyRepository_GetForUserTx_WhenResultReturnsError_Fails(t *testing.T) {
 	assert := assert.New(t)
 
 	mc := &mockConnectionPool{}
@@ -372,24 +366,24 @@ func TestApiKeyRepository_GetForUser_WhenResultReturnsError_Fails(t *testing.T) 
 		},
 	}
 
-	_, err := repo.GetForUser(context.Background(), mt, defaultUserId)
+	_, err := repo.GetForUserTx(context.Background(), mt, defaultUserId)
 
 	assert.Equal(errDefault, err)
 }
 
-func TestApiKeyRepository_GetForUser_WhenResultSucceeds_Success(t *testing.T) {
+func TestApiKeyRepository_GetForUserTx_WhenResultSucceeds_Success(t *testing.T) {
 	assert := assert.New(t)
 
 	mc := &mockConnectionPool{}
 	repo := NewApiKeyRepository(mc)
 	mt := &mockTransaction{}
 
-	_, err := repo.GetForUser(context.Background(), mt, defaultUserId)
+	_, err := repo.GetForUserTx(context.Background(), mt, defaultUserId)
 
 	assert.Nil(err)
 }
 
-func TestApiKeyRepository_GetForUser_PropagatesScanErrors(t *testing.T) {
+func TestApiKeyRepository_GetForUserTx_PropagatesScanErrors(t *testing.T) {
 	assert := assert.New(t)
 
 	mc := &mockConnectionPool{}
@@ -402,12 +396,12 @@ func TestApiKeyRepository_GetForUser_PropagatesScanErrors(t *testing.T) {
 		},
 	}
 
-	_, err := repo.GetForUser(context.Background(), mt, defaultUserId)
+	_, err := repo.GetForUserTx(context.Background(), mt, defaultUserId)
 
 	assert.Equal(errDefault, err)
 }
 
-func TestApiKeyRepository_GetForUser_ScansApiKeyProperties(t *testing.T) {
+func TestApiKeyRepository_GetForUserTx_ScansApiKeyProperties(t *testing.T) {
 	assert := assert.New(t)
 
 	mc := &mockConnectionPool{}
@@ -418,7 +412,7 @@ func TestApiKeyRepository_GetForUser_ScansApiKeyProperties(t *testing.T) {
 		},
 	}
 
-	_, err := repo.GetForUser(context.Background(), mt, defaultUserId)
+	_, err := repo.GetForUserTx(context.Background(), mt, defaultUserId)
 
 	assert.Nil(err)
 
@@ -428,34 +422,34 @@ func TestApiKeyRepository_GetForUser_ScansApiKeyProperties(t *testing.T) {
 	assert.IsType(&uuid.UUID{}, props[0])
 }
 
-func TestApiKeyRepository_Delete_UsesTransactionToExec(t *testing.T) {
+func TestApiKeyRepository_DeleteTx_UsesTransactionToExec(t *testing.T) {
 	assert := assert.New(t)
 
 	mc := &mockConnectionPool{}
 	repo := NewApiKeyRepository(mc)
 	mt := &mockTransaction{}
 
-	repo.Delete(context.Background(), mt, []uuid.UUID{defaultApiKeyId})
+	repo.DeleteTx(context.Background(), mt, []uuid.UUID{defaultApiKeyId})
 
 	assert.Equal(0, mc.execCalled)
 	assert.Equal(1, mt.execCalled)
 }
 
-func TestApiKeyRepository_Delete_GeneratesValidSql_ForSingleId(t *testing.T) {
+func TestApiKeyRepository_DeleteTx_GeneratesValidSql_ForSingleId(t *testing.T) {
 	assert := assert.New(t)
 
 	mc := &mockConnectionPool{}
 	repo := NewApiKeyRepository(mc)
 	mt := &mockTransaction{}
 
-	repo.Delete(context.Background(), mt, []uuid.UUID{defaultApiKeyId})
+	repo.DeleteTx(context.Background(), mt, []uuid.UUID{defaultApiKeyId})
 
 	assert.Equal("DELETE FROM api_key WHERE id IN ($1)", mt.sqlQuery)
 	assert.Equal(1, len(mt.args))
 	assert.Equal(defaultApiKeyId, mt.args[0])
 }
 
-func TestApiKeyRepository_Delete_GeneratesValidSql_ForMultipleId(t *testing.T) {
+func TestApiKeyRepository_DeleteTx_GeneratesValidSql_ForMultipleId(t *testing.T) {
 	assert := assert.New(t)
 
 	mc := &mockConnectionPool{}
@@ -467,7 +461,7 @@ func TestApiKeyRepository_Delete_GeneratesValidSql_ForMultipleId(t *testing.T) {
 		uuid.MustParse("9fc0def1-d51c-4af0-8db5-40310796d16d"),
 	}
 
-	repo.Delete(context.Background(), mt, ids)
+	repo.DeleteTx(context.Background(), mt, ids)
 
 	assert.Equal("DELETE FROM api_key WHERE id IN ($1,$2)", mt.sqlQuery)
 	assert.Equal(2, len(mt.args))
@@ -475,7 +469,7 @@ func TestApiKeyRepository_Delete_GeneratesValidSql_ForMultipleId(t *testing.T) {
 	assert.Equal(ids[1], mt.args[1])
 }
 
-func TestApiKeyRepository_Delete_PropagatesQueryFailure(t *testing.T) {
+func TestApiKeyRepository_DeleteTx_PropagatesQueryFailure(t *testing.T) {
 	assert := assert.New(t)
 
 	mc := &mockConnectionPool{}
@@ -484,19 +478,19 @@ func TestApiKeyRepository_Delete_PropagatesQueryFailure(t *testing.T) {
 		execErr: errDefault,
 	}
 
-	err := repo.Delete(context.Background(), mt, []uuid.UUID{defaultApiKeyId})
+	err := repo.DeleteTx(context.Background(), mt, []uuid.UUID{defaultApiKeyId})
 
 	assert.Equal(errDefault, err)
 }
 
-func TestApiKeyRepository_Delete_NominalCase(t *testing.T) {
+func TestApiKeyRepository_DeleteTx_NominalCase(t *testing.T) {
 	assert := assert.New(t)
 
 	mc := &mockConnectionPool{}
 	repo := NewApiKeyRepository(mc)
 	mt := &mockTransaction{}
 
-	err := repo.Delete(context.Background(), mt, []uuid.UUID{defaultApiKeyId})
+	err := repo.DeleteTx(context.Background(), mt, []uuid.UUID{defaultApiKeyId})
 
 	assert.Nil(err)
 }

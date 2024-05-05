@@ -36,11 +36,11 @@ func UserEndpoints(service service.UserService) rest.Routes {
 	out = append(out, delete)
 
 	loginHandler := fromRepositoriesAwareHttpHandler(loginUser, service)
-	login := rest.NewRoute(http.MethodPost, false, "/users/:id/login", loginHandler)
+	login := rest.NewResourceRoute(http.MethodPost, false, "/users/sessions", loginHandler)
 	out = append(out, login)
 
 	logoutHandler := fromRepositoriesAwareHttpHandler(logoutUser, service)
-	logout := rest.NewRoute(http.MethodPost, false, "/users/:id/logout", logoutHandler)
+	logout := rest.NewResourceRoute(http.MethodDelete, true, "/users/sessions", logoutHandler)
 	out = append(out, logout)
 
 	return out
@@ -166,10 +166,14 @@ func logoutUser(c echo.Context, service service.UserService) error {
 	}
 
 	err = service.Logout(c.Request().Context(), id)
+	// TODO: Better error handling?
 	if err != nil {
-		// TODO: Better error handling?
+		if errors.IsErrorWithCode(err, db.NoMatchingSqlRows) {
+			return c.JSON(http.StatusNotFound, "No such user")
+		}
+
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 
-	return c.JSON(http.StatusOK, "TODO: Correct message")
+	return c.NoContent(http.StatusNoContent)
 }
