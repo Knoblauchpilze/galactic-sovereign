@@ -35,7 +35,6 @@ type mockUserRepository struct {
 type mockApiKeyRepository struct {
 	repositories.ApiKeyRepository
 
-	apiKey    persistence.ApiKey
 	apiKeyIds []uuid.UUID
 	createErr error
 	getErr    error
@@ -456,6 +455,92 @@ func TestUserService_Delete_WhenRepositoriesSucceeds_ExpectSuccess(t *testing.T)
 	assert.Nil(err)
 }
 
+func TestUserService_Login_FetchesGetUser(t *testing.T) {
+	assert := assert.New(t)
+
+	mur := &mockUserRepository{}
+	mkr := &mockApiKeyRepository{}
+	mc := &mockConnectionPool{}
+	s := NewUserService(Config{}, mc, mur, mkr)
+
+	s.Login(context.Background(), defaultUserId)
+
+	assert.Equal(1, mur.getCalled)
+	assert.Equal(defaultUserId, mur.getId)
+}
+
+func TestUserService_Login_WhenGetUserFails_ExpectError(t *testing.T) {
+	assert := assert.New(t)
+
+	mur := &mockUserRepository{
+		err: errDefault,
+	}
+	mkr := &mockApiKeyRepository{}
+	mc := &mockConnectionPool{}
+	s := NewUserService(Config{}, mc, mur, mkr)
+
+	_, err := s.Login(context.Background(), defaultUserId)
+
+	assert.Equal(errDefault, err)
+}
+
+func TestUserService_Login_CreatesApiKeyForUser(t *testing.T) {
+	assert := assert.New(t)
+
+	mur := &mockUserRepository{
+		user: defaultUser,
+	}
+	mkr := &mockApiKeyRepository{}
+	mc := &mockConnectionPool{}
+	c := Config{
+		ApiKeyValidity: 1 * time.Hour,
+	}
+	s := NewUserService(c, mc, mur, mkr)
+
+	s.Login(context.Background(), defaultUserId)
+
+	assert.Equal(1, mkr.createCalled)
+	assert.Equal(defaultUserId, mkr.createdApiKey.ApiUser)
+	expectedTime := time.Now().Add(59 * time.Minute)
+	assert.True(expectedTime.Before(mkr.createdApiKey.ValidUntil))
+}
+
+func TestUserService_Login_WhenApiKeyCreationFails_ExpectError(t *testing.T) {
+	assert := assert.New(t)
+
+	mur := &mockUserRepository{}
+	mkr := &mockApiKeyRepository{
+		createErr: errDefault,
+	}
+	mc := &mockConnectionPool{}
+	s := NewUserService(Config{}, mc, mur, mkr)
+
+	_, err := s.Login(context.Background(), defaultUserId)
+
+	assert.Equal(1, mkr.createCalled)
+	assert.Equal(errDefault, err)
+}
+
+func TestUserService_Login_ReturnsCreatedKey(t *testing.T) {
+	assert := assert.New(t)
+
+	mur := &mockUserRepository{
+		user: defaultUser,
+	}
+	mkr := &mockApiKeyRepository{}
+	mc := &mockConnectionPool{}
+	c := Config{
+		ApiKeyValidity: 1 * time.Hour,
+	}
+	s := NewUserService(c, mc, mur, mkr)
+
+	actual, err := s.Login(context.Background(), defaultUserId)
+
+	assert.Nil(err)
+	assert.Equal(mkr.createdApiKey.Key, actual.Key)
+	assert.Equal(mkr.createdApiKey.ValidUntil, actual.ValidUntil)
+}
+
 func (m *mockUserRepository) Create(ctx context.Context, user persistence.User) (persistence.User, error) {
 	m.createCalled++
 	m.createdUser = user
@@ -487,7 +572,7 @@ func (m *mockUserRepository) Delete(ctx context.Context, tx db.Transaction, id u
 func (m *mockApiKeyRepository) Create(ctx context.Context, apiKey persistence.ApiKey) (persistence.ApiKey, error) {
 	m.createCalled++
 	m.createdApiKey = apiKey
-	return m.apiKey, m.createErr
+	return apiKey, m.createErr
 }
 
 func (m *mockApiKeyRepository) GetForUser(ctx context.Context, user uuid.UUID) ([]uuid.UUID, error) {
