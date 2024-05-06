@@ -621,6 +621,7 @@ func TestUserService_Logout_WhenDeleteFails_ExpectError(t *testing.T) {
 
 	mur := &mockUserRepository{}
 	mkr := &mockApiKeyRepository{
+		apiKeyIds: []uuid.UUID{defaultApiKeyId},
 		deleteErr: errDefault,
 	}
 	mc := &mockConnectionPool{}
@@ -630,6 +631,20 @@ func TestUserService_Logout_WhenDeleteFails_ExpectError(t *testing.T) {
 
 	assert.Equal(1, mkr.deleteCalled)
 	assert.Equal(errDefault, err)
+}
+
+func TestUserService_Logout_WhenAlreadyLoggedOut_DoesNotDeleteKeys(t *testing.T) {
+	assert := assert.New(t)
+
+	mur := &mockUserRepository{}
+	mkr := &mockApiKeyRepository{}
+	mc := &mockConnectionPool{}
+	s := NewUserService(Config{}, mc, mur, mkr)
+
+	err := s.Logout(context.Background(), defaultUserId)
+
+	assert.Equal(0, mkr.deleteCalled)
+	assert.Nil(err)
 }
 
 func (m *mockUserRepository) Create(ctx context.Context, user persistence.User) (persistence.User, error) {
