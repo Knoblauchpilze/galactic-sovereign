@@ -37,7 +37,17 @@ func TestApiKeyRepository_Create_GeneratesValidSql(t *testing.T) {
 
 	repo.Create(context.Background(), defaultApiKey)
 
-	assert.Equal("INSERT INTO api_key (id, key, api_user, valid_until) VALUES($1, $2, $3, $4)", mc.sqlQuery)
+	expectedSql := `
+INSERT INTO api_key (id, key, api_user, valid_until)
+	VALUES($1, $2, $3, $4)
+	ON CONFLICT (api_user) DO UPDATE
+	SET
+		valid_until = excluded.valid_until
+	WHERE
+		api_key.api_user = excluded.api_user
+`
+
+	assert.Equal(expectedSql, mc.sqlQuery)
 	assert.Equal(4, len(mc.args))
 	assert.Equal(defaultApiKey.Id, mc.args[0])
 	assert.Equal(defaultApiKey.Key, mc.args[1])
