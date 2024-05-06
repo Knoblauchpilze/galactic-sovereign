@@ -29,7 +29,15 @@ func NewApiKeyRepository(conn db.ConnectionPool) ApiKeyRepository {
 	}
 }
 
-const createApiKeySqlTemplate = "INSERT INTO api_key (id, key, api_user, valid_until) VALUES($1, $2, $3, $4)"
+const createApiKeySqlTemplate = `
+INSERT INTO api_key (id, key, api_user, valid_until)
+	VALUES($1, $2, $3, $4)
+	ON CONFLICT (api_user) DO UPDATE
+	SET
+		valid_until = excluded.valid_until
+	WHERE
+		api_key.api_user = excluded.api_user
+`
 
 func (r *apiUserRepositoryImpl) Create(ctx context.Context, apiKey persistence.ApiKey) (persistence.ApiKey, error) {
 	_, err := r.conn.Exec(ctx, createApiKeySqlTemplate, apiKey.Id, apiKey.Key, apiKey.ApiUser, apiKey.ValidUntil)
