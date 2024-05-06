@@ -140,5 +140,9 @@ func (s *userServiceImpl) Logout(ctx context.Context, id uuid.UUID) error {
 		return err
 	}
 
+	if len(apiKeys) == 0 {
+		return nil
+	}
+
 	return s.apiKeyRepo.Delete(ctx, apiKeys)
 }
