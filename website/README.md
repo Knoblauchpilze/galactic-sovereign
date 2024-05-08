@@ -12,6 +12,8 @@ To start the website, the [installation instructions](https://kit.svelte.dev/doc
 npm run dev -- --open
 ```
 
+Alternatively a [Makefile](users-dashboard/Makefile) is provided with a `make users` target.
+
 ## Approach to the framework
 
 Taken from the [documentation](https://kit.svelte.dev/docs/routing#page-page-svelte), it seems like the routing is done on the file system. A
