@@ -19,12 +19,12 @@ type ApiKeyRepository interface {
 	DeleteTx(ctx context.Context, tx db.Transaction, ids []uuid.UUID) error
 }
 
-type apiUserRepositoryImpl struct {
+type apiKeyRepositoryImpl struct {
 	conn db.ConnectionPool
 }
 
 func NewApiKeyRepository(conn db.ConnectionPool) ApiKeyRepository {
-	return &apiUserRepositoryImpl{
+	return &apiKeyRepositoryImpl{
 		conn: conn,
 	}
 }
@@ -37,16 +37,30 @@ INSERT INTO api_key (id, key, api_user, valid_until)
 		valid_until = excluded.valid_until
 	WHERE
 		api_key.api_user = excluded.api_user
+	RETURNING
+		api_key.key
 `
 
-func (r *apiUserRepositoryImpl) Create(ctx context.Context, apiKey persistence.ApiKey) (persistence.ApiKey, error) {
-	_, err := r.conn.Exec(ctx, createApiKeySqlTemplate, apiKey.Id, apiKey.Key, apiKey.ApiUser, apiKey.ValidUntil)
-	return apiKey, err
+func (r *apiKeyRepositoryImpl) Create(ctx context.Context, apiKey persistence.ApiKey) (persistence.ApiKey, error) {
+	res := r.conn.Query(ctx, createApiKeySqlTemplate, apiKey.Id, apiKey.Key, apiKey.ApiUser, apiKey.ValidUntil)
+	if err := res.Err(); err != nil {
+		return persistence.ApiKey{}, err
+	}
+
+	parser := func(rows db.Scannable) error {
+		return rows.Scan(&apiKey.Key)
+	}
+
+	if err := res.GetSingleValue(parser); err != nil {
+		return persistence.ApiKey{}, err
+	}
+
+	return apiKey, nil
 }
 
-const getApiKeySqlTemplate = "SELECT id, key, api_user FROM api_key WHERE id = $1"
+const getApiKeySqlTemplate = "SELECT id, key, api_user, valid_until FROM api_key WHERE id = $1"
 
-func (r *apiUserRepositoryImpl) Get(ctx context.Context, id uuid.UUID) (persistence.ApiKey, error) {
+func (r *apiKeyRepositoryImpl) Get(ctx context.Context, id uuid.UUID) (persistence.ApiKey, error) {
 	res := r.conn.Query(ctx, getApiKeySqlTemplate, id)
 	if err := res.Err(); err != nil {
 		return persistence.ApiKey{}, err
@@ -54,7 +68,7 @@ func (r *apiUserRepositoryImpl) Get(ctx context.Context, id uuid.UUID) (persiste
 
 	var out persistence.ApiKey
 	parser := func(rows db.Scannable) error {
-		return rows.Scan(&out.Id, &out.Key, &out.ApiUser)
+		return rows.Scan(&out.Id, &out.Key, &out.ApiUser, &out.ValidUntil)
 	}
 
 	if err := res.GetSingleValue(parser); err != nil {
@@ -66,7 +80,7 @@ func (r *apiUserRepositoryImpl) Get(ctx context.Context, id uuid.UUID) (persiste
 
 const getApiKeyForKeySqlTemplate = "SELECT id, key, api_user, valid_until FROM api_key WHERE key = $1"
 
-func (r *apiUserRepositoryImpl) GetForKey(ctx context.Context, apiKey uuid.UUID) (persistence.ApiKey, error) {
+func (r *apiKeyRepositoryImpl) GetForKey(ctx context.Context, apiKey uuid.UUID) (persistence.ApiKey, error) {
 	res := r.conn.Query(ctx, getApiKeyForKeySqlTemplate, apiKey)
 	if err := res.Err(); err != nil {
 		return persistence.ApiKey{}, err
@@ -86,7 +100,7 @@ func (r *apiUserRepositoryImpl) GetForKey(ctx context.Context, apiKey uuid.UUID)
 
 const getApiKeyForUserSqlTemplate = "SELECT id FROM api_key WHERE api_user = $1"
 
-func (r *apiUserRepositoryImpl) GetForUser(ctx context.Context, user uuid.UUID) ([]uuid.UUID, error) {
+func (r *apiKeyRepositoryImpl) GetForUser(ctx context.Context, user uuid.UUID) ([]uuid.UUID, error) {
 	res := r.conn.Query(ctx, getApiKeyForUserSqlTemplate, user)
 	if err := res.Err(); err != nil {
 		return []uuid.UUID{}, err
@@ -111,7 +125,7 @@ func (r *apiUserRepositoryImpl) GetForUser(ctx context.Context, user uuid.UUID) 
 	return out, nil
 }
 
-func (r *apiUserRepositoryImpl) GetForUserTx(ctx context.Context, tx db.Transaction, user uuid.UUID) ([]uuid.UUID, error) {
+func (r *apiKeyRepositoryImpl) GetForUserTx(ctx context.Context, tx db.Transaction, user uuid.UUID) ([]uuid.UUID, error) {
 	res := tx.Query(ctx, getApiKeyForUserSqlTemplate, user)
 	if err := res.Err(); err != nil {
 		return []uuid.UUID{}, err
@@ -138,7 +152,7 @@ func (r *apiUserRepositoryImpl) GetForUserTx(ctx context.Context, tx db.Transact
 
 const deleteApiKeysSqlTemplate = "DELETE FROM api_key WHERE id IN (%s)"
 
-func (r *apiUserRepositoryImpl) Delete(ctx context.Context, ids []uuid.UUID) error {
+func (r *apiKeyRepositoryImpl) Delete(ctx context.Context, ids []uuid.UUID) error {
 	in := db.ToSliceInterface(ids)
 	sqlQuery := fmt.Sprintf(deleteApiKeysSqlTemplate, db.GenerateInClauseForArgs(len(ids)))
 
@@ -146,7 +160,7 @@ func (r *apiUserRepositoryImpl) Delete(ctx context.Context, ids []uuid.UUID) err
 	return err
 }
 
-func (r *apiUserRepositoryImpl) DeleteTx(ctx context.Context, tx db.Transaction, ids []uuid.UUID) error {
+func (r *apiKeyRepositoryImpl) DeleteTx(ctx context.Context, tx db.Transaction, ids []uuid.UUID) error {
 	in := db.ToSliceInterface(ids)
 	sqlQuery := fmt.Sprintf(deleteApiKeysSqlTemplate, db.GenerateInClauseForArgs(len(ids)))
 

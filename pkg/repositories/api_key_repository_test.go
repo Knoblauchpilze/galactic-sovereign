@@ -18,7 +18,7 @@ var defaultApiKey = persistence.ApiKey{
 	ApiUser: defaultUserId,
 }
 
-func TestApiKeyRepository_Create_UsesConnectionToExec(t *testing.T) {
+func TestApiKeyRepository_Create_UsesConnectionToQuery(t *testing.T) {
 	assert := assert.New(t)
 
 	mc := &mockConnectionPool{}
@@ -26,7 +26,7 @@ func TestApiKeyRepository_Create_UsesConnectionToExec(t *testing.T) {
 
 	repo.Create(context.Background(), defaultApiKey)
 
-	assert.Equal(1, mc.execCalled)
+	assert.Equal(1, mc.queryCalled)
 }
 
 func TestApiKeyRepository_Create_GeneratesValidSql(t *testing.T) {
@@ -45,6 +45,8 @@ INSERT INTO api_key (id, key, api_user, valid_until)
 		valid_until = excluded.valid_until
 	WHERE
 		api_key.api_user = excluded.api_user
+	RETURNING
+		api_key.key
 `
 
 	assert.Equal(expectedSql, mc.sqlQuery)
@@ -59,7 +61,38 @@ func TestApiKeyRepository_Create_PropagatesQueryFailure(t *testing.T) {
 	assert := assert.New(t)
 
 	mc := &mockConnectionPool{
-		execErr: errDefault}
+		rows: mockRows{
+			err: errDefault,
+		},
+	}
+	repo := NewApiKeyRepository(mc)
+
+	_, err := repo.Create(context.Background(), defaultApiKey)
+
+	assert.Equal(errDefault, err)
+}
+
+func TestApiKeyRepository_Create_GetsReturnedValue(t *testing.T) {
+	assert := assert.New(t)
+
+	mc := &mockConnectionPool{
+		rows: mockRows{},
+	}
+	repo := NewApiKeyRepository(mc)
+
+	repo.Create(context.Background(), defaultApiKey)
+
+	assert.Equal(1, mc.rows.singleValueCalled)
+}
+
+func TestApiKeyRepository_Create_WhenReturnValueFails_Fails(t *testing.T) {
+	assert := assert.New(t)
+
+	mc := &mockConnectionPool{
+		rows: mockRows{
+			singleValueErr: errDefault,
+		},
+	}
 	repo := NewApiKeyRepository(mc)
 
 	_, err := repo.Create(context.Background(), defaultApiKey)
@@ -98,7 +131,7 @@ func TestApiKeyRepository_Get_GeneratesValidSql(t *testing.T) {
 
 	repo.Get(context.Background(), defaultApiKeyId)
 
-	assert.Equal("SELECT id, key, api_user FROM api_key WHERE id = $1", mc.sqlQuery)
+	assert.Equal("SELECT id, key, api_user, valid_until FROM api_key WHERE id = $1", mc.sqlQuery)
 	assert.Equal(1, len(mc.args))
 	assert.Equal(defaultApiKeyId, mc.args[0])
 }
@@ -188,10 +221,11 @@ func TestApiKeyRepository_Get_ScansApiKeyProperties(t *testing.T) {
 
 	props := mc.rows.scanner.props
 	assert.Equal(1, mc.rows.scanner.scannCalled)
-	assert.Equal(3, len(props))
+	assert.Equal(4, len(props))
 	assert.IsType(&uuid.UUID{}, props[0])
 	assert.IsType(&uuid.UUID{}, props[1])
 	assert.IsType(&uuid.UUID{}, props[2])
+	assert.IsType(&time.Time{}, props[3])
 }
 
 func TestApiKeyRepository_GetForKey_UsesConnectionToQuery(t *testing.T) {
