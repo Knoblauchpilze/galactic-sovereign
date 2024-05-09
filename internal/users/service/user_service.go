@@ -6,6 +6,7 @@ import (
 
 	"github.com/KnoblauchPilze/user-service/pkg/communication"
 	"github.com/KnoblauchPilze/user-service/pkg/db"
+	"github.com/KnoblauchPilze/user-service/pkg/errors"
 	"github.com/KnoblauchPilze/user-service/pkg/persistence"
 	"github.com/KnoblauchPilze/user-service/pkg/repositories"
 	"github.com/google/uuid"
@@ -17,7 +18,8 @@ type UserService interface {
 	List(ctx context.Context) ([]uuid.UUID, error)
 	Update(ctx context.Context, id uuid.UUID, user communication.UserDtoRequest) (communication.UserDtoResponse, error)
 	Delete(ctx context.Context, id uuid.UUID) error
-	Login(ctx context.Context, id uuid.UUID) (communication.ApiKeyDtoResponse, error)
+	Login(ctx context.Context, user communication.UserDtoRequest) (communication.ApiKeyDtoResponse, error)
+	LoginById(ctx context.Context, id uuid.UUID) (communication.ApiKeyDtoResponse, error)
 	Logout(ctx context.Context, id uuid.UUID) error
 }
 
@@ -107,7 +109,33 @@ func (s *userServiceImpl) Delete(ctx context.Context, id uuid.UUID) error {
 	return nil
 }
 
-func (s *userServiceImpl) Login(ctx context.Context, id uuid.UUID) (communication.ApiKeyDtoResponse, error) {
+func (s *userServiceImpl) Login(ctx context.Context, user communication.UserDtoRequest) (communication.ApiKeyDtoResponse, error) {
+	dbUser, err := s.userRepo.GetByEmail(ctx, user.Email)
+	if err != nil {
+		return communication.ApiKeyDtoResponse{}, err
+	}
+
+	if user.Password != dbUser.Password {
+		return communication.ApiKeyDtoResponse{}, errors.NewCode(InvalidCredentials)
+	}
+
+	apiKey := persistence.ApiKey{
+		Id:         uuid.New(),
+		Key:        uuid.New(),
+		ApiUser:    dbUser.Id,
+		ValidUntil: time.Now().Add(s.apiKeyValidity),
+	}
+
+	createdKey, err := s.apiKeyRepo.Create(ctx, apiKey)
+	if err != nil {
+		return communication.ApiKeyDtoResponse{}, err
+	}
+
+	out := communication.ToApiKeyDtoResponse(createdKey)
+	return out, nil
+}
+
+func (s *userServiceImpl) LoginById(ctx context.Context, id uuid.UUID) (communication.ApiKeyDtoResponse, error) {
 	user, err := s.userRepo.Get(ctx, id)
 	if err != nil {
 		return communication.ApiKeyDtoResponse{}, err
