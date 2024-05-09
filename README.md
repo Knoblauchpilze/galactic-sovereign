@@ -1,4 +1,3 @@
-
 # user-service
 
 The definition of a service to manage users and authentication. This service comes with a working CI allowing to deploy it on an EC2 instance. The configuration also includes an automatic periodic backup of the database to a S3 storage to prevent data losses.
@@ -27,9 +26,10 @@ This projects uses:
 ## Preparing for setting up the project
 
 In the rest of the installation instructions, the project assumes that:
-* all necessary software is installed on the local machine.
-* 3 passwords have been generated and are available (for the db users).
-* a RSA key pair is available along with an identity file wich authorization to log on the EC2 instance.
+
+- all necessary software is installed on the local machine.
+- 3 passwords have been generated and are available (for the db users).
+- a RSA key pair is available along with an identity file wich authorization to log on the EC2 instance.
 
 ### Generate a RSA key pair
 
@@ -50,9 +50,10 @@ To start the instance on which the service will be running you need an account w
 ### Network interface
 
 The instance should open the following ports:
-* allow incoming SSH connections (TCP 22)
-* allow outbound internet traffic (TCP 80 and 443 for http and https respectively)
-* allow incoming internet traffic (TCP 80 and 443 for http and https respectively)
+
+- allow incoming SSH connections (TCP 22)
+- allow outbound internet traffic (TCP 80 and 443 for http and https respectively)
+- allow incoming internet traffic (TCP 80 and 443 for http and https respectively)
 
 Note that we don't open the `postgres` server port: this is because it is generally advised (see [this SO article](https://stackoverflow.com/questions/76541185/how-to-connect-to-postgresql-server-running-on-ec2)) to not publicly expose the database to the outside world but instead to use another secured connection mechanism (e.g. SSH) to open a tunnel to the instance and then make the DB connection transit through this tunnel. This is described in more details in the [following section](#in-case-of-a-remote-environment) on how to connect to the database.
 
@@ -77,6 +78,7 @@ In the AWS console there's already a convenience template meeting all of these r
 ### A word on User data
 
 The User data mechanism allows, as per the [AWS documentation](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/user-data.html?icmpid=docs_ec2_console), to:
+
 ```
 Specify user data to provide commands or a command script to run when you launch your instance. Input is base64 encoded when you launch your instance unless you select the User data has already been base64 encoded check box.
 ```
@@ -93,38 +95,44 @@ In the production case, the docker container is for now also connecting to a loc
 
 The way docker exposes the `localhost` to application running within it is a bit different to how it works outside of it. This SO post describes [how to connect to localhost from inside a docker container](https://stackoverflow.com/questions/24319662/from-inside-of-a-docker-container-how-do-i-connect-to-the-localhost-of-the-mach) and goes into a bit of details on how it works. The TL;DR is that in the default network mode (bridge), the docker engine will associate an IP with a pattern like `172.17.X.Y` to reach localhost. This is already reflected in the [default config](cmd/users/internal/config.go) file.
 
-### Allow incoming connections to the postgres server from docker host 
+### Allow incoming connections to the postgres server from docker host
 
 The previous step is just half of the work though. Now that the application within the docker container is successfully able to contact `localhost`, we need to instruct the `postgres` server to accept connections from this IP. By default, only connection from the local host are checked which does not work with the IP ranges assigned by the docker engine.
 
 Once again we found a nice explanatory [article on SO](https://stackoverflow.com/questions/31249112/allow-docker-container-to-connect-to-a-local-host-postgres-database) to solve this problem. The solution involves two steps.
 
 First, we need to instruct the `postgres` server to accept connections not only from local host but on a broader range of IPs. Reading what's indicated in the article, it can be done by editing a specific file:
+
 ```bash
 POSTGRESQL_VERSION=14
 vim /etc/postgresql/${POSTGRESQL_VERSION}/main/postgresql.conf
 ```
 
 Once the editor is started, you can look if the following line already exists: if not create it.
+
 ```
 listen_addresses = '*'
 ```
+
 This will instruct the `postgres` server to listen on all addresses instead of just on the local host (the default).
 
 Once this is done, we still need to instruct the `postgres` server about which authentication method it should expect for the new possible hosts. This can be achieved as described in [this SO article](https://dba.stackexchange.com/questions/83984/connect-to-postgresql-server-fatal-no-pg-hba-conf-entry-for-host).
 
 First, open the following file with your favourite editor:
+
 ```bash
 POSTGRESQL_VERSION=14
 vim /etc/postgresql/${POSTGRESQL_VERSION}/main/pg_hba.conf
 ```
 
 You can now add an entry for the IP range assigned by the docker host so as to allow connections from docker containers. We can try to keep things a bit more secure by not allowing all IPs but just the ones assigned by docker:
+
 ```
 host  all  all  172.17.0.0/0  scram-sha-256
 ```
 
 These modifications require to restart the `postgres` system to take effect. This can be done by running the following:
+
 ```bash
 sudo systemctl restart postgresql
 ```
@@ -136,16 +144,19 @@ With all of this, the service running in the docker container should be able to 
 In order to properly execute them, make sure that you know the `postgres` password (see [this SO link](https://stackoverflow.com/questions/27107557/what-is-the-default-password-for-postgres) to alter it if needed).
 
 The general principle is to first start a shell for the `postgres` user with:
+
 ```bash
 sudo -i -u postgres
 ```
 
 After this you can start a `postgres` shell with:
+
 ```bash
 psql
 ```
 
 Once in the shell you can alter the password of the `postgres` user with:
+
 ```sql
 ALTER USER postgres PASSWORD 'your-password';
 ```
@@ -157,6 +168,7 @@ After exiting the shells, you should know the password for the `postgres` passwo
 Some convenience scripts are provided to create a tunnel to the EC2 instance: the idea is to connect through SSH to the instance and then forward the local `postgres` port locally so that it's 'as if' a local database server was up and running.
 
 To do so, you can run the [ec2-establish-db-tunnel.sh](scripts/ec2-establish-db-tunnel.sh) script:
+
 ```bash
 ./ec2-establish-db-tunnel.sh ec2-ip-address path/to/identify/file
 ```
@@ -168,9 +180,10 @@ This command will by default create a tunnel allowing to access the remote `post
 ### Creating the database
 
 In both remote and local case, the configuration of the database happens in 3 steps:
-* creation of the users to manage the database
-* creation of the database
-* creating the schema of the database and the relations
+
+- creation of the users to manage the database
+- creation of the database
+- creating the schema of the database and the relations
 
 With the `postgres` password at hand, you can navigate to the [database](database) directory and use the following scripts defined there.
 
@@ -181,6 +194,7 @@ Additionally, [create_user.sh](database/users/create_user.sh) requires `ADMIN_PA
 Finally the [Makefile](database/users/Makefile) to perform the migration requires to define the variables `DB_PORT` (same value as `DATABASE_PORT`) and `DB_PASSWORD` which should correspond to `ADMIN_PASSWORD`.
 
 As a recap, here are the required steps for the remote case:
+
 ```bash
 export DATABASE_PORT=5000
 export ADMIN_PASSWORD='admin-password'
@@ -208,6 +222,7 @@ DB_PORT=5000 DB_PASSWORD='admin-password' make connect
 ### Log out from the remote environment
 
 In case you set up a tunnel using [for remote access to the database](#in-case-of-a-remote-environment), don't forget to close the tunnel once you're done using the corresponding script:
+
 ```bash
 cd scripts
 ./ec2-close-db-tunnel.sh
@@ -222,8 +237,9 @@ When the user-service is up and running it will perform some interactions with t
 To defend against such cases this service relies on an automatic back-up task which periodically dumps the content of the database and saves it to a dedicated S3 bucket. In the event of a failure of the EC2 instance hosting the database we can restore to the latest available back-up.
 
 The back-up process is composed of two main components:
-* a cron job running regularly to dump the database
-* a S3 bucket to which the dumps are uploaded
+
+- a cron job running regularly to dump the database
+- a S3 bucket to which the dumps are uploaded
 
 The bucket is named `user-service-database-dumps` and has a policy to only keep the back-ups for a couple of days: after that they anyway lose their relevance.
 
@@ -234,6 +250,7 @@ A convenience script is provided to perform the back-up: [database-backup.sh](sc
 **It is necessary to copy this script on the EC2 instance hosting the database.**
 
 The script expects the database password to be provided as environment variable under `DATABASE_PASSWORD`. Alternatively and in order to make it simpler to use the script with a cron job (see corresponding [section](#setting-up-the-database-backup)), in the remote case it can be beneficial to modify the copied version of the script to directly include the password in it. So change the line as follows (do not change the initial `:-` sequence):
+
 ```bash
 DB_PASSWORD=${DATABASE_PASSWORD:-the-actual-password}
 ```
@@ -245,6 +262,7 @@ Assuming the user has an AWS profile and after the admin allowed the user's role
 ![DB user role](resources/db-user-role.png)
 
 Once this is done, you can export an environment variable indicating to the script which role it should use to perform the upload as follows:
+
 ```bash
 export IAM_ROLE=your-role-name
 ```
@@ -258,11 +276,13 @@ The script will then try to assume this role before uploading the backup to the 
 In order to automatically configure the back-up, we recommend using [cron](https://en.wikipedia.org/wiki/Cron). There are numerous articles explaining on how to make it work. We used the following article: [How do I set up a cron job](https://askubuntu.com/questions/2368/how-do-i-set-up-a-cron-job) on `askubuntu`.
 
 The idea here is to run and pick your favourite editor:
+
 ```bash
 crontab -e
 ```
 
 Once this is done, insert the following line:
+
 ```bash
 */20 * * * * /path/to/database-backup.sh
 ```
@@ -276,6 +296,7 @@ This will make sure that the back-up is performed automatically every 20 minutes
 In case of a failure of the EC2 instance or in general for any situation that would require to restore the database to an earlier state, we can use the [database-restore.sh](scripts/database-restore.sh) script.
 
 It works in a very similar way to the back-up one and expects a single argument representing the name of the database back-up to use to restore. The command line looks like so:
+
 ```bash
 ./database-restore.sh db_user_service_dump_2024-04-25-22_20_01.bck
 ```
@@ -285,8 +306,9 @@ Just like for the database backup case the script expects the database password 
 The script will attempt to assume the role to access to the S3 bucket, download the dump locally and restore the database to its previous state.
 
 A couple of useful considerations:
-* in case the download fails, no restoration will be attempted
-* in case the restore fails, the script stops at the first error
+
+- in case the download fails, no restoration will be attempted
+- in case the restore fails, the script stops at the first error
 
 In case something fails during the restore operation, the best course of action is probably to drop the database entirely and start fresh from the [create database](#creating-the-database) section before attempting the restore again.
 
@@ -299,6 +321,7 @@ The image is pushed to a dedicated dockerhub repository with a tag corresponding
 ![Dockerhub repository](resources/dockerhub-repo.png)
 
 Images are publicly available and can be downloaded with a simple `docker pull` command such as:
+
 ```bash
 docker up totocorpsoftwareinc/user-service:YOUR-TAG
 ```
@@ -316,11 +339,13 @@ The script will attempt to curl the endpoint providing the healtcheck for the se
 **Note:** the script is expected to run as root or alternatively to run with a user having the permissions to run `docker` without `sudo`.
 
 To install the script, you first need to open the crontab:
+
 ```bash
 crontab -e
 ```
 
 Once this is done, insert the following line:
+
 ```bash
 */5 * * * * /path/to/service-monitoring.sh
 ```
@@ -333,19 +358,19 @@ As it is presented here the cron job will trigger every 5 minutes and take actio
 
 ## General design
 
-This service exposes CRUD operations to manage users. A user is defined as a simple collection of an email and a password. Upon creation, a user is associated with an API key, which is required to perform interactions with the server.
+This service exposes CRUD operations to manage users. A user is defined as a simple collection of an email and a password. Any user can log in or out of the service.
+
+## Logging in and out
+
+In order to allow users to access information about the service, we provide a session mechanism.
+
+Upon calling the `POST /v1/users/sessions` route, the user will be able to obtain a token valid for a certain period of time and which can be used to access other endpoints in the service. This endpoint (along with the `POST /v1/users` endpoint to create a new user) is the only one which can be called unauthenticated.
+
+The session token is only valid for a certain amount of time and can be revoked early by calling `DELETE /v1/users/sessions/{user-id}`.
 
 ## API keys
 
-It is only possible to access the API key attached to a user on the response returned by the `POST` operation. All subsequent operations will erase the keys from the response. This is to make sure that only the client who initially created the user knows the keys. A typical response will look like so:
-
-![Create response](resources/service-api-keys.png)
-
-And a typical GET call will return:
-
-![Get response](resources/service-get-call.png)
-
-Even though no endpoint currently allows to do this, it is possible to de/activate API keys and each user may have more than one. Only the active ones are considered when returning them (in the CREATE operation).
+We use API keys in a similar way as the session keys described in this [Kong article](https://konghq.com/blog/learning-center/what-are-api-keys). Each key is a simple identifier that is required to access our service.
 
 ## Web framework
 
@@ -357,73 +382,84 @@ Because this server is supposed to be deployed on a internet facing instance, we
 
 # Future work
 
-As of now, **all** operations require to be using an API key to succeed. This is of course not optimal because how are you supposed to get an API key in the first place?
-
 Currently we also listen on `http://...` and don't provide anything in regards to `https`. This should be changed for enhanced security.
 
 # Cheat sheet
 
 ## Create new user
+
 ```bash
 curl -X POST -H "Content-Type: application/json" http://localhost:60001/v1/users -d '{"email":"user-1@mail.com","password":"password-for-user-1"}' | jq
 ```
 
 ## Query existing user
+
 ```bash
 curl -X GET -H "Content-Type: application/json" -H 'X-Api-Key: 2da3e9ec-7299-473a-be0f-d722d870f51a' http://localhost:60001/v1/users/4f26321f-d0ea-46a3-83dd-6aa1c6053aaf | jq
 ```
 
 ## Query non existing user
+
 ```bash
 curl -X GET -H 'Content-Type: application/json' -H 'X-Api-Key: 2da3e9ec-7299-473a-be0f-d722d870f51a' http://localhost:60001/v1/users/4f26321f-d0ea-46a3-83dd-6aa1c6053aae | jq
 ```
 
 ## Query without API key
+
 ```bash
 curl -X GET -H 'Content-Type: application/json' http://localhost:60001/v1/users/4f26321f-d0ea-46a3-83dd-6aa1c6053aae | jq
 ```
 
 ## List users
+
 ```bash
 curl -X GET -H 'Content-Type: application/json' '-H 'X-Api-Key: 2da3e9ec-7299-473a-be0f-d722d870f51a' http://localhost:60001/v1/users | jq
 ```
 
 ## Patch existing user
+
 ```bash
 curl -X PATCH -H 'Content-Type: application/json' -H 'X-Api-Key: 2da3e9ec-7299-473a-be0f-d722d870f51a' http://localhost:60001/v1/users/0463ed3d-bfc9-4c10-b6ee-c223bbca0fab -d '{"email":"test-user@real-provider.com","password":"strong-password"}'| jq
 ```
 
 ## Delete user
+
 ```bash
 curl -X DELETE -H 'Content-Type: application/json' -H 'X-Api-Key: 2da3e9ec-7299-473a-be0f-d722d870f51a' http://localhost:60001/v1/users/0463ed3d-bfc9-4c10-b6ee-c223bbca0fab | jq
 ```
 
 ## Login a user
+
 ```bash
 curl -X POST -H 'Content-Type: application/json' http://localhost:60001/v1/users/sessions/4f26321f-d0ea-46a3-83dd-6aa1c6053aaf | jq
 ```
 
 ## Login a user by email
+
 ```bash
 curl -X POST -H "Content-Type: application/json" http://localhost:60001/v1/users/sessions -d '{"email":"test-user@provider.com","password":"strong-password"}' | jq
 ```
 
 ## Login a user by email with wrong credentials
+
 ```bash
 curl -X POST -H "Content-Type: application/json" http://localhost:60001/v1/users/sessions -d '{"email":"test-user@provider.com","password":"not-the-password"}' | jq
 ```
 
 ## Logout a user
+
 ```bash
 curl -X DELETE -H 'Content-Type: application/json' -H 'X-Api-Key: 2da3e9ec-7299-473a-be0f-d722d870f51a' http://localhost:60001/v1/users/sessions/4f26321f-d0ea-46a3-83dd-6aa1c6053aaf | jq
 ```
 
 ## Build the docker container
+
 ```bash
 GIT_COMMIT_HASH=$(git rev-parse --short HEAD) ENV_DATABASE_PASSWORD='password' make user-service-build
 ```
 
 ## Run the docker container
+
 ```bash
 GIT_COMMIT_HASH=$(git rev-parse --short HEAD) ENV_DATABASE_PASSWORD='password' make user-service-run
 ```
