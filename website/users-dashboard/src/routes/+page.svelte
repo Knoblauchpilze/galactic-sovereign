@@ -1,18 +1,35 @@
+<script lang="ts">
+	// https://learn.svelte.dev/tutorial/lib
+	import ResponseEnvelope from '$lib/responseEnvelope';
+	import login from '$lib/api';
+
+	// https://stackoverflow.com/questions/73280092/capture-value-from-an-input-with-svelte
+	let email: string;
+	let password: string;
+
+	let loginResponse: ResponseEnvelope;
+
+	async function performLogin() {
+		loginResponse = await login(email, password);
+	}
+</script>
+
 <div class="panel">
 	<h1>User dashboard</h1>
 
-	<div>
-		<form>
-			<label for="femail">e-mail:</label><br />
-			<input type="text" id="femail" name="femail" /><br />
-			<label for="fpassword">password:</label><br />
-			<input type="text" id="fpassword" name="fpassword" /><br />
-		</form>
-	</div>
+	<form class="form">
+		<label for="form-email">e-mail:</label>
+		<input type="text" name="email" bind:value={email} />
+		<label for="form-password"> password:</label>
+		<input type="text" name="password" bind:value={password} />
+
+		<div class="form-submit">
+			<button on:click={performLogin}>Login</button>
+		</div>
+	</form>
 
 	<div>
-		<button type="button">Login</button>
-		<button type="button">Signup</button>
+		{JSON.stringify(loginResponse)}
 	</div>
 </div>
 
@@ -34,6 +51,17 @@
 		display: flex;
 		flex-direction: column;
 		justify-content: center;
+		align-items: center;
+	}
+
+	.form {
+		display: flex;
+		flex-direction: column;
+	}
+
+	.form-submit {
+		display: flex;
+		flex-direction: column;
 		align-items: center;
 	}
 </style>
