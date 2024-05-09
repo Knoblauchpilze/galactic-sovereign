@@ -10,6 +10,7 @@ import (
 	"github.com/KnoblauchPilze/user-service/pkg/logger"
 	"github.com/KnoblauchPilze/user-service/pkg/middleware"
 	"github.com/KnoblauchPilze/user-service/pkg/repositories"
+	em "github.com/labstack/echo/v4/middleware"
 )
 
 type Server interface {
@@ -62,7 +63,7 @@ func (s *serverImpl) Start() {
 	go func() {
 		defer s.wg.Done()
 
-		logger.Infof("Starting server at %s%s", s.endpoint, address)
+		logger.Infof("Starting server at %s for route %s", address, s.endpoint)
 		s.err = s.server.Start(address)
 	}()
 }
@@ -106,6 +107,22 @@ func (s *serverImpl) Register(route Route) error {
 }
 
 func registerMiddlewares(server echoServer, rateLimit int) chan bool {
+	// https://stackoverflow.com/questions/74020538/cors-preflight-did-not-succeed
+	// https://stackoverflow.com/questions/6660019/restful-api-methods-head-options
+	corsConf := em.CORSConfig{
+		// https://www.stackhawk.com/blog/golang-cors-guide-what-it-is-and-how-to-enable-it/
+		// Same as the default value
+		AllowOrigins: []string{"*"},
+		AllowMethods: []string{
+			http.MethodOptions,
+			http.MethodGet,
+			http.MethodPost,
+			http.MethodPatch,
+			http.MethodDelete,
+		},
+	}
+	server.Use(em.CORSWithConfig(corsConf))
+
 	server.Use(middleware.RequestTiming())
 	server.Use(middleware.ResponseEnvelope())
 
