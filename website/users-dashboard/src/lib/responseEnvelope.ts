@@ -19,4 +19,12 @@ export default class ResponseEnvelope {
 	}
 }
 
+export function createFailedResponseEnvelope(details: object): ResponseEnvelope {
+  return new ResponseEnvelope({
+    RequestId: "00000000-0000-0000-0000-000000000000",
+    Status: "ERROR",
+    Details: details,
+  });
+}
+
 
