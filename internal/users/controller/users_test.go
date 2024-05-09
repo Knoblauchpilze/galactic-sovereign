@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/KnoblauchPilze/user-service/internal/users/service"
 	"github.com/KnoblauchPilze/user-service/pkg/communication"
 	"github.com/KnoblauchPilze/user-service/pkg/db"
 	"github.com/KnoblauchPilze/user-service/pkg/errors"
@@ -32,13 +33,14 @@ type mockUserService struct {
 	apiKey communication.ApiKeyDtoResponse
 	err    error
 
-	createCalled int
-	getCalled    int
-	listCalled   int
-	updateCalled int
-	deleteCalled int
-	loginCalled  int
-	logoutCalled int
+	createCalled    int
+	getCalled       int
+	listCalled      int
+	updateCalled    int
+	deleteCalled    int
+	loginCalled     int
+	loginByIdCalled int
+	logoutCalled    int
 
 	inUser communication.UserDtoRequest
 	inId   uuid.UUID
@@ -70,7 +72,7 @@ func TestUserEndpoints_GeneratesExpectedRoutes(t *testing.T) {
 	}
 
 	assert.Equal(4, len(actualRoutes))
-	assert.Equal(2, actualRoutes[http.MethodPost])
+	assert.Equal(3, actualRoutes[http.MethodPost])
 	assert.Equal(2, actualRoutes[http.MethodGet])
 	assert.Equal(1, actualRoutes[http.MethodPatch])
 	assert.Equal(2, actualRoutes[http.MethodDelete])
@@ -618,20 +620,20 @@ func TestDeleteUser_SetsStatusToNoContent(t *testing.T) {
 	assert.Equal(http.StatusNoContent, mc.status)
 }
 
-func TestLoginUser_WhenNoId_SetsStatusToBadRequest(t *testing.T) {
+func TestLoginUserById_WhenNoId_SetsStatusToBadRequest(t *testing.T) {
 	assert := assert.New(t)
 
 	mc := &mockContext{}
 	ms := &mockUserService{}
 
-	err := loginUser(mc, ms)
+	err := loginUserById(mc, ms)
 
 	assert.Nil(err)
 	assert.Equal(http.StatusBadRequest, mc.status)
 	assert.Equal("Invalid id syntax", mc.data)
 }
 
-func TestLoginUser_WhenIdSyntaxIsWrong_SetsStatusToBadRequest(t *testing.T) {
+func TestLoginUserById_WhenIdSyntaxIsWrong_SetsStatusToBadRequest(t *testing.T) {
 	assert := assert.New(t)
 
 	mc := &mockContext{
@@ -641,14 +643,14 @@ func TestLoginUser_WhenIdSyntaxIsWrong_SetsStatusToBadRequest(t *testing.T) {
 	}
 	ms := &mockUserService{}
 
-	err := loginUser(mc, ms)
+	err := loginUserById(mc, ms)
 
 	assert.Nil(err)
 	assert.Equal(http.StatusBadRequest, mc.status)
 	assert.Equal("Invalid id syntax", mc.data)
 }
 
-func TestLoginUser_CallsServiceLogin(t *testing.T) {
+func TestLoginUserById_CallsServiceLoginById(t *testing.T) {
 	assert := assert.New(t)
 
 	mc := &mockContext{
@@ -658,13 +660,13 @@ func TestLoginUser_CallsServiceLogin(t *testing.T) {
 	}
 	ms := &mockUserService{}
 
-	err := loginUser(mc, ms)
+	err := loginUserById(mc, ms)
 
 	assert.Nil(err)
-	assert.Equal(1, ms.loginCalled)
+	assert.Equal(1, ms.loginByIdCalled)
 }
 
-func TestLoginUser_WhenServiceFailsWithUnknownError_SetsStatusToInternalServerError(t *testing.T) {
+func TestLoginUserById_WhenServiceFailsWithUnknownError_SetsStatusToInternalServerError(t *testing.T) {
 	assert := assert.New(t)
 
 	mc := &mockContext{
@@ -676,13 +678,13 @@ func TestLoginUser_WhenServiceFailsWithUnknownError_SetsStatusToInternalServerEr
 		err: errDefault,
 	}
 
-	err := loginUser(mc, ms)
+	err := loginUserById(mc, ms)
 
 	assert.Nil(err)
 	assert.Equal(http.StatusInternalServerError, mc.status)
 }
 
-func TestLoginUser_WhenServiceFailsWithNoMatchingRows_SetsStatusToNotFound(t *testing.T) {
+func TestLoginUserById_WhenServiceFailsWithNoMatchingRows_SetsStatusToNotFound(t *testing.T) {
 	assert := assert.New(t)
 
 	mc := &mockContext{
@@ -694,13 +696,13 @@ func TestLoginUser_WhenServiceFailsWithNoMatchingRows_SetsStatusToNotFound(t *te
 		err: errors.NewCode(db.NoMatchingSqlRows),
 	}
 
-	err := loginUser(mc, ms)
+	err := loginUserById(mc, ms)
 
 	assert.Nil(err)
 	assert.Equal(http.StatusNotFound, mc.status)
 }
 
-func TestLoginUser_SetsStatusToCreated(t *testing.T) {
+func TestLoginUserById_SetsStatusToCreated(t *testing.T) {
 	assert := assert.New(t)
 
 	mc := &mockContext{
@@ -710,13 +712,13 @@ func TestLoginUser_SetsStatusToCreated(t *testing.T) {
 	}
 	ms := &mockUserService{}
 
-	err := loginUser(mc, ms)
+	err := loginUserById(mc, ms)
 
 	assert.Nil(err)
 	assert.Equal(http.StatusCreated, mc.status)
 }
 
-func TestLoginUser_LogsInExpectedUser(t *testing.T) {
+func TestLoginUserById_LogsInExpectedUser(t *testing.T) {
 	assert := assert.New(t)
 
 	mc := &mockContext{
@@ -726,13 +728,13 @@ func TestLoginUser_LogsInExpectedUser(t *testing.T) {
 	}
 	ms := &mockUserService{}
 
-	err := loginUser(mc, ms)
+	err := loginUserById(mc, ms)
 
 	assert.Nil(err)
 	assert.Equal(defaultUuid, ms.inId)
 }
 
-func TestLoginUser_ReturnsUserToken(t *testing.T) {
+func TestLoginUserById_ReturnsUserToken(t *testing.T) {
 	assert := assert.New(t)
 
 	mc := &mockContext{
@@ -744,7 +746,118 @@ func TestLoginUser_ReturnsUserToken(t *testing.T) {
 		apiKey: defaultApiKeyDtoResponse,
 	}
 
-	err := loginUser(mc, ms)
+	err := loginUserById(mc, ms)
+
+	assert.Nil(err)
+	actual, ok := mc.data.(communication.ApiKeyDtoResponse)
+	assert.True(ok)
+	assert.Equal(defaultApiKeyDtoResponse, actual)
+}
+
+func TestLoginUserByEmail_WhenBindFails_SetsStatusToBadRequest(t *testing.T) {
+	assert := assert.New(t)
+
+	mc := &mockContext{
+		bindErr: errDefault,
+	}
+	ms := &mockUserService{}
+
+	err := loginUserByEmail(mc, ms)
+
+	assert.Nil(err)
+	assert.Equal(http.StatusBadRequest, mc.status)
+	assert.Equal("Invalid user syntax", mc.data)
+}
+
+func TestLoginUserByEmail_CallsServiceLogin(t *testing.T) {
+	assert := assert.New(t)
+
+	mc := &mockContext{}
+	ms := &mockUserService{}
+
+	err := loginUserByEmail(mc, ms)
+
+	assert.Nil(err)
+	assert.Equal(1, ms.loginCalled)
+}
+
+func TestLoginUserByEmail_WhenServiceFailsWithUnknownError_SetsStatusToInternalServerError(t *testing.T) {
+	assert := assert.New(t)
+
+	mc := &mockContext{}
+	ms := &mockUserService{
+		err: errDefault,
+	}
+
+	err := loginUserByEmail(mc, ms)
+
+	assert.Nil(err)
+	assert.Equal(http.StatusInternalServerError, mc.status)
+}
+
+func TestLoginUserByEmail_WhenServiceFailsWithNoMatchingRows_SetsStatusUnauthorized(t *testing.T) {
+	assert := assert.New(t)
+
+	mc := &mockContext{}
+	ms := &mockUserService{
+		err: errors.NewCode(db.NoMatchingSqlRows),
+	}
+
+	err := loginUserByEmail(mc, ms)
+
+	assert.Nil(err)
+	assert.Equal(http.StatusNotFound, mc.status)
+}
+
+func TestLoginUserByEmail_WhenServiceFailsWithInvalidCredentials_SetsStatusUnauthorized(t *testing.T) {
+	assert := assert.New(t)
+
+	mc := &mockContext{}
+	ms := &mockUserService{
+		err: errors.NewCode(service.InvalidCredentials),
+	}
+
+	err := loginUserByEmail(mc, ms)
+
+	assert.Nil(err)
+	assert.Equal(http.StatusUnauthorized, mc.status)
+}
+
+func TestLoginUserByEmail_SetsStatusToCreated(t *testing.T) {
+	assert := assert.New(t)
+
+	mc := &mockContext{}
+	ms := &mockUserService{}
+
+	err := loginUserByEmail(mc, ms)
+
+	assert.Nil(err)
+	assert.Equal(http.StatusCreated, mc.status)
+}
+
+func TestLoginUserByEmail_LogsInExpectedUser(t *testing.T) {
+	assert := assert.New(t)
+
+	mc := &mockContext{
+		body: defaultUserRequest,
+	}
+	ms := &mockUserService{}
+
+	err := loginUserByEmail(mc, ms)
+
+	assert.Nil(err)
+	assert.Equal(defaultUserRequest, ms.inUser)
+}
+
+func TestLoginUserByEmail_ReturnsUserToken(t *testing.T) {
+	assert := assert.New(t)
+
+	mc := &mockContext{}
+	ms := &mockUserService{
+		apiKey: defaultApiKeyDtoResponse,
+	}
+
+	err := loginUserByEmail(mc, ms)
 
 	assert.Nil(err)
 	actual, ok := mc.data.(communication.ApiKeyDtoResponse)
@@ -929,8 +1042,14 @@ func (m *mockUserService) Delete(ctx context.Context, id uuid.UUID) error {
 	return m.err
 }
 
-func (m *mockUserService) Login(ctx context.Context, id uuid.UUID) (communication.ApiKeyDtoResponse, error) {
+func (m *mockUserService) Login(ctx context.Context, user communication.UserDtoRequest) (communication.ApiKeyDtoResponse, error) {
 	m.loginCalled++
+	m.inUser = user
+	return m.apiKey, m.err
+}
+
+func (m *mockUserService) LoginById(ctx context.Context, id uuid.UUID) (communication.ApiKeyDtoResponse, error) {
+	m.loginByIdCalled++
 	m.inId = id
 	return m.apiKey, m.err
 }
