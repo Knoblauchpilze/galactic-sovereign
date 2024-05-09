@@ -62,9 +62,10 @@ type mockScannable struct {
 
 var errDefault = fmt.Errorf("some error")
 var defaultUserId = uuid.MustParse("08ce96a3-3430-48a8-a3b2-b1c987a207ca")
+var defaultUserEmail = "e.mail@domain.com"
 var defaultUser = persistence.User{
 	Id:        defaultUserId,
-	Email:     "e.mail@domain.com",
+	Email:     defaultUserEmail,
 	Password:  "password",
 	CreatedAt: time.Date(2009, 11, 17, 20, 34, 58, 651387237, time.UTC),
 	UpdatedAt: time.Date(2009, 11, 17, 20, 34, 59, 651387237, time.UTC),
@@ -240,6 +241,126 @@ func TestUserRepository_Get_ScansUserProperties(t *testing.T) {
 	repo := NewUserRepository(mc)
 
 	_, err := repo.Get(context.Background(), defaultUserId)
+
+	assert.Nil(err)
+
+	props := mc.rows.scanner.props
+	assert.Equal(1, mc.rows.scanner.scannCalled)
+	assert.Equal(6, len(props))
+	assert.IsType(&uuid.UUID{}, props[0])
+	var str string
+	assert.IsType(&str, props[1])
+	assert.IsType(&str, props[2])
+	assert.IsType(&time.Time{}, props[3])
+	assert.IsType(&time.Time{}, props[4])
+	var itg int
+	assert.IsType(&itg, props[5])
+}
+
+func TestUserRepository_GetByEmail_UsesConnectionToQuery(t *testing.T) {
+	assert := assert.New(t)
+
+	mc := &mockConnectionPool{}
+	repo := NewUserRepository(mc)
+
+	repo.GetByEmail(context.Background(), defaultUserEmail)
+
+	assert.Equal(1, mc.queryCalled)
+}
+
+func TestUserRepository_GetByEmail_GeneratesValidSql(t *testing.T) {
+	assert := assert.New(t)
+
+	mc := &mockConnectionPool{}
+	repo := NewUserRepository(mc)
+
+	repo.GetByEmail(context.Background(), defaultUserEmail)
+
+	assert.Equal("SELECT id, email, password, created_at, updated_at, version FROM api_user WHERE email = $1", mc.sqlQuery)
+	assert.Equal(1, len(mc.args))
+	assert.Equal(defaultUserEmail, mc.args[0])
+}
+
+func TestUserRepository_GetByEmail_PropagatesQueryFailure(t *testing.T) {
+	assert := assert.New(t)
+
+	mc := &mockConnectionPool{
+		rows: mockRows{
+			err: errDefault,
+		},
+	}
+	repo := NewUserRepository(mc)
+
+	_, err := repo.GetByEmail(context.Background(), defaultUserEmail)
+
+	assert.Equal(errDefault, err)
+}
+
+func TestUserRepository_GetByEmail_CallsGetSingleValue(t *testing.T) {
+	assert := assert.New(t)
+
+	mc := &mockConnectionPool{}
+	repo := NewUserRepository(mc)
+
+	repo.GetByEmail(context.Background(), defaultUserEmail)
+
+	assert.Equal(1, mc.rows.singleValueCalled)
+}
+
+func TestUserRepository_GetByEmail_WhenResultReturnsError_Fails(t *testing.T) {
+	assert := assert.New(t)
+
+	mc := &mockConnectionPool{
+		rows: mockRows{
+			singleValueErr: errDefault,
+		},
+	}
+	repo := NewUserRepository(mc)
+
+	_, err := repo.GetByEmail(context.Background(), defaultUserEmail)
+
+	assert.Equal(errDefault, err)
+}
+
+func TestUserRepository_GetByEmail_WhenResultSucceeds_Success(t *testing.T) {
+	assert := assert.New(t)
+
+	mc := &mockConnectionPool{}
+	repo := NewUserRepository(mc)
+
+	_, err := repo.GetByEmail(context.Background(), defaultUserEmail)
+
+	assert.Nil(err)
+}
+
+func TestUserRepository_GetByEmail_PropagatesScanErrors(t *testing.T) {
+	assert := assert.New(t)
+
+	mc := &mockConnectionPool{
+		rows: mockRows{
+			scanner: &mockScannable{
+				err: errDefault,
+			},
+		},
+	}
+	repo := NewUserRepository(mc)
+
+	_, err := repo.GetByEmail(context.Background(), defaultUserEmail)
+
+	assert.Equal(errDefault, err)
+}
+
+func TestUserRepository_GetByEmail_ScansUserProperties(t *testing.T) {
+	assert := assert.New(t)
+
+	mc := &mockConnectionPool{
+		rows: mockRows{
+			scanner: &mockScannable{},
+		},
+	}
+	repo := NewUserRepository(mc)
+
+	_, err := repo.GetByEmail(context.Background(), defaultUserEmail)
 
 	assert.Nil(err)
 

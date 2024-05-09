@@ -13,6 +13,7 @@ import (
 type UserRepository interface {
 	Create(ctx context.Context, user persistence.User) (persistence.User, error)
 	Get(ctx context.Context, id uuid.UUID) (persistence.User, error)
+	GetByEmail(ctx context.Context, email string) (persistence.User, error)
 	List(ctx context.Context) ([]uuid.UUID, error)
 	Update(ctx context.Context, user persistence.User) (persistence.User, error)
 	Delete(ctx context.Context, tx db.Transaction, id uuid.UUID) error
@@ -45,6 +46,26 @@ const getUserSqlTemplate = "SELECT id, email, password, created_at, updated_at, 
 
 func (r *userRepositoryImpl) Get(ctx context.Context, id uuid.UUID) (persistence.User, error) {
 	res := r.conn.Query(ctx, getUserSqlTemplate, id)
+	if err := res.Err(); err != nil {
+		return persistence.User{}, err
+	}
+
+	var out persistence.User
+	parser := func(rows db.Scannable) error {
+		return rows.Scan(&out.Id, &out.Email, &out.Password, &out.CreatedAt, &out.UpdatedAt, &out.Version)
+	}
+
+	if err := res.GetSingleValue(parser); err != nil {
+		return persistence.User{}, err
+	}
+
+	return out, nil
+}
+
+const getUserByEmailSqlTemplate = "SELECT id, email, password, created_at, updated_at, version FROM api_user WHERE email = $1"
+
+func (r *userRepositoryImpl) GetByEmail(ctx context.Context, email string) (persistence.User, error) {
+	res := r.conn.Query(ctx, getUserByEmailSqlTemplate, email)
 	if err := res.Err(); err != nil {
 		return persistence.User{}, err
 	}
