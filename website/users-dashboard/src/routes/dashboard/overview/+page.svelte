@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { logout } from '$lib/api';
+
 	let id: string = '00-00-00-00';
 	let email: string = 'some-user';
 	let password: string = 'some-password';
@@ -15,7 +17,16 @@
 	};
 	const createdAt = new Date().toLocaleDateString('en-US', options);
 
-	async function performLogout() {}
+	let logoutError: string = '';
+
+	async function performLogout() {
+		logoutError = '';
+		const logoutResponse = await logout(id);
+
+		if (logoutResponse.error()) {
+			logoutError = String(logoutResponse.Details);
+		}
+	}
 </script>
 
 <div class="wrapper">
@@ -41,6 +52,12 @@
 	</table>
 
 	<button class="action-button" on:click={performLogout}>Logout</button>
+
+	{#if logoutError !== ''}
+		<div class="error-details">
+			Failed to logout: {logoutError}
+		</div>
+	{/if}
 </div>
 
 <style>
@@ -67,5 +84,13 @@
 		border-radius: 8px;
 
 		background-color: #1eb854;
+	}
+
+	.error-details {
+		color: #fe0075;
+		font-size: 1.5em;
+
+		position: fixed;
+		bottom: 1em;
 	}
 </style>
