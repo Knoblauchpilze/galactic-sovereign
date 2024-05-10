@@ -1,6 +1,7 @@
 package communication
 
 import (
+	"encoding/json"
 	"testing"
 	"time"
 
@@ -11,6 +12,20 @@ import (
 
 var defaultKey = uuid.MustParse("872e9e40-ce61-497e-b606-c7a08a4faa14")
 var defaultUser = uuid.MustParse("c74a22da-8a05-43a9-a8b9-717e422b0af4")
+
+func TestApiKeyDtoResponse_MarshalsToCamelCase(t *testing.T) {
+	assert := assert.New(t)
+
+	ak := ApiKeyDtoResponse{
+		Key:        defaultKey,
+		ValidUntil: someTime,
+	}
+
+	out, err := json.Marshal(ak)
+
+	assert.Nil(err)
+	assert.Equal(`{"key":"872e9e40-ce61-497e-b606-c7a08a4faa14","validUntil":"2024-05-05T20:50:18.651387237Z"}`, string(out))
+}
 
 func TestToApiKeyDtoResponse(t *testing.T) {
 	assert := assert.New(t)

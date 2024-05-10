@@ -8,8 +8,8 @@ import (
 )
 
 type ApiKeyDtoResponse struct {
-	Key        uuid.UUID
-	ValidUntil time.Time
+	Key        uuid.UUID `json:"key"`
+	ValidUntil time.Time `json:"validUntil"`
 }
 
 func ToApiKeyDtoResponse(apiKey persistence.ApiKey) ApiKeyDtoResponse {
