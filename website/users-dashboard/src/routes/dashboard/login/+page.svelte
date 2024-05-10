@@ -1,6 +1,6 @@
 <script lang="ts">
 	// https://learn.svelte.dev/tutorial/lib
-	import { login } from '$lib/api';
+	import { login } from '$lib/sessions';
 
 	// https://stackoverflow.com/questions/73280092/capture-value-from-an-input-with-svelte
 	let email: string;
