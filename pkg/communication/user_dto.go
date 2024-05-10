@@ -8,26 +8,17 @@ import (
 )
 
 type UserDtoRequest struct {
-	Email    string `form:"email"`
-	Password string `form:"password"`
+	// https://stackoverflow.com/questions/18635671/how-to-define-multiple-name-tags-in-a-struct
+	Email    string `json:"email" form:"email"`
+	Password string `json:"password" form:"password"`
 }
 
 type UserDtoResponse struct {
-	Id       uuid.UUID
-	Email    string
-	Password string
+	Id       uuid.UUID `json:"id"`
+	Email    string    `json:"email"`
+	Password string    `json:"password"`
 
-	CreatedAt time.Time
-}
-
-func ToUserDtoResponse(user persistence.User) UserDtoResponse {
-	return UserDtoResponse{
-		Id:       user.Id,
-		Email:    user.Email,
-		Password: user.Password,
-
-		CreatedAt: user.CreatedAt,
-	}
+	CreatedAt time.Time `json:"createdAt"`
 }
 
 func FromUserDtoRequest(user UserDtoRequest) persistence.User {
@@ -39,5 +30,15 @@ func FromUserDtoRequest(user UserDtoRequest) persistence.User {
 
 		CreatedAt: t,
 		UpdatedAt: t,
+	}
+}
+
+func ToUserDtoResponse(user persistence.User) UserDtoResponse {
+	return UserDtoResponse{
+		Id:       user.Id,
+		Email:    user.Email,
+		Password: user.Password,
+
+		CreatedAt: user.CreatedAt,
 	}
 }

@@ -9,9 +9,9 @@ import (
 )
 
 type responseEnvelope struct {
-	RequestId uuid.UUID
-	Status    string
-	Details   json.RawMessage `json:",omitempty"`
+	RequestId uuid.UUID       `json:"requestId"`
+	Status    string          `json:"status"`
+	Details   json.RawMessage `json:"details,omitempty"`
 }
 
 type envelopeResponseWriter struct {

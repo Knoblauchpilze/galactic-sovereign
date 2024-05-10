@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"encoding/json"
 	"net/http"
 	"regexp"
 	"strings"
@@ -11,6 +12,21 @@ import (
 )
 
 var defaultUuid = uuid.MustParse("08ce96a3-3430-48a8-a3b2-b1c987a207ca")
+
+func TestResponseEnvelope_MarshalsToCamelCase(t *testing.T) {
+	assert := assert.New(t)
+
+	r := responseEnvelope{
+		RequestId: defaultUuid,
+		Status:    "SUCCESS",
+		Details:   json.RawMessage([]byte(`{"Field":32}`)),
+	}
+
+	out, err := json.Marshal(r)
+
+	assert.Nil(err)
+	assert.Equal(`{"requestId":"08ce96a3-3430-48a8-a3b2-b1c987a207ca","status":"SUCCESS","details":{"Field":32}}`, string(out))
+}
 
 func TestEnvelopeResponseWriter_UsesProvidedWriter(t *testing.T) {
 	assert := assert.New(t)
@@ -28,7 +44,7 @@ func TestEnvelopeResponseWriter_AutomaticallySetsSuccessStatusWhenNoStatusIsUsed
 	erw := new(m, defaultUuid, nil)
 	erw.Write(sampleJsonData)
 
-	assert.Equal(`{"RequestId":"08ce96a3-3430-48a8-a3b2-b1c987a207ca","Status":"SUCCESS","Details":{"value":12}}`, string(m.data))
+	assert.Equal(`{"requestId":"08ce96a3-3430-48a8-a3b2-b1c987a207ca","status":"SUCCESS","details":{"value":12}}`, string(m.data))
 }
 
 func TestEnvelopeResponseWriter_UsesProvidedRequestId(t *testing.T) {
@@ -38,7 +54,7 @@ func TestEnvelopeResponseWriter_UsesProvidedRequestId(t *testing.T) {
 	erw := new(m, defaultUuid, nil)
 	erw.Write(sampleJsonData)
 
-	assert.Equal(`{"RequestId":"08ce96a3-3430-48a8-a3b2-b1c987a207ca","Status":"SUCCESS","Details":{"value":12}}`, string(m.data))
+	assert.Equal(`{"requestId":"08ce96a3-3430-48a8-a3b2-b1c987a207ca","status":"SUCCESS","details":{"value":12}}`, string(m.data))
 }
 
 func TestEnvelopeResponseWriter_ForwardsProvidedWriterHeaders(t *testing.T) {
@@ -95,7 +111,7 @@ func TestEnvelopeResponseWriter_WriteForwardsCallToProvidedWriter(t *testing.T) 
 	assert.Equal(1, m.writeCalled)
 }
 
-var matcherStr = `{"RequestId":"08ce96a3-3430-48a8-a3b2-b1c987a207ca","Status":"${STATUS}","Details":{"value":12}}`
+var matcherStr = `{"requestId":"08ce96a3-3430-48a8-a3b2-b1c987a207ca","status":"${STATUS}","details":{"value":12}}`
 var pattern = `${STATUS}`
 
 func TestEnvelopeResponseWriter_WriteWrapsSuccessDataWithEnvelope(t *testing.T) {
