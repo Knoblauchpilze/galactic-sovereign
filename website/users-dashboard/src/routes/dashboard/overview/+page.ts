@@ -1,21 +1,22 @@
 
+import { error } from '@sveltejs/kit';
 import User, { getUser,  } from '$lib/users';
 
 /** @type {import('./$types').PageLoad} */
 export async function load({ params }) {
-  console.log("params: " + JSON.stringify(params));
+	console.log("params: " + JSON.stringify(params));
 
-  const DUMMY_API_KEY = 'your-key';
-  const DUMMY_USER_ID = 'your-id';
-  const userResponse = await getUser(DUMMY_API_KEY, DUMMY_USER_ID);
+	// TODO: Replace this by loading data from the cookie?
+	const DUMMY_API_KEY = 'your-key';
+	const DUMMY_USER_ID = 'your-id';
+	const userResponse = await getUser(DUMMY_API_KEY, DUMMY_USER_ID);
 
-  if (userResponse.error()) {
-    // loginError = String(userResponse.details);
-  }
-
-  console.log("response: ", JSON.stringify(userResponse));
+	// https://kit.svelte.dev/docs/errors
+	if (userResponse.error()) {
+		error(404, { message: userResponse.failureReason() });
+	}
 
 	return {
-    user: new User(userResponse),
+		user: new User(userResponse),
 	};
 }

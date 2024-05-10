@@ -17,14 +17,22 @@ export default class ResponseEnvelope {
 	public error(): boolean {
 		return !this.success();
 	}
+
+	public failureReason(): string {
+		if (typeof this.details === "string") {
+			return this.details;
+		}
+
+		return "Unexpected error";
+	}
 }
 
 export function createFailedResponseEnvelope(details: object): ResponseEnvelope {
-  return new ResponseEnvelope({
-    requestId: "00000000-0000-0000-0000-000000000000",
-    status: "ERROR",
-    details: details,
-  });
+	return new ResponseEnvelope({
+		requestId: "00000000-0000-0000-0000-000000000000",
+		status: "ERROR",
+		details: details,
+	});
 }
 
 
