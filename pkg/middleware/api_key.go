@@ -19,7 +19,7 @@ const (
 	invalidApiKeySyntax errors.ErrorCode = 202
 )
 
-func ApiKeyMiddleware(apiKeyRepository repositories.ApiKeyRepository) echo.MiddlewareFunc {
+func ApiKey(apiKeyRepository repositories.ApiKeyRepository) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			apiKeyValue, err := tryGetApiKeyHeader(c.Request())

@@ -10,37 +10,37 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestErrorMiddleware_CallsNextMiddleware(t *testing.T) {
+func TestError_CallsNextMiddleware(t *testing.T) {
 	assert := assert.New(t)
 	m := mockEchoContext{}
 	next, called := createHandlerFuncWithCalledBoolean()
 
-	em := ErrorMiddleware()
+	em := Error()
 	callable := em(next)
 	callable(&m)
 
 	assert.True(*called)
 }
 
-func TestErrorMiddleware_WhenNoErrorReturnsNoError(t *testing.T) {
+func TestError_WhenNoErrorReturnsNoError(t *testing.T) {
 	assert := assert.New(t)
 	m := mockEchoContext{}
 	next := createHandlerFuncReturning(nil)
 
-	em := ErrorMiddleware()
+	em := Error()
 	callable := em(next)
 	actual := callable(&m)
 
 	assert.Nil(actual)
 }
 
-func TestErrorMiddleware_ConvertsErrorWithCodeToHttpError(t *testing.T) {
+func TestError_ConvertsErrorWithCodeToHttpError(t *testing.T) {
 	assert := assert.New(t)
 	m := mockEchoContext{}
 	err := errors.NewCode(36)
 	next := createHandlerFuncReturning(err)
 
-	em := ErrorMiddleware()
+	em := Error()
 	callable := em(next)
 	actual := callable(&m)
 
@@ -50,13 +50,13 @@ func TestErrorMiddleware_ConvertsErrorWithCodeToHttpError(t *testing.T) {
 	assert.Equal(httpErr.Message, err)
 }
 
-func TestErrorMiddleware_PropagatesUnknownError(t *testing.T) {
+func TestError_PropagatesUnknownError(t *testing.T) {
 	assert := assert.New(t)
 	m := mockEchoContext{}
 	err := fmt.Errorf("some error")
 	next := createHandlerFuncReturning(err)
 
-	em := ErrorMiddleware()
+	em := Error()
 	callable := em(next)
 	actual := callable(&m)
 

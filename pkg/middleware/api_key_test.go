@@ -24,13 +24,13 @@ type mockApiKeyUserRepository struct {
 	inApiKey        uuid.UUID
 }
 
-func TestApiKeyMiddleware_WhenApiKeyNotDefined_Fails(t *testing.T) {
+func TestApiKey_WhenApiKeyNotDefined_Fails(t *testing.T) {
 	assert := assert.New(t)
 	mc := newMockEchoContext(http.StatusOK)
 	mr := &mockApiKeyUserRepository{}
 	next, called := createHandlerFuncWithCalledBoolean()
 
-	em := ApiKeyMiddleware(mr)
+	em := ApiKey(mr)
 	callable := em(next)
 	callable(mc)
 
@@ -41,7 +41,7 @@ func TestApiKeyMiddleware_WhenApiKeyNotDefined_Fails(t *testing.T) {
 var defaultApiKey1 = uuid.MustParse("f847c203-1c56-43ad-9ac1-46f27d650917")
 var defaultApiKey2 = uuid.MustParse("297d3309-d88b-4b83-8d82-9c6aae8a9d7a")
 
-func TestApiKeyMiddleware_WhenMoreThanOneApiKeyNotDefined_SetsStatusToBadRequest(t *testing.T) {
+func TestApiKey_WhenMoreThanOneApiKeyNotDefined_SetsStatusToBadRequest(t *testing.T) {
 	assert := assert.New(t)
 	mc := newMockEchoContext(http.StatusOK)
 	mc.request.Header = map[string][]string{
@@ -53,7 +53,7 @@ func TestApiKeyMiddleware_WhenMoreThanOneApiKeyNotDefined_SetsStatusToBadRequest
 	mr := &mockApiKeyUserRepository{}
 	next, called := createHandlerFuncWithCalledBoolean()
 
-	em := ApiKeyMiddleware(mr)
+	em := ApiKey(mr)
 	callable := em(next)
 	callable(mc)
 
@@ -61,7 +61,7 @@ func TestApiKeyMiddleware_WhenMoreThanOneApiKeyNotDefined_SetsStatusToBadRequest
 	assert.Equal(http.StatusBadRequest, mc.reportedCode)
 }
 
-func TestApiKeyMiddleware_WhenApiKeyIsNotAUuid_SetsStatusToBadRequest(t *testing.T) {
+func TestApiKey_WhenApiKeyIsNotAUuid_SetsStatusToBadRequest(t *testing.T) {
 	assert := assert.New(t)
 	mc := newMockEchoContext(http.StatusOK)
 	mc.request.Header = map[string][]string{
@@ -70,7 +70,7 @@ func TestApiKeyMiddleware_WhenApiKeyIsNotAUuid_SetsStatusToBadRequest(t *testing
 	mr := &mockApiKeyUserRepository{}
 	next, called := createHandlerFuncWithCalledBoolean()
 
-	em := ApiKeyMiddleware(mr)
+	em := ApiKey(mr)
 	callable := em(next)
 	callable(mc)
 
@@ -78,7 +78,7 @@ func TestApiKeyMiddleware_WhenApiKeyIsNotAUuid_SetsStatusToBadRequest(t *testing
 	assert.Equal(http.StatusBadRequest, mc.reportedCode)
 }
 
-func TestApiKeyMiddleware_AttemptsToFetchApiKeyFromRepository(t *testing.T) {
+func TestApiKey_AttemptsToFetchApiKeyFromRepository(t *testing.T) {
 	assert := assert.New(t)
 	mc := newMockEchoContext(http.StatusOK)
 	mc.request.Header = map[string][]string{
@@ -87,14 +87,14 @@ func TestApiKeyMiddleware_AttemptsToFetchApiKeyFromRepository(t *testing.T) {
 	mr := &mockApiKeyUserRepository{}
 	next := createHandlerFuncReturning(nil)
 
-	em := ApiKeyMiddleware(mr)
+	em := ApiKey(mr)
 	callable := em(next)
 	callable(mc)
 
 	assert.Equal(defaultApiKey1, mr.inApiKey)
 }
 
-func TestApiKeyMiddleware_WhenFetchingApiKeyFails_SetsStatusToInternalServerError(t *testing.T) {
+func TestApiKey_WhenFetchingApiKeyFails_SetsStatusToInternalServerError(t *testing.T) {
 	assert := assert.New(t)
 	mc := newMockEchoContext(http.StatusOK)
 	mc.request.Header = map[string][]string{
@@ -105,7 +105,7 @@ func TestApiKeyMiddleware_WhenFetchingApiKeyFails_SetsStatusToInternalServerErro
 	}
 	next, called := createHandlerFuncWithCalledBoolean()
 
-	em := ApiKeyMiddleware(mr)
+	em := ApiKey(mr)
 	callable := em(next)
 	callable(mc)
 
@@ -113,7 +113,7 @@ func TestApiKeyMiddleware_WhenFetchingApiKeyFails_SetsStatusToInternalServerErro
 	assert.Equal(http.StatusInternalServerError, mc.reportedCode)
 }
 
-func TestApiKeyMiddleware_WhenApiKeyIsNotFound_SetsStatusToUnauthorized(t *testing.T) {
+func TestApiKey_WhenApiKeyIsNotFound_SetsStatusToUnauthorized(t *testing.T) {
 	assert := assert.New(t)
 	mc := newMockEchoContext(http.StatusOK)
 	mc.request.Header = map[string][]string{
@@ -124,7 +124,7 @@ func TestApiKeyMiddleware_WhenApiKeyIsNotFound_SetsStatusToUnauthorized(t *testi
 	}
 	next, called := createHandlerFuncWithCalledBoolean()
 
-	em := ApiKeyMiddleware(mr)
+	em := ApiKey(mr)
 	callable := em(next)
 	callable(mc)
 
@@ -134,7 +134,7 @@ func TestApiKeyMiddleware_WhenApiKeyIsNotFound_SetsStatusToUnauthorized(t *testi
 
 var defaultApiKeyId = uuid.MustParse("5bda15f9-85f1-4700-867c-0a7cbda0f82c")
 
-func TestApiKeyMiddleware_WhenApiKeyIsExpired_SetsStatusToUnauthorized(t *testing.T) {
+func TestApiKey_WhenApiKeyIsExpired_SetsStatusToUnauthorized(t *testing.T) {
 	assert := assert.New(t)
 	mc := newMockEchoContext(http.StatusOK)
 	mc.request.Header = map[string][]string{
@@ -150,7 +150,7 @@ func TestApiKeyMiddleware_WhenApiKeyIsExpired_SetsStatusToUnauthorized(t *testin
 	}
 	next, called := createHandlerFuncWithCalledBoolean()
 
-	em := ApiKeyMiddleware(mr)
+	em := ApiKey(mr)
 	callable := em(next)
 	callable(mc)
 
@@ -158,7 +158,7 @@ func TestApiKeyMiddleware_WhenApiKeyIsExpired_SetsStatusToUnauthorized(t *testin
 	assert.Equal(http.StatusUnauthorized, mc.reportedCode)
 }
 
-func TestApiKeyMiddleware_WhenApiKeyIsValid_CallsNext(t *testing.T) {
+func TestApiKey_WhenApiKeyIsValid_CallsNextMiddleware(t *testing.T) {
 	assert := assert.New(t)
 	mc := newMockEchoContext(http.StatusOK)
 	mc.request.Header = map[string][]string{
@@ -174,7 +174,7 @@ func TestApiKeyMiddleware_WhenApiKeyIsValid_CallsNext(t *testing.T) {
 	}
 	next, called := createHandlerFuncWithCalledBoolean()
 
-	em := ApiKeyMiddleware(mr)
+	em := ApiKey(mr)
 	callable := em(next)
 	callable(mc)
 

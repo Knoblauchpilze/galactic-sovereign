@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestRecoverMiddleware_CallsNextMiddleware(t *testing.T) {
+func TestRecover_CallsNextMiddleware(t *testing.T) {
 	assert := assert.New(t)
 	m := mockEchoContext{}
 	next, called := createHandlerFuncWithCalledBoolean()
@@ -21,7 +21,7 @@ func TestRecoverMiddleware_CallsNextMiddleware(t *testing.T) {
 	assert.True(*called)
 }
 
-func TestRecoverMiddleware_WhenNoErrorReturnsNoError(t *testing.T) {
+func TestRecover_WhenNoErrorReturnsNoError(t *testing.T) {
 	assert := assert.New(t)
 	m := mockEchoContext{}
 	next := createHandlerFuncReturning(nil)
@@ -33,7 +33,7 @@ func TestRecoverMiddleware_WhenNoErrorReturnsNoError(t *testing.T) {
 	assert.Nil(actual)
 }
 
-func TestRecoverMiddleware_WhenNoErrorDoesNotCallContextError(t *testing.T) {
+func TestRecover_WhenNoErrorDoesNotCallContextError(t *testing.T) {
 	assert := assert.New(t)
 	m := mockEchoContext{}
 	next := createHandlerFuncReturning(nil)
@@ -47,7 +47,7 @@ func TestRecoverMiddleware_WhenNoErrorDoesNotCallContextError(t *testing.T) {
 
 var errDefault = fmt.Errorf("some error")
 
-func TestRecoverMiddleware_PropagatesError(t *testing.T) {
+func TestRecover_PropagatesError(t *testing.T) {
 	assert := assert.New(t)
 	m := mockEchoContext{}
 	next := createHandlerFuncReturning(errDefault)
@@ -65,7 +65,7 @@ func createPanickingHandlerFunc(err interface{}) echo.HandlerFunc {
 	}
 }
 
-func TestRecoverMiddleware_SetsContextErrorOnPanic(t *testing.T) {
+func TestRecover_SetsContextErrorOnPanic(t *testing.T) {
 	assert := assert.New(t)
 	m := newMockEchoContext(http.StatusConflict)
 	next := createPanickingHandlerFunc(errDefault)
@@ -77,7 +77,7 @@ func TestRecoverMiddleware_SetsContextErrorOnPanic(t *testing.T) {
 	assert.Equal(errDefault, m.reportedError)
 }
 
-func TestRecoverMiddleware_ConvertsToErrorUnknownPanic(t *testing.T) {
+func TestRecover_ConvertsToErrorUnknownPanic(t *testing.T) {
 	assert := assert.New(t)
 	m := newMockEchoContext(http.StatusConflict)
 	next := createPanickingHandlerFunc(36)

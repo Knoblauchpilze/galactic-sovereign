@@ -9,12 +9,12 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestThrottleMiddleware_CallsNextMiddleware(t *testing.T) {
+func TestThrottle_CallsNextMiddleware(t *testing.T) {
 	assert := assert.New(t)
 	m := mockEchoContext{}
 	next, called := createHandlerFuncWithCalledBoolean()
 
-	em, close := ThrottleMiddleware(1, 1, 1)
+	em, close := Throttle(1, 1, 1)
 	callable := em(next)
 	callable(&m)
 
@@ -22,7 +22,7 @@ func TestThrottleMiddleware_CallsNextMiddleware(t *testing.T) {
 	close <- true
 }
 
-func TestThrottleMiddleware_WhenNoTokensLeft_ExpectTooManyRequests(t *testing.T) {
+func TestThrottle_WhenNoTokensLeft_ExpectTooManyRequests(t *testing.T) {
 	assert := assert.New(t)
 	mc := newMockEchoContext(http.StatusOK)
 	mc.request.Header = map[string][]string{
@@ -30,7 +30,7 @@ func TestThrottleMiddleware_WhenNoTokensLeft_ExpectTooManyRequests(t *testing.T)
 	}
 	next := createHandlerFuncReturning(nil)
 
-	em, close := ThrottleMiddleware(0, 0, 0)
+	em, close := Throttle(0, 0, 0)
 	callable := em(next)
 	callable(mc)
 
@@ -38,7 +38,7 @@ func TestThrottleMiddleware_WhenNoTokensLeft_ExpectTooManyRequests(t *testing.T)
 	close <- true
 }
 
-func TestThrottleMiddleware_WhenWaitingForRefill_ExpectOk(t *testing.T) {
+func TestThrottle_WhenWaitingForRefill_ExpectOk(t *testing.T) {
 	assert := assert.New(t)
 	mc := newMockEchoContext(http.StatusOK)
 	mc.request.Header = map[string][]string{
@@ -46,7 +46,7 @@ func TestThrottleMiddleware_WhenWaitingForRefill_ExpectOk(t *testing.T) {
 	}
 	next := createHandlerFuncReturningCode(http.StatusOK)
 
-	em, close := ThrottleMiddleware(0, 2, 2)
+	em, close := Throttle(0, 2, 2)
 	callable := em(next)
 
 	callable(mc)
@@ -60,12 +60,12 @@ func TestThrottleMiddleware_WhenWaitingForRefill_ExpectOk(t *testing.T) {
 	close <- true
 }
 
-func TestThrottleMiddleware_PropagatesError(t *testing.T) {
+func TestThrottle_PropagatesError(t *testing.T) {
 	assert := assert.New(t)
 	m := newMockEchoContext(http.StatusOK)
 	next := createHandlerFuncReturning(errDefault)
 
-	em, close := ThrottleMiddleware(1, 1, 1)
+	em, close := Throttle(1, 1, 1)
 
 	callable := em(next)
 	actual := callable(m)
@@ -74,10 +74,10 @@ func TestThrottleMiddleware_PropagatesError(t *testing.T) {
 	close <- true
 }
 
-func TestThrottleMiddleware_ConcurrentUse_ExpectFirstServed(t *testing.T) {
+func TestThrottle_ConcurrentUse_ExpectFirstServed(t *testing.T) {
 	assert := assert.New(t)
 
-	em, close := ThrottleMiddleware(1, 1, 1)
+	em, close := Throttle(1, 1, 1)
 	next := createHandlerFuncReturningCode(http.StatusOK)
 	handler := em(next)
 
