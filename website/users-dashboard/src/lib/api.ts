@@ -28,7 +28,7 @@ async function safeFetch(url: URL | RequestInfo, init?: RequestInit | undefined)
 	return await fetch(url, init).catch(reason => analyzeFetchFailureReasone(reason));
 }
 
-export default async function login(email: string, password: string): Promise<ResponseEnvelope> {
+export async function login(email: string, password: string): Promise<ResponseEnvelope> {
 	const url = buildUrl("sessions");
 	const body = JSON.stringify({ email: email, password: password });
 
@@ -41,7 +41,19 @@ export default async function login(email: string, password: string): Promise<Re
 	};
 
 	const response = await safeFetch(url, params);
+	const jsonContent = await response.json();
 
+	return new ResponseEnvelope(jsonContent);
+}
+
+export async function logout(userId: string): Promise<ResponseEnvelope> {
+	const url = buildUrl("sessions/" + userId);
+
+	const params = {
+		method: 'DELETE'
+	};
+
+	const response = await safeFetch(url, params);
 	const jsonContent = await response.json();
 
 	return new ResponseEnvelope(jsonContent);

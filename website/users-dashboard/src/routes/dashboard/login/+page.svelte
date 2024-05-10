@@ -1,18 +1,16 @@
 <script lang="ts">
 	// https://learn.svelte.dev/tutorial/lib
-	import ResponseEnvelope from '$lib/responseEnvelope';
-	import login from '$lib/api';
+	import { login } from '$lib/api';
 
 	// https://stackoverflow.com/questions/73280092/capture-value-from-an-input-with-svelte
 	let email: string;
 	let password: string;
 
 	let loginError: string = '';
-	let loginResponse: ResponseEnvelope;
 
 	async function performLogin() {
 		loginError = '';
-		loginResponse = await login(email, password);
+		const loginResponse = await login(email, password);
 
 		if (loginResponse.error()) {
 			loginError = String(loginResponse.Details);
