@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestResponseEnvelopeMiddleware_CallsNextMiddleware(t *testing.T) {
+func TestResponseEnvelope_CallsNextMiddleware(t *testing.T) {
 	assert := assert.New(t)
 	m := newMockEchoContext(http.StatusOK)
 	next, called := createHandlerFuncWithCalledBoolean()
@@ -21,7 +21,7 @@ func TestResponseEnvelopeMiddleware_CallsNextMiddleware(t *testing.T) {
 	assert.True(*called)
 }
 
-func TestResponseEnvelopeMiddleware_AssignsNewLogger(t *testing.T) {
+func TestResponseEnvelope_AssignsNewLogger(t *testing.T) {
 	assert := assert.New(t)
 	m := newMockEchoContext(http.StatusOK)
 	next := createHandlerFuncReturning(nil)
@@ -33,7 +33,7 @@ func TestResponseEnvelopeMiddleware_AssignsNewLogger(t *testing.T) {
 	assert.True(m.loggerChanged)
 }
 
-func TestResponseEnvelopeMiddleware_AddLoggerToRequestContext(t *testing.T) {
+func TestResponseEnvelope_AddLoggerToRequestContext(t *testing.T) {
 	assert := assert.New(t)
 	m := newMockEchoContext(http.StatusOK)
 	next := createHandlerFuncReturning(nil)
@@ -50,7 +50,7 @@ func TestResponseEnvelopeMiddleware_AddLoggerToRequestContext(t *testing.T) {
 	assert.True(ok)
 }
 
-func TestResponseEnvelopeMiddleware_OverridesResponseWriter(t *testing.T) {
+func TestResponseEnvelope_OverridesResponseWriter(t *testing.T) {
 	assert := assert.New(t)
 	m := newMockEchoContext(http.StatusOK)
 	next := createHandlerFuncReturning(nil)
@@ -69,7 +69,7 @@ func TestResponseEnvelopeMiddleware_OverridesResponseWriter(t *testing.T) {
 	assert.Equal(w, actualW)
 }
 
-func TestResponseEnvelopeMiddleware_PropagatesError(t *testing.T) {
+func TestResponseEnvelope_PropagatesError(t *testing.T) {
 	assert := assert.New(t)
 	m := newMockEchoContext(http.StatusOK)
 	next := createHandlerFuncReturning(errDefault)

@@ -16,7 +16,7 @@ type throttle struct {
 	tokens int
 }
 
-func ThrottleMiddleware(init int, refillPerSecond int, capacity int) (handler echo.MiddlewareFunc, close chan bool) {
+func Throttle(init int, refillPerSecond int, capacity int) (handler echo.MiddlewareFunc, close chan bool) {
 	ticker := time.NewTicker(time.Second)
 
 	data := throttle{

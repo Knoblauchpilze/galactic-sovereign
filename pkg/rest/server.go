@@ -41,7 +41,7 @@ func NewServer(conf Config, apiKeyRepository repositories.ApiKeyRepository) Serv
 
 	// https://github.com/labstack/echo/issues/1737#issuecomment-753355711
 	publicRoutes := s.Group("")
-	authorizedRoutes := s.Group("", middleware.ApiKeyMiddleware(apiKeyRepository))
+	authorizedRoutes := s.Group("", middleware.ApiKey(apiKeyRepository))
 
 	return &serverImpl{
 		endpoint: strings.TrimSuffix(conf.BasePath, "/"),
@@ -126,10 +126,10 @@ func registerMiddlewares(server echoServer, rateLimit int) chan bool {
 	server.Use(middleware.RequestTiming())
 	server.Use(middleware.ResponseEnvelope())
 
-	handler, close := middleware.ThrottleMiddleware(rateLimit, rateLimit, rateLimit)
+	handler, close := middleware.Throttle(rateLimit, rateLimit, rateLimit)
 	server.Use(handler)
 
-	server.Use(middleware.ErrorMiddleware())
+	server.Use(middleware.Error())
 	server.Use(middleware.Recover())
 
 	return close
