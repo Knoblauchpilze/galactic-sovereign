@@ -13,7 +13,7 @@
 		const loginResponse = await login(email, password);
 
 		if (loginResponse.error()) {
-			loginError = String(loginResponse.Details);
+			loginError = String(loginResponse.details);
 		}
 	}
 </script>

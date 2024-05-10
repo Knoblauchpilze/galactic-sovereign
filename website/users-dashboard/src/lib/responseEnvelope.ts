@@ -1,17 +1,17 @@
 
 export default class ResponseEnvelope {
-	readonly RequestId: string;
-	readonly Status: string;
-	readonly Details: object;
+	readonly requestId: string;
+	readonly status: string;
+	readonly details: object;
 
-	public constructor(response: {RequestId: string, Status: string, Details: object}) {
-		this.RequestId = response.RequestId;
-		this.Status = response.Status;
-		this.Details = response.Details;
+	constructor(response: {requestId: string, status: string, details: object}) {
+		this.requestId = response.requestId;
+		this.status = response.status;
+		this.details = response.details;
 	}
 
 	public success(): boolean {
-		return this.Status === "SUCCESS";
+		return this.status === "SUCCESS";
 	}
 
 	public error(): boolean {
@@ -21,9 +21,9 @@ export default class ResponseEnvelope {
 
 export function createFailedResponseEnvelope(details: object): ResponseEnvelope {
   return new ResponseEnvelope({
-    RequestId: "00000000-0000-0000-0000-000000000000",
-    Status: "ERROR",
-    Details: details,
+    requestId: "00000000-0000-0000-0000-000000000000",
+    status: "ERROR",
+    details: details,
   });
 }
 
