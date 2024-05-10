@@ -36,6 +36,9 @@ func TestApiKey_WhenApiKeyNotDefined_Fails(t *testing.T) {
 
 	assert.False(*called)
 	assert.Equal(http.StatusBadRequest, mc.reportedCode)
+	actual, ok := mc.jsonContent.(string)
+	assert.True(ok)
+	assert.Equal("API key not found", actual)
 }
 
 var defaultApiKey1 = uuid.MustParse("f847c203-1c56-43ad-9ac1-46f27d650917")
@@ -76,6 +79,9 @@ func TestApiKey_WhenApiKeyIsNotAUuid_SetsStatusToBadRequest(t *testing.T) {
 
 	assert.False(*called)
 	assert.Equal(http.StatusBadRequest, mc.reportedCode)
+	actual, ok := mc.jsonContent.(string)
+	assert.True(ok)
+	assert.Equal("API key has wrong format", actual)
 }
 
 func TestApiKey_AttemptsToFetchApiKeyFromRepository(t *testing.T) {
@@ -130,6 +136,9 @@ func TestApiKey_WhenApiKeyIsNotFound_SetsStatusToUnauthorized(t *testing.T) {
 
 	assert.False(*called)
 	assert.Equal(http.StatusUnauthorized, mc.reportedCode)
+	actual, ok := mc.jsonContent.(string)
+	assert.True(ok)
+	assert.Equal("Invalid API key", actual)
 }
 
 var defaultApiKeyId = uuid.MustParse("5bda15f9-85f1-4700-867c-0a7cbda0f82c")
@@ -156,6 +165,9 @@ func TestApiKey_WhenApiKeyIsExpired_SetsStatusToUnauthorized(t *testing.T) {
 
 	assert.False(*called)
 	assert.Equal(http.StatusUnauthorized, mc.reportedCode)
+	actual, ok := mc.jsonContent.(string)
+	assert.True(ok)
+	assert.Equal("API key expired", actual)
 }
 
 func TestApiKey_WhenApiKeyIsValid_CallsNextMiddleware(t *testing.T) {

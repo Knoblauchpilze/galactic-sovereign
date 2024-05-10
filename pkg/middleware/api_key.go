@@ -25,6 +25,11 @@ func ApiKey(apiKeyRepository repositories.ApiKeyRepository) echo.MiddlewareFunc 
 			apiKeyValue, err := tryGetApiKeyHeader(c.Request())
 			if err != nil {
 				c.Logger().Errorf("Failed to fetch key: %v", err)
+
+				if errors.IsErrorWithCode(err, invalidApiKeySyntax) {
+					return c.JSON(http.StatusBadRequest, "API key has wrong format")
+				}
+
 				return c.JSON(http.StatusBadRequest, "API key not found")
 			}
 
