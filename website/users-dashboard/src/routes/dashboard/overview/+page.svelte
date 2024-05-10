@@ -1,9 +1,12 @@
 <script lang="ts">
-	import { logout } from '$lib/api';
+	import { logout } from '$lib/sessions';
 
-	let id: string = '00-00-00-00';
-	let email: string = 'some-user';
-	let password: string = 'some-password';
+	/** @type {import('./$types').PageData} */
+	export let data;
+
+	let id: string = data.id;
+	let email: string = data.email;
+	let password: string = data.password;
 
 	// https://stackoverflow.com/questions/3552461/how-do-i-format-a-date-in-javascript
 	const options: Intl.DateTimeFormatOptions = {
@@ -15,7 +18,7 @@
 		second: 'numeric',
 		hour12: false
 	};
-	const createdAt = new Date().toLocaleDateString('en-US', options);
+	const createdAt = data.createdAt.toLocaleDateString('en-US', options);
 
 	let logoutError: string = '';
 

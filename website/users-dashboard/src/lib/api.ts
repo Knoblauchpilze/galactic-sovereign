@@ -1,11 +1,10 @@
 
-import ResponseEnvelope from './responseEnvelope';
 import {createFailedResponseEnvelope} from './responseEnvelope';
 
 const port : number = 60001;
 const baseUrl: string = "http://localhost:{port}/v1/users";
 
-function buildUrl(url: string): string {
+export function buildUrl(url: string): string {
 	return baseUrl.replace("{port}", port.toString()) + "/" + url;
 }
 
@@ -24,37 +23,6 @@ function analyzeFetchFailureReasone(reason: object): Response {
 	return new Response(body);
 }
 
-async function safeFetch(url: URL | RequestInfo, init?: RequestInit | undefined): Promise<Response> {
+export async function safeFetch(url: URL | RequestInfo, init?: RequestInit | undefined): Promise<Response> {
 	return await fetch(url, init).catch(reason => analyzeFetchFailureReasone(reason));
-}
-
-export async function login(email: string, password: string): Promise<ResponseEnvelope> {
-	const url = buildUrl("sessions");
-	const body = JSON.stringify({ email: email, password: password });
-
-	const params = {
-		method: 'POST',
-		body: body,
-		headers: {
-			'content-type': 'application/json'
-		}
-	};
-
-	const response = await safeFetch(url, params);
-	const jsonContent = await response.json();
-
-	return new ResponseEnvelope(jsonContent);
-}
-
-export async function logout(userId: string): Promise<ResponseEnvelope> {
-	const url = buildUrl("sessions/" + userId);
-
-	const params = {
-		method: 'DELETE'
-	};
-
-	const response = await safeFetch(url, params);
-	const jsonContent = await response.json();
-
-	return new ResponseEnvelope(jsonContent);
 }
