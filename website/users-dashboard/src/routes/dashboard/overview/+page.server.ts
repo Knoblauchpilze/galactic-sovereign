@@ -3,17 +3,19 @@ import { error, redirect } from '@sveltejs/kit';
 import User, { getUser,  } from '$lib/users';
 import { ApiFailureReason } from '$lib/responseEnvelope.js';
 
-// TODO: Replace this by loading data from the cookie?
-const DUMMY_USER_ID = 'your-id';
-
 /** @type {import('./$types').PageServerLoad} */
 export async function load({ cookies }) {
 	const apiKey = cookies.get('api-key');
 	if (!apiKey) {
-		error(404, { message: "Please log in again" });
+		redirect(302, '/dashboard/login');
 	}
 
-	const userResponse = await getUser(apiKey, DUMMY_USER_ID);
+	const apiUser = cookies.get('api-user');
+	if (!apiUser) {
+		redirect(302, '/dashboard/login');
+	}
+
+	const userResponse = await getUser(apiKey, apiUser);
 
 	// https://kit.svelte.dev/docs/errors
 	if (userResponse.error()) {

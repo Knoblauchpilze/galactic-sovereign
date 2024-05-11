@@ -44,7 +44,9 @@ export const actions = {
 
 		const apiKey = new ApiKey(loginResponse);
 
+		cookies.set('api-user', apiKey.user, { path: '/' });
 		cookies.set('api-key', apiKey.key, { path: '/' });
+
 
 		redirect(302, '/dashboard/overview');
 
