@@ -59,7 +59,7 @@ export function createEmptySuccessResponseEnvelope(): ResponseEnvelope {
 export enum ApiFailureReason {
 	NONE = 0,
 	UNKNOWN_ERROR = 1,
-  API_KEY_EXPIRED = 2,
+	API_KEY_EXPIRED = 2,
 }
 
 
