@@ -24,7 +24,9 @@ export async function load({ params }) {
 		error(404, { message: userResponse.failureMessage() });
 	}
 
+	// https://www.okupter.com/blog/sveltekit-cannot-stringify-arbitrary-non-pojos-error
+	const user = new User(userResponse);
 	return {
-		user: new User(userResponse),
+		...user,
 	};
 }
