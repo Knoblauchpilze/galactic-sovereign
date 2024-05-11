@@ -1,6 +1,13 @@
 <script lang="ts">
 	/** @type {import('./$types').ActionData} */
-	export let form;
+	export let form: HTMLFormElement;
+
+	function resetFormError() {
+		if (!form) {
+			return;
+		}
+		form.message = '';
+	}
 </script>
 
 <div class="wrapper">
@@ -15,7 +22,8 @@
 				name="email"
 				placeholder="Enter your email address"
 				required
-				on:input={() => (form.message = '')}
+				value={form?.email ?? ''}
+				on:input={resetFormError}
 			/>
 		</div>
 		<div class="field">
@@ -25,7 +33,7 @@
 				name="password"
 				placeholder="Enter your password"
 				required
-				on:input={() => (form.message = '')}
+				on:input={resetFormError}
 			/>
 		</div>
 		<button class="action-button">Login</button>

@@ -14,13 +14,19 @@ export const actions = {
 		if (!email) {
 			return {
 				success: false,
-				message: 'Please fill in the email'
+				missing: true,
+				message: 'Please fill in the email',
+
+				email,
 			}
 		}
 		if (!password) {
 			return {
 				success: false,
-				message: 'Please fill in the password'
+				missing: true,
+				message: 'Please fill in the password',
+
+				email,
 			}
 		}
 
@@ -29,7 +35,10 @@ export const actions = {
 		if (loginResponse.error()) {
 			return {
 				success: false,
-				message: loginResponse.failureMessage()
+				incorrect: true,
+				message: loginResponse.failureMessage(),
+
+				email,
 			}
 		}
 
@@ -37,7 +46,7 @@ export const actions = {
 
 		cookies.set('api-key', apiKey.key, { path: '/' });
 
-    redirect(302, '/dashboard/overview');
+		redirect(302, '/dashboard/overview');
 
 		return {
 			success: true,
