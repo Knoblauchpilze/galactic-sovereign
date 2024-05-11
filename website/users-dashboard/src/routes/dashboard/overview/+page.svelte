@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { logout } from '$lib/sessions';
+	import { redirect } from '@sveltejs/kit';
 
 	/** @type {import('./$types').PageData} */
 	export let data;
@@ -7,6 +8,7 @@
 	let id: string = data.id;
 	let email: string = data.email;
 	let password: string = data.password;
+	let apiKey: string = data.apiKey;
 
 	// https://stackoverflow.com/questions/3552461/how-do-i-format-a-date-in-javascript
 	const options: Intl.DateTimeFormatOptions = {
@@ -24,11 +26,14 @@
 
 	async function performLogout() {
 		logoutError = '';
-		const logoutResponse = await logout(id);
+		const logoutResponse = await logout(apiKey, id);
 
 		if (logoutResponse.error()) {
 			logoutError = String(logoutResponse.details);
+			return;
 		}
+
+		redirect(302, '/dashboard/login');
 	}
 </script>
 

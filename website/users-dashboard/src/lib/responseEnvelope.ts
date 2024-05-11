@@ -48,6 +48,14 @@ export function createFailedResponseEnvelope(details: object): ResponseEnvelope 
 	});
 }
 
+export function createEmptySuccessResponseEnvelope(): ResponseEnvelope {
+	return new ResponseEnvelope({
+		requestId: "00000000-0000-0000-0000-000000000000",
+		status: "SUCCESS",
+		details: ("No content" as unknown) as object,
+	});
+}
+
 export enum ApiFailureReason {
 	NONE = 0,
 	UNKNOWN_ERROR = 1,
