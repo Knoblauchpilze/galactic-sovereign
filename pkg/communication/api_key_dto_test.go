@@ -17,6 +17,7 @@ func TestApiKeyDtoResponse_MarshalsToCamelCase(t *testing.T) {
 	assert := assert.New(t)
 
 	ak := ApiKeyDtoResponse{
+		User:       defaultUser,
 		Key:        defaultKey,
 		ValidUntil: someTime,
 	}
@@ -24,7 +25,7 @@ func TestApiKeyDtoResponse_MarshalsToCamelCase(t *testing.T) {
 	out, err := json.Marshal(ak)
 
 	assert.Nil(err)
-	assert.Equal(`{"key":"872e9e40-ce61-497e-b606-c7a08a4faa14","validUntil":"2024-05-05T20:50:18.651387237Z"}`, string(out))
+	assert.Equal(`{"user":"c74a22da-8a05-43a9-a8b9-717e422b0af4","key":"872e9e40-ce61-497e-b606-c7a08a4faa14","validUntil":"2024-05-05T20:50:18.651387237Z"}`, string(out))
 }
 
 func TestToApiKeyDtoResponse(t *testing.T) {
@@ -39,6 +40,7 @@ func TestToApiKeyDtoResponse(t *testing.T) {
 
 	actual := ToApiKeyDtoResponse(k)
 
+	assert.Equal(defaultUser, actual.User)
 	assert.Equal(defaultKey, actual.Key)
 	assert.Equal(k.ValidUntil, actual.ValidUntil)
 }
