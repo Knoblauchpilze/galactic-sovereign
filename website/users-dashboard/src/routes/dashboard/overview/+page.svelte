@@ -4,9 +4,9 @@
 	/** @type {import('./$types').PageData} */
 	export let data;
 
-	let id: string = data.user.id;
-	let email: string = data.user.email;
-	let password: string = data.user.password;
+	let id: string = data.id;
+	let email: string = data.email;
+	let password: string = data.password;
 
 	// https://stackoverflow.com/questions/3552461/how-do-i-format-a-date-in-javascript
 	const options: Intl.DateTimeFormatOptions = {
@@ -18,7 +18,7 @@
 		second: 'numeric',
 		hour12: false
 	};
-	const createdAt = data.user.createdAt.toLocaleDateString('en-US', options);
+	const createdAt = data.createdAt.toLocaleDateString('en-US', options);
 
 	let logoutError: string = '';
 
