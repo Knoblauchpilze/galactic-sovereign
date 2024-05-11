@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { logout } from '$lib/sessions';
 	import { redirect } from '@sveltejs/kit';
+	import { goto } from '$app/navigation';
 
 	/** @type {import('./$types').PageData} */
 	export let data;
@@ -25,15 +26,14 @@
 	let logoutError: string = '';
 
 	async function performLogout() {
-		logoutError = '';
 		const logoutResponse = await logout(apiKey, id);
 
 		if (logoutResponse.error()) {
-			logoutError = String(logoutResponse.details);
+			logoutError = logoutResponse.failureMessage();
 			return;
 		}
 
-		redirect(302, '/dashboard/login');
+		goto('/dashboard/login');
 	}
 </script>
 
@@ -52,6 +52,10 @@
 		<tr>
 			<td class="label">Password:</td>
 			<td class="field">{password}</td>
+		</tr>
+		<tr>
+			<td class="label">API key:</td>
+			<td class="field">{apiKey}</td>
 		</tr>
 		<tr>
 			<td class="label">Member since:</td>

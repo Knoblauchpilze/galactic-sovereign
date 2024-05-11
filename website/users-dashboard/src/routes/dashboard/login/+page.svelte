@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
-
 	/** @type {import('./$types').ActionData} */
 	export let form;
 </script>
