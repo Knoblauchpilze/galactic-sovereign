@@ -28,5 +28,6 @@ export async function load({ params }) {
 	const user = new User(userResponse);
 	return {
 		...user,
+		apiKey: DUMMY_API_KEY,
 	};
 }
