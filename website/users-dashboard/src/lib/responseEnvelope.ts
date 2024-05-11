@@ -18,12 +18,25 @@ export default class ResponseEnvelope {
 		return !this.success();
 	}
 
-	public failureReason(): string {
+	public failureMessage(): string {
 		if (typeof this.details === "string") {
 			return this.details;
 		}
 
 		return "Unexpected error";
+	}
+
+	public failureReason(): ApiFailureReason {
+		if (!this.error()) {
+			return ApiFailureReason.NONE;
+		}
+
+		switch (this.failureMessage()) {
+			case "API key expired":
+				return ApiFailureReason.API_KEY_EXPIRED;
+			default:
+				return ApiFailureReason.UNKNOWN_ERROR;
+		}
 	}
 }
 
@@ -33,6 +46,12 @@ export function createFailedResponseEnvelope(details: object): ResponseEnvelope 
 		status: "ERROR",
 		details: details,
 	});
+}
+
+export enum ApiFailureReason {
+	NONE = 0,
+	UNKNOWN_ERROR = 1,
+  API_KEY_EXPIRED = 2,
 }
 
 
