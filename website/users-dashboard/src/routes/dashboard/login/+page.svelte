@@ -1,36 +1,23 @@
 <script lang="ts">
-	// https://learn.svelte.dev/tutorial/lib
-	import { login } from '$lib/sessions';
+	import { goto } from '$app/navigation';
 
-	// https://stackoverflow.com/questions/73280092/capture-value-from-an-input-with-svelte
-	let email: string;
-	let password: string;
-
-	let loginError: string = '';
-
-	async function performLogin() {
-		loginError = '';
-		const loginResponse = await login(email, password);
-
-		if (loginResponse.error()) {
-			loginError = String(loginResponse.details);
-		}
-	}
+	/** @type {import('./$types').ActionData} */
+	export let form;
 </script>
 
 <div class="wrapper">
 	<h1>User dashboard</h1>
 
-	<form class="form">
+	<form method="POST" action="?/login" class="form">
 		<div class="field">
-			<label for="form-email">e-mail:</label>
 			<!-- https://stackoverflow.com/questions/62278480/add-onchange-handler-to-input-in-svelte -->
+			<label for="form-email">e-mail:</label>
 			<input
 				type="text"
 				name="email"
 				placeholder="Enter your email address"
-				bind:value={email}
-				on:input={() => (loginError = '')}
+				required
+				on:input={() => (form.message = '')}
 			/>
 		</div>
 		<div class="field">
@@ -39,17 +26,16 @@
 				type="text"
 				name="password"
 				placeholder="Enter your password"
-				bind:value={password}
-				on:input={() => (loginError = '')}
+				required
+				on:input={() => (form.message = '')}
 			/>
 		</div>
+		<button class="action-button">Login</button>
 	</form>
 
-	<button class="action-button" on:click={performLogin}>Login</button>
-
-	{#if loginError !== ''}
+	{#if form?.message}
 		<div class="error-details">
-			Failed to login: {loginError}
+			Failed to login: {form?.message}
 		</div>
 	{/if}
 </div>
