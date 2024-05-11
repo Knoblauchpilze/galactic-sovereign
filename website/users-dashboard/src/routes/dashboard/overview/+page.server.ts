@@ -3,14 +3,17 @@ import { error, redirect } from '@sveltejs/kit';
 import User, { getUser,  } from '$lib/users';
 import { ApiFailureReason } from '$lib/responseEnvelope.js';
 
-/** @type {import('./$types').PageServerLoad} */
-export async function load({ params }) {
-	console.log("params: " + JSON.stringify(params));
+// TODO: Replace this by loading data from the cookie?
+const DUMMY_USER_ID = 'your-id';
 
-	// TODO: Replace this by loading data from the cookie?
-	const DUMMY_API_KEY = 'your-key';
-	const DUMMY_USER_ID = 'your-id';
-	const userResponse = await getUser(DUMMY_API_KEY, DUMMY_USER_ID);
+/** @type {import('./$types').PageServerLoad} */
+export async function load({ cookies }) {
+	const apiKey = cookies.get('api-key');
+	if (!apiKey) {
+		error(404, { message: "Please log in again" });
+	}
+
+	const userResponse = await getUser(apiKey, DUMMY_USER_ID);
 
 	// https://kit.svelte.dev/docs/errors
 	if (userResponse.error()) {
@@ -28,6 +31,6 @@ export async function load({ params }) {
 	const user = new User(userResponse);
 	return {
 		...user,
-		apiKey: DUMMY_API_KEY,
+		apiKey: apiKey,
 	};
-}
+};
