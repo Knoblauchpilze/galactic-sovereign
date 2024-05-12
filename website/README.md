@@ -4,16 +4,6 @@ When trying to build the webpage associated to the user service the question ari
 
 After a bit of research, we stumbled upon the [Svelte](https://kit.svelte.dev/docs/introduction) framework: this seems to be relatively lightweight. That being said it seems to use some strange syntax to represent component, of course different than what react uses.
 
-## Run the code
-
-To start the website, the [installation instructions](https://kit.svelte.dev/docs/creating-a-project), to run the project we need to use `npm run dev`. The internet indicates that to open the corresponding browser tab we can use the more complete:
-
-```bash
-npm run dev -- --open
-```
-
-Alternatively a [Makefile](users-dashboard/Makefile) is provided with a `make users` target.
-
 ## Approach to the framework
 
 Taken from the [documentation](https://kit.svelte.dev/docs/routing#page-page-svelte), it seems like the routing is done on the file system.
@@ -24,4 +14,47 @@ Generally speaking, it seems like to build a page with a certain route, you can 
 - `path/to/page.svelte`: this defines the html content of the page and can access whatever was returned from the `page.ts`.
 - `path/to/layout.svelte`: allows to define a common layout applying to all pages below the current path and inheriting from the parent layouts.
 
-We also have a bunch of files that we will want to explore to correctly set-up the actions (e.g. [.prettierrc](users-dashboard/.prettierrc)).
+It is also a full-stack framework, meaning that it serves both the client side (i.e. the pages that the user will see on their browser) and the backend (i.e. the code to serve the pages that will be sent to users).
+
+In out case the later part will be 'underutilized' as we anyway already have our backend in the form of the go application. That being said it is nice to save some work to server the pages.
+
+# Run the code
+
+## Development build
+
+To start the website locally, the [installation instructions](https://kit.svelte.dev/docs/creating-a-project), to run the project we need to use `npm run dev`. The internet indicates that to open the corresponding browser tab we can use the more complete:
+
+```bash
+npm run dev -- --open
+```
+
+Alternatively a [Makefile](users-dashboard/Makefile) is provided with a `make dev` target.
+
+This usecase is interesting when developing a new feature: svelte handles a local server and opens a tab in the browser to present the website as it will look like for users.
+
+## Production build
+
+Deploying the website so that it can be accessed by users requires two components:
+
+- the server which will handle the requests and serve the pages.
+- the pages that are served to the users.
+
+It also requires quite a lot of other things as described in this [reddit post](https://www.reddit.com/r/webdev/s/gEqYH5T0pg) but this would be the basics.
+
+This [svelte doc page](https://kit.svelte.dev/docs/adapter-node) explains how to package everything for a node environment. This [page](https://kit.svelte.dev/docs/adapters) provides more information about the process in general.
+
+The idea is to first build the code into production-ready artifacts with:
+
+```bash
+npm run build
+```
+
+It is then possible to start the server locally with:
+
+```bash
+ORIGIN=http://localhost:3000 node build
+```
+
+The first part corresponds to the problem described in this [SO post](https://stackoverflow.com/questions/73790956/cross-site-post-form-submissions-are-forbidden). With this, the website can be accessed locally on the browser by going to `http://localhost:3000/dashboard/login`.
+
+For convenience, the [Makefile](users-dashboard/Makefile) defines a `build` and `run` target to do all of the above.

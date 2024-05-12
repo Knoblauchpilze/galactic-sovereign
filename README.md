@@ -380,6 +380,10 @@ We chose to use [echo](https://echo.labstack.com/) as a web framework for this p
 
 Because this server is supposed to be deployed on a internet facing instance, we want to make sure that we don't risk being subjected to too many requests from undesired attackers. In an attempt to mitigate this we implemented a throttling mechanism which by default allows 10 requests per second from any sources before returning `429` on new requests.
 
+# The website
+
+Along with the backend to handle the users and their authentication, this project also created a small toy website to access the features offered by the service. More information can be found in the dedicated [README](website/README.md) document.
+
 # Future work
 
 Currently we also listen on `http://...` and don't provide anything in regards to `https`. This should be changed for enhanced security.
