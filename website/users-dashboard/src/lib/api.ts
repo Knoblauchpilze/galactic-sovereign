@@ -1,11 +1,11 @@
 
 import {createFailedResponseEnvelope} from './responseEnvelope';
 
-const port : number = 60001;
-const baseUrl: string = "http://localhost:{port}/v1/users";
+// TODO: Check how to trim it of the last '/' character
+const baseUrl: string = process.env.API_BASE_URL;
 
 export function buildUrl(url: string): string {
-	return baseUrl.replace("{port}", port.toString()) + "/" + url;
+	return baseUrl + "/" + url;
 }
 
 const genericFailureReason : string = "Unknown failure";

@@ -10,10 +10,13 @@ FROM node:22
 ARG GIT_COMMIT_HASH="undefined"
 ARG SERVER_ORIGIN="http://localhost:3000"
 ARG NODE_PORT=3000
+ARG API_BASE_URL="user-service:60001/v1/users"
 ENV GIT_COMMIT_HASH=$GIT_COMMIT_HASH
 # https://stackoverflow.com/questions/13333221/how-to-change-value-of-process-env-port-in-node-js
 ENV PORT=$NODE_PORT
+# # https://stackoverflow.com/questions/73790956/cross-site-post-form-submissions-are-forbidden
 ENV ORIGIN=$SERVER_ORIGIN
+ENV API_BASE_URL=$API_BASE_URL
 WORKDIR /app
 COPY --from=builder build/build bin/
 # https://www.reddit.com/r/sveltejs/comments/108ayfb/sveltekit_adapternode_deploy/
