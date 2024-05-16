@@ -9,6 +9,7 @@ ENV_SERVER_PORT=80
 
 NODE_PORT=3001
 SERVER_ORIGIN="http://localhost:3001"
+API_BASE_URL="http://user-service:80/v1/users/"
 
 # https://docs.docker.com/network/drivers/bridge/
 DOCKER_NETWORK_BRIDGE_NAME="totocorp-network"
@@ -63,6 +64,7 @@ webserver-build:
 		--build-arg GIT_COMMIT_HASH=${GIT_COMMIT_HASH} \
 		--build-arg SERVER_ORIGIN=${SERVER_ORIGIN} \
 		--build-arg NODE_PORT=${NODE_PORT} \
+		--build-arg API_BASE_URL=${API_BASE_URL} \
 		--tag webserver:${GIT_COMMIT_HASH} \
 		-f build/webserver/Dockerfile \
 		.
@@ -72,3 +74,18 @@ webserver-run:
 		--network ${DOCKER_NETWORK_BRIDGE_NAME} \
 		-p ${NODE_PORT}:${NODE_PORT} \
 		webserver:${GIT_COMMIT_HASH}
+
+webserver-run-detached:
+	sudo docker run \
+		--network ${DOCKER_NETWORK_BRIDGE_NAME} \
+		-p ${NODE_PORT}:${NODE_PORT} \
+		--name webserver \
+		-d \
+		--restart on-failure:${RESTART_RETRIES_COUNT} \
+		webserver:${GIT_COMMIT_HASH}
+
+webserver-stop:
+	sudo docker stop webserver
+	sudo docker rm webserver
+
+webserver-start: webserver-build webserver-run
