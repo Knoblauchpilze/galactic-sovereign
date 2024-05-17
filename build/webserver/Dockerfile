@@ -6,7 +6,7 @@ COPY website/users-dashboard ./
 RUN npm install
 RUN npm run build
 
-FROM node:22
+FROM node:22-alpine3.18
 ARG GIT_COMMIT_HASH="undefined"
 ARG SERVER_ORIGIN="http://localhost:3000"
 ARG NODE_PORT=3000
@@ -21,6 +21,7 @@ WORKDIR /app
 COPY --from=builder build/build bin/
 # https://www.reddit.com/r/sveltejs/comments/108ayfb/sveltekit_adapternode_deploy/
 COPY --from=builder build/package.json bin/
+COPY --from=builder build/.env bin/
 WORKDIR /app/bin
 # https://github.com/nodejs/docker-node/blob/main/docs/BestPractices.md#handling-kernel-signals
-CMD ["node", "."]
+CMD ["node", "-r", "dotenv/config", "."]
