@@ -1,11 +1,10 @@
 
 import {createFailedResponseEnvelope} from './responseEnvelope';
+import { PUBLIC_API_BASE_URL } from '$env/static/public';
 
 // TODO: Check how to trim it of the last '/' character
-const baseUrl: string = process.env.API_BASE_URL;
-
 export function buildUrl(url: string): string {
-	return baseUrl + "/" + url;
+	return PUBLIC_API_BASE_URL + "/" + url;
 }
 
 const genericFailureReason : string = "Unknown failure";
