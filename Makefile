@@ -9,7 +9,7 @@ ENV_SERVER_PORT=80
 
 NODE_PORT=3001
 SERVER_ORIGIN="http://localhost:3001"
-API_BASE_URL="http://user-service:80/v1/users/"
+API_BASE_URL="http://user-service:80/v1/users"
 
 # https://docs.docker.com/network/drivers/bridge/
 DOCKER_NETWORK_BRIDGE_NAME="totocorp-network"
