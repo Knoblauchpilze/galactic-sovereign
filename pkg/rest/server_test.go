@@ -455,7 +455,7 @@ func TestRegisterMiddlewares_registersExpectedMiddlewareCount(t *testing.T) {
 		c <- true
 	}()
 
-	assert.Equal(6, len(ms.middlewares))
+	assert.Equal(7, len(ms.middlewares))
 }
 
 func setupMockServer() *mockEchoServer {

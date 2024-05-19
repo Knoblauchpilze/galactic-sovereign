@@ -122,6 +122,7 @@ func registerMiddlewares(server echoServer, rateLimit int) chan bool {
 		},
 	}
 	server.Use(em.CORSWithConfig(corsConf))
+	server.Use(em.Gzip())
 
 	server.Use(middleware.RequestTiming())
 	server.Use(middleware.ResponseEnvelope())
