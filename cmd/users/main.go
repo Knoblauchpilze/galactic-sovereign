@@ -24,7 +24,6 @@ func determineConfigName() string {
 }
 
 func main() {
-
 	conf, err := internal.LoadConfiguration(determineConfigName())
 	if err != nil {
 		logger.Errorf("Failed to load configuration: %v", err)
@@ -41,6 +40,11 @@ func main() {
 		os.Exit(1)
 	}
 	defer pool.Close()
+
+	if err := pool.Ping(context.Background()); err != nil {
+		logger.Errorf("Failed to ping the database: %v", err)
+		os.Exit(1)
+	}
 
 	userRepo := repositories.NewUserRepository(pool)
 	apiKeyRepo := repositories.NewApiKeyRepository(pool)
