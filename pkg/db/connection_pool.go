@@ -5,7 +5,9 @@ import (
 	"sync"
 	"time"
 
+	"github.com/KnoblauchPilze/user-service/pkg/errors"
 	"github.com/KnoblauchPilze/user-service/pkg/logger"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -63,7 +65,14 @@ func (c *connectionPoolImpl) Close() {
 }
 
 func (c *connectionPoolImpl) Ping(ctx context.Context) error {
-	return c.pool.Ping(ctx)
+	err := c.pool.Ping(ctx)
+
+	if err != nil {
+		if pgErr, ok := err.(*pgconn.ConnectError); ok {
+			return errors.WrapCode(pgErr, DatabasePingFailed)
+		}
+	}
+	return err
 }
 
 func (c *connectionPoolImpl) StartTransaction(ctx context.Context) (Transaction, error) {
