@@ -2,11 +2,8 @@
 APPLICATION ?= users
 
 setup:
-	mkdir -p build build/configs build/bin
+	mkdir -p build/bin
 	cp configs/users-template-dev.yml configs/users-dev.yml
-
-config:
-	cp configs/users-dev.yml build/configs/users-dev.yml
 
 release:
 	go build -o build/bin/${APPLICATION} main.go
