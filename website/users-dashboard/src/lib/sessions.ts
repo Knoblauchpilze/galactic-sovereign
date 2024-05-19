@@ -4,7 +4,7 @@ import {buildUrl, safeFetch} from './api';
 import HttpStatus from './httpStatuses';
 
 
-export async function login(email: string, password: string): Promise<ResponseEnvelope> {
+export async function loginUser(email: string, password: string): Promise<ResponseEnvelope> {
 	const url = buildUrl("sessions");
 	const body = JSON.stringify({ email: email, password: password });
 
@@ -22,7 +22,7 @@ export async function login(email: string, password: string): Promise<ResponseEn
 	return new ResponseEnvelope(jsonContent);
 }
 
-export async function logout(apiKey: string, userId: string): Promise<ResponseEnvelope> {
+export async function logoutUser(apiKey: string, userId: string): Promise<ResponseEnvelope> {
 	const url = buildUrl("sessions/" + userId);
 
 	const params = {

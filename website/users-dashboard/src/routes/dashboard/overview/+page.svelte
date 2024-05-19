@@ -1,8 +1,4 @@
 <script lang="ts">
-	import { logout } from '$lib/sessions';
-	import { redirect } from '@sveltejs/kit';
-	import { goto } from '$app/navigation';
-
 	/** @type {import('./$types').PageData} */
 	export let data;
 
@@ -23,18 +19,8 @@
 	};
 	const createdAt = data.createdAt.toLocaleDateString('en-US', options);
 
-	let logoutError: string = '';
-
-	async function performLogout() {
-		const logoutResponse = await logout(apiKey, id);
-
-		if (logoutResponse.error()) {
-			logoutError = logoutResponse.failureMessage();
-			return;
-		}
-
-		goto('/dashboard/login');
-	}
+	/** @type {import('./$types').ActionData} */
+	export let form: HTMLFormElement;
 </script>
 
 <div class="wrapper">
@@ -63,11 +49,13 @@
 		</tr>
 	</table>
 
-	<button class="action-button" on:click={performLogout}>Logout</button>
+	<form method="POST" action="?/logout">
+		<button class="action-button">Logout</button>
+	</form>
 
-	{#if logoutError !== ''}
+	{#if form?.message}
 		<div class="error-details">
-			Failed to logout: {logoutError}
+			Failed to logout: {form?.message}
 		</div>
 	{/if}
 </div>
