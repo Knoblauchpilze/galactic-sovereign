@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/KnoblauchPilze/user-service/pkg/errors"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -143,6 +144,48 @@ func TestConnectionPool_Ping_PropagatesPoolError(t *testing.T) {
 	err := p.Ping(context.Background())
 
 	assert.Equal(errDefault, err)
+}
+
+func TestConnectionPool_Ping_WhenPoolReturnsConnectionError_IndicatesFailure(t *testing.T) {
+	assert := assert.New(t)
+
+	connErr := pgconn.ConnectError{
+		Config: &pgconn.Config{},
+	}
+
+	m := &mockPgxConnectionPool{
+		err: &connErr,
+	}
+	p := connectionPoolImpl{
+		pool: m,
+	}
+
+	err := p.Ping(context.Background())
+
+	assert.True(errors.IsErrorWithCode(err, DatabasePingFailed))
+}
+
+func TestConnectionPool_Ping_WhenPoolReturnsConnectionError_WrapsIntoError(t *testing.T) {
+	assert := assert.New(t)
+
+	connErr := pgconn.ConnectError{
+		Config: &pgconn.Config{},
+	}
+
+	m := &mockPgxConnectionPool{
+		err: &connErr,
+	}
+	p := connectionPoolImpl{
+		pool: m,
+	}
+
+	err := p.Ping(context.Background())
+
+	actual := errors.Unwrap(err)
+	assert.NotNil(actual)
+	actualCause, ok := actual.(*pgconn.ConnectError)
+	assert.True(ok)
+	assert.Equal(&connErr, actualCause)
 }
 
 func TestConnectionPool_StartTransaction_DelegatesToPool(t *testing.T) {
