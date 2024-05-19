@@ -36,6 +36,7 @@ user-service-run:
 		-e ENV_DATABASE_PORT=${ENV_DATABASE_PORT} \
 		-e ENV_SERVER_PORT=${ENV_SERVER_PORT} \
 		-e ENV_DATABASE_PASSWORD='${ENV_DATABASE_PASSWORD}' \
+		--name user-service \
 		user-service:${GIT_COMMIT_HASH}
 
 # https://docs.docker.com/config/containers/start-containers-automatically/
