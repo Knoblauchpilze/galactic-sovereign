@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/KnoblauchPilze/user-service/pkg/db"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -77,6 +78,25 @@ func TestHealthcheck_WhenPingFails_SetsStatusToServiceUnavailable(t *testing.T) 
 
 	assert.Nil(err)
 	assert.Equal(http.StatusServiceUnavailable, mc.status)
+}
+
+func TestHealthcheck_WhenPingFailsWithConnectionError_SetsStatusToServiceUnavailable(t *testing.T) {
+	assert := assert.New(t)
+
+	connErr := pgconn.ConnectError{
+		Config: &pgconn.Config{},
+	}
+
+	mc := &mockContext{}
+	mp := &mockConnectionPool{
+		err: &connErr,
+	}
+
+	err := healthcheck(mc, mp)
+
+	assert.Nil(err)
+	assert.Equal(http.StatusServiceUnavailable, mc.status)
+	assert.Equal(&connErr, mc.data)
 }
 
 func (m *mockConnectionPool) Ping(ctx context.Context) error {
