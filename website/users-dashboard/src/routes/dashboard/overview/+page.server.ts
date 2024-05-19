@@ -1,6 +1,7 @@
 
 import { error, redirect } from '@sveltejs/kit';
 import User, { getUser,  } from '$lib/users';
+import { logoutUser } from '$lib/sessions';
 import { ApiFailureReason } from '$lib/responseEnvelope.js';
 
 /** @type {import('./$types').PageServerLoad} */
@@ -35,4 +36,30 @@ export async function load({ cookies }) {
 		...user,
 		apiKey: apiKey,
 	};
+};
+
+/** @type {import('./$types').Actions} */
+export const actions = {
+	logout: async ({ cookies, request }) => {
+		const apiKey = cookies.get('api-key');
+		if (!apiKey) {
+			redirect(302, '/dashboard/login');
+		}
+
+		const apiUser = cookies.get('api-user');
+		if (!apiUser) {
+			redirect(302, '/dashboard/login');
+		}
+
+		const logoutResponse = await logoutUser(apiKey, apiUser);
+
+		if (logoutResponse.error()) {
+			return {
+				success: false,
+				message: logoutResponse.failureMessage()
+			};
+		}
+
+		redirect(302, '/dashboard/login');
+	},
 };

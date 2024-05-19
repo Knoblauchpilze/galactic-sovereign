@@ -1,7 +1,7 @@
 
 import { redirect } from '@sveltejs/kit';
 // https://learn.svelte.dev/tutorial/lib
-import { login } from '$lib/sessions';
+import { loginUser } from '$lib/sessions';
 import ApiKey from '$lib/apiKey.js';
 
 /** @type {import('./$types').Actions} */
@@ -30,7 +30,7 @@ export const actions = {
 			}
 		}
 
-		const loginResponse = await login(email as string, password as string);
+		const loginResponse = await loginUser(email as string, password as string);
 
 		if (loginResponse.error()) {
 			return {
@@ -48,10 +48,5 @@ export const actions = {
 		cookies.set('api-key', apiKey.key, { path: '/' });
 
 		redirect(302, '/dashboard/overview');
-
-		return {
-			success: true,
-			message: ''
-		};
 	},
 };
