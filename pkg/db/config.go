@@ -20,7 +20,7 @@ type Config struct {
 	LogLevel            log.Lvl
 }
 
-// https://github.com/jackc/pgx/blob/60a01d044a5b3f65b9eea866954fdeea1e7d3f00/pgxpool/pool.go#L286
+// h https://github.com/jackc/pgx/blob/60a01d044a5b3f65b9eea866954fdeea1e7d3f00/pgxpool/pool.go#L286
 const postgresqlConnectionStringTemplate = "postgresql://${user}:${password}@${host}:${port}/${dbname}?pool_min_conns=${min_connections}"
 
 func (c Config) toConnPoolConfig() (*pgxpool.Config, error) {
