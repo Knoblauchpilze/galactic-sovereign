@@ -1,4 +1,4 @@
-name: Deploy
+name: Build and deploy user-service
 
 on:
   push:
@@ -12,6 +12,7 @@ on:
 
 env:
   EC2_HOST: "35.180.67.147"
+  DOCKER_NETWORK_BRIDGE_NAME: "totocorp-network"
   DATABASE_PORT: 5432
   SERVER_PORT: 80
   RETRIES_COUNT: 5
@@ -25,8 +26,11 @@ jobs:
   build-docker-image:
     uses: ./.github/workflows/user-service-push-docker-image.yml
     secrets:
-      dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
+      docker-file: ${{ secrets.DOCKERHUB_USERNAME }}
       dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
+    inputs:
+        package-name: ./build/users/Dockerfile
+        docker-image-name: user-service
   deploy:
     runs-on: ubuntu-latest
     # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idneeds
@@ -56,6 +60,7 @@ jobs:
             sudo docker container ls -la --format "{{.Names}}" | grep user-service | xargs --no-run-if-empty sudo docker stop user-service
             sudo docker container ls -la --format "{{.Names}}" | grep user-service | xargs --no-run-if-empty sudo docker rm user-service
             sudo docker run \
+              --network ${{ env.DOCKER_NETWORK_BRIDGE_NAME }} \
               -p ${{ env.DATABASE_PORT}} \
               -p ${{ env.SERVER_PORT}}:${{ env.SERVER_PORT}} \
               -e ENV_DATABASE_PASSWORD='${{ env.ENV_DATABASE_PASSWORD }}' \
