@@ -20,9 +20,9 @@ jobs:
     secrets:
       docker-file: ${{ secrets.DOCKERHUB_USERNAME }}
       dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
-    inputs:
-        package-name: ./build/webserver/Dockerfile
-        docker-image-name: webserver
+    with:
+      package-name: ./build/webserver/Dockerfile
+      docker-image-name: webserver
   deploy:
     runs-on: ubuntu-latest
     needs: [build-docker-image]
