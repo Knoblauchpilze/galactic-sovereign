@@ -3,7 +3,7 @@ name: Build and deploy webserver
 on:
   push:
     paths:
-      - 'webserver/**'
+      - 'website/**'
       - 'build/webserver/**'
       - '.github/**'
 
