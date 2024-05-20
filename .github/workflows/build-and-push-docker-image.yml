@@ -9,7 +9,7 @@ on:
         required: true
     # https://stackoverflow.com/questions/74062838/send-parameter-into-custom-github-action
     inputs:
-      docker-file:
+      docker-file-path:
         required: true
         type: string
       docker-image-name:
@@ -34,7 +34,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: ${{ inputs.docker-file }}
+          file: ${{ inputs.DOCKER_FILE_PATH }}
           build-args: GIT_COMMIT_HASH=${{ env.GIT_COMMIT_HASH }}
           push: true
-          tags: totocorpsoftwareinc/${{ inputs.docker-image-name }}:${{ env.GIT_COMMIT_HASH }}
+          tags: totocorpsoftwareinc/${{ inputs.DOCKER_IMAGE_NAME }}:${{ env.GIT_COMMIT_HASH }}

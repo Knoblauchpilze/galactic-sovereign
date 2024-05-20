@@ -18,10 +18,10 @@ jobs:
   build-docker-image:
     uses: ./.github/workflows/build-and-push-docker-image.yml
     secrets:
-      docker-file: ${{ secrets.DOCKERHUB_USERNAME }}
+      dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
       dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
     with:
-      package-name: ./build/webserver/Dockerfile
+      docker-file-path: ./build/webserver/Dockerfile
       docker-image-name: webserver
   deploy:
     runs-on: ubuntu-latest

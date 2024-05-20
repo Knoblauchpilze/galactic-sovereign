@@ -26,11 +26,11 @@ jobs:
   build-docker-image:
     uses: ./.github/workflows/build-and-push-docker-image.yml
     secrets:
-      docker-file: ${{ secrets.DOCKERHUB_USERNAME }}
+      dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
       dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
     # https://docs.github.com/en/actions/creating-actions/creating-a-composite-action#testing-out-your-action-in-a-workflow
     with:
-        package-name: ./build/users/Dockerfile
+        docker-file-path: ./build/users/Dockerfile
         docker-image-name: user-service
   deploy:
     runs-on: ubuntu-latest
