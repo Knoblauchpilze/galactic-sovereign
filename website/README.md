@@ -52,9 +52,9 @@ npm run build
 It is then possible to start the server locally with:
 
 ```bash
-ORIGIN=http://localhost:3000 node build
+ORIGIN=http://localhost:3000 node /path/to/the/build/folder
 ```
 
 The first part corresponds to the problem described in this [SO post](https://stackoverflow.com/questions/73790956/cross-site-post-form-submissions-are-forbidden). With this, the website can be accessed locally on the browser by going to `http://localhost:3000/dashboard/login`.
 
-For convenience, the [Makefile](users-dashboard/Makefile) defines a `build` and `run` target to do all of the above.
+For convenience, the [Makefile](users-dashboard/Makefile) defines a `build` target to handle the build. Most likely though it is better to use the root [Makefile](/Makefile) and build the docker images for the webserver: this handles everything and allows to predictably setup the webserver.
