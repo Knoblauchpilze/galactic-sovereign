@@ -16,7 +16,7 @@ env:
 
 jobs:
   build-docker-image:
-    uses: ./.github/workflows/user-service-push-docker-image.yml
+    uses: ./.github/workflows/build-and-push-docker-image.yml
     secrets:
       docker-file: ${{ secrets.DOCKERHUB_USERNAME }}
       dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
