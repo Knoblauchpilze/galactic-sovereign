@@ -1,4 +1,4 @@
-name: Deploy
+name: Build and deploy user-service
 
 on:
   push:
@@ -7,11 +7,12 @@ on:
       - 'cmd/**'
       - 'pkg/**'
       - 'internal/**'
-      - 'build/**'
+      - 'build/users/**'
       - '.github/**'
 
 env:
   EC2_HOST: "35.180.67.147"
+  DOCKER_NETWORK_BRIDGE_NAME: "totocorp-network"
   DATABASE_PORT: 5432
   SERVER_PORT: 80
   RETRIES_COUNT: 5
@@ -23,7 +24,7 @@ jobs:
     secrets:
       codecov-token: ${{ secrets.CODECOV_TOKEN }}
   build-docker-image:
-    uses: ./.github/workflows/push-docker-image.yml
+    uses: ./.github/workflows/user-service-build-and-push-docker-image.yml
     secrets:
       dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
       dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
@@ -56,6 +57,7 @@ jobs:
             sudo docker container ls -la --format "{{.Names}}" | grep user-service | xargs --no-run-if-empty sudo docker stop user-service
             sudo docker container ls -la --format "{{.Names}}" | grep user-service | xargs --no-run-if-empty sudo docker rm user-service
             sudo docker run \
+              --network ${{ env.DOCKER_NETWORK_BRIDGE_NAME }} \
               -p ${{ env.DATABASE_PORT}} \
               -p ${{ env.SERVER_PORT}}:${{ env.SERVER_PORT}} \
               -e ENV_DATABASE_PASSWORD='${{ env.ENV_DATABASE_PASSWORD }}' \
