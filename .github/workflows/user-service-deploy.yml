@@ -23,7 +23,7 @@ jobs:
     secrets:
       codecov-token: ${{ secrets.CODECOV_TOKEN }}
   build-docker-image:
-    uses: ./.github/workflows/push-docker-image.yml
+    uses: ./.github/workflows/user-service-push-docker-image.yml
     secrets:
       dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
       dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
