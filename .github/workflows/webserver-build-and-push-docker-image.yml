@@ -1,27 +1,17 @@
 name: Build and push docker image
 on:
   workflow_call:
-    # https://docs.github.com/en/actions/using-workflows/reusing-workflows#passing-inputs-and-secrets-to-a-reusable-workflow
     secrets:
       dockerhub-username:
         required: true
       dockerhub-token:
         required: true
-    # https://stackoverflow.com/questions/74062838/send-parameter-into-custom-github-action
-    inputs:
-      docker-file-path:
-        required: true
-        type: string
-      docker-image-name:
-        required: true
-        type: string
 
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      # https://stackoverflow.com/questions/58886293/getting-current-branch-and-commit-hash-in-github-action
       - name: Extract commit hash
         run: echo "GIT_COMMIT_HASH=$(git rev-parse --short "$GITHUB_SHA")" >> "$GITHUB_ENV"
       - name: Login to Docker Hub
@@ -34,7 +24,11 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: ${{ inputs.docker-file-path }}
-          build-args: GIT_COMMIT_HASH=${{ env.GIT_COMMIT_HASH }}
+          file: ./build/webserver/Dockerfile
+          build-args: |
+            GIT_COMMIT_HASH=${{ env.GIT_COMMIT_HASH }}
+            NODE_PORT=3001
+            SERVER_ORIGIN="http://localhost:3001"
+            API_BASE_URL="http://user-service:80/v1/users"
           push: true
-          tags: totocorpsoftwareinc/${{ inputs.docker-image-name }}:${{ env.GIT_COMMIT_HASH }}
+          tags: totocorpsoftwareinc/webserver:${{ env.GIT_COMMIT_HASH }}

@@ -24,14 +24,10 @@ jobs:
     secrets:
       codecov-token: ${{ secrets.CODECOV_TOKEN }}
   build-docker-image:
-    uses: ./.github/workflows/build-and-push-docker-image.yml
+    uses: ./.github/workflows/user-service-build-and-push-docker-image.yml
     secrets:
       dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
       dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
-    # https://docs.github.com/en/actions/creating-actions/creating-a-composite-action#testing-out-your-action-in-a-workflow
-    with:
-        docker-file-path: ./build/users/Dockerfile
-        docker-image-name: user-service
   deploy:
     runs-on: ubuntu-latest
     # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idneeds
