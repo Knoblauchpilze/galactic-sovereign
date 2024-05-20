@@ -19,7 +19,6 @@ jobs:
         with:
           username: ${{ secrets.dockerhub-username }}
           password: ${{ secrets.dockerhub-token }}
-      # https://docs.github.com/en/actions/publishing-packages/publishing-docker-images#publishing-images-to-docker-hub
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
