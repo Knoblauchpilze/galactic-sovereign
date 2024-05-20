@@ -46,7 +46,7 @@ jobs:
             sudo docker container ls -la --format "{{.Names}}" | grep webserver | xargs --no-run-if-empty sudo docker rm webserver
             sudo docker run \
               --network ${{ env.DOCKER_NETWORK_BRIDGE_NAME }} \
-		          -p ${NODE_PORT}:${NODE_PORT} \
+              -p ${NODE_PORT}:${NODE_PORT} \
               --name webserver \
               -d \
               --restart on-failure:${{ env.RETRIES_COUNT}} \
