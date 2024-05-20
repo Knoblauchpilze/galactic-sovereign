@@ -139,6 +139,37 @@ sudo systemctl restart postgresql
 
 With all of this, the service running in the docker container should be able to connect to the database.
 
+### Create a docker bridge network
+
+#### Problem statement
+
+Consider the following situation:
+* container A provides an API on port 80
+* container B would like to reach endpoints exposed by A on port 80
+
+To achieve this we somehow need to:
+* instruct Docker to bind the host port 80 to container A (e.g. with `-p 80:80`) so that it can serve the outside world
+* instruct Docker to bind the host port 80 to container B (with the same command as above!) so that it can target container A.
+
+This usually result in the following:
+
+![Docker bind failure](resources/docker-bind-failure.png)
+
+#### How to solve this
+
+In order to solve this, we rely on the idea of [docker bridge network](https://docs.docker.com/network/drivers/bridge/).
+
+The idea is to connect containers in the same virtual network where they can access each other's without sharing the host network. This removes the need to expose multiple times the same port and essentially act as if they would be on separate machine. The Docker daemon also provides convenience access to a DNS-like system to access containers by their name (e.g. `http://your-container-name:80/endpoint`).
+
+#### Setup the bridge network
+
+Throughout this project we use the same bridge network called `totocorp-network` (see it in the [Makefile](Makefile)). It needs to be created once before any of the CI process try to access the machine (as it assumes it already exists).
+
+In order to do so, we need to run the following command (see [documentation](https://docs.docker.com/network/drivers/bridge/#manage-a-user-defined-bridge)):
+```bash
+ docker network create totocorp-network
+```
+
 ## Setup the database
 
 In order to properly execute them, make sure that you know the `postgres` password (see [this SO link](https://stackoverflow.com/questions/27107557/what-is-the-default-password-for-postgres) to alter it if needed).
