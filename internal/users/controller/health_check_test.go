@@ -32,7 +32,7 @@ func TestHealthCheckEndpoints_GeneratesExpectedRoutes(t *testing.T) {
 func TestHealthcheck_CallsPoolPing(t *testing.T) {
 	assert := assert.New(t)
 
-	mc := &mockContext{}
+	mc := dummyEchoContext()
 	mp := &mockConnectionPool{}
 
 	healthcheck(mc, mp)
@@ -43,41 +43,41 @@ func TestHealthcheck_CallsPoolPing(t *testing.T) {
 func TestHealthcheck_WhenPingSucceeds_SetsSatusToOk(t *testing.T) {
 	assert := assert.New(t)
 
-	mc := &mockContext{}
+	ctx, rw := generateTestEchoContextAndResponseRecorder()
 	mp := &mockConnectionPool{}
 
-	err := healthcheck(mc, mp)
+	err := healthcheck(ctx, mp)
 
 	assert.Nil(err)
-	assert.Equal(http.StatusOK, mc.status)
+	assert.Equal(http.StatusOK, rw.Code)
 }
 
 func TestHealthcheck_WhenPingFails_PropagatesError(t *testing.T) {
 	assert := assert.New(t)
 
-	mc := &mockContext{}
+	ctx, rw := generateTestEchoContextAndResponseRecorder()
 	mp := &mockConnectionPool{
 		err: errDefault,
 	}
 
-	err := healthcheck(mc, mp)
+	err := healthcheck(ctx, mp)
 
 	assert.Nil(err)
-	assert.Equal(errDefault, mc.data)
+	assert.Equal("{\"Code\":1,\"Message\":\"Healtcheck failed\",\"Cause\":\"some error\"}\n", rw.Body.String())
 }
 
 func TestHealthcheck_WhenPingFails_SetsStatusToServiceUnavailable(t *testing.T) {
 	assert := assert.New(t)
 
-	mc := &mockContext{}
+	ctx, rw := generateTestEchoContextAndResponseRecorder()
 	mp := &mockConnectionPool{
 		err: errDefault,
 	}
 
-	err := healthcheck(mc, mp)
+	err := healthcheck(ctx, mp)
 
 	assert.Nil(err)
-	assert.Equal(http.StatusServiceUnavailable, mc.status)
+	assert.Equal(http.StatusServiceUnavailable, rw.Code)
 }
 
 func TestHealthcheck_WhenPingFailsWithConnectionError_SetsStatusToServiceUnavailable(t *testing.T) {
@@ -87,16 +87,16 @@ func TestHealthcheck_WhenPingFailsWithConnectionError_SetsStatusToServiceUnavail
 		Config: &pgconn.Config{},
 	}
 
-	mc := &mockContext{}
+	ctx, rw := generateTestEchoContextAndResponseRecorder()
 	mp := &mockConnectionPool{
 		err: &connErr,
 	}
 
-	err := healthcheck(mc, mp)
+	err := healthcheck(ctx, mp)
 
 	assert.Nil(err)
-	assert.Equal(http.StatusServiceUnavailable, mc.status)
-	assert.Equal(&connErr, mc.data)
+	assert.Equal(http.StatusServiceUnavailable, rw.Code)
+	assert.Equal("{\"Code\":1,\"Message\":\"Healtcheck failed\",\"Cause\":\"failed to connect to `host= user= database=`: \"}\n", rw.Body.String())
 }
 
 func (m *mockConnectionPool) Ping(ctx context.Context) error {
