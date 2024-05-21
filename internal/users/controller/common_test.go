@@ -2,6 +2,8 @@ package controller
 
 import (
 	"fmt"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 
 	"github.com/KnoblauchPilze/user-service/internal/users/service"
@@ -11,10 +13,6 @@ import (
 )
 
 var errDefault = fmt.Errorf("some error")
-
-type mockEchoContext struct {
-	echo.Context
-}
 
 func TestFromRepositoriesAwareHttpHandler_CallsHandler(t *testing.T) {
 	assert := assert.New(t)
@@ -27,7 +25,7 @@ func TestFromRepositoriesAwareHttpHandler_CallsHandler(t *testing.T) {
 
 	h := fromRepositoriesAwareHttpHandler(in, &mockUserService{})
 
-	err := h(mockEchoContext{})
+	err := h(dummyEchoContext())
 	assert.Nil(err)
 	assert.True(handlerCalled)
 }
@@ -41,7 +39,7 @@ func TestFromRepositoriesAwareHttpHandler_PropagatesError(t *testing.T) {
 
 	h := fromRepositoriesAwareHttpHandler(in, &mockUserService{})
 
-	err := h(mockEchoContext{})
+	err := h(dummyEchoContext())
 	assert.Equal(errDefault, err)
 }
 
@@ -56,7 +54,7 @@ func TestFromDbAwareHttpHandler_CallsHandler(t *testing.T) {
 
 	h := fromDbAwareHttpHandler(in, &mockConnectionPool{})
 
-	err := h(mockEchoContext{})
+	err := h(dummyEchoContext())
 	assert.Nil(err)
 	assert.True(handlerCalled)
 }
@@ -70,6 +68,20 @@ func TestFromDbAwareHttpHandler_PropagatesError(t *testing.T) {
 
 	h := fromDbAwareHttpHandler(in, &mockConnectionPool{})
 
-	err := h(mockEchoContext{})
+	err := h(dummyEchoContext())
 	assert.Equal(errDefault, err)
+}
+
+func dummyEchoContext() echo.Context {
+	ctx, _ := generateTestEchoContextAndResponseRecorder()
+	return ctx
+}
+
+func generateTestEchoContextAndResponseRecorder() (echo.Context, *httptest.ResponseRecorder) {
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	rw := httptest.NewRecorder()
+
+	ctx := e.NewContext(req, rw)
+	return ctx, rw
 }
