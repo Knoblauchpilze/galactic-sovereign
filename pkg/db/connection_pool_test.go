@@ -131,7 +131,7 @@ func TestConnectionPool_Ping_DelegatesToPool(t *testing.T) {
 	assert.Equal(1, m.pingCalled)
 }
 
-func TestConnectionPool_Ping_PropagatesPoolError(t *testing.T) {
+func TestConnectionPool_Ping_WhenPoolReturnsError_IndicatesFailure(t *testing.T) {
 	assert := assert.New(t)
 
 	m := &mockPgxConnectionPool{
@@ -143,37 +143,14 @@ func TestConnectionPool_Ping_PropagatesPoolError(t *testing.T) {
 
 	err := p.Ping(context.Background())
 
-	assert.Equal(errDefault, err)
-}
-
-func TestConnectionPool_Ping_WhenPoolReturnsConnectionError_IndicatesFailure(t *testing.T) {
-	assert := assert.New(t)
-
-	connErr := pgconn.ConnectError{
-		Config: &pgconn.Config{},
-	}
-
-	m := &mockPgxConnectionPool{
-		err: &connErr,
-	}
-	p := connectionPoolImpl{
-		pool: m,
-	}
-
-	err := p.Ping(context.Background())
-
 	assert.True(errors.IsErrorWithCode(err, DatabasePingFailed))
 }
 
-func TestConnectionPool_Ping_WhenPoolReturnsConnectionError_WrapsIntoError(t *testing.T) {
+func TestConnectionPool_Ping_WhenPoolReturnsError_WrapsIntoError(t *testing.T) {
 	assert := assert.New(t)
 
-	connErr := pgconn.ConnectError{
-		Config: &pgconn.Config{},
-	}
-
 	m := &mockPgxConnectionPool{
-		err: &connErr,
+		err: errDefault,
 	}
 	p := connectionPoolImpl{
 		pool: m,
@@ -183,9 +160,7 @@ func TestConnectionPool_Ping_WhenPoolReturnsConnectionError_WrapsIntoError(t *te
 
 	actual := errors.Unwrap(err)
 	assert.NotNil(actual)
-	actualCause, ok := actual.(*pgconn.ConnectError)
-	assert.True(ok)
-	assert.Equal(&connErr, actualCause)
+	assert.Equal(errDefault, actual)
 }
 
 func TestConnectionPool_StartTransaction_DelegatesToPool(t *testing.T) {
