@@ -4,6 +4,9 @@ import { PUBLIC_API_BASE_URL } from '$env/static/public';
 
 // TODO: Check how to trim it of the last '/' character
 export function buildUrl(url: string): string {
+	if (url.length === 0) {
+		return PUBLIC_API_BASE_URL;
+	}
 	return PUBLIC_API_BASE_URL + "/" + url;
 }
 

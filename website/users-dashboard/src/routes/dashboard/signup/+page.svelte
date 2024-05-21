@@ -12,11 +12,10 @@
 
 <div class="wrapper">
 	<h1>User dashboard</h1>
-	<h2>Login</h2>
+	<h2>Sign up</h2>
 
-	<form method="POST" action="?/login" class="form">
+	<form method="POST" action="?/signup" class="form">
 		<div class="field">
-			<!-- https://stackoverflow.com/questions/62278480/add-onchange-handler-to-input-in-svelte -->
 			<label for="form-email">e-mail:</label>
 			<input
 				type="text"
@@ -37,12 +36,12 @@
 				on:input={resetFormError}
 			/>
 		</div>
-		<button class="action-button">Login</button>
+		<button class="action-button">Sign up</button>
 	</form>
 
 	{#if form?.message}
 		<div class="error-details">
-			Failed to login: {form?.message}
+			Failed to sign up: {form?.message}
 		</div>
 	{/if}
 </div>
@@ -86,7 +85,6 @@
 		background-color: #1eb854;
 	}
 
-	/* https://www.w3schools.com/howto/howto_js_snackbar.asp */
 	.error-details {
 		color: #fe0075;
 		font-size: 1.5em;
