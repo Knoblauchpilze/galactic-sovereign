@@ -22,7 +22,7 @@ func HealthCheckEndpoints(pool db.ConnectionPool) rest.Routes {
 func healthcheck(c echo.Context, pool db.ConnectionPool) error {
 	err := pool.Ping(c.Request().Context())
 	if err != nil {
-		return c.JSON(http.StatusServiceUnavailable, errors.Wrap(err, "Healtcheck failed"))
+		return c.JSON(http.StatusServiceUnavailable, errors.WrapCode(err, HealthcheckFailed))
 	}
 
 	return c.JSON(http.StatusOK, "OK")
