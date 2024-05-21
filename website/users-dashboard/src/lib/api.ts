@@ -2,12 +2,21 @@
 import {createFailedResponseEnvelope} from './responseEnvelope';
 import { PUBLIC_API_BASE_URL } from '$env/static/public';
 
-// TODO: Check how to trim it of the last '/' character
-export function buildUrl(url: string): string {
-	if (url.length === 0) {
-		return PUBLIC_API_BASE_URL;
+function trimTrailingSlash(url: string): string {
+	if (!url.endsWith('/')) {
+		return url;
 	}
-	return PUBLIC_API_BASE_URL + "/" + url;
+
+	return url.substring(0, url.length - 1);
+}
+
+export function buildUrl(url: string): string {
+	let out = trimTrailingSlash(PUBLIC_API_BASE_URL);
+
+	if (url.length === 0) {
+		return out;
+	}
+	return out + "/" + url;
 }
 
 const genericFailureReason : string = "Unknown failure";
