@@ -33,7 +33,7 @@ type serverImpl struct {
 	err   error
 }
 
-var creationFunc = createEchoServer
+var creationFunc = createEchoServerWrapper
 
 func NewServer(conf Config, apiKeyRepository repositories.ApiKeyRepository) Server {
 	s := creationFunc()

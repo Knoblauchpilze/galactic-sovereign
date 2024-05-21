@@ -471,7 +471,7 @@ func setupMockServer() *mockEchoServer {
 }
 
 func resetCreatorFunc() {
-	creationFunc = createEchoServer
+	creationFunc = createEchoServerWrapper
 }
 
 func (m *mockRoute) Method() string {

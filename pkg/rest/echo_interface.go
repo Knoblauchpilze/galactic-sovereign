@@ -22,11 +22,15 @@ type echoServer interface {
 	Start(string) error
 }
 
-func createEchoServer() echoServer {
+func createEchoServerWrapper() echoServer {
+	return &echoServerImpl{e: createEchoServer()}
+}
+
+func createEchoServer() *echo.Echo {
 	e := echo.New()
 	e.HideBanner = true
 	e.HidePort = true
 	e.Logger = logger.New("server")
 
-	return &echoServerImpl{e: e}
+	return e
 }
