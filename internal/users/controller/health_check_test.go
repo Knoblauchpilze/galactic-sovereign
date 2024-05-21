@@ -62,7 +62,7 @@ func TestHealthcheck_WhenPingFails_PropagatesError(t *testing.T) {
 	err := healthcheck(ctx, mp)
 
 	assert.Nil(err)
-	assert.Equal("{\"Code\":1,\"Message\":\"Healtcheck failed\",\"Cause\":\"some error\"}\n", rw.Body.String())
+	assert.Equal("{\"Code\":260,\"Cause\":\"some error\"}\n", rw.Body.String())
 }
 
 func TestHealthcheck_WhenPingFails_SetsStatusToServiceUnavailable(t *testing.T) {
