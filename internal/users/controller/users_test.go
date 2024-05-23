@@ -84,6 +84,7 @@ func TestUserEndpoints_GeneratesExpectedRoutes(t *testing.T) {
 func TestCreateUser_WhenBodyIsNotAUserDto_SetsStatusToBadRequest(t *testing.T) {
 	assert := assert.New(t)
 
+	// https://github.com/labstack/echo/issues/2138
 	req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader("not-a-user-dto-request"))
 	ctx, rw := generateTestEchoContextFromRequest(req)
 	ms := &mockUserService{}
