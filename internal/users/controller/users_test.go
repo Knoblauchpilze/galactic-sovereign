@@ -688,10 +688,10 @@ func TestLoginUserByEmail_WhenBodyIsNotAUserDto_SetsStatusToBadRequest(t *testin
 func TestLoginUserByEmail_CallsServiceLogin(t *testing.T) {
 	assert := assert.New(t)
 
-	mc := &mockContext{}
+	ctx, _ := generateEchoContextWithBody(http.MethodPost)
 	ms := &mockUserService{}
 
-	err := loginUserByEmail(mc, ms)
+	err := loginUserByEmail(ctx, ms)
 
 	assert.Nil(err)
 	assert.Equal(1, ms.loginCalled)
@@ -700,66 +700,64 @@ func TestLoginUserByEmail_CallsServiceLogin(t *testing.T) {
 func TestLoginUserByEmail_WhenServiceFailsWithUnknownError_SetsStatusToInternalServerError(t *testing.T) {
 	assert := assert.New(t)
 
-	mc := &mockContext{}
+	ctx, rw := generateEchoContextWithBody(http.MethodPost)
 	ms := &mockUserService{
 		err: errDefault,
 	}
 
-	err := loginUserByEmail(mc, ms)
+	err := loginUserByEmail(ctx, ms)
 
 	assert.Nil(err)
-	assert.Equal(http.StatusInternalServerError, mc.status)
+	assert.Equal(http.StatusInternalServerError, rw.Code)
 }
 
 func TestLoginUserByEmail_WhenServiceFailsWithNoMatchingRows_SetsStatusUnauthorized(t *testing.T) {
 	assert := assert.New(t)
 
-	mc := &mockContext{}
+	ctx, rw := generateEchoContextWithBody(http.MethodPost)
 	ms := &mockUserService{
 		err: errors.NewCode(db.NoMatchingSqlRows),
 	}
 
-	err := loginUserByEmail(mc, ms)
+	err := loginUserByEmail(ctx, ms)
 
 	assert.Nil(err)
-	assert.Equal(http.StatusNotFound, mc.status)
+	assert.Equal(http.StatusNotFound, rw.Code)
 }
 
 func TestLoginUserByEmail_WhenServiceFailsWithInvalidCredentials_SetsStatusUnauthorized(t *testing.T) {
 	assert := assert.New(t)
 
-	mc := &mockContext{}
+	ctx, rw := generateEchoContextWithBody(http.MethodPost)
 	ms := &mockUserService{
 		err: errors.NewCode(service.InvalidCredentials),
 	}
 
-	err := loginUserByEmail(mc, ms)
+	err := loginUserByEmail(ctx, ms)
 
 	assert.Nil(err)
-	assert.Equal(http.StatusUnauthorized, mc.status)
+	assert.Equal(http.StatusUnauthorized, rw.Code)
 }
 
 func TestLoginUserByEmail_SetsStatusToCreated(t *testing.T) {
 	assert := assert.New(t)
 
-	mc := &mockContext{}
+	ctx, rw := generateEchoContextWithBody(http.MethodPost)
 	ms := &mockUserService{}
 
-	err := loginUserByEmail(mc, ms)
+	err := loginUserByEmail(ctx, ms)
 
 	assert.Nil(err)
-	assert.Equal(http.StatusCreated, mc.status)
+	assert.Equal(http.StatusCreated, rw.Code)
 }
 
 func TestLoginUserByEmail_LogsInExpectedUser(t *testing.T) {
 	assert := assert.New(t)
 
-	mc := &mockContext{
-		body: defaultUserDtoRequest,
-	}
+	ctx, _ := generateEchoContextWithBody(http.MethodPost)
 	ms := &mockUserService{}
 
-	err := loginUserByEmail(mc, ms)
+	err := loginUserByEmail(ctx, ms)
 
 	assert.Nil(err)
 	assert.Equal(defaultUserDtoRequest, ms.inUser)
@@ -768,16 +766,18 @@ func TestLoginUserByEmail_LogsInExpectedUser(t *testing.T) {
 func TestLoginUserByEmail_ReturnsUserToken(t *testing.T) {
 	assert := assert.New(t)
 
-	mc := &mockContext{}
+	ctx, rw := generateEchoContextWithBody(http.MethodPost)
 	ms := &mockUserService{
 		apiKey: defaultApiKeyDtoResponse,
 	}
 
-	err := loginUserByEmail(mc, ms)
+	err := loginUserByEmail(ctx, ms)
 
 	assert.Nil(err)
-	actual, ok := mc.data.(communication.ApiKeyDtoResponse)
-	assert.True(ok)
+
+	var actual communication.ApiKeyDtoResponse
+	err = json.Unmarshal(rw.Body.Bytes(), &actual)
+	assert.Nil(err)
 	assert.Equal(defaultApiKeyDtoResponse, actual)
 }
 
@@ -947,6 +947,11 @@ func generateEchoContextWithUuid(method string) (echo.Context, *httptest.Respons
 	ctx.SetParamNames("id")
 	ctx.SetParamValues(defaultUuid.String())
 	return ctx, rw
+}
+
+func generateEchoContextWithBody(method string) (echo.Context, *httptest.ResponseRecorder) {
+	req := generateTestRequest(method)
+	return generateTestEchoContextFromRequest(req)
 }
 
 func generateEchoContextWithUuidAndBody(method string) (echo.Context, *httptest.ResponseRecorder) {
