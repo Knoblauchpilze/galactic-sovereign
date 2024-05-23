@@ -210,7 +210,7 @@ func TestGetUser_WhenIdSyntaxIsWrong_SetsStatusToBadRequest(t *testing.T) {
 func TestGetUser_CallsServiceGet(t *testing.T) {
 	assert := assert.New(t)
 
-	ctx, _ := generateEchoContextWithUuid()
+	ctx, _ := generateEchoContextWithUuid(http.MethodGet)
 	ms := &mockUserService{}
 
 	err := getUser(ctx, ms)
@@ -223,7 +223,7 @@ func TestGetUser_CallsServiceGet(t *testing.T) {
 func TestGetUser_WhenServiceFailsWithUnknownError_SetsStatusToInternalServerError(t *testing.T) {
 	assert := assert.New(t)
 
-	ctx, rw := generateEchoContextWithUuid()
+	ctx, rw := generateEchoContextWithUuid(http.MethodGet)
 	ms := &mockUserService{
 		err: errDefault,
 	}
@@ -237,7 +237,7 @@ func TestGetUser_WhenServiceFailsWithUnknownError_SetsStatusToInternalServerErro
 func TestGetUser_WhenServiceFailsWithNoMatchingRows_SetsStatusToNotFound(t *testing.T) {
 	assert := assert.New(t)
 
-	ctx, rw := generateEchoContextWithUuid()
+	ctx, rw := generateEchoContextWithUuid(http.MethodGet)
 	ms := &mockUserService{
 		err: errors.NewCode(db.NoMatchingSqlRows),
 	}
@@ -251,7 +251,7 @@ func TestGetUser_WhenServiceFailsWithNoMatchingRows_SetsStatusToNotFound(t *test
 func TestGetUser_SetsStatusToOk(t *testing.T) {
 	assert := assert.New(t)
 
-	ctx, rw := generateEchoContextWithUuid()
+	ctx, rw := generateEchoContextWithUuid(http.MethodGet)
 	ms := &mockUserService{}
 
 	err := getUser(ctx, ms)
@@ -263,7 +263,7 @@ func TestGetUser_SetsStatusToOk(t *testing.T) {
 func TestGetUser_ReturnsExpectedUser(t *testing.T) {
 	assert := assert.New(t)
 
-	ctx, rw := generateEchoContextWithUuid()
+	ctx, rw := generateEchoContextWithUuid(http.MethodGet)
 	ms := &mockUserService{
 		user: defaultUserDtoResponse,
 	}
@@ -365,7 +365,7 @@ func TestUpdateUser_WhenIdIsCorrectButBodyIsNotAUserDto_SetsStatusToBadRequest(t
 	assert := assert.New(t)
 
 	req := httptest.NewRequest(http.MethodPatch, "/", strings.NewReader("not-a-user-dto-request"))
-	ctx, rw := generateEchoContextWithUuid()
+	ctx, rw := generateEchoContextWithUuid(http.MethodPatch)
 	ctx.SetRequest(req)
 
 	ms := &mockUserService{}
@@ -380,7 +380,7 @@ func TestUpdateUser_WhenIdIsCorrectButBodyIsNotAUserDto_SetsStatusToBadRequest(t
 func TestUpdateUser_CallsServiceUpdate(t *testing.T) {
 	assert := assert.New(t)
 
-	ctx, _ := generateEchoContextWithUuidAndBody()
+	ctx, _ := generateEchoContextWithUuidAndBody(http.MethodPatch)
 	ms := &mockUserService{}
 
 	err := updateUser(ctx, ms)
@@ -394,7 +394,7 @@ func TestUpdateUser_CallsServiceUpdate(t *testing.T) {
 func TestUpdateUser_WhenServiceFailsWithUnknownError_SetsStatusToInternalServerError(t *testing.T) {
 	assert := assert.New(t)
 
-	ctx, rw := generateEchoContextWithUuidAndBody()
+	ctx, rw := generateEchoContextWithUuidAndBody(http.MethodPatch)
 	ms := &mockUserService{
 		err: errDefault,
 	}
@@ -408,7 +408,7 @@ func TestUpdateUser_WhenServiceFailsWithUnknownError_SetsStatusToInternalServerE
 func TestUpdateUser_WhenServiceFailsWithNoSuchRows_SetsStatusToNotFound(t *testing.T) {
 	assert := assert.New(t)
 
-	ctx, rw := generateEchoContextWithUuidAndBody()
+	ctx, rw := generateEchoContextWithUuidAndBody(http.MethodPatch)
 	ms := &mockUserService{
 		err: errors.NewCode(db.NoMatchingSqlRows),
 	}
@@ -422,7 +422,7 @@ func TestUpdateUser_WhenServiceFailsWithNoSuchRows_SetsStatusToNotFound(t *testi
 func TestUpdateUser_WhenServiceFailsWithOptimisticLockException_SetsStatusToConflict(t *testing.T) {
 	assert := assert.New(t)
 
-	ctx, rw := generateEchoContextWithUuidAndBody()
+	ctx, rw := generateEchoContextWithUuidAndBody(http.MethodPatch)
 	ms := &mockUserService{
 		err: errors.NewCode(db.OptimisticLockException),
 	}
@@ -436,7 +436,7 @@ func TestUpdateUser_WhenServiceFailsWithOptimisticLockException_SetsStatusToConf
 func TestUpdateUser_SetsStatusToOk(t *testing.T) {
 	assert := assert.New(t)
 
-	ctx, rw := generateEchoContextWithUuidAndBody()
+	ctx, rw := generateEchoContextWithUuidAndBody(http.MethodPatch)
 	ms := &mockUserService{}
 
 	err := getUser(ctx, ms)
@@ -485,44 +485,37 @@ func TestUpdateUser_ReturnsExpectedUser(t *testing.T) {
 func TestDeleteUser_WhenNoId_SetsStatusToBadRequest(t *testing.T) {
 	assert := assert.New(t)
 
-	mc := &mockContext{}
+	ctx, rw := generateTestEchoContext()
 	ms := &mockUserService{}
 
-	err := deleteUser(mc, ms)
+	err := deleteUser(ctx, ms)
 
 	assert.Nil(err)
-	assert.Equal(http.StatusBadRequest, mc.status)
-	assert.Equal("Invalid id syntax", mc.data)
+	assert.Equal(http.StatusBadRequest, rw.Code)
+	assert.Equal("\"Invalid id syntax\"\n", rw.Body.String())
 }
 
 func TestDeleteUser_WhenIdSyntaxIsWrong_SetsStatusToBadRequest(t *testing.T) {
 	assert := assert.New(t)
 
-	mc := &mockContext{
-		params: map[string]string{
-			"id": "not-a-valid-id",
-		},
-	}
+	req := httptest.NewRequest(http.MethodDelete, "/", strings.NewReader("not-a-uuid"))
+	ctx, rw := generateTestEchoContextFromRequest(req)
 	ms := &mockUserService{}
 
-	err := deleteUser(mc, ms)
+	err := deleteUser(ctx, ms)
 
 	assert.Nil(err)
-	assert.Equal(http.StatusBadRequest, mc.status)
-	assert.Equal("Invalid id syntax", mc.data)
+	assert.Equal(http.StatusBadRequest, rw.Code)
+	assert.Equal("\"Invalid id syntax\"\n", rw.Body.String())
 }
 
 func TestDeleteUser_CallsServiceDelete(t *testing.T) {
 	assert := assert.New(t)
 
-	mc := &mockContext{
-		params: map[string]string{
-			"id": defaultUuid.String(),
-		},
-	}
+	ctx, _ := generateEchoContextWithUuid(http.MethodDelete)
 	ms := &mockUserService{}
 
-	err := deleteUser(mc, ms)
+	err := deleteUser(ctx, ms)
 
 	assert.Nil(err)
 	assert.Equal(1, ms.deleteCalled)
@@ -532,96 +525,77 @@ func TestDeleteUser_CallsServiceDelete(t *testing.T) {
 func TestDeleteUser_WhenServiceFailsWithUnknownError_SetsStatusToInternalServerError(t *testing.T) {
 	assert := assert.New(t)
 
-	mc := &mockContext{
-		params: map[string]string{
-			"id": defaultUuid.String(),
-		},
-	}
+	ctx, rw := generateEchoContextWithUuid(http.MethodDelete)
 	ms := &mockUserService{
 		err: errDefault,
 	}
 
-	err := deleteUser(mc, ms)
+	err := deleteUser(ctx, ms)
 
 	assert.Nil(err)
-	assert.Equal(http.StatusInternalServerError, mc.status)
+	assert.Equal(http.StatusInternalServerError, rw.Code)
 }
 
 func TestDeleteUser_WhenServiceFailsWithNoMatchingRows_SetsStatusToNotFound(t *testing.T) {
 	assert := assert.New(t)
 
-	mc := &mockContext{
-		params: map[string]string{
-			"id": defaultUuid.String(),
-		},
-	}
+	ctx, rw := generateEchoContextWithUuid(http.MethodDelete)
 	ms := &mockUserService{
 		err: errors.NewCode(db.NoMatchingSqlRows),
 	}
 
-	err := deleteUser(mc, ms)
+	err := deleteUser(ctx, ms)
 
 	assert.Nil(err)
-	assert.Equal(http.StatusNotFound, mc.status)
+	assert.Equal(http.StatusNotFound, rw.Code)
 }
 
 func TestDeleteUser_SetsStatusToNoContent(t *testing.T) {
 	assert := assert.New(t)
 
-	mc := &mockContext{
-		params: map[string]string{
-			"id": defaultUuid.String(),
-		},
-	}
+	ctx, rw := generateEchoContextWithUuid(http.MethodDelete)
 	ms := &mockUserService{}
 
-	err := deleteUser(mc, ms)
+	err := deleteUser(ctx, ms)
 
 	assert.Nil(err)
-	assert.Equal(http.StatusNoContent, mc.status)
+	assert.Equal(http.StatusNoContent, rw.Code)
 }
 
 func TestLoginUserById_WhenNoId_SetsStatusToBadRequest(t *testing.T) {
 	assert := assert.New(t)
 
-	mc := &mockContext{}
+	ctx, rw := generateTestEchoContext()
 	ms := &mockUserService{}
 
-	err := loginUserById(mc, ms)
+	err := loginUserById(ctx, ms)
 
 	assert.Nil(err)
-	assert.Equal(http.StatusBadRequest, mc.status)
-	assert.Equal("Invalid id syntax", mc.data)
+	assert.Equal(http.StatusBadRequest, rw.Code)
+	assert.Equal("\"Invalid id syntax\"\n", rw.Body.String())
 }
 
 func TestLoginUserById_WhenIdSyntaxIsWrong_SetsStatusToBadRequest(t *testing.T) {
 	assert := assert.New(t)
 
-	mc := &mockContext{
-		params: map[string]string{
-			"id": "not-a-valid-id",
-		},
-	}
+	req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader("not-a-uuid"))
+	ctx, rw := generateTestEchoContextFromRequest(req)
 	ms := &mockUserService{}
 
-	err := loginUserById(mc, ms)
+	err := loginUserById(ctx, ms)
 
 	assert.Nil(err)
-	assert.Equal(http.StatusBadRequest, mc.status)
-	assert.Equal("Invalid id syntax", mc.data)
+	assert.Equal(http.StatusBadRequest, rw.Code)
+	assert.Equal("\"Invalid id syntax\"\n", rw.Body.String())
 }
 
 func TestLoginUserById_CallsServiceLoginById(t *testing.T) {
 	assert := assert.New(t)
 
-	mc := &mockContext{
-		params: map[string]string{
-			"id": defaultUuid.String(),
-		},
-	}
+	ctx, _ := generateEchoContextWithUuid(http.MethodPost)
 	ms := &mockUserService{}
 
-	err := loginUserById(mc, ms)
+	err := loginUserById(ctx, ms)
 
 	assert.Nil(err)
 	assert.Equal(1, ms.loginByIdCalled)
@@ -630,66 +604,50 @@ func TestLoginUserById_CallsServiceLoginById(t *testing.T) {
 func TestLoginUserById_WhenServiceFailsWithUnknownError_SetsStatusToInternalServerError(t *testing.T) {
 	assert := assert.New(t)
 
-	mc := &mockContext{
-		params: map[string]string{
-			"id": defaultUuid.String(),
-		},
-	}
+	ctx, rw := generateEchoContextWithUuid(http.MethodPost)
 	ms := &mockUserService{
 		err: errDefault,
 	}
 
-	err := loginUserById(mc, ms)
+	err := loginUserById(ctx, ms)
 
 	assert.Nil(err)
-	assert.Equal(http.StatusInternalServerError, mc.status)
+	assert.Equal(http.StatusInternalServerError, rw.Code)
 }
 
 func TestLoginUserById_WhenServiceFailsWithNoMatchingRows_SetsStatusToNotFound(t *testing.T) {
 	assert := assert.New(t)
 
-	mc := &mockContext{
-		params: map[string]string{
-			"id": defaultUuid.String(),
-		},
-	}
+	ctx, rw := generateEchoContextWithUuid(http.MethodPost)
 	ms := &mockUserService{
 		err: errors.NewCode(db.NoMatchingSqlRows),
 	}
 
-	err := loginUserById(mc, ms)
+	err := loginUserById(ctx, ms)
 
 	assert.Nil(err)
-	assert.Equal(http.StatusNotFound, mc.status)
+	assert.Equal(http.StatusNotFound, rw.Code)
 }
 
 func TestLoginUserById_SetsStatusToCreated(t *testing.T) {
 	assert := assert.New(t)
 
-	mc := &mockContext{
-		params: map[string]string{
-			"id": defaultUuid.String(),
-		},
-	}
+	ctx, rw := generateEchoContextWithUuid(http.MethodPost)
 	ms := &mockUserService{}
 
-	err := loginUserById(mc, ms)
+	err := loginUserById(ctx, ms)
 
 	assert.Nil(err)
-	assert.Equal(http.StatusCreated, mc.status)
+	assert.Equal(http.StatusCreated, rw.Code)
 }
 
 func TestLoginUserById_LogsInExpectedUser(t *testing.T) {
 	assert := assert.New(t)
 
-	mc := &mockContext{
-		params: map[string]string{
-			"id": defaultUuid.String(),
-		},
-	}
+	ctx, _ := generateEchoContextWithUuid(http.MethodPost)
 	ms := &mockUserService{}
 
-	err := loginUserById(mc, ms)
+	err := loginUserById(ctx, ms)
 
 	assert.Nil(err)
 	assert.Equal(defaultUuid, ms.inId)
@@ -698,20 +656,18 @@ func TestLoginUserById_LogsInExpectedUser(t *testing.T) {
 func TestLoginUserById_ReturnsUserToken(t *testing.T) {
 	assert := assert.New(t)
 
-	mc := &mockContext{
-		params: map[string]string{
-			"id": defaultUuid.String(),
-		},
-	}
+	ctx, rw := generateEchoContextWithUuid(http.MethodPost)
 	ms := &mockUserService{
 		apiKey: defaultApiKeyDtoResponse,
 	}
 
-	err := loginUserById(mc, ms)
+	err := loginUserById(ctx, ms)
 
 	assert.Nil(err)
-	actual, ok := mc.data.(communication.ApiKeyDtoResponse)
-	assert.True(ok)
+
+	var actual communication.ApiKeyDtoResponse
+	err = json.Unmarshal(rw.Body.Bytes(), &actual)
+	assert.Nil(err)
 	assert.Equal(defaultApiKeyDtoResponse, actual)
 }
 
@@ -985,16 +941,16 @@ func generateTestRequest(method string) *http.Request {
 	return req
 }
 
-func generateEchoContextWithUuid() (echo.Context, *httptest.ResponseRecorder) {
-	ctx, rw := generateTestEchoContext()
+func generateEchoContextWithUuid(method string) (echo.Context, *httptest.ResponseRecorder) {
+	ctx, rw := generateTestEchoContextWithMethod(method)
 	// https://echo.labstack.com/docs/testing#getuser
 	ctx.SetParamNames("id")
 	ctx.SetParamValues(defaultUuid.String())
 	return ctx, rw
 }
 
-func generateEchoContextWithUuidAndBody() (echo.Context, *httptest.ResponseRecorder) {
-	req := generateTestRequest(http.MethodPatch)
+func generateEchoContextWithUuidAndBody(method string) (echo.Context, *httptest.ResponseRecorder) {
+	req := generateTestRequest(method)
 
 	ctx, rw := generateTestEchoContextFromRequest(req)
 	// https://echo.labstack.com/docs/testing#getuser

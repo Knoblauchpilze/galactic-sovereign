@@ -78,7 +78,11 @@ func dummyEchoContext() echo.Context {
 }
 
 func generateTestEchoContext() (echo.Context, *httptest.ResponseRecorder) {
-	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	return generateTestEchoContextWithMethod(http.MethodGet)
+}
+
+func generateTestEchoContextWithMethod(method string) (echo.Context, *httptest.ResponseRecorder) {
+	req := httptest.NewRequest(method, "/", nil)
 	return generateTestEchoContextFromRequest(req)
 }
 
