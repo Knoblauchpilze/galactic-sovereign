@@ -175,7 +175,6 @@ func TestCreateUser_ReturnsExpectedUser(t *testing.T) {
 
 	var actual communication.UserDtoResponse
 	err = json.Unmarshal(rw.Body.Bytes(), &actual)
-
 	assert.Nil(err)
 	assert.Equal(defaultUserDtoResponse, actual)
 }
@@ -183,44 +182,37 @@ func TestCreateUser_ReturnsExpectedUser(t *testing.T) {
 func TestGetUser_WhenNoId_SetsStatusToBadRequest(t *testing.T) {
 	assert := assert.New(t)
 
-	mc := &mockContext{}
+	ctx, rw := generateTestEchoContext()
 	ms := &mockUserService{}
 
-	err := getUser(mc, ms)
+	err := getUser(ctx, ms)
 
 	assert.Nil(err)
-	assert.Equal(http.StatusBadRequest, mc.status)
-	assert.Equal("Invalid id syntax", mc.data)
+	assert.Equal(http.StatusBadRequest, rw.Code)
+	assert.Equal("\"Invalid id syntax\"\n", rw.Body.String())
 }
 
 func TestGetUser_WhenIdSyntaxIsWrong_SetsStatusToBadRequest(t *testing.T) {
 	assert := assert.New(t)
 
-	mc := &mockContext{
-		params: map[string]string{
-			"id": "not-a-valid-id",
-		},
-	}
+	req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader("not-a-user-dto-request"))
+	ctx, rw := generateTestEchoContextFromRequest(req)
 	ms := &mockUserService{}
 
-	err := getUser(mc, ms)
+	err := getUser(ctx, ms)
 
 	assert.Nil(err)
-	assert.Equal(http.StatusBadRequest, mc.status)
-	assert.Equal("Invalid id syntax", mc.data)
+	assert.Equal(http.StatusBadRequest, rw.Code)
+	assert.Equal("\"Invalid id syntax\"\n", rw.Body.String())
 }
 
 func TestGetUser_CallsServiceGet(t *testing.T) {
 	assert := assert.New(t)
 
-	mc := &mockContext{
-		params: map[string]string{
-			"id": defaultUuid.String(),
-		},
-	}
+	ctx, _ := generateTestGetContext()
 	ms := &mockUserService{}
 
-	err := getUser(mc, ms)
+	err := getUser(ctx, ms)
 
 	assert.Nil(err)
 	assert.Equal(1, ms.getCalled)
@@ -230,71 +222,59 @@ func TestGetUser_CallsServiceGet(t *testing.T) {
 func TestGetUser_WhenServiceFailsWithUnknownError_SetsStatusToInternalServerError(t *testing.T) {
 	assert := assert.New(t)
 
-	mc := &mockContext{
-		params: map[string]string{
-			"id": defaultUuid.String(),
-		},
-	}
+	ctx, rw := generateTestGetContext()
 	ms := &mockUserService{
 		err: errDefault,
 	}
 
-	err := getUser(mc, ms)
+	err := getUser(ctx, ms)
 
 	assert.Nil(err)
-	assert.Equal(http.StatusInternalServerError, mc.status)
+	assert.Equal(http.StatusInternalServerError, rw.Code)
 }
 
 func TestGetUser_WhenServiceFailsWithNoMatchingRows_SetsStatusToNotFound(t *testing.T) {
 	assert := assert.New(t)
 
-	mc := &mockContext{
-		params: map[string]string{
-			"id": defaultUuid.String(),
-		},
-	}
+	ctx, rw := generateTestGetContext()
 	ms := &mockUserService{
 		err: errors.NewCode(db.NoMatchingSqlRows),
 	}
 
-	err := getUser(mc, ms)
+	err := getUser(ctx, ms)
 
 	assert.Nil(err)
-	assert.Equal(http.StatusNotFound, mc.status)
+	assert.Equal(http.StatusNotFound, rw.Code)
 }
 
 func TestGetUser_SetsStatusToOk(t *testing.T) {
 	assert := assert.New(t)
 
-	mc := &mockContext{
-		params: map[string]string{
-			"id": defaultUuid.String(),
-		},
-	}
+	ctx, rw := generateTestGetContext()
 	ms := &mockUserService{}
 
-	err := getUser(mc, ms)
+	err := getUser(ctx, ms)
 
 	assert.Nil(err)
-	assert.Equal(http.StatusOK, mc.status)
+	assert.Equal(http.StatusOK, rw.Code)
 }
 
 func TestGetUser_ReturnsExpectedUser(t *testing.T) {
 	assert := assert.New(t)
 
-	mc := &mockContext{
-		params: map[string]string{
-			"id": defaultUuid.String(),
-		},
-	}
+	ctx, rw := generateTestGetContext()
 	ms := &mockUserService{
 		user: defaultUserDtoResponse,
 	}
 
-	err := getUser(mc, ms)
+	err := getUser(ctx, ms)
 
 	assert.Nil(err)
-	assert.Equal(defaultUserDtoResponse, mc.data)
+
+	var actual communication.UserDtoResponse
+	err = json.Unmarshal(rw.Body.Bytes(), &actual)
+	assert.Nil(err)
+	assert.Equal(defaultUserDtoResponse, actual)
 }
 
 func TestListUser_CallsServiceList(t *testing.T) {
@@ -1015,6 +995,15 @@ func generateTestPostRequest() *http.Request {
 	req.Header.Set("Content-Type", "application/json")
 
 	return req
+}
+
+func generateTestGetContext() (echo.Context, *httptest.ResponseRecorder) {
+	ctx, rw := generateTestEchoContext()
+	// https://echo.labstack.com/docs/testing#getuser
+	ctx.SetPath("/users/:id")
+	ctx.SetParamNames("id")
+	ctx.SetParamValues(defaultUuid.String())
+	return ctx, rw
 }
 
 func (m *mockUserService) Create(ctx context.Context, user communication.UserDtoRequest) (communication.UserDtoResponse, error) {
