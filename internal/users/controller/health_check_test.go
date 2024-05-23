@@ -42,7 +42,7 @@ func TestHealthcheck_CallsPoolPing(t *testing.T) {
 func TestHealthcheck_WhenPingSucceeds_SetsSatusToOk(t *testing.T) {
 	assert := assert.New(t)
 
-	ctx, rw := generateTestEchoContextAndResponseRecorder()
+	ctx, rw := generateTestEchoContext()
 	mp := &mockConnectionPool{}
 
 	err := healthcheck(ctx, mp)
@@ -54,7 +54,7 @@ func TestHealthcheck_WhenPingSucceeds_SetsSatusToOk(t *testing.T) {
 func TestHealthcheck_WhenPingFails_PropagatesError(t *testing.T) {
 	assert := assert.New(t)
 
-	ctx, rw := generateTestEchoContextAndResponseRecorder()
+	ctx, rw := generateTestEchoContext()
 	mp := &mockConnectionPool{
 		err: errDefault,
 	}
@@ -68,7 +68,7 @@ func TestHealthcheck_WhenPingFails_PropagatesError(t *testing.T) {
 func TestHealthcheck_WhenPingFails_SetsStatusToServiceUnavailable(t *testing.T) {
 	assert := assert.New(t)
 
-	ctx, rw := generateTestEchoContextAndResponseRecorder()
+	ctx, rw := generateTestEchoContext()
 	mp := &mockConnectionPool{
 		err: errDefault,
 	}
