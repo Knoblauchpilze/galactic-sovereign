@@ -281,7 +281,7 @@ func TestGetUser_ReturnsExpectedUser(t *testing.T) {
 func TestListUser_CallsServiceList(t *testing.T) {
 	assert := assert.New(t)
 
-	ctx, _ := generateTestEchoContext()
+	ctx, _ := generateTestEchoContextWithMethod(http.MethodGet)
 	ms := &mockUserService{}
 
 	err := listUsers(ctx, ms)
@@ -293,7 +293,7 @@ func TestListUser_CallsServiceList(t *testing.T) {
 func TestListUser_WhenServiceFails_SetsStatusToInternalServerError(t *testing.T) {
 	assert := assert.New(t)
 
-	ctx, rw := generateTestEchoContext()
+	ctx, rw := generateTestEchoContextWithMethod(http.MethodGet)
 	ms := &mockUserService{
 		err: errDefault,
 	}
@@ -307,7 +307,7 @@ func TestListUser_WhenServiceFails_SetsStatusToInternalServerError(t *testing.T)
 func TestListUser_SetsStatusToOk(t *testing.T) {
 	assert := assert.New(t)
 
-	ctx, rw := generateTestEchoContext()
+	ctx, rw := generateTestEchoContextWithMethod(http.MethodGet)
 	ms := &mockUserService{}
 
 	err := listUsers(ctx, ms)
@@ -319,7 +319,7 @@ func TestListUser_SetsStatusToOk(t *testing.T) {
 func TestListUser_ReturnsExpectedIds(t *testing.T) {
 	assert := assert.New(t)
 
-	ctx, rw := generateTestEchoContext()
+	ctx, rw := generateTestEchoContextWithMethod(http.MethodGet)
 	ms := &mockUserService{
 		ids: []uuid.UUID{defaultUuid},
 	}
@@ -337,7 +337,7 @@ func TestListUser_ReturnsExpectedIds(t *testing.T) {
 func TestUpdateUser_WhenNoId_SetsStatusToBadRequest(t *testing.T) {
 	assert := assert.New(t)
 
-	ctx, rw := generateTestEchoContext()
+	ctx, rw := generateTestEchoContextWithMethod(http.MethodPatch)
 	ms := &mockUserService{}
 
 	err := updateUser(ctx, ms)
@@ -485,7 +485,7 @@ func TestUpdateUser_ReturnsExpectedUser(t *testing.T) {
 func TestDeleteUser_WhenNoId_SetsStatusToBadRequest(t *testing.T) {
 	assert := assert.New(t)
 
-	ctx, rw := generateTestEchoContext()
+	ctx, rw := generateTestEchoContextWithMethod(http.MethodDelete)
 	ms := &mockUserService{}
 
 	err := deleteUser(ctx, ms)
@@ -565,7 +565,7 @@ func TestDeleteUser_SetsStatusToNoContent(t *testing.T) {
 func TestLoginUserById_WhenNoId_SetsStatusToBadRequest(t *testing.T) {
 	assert := assert.New(t)
 
-	ctx, rw := generateTestEchoContext()
+	ctx, rw := generateTestEchoContextWithMethod(http.MethodPost)
 	ms := &mockUserService{}
 
 	err := loginUserById(ctx, ms)
