@@ -73,13 +73,17 @@ func TestFromDbAwareHttpHandler_PropagatesError(t *testing.T) {
 }
 
 func dummyEchoContext() echo.Context {
-	ctx, _ := generateTestEchoContextAndResponseRecorder()
+	ctx, _ := generateTestEchoContext()
 	return ctx
 }
 
-func generateTestEchoContextAndResponseRecorder() (echo.Context, *httptest.ResponseRecorder) {
-	e := echo.New()
+func generateTestEchoContext() (echo.Context, *httptest.ResponseRecorder) {
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	return generateTestEchoContextFromRequest(req)
+}
+
+func generateTestEchoContextFromRequest(req *http.Request) (echo.Context, *httptest.ResponseRecorder) {
+	e := echo.New()
 	rw := httptest.NewRecorder()
 
 	ctx := e.NewContext(req, rw)

@@ -1,9 +1,12 @@
 package controller
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
@@ -47,7 +50,7 @@ type mockUserService struct {
 }
 
 var defaultUuid = uuid.MustParse("08ce96a3-3430-48a8-a3b2-b1c987a207ca")
-var defaultUserRequest = communication.UserDtoRequest{
+var defaultUserDtoRequest = communication.UserDtoRequest{
 	Email:    "e.mail@domain.com",
 	Password: "password",
 }
@@ -81,25 +84,24 @@ func TestUserEndpoints_GeneratesExpectedRoutes(t *testing.T) {
 func TestCreateUser_WhenBindFails_SetsStatusToBadRequest(t *testing.T) {
 	assert := assert.New(t)
 
-	mc := &mockContext{
-		bindErr: errDefault,
-	}
+	req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader("not-a-user-dto-request"))
+	ctx, rw := generateTestEchoContextFromRequest(req)
 	ms := &mockUserService{}
 
-	err := createUser(mc, ms)
+	err := createUser(ctx, ms)
 
 	assert.Nil(err)
-	assert.Equal(http.StatusBadRequest, mc.status)
-	assert.Equal("Invalid user syntax", mc.data)
+	assert.Equal(http.StatusBadRequest, rw.Code)
+	assert.Equal("\"Invalid user syntax\"\n", rw.Body.String())
 }
 
 func TestCreateUser_CallsServiceCreate(t *testing.T) {
 	assert := assert.New(t)
 
-	mc := &mockContext{}
+	ctx, _ := generateTestEchoContextFromRequest(generateTestPostRequest())
 	ms := &mockUserService{}
 
-	err := createUser(mc, ms)
+	err := createUser(ctx, ms)
 
 	assert.Nil(err)
 	assert.Equal(1, ms.createCalled)
@@ -108,78 +110,73 @@ func TestCreateUser_CallsServiceCreate(t *testing.T) {
 func TestCreateUser_WhenServiceFails_SetsStatusToInternalServerError(t *testing.T) {
 	assert := assert.New(t)
 
-	mc := &mockContext{}
+	ctx, rw := generateTestEchoContextFromRequest(generateTestPostRequest())
 	ms := &mockUserService{
 		err: errDefault,
 	}
 
-	err := createUser(mc, ms)
+	err := createUser(ctx, ms)
 
 	assert.Nil(err)
-	assert.Equal(http.StatusInternalServerError, mc.status)
+	assert.Equal(http.StatusInternalServerError, rw.Code)
 }
 
 func TestCreateUser_WhenServiceFailsWithDuplicatedSqlKey_SetsStatusToConflict(t *testing.T) {
 	assert := assert.New(t)
 
-	mc := &mockContext{
-		params: map[string]string{
-			"id": defaultUuid.String(),
-		},
-	}
+	ctx, rw := generateTestEchoContextFromRequest(generateTestPostRequest())
 	ms := &mockUserService{
 		err: errors.NewCode(db.DuplicatedKeySqlKey),
 	}
 
-	err := createUser(mc, ms)
+	err := createUser(ctx, ms)
 
 	assert.Nil(err)
-	assert.Equal(http.StatusConflict, mc.status)
+	assert.Equal(http.StatusConflict, rw.Code)
 }
 
 func TestCreateUser_SetsStatusToCreated(t *testing.T) {
 	assert := assert.New(t)
 
-	mc := &mockContext{}
+	ctx, rw := generateTestEchoContextFromRequest(generateTestPostRequest())
 	ms := &mockUserService{}
 
-	err := createUser(mc, ms)
+	err := createUser(ctx, ms)
 
 	assert.Nil(err)
-	assert.Equal(http.StatusCreated, mc.status)
+	assert.Equal(http.StatusCreated, rw.Code)
 }
 
 func TestCreateUser_SavesExpectedUser(t *testing.T) {
 	assert := assert.New(t)
 
-	mc := &mockContext{
-		body: defaultUserRequest,
-	}
+	ctx, _ := generateTestEchoContextFromRequest(generateTestPostRequest())
 	ms := &mockUserService{
 		user: defaultUserDtoResponse,
 	}
 
-	err := createUser(mc, ms)
+	err := createUser(ctx, ms)
 
 	assert.Nil(err)
-	assert.Equal(defaultUserRequest, ms.inUser)
+	assert.Equal(defaultUserDtoRequest, ms.inUser)
 }
 
 func TestCreateUser_ReturnsExpectedUser(t *testing.T) {
 	assert := assert.New(t)
 
-	mc := &mockContext{
-		body: defaultUserRequest,
-	}
+	ctx, rw := generateTestEchoContextFromRequest(generateTestPostRequest())
 	ms := &mockUserService{
 		user: defaultUserDtoResponse,
 	}
 
-	err := createUser(mc, ms)
+	err := createUser(ctx, ms)
 
 	assert.Nil(err)
-	actual, ok := mc.data.(communication.UserDtoResponse)
-	assert.True(ok)
+
+	var actual communication.UserDtoResponse
+	err = json.Unmarshal(rw.Body.Bytes(), &actual)
+
+	assert.Nil(err)
 	assert.Equal(defaultUserDtoResponse, actual)
 }
 
@@ -411,7 +408,7 @@ func TestUpdateUser_CallsServiceUpdate(t *testing.T) {
 		params: map[string]string{
 			"id": defaultUuid.String(),
 		},
-		body: defaultUserRequest,
+		body: defaultUserDtoRequest,
 	}
 	ms := &mockUserService{}
 
@@ -420,7 +417,7 @@ func TestUpdateUser_CallsServiceUpdate(t *testing.T) {
 	assert.Nil(err)
 	assert.Equal(1, ms.updateCalled)
 	assert.Equal(defaultUuid, ms.inId)
-	assert.Equal(defaultUserRequest, ms.inUser)
+	assert.Equal(defaultUserDtoRequest, ms.inUser)
 }
 
 func TestUpdateUser_WhenServiceFailsWithUnknownError_SetsStatusToInternalServerError(t *testing.T) {
@@ -430,7 +427,7 @@ func TestUpdateUser_WhenServiceFailsWithUnknownError_SetsStatusToInternalServerE
 		params: map[string]string{
 			"id": defaultUuid.String(),
 		},
-		body: defaultUserRequest,
+		body: defaultUserDtoRequest,
 	}
 	ms := &mockUserService{
 		err: errDefault,
@@ -449,7 +446,7 @@ func TestUpdateUser_WhenServiceFailsWithNoSuchRows_SetsStatusToNotFound(t *testi
 		params: map[string]string{
 			"id": defaultUuid.String(),
 		},
-		body: defaultUserRequest,
+		body: defaultUserDtoRequest,
 	}
 	ms := &mockUserService{
 		err: errors.NewCode(db.NoMatchingSqlRows),
@@ -468,7 +465,7 @@ func TestUpdateUser_WhenServiceFailsWithOptimisticLockException_SetsStatusToConf
 		params: map[string]string{
 			"id": defaultUuid.String(),
 		},
-		body: defaultUserRequest,
+		body: defaultUserDtoRequest,
 	}
 	ms := &mockUserService{
 		err: errors.NewCode(db.OptimisticLockException),
@@ -487,7 +484,7 @@ func TestUpdateUser_SetsStatusToOk(t *testing.T) {
 		params: map[string]string{
 			"id": defaultUuid.String(),
 		},
-		body: defaultUserRequest,
+		body: defaultUserDtoRequest,
 	}
 	ms := &mockUserService{}
 
@@ -757,16 +754,15 @@ func TestLoginUserById_ReturnsUserToken(t *testing.T) {
 func TestLoginUserByEmail_WhenBindFails_SetsStatusToBadRequest(t *testing.T) {
 	assert := assert.New(t)
 
-	mc := &mockContext{
-		bindErr: errDefault,
-	}
+	req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader("not-a-user-dto-request"))
+	ctx, rw := generateTestEchoContextFromRequest(req)
 	ms := &mockUserService{}
 
-	err := loginUserByEmail(mc, ms)
+	err := loginUserByEmail(ctx, ms)
 
 	assert.Nil(err)
-	assert.Equal(http.StatusBadRequest, mc.status)
-	assert.Equal("Invalid user syntax", mc.data)
+	assert.Equal(http.StatusBadRequest, rw.Code)
+	assert.Equal("\"Invalid user syntax\"\n", rw.Body.String())
 }
 
 func TestLoginUserByEmail_CallsServiceLogin(t *testing.T) {
@@ -839,14 +835,14 @@ func TestLoginUserByEmail_LogsInExpectedUser(t *testing.T) {
 	assert := assert.New(t)
 
 	mc := &mockContext{
-		body: defaultUserRequest,
+		body: defaultUserDtoRequest,
 	}
 	ms := &mockUserService{}
 
 	err := loginUserByEmail(mc, ms)
 
 	assert.Nil(err)
-	assert.Equal(defaultUserRequest, ms.inUser)
+	assert.Equal(defaultUserDtoRequest, ms.inUser)
 }
 
 func TestLoginUserByEmail_ReturnsUserToken(t *testing.T) {
@@ -1010,6 +1006,15 @@ func (m *mockContext) JSON(status int, message interface{}) error {
 func (m *mockContext) NoContent(status int) error {
 	m.status = status
 	return nil
+}
+
+func generateTestPostRequest() *http.Request {
+	// Voluntarily ignoring errors
+	raw, _ := json.Marshal(defaultUserDtoRequest)
+	req := httptest.NewRequest(http.MethodPost, "/", bytes.NewReader(raw))
+	req.Header.Set("Content-Type", "application/json")
+
+	return req
 }
 
 func (m *mockUserService) Create(ctx context.Context, user communication.UserDtoRequest) (communication.UserDtoResponse, error) {
