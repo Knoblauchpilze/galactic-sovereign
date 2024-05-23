@@ -2,6 +2,7 @@ package rest
 
 import (
 	"net/http"
+	"net/http/httptest"
 	"testing"
 
 	"github.com/labstack/echo/v4"
@@ -44,10 +45,6 @@ func TestRoute_WithResource_Authorized(t *testing.T) {
 	assert.Equal(true, authorized.Authorized())
 }
 
-type mockEchoContext struct {
-	echo.Context
-}
-
 func TestRoute_Handler(t *testing.T) {
 	assert := assert.New(t)
 
@@ -59,7 +56,7 @@ func TestRoute_Handler(t *testing.T) {
 
 	r := NewRoute(http.MethodGet, false, "", handler)
 	actual := r.Handler()
-	actual(mockEchoContext{})
+	actual(dummyEchoContext())
 
 	assert.True(handlerCalled)
 }
@@ -75,7 +72,7 @@ func TestRoute_WithResource_Handler(t *testing.T) {
 
 	r := NewResourceRoute(http.MethodGet, false, "", handler)
 	actual := r.Handler()
-	actual(mockEchoContext{})
+	actual(dummyEchoContext())
 
 	assert.True(handlerCalled)
 }
@@ -121,4 +118,12 @@ func TestRoute_WithResource_GeneratePath(t *testing.T) {
 			assert.Equal(tc.expected, r.Path())
 		})
 	}
+}
+
+func dummyEchoContext() echo.Context {
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	rw := httptest.NewRecorder()
+
+	return e.NewContext(req, rw)
 }
