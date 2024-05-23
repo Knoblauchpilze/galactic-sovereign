@@ -891,7 +891,6 @@ func generateEchoContextWithUuidAndBody(method string) (echo.Context, *httptest.
 	req := generateTestRequest(method)
 
 	ctx, rw := generateTestEchoContextFromRequest(req)
-	// https://echo.labstack.com/docs/testing#getuser
 	ctx.SetParamNames("id")
 	ctx.SetParamValues(defaultUuid.String())
 	return ctx, rw
