@@ -2,21 +2,23 @@ package middleware
 
 import (
 	"net/http"
+	"net/http/httptest"
 	"sync"
 	"testing"
 	"time"
 
+	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestThrottle_CallsNextMiddleware(t *testing.T) {
 	assert := assert.New(t)
-	m := mockEchoContext{}
+	ctx, _ := generateTestEchoContext()
 	next, called := createHandlerFuncWithCalledBoolean()
 
 	em, close := Throttle(1, 1, 1)
 	callable := em(next)
-	callable(&m)
+	callable(ctx)
 
 	assert.True(*called)
 	close <- true
@@ -24,51 +26,47 @@ func TestThrottle_CallsNextMiddleware(t *testing.T) {
 
 func TestThrottle_WhenNoTokensLeft_ExpectTooManyRequests(t *testing.T) {
 	assert := assert.New(t)
-	mc := newMockEchoContext(http.StatusOK)
-	mc.request.Header = map[string][]string{
-		apiKeyHeaderKey: {defaultApiKey1.String()},
-	}
+	ctx, rw := generateTestEchoContext()
 	next := createHandlerFuncReturning(nil)
 
 	em, close := Throttle(0, 0, 0)
 	callable := em(next)
-	callable(mc)
+	callable(ctx)
 
-	assert.Equal(http.StatusTooManyRequests, mc.reportedCode)
+	assert.Equal(http.StatusTooManyRequests, rw.Code)
 	close <- true
 }
 
 func TestThrottle_WhenWaitingForRefill_ExpectOk(t *testing.T) {
 	assert := assert.New(t)
-	mc := newMockEchoContext(http.StatusOK)
-	mc.request.Header = map[string][]string{
-		apiKeyHeaderKey: {defaultApiKey1.String()},
-	}
+	e := echo.New()
 	next := createHandlerFuncReturningCode(http.StatusOK)
 
 	em, close := Throttle(0, 2, 2)
 	callable := em(next)
 
-	callable(mc)
-	assert.Equal(http.StatusTooManyRequests, mc.reportedCode)
+	ctx, rw := generateNewEchoContext(e)
+	callable(ctx)
+	assert.Equal(http.StatusTooManyRequests, rw.Code)
 
 	time.Sleep(2 * time.Second)
 
-	callable(mc)
-	assert.Equal(http.StatusOK, mc.reportedCode)
+	ctx, rw = generateNewEchoContext(e)
+	callable(ctx)
+	assert.Equal(http.StatusOK, rw.Code)
 
 	close <- true
 }
 
 func TestThrottle_PropagatesError(t *testing.T) {
 	assert := assert.New(t)
-	m := newMockEchoContext(http.StatusOK)
+	ctx, _ := generateTestEchoContext()
 	next := createHandlerFuncReturning(errDefault)
 
 	em, close := Throttle(1, 1, 1)
 
 	callable := em(next)
-	actual := callable(m)
+	actual := callable(ctx)
 
 	assert.Equal(errDefault, actual)
 	close <- true
@@ -81,8 +79,7 @@ func TestThrottle_ConcurrentUse_ExpectFirstServed(t *testing.T) {
 	next := createHandlerFuncReturningCode(http.StatusOK)
 	handler := em(next)
 
-	client1 := newMockEchoContext(http.StatusOK)
-	client2 := newMockEchoContext(http.StatusOK)
+	e := echo.New()
 
 	var wg sync.WaitGroup
 	wg.Add(2)
@@ -90,13 +87,15 @@ func TestThrottle_ConcurrentUse_ExpectFirstServed(t *testing.T) {
 	c1 := func() {
 		defer wg.Done()
 
-		handler(client1)
-		assert.Equal(http.StatusOK, client1.reportedCode)
+		ctx, rw := generateNewEchoContext(e)
+		handler(ctx)
+		assert.Equal(http.StatusOK, rw.Code)
 
 		time.Sleep(1500 * time.Millisecond)
 
-		handler(client1)
-		assert.Equal(http.StatusTooManyRequests, client1.reportedCode)
+		ctx, rw = generateNewEchoContext(e)
+		handler(ctx)
+		assert.Equal(http.StatusTooManyRequests, rw.Code)
 	}
 
 	c2 := func() {
@@ -104,8 +103,9 @@ func TestThrottle_ConcurrentUse_ExpectFirstServed(t *testing.T) {
 
 		time.Sleep(1100 * time.Millisecond)
 
-		handler(client2)
-		assert.Equal(http.StatusOK, client2.reportedCode)
+		ctx, rw := generateNewEchoContext(e)
+		handler(ctx)
+		assert.Equal(http.StatusOK, rw.Code)
 	}
 
 	go c1()
@@ -114,4 +114,10 @@ func TestThrottle_ConcurrentUse_ExpectFirstServed(t *testing.T) {
 	wg.Wait()
 
 	close <- true
+}
+
+func generateNewEchoContext(e *echo.Echo) (echo.Context, *httptest.ResponseRecorder) {
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	rw := httptest.NewRecorder()
+	return e.NewContext(req, rw), rw
 }
