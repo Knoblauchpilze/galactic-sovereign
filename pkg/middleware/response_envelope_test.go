@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"net/http"
+	"regexp"
 	"testing"
 
 	"github.com/KnoblauchPilze/user-service/pkg/logger"
@@ -11,40 +11,57 @@ import (
 
 func TestResponseEnvelope_CallsNextMiddleware(t *testing.T) {
 	assert := assert.New(t)
-	m := newMockEchoContext(http.StatusOK)
+	ctx, _ := generateTestEchoContext()
 	next, called := createHandlerFuncWithCalledBoolean()
 
 	em := ResponseEnvelope()
 	callable := em(next)
-	callable(m)
+	callable(ctx)
 
 	assert.True(*called)
 }
 
 func TestResponseEnvelope_AssignsNewLogger(t *testing.T) {
 	assert := assert.New(t)
-	m := newMockEchoContext(http.StatusOK)
+	ctx, _ := generateTestEchoContext()
+	next := createHandlerFuncReturning(nil)
+
+	l := ctx.Logger()
+
+	em := ResponseEnvelope()
+	callable := em(next)
+	callable(ctx)
+
+	actual := ctx.Logger()
+	assert.NotEqual(l, actual)
+}
+
+func TestResponseEnvelope_SetsUuidPrefixForRequestLogger(t *testing.T) {
+	assert := assert.New(t)
+	ctx, _ := generateTestEchoContext()
 	next := createHandlerFuncReturning(nil)
 
 	em := ResponseEnvelope()
 	callable := em(next)
-	callable(m)
+	callable(ctx)
 
-	assert.True(m.loggerChanged)
+	actual := ctx.Logger()
+	// https://stackoverflow.com/questions/136505/searching-for-uuids-in-text-with-regex
+	pattern := regexp.MustCompile(`[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}`)
+	assert.True(pattern.MatchString(actual.Prefix()))
 }
 
 func TestResponseEnvelope_AddLoggerToRequestContext(t *testing.T) {
 	assert := assert.New(t)
-	m := newMockEchoContext(http.StatusOK)
+	ctx, _ := generateTestEchoContext()
 	next := createHandlerFuncReturning(nil)
 
 	em := ResponseEnvelope()
 	callable := em(next)
-	callable(m)
+	callable(ctx)
 
-	assert.True(m.requestChanged)
-	ctx := m.request.Context()
-	actual := ctx.Value(logger.LogKey)
+	reqCtx := ctx.Request().Context()
+	actual := reqCtx.Value(logger.LogKey)
 	assert.NotNil(actual)
 	_, ok := actual.(echo.Logger)
 	assert.True(ok)
@@ -52,16 +69,16 @@ func TestResponseEnvelope_AddLoggerToRequestContext(t *testing.T) {
 
 func TestResponseEnvelope_OverridesResponseWriter(t *testing.T) {
 	assert := assert.New(t)
-	m := newMockEchoContext(http.StatusOK)
+	ctx, _ := generateTestEchoContext()
 	next := createHandlerFuncReturning(nil)
 
-	w := m.response.Writer
+	w := ctx.Response().Writer
 
 	em := ResponseEnvelope()
 	callable := em(next)
-	callable(m)
+	callable(ctx)
 
-	actual := m.response.Writer
+	actual := ctx.Response().Writer
 	assert.NotEqual(w, actual)
 
 	assert.IsType(&envelopeResponseWriter{}, actual)
@@ -71,12 +88,12 @@ func TestResponseEnvelope_OverridesResponseWriter(t *testing.T) {
 
 func TestResponseEnvelope_PropagatesError(t *testing.T) {
 	assert := assert.New(t)
-	m := newMockEchoContext(http.StatusOK)
+	ctx, _ := generateTestEchoContext()
 	next := createHandlerFuncReturning(errDefault)
 
 	em := ResponseEnvelope()
 	callable := em(next)
-	actual := callable(m)
+	actual := callable(ctx)
 
 	assert.Equal(errDefault, actual)
 }
