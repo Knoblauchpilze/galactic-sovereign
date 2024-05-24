@@ -35,6 +35,18 @@ func createHandlerFuncReturningCode(code int) echo.HandlerFunc {
 	}
 }
 
+func createErrorHandlerFunc() (echo.HTTPErrorHandler, *bool, *error) {
+	called := false
+	var reportedErr error
+
+	handler := func(err error, c echo.Context) {
+		called = true
+		reportedErr = err
+	}
+
+	return handler, &called, &reportedErr
+}
+
 func generateTestEchoContextWithApiKey() (echo.Context, *httptest.ResponseRecorder) {
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
 	req.Header.Add(apiKeyHeaderKey, defaultApiKey1.String())
@@ -46,11 +58,24 @@ func generateTestEchoContext() (echo.Context, *httptest.ResponseRecorder) {
 	return generateTestEchoContextFromRequest(req)
 }
 
+func generateTestEchoContextWithErrorHandler(handler echo.HTTPErrorHandler) (echo.Context, *httptest.ResponseRecorder) {
+	e := echo.New()
+	e.HTTPErrorHandler = handler
+
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	rw := httptest.NewRecorder()
+
+	ctx := e.NewContext(req, rw)
+
+	return ctx, rw
+}
+
 func generateTestEchoContextFromRequest(req *http.Request) (echo.Context, *httptest.ResponseRecorder) {
 	e := echo.New()
 	rw := httptest.NewRecorder()
 
 	ctx := e.NewContext(req, rw)
+
 	return ctx, rw
 }
 
