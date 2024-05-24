@@ -78,3 +78,32 @@ func generateTestEchoContextFromRequest(req *http.Request) (echo.Context, *httpt
 
 	return ctx, rw
 }
+
+type mockResponseWriter struct {
+	headerCalled int
+	header       http.Header
+
+	writeCalled int
+	data        []byte
+	written     int
+	writeErr    error
+
+	writeHeaderCalled int
+	code              int
+}
+
+func (m *mockResponseWriter) Header() http.Header {
+	m.headerCalled++
+	return m.header
+}
+
+func (m *mockResponseWriter) Write(out []byte) (int, error) {
+	m.writeCalled++
+	m.data = out
+	return m.written, m.writeErr
+}
+
+func (m *mockResponseWriter) WriteHeader(statusCode int) {
+	m.writeHeaderCalled++
+	m.code = statusCode
+}
