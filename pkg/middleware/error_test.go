@@ -12,37 +12,37 @@ import (
 
 func TestError_CallsNextMiddleware(t *testing.T) {
 	assert := assert.New(t)
-	m := mockEchoContext{}
+	ctx, _ := generateTestEchoContext()
 	next, called := createHandlerFuncWithCalledBoolean()
 
 	em := Error()
 	callable := em(next)
-	callable(&m)
+	callable(ctx)
 
 	assert.True(*called)
 }
 
 func TestError_WhenNoErrorReturnsNoError(t *testing.T) {
 	assert := assert.New(t)
-	m := mockEchoContext{}
+	ctx, _ := generateTestEchoContext()
 	next := createHandlerFuncReturning(nil)
 
 	em := Error()
 	callable := em(next)
-	actual := callable(&m)
+	actual := callable(ctx)
 
 	assert.Nil(actual)
 }
 
 func TestError_ConvertsErrorWithCodeToHttpError(t *testing.T) {
 	assert := assert.New(t)
-	m := mockEchoContext{}
+	ctx, _ := generateTestEchoContext()
 	err := errors.NewCode(36)
 	next := createHandlerFuncReturning(err)
 
 	em := Error()
 	callable := em(next)
-	actual := callable(&m)
+	actual := callable(ctx)
 
 	httpErr, ok := actual.(*echo.HTTPError)
 	assert.True(ok)
@@ -52,13 +52,13 @@ func TestError_ConvertsErrorWithCodeToHttpError(t *testing.T) {
 
 func TestError_PropagatesUnknownError(t *testing.T) {
 	assert := assert.New(t)
-	m := mockEchoContext{}
+	ctx, _ := generateTestEchoContext()
 	err := fmt.Errorf("some error")
 	next := createHandlerFuncReturning(err)
 
 	em := Error()
 	callable := em(next)
-	actual := callable(&m)
+	actual := callable(ctx)
 
 	assert.Equal(actual, err)
 }

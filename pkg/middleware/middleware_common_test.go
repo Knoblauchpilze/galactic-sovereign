@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 
@@ -10,6 +11,8 @@ import (
 
 var defaultApiKey1 = uuid.MustParse("f847c203-1c56-43ad-9ac1-46f27d650917")
 var defaultApiKey2 = uuid.MustParse("297d3309-d88b-4b83-8d82-9c6aae8a9d7a")
+
+var errDefault = fmt.Errorf("some error")
 
 func createHandlerFuncWithCalledBoolean() (echo.HandlerFunc, *bool) {
 	called := false
@@ -32,14 +35,14 @@ func createHandlerFuncReturningCode(code int) echo.HandlerFunc {
 	}
 }
 
-func generateTestEchoContextWithApiKeyAndMethod(method string) (echo.Context, *httptest.ResponseRecorder) {
-	req := httptest.NewRequest(method, "/", nil)
+func generateTestEchoContextWithApiKey() (echo.Context, *httptest.ResponseRecorder) {
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
 	req.Header.Add(apiKeyHeaderKey, defaultApiKey1.String())
 	return generateTestEchoContextFromRequest(req)
 }
 
-func generateTestEchoContextWithMethod(method string) (echo.Context, *httptest.ResponseRecorder) {
-	req := httptest.NewRequest(method, "/", nil)
+func generateTestEchoContext() (echo.Context, *httptest.ResponseRecorder) {
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
 	return generateTestEchoContextFromRequest(req)
 }
 
