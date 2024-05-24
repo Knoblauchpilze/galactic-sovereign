@@ -2,7 +2,6 @@ package middleware
 
 import (
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/labstack/echo/v4"
@@ -11,50 +10,49 @@ import (
 
 func TestRecover_CallsNextMiddleware(t *testing.T) {
 	assert := assert.New(t)
-	m := mockEchoContext{}
+	ctx, _ := generateTestEchoContext()
 	next, called := createHandlerFuncWithCalledBoolean()
 
 	em := Recover()
 	callable := em(next)
-	callable(&m)
+	callable(ctx)
 
 	assert.True(*called)
 }
 
 func TestRecover_WhenNoErrorReturnsNoError(t *testing.T) {
 	assert := assert.New(t)
-	m := mockEchoContext{}
+	ctx, _ := generateTestEchoContext()
 	next := createHandlerFuncReturning(nil)
 
 	em := Recover()
 	callable := em(next)
-	actual := callable(&m)
+	actual := callable(ctx)
 
 	assert.Nil(actual)
 }
 
 func TestRecover_WhenNoErrorDoesNotCallContextError(t *testing.T) {
 	assert := assert.New(t)
-	m := mockEchoContext{}
+	errHandler, called, _ := createErrorHandlerFunc()
+	ctx, _ := generateTestEchoContextWithErrorHandler(errHandler)
 	next := createHandlerFuncReturning(nil)
 
 	em := Recover()
 	callable := em(next)
-	callable(&m)
+	callable(ctx)
 
-	assert.Nil(m.reportedError)
+	assert.False(*called)
 }
-
-var errDefault = fmt.Errorf("some error")
 
 func TestRecover_PropagatesError(t *testing.T) {
 	assert := assert.New(t)
-	m := mockEchoContext{}
+	ctx, _ := generateTestEchoContext()
 	next := createHandlerFuncReturning(errDefault)
 
 	em := Recover()
 	callable := em(next)
-	actual := callable(&m)
+	actual := callable(ctx)
 
 	assert.Equal(actual, errDefault)
 }
@@ -67,25 +65,29 @@ func createPanickingHandlerFunc(err interface{}) echo.HandlerFunc {
 
 func TestRecover_SetsContextErrorOnPanic(t *testing.T) {
 	assert := assert.New(t)
-	m := newMockEchoContext(http.StatusConflict)
+	errHandler, called, reportedErr := createErrorHandlerFunc()
+	ctx, _ := generateTestEchoContextWithErrorHandler(errHandler)
 	next := createPanickingHandlerFunc(errDefault)
 
 	em := Recover()
 	callable := em(next)
-	callable(m)
+	callable(ctx)
 
-	assert.Equal(errDefault, m.reportedError)
+	assert.True(*called)
+	assert.Equal(errDefault, *reportedErr)
 }
 
 func TestRecover_ConvertsToErrorUnknownPanic(t *testing.T) {
 	assert := assert.New(t)
-	m := newMockEchoContext(http.StatusConflict)
+	errHandler, called, reportedErr := createErrorHandlerFunc()
+	ctx, _ := generateTestEchoContextWithErrorHandler(errHandler)
 	next := createPanickingHandlerFunc(36)
 
 	em := Recover()
 	callable := em(next)
-	callable(m)
+	callable(ctx)
 
 	expected := fmt.Errorf("%v", 36)
-	assert.Equal(expected, m.reportedError)
+	assert.True(*called)
+	assert.Equal(expected, *reportedErr)
 }
