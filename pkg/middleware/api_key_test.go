@@ -28,7 +28,7 @@ type mockApiKeyUserRepository struct {
 
 func TestApiKey_WhenApiKeyNotDefined_Fails(t *testing.T) {
 	assert := assert.New(t)
-	ctx, rw := generateTestEchoContextWithMethod(http.MethodGet)
+	ctx, rw := generateTestEchoContext()
 	mr := &mockApiKeyUserRepository{}
 	next, called := createHandlerFuncWithCalledBoolean()
 
@@ -85,7 +85,7 @@ func TestApiKey_WhenApiKeyIsNotAUuid_SetsStatusToBadRequest(t *testing.T) {
 
 func TestApiKey_AttemptsToFetchApiKeyFromRepository(t *testing.T) {
 	assert := assert.New(t)
-	ctx, _ := generateTestEchoContextWithApiKeyAndMethod(http.MethodGet)
+	ctx, _ := generateTestEchoContextWithApiKey()
 	mr := &mockApiKeyUserRepository{}
 	next := createHandlerFuncReturning(nil)
 
@@ -98,7 +98,7 @@ func TestApiKey_AttemptsToFetchApiKeyFromRepository(t *testing.T) {
 
 func TestApiKey_WhenFetchingApiKeyFails_SetsStatusToInternalServerError(t *testing.T) {
 	assert := assert.New(t)
-	ctx, rw := generateTestEchoContextWithApiKeyAndMethod(http.MethodGet)
+	ctx, rw := generateTestEchoContextWithApiKey()
 	mr := &mockApiKeyUserRepository{
 		err: errDefault,
 	}
@@ -114,7 +114,7 @@ func TestApiKey_WhenFetchingApiKeyFails_SetsStatusToInternalServerError(t *testi
 
 func TestApiKey_WhenApiKeyIsNotFound_SetsStatusToUnauthorized(t *testing.T) {
 	assert := assert.New(t)
-	ctx, rw := generateTestEchoContextWithApiKeyAndMethod(http.MethodGet)
+	ctx, rw := generateTestEchoContextWithApiKey()
 	mr := &mockApiKeyUserRepository{
 		err: errors.NewCode(db.NoMatchingSqlRows),
 	}
@@ -137,7 +137,7 @@ var defaultApiKeyId = uuid.MustParse("5bda15f9-85f1-4700-867c-0a7cbda0f82c")
 
 func TestApiKey_WhenApiKeyIsExpired_SetsStatusToUnauthorized(t *testing.T) {
 	assert := assert.New(t)
-	ctx, rw := generateTestEchoContextWithApiKeyAndMethod(http.MethodGet)
+	ctx, rw := generateTestEchoContextWithApiKey()
 	mr := &mockApiKeyUserRepository{
 		apiKey: persistence.ApiKey{
 			Id:         defaultApiKeyId,
@@ -163,7 +163,7 @@ func TestApiKey_WhenApiKeyIsExpired_SetsStatusToUnauthorized(t *testing.T) {
 
 func TestApiKey_WhenApiKeyIsValid_CallsNextMiddleware(t *testing.T) {
 	assert := assert.New(t)
-	ctx, _ := generateTestEchoContextWithApiKeyAndMethod(http.MethodGet)
+	ctx, _ := generateTestEchoContextWithApiKey()
 	mr := &mockApiKeyUserRepository{
 		apiKey: persistence.ApiKey{
 			Id:         defaultApiKeyId,
