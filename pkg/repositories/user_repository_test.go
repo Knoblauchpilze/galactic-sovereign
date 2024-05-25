@@ -74,7 +74,7 @@ var defaultUser = persistence.User{
 }
 
 func TestUserRepository_Create(t *testing.T) {
-	s := RepositoryTestSuite{
+	s := RepositoryPoolTestSuite{
 		sqlMode: ExecBased,
 		testFunc: func(ctx context.Context, pool db.ConnectionPool) error {
 			repo := NewUserRepository(pool)
@@ -119,7 +119,7 @@ func TestUserRepository_Create_ReturnsInputUser(t *testing.T) {
 }
 
 func TestUserRepository_Get(t *testing.T) {
-	s := RepositoryTestSuite{
+	s := RepositoryPoolTestSuite{
 		testFunc: func(ctx context.Context, pool db.ConnectionPool) error {
 			repo := NewUserRepository(pool)
 			_, err := repo.Get(ctx, defaultUserId)
@@ -216,7 +216,7 @@ func TestUserRepository_Get_ScansUserProperties(t *testing.T) {
 }
 
 func TestUserRepository_GetByEmail(t *testing.T) {
-	s := RepositoryTestSuite{
+	s := RepositoryPoolTestSuite{
 		testFunc: func(ctx context.Context, pool db.ConnectionPool) error {
 			repo := NewUserRepository(pool)
 			_, err := repo.GetByEmail(ctx, defaultUserEmail)
@@ -313,7 +313,7 @@ func TestUserRepository_GetByEmail_ScansUserProperties(t *testing.T) {
 }
 
 func TestUserRepository_List(t *testing.T) {
-	s := RepositoryTestSuite{
+	s := RepositoryPoolTestSuite{
 		testFunc: func(ctx context.Context, pool db.ConnectionPool) error {
 			repo := NewUserRepository(pool)
 			_, err := repo.List(ctx)
@@ -389,7 +389,7 @@ func TestUserRepository_List_ScansIds(t *testing.T) {
 }
 
 func TestUserRepository_Update(t *testing.T) {
-	s := RepositoryTestSuite{
+	s := RepositoryPoolTestSuite{
 		sqlMode: ExecBased,
 		testFunc: func(ctx context.Context, pool db.ConnectionPool) error {
 			repo := NewUserRepository(pool)
@@ -472,45 +472,20 @@ func TestUserRepository_Update_ReturnsUpdatedUser(t *testing.T) {
 	assert.Equal(expected, actual)
 }
 
-func TestUserRepository_Delete_UsesTransactionToExec(t *testing.T) {
-	assert := assert.New(t)
-
-	mc := &mockConnectionPool{}
-	repo := NewUserRepository(mc)
-	mt := &mockTransaction{}
-
-	repo.Delete(context.Background(), mt, defaultUserId)
-
-	assert.Equal(0, mc.execCalled)
-	assert.Equal(1, mt.execCalled)
-}
-
-func TestUserRepository_Delete_GeneratesValidSql(t *testing.T) {
-	assert := assert.New(t)
-
-	mc := &mockConnectionPool{}
-	repo := NewUserRepository(mc)
-	mt := &mockTransaction{}
-
-	repo.Delete(context.Background(), mt, defaultUserId)
-
-	assert.Equal("DELETE FROM api_user WHERE id = $1", mt.sqlQuery)
-	assert.Equal(1, len(mt.args))
-	assert.Equal(defaultUserId, mt.args[0])
-}
-
-func TestUserRepository_Delete_PropagatesQueryFailure(t *testing.T) {
-	assert := assert.New(t)
-
-	mc := &mockConnectionPool{}
-	repo := NewUserRepository(mc)
-	mt := &mockTransaction{
-		execErr: errDefault,
+func TestUserRepository_Delete(t *testing.T) {
+	s := RepositoryTransactionTestSuite{
+		sqlMode: ExecBased,
+		testFunc: func(ctx context.Context, tx db.Transaction) error {
+			repo := NewUserRepository(&mockConnectionPool{})
+			return repo.Delete(ctx, tx, defaultUserId)
+		},
+		expectedSql: `DELETE FROM api_user WHERE id = $1`,
+		expectedArguments: []interface{}{
+			defaultUserId,
+		},
 	}
 
-	err := repo.Delete(context.Background(), mt, defaultUserId)
-
-	assert.Equal(errDefault, err)
+	suite.Run(t, &s)
 }
 
 func TestUserRepository_Delete_WhenAffectedRowsIsNotOne_Fails(t *testing.T) {

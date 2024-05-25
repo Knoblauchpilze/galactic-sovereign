@@ -9,50 +9,43 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
-type SqlQueryType int
+type testTransactionFunc func(context.Context, db.Transaction) error
 
-const (
-	QueryBased SqlQueryType = 0
-	ExecBased  SqlQueryType = 1
-)
-
-type testFunc func(context.Context, db.ConnectionPool) error
-
-type RepositoryTestSuite struct {
+type RepositoryTransactionTestSuite struct {
 	suite.Suite
 
 	sqlMode  SqlQueryType
-	testFunc testFunc
+	testFunc testTransactionFunc
 
 	expectedSql       string
 	expectedArguments []interface{}
 }
 
-func (s *RepositoryTestSuite) TestUsesConnectionToRunSqlQuery() {
+func (s *RepositoryTransactionTestSuite) TestUsesConnectionToRunSqlQuery() {
 	assert := assert.New(s.T())
 
-	mock := &mockConnectionPool{}
+	mock := &mockTransaction{}
 
 	s.testFunc(context.Background(), mock)
 
-	called := getCalledCount(s.sqlMode, mock)
+	called := s.getCalledCount(mock)
 	assert.Equal(1, called)
 }
 
-func (s *RepositoryTestSuite) TestGeneratesValidSql() {
+func (s *RepositoryTransactionTestSuite) TestGeneratesValidSql() {
 	assert := assert.New(s.T())
 
-	mock := &mockConnectionPool{}
+	mock := &mockTransaction{}
 
 	s.testFunc(context.Background(), mock)
 
 	assert.Equal(s.expectedSql, mock.sqlQuery)
 }
 
-func (s *RepositoryTestSuite) TestProvidesValidArguments() {
+func (s *RepositoryTransactionTestSuite) TestProvidesValidArguments() {
 	assert := assert.New(s.T())
 
-	mock := &mockConnectionPool{}
+	mock := &mockTransaction{}
 
 	s.testFunc(context.Background(), mock)
 
@@ -63,40 +56,40 @@ func (s *RepositoryTestSuite) TestProvidesValidArguments() {
 	}
 }
 
-func (s *RepositoryTestSuite) TestPropagatesQueryError() {
+func (s *RepositoryTransactionTestSuite) TestPropagatesQueryError() {
 	assert := assert.New(s.T())
 
-	mock := generateErrorMock(s.sqlMode, errDefault)
+	mock := s.generateErrorMock(errDefault)
 
 	err := s.testFunc(context.Background(), mock)
 
 	assert.Equal(errDefault, err)
 }
 
-func getCalledCount(mode SqlQueryType, mock *mockConnectionPool) int {
-	switch mode {
+func (s *RepositoryTransactionTestSuite) getCalledCount(mock *mockTransaction) int {
+	switch s.sqlMode {
 	case QueryBased:
 		return mock.queryCalled
 	case ExecBased:
 		return mock.execCalled
 	default:
-		panic(fmt.Errorf("Unsupported sql mode %v", mode))
+		panic(fmt.Errorf("Unsupported sql mode %v", s.sqlMode))
 	}
 }
 
-func generateErrorMock(mode SqlQueryType, err error) *mockConnectionPool {
-	switch mode {
+func (s *RepositoryTransactionTestSuite) generateErrorMock(err error) *mockTransaction {
+	switch s.sqlMode {
 	case QueryBased:
-		return &mockConnectionPool{
+		return &mockTransaction{
 			rows: mockRows{
 				err: err,
 			},
 		}
 	case ExecBased:
-		return &mockConnectionPool{
+		return &mockTransaction{
 			execErr: err,
 		}
 	default:
-		panic(fmt.Errorf("Unsupported sql mode %v", mode))
+		panic(fmt.Errorf("Unsupported sql mode %v", s.sqlMode))
 	}
 }
