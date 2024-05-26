@@ -52,6 +52,22 @@ INSERT INTO api_key (id, key, api_user, valid_until)
 	suite.Run(t, &s)
 }
 
+func TestApiKeyRepository_Create_BuildData(t *testing.T) {
+	s := RepositorySingleValueTestSuite{
+		testFunc: func(ctx context.Context, pool db.ConnectionPool) error {
+			repo := NewApiKeyRepository(pool)
+			_, err := repo.Create(ctx, defaultApiKey)
+			return err
+		},
+		expectedScanCalls: 1,
+		expectedScannedProps: []interface{}{
+			&uuid.UUID{},
+		},
+	}
+
+	suite.Run(t, &s)
+}
+
 func TestApiKeyRepository_Create_GetsReturnedValue(t *testing.T) {
 	assert := assert.New(t)
 
