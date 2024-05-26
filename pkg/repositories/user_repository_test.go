@@ -127,85 +127,28 @@ func TestUserRepository_GetByEmail_DbInteraction(t *testing.T) {
 	suite.Run(t, &s)
 }
 
-func TestUserRepository_GetByEmail_CallsGetSingleValue(t *testing.T) {
-	assert := assert.New(t)
+func TestUserRepository_GetByEmail_BuildData(t *testing.T) {
+	dummyStr := ""
+	dummyInt := 0
 
-	mc := &mockConnectionPool{}
-	repo := NewUserRepository(mc)
-
-	repo.GetByEmail(context.Background(), defaultUserEmail)
-
-	assert.Equal(1, mc.rows.singleValueCalled)
-}
-
-func TestUserRepository_GetByEmail_WhenResultReturnsError_Fails(t *testing.T) {
-	assert := assert.New(t)
-
-	mc := &mockConnectionPool{
-		rows: mockRows{
-			singleValueErr: errDefault,
+	s := RepositorySingleValueTestSuite{
+		testFunc: func(ctx context.Context, pool db.ConnectionPool) error {
+			repo := NewUserRepository(pool)
+			_, err := repo.GetByEmail(ctx, defaultUserEmail)
+			return err
+		},
+		expectedScanCalls: 1,
+		expectedScannedProps: []interface{}{
+			&uuid.UUID{},
+			&dummyStr,
+			&dummyStr,
+			&time.Time{},
+			&time.Time{},
+			&dummyInt,
 		},
 	}
-	repo := NewUserRepository(mc)
 
-	_, err := repo.GetByEmail(context.Background(), defaultUserEmail)
-
-	assert.Equal(errDefault, err)
-}
-
-func TestUserRepository_GetByEmail_WhenResultSucceeds_Success(t *testing.T) {
-	assert := assert.New(t)
-
-	mc := &mockConnectionPool{}
-	repo := NewUserRepository(mc)
-
-	_, err := repo.GetByEmail(context.Background(), defaultUserEmail)
-
-	assert.Nil(err)
-}
-
-func TestUserRepository_GetByEmail_PropagatesScanErrors(t *testing.T) {
-	assert := assert.New(t)
-
-	mc := &mockConnectionPool{
-		rows: mockRows{
-			scanner: &mockScannable{
-				err: errDefault,
-			},
-		},
-	}
-	repo := NewUserRepository(mc)
-
-	_, err := repo.GetByEmail(context.Background(), defaultUserEmail)
-
-	assert.Equal(errDefault, err)
-}
-
-func TestUserRepository_GetByEmail_ScansUserProperties(t *testing.T) {
-	assert := assert.New(t)
-
-	mc := &mockConnectionPool{
-		rows: mockRows{
-			scanner: &mockScannable{},
-		},
-	}
-	repo := NewUserRepository(mc)
-
-	_, err := repo.GetByEmail(context.Background(), defaultUserEmail)
-
-	assert.Nil(err)
-
-	props := mc.rows.scanner.props
-	assert.Equal(1, mc.rows.scanner.scanCalled)
-	assert.Equal(6, len(props))
-	assert.IsType(&uuid.UUID{}, props[0])
-	var str string
-	assert.IsType(&str, props[1])
-	assert.IsType(&str, props[2])
-	assert.IsType(&time.Time{}, props[3])
-	assert.IsType(&time.Time{}, props[4])
-	var itg int
-	assert.IsType(&itg, props[5])
+	suite.Run(t, &s)
 }
 
 func TestUserRepository_List_DbInteraction(t *testing.T) {
