@@ -109,81 +109,23 @@ func TestApiKeyRepository_Get_DbInteraction(t *testing.T) {
 	suite.Run(t, &s)
 }
 
-func TestApiKeyRepository_Get_CallsGetSingleValue(t *testing.T) {
-	assert := assert.New(t)
-
-	mc := &mockConnectionPool{}
-	repo := NewApiKeyRepository(mc)
-
-	repo.Get(context.Background(), defaultApiKeyId)
-
-	assert.Equal(1, mc.rows.singleValueCalled)
-}
-
-func TestApiKeyRepository_Get_WhenResultReturnsError_Fails(t *testing.T) {
-	assert := assert.New(t)
-
-	mc := &mockConnectionPool{
-		rows: mockRows{
-			singleValueErr: errDefault,
+func TestApiKeyRepository_Get_BuildData(t *testing.T) {
+	s := RepositorySingleValueTestSuite{
+		testFunc: func(ctx context.Context, pool db.ConnectionPool) error {
+			repo := NewApiKeyRepository(pool)
+			_, err := repo.Get(ctx, defaultApiKeyId)
+			return err
+		},
+		expectedScanCalls: 1,
+		expectedScannedProps: []interface{}{
+			&uuid.UUID{},
+			&uuid.UUID{},
+			&uuid.UUID{},
+			&time.Time{},
 		},
 	}
-	repo := NewApiKeyRepository(mc)
 
-	_, err := repo.Get(context.Background(), defaultApiKeyId)
-
-	assert.Equal(errDefault, err)
-}
-
-func TestApiKeyRepository_Get_WhenResultSucceeds_Success(t *testing.T) {
-	assert := assert.New(t)
-
-	mc := &mockConnectionPool{}
-	repo := NewApiKeyRepository(mc)
-
-	_, err := repo.Get(context.Background(), defaultApiKeyId)
-
-	assert.Nil(err)
-}
-
-func TestApiKeyRepository_Get_PropagatesScanErrors(t *testing.T) {
-	assert := assert.New(t)
-
-	mc := &mockConnectionPool{
-		rows: mockRows{
-			scanner: &mockScannable{
-				err: errDefault,
-			},
-		},
-	}
-	repo := NewApiKeyRepository(mc)
-
-	_, err := repo.Get(context.Background(), defaultApiKeyId)
-
-	assert.Equal(errDefault, err)
-}
-
-func TestApiKeyRepository_Get_ScansApiKeyProperties(t *testing.T) {
-	assert := assert.New(t)
-
-	mc := &mockConnectionPool{
-		rows: mockRows{
-			scanner: &mockScannable{},
-		},
-	}
-	repo := NewApiKeyRepository(mc)
-
-	_, err := repo.Get(context.Background(), defaultApiKeyId)
-
-	assert.Nil(err)
-
-	props := mc.rows.scanner.props
-	assert.Equal(1, mc.rows.scanner.scanCalled)
-	assert.Equal(4, len(props))
-	assert.IsType(&uuid.UUID{}, props[0])
-	assert.IsType(&uuid.UUID{}, props[1])
-	assert.IsType(&uuid.UUID{}, props[2])
-	assert.IsType(&time.Time{}, props[3])
+	suite.Run(t, &s)
 }
 
 func TestApiKeyRepository_GetForKey_DbInteraction(t *testing.T) {
@@ -203,81 +145,23 @@ func TestApiKeyRepository_GetForKey_DbInteraction(t *testing.T) {
 	suite.Run(t, &s)
 }
 
-func TestApiKeyRepository_GetForKey_CallsGetSingleValue(t *testing.T) {
-	assert := assert.New(t)
-
-	mc := &mockConnectionPool{}
-	repo := NewApiKeyRepository(mc)
-
-	repo.GetForKey(context.Background(), defaultApiKeyValue)
-
-	assert.Equal(1, mc.rows.singleValueCalled)
-}
-
-func TestApiKeyRepository_GetForKey_WhenResultReturnsError_Fails(t *testing.T) {
-	assert := assert.New(t)
-
-	mc := &mockConnectionPool{
-		rows: mockRows{
-			singleValueErr: errDefault,
+func TestApiKeyRepository_GetForKey_BuildData(t *testing.T) {
+	s := RepositorySingleValueTestSuite{
+		testFunc: func(ctx context.Context, pool db.ConnectionPool) error {
+			repo := NewApiKeyRepository(pool)
+			_, err := repo.GetForKey(ctx, defaultApiKeyValue)
+			return err
+		},
+		expectedScanCalls: 1,
+		expectedScannedProps: []interface{}{
+			&uuid.UUID{},
+			&uuid.UUID{},
+			&uuid.UUID{},
+			&time.Time{},
 		},
 	}
-	repo := NewApiKeyRepository(mc)
 
-	_, err := repo.GetForKey(context.Background(), defaultApiKeyValue)
-
-	assert.Equal(errDefault, err)
-}
-
-func TestApiKeyRepository_GetForKey_WhenResultSucceeds_Success(t *testing.T) {
-	assert := assert.New(t)
-
-	mc := &mockConnectionPool{}
-	repo := NewApiKeyRepository(mc)
-
-	_, err := repo.GetForKey(context.Background(), defaultApiKeyValue)
-
-	assert.Nil(err)
-}
-
-func TestApiKeyRepository_GetForKey_PropagatesScanErrors(t *testing.T) {
-	assert := assert.New(t)
-
-	mc := &mockConnectionPool{
-		rows: mockRows{
-			scanner: &mockScannable{
-				err: errDefault,
-			},
-		},
-	}
-	repo := NewApiKeyRepository(mc)
-
-	_, err := repo.GetForKey(context.Background(), defaultApiKeyValue)
-
-	assert.Equal(errDefault, err)
-}
-
-func TestApiKeyRepository_GetForKey_ScansApiKeyProperties(t *testing.T) {
-	assert := assert.New(t)
-
-	mc := &mockConnectionPool{
-		rows: mockRows{
-			scanner: &mockScannable{},
-		},
-	}
-	repo := NewApiKeyRepository(mc)
-
-	_, err := repo.GetForKey(context.Background(), defaultApiKeyValue)
-
-	assert.Nil(err)
-
-	props := mc.rows.scanner.props
-	assert.Equal(1, mc.rows.scanner.scanCalled)
-	assert.Equal(4, len(props))
-	assert.IsType(&uuid.UUID{}, props[0])
-	assert.IsType(&uuid.UUID{}, props[1])
-	assert.IsType(&uuid.UUID{}, props[2])
-	assert.IsType(&time.Time{}, props[3])
+	suite.Run(t, &s)
 }
 
 func TestApiKeyRepository_GetForUser_DbInteraction(t *testing.T) {
