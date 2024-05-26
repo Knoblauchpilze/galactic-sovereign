@@ -20,7 +20,7 @@ var defaultApiKey = persistence.ApiKey{
 	ApiUser: defaultUserId,
 }
 
-func TestApiKeyRepository_Create(t *testing.T) {
+func TestApiKeyRepository_Create_DbInteraction(t *testing.T) {
 	expectedSql := `
 INSERT INTO api_key (id, key, api_user, valid_until)
 	VALUES($1, $2, $3, $4)
@@ -92,7 +92,7 @@ func TestApiKeyRepository_Create_ReturnsInputApiKey(t *testing.T) {
 	assert.Equal(defaultApiKey, actual)
 }
 
-func TestApiKeyRepository_Get(t *testing.T) {
+func TestApiKeyRepository_Get_DbInteraction(t *testing.T) {
 	s := RepositoryPoolTestSuite{
 		sqlMode: QueryBased,
 		testFunc: func(ctx context.Context, pool db.ConnectionPool) error {
@@ -178,7 +178,7 @@ func TestApiKeyRepository_Get_ScansApiKeyProperties(t *testing.T) {
 	assert.Nil(err)
 
 	props := mc.rows.scanner.props
-	assert.Equal(1, mc.rows.scanner.scannCalled)
+	assert.Equal(1, mc.rows.scanner.scanCalled)
 	assert.Equal(4, len(props))
 	assert.IsType(&uuid.UUID{}, props[0])
 	assert.IsType(&uuid.UUID{}, props[1])
@@ -186,7 +186,7 @@ func TestApiKeyRepository_Get_ScansApiKeyProperties(t *testing.T) {
 	assert.IsType(&time.Time{}, props[3])
 }
 
-func TestApiKeyRepository_GetForKey(t *testing.T) {
+func TestApiKeyRepository_GetForKey_DbInteraction(t *testing.T) {
 	s := RepositoryPoolTestSuite{
 		sqlMode: QueryBased,
 		testFunc: func(ctx context.Context, pool db.ConnectionPool) error {
@@ -272,7 +272,7 @@ func TestApiKeyRepository_GetForKey_ScansApiKeyProperties(t *testing.T) {
 	assert.Nil(err)
 
 	props := mc.rows.scanner.props
-	assert.Equal(1, mc.rows.scanner.scannCalled)
+	assert.Equal(1, mc.rows.scanner.scanCalled)
 	assert.Equal(4, len(props))
 	assert.IsType(&uuid.UUID{}, props[0])
 	assert.IsType(&uuid.UUID{}, props[1])
@@ -280,7 +280,7 @@ func TestApiKeyRepository_GetForKey_ScansApiKeyProperties(t *testing.T) {
 	assert.IsType(&time.Time{}, props[3])
 }
 
-func TestApiKeyRepository_GetForUser(t *testing.T) {
+func TestApiKeyRepository_GetForUser_DbInteraction(t *testing.T) {
 	s := RepositoryPoolTestSuite{
 		sqlMode: QueryBased,
 		testFunc: func(ctx context.Context, pool db.ConnectionPool) error {
@@ -366,12 +366,12 @@ func TestApiKeyRepository_GetForUser_ScansApiKeyProperties(t *testing.T) {
 	assert.Nil(err)
 
 	props := mc.rows.scanner.props
-	assert.Equal(1, mc.rows.scanner.scannCalled)
+	assert.Equal(1, mc.rows.scanner.scanCalled)
 	assert.Equal(1, len(props))
 	assert.IsType(&uuid.UUID{}, props[0])
 }
 
-func TestApiKeyRepository_GetForUserTx(t *testing.T) {
+func TestApiKeyRepository_GetForUserTx_DbInteraction(t *testing.T) {
 	s := RepositoryTransactionTestSuite{
 		sqlMode: QueryBased,
 		testFunc: func(ctx context.Context, tx db.Transaction) error {
@@ -462,12 +462,12 @@ func TestApiKeyRepository_GetForUserTx_ScansApiKeyProperties(t *testing.T) {
 	assert.Nil(err)
 
 	props := mt.rows.scanner.props
-	assert.Equal(1, mt.rows.scanner.scannCalled)
+	assert.Equal(1, mt.rows.scanner.scanCalled)
 	assert.Equal(1, len(props))
 	assert.IsType(&uuid.UUID{}, props[0])
 }
 
-func TestApiKeyRepository_Delete_SingleId(t *testing.T) {
+func TestApiKeyRepository_Delete_SingleId_DbInteraction(t *testing.T) {
 	s := RepositoryPoolTestSuite{
 		sqlMode: ExecBased,
 		testFunc: func(ctx context.Context, pool db.ConnectionPool) error {
@@ -483,7 +483,7 @@ func TestApiKeyRepository_Delete_SingleId(t *testing.T) {
 	suite.Run(t, &s)
 }
 
-func TestApiKeyRepository_Delete_MultipleIds(t *testing.T) {
+func TestApiKeyRepository_Delete_MultipleIds_DbInteraction(t *testing.T) {
 	ids := []uuid.UUID{
 		uuid.MustParse("50714fb2-db52-4e3a-8315-cf8e4a8abcf8"),
 		uuid.MustParse("9fc0def1-d51c-4af0-8db5-40310796d16d"),
@@ -516,7 +516,7 @@ func TestApiKeyRepository_Delete_NominalCase(t *testing.T) {
 	assert.Nil(err)
 }
 
-func TestApiKeyRepository_DeleteTx_SingleId(t *testing.T) {
+func TestApiKeyRepository_DeleteTx_SingleId_DbInteraction(t *testing.T) {
 	s := RepositoryTransactionTestSuite{
 		sqlMode: ExecBased,
 		testFunc: func(ctx context.Context, tx db.Transaction) error {
@@ -532,7 +532,7 @@ func TestApiKeyRepository_DeleteTx_SingleId(t *testing.T) {
 	suite.Run(t, &s)
 }
 
-func TestApiKeyRepository_DeleteTx_MultipleIds(t *testing.T) {
+func TestApiKeyRepository_DeleteTx_MultipleIds_DbInteraction(t *testing.T) {
 	ids := []uuid.UUID{
 		uuid.MustParse("50714fb2-db52-4e3a-8315-cf8e4a8abcf8"),
 		uuid.MustParse("9fc0def1-d51c-4af0-8db5-40310796d16d"),

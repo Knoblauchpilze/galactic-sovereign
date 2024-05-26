@@ -49,8 +49,8 @@ type mockRows struct {
 type mockScannable struct {
 	err error
 
-	scannCalled int
-	props       []interface{}
+	scanCalled int
+	props      []interface{}
 }
 
 func (m *mockConnectionPool) Query(ctx context.Context, sql string, arguments ...interface{}) db.Rows {
@@ -106,7 +106,7 @@ func (m *mockRows) GetAll(parser db.RowParser) error {
 }
 
 func (m *mockScannable) Scan(dest ...interface{}) error {
-	m.scannCalled++
+	m.scanCalled++
 	m.props = append(m.props, dest...)
 	return m.err
 }
