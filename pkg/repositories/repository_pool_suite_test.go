@@ -56,7 +56,7 @@ func (s *RepositoryPoolTestSuite) TestProvidesValidArguments() {
 
 	s.testFunc(context.Background(), mock)
 
-	assert.Equal(len(mock.args), len(s.expectedArguments))
+	assert.Equal(len(s.expectedArguments), len(mock.args))
 	for id, expected := range s.expectedArguments {
 		actual := mock.args[id]
 		assert.Equal(expected, actual)

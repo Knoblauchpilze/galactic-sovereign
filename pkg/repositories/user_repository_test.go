@@ -26,7 +26,7 @@ var defaultUser = persistence.User{
 	Version:   4,
 }
 
-func TestUserRepository_Create(t *testing.T) {
+func TestUserRepository_Create_DbInteraction(t *testing.T) {
 	s := RepositoryPoolTestSuite{
 		sqlMode: ExecBased,
 		testFunc: func(ctx context.Context, pool db.ConnectionPool) error {
@@ -71,7 +71,7 @@ func TestUserRepository_Create_ReturnsInputUser(t *testing.T) {
 	assert.Equal(defaultUser, actual)
 }
 
-func TestUserRepository_Get(t *testing.T) {
+func TestUserRepository_Get_DbInteraction(t *testing.T) {
 	s := RepositoryPoolTestSuite{
 		testFunc: func(ctx context.Context, pool db.ConnectionPool) error {
 			repo := NewUserRepository(pool)
@@ -87,88 +87,31 @@ func TestUserRepository_Get(t *testing.T) {
 	suite.Run(t, &s)
 }
 
-func TestUserRepository_Get_CallsGetSingleValue(t *testing.T) {
-	assert := assert.New(t)
+func TestUserRepository_Get_BuildData(t *testing.T) {
+	dummyStr := ""
+	dummyInt := 0
 
-	mc := &mockConnectionPool{}
-	repo := NewUserRepository(mc)
-
-	repo.Get(context.Background(), defaultUserId)
-
-	assert.Equal(1, mc.rows.singleValueCalled)
-}
-
-func TestUserRepository_Get_WhenResultReturnsError_Fails(t *testing.T) {
-	assert := assert.New(t)
-
-	mc := &mockConnectionPool{
-		rows: mockRows{
-			singleValueErr: errDefault,
+	s := RepositorySingleValueTestSuite{
+		testFunc: func(ctx context.Context, pool db.ConnectionPool) error {
+			repo := NewUserRepository(pool)
+			_, err := repo.Get(ctx, defaultUserId)
+			return err
+		},
+		expectedScanCalls: 1,
+		expectedScannedProps: []interface{}{
+			&uuid.UUID{},
+			&dummyStr,
+			&dummyStr,
+			&time.Time{},
+			&time.Time{},
+			&dummyInt,
 		},
 	}
-	repo := NewUserRepository(mc)
 
-	_, err := repo.Get(context.Background(), defaultUserId)
-
-	assert.Equal(errDefault, err)
+	suite.Run(t, &s)
 }
 
-func TestUserRepository_Get_WhenResultSucceeds_Success(t *testing.T) {
-	assert := assert.New(t)
-
-	mc := &mockConnectionPool{}
-	repo := NewUserRepository(mc)
-
-	_, err := repo.Get(context.Background(), defaultUserId)
-
-	assert.Nil(err)
-}
-
-func TestUserRepository_Get_PropagatesScanErrors(t *testing.T) {
-	assert := assert.New(t)
-
-	mc := &mockConnectionPool{
-		rows: mockRows{
-			scanner: &mockScannable{
-				err: errDefault,
-			},
-		},
-	}
-	repo := NewUserRepository(mc)
-
-	_, err := repo.Get(context.Background(), defaultUserId)
-
-	assert.Equal(errDefault, err)
-}
-
-func TestUserRepository_Get_ScansUserProperties(t *testing.T) {
-	assert := assert.New(t)
-
-	mc := &mockConnectionPool{
-		rows: mockRows{
-			scanner: &mockScannable{},
-		},
-	}
-	repo := NewUserRepository(mc)
-
-	_, err := repo.Get(context.Background(), defaultUserId)
-
-	assert.Nil(err)
-
-	props := mc.rows.scanner.props
-	assert.Equal(1, mc.rows.scanner.scannCalled)
-	assert.Equal(6, len(props))
-	assert.IsType(&uuid.UUID{}, props[0])
-	var str string
-	assert.IsType(&str, props[1])
-	assert.IsType(&str, props[2])
-	assert.IsType(&time.Time{}, props[3])
-	assert.IsType(&time.Time{}, props[4])
-	var itg int
-	assert.IsType(&itg, props[5])
-}
-
-func TestUserRepository_GetByEmail(t *testing.T) {
+func TestUserRepository_GetByEmail_DbInteraction(t *testing.T) {
 	s := RepositoryPoolTestSuite{
 		testFunc: func(ctx context.Context, pool db.ConnectionPool) error {
 			repo := NewUserRepository(pool)
@@ -253,7 +196,7 @@ func TestUserRepository_GetByEmail_ScansUserProperties(t *testing.T) {
 	assert.Nil(err)
 
 	props := mc.rows.scanner.props
-	assert.Equal(1, mc.rows.scanner.scannCalled)
+	assert.Equal(1, mc.rows.scanner.scanCalled)
 	assert.Equal(6, len(props))
 	assert.IsType(&uuid.UUID{}, props[0])
 	var str string
@@ -265,7 +208,7 @@ func TestUserRepository_GetByEmail_ScansUserProperties(t *testing.T) {
 	assert.IsType(&itg, props[5])
 }
 
-func TestUserRepository_List(t *testing.T) {
+func TestUserRepository_List_DbInteraction(t *testing.T) {
 	s := RepositoryPoolTestSuite{
 		testFunc: func(ctx context.Context, pool db.ConnectionPool) error {
 			repo := NewUserRepository(pool)
@@ -336,12 +279,12 @@ func TestUserRepository_List_ScansIds(t *testing.T) {
 	assert.Nil(err)
 
 	props := mc.rows.scanner.props
-	assert.Equal(1, mc.rows.scanner.scannCalled)
+	assert.Equal(1, mc.rows.scanner.scanCalled)
 	assert.Equal(1, len(props))
 	assert.IsType(&uuid.UUID{}, props[0])
 }
 
-func TestUserRepository_Update(t *testing.T) {
+func TestUserRepository_Update_DbInteraction(t *testing.T) {
 	s := RepositoryPoolTestSuite{
 		sqlMode: ExecBased,
 		testFunc: func(ctx context.Context, pool db.ConnectionPool) error {
@@ -425,7 +368,7 @@ func TestUserRepository_Update_ReturnsUpdatedUser(t *testing.T) {
 	assert.Equal(expected, actual)
 }
 
-func TestUserRepository_Delete(t *testing.T) {
+func TestUserRepository_Delete_DbInteraction(t *testing.T) {
 	s := RepositoryTransactionTestSuite{
 		sqlMode: ExecBased,
 		testFunc: func(ctx context.Context, tx db.Transaction) error {
