@@ -164,67 +164,20 @@ func TestUserRepository_List_DbInteraction(t *testing.T) {
 	suite.Run(t, &s)
 }
 
-func TestUserRepository_List_CallsGetAll(t *testing.T) {
-	assert := assert.New(t)
-
-	mc := &mockConnectionPool{}
-	repo := NewUserRepository(mc)
-
-	repo.List(context.Background())
-
-	assert.Equal(1, mc.rows.allCalled)
-}
-
-func TestUserRepository_List_WhenResultReturnsError_Fails(t *testing.T) {
-	assert := assert.New(t)
-
-	mc := &mockConnectionPool{
-		rows: mockRows{
-			allErr: errDefault,
+func TestUserRepository_List_BuildData(t *testing.T) {
+	s := RepositoryGetAllTestSuite{
+		testFunc: func(ctx context.Context, pool db.ConnectionPool) error {
+			repo := NewUserRepository(pool)
+			_, err := repo.List(ctx)
+			return err
+		},
+		expectedScanCalls: 1,
+		expectedScannedProps: []interface{}{
+			&uuid.UUID{},
 		},
 	}
-	repo := NewUserRepository(mc)
 
-	_, err := repo.List(context.Background())
-
-	assert.Equal(errDefault, err)
-}
-
-func TestUserRepository_List_PropagatesScanErrors(t *testing.T) {
-	assert := assert.New(t)
-
-	mc := &mockConnectionPool{
-		rows: mockRows{
-			scanner: &mockScannable{
-				err: errDefault,
-			},
-		},
-	}
-	repo := NewUserRepository(mc)
-
-	_, err := repo.List(context.Background())
-
-	assert.Equal(errDefault, err)
-}
-
-func TestUserRepository_List_ScansIds(t *testing.T) {
-	assert := assert.New(t)
-
-	mc := &mockConnectionPool{
-		rows: mockRows{
-			scanner: &mockScannable{},
-		},
-	}
-	repo := NewUserRepository(mc)
-
-	_, err := repo.List(context.Background())
-
-	assert.Nil(err)
-
-	props := mc.rows.scanner.props
-	assert.Equal(1, mc.rows.scanner.scanCalled)
-	assert.Equal(1, len(props))
-	assert.IsType(&uuid.UUID{}, props[0])
+	suite.Run(t, &s)
 }
 
 func TestUserRepository_Update_DbInteraction(t *testing.T) {
