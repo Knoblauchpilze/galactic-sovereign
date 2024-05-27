@@ -87,7 +87,7 @@ func TestUserRepository_Get_DbInteraction(t *testing.T) {
 	suite.Run(t, &s)
 }
 
-func TestUserRepository_Get_BuildData(t *testing.T) {
+func TestUserRepository_Get_InterpretDbData(t *testing.T) {
 	dummyStr := ""
 	dummyInt := 0
 
@@ -127,7 +127,7 @@ func TestUserRepository_GetByEmail_DbInteraction(t *testing.T) {
 	suite.Run(t, &s)
 }
 
-func TestUserRepository_GetByEmail_BuildData(t *testing.T) {
+func TestUserRepository_GetByEmail_InterpretDbData(t *testing.T) {
 	dummyStr := ""
 	dummyInt := 0
 
@@ -164,7 +164,7 @@ func TestUserRepository_List_DbInteraction(t *testing.T) {
 	suite.Run(t, &s)
 }
 
-func TestUserRepository_List_BuildData(t *testing.T) {
+func TestUserRepository_List_InterpretDbData(t *testing.T) {
 	s := RepositoryGetAllTestSuite{
 		testFunc: func(ctx context.Context, pool db.ConnectionPool) error {
 			repo := NewUserRepository(pool)
