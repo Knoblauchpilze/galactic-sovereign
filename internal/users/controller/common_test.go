@@ -14,7 +14,7 @@ import (
 
 var errDefault = fmt.Errorf("some error")
 
-func TestFromRepositoriesAwareHttpHandler_CallsHandler(t *testing.T) {
+func TestFromUserServiceAwareHttpHandler_CallsHandler(t *testing.T) {
 	assert := assert.New(t)
 
 	handlerCalled := false
@@ -23,21 +23,21 @@ func TestFromRepositoriesAwareHttpHandler_CallsHandler(t *testing.T) {
 		return nil
 	}
 
-	h := fromRepositoriesAwareHttpHandler(in, &mockUserService{})
+	h := fromUserServiceAwareHttpHandler(in, &mockUserService{})
 
 	err := h(dummyEchoContext())
 	assert.Nil(err)
 	assert.True(handlerCalled)
 }
 
-func TestFromRepositoriesAwareHttpHandler_PropagatesError(t *testing.T) {
+func TestFromUserServiceAwareHttpHandler_PropagatesError(t *testing.T) {
 	assert := assert.New(t)
 
 	in := func(_ echo.Context, _ service.UserService) error {
 		return errDefault
 	}
 
-	h := fromRepositoriesAwareHttpHandler(in, &mockUserService{})
+	h := fromUserServiceAwareHttpHandler(in, &mockUserService{})
 
 	err := h(dummyEchoContext())
 	assert.Equal(errDefault, err)
@@ -73,12 +73,8 @@ func TestFromDbAwareHttpHandler_PropagatesError(t *testing.T) {
 }
 
 func dummyEchoContext() echo.Context {
-	ctx, _ := generateTestEchoContext()
+	ctx, _ := generateTestEchoContextWithMethod(http.MethodGet)
 	return ctx
-}
-
-func generateTestEchoContext() (echo.Context, *httptest.ResponseRecorder) {
-	return generateTestEchoContextWithMethod(http.MethodGet)
 }
 
 func generateTestEchoContextWithMethod(method string) (echo.Context, *httptest.ResponseRecorder) {

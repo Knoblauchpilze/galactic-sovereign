@@ -15,35 +15,35 @@ import (
 func UserEndpoints(service service.UserService) rest.Routes {
 	var out rest.Routes
 
-	postHandler := fromRepositoriesAwareHttpHandler(createUser, service)
+	postHandler := fromUserServiceAwareHttpHandler(createUser, service)
 	post := rest.NewRoute(http.MethodPost, false, "/users", postHandler)
 	out = append(out, post)
 
-	getHandler := fromRepositoriesAwareHttpHandler(getUser, service)
+	getHandler := fromUserServiceAwareHttpHandler(getUser, service)
 	get := rest.NewResourceRoute(http.MethodGet, true, "/users", getHandler)
 	out = append(out, get)
 
-	listHandler := fromRepositoriesAwareHttpHandler(listUsers, service)
+	listHandler := fromUserServiceAwareHttpHandler(listUsers, service)
 	list := rest.NewRoute(http.MethodGet, true, "/users", listHandler)
 	out = append(out, list)
 
-	updateHandler := fromRepositoriesAwareHttpHandler(updateUser, service)
+	updateHandler := fromUserServiceAwareHttpHandler(updateUser, service)
 	update := rest.NewResourceRoute(http.MethodPatch, true, "/users", updateHandler)
 	out = append(out, update)
 
-	deleteHandler := fromRepositoriesAwareHttpHandler(deleteUser, service)
+	deleteHandler := fromUserServiceAwareHttpHandler(deleteUser, service)
 	delete := rest.NewResourceRoute(http.MethodDelete, true, "/users", deleteHandler)
 	out = append(out, delete)
 
-	loginByEmailHandler := fromRepositoriesAwareHttpHandler(loginUserByEmail, service)
+	loginByEmailHandler := fromUserServiceAwareHttpHandler(loginUserByEmail, service)
 	loginByEmail := rest.NewRoute(http.MethodPost, false, "/users/sessions", loginByEmailHandler)
 	out = append(out, loginByEmail)
 
-	loginByIdHandler := fromRepositoriesAwareHttpHandler(loginUserById, service)
+	loginByIdHandler := fromUserServiceAwareHttpHandler(loginUserById, service)
 	loginById := rest.NewResourceRoute(http.MethodPost, false, "/users/sessions", loginByIdHandler)
 	out = append(out, loginById)
 
-	logoutHandler := fromRepositoriesAwareHttpHandler(logoutUser, service)
+	logoutHandler := fromUserServiceAwareHttpHandler(logoutUser, service)
 	logout := rest.NewResourceRoute(http.MethodDelete, true, "/users/sessions", logoutHandler)
 	out = append(out, logout)
 
