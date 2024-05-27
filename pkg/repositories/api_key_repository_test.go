@@ -52,7 +52,7 @@ INSERT INTO api_key (id, key, api_user, valid_until)
 	suite.Run(t, &s)
 }
 
-func TestApiKeyRepository_Create_BuildData(t *testing.T) {
+func TestApiKeyRepository_Create_RetrievesGeneratedApiKey(t *testing.T) {
 	s := RepositorySingleValueTestSuite{
 		testFunc: func(ctx context.Context, pool db.ConnectionPool) error {
 			repo := NewApiKeyRepository(pool)
@@ -66,34 +66,6 @@ func TestApiKeyRepository_Create_BuildData(t *testing.T) {
 	}
 
 	suite.Run(t, &s)
-}
-
-func TestApiKeyRepository_Create_GetsReturnedValue(t *testing.T) {
-	assert := assert.New(t)
-
-	mc := &mockConnectionPool{
-		rows: mockRows{},
-	}
-	repo := NewApiKeyRepository(mc)
-
-	repo.Create(context.Background(), defaultApiKey)
-
-	assert.Equal(1, mc.rows.singleValueCalled)
-}
-
-func TestApiKeyRepository_Create_WhenReturnValueFails_Fails(t *testing.T) {
-	assert := assert.New(t)
-
-	mc := &mockConnectionPool{
-		rows: mockRows{
-			singleValueErr: errDefault,
-		},
-	}
-	repo := NewApiKeyRepository(mc)
-
-	_, err := repo.Create(context.Background(), defaultApiKey)
-
-	assert.Equal(errDefault, err)
 }
 
 func TestApiKeyRepository_Create_ReturnsInputApiKey(t *testing.T) {
@@ -125,7 +97,7 @@ func TestApiKeyRepository_Get_DbInteraction(t *testing.T) {
 	suite.Run(t, &s)
 }
 
-func TestApiKeyRepository_Get_BuildData(t *testing.T) {
+func TestApiKeyRepository_Get_InterpretDbData(t *testing.T) {
 	s := RepositorySingleValueTestSuite{
 		testFunc: func(ctx context.Context, pool db.ConnectionPool) error {
 			repo := NewApiKeyRepository(pool)
@@ -161,7 +133,7 @@ func TestApiKeyRepository_GetForKey_DbInteraction(t *testing.T) {
 	suite.Run(t, &s)
 }
 
-func TestApiKeyRepository_GetForKey_BuildData(t *testing.T) {
+func TestApiKeyRepository_GetForKey_InterpretDbData(t *testing.T) {
 	s := RepositorySingleValueTestSuite{
 		testFunc: func(ctx context.Context, pool db.ConnectionPool) error {
 			repo := NewApiKeyRepository(pool)
@@ -197,7 +169,7 @@ func TestApiKeyRepository_GetForUser_DbInteraction(t *testing.T) {
 	suite.Run(t, &s)
 }
 
-func TestApiKeyRepository_GetForUser_BuildData(t *testing.T) {
+func TestApiKeyRepository_GetForUser_InterpretDbData(t *testing.T) {
 	s := RepositoryGetAllTestSuite{
 		testFunc: func(ctx context.Context, pool db.ConnectionPool) error {
 			repo := NewApiKeyRepository(pool)
@@ -230,7 +202,7 @@ func TestApiKeyRepository_GetForUserTx_DbInteraction(t *testing.T) {
 	suite.Run(t, &s)
 }
 
-func TestApiKeyRepository_GetForUserTx_BuildData(t *testing.T) {
+func TestApiKeyRepository_GetForUserTx_InterpretDbData(t *testing.T) {
 	s := RepositoryGetAllTransactionTestSuite{
 		testFunc: func(ctx context.Context, tx db.Transaction) error {
 			repo := NewApiKeyRepository(&mockConnectionPool{})
