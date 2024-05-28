@@ -329,6 +329,82 @@ func Test_WhenServiceFails_SetsExpectedStatus(t *testing.T) {
 	}
 }
 
+func Test_WhenServiceSucceeds_SetsExpectedStatus(t *testing.T) {
+	assert := assert.New(t)
+
+	type testCaseError struct {
+		req                *http.Request
+		idAsRouteParam     bool
+		handler            userServiceAwareHttpHandler
+		expectedHttpStatus int
+	}
+
+	testCases := map[string]testCaseError{
+		"createUser": {
+			req:                generateTestRequestWithUserBody(http.MethodPost),
+			handler:            createUser,
+			expectedHttpStatus: http.StatusCreated,
+		},
+		"getUser": {
+			req:                httptest.NewRequest(http.MethodGet, "/", nil),
+			idAsRouteParam:     true,
+			handler:            getUser,
+			expectedHttpStatus: http.StatusOK,
+		},
+		"listUser": {
+			req:                httptest.NewRequest(http.MethodGet, "/", nil),
+			handler:            listUsers,
+			expectedHttpStatus: http.StatusOK,
+		},
+		"updateUser": {
+			req:                generateTestRequestWithUserBody(http.MethodPatch),
+			idAsRouteParam:     true,
+			handler:            updateUser,
+			expectedHttpStatus: http.StatusOK,
+		},
+		"deleteUser": {
+			req:                httptest.NewRequest(http.MethodDelete, "/", nil),
+			idAsRouteParam:     true,
+			handler:            deleteUser,
+			expectedHttpStatus: http.StatusNoContent,
+		},
+		"loginUserById": {
+			req:                httptest.NewRequest(http.MethodPost, "/", nil),
+			idAsRouteParam:     true,
+			handler:            loginUserById,
+			expectedHttpStatus: http.StatusCreated,
+		},
+		"loginUserByEmail": {
+			req:                generateTestRequestWithUserBody(http.MethodPost),
+			handler:            loginUserByEmail,
+			expectedHttpStatus: http.StatusCreated,
+		},
+		"logoutUser": {
+			req:                httptest.NewRequest(http.MethodDelete, "/", nil),
+			idAsRouteParam:     true,
+			handler:            logoutUser,
+			expectedHttpStatus: http.StatusNoContent,
+		},
+	}
+
+	for name, testCase := range testCases {
+		t.Run(name, func(t *testing.T) {
+			mock := &mockUserService{}
+
+			ctx, rw := generateTestEchoContextFromRequest(testCase.req)
+			if testCase.idAsRouteParam {
+				ctx.SetParamNames("id")
+				ctx.SetParamValues(defaultUuid.String())
+			}
+
+			err := testCase.handler(ctx, mock)
+
+			assert.Nil(err)
+			assert.Equal(testCase.expectedHttpStatus, rw.Code)
+		})
+	}
+}
+
 func TestCreateUser_CallsServiceCreate(t *testing.T) {
 	assert := assert.New(t)
 
@@ -339,18 +415,6 @@ func TestCreateUser_CallsServiceCreate(t *testing.T) {
 
 	assert.Nil(err)
 	assert.Equal(1, ms.createCalled)
-}
-
-func TestCreateUser_SetsStatusToCreated(t *testing.T) {
-	assert := assert.New(t)
-
-	ctx, rw := generateTestEchoContextFromRequest(generateTestPostRequest())
-	ms := &mockUserService{}
-
-	err := createUser(ctx, ms)
-
-	assert.Nil(err)
-	assert.Equal(http.StatusCreated, rw.Code)
 }
 
 func TestCreateUser_SavesExpectedUser(t *testing.T) {
@@ -398,18 +462,6 @@ func TestGetUser_CallsServiceGet(t *testing.T) {
 	assert.Equal(defaultUuid, ms.inId)
 }
 
-func TestGetUser_SetsStatusToOk(t *testing.T) {
-	assert := assert.New(t)
-
-	ctx, rw := generateEchoContextWithValidUuid(http.MethodGet)
-	ms := &mockUserService{}
-
-	err := getUser(ctx, ms)
-
-	assert.Nil(err)
-	assert.Equal(http.StatusOK, rw.Code)
-}
-
 func TestGetUser_ReturnsExpectedUser(t *testing.T) {
 	assert := assert.New(t)
 
@@ -438,18 +490,6 @@ func TestListUser_CallsServiceList(t *testing.T) {
 
 	assert.Nil(err)
 	assert.Equal(1, ms.listCalled)
-}
-
-func TestListUser_SetsStatusToOk(t *testing.T) {
-	assert := assert.New(t)
-
-	ctx, rw := generateTestEchoContextWithMethod(http.MethodGet)
-	ms := &mockUserService{}
-
-	err := listUsers(ctx, ms)
-
-	assert.Nil(err)
-	assert.Equal(http.StatusOK, rw.Code)
 }
 
 func TestListUser_ReturnsExpectedIds(t *testing.T) {
@@ -498,18 +538,6 @@ func TestUpdateUser_CallsServiceUpdate(t *testing.T) {
 	assert.Equal(1, ms.updateCalled)
 	assert.Equal(defaultUuid, ms.inId)
 	assert.Equal(defaultUserDtoRequest, ms.inUser)
-}
-
-func TestUpdateUser_SetsStatusToOk(t *testing.T) {
-	assert := assert.New(t)
-
-	ctx, rw := generateEchoContextWithUuidAndBody(http.MethodPatch)
-	ms := &mockUserService{}
-
-	err := getUser(ctx, ms)
-
-	assert.Nil(err)
-	assert.Equal(http.StatusOK, rw.Code)
 }
 
 func TestUpdateUser_ReturnsExpectedUser(t *testing.T) {
@@ -562,18 +590,6 @@ func TestDeleteUser_CallsServiceDelete(t *testing.T) {
 	assert.Equal(defaultUuid, ms.inId)
 }
 
-func TestDeleteUser_SetsStatusToNoContent(t *testing.T) {
-	assert := assert.New(t)
-
-	ctx, rw := generateEchoContextWithValidUuid(http.MethodDelete)
-	ms := &mockUserService{}
-
-	err := deleteUser(ctx, ms)
-
-	assert.Nil(err)
-	assert.Equal(http.StatusNoContent, rw.Code)
-}
-
 func TestLoginUserById_CallsServiceLoginById(t *testing.T) {
 	assert := assert.New(t)
 
@@ -584,18 +600,6 @@ func TestLoginUserById_CallsServiceLoginById(t *testing.T) {
 
 	assert.Nil(err)
 	assert.Equal(1, ms.loginByIdCalled)
-}
-
-func TestLoginUserById_SetsStatusToCreated(t *testing.T) {
-	assert := assert.New(t)
-
-	ctx, rw := generateEchoContextWithValidUuid(http.MethodPost)
-	ms := &mockUserService{}
-
-	err := loginUserById(ctx, ms)
-
-	assert.Nil(err)
-	assert.Equal(http.StatusCreated, rw.Code)
 }
 
 func TestLoginUserById_LogsInExpectedUser(t *testing.T) {
@@ -640,18 +644,6 @@ func TestLoginUserByEmail_CallsServiceLogin(t *testing.T) {
 	assert.Equal(1, ms.loginCalled)
 }
 
-func TestLoginUserByEmail_SetsStatusToCreated(t *testing.T) {
-	assert := assert.New(t)
-
-	ctx, rw := generateEchoContextWithBody(http.MethodPost)
-	ms := &mockUserService{}
-
-	err := loginUserByEmail(ctx, ms)
-
-	assert.Nil(err)
-	assert.Equal(http.StatusCreated, rw.Code)
-}
-
 func TestLoginUserByEmail_LogsInExpectedUser(t *testing.T) {
 	assert := assert.New(t)
 
@@ -694,18 +686,6 @@ func TestLogoutUser_CallsServiceLogout(t *testing.T) {
 	assert.Equal(1, ms.logoutCalled)
 }
 
-func TestLogoutUser_SetsStatusToNoContent(t *testing.T) {
-	assert := assert.New(t)
-
-	ctx, rw := generateEchoContextWithValidUuid(http.MethodPost)
-	ms := &mockUserService{}
-
-	err := logoutUser(ctx, ms)
-
-	assert.Nil(err)
-	assert.Equal(http.StatusNoContent, rw.Code)
-}
-
 func TestLogoutUser_LogsOutExpectedUser(t *testing.T) {
 	assert := assert.New(t)
 
@@ -737,7 +717,6 @@ func generateEchoContextWithValidUuid(method string) (echo.Context, *httptest.Re
 
 func generateEchoContextWithUuid(method string, id string) (echo.Context, *httptest.ResponseRecorder) {
 	ctx, rw := generateTestEchoContextWithMethod(method)
-	// https://echo.labstack.com/docs/testing#getuser
 	ctx.SetParamNames("id")
 	ctx.SetParamValues(id)
 	return ctx, rw
