@@ -201,13 +201,13 @@ func Test_WhenServiceFails_SetsExpectedStatus(t *testing.T) {
 
 	testCases := map[string]testCaseError{
 		"createUser": {
-			req:                generateTestRequestWithUserBody(http.MethodPost),
+			req:                generateTestRequestWithDefaultUserBody(http.MethodPost),
 			handler:            createUser,
 			err:                errDefault,
 			expectedHttpStatus: http.StatusInternalServerError,
 		},
 		"createUser_duplicatedKey": {
-			req:                generateTestRequestWithUserBody(http.MethodPost),
+			req:                generateTestRequestWithDefaultUserBody(http.MethodPost),
 			handler:            createUser,
 			err:                errors.NewCode(db.DuplicatedKeySqlKey),
 			expectedHttpStatus: http.StatusConflict,
@@ -233,14 +233,14 @@ func Test_WhenServiceFails_SetsExpectedStatus(t *testing.T) {
 			expectedHttpStatus: http.StatusInternalServerError,
 		},
 		"updateUser_notFound": {
-			req:                generateTestRequestWithUserBody(http.MethodPatch),
+			req:                generateTestRequestWithDefaultUserBody(http.MethodPatch),
 			idAsRouteParam:     true,
 			handler:            updateUser,
 			err:                errors.NewCode(db.NoMatchingSqlRows),
 			expectedHttpStatus: http.StatusNotFound,
 		},
 		"updateUser_optimisticLock": {
-			req:                generateTestRequestWithUserBody(http.MethodPatch),
+			req:                generateTestRequestWithDefaultUserBody(http.MethodPatch),
 			idAsRouteParam:     true,
 			handler:            updateUser,
 			err:                errors.NewCode(db.OptimisticLockException),
@@ -275,19 +275,19 @@ func Test_WhenServiceFails_SetsExpectedStatus(t *testing.T) {
 			expectedHttpStatus: http.StatusNotFound,
 		},
 		"loginUserByEmail": {
-			req:                generateTestRequestWithUserBody(http.MethodPost),
+			req:                generateTestRequestWithDefaultUserBody(http.MethodPost),
 			handler:            loginUserByEmail,
 			err:                errDefault,
 			expectedHttpStatus: http.StatusInternalServerError,
 		},
 		"loginUserByEmail_notFound": {
-			req:                generateTestRequestWithUserBody(http.MethodPost),
+			req:                generateTestRequestWithDefaultUserBody(http.MethodPost),
 			handler:            loginUserByEmail,
 			err:                errors.NewCode(db.NoMatchingSqlRows),
 			expectedHttpStatus: http.StatusNotFound,
 		},
 		"loginUserByEmail_invalidCredentials": {
-			req:                generateTestRequestWithUserBody(http.MethodPost),
+			req:                generateTestRequestWithDefaultUserBody(http.MethodPost),
 			handler:            loginUserByEmail,
 			err:                errors.NewCode(service.InvalidCredentials),
 			expectedHttpStatus: http.StatusUnauthorized,
@@ -332,16 +332,16 @@ func Test_WhenServiceFails_SetsExpectedStatus(t *testing.T) {
 func Test_WhenServiceSucceeds_SetsExpectedStatus(t *testing.T) {
 	assert := assert.New(t)
 
-	type testCaseError struct {
+	type testCaseSuccess struct {
 		req                *http.Request
 		idAsRouteParam     bool
 		handler            userServiceAwareHttpHandler
 		expectedHttpStatus int
 	}
 
-	testCases := map[string]testCaseError{
+	testCases := map[string]testCaseSuccess{
 		"createUser": {
-			req:                generateTestRequestWithUserBody(http.MethodPost),
+			req:                generateTestRequestWithDefaultUserBody(http.MethodPost),
 			handler:            createUser,
 			expectedHttpStatus: http.StatusCreated,
 		},
@@ -357,7 +357,7 @@ func Test_WhenServiceSucceeds_SetsExpectedStatus(t *testing.T) {
 			expectedHttpStatus: http.StatusOK,
 		},
 		"updateUser": {
-			req:                generateTestRequestWithUserBody(http.MethodPatch),
+			req:                generateTestRequestWithDefaultUserBody(http.MethodPatch),
 			idAsRouteParam:     true,
 			handler:            updateUser,
 			expectedHttpStatus: http.StatusOK,
@@ -375,7 +375,7 @@ func Test_WhenServiceSucceeds_SetsExpectedStatus(t *testing.T) {
 			expectedHttpStatus: http.StatusCreated,
 		},
 		"loginUserByEmail": {
-			req:                generateTestRequestWithUserBody(http.MethodPost),
+			req:                generateTestRequestWithDefaultUserBody(http.MethodPost),
 			handler:            loginUserByEmail,
 			expectedHttpStatus: http.StatusCreated,
 		},
@@ -401,6 +401,102 @@ func Test_WhenServiceSucceeds_SetsExpectedStatus(t *testing.T) {
 
 			assert.Nil(err)
 			assert.Equal(testCase.expectedHttpStatus, rw.Code)
+		})
+	}
+}
+
+func Test_WhenServiceSucceeds_ReturnsExpectedValue(t *testing.T) {
+	assert := assert.New(t)
+
+	type testCaseReturn struct {
+		req            *http.Request
+		idAsRouteParam bool
+		handler        userServiceAwareHttpHandler
+
+		ids       []uuid.UUID
+		userDto   communication.UserDtoResponse
+		apiKeyDto communication.ApiKeyDtoResponse
+
+		expectedContent interface{}
+	}
+
+	updatedUser := communication.UserDtoRequest{
+		Email:    "some-other@e.mail",
+		Password: "some-password",
+	}
+	updatedUserResponse := communication.UserDtoResponse{
+		Id:       defaultUserDtoResponse.Id,
+		Email:    updatedUser.Email,
+		Password: updatedUser.Password,
+
+		CreatedAt: defaultUserDtoResponse.CreatedAt,
+	}
+
+	testCases := map[string]testCaseReturn{
+		"createUser": {
+			req:             generateTestRequestWithDefaultUserBody(http.MethodPost),
+			handler:         createUser,
+			userDto:         defaultUserDtoResponse,
+			expectedContent: defaultUserDtoResponse,
+		},
+		"getUser": {
+			req:             httptest.NewRequest(http.MethodGet, "/", nil),
+			idAsRouteParam:  true,
+			handler:         getUser,
+			userDto:         defaultUserDtoResponse,
+			expectedContent: defaultUserDtoResponse,
+		},
+		"listUsers": {
+			req:             httptest.NewRequest(http.MethodGet, "/", nil),
+			handler:         listUsers,
+			ids:             []uuid.UUID{defaultUuid},
+			expectedContent: []uuid.UUID{defaultUuid},
+		},
+		"updateUser": {
+			req:             generateTestRequestWithUserBody(http.MethodPatch, updatedUser),
+			idAsRouteParam:  true,
+			handler:         updateUser,
+			userDto:         updatedUserResponse,
+			expectedContent: updatedUserResponse,
+		},
+		"loginUserById": {
+			req:             httptest.NewRequest(http.MethodPost, "/", nil),
+			idAsRouteParam:  true,
+			handler:         loginUserById,
+			apiKeyDto:       defaultApiKeyDtoResponse,
+			expectedContent: defaultApiKeyDtoResponse,
+		},
+		"loginUserByEmail": {
+			req:             generateTestRequestWithDefaultUserBody(http.MethodPost),
+			idAsRouteParam:  true,
+			handler:         loginUserByEmail,
+			apiKeyDto:       defaultApiKeyDtoResponse,
+			expectedContent: defaultApiKeyDtoResponse,
+		},
+	}
+
+	for name, testCase := range testCases {
+		t.Run(name, func(t *testing.T) {
+			mock := &mockUserService{
+				ids:    testCase.ids,
+				user:   testCase.userDto,
+				apiKey: testCase.apiKeyDto,
+			}
+
+			ctx, rw := generateTestEchoContextFromRequest(testCase.req)
+			if testCase.idAsRouteParam {
+				ctx.SetParamNames("id")
+				ctx.SetParamValues(defaultUuid.String())
+			}
+
+			err := testCase.handler(ctx, mock)
+
+			assert.Nil(err)
+
+			actual := strings.Trim(rw.Body.String(), "\n")
+			expected, err := json.Marshal(testCase.expectedContent)
+			assert.Nil(err)
+			assert.Equal(string(expected), actual)
 		})
 	}
 }
@@ -431,24 +527,6 @@ func TestCreateUser_SavesExpectedUser(t *testing.T) {
 	assert.Equal(defaultUserDtoRequest, ms.inUser)
 }
 
-func TestCreateUser_ReturnsExpectedUser(t *testing.T) {
-	assert := assert.New(t)
-
-	ctx, rw := generateTestEchoContextFromRequest(generateTestPostRequest())
-	ms := &mockUserService{
-		user: defaultUserDtoResponse,
-	}
-
-	err := createUser(ctx, ms)
-
-	assert.Nil(err)
-
-	var actual communication.UserDtoResponse
-	err = json.Unmarshal(rw.Body.Bytes(), &actual)
-	assert.Nil(err)
-	assert.Equal(defaultUserDtoResponse, actual)
-}
-
 func TestGetUser_CallsServiceGet(t *testing.T) {
 	assert := assert.New(t)
 
@@ -462,24 +540,6 @@ func TestGetUser_CallsServiceGet(t *testing.T) {
 	assert.Equal(defaultUuid, ms.inId)
 }
 
-func TestGetUser_ReturnsExpectedUser(t *testing.T) {
-	assert := assert.New(t)
-
-	ctx, rw := generateEchoContextWithValidUuid(http.MethodGet)
-	ms := &mockUserService{
-		user: defaultUserDtoResponse,
-	}
-
-	err := getUser(ctx, ms)
-
-	assert.Nil(err)
-
-	var actual communication.UserDtoResponse
-	err = json.Unmarshal(rw.Body.Bytes(), &actual)
-	assert.Nil(err)
-	assert.Equal(defaultUserDtoResponse, actual)
-}
-
 func TestListUser_CallsServiceList(t *testing.T) {
 	assert := assert.New(t)
 
@@ -490,24 +550,6 @@ func TestListUser_CallsServiceList(t *testing.T) {
 
 	assert.Nil(err)
 	assert.Equal(1, ms.listCalled)
-}
-
-func TestListUser_ReturnsExpectedIds(t *testing.T) {
-	assert := assert.New(t)
-
-	ctx, rw := generateTestEchoContextWithMethod(http.MethodGet)
-	ms := &mockUserService{
-		ids: []uuid.UUID{defaultUuid},
-	}
-
-	err := listUsers(ctx, ms)
-
-	assert.Nil(err)
-
-	var ids []uuid.UUID
-	err = json.Unmarshal(rw.Body.Bytes(), &ids)
-	assert.Nil(err)
-	assert.Equal(ms.ids, ids)
 }
 
 func TestUpdateUser_WhenIdIsCorrectButBodyIsNotAUserDto_SetsStatusToBadRequest(t *testing.T) {
@@ -538,43 +580,6 @@ func TestUpdateUser_CallsServiceUpdate(t *testing.T) {
 	assert.Equal(1, ms.updateCalled)
 	assert.Equal(defaultUuid, ms.inId)
 	assert.Equal(defaultUserDtoRequest, ms.inUser)
-}
-
-func TestUpdateUser_ReturnsExpectedUser(t *testing.T) {
-	assert := assert.New(t)
-
-	updatedUser := communication.UserDtoRequest{
-		Email:    "some-other-email",
-		Password: "some-password",
-	}
-	updatedResponse := communication.UserDtoResponse{
-		Id:       defaultUserDtoResponse.Id,
-		Email:    updatedUser.Email,
-		Password: updatedUser.Password,
-
-		CreatedAt: defaultUserDtoResponse.CreatedAt,
-	}
-
-	raw, _ := json.Marshal(updatedUser)
-	req := httptest.NewRequest(http.MethodPatch, "/", bytes.NewReader(raw))
-	req.Header.Set("Content-Type", "application/json")
-
-	ctx, rw := generateTestEchoContextFromRequest(req)
-	ctx.SetParamNames("id")
-	ctx.SetParamValues(defaultUuid.String())
-
-	ms := &mockUserService{
-		user: updatedResponse,
-	}
-
-	err := updateUser(ctx, ms)
-
-	assert.Nil(err)
-
-	var actual communication.UserDtoResponse
-	err = json.Unmarshal(rw.Body.Bytes(), &actual)
-	assert.Nil(err)
-	assert.Equal(updatedResponse, actual)
 }
 
 func TestDeleteUser_CallsServiceDelete(t *testing.T) {
@@ -614,24 +619,6 @@ func TestLoginUserById_LogsInExpectedUser(t *testing.T) {
 	assert.Equal(defaultUuid, ms.inId)
 }
 
-func TestLoginUserById_ReturnsUserToken(t *testing.T) {
-	assert := assert.New(t)
-
-	ctx, rw := generateEchoContextWithValidUuid(http.MethodPost)
-	ms := &mockUserService{
-		apiKey: defaultApiKeyDtoResponse,
-	}
-
-	err := loginUserById(ctx, ms)
-
-	assert.Nil(err)
-
-	var actual communication.ApiKeyDtoResponse
-	err = json.Unmarshal(rw.Body.Bytes(), &actual)
-	assert.Nil(err)
-	assert.Equal(defaultApiKeyDtoResponse, actual)
-}
-
 func TestLoginUserByEmail_CallsServiceLogin(t *testing.T) {
 	assert := assert.New(t)
 
@@ -654,24 +641,6 @@ func TestLoginUserByEmail_LogsInExpectedUser(t *testing.T) {
 
 	assert.Nil(err)
 	assert.Equal(defaultUserDtoRequest, ms.inUser)
-}
-
-func TestLoginUserByEmail_ReturnsUserToken(t *testing.T) {
-	assert := assert.New(t)
-
-	ctx, rw := generateEchoContextWithBody(http.MethodPost)
-	ms := &mockUserService{
-		apiKey: defaultApiKeyDtoResponse,
-	}
-
-	err := loginUserByEmail(ctx, ms)
-
-	assert.Nil(err)
-
-	var actual communication.ApiKeyDtoResponse
-	err = json.Unmarshal(rw.Body.Bytes(), &actual)
-	assert.Nil(err)
-	assert.Equal(defaultApiKeyDtoResponse, actual)
 }
 
 func TestLogoutUser_CallsServiceLogout(t *testing.T) {
@@ -699,12 +668,16 @@ func TestLogoutUser_LogsOutExpectedUser(t *testing.T) {
 }
 
 func generateTestPostRequest() *http.Request {
-	return generateTestRequestWithUserBody(http.MethodPost)
+	return generateTestRequestWithDefaultUserBody(http.MethodPost)
 }
 
-func generateTestRequestWithUserBody(method string) *http.Request {
+func generateTestRequestWithDefaultUserBody(method string) *http.Request {
+	return generateTestRequestWithUserBody(method, defaultUserDtoRequest)
+}
+
+func generateTestRequestWithUserBody(method string, userDto communication.UserDtoRequest) *http.Request {
 	// Voluntarily ignoring errors
-	raw, _ := json.Marshal(defaultUserDtoRequest)
+	raw, _ := json.Marshal(userDto)
 	req := httptest.NewRequest(method, "/", bytes.NewReader(raw))
 	req.Header.Set("Content-Type", "application/json")
 
@@ -712,23 +685,19 @@ func generateTestRequestWithUserBody(method string) *http.Request {
 }
 
 func generateEchoContextWithValidUuid(method string) (echo.Context, *httptest.ResponseRecorder) {
-	return generateEchoContextWithUuid(method, defaultUuid.String())
-}
-
-func generateEchoContextWithUuid(method string, id string) (echo.Context, *httptest.ResponseRecorder) {
 	ctx, rw := generateTestEchoContextWithMethod(method)
 	ctx.SetParamNames("id")
-	ctx.SetParamValues(id)
+	ctx.SetParamValues(defaultUuid.String())
 	return ctx, rw
 }
 
 func generateEchoContextWithBody(method string) (echo.Context, *httptest.ResponseRecorder) {
-	req := generateTestRequestWithUserBody(method)
+	req := generateTestRequestWithDefaultUserBody(method)
 	return generateTestEchoContextFromRequest(req)
 }
 
 func generateEchoContextWithUuidAndBody(method string) (echo.Context, *httptest.ResponseRecorder) {
-	req := generateTestRequestWithUserBody(method)
+	req := generateTestRequestWithDefaultUserBody(method)
 
 	ctx, rw := generateTestEchoContextFromRequest(req)
 	ctx.SetParamNames("id")
