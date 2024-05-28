@@ -39,8 +39,9 @@ type mockUserService struct {
 }
 
 type testCase struct {
-	req     *http.Request
-	handler userServiceAwareHttpHandler
+	req            *http.Request
+	idAsRouteParam bool
+	handler        userServiceAwareHttpHandler
 }
 
 var defaultUuid = uuid.MustParse("08ce96a3-3430-48a8-a3b2-b1c987a207ca")
@@ -86,6 +87,11 @@ func Test_WhenBodyIsNotAUserDto_SetsStatusTo400(t *testing.T) {
 			req:     postReq,
 			handler: createUser,
 		},
+		"updateUser": {
+			req:            httptest.NewRequest(http.MethodPatch, "/", strings.NewReader("not-a-user-dto-request")),
+			idAsRouteParam: true,
+			handler:        updateUser,
+		},
 		"loginUserByEmail": {
 			req:     postReq,
 			handler: loginUserByEmail,
@@ -96,6 +102,11 @@ func Test_WhenBodyIsNotAUserDto_SetsStatusTo400(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			mock := &mockUserService{}
 			ctx, rw := generateTestEchoContextFromRequest(testCase.req)
+			if testCase.idAsRouteParam {
+				// https://echo.labstack.com/docs/testing#getuser
+				ctx.SetParamNames("id")
+				ctx.SetParamValues(defaultUuid.String())
+			}
 
 			err := testCase.handler(ctx, mock)
 
@@ -316,7 +327,6 @@ func Test_WhenServiceFails_SetsExpectedStatus(t *testing.T) {
 
 			ctx, rw := generateTestEchoContextFromRequest(testCase.req)
 			if testCase.idAsRouteParam {
-				// https://echo.labstack.com/docs/testing#getuser
 				ctx.SetParamNames("id")
 				ctx.SetParamValues(defaultUuid.String())
 			}
@@ -537,6 +547,17 @@ func TestGetUser_CallsServiceGet(t *testing.T) {
 
 	assert.Nil(err)
 	assert.Equal(1, ms.getCalled)
+}
+
+func TestGetUser_GetsExpectedUser(t *testing.T) {
+	assert := assert.New(t)
+
+	ctx, _ := generateEchoContextWithValidUuid(http.MethodGet)
+	ms := &mockUserService{}
+
+	err := getUser(ctx, ms)
+
+	assert.Nil(err)
 	assert.Equal(defaultUuid, ms.inId)
 }
 
@@ -550,22 +571,6 @@ func TestListUser_CallsServiceList(t *testing.T) {
 
 	assert.Nil(err)
 	assert.Equal(1, ms.listCalled)
-}
-
-func TestUpdateUser_WhenIdIsCorrectButBodyIsNotAUserDto_SetsStatusToBadRequest(t *testing.T) {
-	assert := assert.New(t)
-
-	req := httptest.NewRequest(http.MethodPatch, "/", strings.NewReader("not-a-user-dto-request"))
-	ctx, rw := generateEchoContextWithValidUuid(http.MethodPatch)
-	ctx.SetRequest(req)
-
-	ms := &mockUserService{}
-
-	err := updateUser(ctx, ms)
-
-	assert.Nil(err)
-	assert.Equal(http.StatusBadRequest, rw.Code)
-	assert.Equal("\"Invalid user syntax\"\n", rw.Body.String())
 }
 
 func TestUpdateUser_CallsServiceUpdate(t *testing.T) {
@@ -592,6 +597,17 @@ func TestDeleteUser_CallsServiceDelete(t *testing.T) {
 
 	assert.Nil(err)
 	assert.Equal(1, ms.deleteCalled)
+}
+
+func TestDeleteUser_LogsOutExpectedUser(t *testing.T) {
+	assert := assert.New(t)
+
+	ctx, _ := generateEchoContextWithValidUuid(http.MethodDelete)
+	ms := &mockUserService{}
+
+	err := deleteUser(ctx, ms)
+
+	assert.Nil(err)
 	assert.Equal(defaultUuid, ms.inId)
 }
 
