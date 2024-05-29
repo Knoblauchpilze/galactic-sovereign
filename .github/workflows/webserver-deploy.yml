@@ -8,7 +8,6 @@ on:
       - ".github/workflows/webserver*.yml"
 
 env:
-  EC2_HOST: "13.39.19.54"
   DOCKER_NETWORK_BRIDGE_NAME: "totocorp-network"
   NODE_PORT: 3001
   RETRIES_COUNT: 5
@@ -19,8 +18,6 @@ jobs:
     secrets:
       dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
       dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
-    with:
-      webserver-host: ${{ env.EC2_HOST }}
   deploy:
     runs-on: ubuntu-latest
     needs: [build-docker-image]
@@ -33,7 +30,7 @@ jobs:
       - name: Update running docker instance
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: "${{ env.EC2_HOST }}"
+          host: "${{ secrets.EC2_DEPLOY_HOST }}"
           username: ubuntu
           key: ${{ secrets.EC2_DEPLOY_SSH_KEY }}
           passphrase: ${{ secrets.EC2_DEPLOY_SSH_KEY_PASSPHRASE }}
