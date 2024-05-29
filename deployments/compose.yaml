@@ -1,6 +1,6 @@
 services:
   user-service:
-    image: totocorpsoftwareinc/user-service:943adb3
+    image: totocorpsoftwareinc/user-service:${USER_SERVICE_TAG}
     container_name: user-service
     networks:
       - totocorp-network
@@ -16,7 +16,7 @@ services:
       # Should be provided as an environment variable
       ENV_DATABASE_PASSWORD:
   webserver:
-    image: totocorpsoftwareinc/webserver:989a156
+    image: totocorpsoftwareinc/webserver:${WEBSERVER_TAG}
     container_name: webserver
     networks:
       - totocorp-network
