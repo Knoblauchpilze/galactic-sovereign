@@ -144,12 +144,14 @@ With all of this, the service running in the docker container should be able to 
 #### Problem statement
 
 Consider the following situation:
-* container A provides an API on port 80
-* container B would like to reach endpoints exposed by A on port 80
+
+- container A provides an API on port 80
+- container B would like to reach endpoints exposed by A on port 80
 
 To achieve this we somehow need to:
-* instruct Docker to bind the host port 80 to container A (e.g. with `-p 80:80`) so that it can serve the outside world
-* instruct Docker to bind the host port 80 to container B (with the same command as above!) so that it can target container A.
+
+- instruct Docker to bind the host port 80 to container A (e.g. with `-p 80:80`) so that it can serve the outside world
+- instruct Docker to bind the host port 80 to container B (with the same command as above!) so that it can target container A.
 
 This usually result in the following:
 
@@ -166,8 +168,9 @@ The idea is to connect containers in the same virtual network where they can acc
 Throughout this project we use the same bridge network called `totocorp-network` (see it in the [Makefile](Makefile)). It needs to be created once before any of the CI process try to access the machine (as it assumes it already exists).
 
 In order to do so, we need to run the following command (see [documentation](https://docs.docker.com/network/drivers/bridge/#manage-a-user-defined-bridge)):
+
 ```bash
- docker network create totocorp-network
+docker network create totocorp-network
 ```
 
 ## Setup the database
