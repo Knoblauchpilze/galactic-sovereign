@@ -11,7 +11,6 @@ on:
       - ".github/workflows/user-service*.yml"
 
 env:
-  EC2_HOST: "13.39.19.54"
   DOCKER_NETWORK_BRIDGE_NAME: "totocorp-network"
   DATABASE_PORT: 5432
   SERVER_PORT: 80
@@ -44,7 +43,7 @@ jobs:
         uses: appleboy/ssh-action@v1.0.3
         with:
           # https://github.com/appleboy/ssh-action
-          host: "${{ env.EC2_HOST }}"
+          host: "${{ secrets.EC2_DEPLOY_HOST }}"
           username: ubuntu
           key: ${{ secrets.EC2_DEPLOY_SSH_KEY }}
           passphrase: ${{ secrets.EC2_DEPLOY_SSH_KEY_PASSPHRASE }}
