@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
@@ -34,8 +33,6 @@ func main() {
 		logger.Errorf("Please provide a user and password to connect to the database")
 		os.Exit(1)
 	}
-
-	fmt.Printf("conf: %+v\n", conf)
 
 	pool := db.NewConnectionPool(conf.Database)
 	if err := pool.Connect(context.Background()); err != nil {
