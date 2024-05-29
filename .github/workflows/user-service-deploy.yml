@@ -8,7 +8,7 @@ on:
       - "pkg/**"
       - "internal/**"
       - "build/users/**"
-      - ".github/**"
+      - ".github/workflows/user-service*.yml"
 
 env:
   EC2_HOST: "13.39.19.54"
