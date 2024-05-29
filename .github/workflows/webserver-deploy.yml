@@ -35,8 +35,9 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_DEPLOY_SSH_KEY }}
           passphrase: ${{ secrets.EC2_DEPLOY_SSH_KEY_PASSPHRASE }}
+          # https://docs.docker.com/reference/cli/docker/login/#password-stdin
           script: |
-            docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }}
+            echo ${{ secrets.DOCKERHUB_TOKEN }} | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
             sudo docker pull totocorpsoftwareinc/webserver:${{ env.GIT_COMMIT_HASH }}
             sudo docker container ls -la --format "{{.Names}}" | grep webserver | xargs --no-run-if-empty sudo docker stop webserver
             sudo docker container ls -la --format "{{.Names}}" | grep webserver | xargs --no-run-if-empty sudo docker rm webserver
