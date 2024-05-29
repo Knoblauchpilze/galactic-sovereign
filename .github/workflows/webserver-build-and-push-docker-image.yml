@@ -32,7 +32,8 @@ jobs:
             SERVER_ORIGIN=http://${{ secrets.webserver-host }}:3001
             API_BASE_URL=http://user-service:80/v1/users
           push: true
-          tags: totocorpsoftwareinc/webserver:${{ env.GIT_COMMIT_HASH }}- name: Save service tag
+          tags: totocorpsoftwareinc/webserver:${{ env.GIT_COMMIT_HASH }}
+      - name: Save service tag
         run: echo "${{ env.GIT_COMMIT_HASH }}" > ./build/webserver/version.txt
       - name: Commit changes
         run: |
