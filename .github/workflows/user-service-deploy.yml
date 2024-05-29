@@ -4,14 +4,14 @@ on:
   push:
     # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#example-including-paths
     paths:
-      - 'cmd/**'
-      - 'pkg/**'
-      - 'internal/**'
-      - 'build/users/**'
-      - '.github/**'
+      - "cmd/**"
+      - "pkg/**"
+      - "internal/**"
+      - "build/users/**"
+      - ".github/**"
 
 env:
-  EC2_HOST: "35.180.67.147"
+  EC2_HOST: "13.39.19.54"
   DOCKER_NETWORK_BRIDGE_NAME: "totocorp-network"
   DATABASE_PORT: 5432
   SERVER_PORT: 80
