@@ -50,8 +50,14 @@ export const actions = {
 
 		const apiKey = new ApiKey(loginResponse);
 
-		cookies.set('api-user', apiKey.user, { path: '/' });
-		cookies.set('api-key', apiKey.key, { path: '/' });
+		// TODO: This should be removed when we enable HTTPS
+		// https://github.com/jshttp/cookie?tab=readme-ov-file#secure
+		const opts = {
+			path: '/',
+			secure: false,
+		};
+		cookies.set('api-user', apiKey.user, opts);
+		cookies.set('api-key', apiKey.key, opts);
 
 		redirect(303, '/dashboard/overview');
 	},
