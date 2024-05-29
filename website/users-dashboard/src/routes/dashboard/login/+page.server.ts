@@ -38,6 +38,8 @@ export const actions = {
 
 		const loginResponse = await loginUser(email as string, password as string);
 
+		console.log("loginResponse: " + JSON.stringify(loginResponse));
+
 		if (loginResponse.error()) {
 			return {
 				success: false,
@@ -53,6 +55,8 @@ export const actions = {
 		cookies.set('api-user', apiKey.user, { path: '/' });
 		cookies.set('api-key', apiKey.key, { path: '/' });
 
-		redirect(302, '/dashboard/overview');
+		console.log("setting api key and user to : " + JSON.stringify(apiKey));
+
+		redirect(307, '/dashboard/overview');
 	},
 };

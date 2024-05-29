@@ -8,12 +8,12 @@ import { ApiFailureReason } from '$lib/responseEnvelope.js';
 export async function load({ cookies }) {
 	const apiKey = cookies.get('api-key');
 	if (!apiKey) {
-		redirect(302, '/dashboard/login');
+		redirect(307, '/dashboard/login');
 	}
 
 	const apiUser = cookies.get('api-user');
 	if (!apiUser) {
-		redirect(302, '/dashboard/login');
+		redirect(307, '/dashboard/login');
 	}
 
 	const userResponse = await getUser(apiKey, apiUser);
@@ -24,7 +24,7 @@ export async function load({ cookies }) {
 
 		switch (reason) {
 			case ApiFailureReason.API_KEY_EXPIRED:
-				redirect(302, '/dashboard/login');
+				redirect(307, '/dashboard/login');
 		}
 
 		error(404, { message: userResponse.failureMessage() });
@@ -43,12 +43,12 @@ export const actions = {
 	logout: async ({ cookies, request }) => {
 		const apiKey = cookies.get('api-key');
 		if (!apiKey) {
-			redirect(302, '/dashboard/login');
+			redirect(307, '/dashboard/login');
 		}
 
 		const apiUser = cookies.get('api-user');
 		if (!apiUser) {
-			redirect(302, '/dashboard/login');
+			redirect(307, '/dashboard/login');
 		}
 
 		const logoutResponse = await logoutUser(apiKey, apiUser);
@@ -60,6 +60,6 @@ export const actions = {
 			};
 		}
 
-		redirect(302, '/dashboard/login');
+		redirect(307, '/dashboard/login');
 	},
 };
