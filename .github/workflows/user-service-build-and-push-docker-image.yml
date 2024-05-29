@@ -31,7 +31,7 @@ jobs:
           push: true
           tags: totocorpsoftwareinc/user-service:${{ env.GIT_COMMIT_HASH }}
       - name: Save service tag
-        run: echo "${{ env.GIT_COMMIT_HASH }}" >> ./build/users/version.txt
+        run: echo "${{ env.GIT_COMMIT_HASH }}" > ./build/users/version.txt
       - name: Commit changes
         run: |
           git config --global user.name 'totocorpbot'
