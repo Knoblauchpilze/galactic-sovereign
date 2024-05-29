@@ -19,16 +19,20 @@ env:
 jobs:
   # https://docs.github.com/en/actions/using-workflows/reusing-workflows#calling-a-reusable-workflow
   tests:
+    # https://github.com/orgs/community/discussions/74772
+    if: ${{ github.actor != 'github-actions[bot]' && github.event_name != 'push' || github.event.pusher.name != 'github-actions[bot]' }}
     uses: ./.github/workflows/tests.yml
     secrets:
       codecov-token: ${{ secrets.CODECOV_TOKEN }}
   build-docker-image:
+    if: ${{ github.actor != 'github-actions[bot]' && github.event_name != 'push' || github.event.pusher.name != 'github-actions[bot]' }}
     uses: ./.github/workflows/user-service-build-and-push-docker-image.yml
     secrets:
       dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
       dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
   deploy:
     runs-on: ubuntu-latest
+    if: ${{ github.actor != 'github-actions[bot]' && github.event_name != 'push' || github.event.pusher.name != 'github-actions[bot]' }}
     # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idneeds
     needs: [tests, build-docker-image]
     # https://stackoverflow.com/questions/58139406/only-run-job-on-specific-branch-with-github-actions

@@ -11,6 +11,9 @@ on:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
+    # https://stackoverflow.com/questions/72851548/permission-denied-to-github-actionsbot
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
       # https://stackoverflow.com/questions/58886293/getting-current-branch-and-commit-hash-in-github-action
