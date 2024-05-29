@@ -21,6 +21,9 @@ jobs:
   tests:
     # https://github.com/orgs/community/discussions/74772
     if: ${{ github.actor != 'github-actions[bot]' && github.event_name != 'push' || github.event.pusher.name != 'github-actions[bot]' }}
+    # https://stackoverflow.com/questions/72851548/permission-denied-to-github-actionsbot
+    permissions:
+      contents: write
     uses: ./.github/workflows/tests.yml
     secrets:
       codecov-token: ${{ secrets.CODECOV_TOKEN }}
