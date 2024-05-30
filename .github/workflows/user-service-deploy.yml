@@ -51,7 +51,7 @@ jobs:
       - name: Update running docker instance
         # https://github.com/docker/compose/issues/10309
         # https://stackoverflow.com/questions/39168239/update-only-one-container-via-docker-compose
-        script: |
+        run: |
           sudo docker --host ssh://${{ secrets.EC2_DEPLOY_USER }}@${{ secrets.EC2_DEPLOY_HOST }} \
             compose up -d
   persist-service-tag:
