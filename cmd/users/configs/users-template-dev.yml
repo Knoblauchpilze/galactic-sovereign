@@ -1,7 +1,5 @@
 Server:
-  BasePath: "/v1"
   Port: 60001
 Database:
-  ConnectionsPoolSize: 2
   User: user_service_manager
   Password: DB_PASSWORD
