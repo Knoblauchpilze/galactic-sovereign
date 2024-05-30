@@ -49,8 +49,9 @@ jobs:
         run: |
           sudo docker \
             --host ssh://${{ secrets.EC2_DEPLOY_USER }}@${{ secrets.EC2_DEPLOY_HOST }} \
+            compose \
             -f ./deployments/compose.yml \
-            compose up \
+            up \
             -d
   persist-service-tag:
     runs-on: ubuntu-latest
