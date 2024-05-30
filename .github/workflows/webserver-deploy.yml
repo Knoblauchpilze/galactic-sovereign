@@ -27,8 +27,9 @@ jobs:
     if: github.ref == 'refs/heads/master' && (${{ github.actor != 'github-actions[bot]' && github.event_name != 'push' || github.event.pusher.name != 'github-actions[bot]' }})
     needs: [build-docker-image]
     steps:
+      - uses: actions/checkout@v4
       - name: Extract commit hash
-        run: echo "GIT_COMMIT_HASH=$(echo "${{ github.event.workflow_run.head_sha }}" | cut -c1-7)" >> $GITHUB_ENV
+        run: echo "GIT_COMMIT_HASH=$(git rev-parse --short $GITHUB_SHA)" >> $GITHUB_ENV
       - name: Update running docker instance
         uses: appleboy/ssh-action@v1.0.3
         with:
