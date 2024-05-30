@@ -43,7 +43,7 @@ jobs:
     # https://medium.com/ryanjang-devnotes/ci-cd-hands-on-github-actions-docker-hub-aws-ec2-ba09f80297e1
     steps:
       - name: Extract user service tag
-        run: echo "USER_SERVICE_TAG=$(echo "${{ github.event.workflow_run.head_sha }}" | cut -c1-7)" >> "$GITHUB_ENV"
+        run: echo "USER_SERVICE_TAG=$(git rev-parse --short "$GITHUB_SHA")" >> "$GITHUB_ENV"
       - name: Extract webserver tag
         run: echo "WEBSERVER_TAG=$(cat ./build/webserver/version.txt >> "$GITHUB_ENV"
       - name: Inject database password
