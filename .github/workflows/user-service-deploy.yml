@@ -42,35 +42,18 @@ jobs:
     needs: [build-docker-image]
     # https://medium.com/ryanjang-devnotes/ci-cd-hands-on-github-actions-docker-hub-aws-ec2-ba09f80297e1
     steps:
-      - name: Extract commit hash
-        run: echo "GIT_COMMIT_HASH=$(echo "${{ github.event.workflow_run.head_sha }}" | cut -c1-7)" >> "$GITHUB_ENV"
+      - name: Extract user service tag
+        run: echo "USER_SERVICE_TAG=$(echo "${{ github.event.workflow_run.head_sha }}" | cut -c1-7)" >> "$GITHUB_ENV"
+      - name: Extract webserver tag
+        run: echo "WEBSERVER_TAG=$(cat ./build/webserver/version.txt >> "$GITHUB_ENV"
       - name: Inject database password
         run: echo "ENV_DATABASE_PASSWORD=${{ secrets.DATABASE_MANAGER_PASSWORD }}" >> "$GITHUB_ENV"
       - name: Update running docker instance
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          # https://github.com/appleboy/ssh-action
-          host: "${{ secrets.EC2_DEPLOY_HOST }}"
-          username: ubuntu
-          key: ${{ secrets.EC2_DEPLOY_SSH_KEY }}
-          passphrase: ${{ secrets.EC2_DEPLOY_SSH_KEY_PASSPHRASE }}
-          # For docker stop and rm steps:
-          # https://stackoverflow.com/questions/69943233/print-only-names-column-from-docker-container-ls-la-output
-          # https://stackoverflow.com/questions/74800773/how-to-avoid-getting-an-error-message-when-there-is-no-docker-container-image-vo
-          script: |
-            echo ${{ secrets.DOCKERHUB_TOKEN }} | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
-            sudo docker pull totocorpsoftwareinc/user-service:${{ env.GIT_COMMIT_HASH }}
-            sudo docker container ls -la --format "{{.Names}}" | grep user-service | xargs --no-run-if-empty sudo docker stop user-service
-            sudo docker container ls -la --format "{{.Names}}" | grep user-service | xargs --no-run-if-empty sudo docker rm user-service
-            sudo docker run \
-              --network ${{ env.DOCKER_NETWORK_BRIDGE_NAME }} \
-              -p ${{ env.DATABASE_PORT}} \
-              -p ${{ env.SERVER_PORT}}:${{ env.SERVER_PORT}} \
-              -e ENV_DATABASE_PASSWORD='${{ env.ENV_DATABASE_PASSWORD }}' \
-              --name user-service \
-              -d \
-              --restart on-failure:${{ env.RETRIES_COUNT}} \
-              totocorpsoftwareinc/user-service:${{ env.GIT_COMMIT_HASH }}
+        # https://github.com/docker/compose/issues/10309
+        # https://stackoverflow.com/questions/39168239/update-only-one-container-via-docker-compose
+        script: |
+          sudo docker --host ssh://${{ secrets.EC2_DEPLOY_USER }}@${{ secrets.EC2_DEPLOY_HOST }} \
+            compose up -d
   persist-service-tag:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/master' && (${{ github.actor != 'github-actions[bot]' && github.event_name != 'push' || github.event.pusher.name != 'github-actions[bot]' }})
