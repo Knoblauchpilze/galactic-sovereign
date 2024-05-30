@@ -44,8 +44,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Extract user service tag
-        run: echo "USER_SERVICE_TAG=$(echo "${{ github.event.workflow_run.head_sha }}" | cut -c1-7)" >> "$GITHUB_ENV"
-        #run: echo "USER_SERVICE_TAG=$(git rev-parse --short "$GITHUB_SHA")" >> "$GITHUB_ENV"
+        run: echo "USER_SERVICE_TAG=$(git rev-parse --short $GITHUB_SHA)" >> "$GITHUB_ENV"
       - name: Extract webserver tag
         run: echo "WEBSERVER_TAG=$(cat ./build/webserver/version.txt)" >> "$GITHUB_ENV"
       - name: Inject database password
@@ -64,7 +63,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Save service tag
-        run: echo "${{ env.GIT_COMMIT_HASH }}" > ./build/users/version.txt
+        run: echo "${{ github.event.workflow_run.head_sha }}" | cut -c1-7 > ./build/users/version.txt
+        run: echo "$(git rev-parse --short $GITHUB_SHA)" > ./build/users/version.txt
       - name: Commit changes
         run: |
           git config --global user.name 'totocorpbot'

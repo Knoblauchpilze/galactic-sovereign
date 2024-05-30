@@ -58,7 +58,7 @@ jobs:
     needs: [deploy]
     steps:
       - name: Save service tag
-        run: echo "${{ env.GIT_COMMIT_HASH }}" > ./build/webserver/version.txt
+        run: echo "${{ github.event.workflow_run.head_sha }}" | cut -c1-7 > ./build/webserver/version.txt
       - name: Commit changes
         run: |
           git config --global user.name 'totocorpbot'
