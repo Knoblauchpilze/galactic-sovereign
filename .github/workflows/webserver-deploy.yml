@@ -29,8 +29,6 @@ jobs:
     steps:
       - name: Extract commit hash
         run: echo "GIT_COMMIT_HASH=$(echo "${{ github.event.workflow_run.head_sha }}" | cut -c1-7)" >> $GITHUB_ENV
-      - name: Inject database password
-        run: echo "ENV_DATABASE_PASSWORD=${{ secrets.DATABASE_MANAGER_PASSWORD }}" >> $GITHUB_ENV
       - name: Update running docker instance
         uses: appleboy/ssh-action@v1.0.3
         with:
