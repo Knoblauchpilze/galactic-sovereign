@@ -33,11 +33,3 @@ jobs:
             API_BASE_URL=http://user-service:80/v1/users
           push: true
           tags: totocorpsoftwareinc/webserver:${{ env.GIT_COMMIT_HASH }}
-      - name: Save service tag
-        run: echo "${{ env.GIT_COMMIT_HASH }}" > ./build/webserver/version.txt
-      - name: Commit changes
-        run: |
-          git config --global user.name 'totocorpbot'
-          git config --global user.email 'totocorpbot@users.noreply.github.com'
-          git commit -am "infra: Bumped webserver version to ${{ env.GIT_COMMIT_HASH }}"
-          git push

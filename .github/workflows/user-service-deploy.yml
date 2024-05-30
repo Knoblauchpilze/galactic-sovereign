@@ -71,3 +71,17 @@ jobs:
               -d \
               --restart on-failure:${{ env.RETRIES_COUNT}} \
               totocorpsoftwareinc/user-service:${{ env.GIT_COMMIT_HASH }}
+  persist-service-tag:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master' && (${{ github.actor != 'github-actions[bot]' && github.event_name != 'push' || github.event.pusher.name != 'github-actions[bot]' }})
+    # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idneeds
+    needs: [deploy]
+    steps:
+      - name: Save service tag
+        run: echo "${{ env.GIT_COMMIT_HASH }}" > ./build/users/version.txt
+      - name: Commit changes
+        run: |
+          git config --global user.name 'totocorpbot'
+          git config --global user.email 'totocorpbot@users.noreply.github.com'
+          git commit -am "infra: Bumped user service version to ${{ env.GIT_COMMIT_HASH }}"
+          git push

@@ -30,11 +30,3 @@ jobs:
           build-args: GIT_COMMIT_HASH=${{ env.GIT_COMMIT_HASH }}
           push: true
           tags: totocorpsoftwareinc/user-service:${{ env.GIT_COMMIT_HASH }}
-      - name: Save service tag
-        run: echo "${{ env.GIT_COMMIT_HASH }}" > ./build/users/version.txt
-      - name: Commit changes
-        run: |
-          git config --global user.name 'totocorpbot'
-          git config --global user.email 'totocorpbot@users.noreply.github.com'
-          git commit -am "infra: Bumped user service version to ${{ env.GIT_COMMIT_HASH }}"
-          git push
