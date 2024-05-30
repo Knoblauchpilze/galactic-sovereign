@@ -41,14 +41,20 @@ jobs:
         run: echo "USER_SERVICE_TAG=$(git rev-parse --short $GITHUB_SHA)" >> $GITHUB_ENV
       - name: Extract webserver tag
         run: echo "WEBSERVER_TAG=$(cat ./build/webserver/version.txt)" >> $GITHUB_ENV
-      - name: Inject database password
-        run: echo "ENV_DATABASE_PASSWORD=${{ secrets.DATABASE_MANAGER_PASSWORD }}" >> $GITHUB_ENV
+      - name: Install deployment ssh keys
+        uses: shimataro/ssh-key-action@v2
+        with:
+          key: ${{ secrets.EC2_DEPLOY_SSH_KEY }}
+          config: ${{ secrets.CONFIG }} # ssh_config; optional
       - name: Update running docker instance
+        # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepsenv
+        env:
+          USER_SERVICE_TAG: ${{ env.USER_SERVICE_TAG }}
+          WEBSERVER_TAG: ${{ env.WEBSERVER_TAG }}
+          ENV_DATABASE_PASSWORD: ${{ secrets.DATABASE_MANAGER_PASSWORD }}
         # https://github.com/docker/compose/issues/10309
         # https://stackoverflow.com/questions/39168239/update-only-one-container-via-docker-compose
         run: |
-          export USER_SERVICE_TAG=${{ env.USER_SERVICE_TAG }}
-          export WEBSERVER_TAG=${{ env.WEBSERVER_TAG }}
           sudo docker \
             --host ssh://${{ secrets.EC2_DEPLOY_USER }}@${{ secrets.EC2_DEPLOY_HOST }} \
             compose \
