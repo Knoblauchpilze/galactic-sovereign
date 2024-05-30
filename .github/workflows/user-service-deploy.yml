@@ -38,15 +38,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Extract user service tag
-        run: echo "USER_SERVICE_TAG=$(git rev-parse --short $GITHUB_SHA)" >> "$GITHUB_ENV"
+        run: echo "USER_SERVICE_TAG=$(git rev-parse --short $GITHUB_SHA)" >> $GITHUB_ENV
       - name: Extract webserver tag
-        run: echo "WEBSERVER_TAG=$(cat ./build/webserver/version.txt)" >> "$GITHUB_ENV"
+        run: echo "WEBSERVER_TAG=$(cat ./build/webserver/version.txt)" >> $GITHUB_ENV
       - name: Inject database password
-        run: echo "ENV_DATABASE_PASSWORD=${{ secrets.DATABASE_MANAGER_PASSWORD }}" >> "$GITHUB_ENV"
+        run: echo "ENV_DATABASE_PASSWORD=${{ secrets.DATABASE_MANAGER_PASSWORD }}" >> $GITHUB_ENV
       - name: Update running docker instance
         # https://github.com/docker/compose/issues/10309
         # https://stackoverflow.com/questions/39168239/update-only-one-container-via-docker-compose
         run: |
+          export USER_SERVICE_TAG=${{ env.USER_SERVICE_TAG }}
+          export WEBSERVER_TAG=${{ env.WEBSERVER_TAG }}
           sudo docker \
             --host ssh://${{ secrets.EC2_DEPLOY_USER }}@${{ secrets.EC2_DEPLOY_HOST }} \
             compose \
