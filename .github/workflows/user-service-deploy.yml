@@ -63,7 +63,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Save service tag
-        run: echo "${{ github.event.workflow_run.head_sha }}" | cut -c1-7 > ./build/users/version.txt
         run: echo "$(git rev-parse --short $GITHUB_SHA)" > ./build/users/version.txt
       - name: Commit changes
         run: |
