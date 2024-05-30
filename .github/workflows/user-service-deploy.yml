@@ -27,6 +27,7 @@ jobs:
   build-docker-image:
     if: ${{ github.actor != 'github-actions[bot]' && github.event_name != 'push' || github.event.pusher.name != 'github-actions[bot]' }}
     # https://stackoverflow.com/questions/72851548/permission-denied-to-github-actionsbot
+    needs: [tests]
     permissions:
       contents: write
     uses: ./.github/workflows/user-service-build-and-push-docker-image.yml
@@ -38,7 +39,7 @@ jobs:
     # https://stackoverflow.com/questions/58139406/only-run-job-on-specific-branch-with-github-actions
     if: github.ref == 'refs/heads/master' && (${{ github.actor != 'github-actions[bot]' && github.event_name != 'push' || github.event.pusher.name != 'github-actions[bot]' }})
     # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idneeds
-    needs: [tests, build-docker-image]
+    needs: [build-docker-image]
     # https://medium.com/ryanjang-devnotes/ci-cd-hands-on-github-actions-docker-hub-aws-ec2-ba09f80297e1
     steps:
       - name: Extract commit hash
