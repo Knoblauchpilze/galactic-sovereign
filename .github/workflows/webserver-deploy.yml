@@ -56,6 +56,7 @@ jobs:
     if: github.ref == 'refs/heads/master' && (${{ github.actor != 'github-actions[bot]' && github.event_name != 'push' || github.event.pusher.name != 'github-actions[bot]' }})
     # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idneeds
     needs: [deploy]
+    steps:
       - name: Save service tag
         run: echo "${{ env.GIT_COMMIT_HASH }}" > ./build/webserver/version.txt
       - name: Commit changes
