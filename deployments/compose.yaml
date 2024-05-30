@@ -10,8 +10,7 @@ services:
       - "5432"
     environment:
       # https://docs.docker.com/compose/environment-variables/set-environment-variables/#compose-file
-      # Should be provided as an environment variable
-      ENV_DATABASE_PASSWORD:
+      - ENV_DATABASE_PASSWORD=${ENV_DATABASE_PASSWORD}
   webserver:
     image: totocorpsoftwareinc/webserver:${WEBSERVER_TAG}
     container_name: webserver
