@@ -16,6 +16,4 @@ COPY --from=builder build/bin bin/
 WORKDIR /app/bin
 # https://stackoverflow.com/questions/68173651/connecting-to-a-localhost-postgres-database-from-within-a-docker-container
 ENV ENV_DATABASE_HOST="172.17.0.1"
-ENV ENV_DATABASE_PORT=5432
-ENV ENV_SERVER_PORT=80
 CMD ["./users"]

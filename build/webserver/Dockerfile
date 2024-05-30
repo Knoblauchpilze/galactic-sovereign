@@ -9,9 +9,8 @@ RUN npm run build
 
 FROM node:22-alpine3.18
 ARG GIT_COMMIT_HASH="undefined"
-ARG SERVER_ORIGIN="http://localhost:3000"
-ARG NODE_PORT=3000
-ARG API_BASE_URL="http://user-service:80/v1/users"
+ARG SERVER_ORIGIN="http://localhost:3001"
+ARG NODE_PORT=3001
 ENV GIT_COMMIT_HASH=$GIT_COMMIT_HASH
 # https://stackoverflow.com/questions/13333221/how-to-change-value-of-process-env-port-in-node-js
 ENV PORT=$NODE_PORT
