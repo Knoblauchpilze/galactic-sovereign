@@ -10,12 +10,6 @@ on:
       - "build/users/**"
       - ".github/workflows/user-service*.yml"
 
-env:
-  DOCKER_NETWORK_BRIDGE_NAME: "totocorp-network"
-  DATABASE_PORT: 5432
-  SERVER_PORT: 80
-  RETRIES_COUNT: 5
-
 jobs:
   # https://docs.github.com/en/actions/using-workflows/reusing-workflows#calling-a-reusable-workflow
   tests:
@@ -53,8 +47,11 @@ jobs:
         # https://github.com/docker/compose/issues/10309
         # https://stackoverflow.com/questions/39168239/update-only-one-container-via-docker-compose
         run: |
-          sudo docker --host ssh://${{ secrets.EC2_DEPLOY_USER }}@${{ secrets.EC2_DEPLOY_HOST }} \
-            compose up -d
+          sudo docker \
+            --host ssh://${{ secrets.EC2_DEPLOY_USER }}@${{ secrets.EC2_DEPLOY_HOST }} \
+            -f ./deployments/compose.yml \
+            compose up \
+            -d
   persist-service-tag:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/master' && (${{ github.actor != 'github-actions[bot]' && github.event_name != 'push' || github.event.pusher.name != 'github-actions[bot]' }})
