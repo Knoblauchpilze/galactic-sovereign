@@ -12,28 +12,28 @@ on:
 
 jobs:
   # https://docs.github.com/en/actions/using-workflows/reusing-workflows#calling-a-reusable-workflow
-  # tests:
-  #   # https://github.com/orgs/community/discussions/74772
-  #   if: ${{ github.actor != 'github-actions[bot]' && github.event_name != 'push' || github.event.pusher.name != 'github-actions[bot]' }}
-  #   uses: ./.github/workflows/tests.yml
-  #   secrets:
-  #     codecov-token: ${{ secrets.CODECOV_TOKEN }}
-  # build-docker-image:
-  #   if: ${{ github.actor != 'github-actions[bot]' && github.event_name != 'push' || github.event.pusher.name != 'github-actions[bot]' }}
-  #   # https://stackoverflow.com/questions/72851548/permission-denied-to-github-actionsbot
-  #   needs: [tests]
-  #   permissions:
-  #     contents: write
-  #   uses: ./.github/workflows/user-service-build-and-push-docker-image.yml
-  #   secrets:
-  #     dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
-  #     dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
+  tests:
+    # https://github.com/orgs/community/discussions/74772
+    if: ${{ github.actor != 'github-actions[bot]' && github.event_name != 'push' || github.event.pusher.name != 'github-actions[bot]' }}
+    uses: ./.github/workflows/tests.yml
+    secrets:
+      codecov-token: ${{ secrets.CODECOV_TOKEN }}
+  build-docker-image:
+    if: ${{ github.actor != 'github-actions[bot]' && github.event_name != 'push' || github.event.pusher.name != 'github-actions[bot]' }}
+    # https://stackoverflow.com/questions/72851548/permission-denied-to-github-actionsbot
+    needs: [tests]
+    permissions:
+      contents: write
+    uses: ./.github/workflows/user-service-build-and-push-docker-image.yml
+    secrets:
+      dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
+      dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
   deploy:
     runs-on: ubuntu-latest
     # https://stackoverflow.com/questions/58139406/only-run-job-on-specific-branch-with-github-actions
     if: github.ref == 'refs/heads/master' && (${{ github.actor != 'github-actions[bot]' && github.event_name != 'push' || github.event.pusher.name != 'github-actions[bot]' }})
     # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idneeds
-    # needs: [build-docker-image]
+    needs: [build-docker-image]
     steps:
       - uses: actions/checkout@v4
       - name: Extract user service tag
