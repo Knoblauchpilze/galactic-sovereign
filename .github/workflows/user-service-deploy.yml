@@ -43,13 +43,6 @@ jobs:
         with:
           key: ${{ secrets.EC2_DEPLOY_SSH_KEY }}
           known_hosts: ${{ secrets.EC2_DEPLOY_SSH_KNOWN_HOSTS }}
-      # - name: Install SSH keys
-      #   run: |
-      #     mkdir -p ~/.ssh/
-      #     echo "${{ secrets.EC2_DEPLOY_SSH_KEY }}" > ~/.ssh/id_rsa
-      #     sudo chmod 600 ~/.ssh/id_rsa
-      #     echo "Host *" > ~/.ssh/config
-      #     echo "  StrictHostKeyChecking no" >> ~/.ssh/config
       - name: Update running docker instance
         # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepsenv
         env:
@@ -78,10 +71,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Save service tag
-        run: echo "$(git rev-parse --short $GITHUB_SHA)" > ./build/users/version.txt
+        env:
+          USER_SERVICE_TAG: ${{ env.USER_SERVICE_TAG }}
+        run: echo "${{ env.USER_SERVICE_TAG }}" > ./build/users/version.txt
       - name: Commit changes
+        env:
+          USER_SERVICE_TAG: ${{ env.USER_SERVICE_TAG }}
         run: |
           git config --global user.name 'totocorpbot'
           git config --global user.email 'totocorpbot@users.noreply.github.com'
-          git commit -am "infra: Bumped user service version to $(git rev-parse --short $GITHUB_SHA)"
+          git commit -am "infra: Bumped user service version to ${{ env.USER_SERVICE_TAG }}"
           git push
