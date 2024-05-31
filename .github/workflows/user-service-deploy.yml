@@ -40,11 +40,16 @@ jobs:
         run: echo "USER_SERVICE_TAG=$(git rev-parse --short $GITHUB_SHA)" >> $GITHUB_ENV
       - name: Extract webserver tag
         run: echo "WEBSERVER_TAG=$(cat ./build/webserver/version.txt)" >> $GITHUB_ENV
-      - name: Install SSH key
-        uses: shimataro/ssh-key-action@v2
-        with:
-          key: ${{ secrets.EC2_DEPLOY_SSH_KEY }}
-          known_hosts: ${{ secrets.EC2_DEPLOY_SSH_KNOWN_HOSTS }}
+      # - name: Install SSH keys
+      #   uses: shimataro/ssh-key-action@v2
+      #   with:
+      #     key: ${{ secrets.EC2_DEPLOY_SSH_KEY }}
+      #     known_hosts: ${{ secrets.EC2_DEPLOY_SSH_KNOWN_HOSTS }}
+      -name: Install SSH keys
+        run: |
+          install -m 600 -D /dev/null ~/.ssh/id_rsa
+          echo "${{ secrets.EC2_DEPLOY_SSH_KEY }}" > ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.EC2_DEPLOY_SSH_KNOWN_HOSTS }} > ~/.ssh/known_hosts
       - name: Update running docker instance
         # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepsenv
         env:
