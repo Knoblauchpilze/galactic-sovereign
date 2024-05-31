@@ -70,6 +70,8 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
+      - name: Extract user service tag
+        run: echo "USER_SERVICE_TAG=$(git rev-parse --short $GITHUB_SHA)" >> $GITHUB_ENV
       - name: Save service tag
         env:
           USER_SERVICE_TAG: ${{ env.USER_SERVICE_TAG }}
