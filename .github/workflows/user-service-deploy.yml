@@ -68,6 +68,8 @@ jobs:
             -f ./deployments/compose.yaml \
             up \
             -d
+        run: |
+          cat ~/.ssh/known_hosts
   persist-service-tag:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/master' && (${{ github.actor != 'github-actions[bot]' && github.event_name != 'push' || github.event.pusher.name != 'github-actions[bot]' }})
