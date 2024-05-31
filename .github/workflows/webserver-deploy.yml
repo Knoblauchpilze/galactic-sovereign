@@ -59,7 +59,10 @@ jobs:
     if: github.ref == 'refs/heads/master' && (${{ github.actor != 'github-actions[bot]' && github.event_name != 'push' || github.event.pusher.name != 'github-actions[bot]' }})
     # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idneeds
     needs: [deploy]
+    permissions:
+      contents: write
     steps:
+      - uses: actions/checkout@v4
       - name: Save service tag
         env:
           WEBSERVER_TAG: ${{ env.WEBSERVER_TAG }}
