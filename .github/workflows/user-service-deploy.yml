@@ -49,7 +49,8 @@ jobs:
         run: |
           install -m 600 -D /dev/null ~/.ssh/id_rsa
           echo "${{ secrets.EC2_DEPLOY_SSH_KEY }}" > ~/.ssh/id_rsa
-          ssh-keyscan -H ${{ secrets.EC2_DEPLOY_HOST }} > ~/.ssh/known_hosts
+          echo "Host *" > ~/.ssh/config
+          echo "    StrictHostKeyChecking no" >> ~/.ssh/config
       - name: Update running docker instance
         # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepsenv
         env:
