@@ -45,7 +45,7 @@ jobs:
       #   with:
       #     key: ${{ secrets.EC2_DEPLOY_SSH_KEY }}
       #     known_hosts: ${{ secrets.EC2_DEPLOY_SSH_KNOWN_HOSTS }}
-      -name: Install SSH keys
+      - name: Install SSH keys
         run: |
           install -m 600 -D /dev/null ~/.ssh/id_rsa
           echo "${{ secrets.EC2_DEPLOY_SSH_KEY }}" > ~/.ssh/id_rsa
