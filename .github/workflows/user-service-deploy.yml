@@ -38,18 +38,18 @@ jobs:
         run: echo "USER_SERVICE_TAG=$(git rev-parse --short $GITHUB_SHA)" >> $GITHUB_ENV
       - name: Extract webserver tag
         run: echo "WEBSERVER_TAG=$(cat ./build/webserver/version.txt)" >> $GITHUB_ENV
-      # - name: Install SSH keys
-      #   uses: shimataro/ssh-key-action@v2
-      #   with:
-      #     key: ${{ secrets.EC2_DEPLOY_SSH_KEY }}
-      #     known_hosts: ${{ secrets.EC2_DEPLOY_SSH_KNOWN_HOSTS }}
       - name: Install SSH keys
-        run: |
-          mkdir -p ~/.ssh/
-          echo "${{ secrets.EC2_DEPLOY_SSH_KEY }}" > ~/.ssh/id_rsa
-          sudo chmod 600 ~/.ssh/id_rsa
-          echo "Host *" > ~/.ssh/config
-          echo "  StrictHostKeyChecking no" >> ~/.ssh/config
+        uses: shimataro/ssh-key-action@v2
+        with:
+          key: ${{ secrets.EC2_DEPLOY_SSH_KEY }}
+          known_hosts: ${{ secrets.EC2_DEPLOY_SSH_KNOWN_HOSTS }}
+      # - name: Install SSH keys
+      #   run: |
+      #     mkdir -p ~/.ssh/
+      #     echo "${{ secrets.EC2_DEPLOY_SSH_KEY }}" > ~/.ssh/id_rsa
+      #     sudo chmod 600 ~/.ssh/id_rsa
+      #     echo "Host *" > ~/.ssh/config
+      #     echo "  StrictHostKeyChecking no" >> ~/.ssh/config
       - name: Update running docker instance
         # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepsenv
         env:
@@ -68,9 +68,6 @@ jobs:
             -f ./deployments/compose.yaml \
             up \
             -d
-      - name: Dsplay
-        run: |
-          cat ~/.ssh/known_hosts
   persist-service-tag:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/master' && (${{ github.actor != 'github-actions[bot]' && github.event_name != 'push' || github.event.pusher.name != 'github-actions[bot]' }})
