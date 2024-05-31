@@ -63,6 +63,8 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
+      - name: Extract webserver tag
+        run: echo "WEBSERVER_TAG=$(git rev-parse --short $GITHUB_SHA)" >> $GITHUB_ENV
       - name: Save service tag
         env:
           WEBSERVER_TAG: ${{ env.WEBSERVER_TAG }}
