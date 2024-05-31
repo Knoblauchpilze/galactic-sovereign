@@ -68,6 +68,7 @@ jobs:
             -f ./deployments/compose.yaml \
             up \
             -d
+      - name: Dsplay
         run: |
           cat ~/.ssh/known_hosts
   persist-service-tag:
