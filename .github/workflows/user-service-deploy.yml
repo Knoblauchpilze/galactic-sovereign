@@ -83,5 +83,5 @@ jobs:
         run: |
           git config --global user.name 'totocorpbot'
           git config --global user.email 'totocorpbot@users.noreply.github.com'
-          git commit -am "infra: Bumped user service version to ${{ env.GIT_COMMIT_HASH }}"
+          git commit -am "infra: Bumped user service version to $(git rev-parse --short $GITHUB_SHA)"
           git push
