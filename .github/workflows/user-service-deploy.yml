@@ -40,17 +40,11 @@ jobs:
         run: echo "USER_SERVICE_TAG=$(git rev-parse --short $GITHUB_SHA)" >> $GITHUB_ENV
       - name: Extract webserver tag
         run: echo "WEBSERVER_TAG=$(cat ./build/webserver/version.txt)" >> $GITHUB_ENV
-      # - name: Install SSH keys
-      #   uses: shimataro/ssh-key-action@v2
-      #   with:
-      #     key: ${{ secrets.EC2_DEPLOY_SSH_KEY }}
-      #     known_hosts: ${{ secrets.EC2_DEPLOY_SSH_KNOWN_HOSTS }}
       - name: Install SSH keys
-        run: |
-          install -m 600 -D /dev/null ~/.ssh/id_rsa
-          echo "${{ secrets.EC2_DEPLOY_SSH_KEY }}" > ~/.ssh/id_rsa
-          echo "Host *" > ~/.ssh/config
-          echo "    StrictHostKeyChecking no" >> ~/.ssh/config
+        uses: shimataro/ssh-key-action@v2
+        with:
+          key: ${{ secrets.EC2_DEPLOY_SSH_KEY }}
+          known_hosts: ${{ secrets.EC2_DEPLOY_SSH_KNOWN_HOSTS }}
       - name: Update running docker instance
         # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepsenv
         env:
@@ -59,16 +53,18 @@ jobs:
           ENV_DATABASE_PASSWORD: ${{ secrets.DATABASE_MANAGER_PASSWORD }}
         # https://github.com/docker/compose/issues/10309
         # https://stackoverflow.com/questions/39168239/update-only-one-container-via-docker-compose
+        # run: |
+        #   echo "USER_SERVICE_TAG=${{ env.USER_SERVICE_TAG }}" >> ./deployments/.env
+        #   echo "WEBSERVER_TAG=${{ env.WEBSERVER_TAG }}" >> ./deployments/.env
+        #   echo "ENV_DATABASE_PASSWORD=${{ secrets.DATABASE_MANAGER_PASSWORD }}" >> ./deployments/.env
+        #   sudo docker \
+        #     --host ssh://ubuntu@${{ secrets.EC2_DEPLOY_HOST }} \
+        #     compose \
+        #     -f ./deployments/compose.yaml \
+        #     up \
+        #     -d
         run: |
-          echo "USER_SERVICE_TAG=${{ env.USER_SERVICE_TAG }}" >> ./deployments/.env
-          echo "WEBSERVER_TAG=${{ env.WEBSERVER_TAG }}" >> ./deployments/.env
-          echo "ENV_DATABASE_PASSWORD=${{ secrets.DATABASE_MANAGER_PASSWORD }}" >> ./deployments/.env
-          sudo docker \
-            --host ssh://ubuntu@${{ secrets.EC2_DEPLOY_HOST }} \
-            compose \
-            -f ./deployments/compose.yaml \
-            up \
-            -d
+          ssh ubuntu@${{ secrets.EC2_DEPLOY_HOST }} "ls scripts"
   persist-service-tag:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/master' && (${{ github.actor != 'github-actions[bot]' && github.event_name != 'push' || github.event.pusher.name != 'github-actions[bot]' }})
