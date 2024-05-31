@@ -58,7 +58,7 @@ jobs:
           echo "WEBSERVER_TAG=${{ env.WEBSERVER_TAG }}" >> ./deployments/.env
           echo "ENV_DATABASE_PASSWORD=${{ secrets.DATABASE_MANAGER_PASSWORD }}" >> ./deployments/.env
           sudo docker \
-            --host ssh://${{ secrets.EC2_DEPLOY_USER }}@${{ secrets.EC2_DEPLOY_HOST }} \
+            --host ssh://ubuntu@${{ secrets.EC2_DEPLOY_HOST }} \
             compose \
             -f ./deployments/compose.yaml \
             up \
