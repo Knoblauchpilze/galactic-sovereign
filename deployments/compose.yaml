@@ -1,9 +1,10 @@
+name: toto
 services:
   user-service:
     image: totocorpsoftwareinc/user-service:${USER_SERVICE_TAG}
     container_name: user-service
     networks:
-      - totocorp-network
+      - corp-network
     restart: on-failure:5
     ports:
       - "80:80"
@@ -11,15 +12,16 @@ services:
     environment:
       # https://docs.docker.com/compose/environment-variables/set-environment-variables/#compose-file
       - ENV_DATABASE_PASSWORD=${ENV_DATABASE_PASSWORD}
+
   webserver:
     image: totocorpsoftwareinc/webserver:${WEBSERVER_TAG}
     container_name: webserver
     networks:
-      - totocorp-network
+      - corp-network
     restart: on-failure:5
     ports:
       - "3001:3001"
 
 # https://docs.docker.com/compose/compose-file/06-networks/
 networks:
-  totocorp-network:
+  corp-network:

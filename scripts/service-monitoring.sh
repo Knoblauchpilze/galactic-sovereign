@@ -4,6 +4,7 @@ ENDPOINT=${SERVICE_ENDPOINT:-v1}
 PORT=${SERVICE_PORT:-80}
 
 CONTAINER_NAME=${SERVICE_NAME:-user-service}
+DOCKER_COMPOSE_FILE=${COMPOSE_FILE:-/home/ubuntu/deployments/compose.yaml}
 
 URL="http://localhost:${PORT}/${ENDPOINT}/healthcheck"
 
@@ -24,4 +25,4 @@ docker container ls -la --format "{{.Names}}" | \
   xargs --no-run-if-empty docker stop ${CONTAINER_NAME}
 
 echo "Restarting docker container..."
-docker start ${CONTAINER_NAME}
+docker compose -f ${DOCKER_COMPOSE_FILE} restart ${CONTAINER_NAME}

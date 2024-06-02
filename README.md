@@ -139,39 +139,11 @@ sudo systemctl restart postgresql
 
 With all of this, the service running in the docker container should be able to connect to the database.
 
-### Create a docker bridge network
+### Allow the default EC2 user to use docker commands without sudo
 
-#### Problem statement
+The project defines a CI workflow which is able to automatically update the running containers on code changes. This is accomplished through ssh and more details can be found in the [dedicated section](#deploying-the-service-to-an-ec2-instance).
 
-Consider the following situation:
-
-- container A provides an API on port 80
-- container B would like to reach endpoints exposed by A on port 80
-
-To achieve this we somehow need to:
-
-- instruct Docker to bind the host port 80 to container A (e.g. with `-p 80:80`) so that it can serve the outside world
-- instruct Docker to bind the host port 80 to container B (with the same command as above!) so that it can target container A.
-
-This usually result in the following:
-
-![Docker bind failure](resources/docker-bind-failure.png)
-
-#### How to solve this
-
-In order to solve this, we rely on the idea of [docker bridge network](https://docs.docker.com/network/drivers/bridge/).
-
-The idea is to connect containers in the same virtual network where they can access each other's without sharing the host network. This removes the need to expose multiple times the same port and essentially act as if they would be on separate machine. The Docker daemon also provides convenience access to a DNS-like system to access containers by their name (e.g. `http://your-container-name:80/endpoint`).
-
-#### Setup the bridge network
-
-Throughout this project we use the same bridge network called `totocorp-network` (see it in the [Makefile](Makefile)). It needs to be created once before any of the CI process try to access the machine (as it assumes it already exists).
-
-In order to do so, we need to run the following command (see [documentation](https://docs.docker.com/network/drivers/bridge/#manage-a-user-defined-bridge)):
-
-```bash
-docker network create totocorp-network
-```
+In order to allow the CI to execute the docker commands needed to update the containers, it is necessary to add the default user to the group of users who can execute docker without sudo. This can be done by following this [guide](https://docs.docker.com/engine/install/linux-postinstall/).
 
 ## Setup the database
 
@@ -348,25 +320,42 @@ In case something fails during the restore operation, the best course of action 
 
 ## Deploying the service to an EC2 instance
 
-In order to deploy the service to run on an EC2 instance, we dockerize it by building a docker image for it. This process is automated in the CI and runs on each push to the master branch after the tests and the build of the image completed successfully.
+### General principle
 
-The image is pushed to a dedicated dockerhub repository with a tag corresponding to the short SHA of the commit which generated the build:
+In order to deploy the services to run on an EC2 instance, we chose to have them distributed in the form of a docker image. This process i automatedi n the CI and runs on each push to the master branch. The process is only triggered if the tests passed and if the docker image could be built successfully.
+
+For each service the resulting image is pushed to a dedicated dockerhub repository with a tag corresponding to the short SHA of the commit which triggered the build:
 
 ![Dockerhub repository](resources/dockerhub-repo.png)
 
 Images are publicly available and can be downloaded with a simple `docker pull` command such as:
 
 ```bash
-docker up totocorpsoftwareinc/user-service:YOUR-TAG
+docker pull totocorpsoftwareinc/user-service:YOUR-TAG
 ```
 
 To build the CI pipeline, we took a lot of inspiration from the content of [this article](https://medium.com/ryanjang-devnotes/ci-cd-hands-on-github-actions-docker-hub-aws-ec2-ba09f80297e1) by Minho Jang. It explains the steps to connect to the instance and update the running docker image.
 
-The deployment process offers a small amount of flexibility. As it is it will try to reach an EC2 instance with a known IP address (if the IP changes we need to update the CI) and start the container to listen on port `80`.
+A main difference is that as we might have multiple services we chose to use [docker compose](https://docs.docker.com/compose/) to manage the containers.
 
-## Monitoring the service
+### Docker compose architecture
 
-In order to monitor the health of the service while deployed, it is possible to use the script [service-monitoring.sh](scripts/service-monitoring.sh). This script is meant to be ran as a cron job in a similar way to the database [backup script](#setting-up-the-database-backup).
+The [deployments](deployments) folder defines the docker compose definition to deploy the services. The idea is to have a single file defining all the services that need to be started and how to do so.
+
+Some of the properties of the containers are provided as environment variables in the shell executing the `docker compose` command and come either from secrets known by the CI or from workflow properties.
+
+On the EC2 instance, docker is managing the containers and making sure that they are still running. This also plays nicely with the [monitoring](#monitoring-the-services) which is an additional mechanism to ensure the continuous availability of the services.
+
+In order for services to communicate with one another, we attach all of them to the same [docker bridge network](https://docs.docker.com/network/drivers/bridge/). The idea is to connect containers in the same virtual network where they can access each other's without sharing the host network. This removes the need to expose multiple times the same port and essentially act as if they would be on separate machine. The Docker daemon also provides convenience access to a DNS-like system to access containers by their name (e.g. `http://your-container-name:80/endpoint`). The network is automatically created by the docker compose command;
+
+## Monitoring the services
+
+As explained in the [deploy section](#deploying-the-service-to-an-ec2-instance) docker compose is already making sure that the containers are up and running. We decided to still implement some additional mechanism to ensure monitoring. The idea being that:
+
+- we limit the number of restarts to 5 in case of failures (which should be enough for temporary problems but would not be enough for example when the database has an outage).
+- we might want to send notifications to some sort of integration platform to inform about the outage.
+
+In order to monitor the health of a service while deployed, it is possible to use the script [service-monitoring.sh](scripts/service-monitoring.sh). This script is meant to be ran as a cron job in a similar way to the database [backup script](#setting-up-the-database-backup).
 
 The script will attempt to curl the endpoint providing the healtcheck for the service and check the return code. For a healthy service this shoud be 200. Anything else will be interepreted as a unhealthy service and the script will attempt to stop the running docker container (if any) and start it again.
 
@@ -386,7 +375,7 @@ Once this is done, insert the following line:
 
 Most likely locally this will be the path to where the user cloned the repository and then `scripts/service-monitoring.sh` while in an EC2 instance it will be `/home/ubuntu/scripts/service-monitoring.sh` for example.
 
-As it is presented here the cron job will trigger every 5 minutes and take actions appropriately.
+As it is presented here the cron job will trigger every 5 minutes and take actions appropriately. The script only handles one service so typically it is recommended to have such a cron job running for each and every service in the platform.
 
 # How does the service work?
 
