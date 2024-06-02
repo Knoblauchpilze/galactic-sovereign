@@ -57,7 +57,7 @@ jobs:
       - name: Save user-service tag
         run: echo "${{ inputs.user-service-tag }}" > ./build/users/version.txt
       - name: Save webserver tag
-        run: echo "${{ inputs.webserver-tag }}" > ./build/users/version.txt
+        run: echo "${{ inputs.webserver-tag }}" > ./build/webserver/version.txt
       - name: Commit changes
         run: |
           git config --global user.name 'totocorpbot'
