@@ -4,6 +4,8 @@ The definition of a service to manage users and authentication. This service com
 
 [![codecov](https://codecov.io/gh/Knoblauchpilze/user-service/branch/master/badge.svg?token=WNLIZF0FBL)](https://codecov.io/gh/Knoblauchpilze/user-service)
 
+[![user-service deployed](https://github.com/Knoblauchpilze/user-service/actions/workflows/user-service-deploy.yml/badge.svg)](https://github.com/Knoblauchpilze/user-service/actions/workflows/user-service-deploy.yml)
+
 [![Webserver deployed](https://github.com/Knoblauchpilze/user-service/actions/workflows/webserver-deploy.yml/badge.svg)](https://github.com/Knoblauchpilze/user-service/actions/workflows/webserver-deploy.yml)
 
 # Installation
