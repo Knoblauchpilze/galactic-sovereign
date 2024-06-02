@@ -21,7 +21,6 @@ jobs:
       codecov-token: ${{ secrets.CODECOV_TOKEN }}
   build-docker-image:
     if: ${{ github.actor != 'github-actions[bot]' && github.event_name != 'push' || github.event.pusher.name != 'github-actions[bot]' }}
-    # https://stackoverflow.com/questions/72851548/permission-denied-to-github-actionsbot
     needs: [tests]
     uses: ./.github/workflows/user-service-build-and-push-docker-image.yml
     secrets:
@@ -30,11 +29,13 @@ jobs:
   collect-services-versions:
     runs-on: ubuntu-latest
     if: ${{ github.actor != 'github-actions[bot]' && github.event_name != 'push' || github.event.pusher.name != 'github-actions[bot]' }}
-    # https://stackoverflow.com/questions/72851548/permission-denied-to-github-actionsbot
     needs: [build-docker-image]
+    # https://docs.github.com/en/actions/using-jobs/defining-outputs-for-jobs
+    outputs:
+      user-service-tag: ${{ steps.user-service.outputs.tag }}
+      webserver-tag: ${{ steps.webserver.outputs.tag }}
     steps:
       - uses: actions/checkout@v4
-      # https://stackoverflow.com/questions/57819539/github-actions-how-to-share-a-calculated-value-between-job-steps
       - name: Extract user service tag
         id: user-service
         run: echo "tag=$(git rev-parse --short $GITHUB_SHA)" >> $GITHUB_OUTPUT
@@ -44,12 +45,14 @@ jobs:
   deploy:
     # https://stackoverflow.com/questions/58139406/only-run-job-on-specific-branch-with-github-actions
     if: github.ref == 'refs/heads/master' && (${{ github.actor != 'github-actions[bot]' && github.event_name != 'push' || github.event.pusher.name != 'github-actions[bot]' }})
-    # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idneeds
     needs: [collect-services-versions]
+    # https://docs.github.com/en/actions/using-workflows/reusing-workflows#access-and-permissions
+    permissions:
+      contents: write
     uses: ./.github/workflows/deploy-services.yml
     with:
-      user-service-tag: ${{ steps.user-service.outputs.tag }}
-      webserver-tag: ${{ steps.webserver.outputs.tag }}
+      user-service-tag: ${{ needs.collect-services-versions.outputs.user-service-tag }}
+      webserver-tag: ${{ needs.collect-services-versions.outputs.webserver-tag }}
     secrets:
       dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
       dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
