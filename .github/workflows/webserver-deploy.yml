@@ -18,57 +18,32 @@ jobs:
       dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
       dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
       webserver-host: ${{ secrets.EC2_DEPLOY_HOST }}
-  deploy:
+  collect-services-versions:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/master' && (${{ github.actor != 'github-actions[bot]' && github.event_name != 'push' || github.event.pusher.name != 'github-actions[bot]' }})
+    if: ${{ github.actor != 'github-actions[bot]' && github.event_name != 'push' || github.event.pusher.name != 'github-actions[bot]' }}
     needs: [build-docker-image]
+    outputs:
+      user-service-tag: ${{ steps.user-service.outputs.tag }}
+      webserver-tag: ${{ steps.webserver.outputs.tag }}
     steps:
       - uses: actions/checkout@v4
       - name: Extract user service tag
-        run: echo "USER_SERVICE_TAG=$(cat ./build/users/version.txt)" >> $GITHUB_ENV
+        id: user-service
+        run: echo "tag=$(cat ./build/users/version.txt)" >> $GITHUB_OUTPUT
       - name: Extract webserver tag
-        run: echo "WEBSERVER_TAG=$(git rev-parse --short $GITHUB_SHA)" >> $GITHUB_ENV
-      - name: Create docker compose env file
-        env:
-          USER_SERVICE_TAG: ${{ env.USER_SERVICE_TAG }}
-          WEBSERVER_TAG: ${{ env.WEBSERVER_TAG }}
-          ENV_DATABASE_PASSWORD: ${{ secrets.DATABASE_MANAGER_PASSWORD }}
-        run: |
-          echo "USER_SERVICE_TAG=${{ env.USER_SERVICE_TAG }}" >> ./deployments/.env
-          echo "WEBSERVER_TAG=${{ env.WEBSERVER_TAG }}" >> ./deployments/.env
-          echo "ENV_DATABASE_PASSWORD=${{ secrets.DATABASE_MANAGER_PASSWORD }}" >> ./deployments/.env
-      - name: Install SSH keys
-        uses: shimataro/ssh-key-action@v2
-        with:
-          key: ${{ secrets.EC2_DEPLOY_SSH_KEY }}
-          known_hosts: ${{ secrets.EC2_DEPLOY_SSH_KNOWN_HOSTS }}
-      - name: Update running docker instance
-        run: |
-          docker \
-            --host ssh://ubuntu@${{ secrets.EC2_DEPLOY_HOST }} \
-            compose \
-            -f ./deployments/compose.yaml \
-            up \
-            -d
-  persist-service-tag:
-    runs-on: ubuntu-latest
+        id: webserver
+        run: echo "tag=$(git rev-parse --short $GITHUB_SHA)" >> $GITHUB_OUTPUT
+  deploy:
     if: github.ref == 'refs/heads/master' && (${{ github.actor != 'github-actions[bot]' && github.event_name != 'push' || github.event.pusher.name != 'github-actions[bot]' }})
-    needs: [deploy]
+    needs: [collect-services-versions]
     permissions:
       contents: write
-    steps:
-      - uses: actions/checkout@v4
-      - name: Extract webserver tag
-        run: echo "WEBSERVER_TAG=$(git rev-parse --short $GITHUB_SHA)" >> $GITHUB_ENV
-      - name: Save service tag
-        env:
-          WEBSERVER_TAG: ${{ env.WEBSERVER_TAG }}
-        run: echo "${{ env.WEBSERVER_TAG }}" > ./build/webserver/version.txt
-      - name: Commit changes
-        env:
-          WEBSERVER_TAG: ${{ env.WEBSERVER_TAG }}
-        run: |
-          git config --global user.name 'totocorpbot'
-          git config --global user.email 'totocorpbot@users.noreply.github.com'
-          git commit -am "infra: Bumped webserver version to ${{ env.WEBSERVER_TAG }}"
-          git push
+    uses: ./.github/workflows/deploy-services.yml
+    with:
+      user-service-tag: ${{ needs.collect-services-versions.outputs.user-service-tag }}
+      webserver-tag: ${{ needs.collect-services-versions.outputs.webserver-tag }}
+    secrets:
+      deploy-ssh-key: ${{ secrets.EC2_DEPLOY_SSH_KEY }}
+      deploy-ssh-known-hosts: ${{ secrets.EC2_DEPLOY_SSH_KNOWN_HOSTS }}
+      deploy-host: ${{ secrets.EC2_DEPLOY_HOST }}
+      database-password: ${{ secrets.DATABASE_MANAGER_PASSWORD }}
