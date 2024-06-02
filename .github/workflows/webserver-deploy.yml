@@ -8,11 +8,6 @@ on:
       - "deployments/**"
       - ".github/workflows/webserver*.yml"
 
-env:
-  DOCKER_NETWORK_BRIDGE_NAME: "totocorp-network"
-  NODE_PORT: 3001
-  RETRIES_COUNT: 5
-
 jobs:
   build-docker-image:
     if: github.ref == 'refs/heads/master' && (${{ github.actor != 'github-actions[bot]' && github.event_name != 'push' || github.event.pusher.name != 'github-actions[bot]' }})

@@ -1,0 +1,65 @@
+name: Deploy service
+
+on:
+  workflow_call:
+    inputs:
+      user-service-tag:
+        description: "The version of the user-service to deploy"
+        required: true
+        type: string
+      webserver-tag:
+        description: "The version of the webserver to deploy"
+        required: true
+        type: string
+    secrets:
+      deploy-ssh-key:
+        required: true
+      deploy-ssh-known-hosts:
+        required: true
+      deploy-host:
+        required: true
+      database-password:
+        required: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    # https://stackoverflow.com/questions/58139406/only-run-job-on-specific-branch-with-github-actions
+    steps:
+      - name: Install SSH keys
+        uses: shimataro/ssh-key-action@v2
+        with:
+          key: ${{ secrets.deploy-ssh-key }}
+          known_hosts: ${{ secrets.deploy-ssh-known-hosts }}
+      - name: Update running docker instance
+        # https://github.com/docker/compose/issues/10309
+        # https://stackoverflow.com/questions/39168239/update-only-one-container-via-docker-compose
+        run: |
+          echo "USER_SERVICE_TAG=${{ inputs.user-service-tag }}" >> ./deployments/.env
+          echo "WEBSERVER_TAG=${{ inputs.webserver-tag }}" >> ./deployments/.env
+          echo "ENV_DATABASE_PASSWORD=${{ secrets.database-password }}" >> ./deployments/.env
+          docker \
+            --host ssh://ubuntu@${{ secrets.deploy-host }} \
+            compose \
+            -f ./deployments/compose.yaml \
+            up \
+            -d
+  persist-service-tag:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master' && (${{ github.actor != 'github-actions[bot]' && github.event_name != 'push' || github.event.pusher.name != 'github-actions[bot]' }})
+    # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idneeds
+    needs: [deploy]
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Save user-service tag
+        run: echo "${{ inputs.user-service-tag }}" > ./build/users/version.txt
+      - name: Save webserver tag
+        run: echo "${{ inputs.webserver-tag }}" > ./build/users/version.txt
+      - name: Commit changes
+        run: |
+          git config --global user.name 'totocorpbot'
+          git config --global user.email 'totocorpbot@users.noreply.github.com'
+          git commit -am "infra: Automatic services versions update"
+          git push

@@ -16,7 +16,7 @@ jobs:
   tests:
     # https://github.com/orgs/community/discussions/74772
     if: ${{ github.actor != 'github-actions[bot]' && github.event_name != 'push' || github.event.pusher.name != 'github-actions[bot]' }}
-    uses: ./.github/workflows/tests.yml
+    uses: ./.github/workflows/user-service-tests.yml
     secrets:
       codecov-token: ${{ secrets.CODECOV_TOKEN }}
   build-docker-image:
@@ -27,61 +27,39 @@ jobs:
     secrets:
       dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
       dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
+  collect-services-versions:
+    if: ${{ github.actor != 'github-actions[bot]' && github.event_name != 'push' || github.event.pusher.name != 'github-actions[bot]' }}
+    # https://stackoverflow.com/questions/72851548/permission-denied-to-github-actionsbot
+    needs: [build-docker-image]
+    steps:
+      - uses: actions/checkout@v4
+      # https://stackoverflow.com/questions/57819539/github-actions-how-to-share-a-calculated-value-between-job-steps
+      - name: Extract user service tag
+        id: user-service
+        run: echo "tag=$(git rev-parse --short $GITHUB_SHA)" >> $GITHUB_OUTPUT
+      - name: Extract webserver tag
+        id: webserver
+        run: echo "tag=$(cat ./build/webserver/version.txt)" >> $GITHUB_OUTPUT
   deploy:
     runs-on: ubuntu-latest
     # https://stackoverflow.com/questions/58139406/only-run-job-on-specific-branch-with-github-actions
     if: github.ref == 'refs/heads/master' && (${{ github.actor != 'github-actions[bot]' && github.event_name != 'push' || github.event.pusher.name != 'github-actions[bot]' }})
     # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idneeds
-    needs: [build-docker-image]
+    needs: [collect-services-versions]
+    uses: ./.github/workflows/deploy-services.yml
+    with:
+      user-service-tag: ${{ steps.user-service.outputs.tag }}
+      webserver-tag: ${{ steps.webserver.outputs.tag }}
+    secrets:
+      dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
+      dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
+      deploy-ssh-key: ${{ secrets.EC2_DEPLOY_SSH_KEY }}
+      deploy-ssh-known-hosts: ${{ secrets.EC2_DEPLOY_SSH_KNOWN_HOSTS }}
+      deploy-host: ${{ secrets.EC2_DEPLOY_HOST }}
+      database-password: ${{ secrets.DATABASE_MANAGER_PASSWORD }}
     steps:
       - uses: actions/checkout@v4
       - name: Extract user service tag
         run: echo "USER_SERVICE_TAG=$(git rev-parse --short $GITHUB_SHA)" >> $GITHUB_ENV
       - name: Extract webserver tag
         run: echo "WEBSERVER_TAG=$(cat ./build/webserver/version.txt)" >> $GITHUB_ENV
-      - name: Install SSH keys
-        uses: shimataro/ssh-key-action@v2
-        with:
-          key: ${{ secrets.EC2_DEPLOY_SSH_KEY }}
-          known_hosts: ${{ secrets.EC2_DEPLOY_SSH_KNOWN_HOSTS }}
-      - name: Update running docker instance
-        # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepsenv
-        env:
-          USER_SERVICE_TAG: ${{ env.USER_SERVICE_TAG }}
-          WEBSERVER_TAG: ${{ env.WEBSERVER_TAG }}
-          ENV_DATABASE_PASSWORD: ${{ secrets.DATABASE_MANAGER_PASSWORD }}
-        # https://github.com/docker/compose/issues/10309
-        # https://stackoverflow.com/questions/39168239/update-only-one-container-via-docker-compose
-        run: |
-          echo "USER_SERVICE_TAG=${{ env.USER_SERVICE_TAG }}" >> ./deployments/.env
-          echo "WEBSERVER_TAG=${{ env.WEBSERVER_TAG }}" >> ./deployments/.env
-          echo "ENV_DATABASE_PASSWORD=${{ secrets.DATABASE_MANAGER_PASSWORD }}" >> ./deployments/.env
-          docker \
-            --host ssh://ubuntu@${{ secrets.EC2_DEPLOY_HOST }} \
-            compose \
-            -f ./deployments/compose.yaml \
-            up \
-            -d
-  persist-service-tag:
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/master' && (${{ github.actor != 'github-actions[bot]' && github.event_name != 'push' || github.event.pusher.name != 'github-actions[bot]' }})
-    # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idneeds
-    needs: [deploy]
-    permissions:
-      contents: write
-    steps:
-      - uses: actions/checkout@v4
-      - name: Extract user service tag
-        run: echo "USER_SERVICE_TAG=$(git rev-parse --short $GITHUB_SHA)" >> $GITHUB_ENV
-      - name: Save service tag
-        env:
-          USER_SERVICE_TAG: ${{ env.USER_SERVICE_TAG }}
-        run: echo "${{ env.USER_SERVICE_TAG }}" > ./build/users/version.txt
-      - name: Commit changes
-        env:
-          USER_SERVICE_TAG: ${{ env.USER_SERVICE_TAG }}
-        run: |
-          git config --global user.name 'totocorpbot'
-          git config --global user.email 'totocorpbot@users.noreply.github.com'
-          git commit -am "infra: Bumped user service version to ${{ env.USER_SERVICE_TAG }}"
-          git push
