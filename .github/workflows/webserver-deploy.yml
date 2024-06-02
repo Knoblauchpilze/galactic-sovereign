@@ -5,6 +5,7 @@ on:
     paths:
       - "website/**"
       - "build/webserver/**"
+      - "deployments/**"
       - ".github/workflows/webserver*.yml"
 
 env:
