@@ -25,6 +25,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
       - name: Install SSH keys
         uses: shimataro/ssh-key-action@v2
         with:
