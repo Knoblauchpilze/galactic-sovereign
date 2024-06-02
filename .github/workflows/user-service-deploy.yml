@@ -57,9 +57,3 @@ jobs:
       deploy-ssh-known-hosts: ${{ secrets.EC2_DEPLOY_SSH_KNOWN_HOSTS }}
       deploy-host: ${{ secrets.EC2_DEPLOY_HOST }}
       database-password: ${{ secrets.DATABASE_MANAGER_PASSWORD }}
-    steps:
-      - uses: actions/checkout@v4
-      - name: Extract user service tag
-        run: echo "USER_SERVICE_TAG=$(git rev-parse --short $GITHUB_SHA)" >> $GITHUB_ENV
-      - name: Extract webserver tag
-        run: echo "WEBSERVER_TAG=$(cat ./build/webserver/version.txt)" >> $GITHUB_ENV
