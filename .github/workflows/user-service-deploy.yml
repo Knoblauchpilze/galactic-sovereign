@@ -8,6 +8,7 @@ on:
       - "pkg/**"
       - "internal/**"
       - "build/users/**"
+      - "deployments/**"
       - ".github/workflows/user-service*.yml"
 
 jobs:
