@@ -36,7 +36,7 @@ jobs:
       webserver-tag: ${{ steps.webserver.outputs.tag }}
     steps:
       - uses: actions/checkout@v4
-      - name: Extract user service tags
+      - name: Extract user service tag
         id: user-service
         run: echo "tag=$(git rev-parse --short $GITHUB_SHA)" >> $GITHUB_OUTPUT
       - name: Extract webserver tag
