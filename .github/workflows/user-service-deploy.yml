@@ -54,8 +54,6 @@ jobs:
       user-service-tag: ${{ needs.collect-services-versions.outputs.user-service-tag }}
       webserver-tag: ${{ needs.collect-services-versions.outputs.webserver-tag }}
     secrets:
-      dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
-      dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
       deploy-ssh-key: ${{ secrets.EC2_DEPLOY_SSH_KEY }}
       deploy-ssh-known-hosts: ${{ secrets.EC2_DEPLOY_SSH_KNOWN_HOSTS }}
       deploy-host: ${{ secrets.EC2_DEPLOY_HOST }}
