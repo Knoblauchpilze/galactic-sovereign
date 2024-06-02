@@ -10,6 +10,7 @@ on:
       - "build/users/**"
       - "deployments/**"
       - ".github/workflows/user-service*.yml"
+      - ".github/workflows/deploy-services.yml"
 
 jobs:
   # https://docs.github.com/en/actions/using-workflows/reusing-workflows#calling-a-reusable-workflow
