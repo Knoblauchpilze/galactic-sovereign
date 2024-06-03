@@ -1,20 +1,20 @@
 
 # Provide tag as:
 # GIT_COMMIT_HASH=$(git rev-parse --short HEAD)
-ENV_DATABASE_HOST="172.17.0.1"
-ENV_DATABASE_PORT=5432
-ENV_SERVER_PORT=80
+ENV_DATABASE_HOST ?= "172.17.0.1"
+ENV_DATABASE_PORT ?= 5432
+ENV_SERVER_PORT ?= 80
 # Provide password as:
 # ENV_DATABASE_PASSWORD=password
 
-NODE_PORT=3001
-SERVER_ORIGIN="http://localhost:3001"
-API_BASE_URL="http://user-service:80/v1/users"
+NODE_PORT ?= 3001
+SERVER_ORIGIN ?= "http://localhost:3001"
+API_BASE_URL ?= "http://user-service:80/v1/users"
 
 # https://docs.docker.com/network/drivers/bridge/
-DOCKER_NETWORK_BRIDGE_NAME="totocorp-network"
+DOCKER_NETWORK_BRIDGE_NAME ?= "corp-network"
 
-RESTART_RETRIES_COUNT=5
+RESTART_RETRIES_COUNT ?= 5
 
 user-service-build:
 	docker build \
