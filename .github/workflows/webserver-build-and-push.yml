@@ -7,15 +7,18 @@ on:
       - "build/webserver/**"
       - "deployments/**"
       - ".github/workflows/webserver*.yml"
+      - ".github/workflows/services*.yml"
 
 jobs:
-  build-and-push:
+  extract-service-tag:
+    if: ${{ github.actor != 'github-actions[bot]' && github.event_name != 'push' || github.event.pusher.name != 'github-actions[bot]' }}
+    uses: ./.github/workflows/services-extract-tag.yml
+  build-and-push-docker-image:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/master' && (${{ github.actor != 'github-actions[bot]' && github.event_name != 'push' || github.event.pusher.name != 'github-actions[bot]' }})
+    needs: [extract-service-tag]
     steps:
       - uses: actions/checkout@v4
-      - name: Extract commit hash
-        run: echo "GIT_COMMIT_HASH=$(git rev-parse --short $GITHUB_SHA)" >> $GITHUB_ENV
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
@@ -27,38 +30,18 @@ jobs:
           context: .
           file: ./build/webserver/Dockerfile
           build-args: |
-            GIT_COMMIT_HASH=${{ env.GIT_COMMIT_HASH }}
+            GIT_COMMIT_HASH=${{ needs.extract-service-tag.outputs.version }}
             NODE_PORT=3001
             SERVER_ORIGIN=http://dashboard.${{ secrets.EC2_DEPLOY_HOST }}
             API_BASE_URL=http://user-service:80/v1/users
           push: true
-          tags: totocorpsoftwareinc/webserver:${{ env.GIT_COMMIT_HASH }}
-  collect-services-versions:
-    runs-on: ubuntu-latest
+          tags: totocorpsoftwareinc/webserver:${{ needs.extract-service-tag.outputs.version }}
+  persist-service-tag:
     if: ${{ github.actor != 'github-actions[bot]' && github.event_name != 'push' || github.event.pusher.name != 'github-actions[bot]' }}
-    needs: [build-docker-image]
-    outputs:
-      user-service-tag: ${{ steps.user-service.outputs.tag }}
-      webserver-tag: ${{ steps.webserver.outputs.tag }}
-    steps:
-      - uses: actions/checkout@v4
-      - name: Extract user service tag
-        id: user-service
-        run: echo "tag=$(cat ./build/users/version.txt)" >> $GITHUB_OUTPUT
-      - name: Extract webserver tag
-        id: webserver
-        run: echo "tag=$(git rev-parse --short $GITHUB_SHA)" >> $GITHUB_OUTPUT
-  deploy:
-    if: github.ref == 'refs/heads/master' && (${{ github.actor != 'github-actions[bot]' && github.event_name != 'push' || github.event.pusher.name != 'github-actions[bot]' }})
-    needs: [collect-services-versions]
+    needs: [build-and-push-docker-image, extract-service-tag]
     permissions:
       contents: write
-    uses: ./.github/workflows/deploy-services.yml
+    uses: ./.github/workflows/services-persist-tag.yml
     with:
-      user-service-tag: ${{ needs.collect-services-versions.outputs.user-service-tag }}
-      webserver-tag: ${{ needs.collect-services-versions.outputs.webserver-tag }}
-    secrets:
-      deploy-ssh-key: ${{ secrets.EC2_DEPLOY_SSH_KEY }}
-      deploy-ssh-known-hosts: ${{ secrets.EC2_DEPLOY_SSH_KNOWN_HOSTS }}
-      deploy-host: ${{ secrets.EC2_DEPLOY_HOST }}
-      database-password: ${{ secrets.DATABASE_MANAGER_PASSWORD }}
+      service-name: webserver
+      service-tag: ${{ needs.extract-service-tag.outputs.version }}
