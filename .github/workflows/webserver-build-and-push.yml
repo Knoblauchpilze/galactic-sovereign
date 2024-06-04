@@ -1,4 +1,4 @@
-name: Build and deploy webserver
+name: Build and push webserver docker image
 
 on:
   push:
@@ -9,15 +9,30 @@ on:
       - ".github/workflows/webserver*.yml"
 
 jobs:
-  build-docker-image:
+  build-and-push:
+    runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/master' && (${{ github.actor != 'github-actions[bot]' && github.event_name != 'push' || github.event.pusher.name != 'github-actions[bot]' }})
-    permissions:
-      contents: write
-    uses: ./.github/workflows/webserver-build-and-push-docker-image.yml
-    secrets:
-      dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
-      dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
-      webserver-host: ${{ secrets.EC2_DEPLOY_HOST }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Extract commit hash
+        run: echo "GIT_COMMIT_HASH=$(git rev-parse --short $GITHUB_SHA)" >> $GITHUB_ENV
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./build/webserver/Dockerfile
+          build-args: |
+            GIT_COMMIT_HASH=${{ env.GIT_COMMIT_HASH }}
+            NODE_PORT=3001
+            SERVER_ORIGIN=http://dashboard.${{ secrets.EC2_DEPLOY_HOST }}
+            API_BASE_URL=http://user-service:80/v1/users
+          push: true
+          tags: totocorpsoftwareinc/webserver:${{ env.GIT_COMMIT_HASH }}
   collect-services-versions:
     runs-on: ubuntu-latest
     if: ${{ github.actor != 'github-actions[bot]' && github.event_name != 'push' || github.event.pusher.name != 'github-actions[bot]' }}
