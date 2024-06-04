@@ -1,0 +1,14 @@
+# https://doc.traefik.io/traefik/routing/services/#configuration-examples
+http:
+  routers:
+    webserver:
+      entryPoints:
+        - "web"
+      rule: 'Host(`{{ expandenv "dashboard.$DEPLOY_HOST" }}`)'
+      service: webserver
+
+  services:
+    webserver:
+      loadBalancer:
+        servers:
+          - url: "http://webserver:3001"

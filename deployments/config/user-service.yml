@@ -1,0 +1,16 @@
+# https://doc.traefik.io/traefik/routing/services/#configuration-examples
+http:
+  routers:
+    user-service:
+      entryPoints:
+        - "web"
+      # https://doc.traefik.io/traefik/providers/file/#go-templating
+      # https://stackoverflow.com/questions/60273841/use-environment-variables-within-a-traefik-dynamic-configuration
+      rule: 'Host(`{{ expandenv "api.$DEPLOY_HOST" }}`)'
+      service: user-service
+
+  services:
+    user-service:
+      loadBalancer:
+        servers:
+          - url: "http://user-service:80"
