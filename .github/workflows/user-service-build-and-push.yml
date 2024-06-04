@@ -10,7 +10,7 @@ on:
       - "build/users/**"
       - "deployments/**"
       - ".github/workflows/user-service*.yml"
-      - ".github/workflows/deploy-services.yml"
+      - ".github/workflows/services*.yml"
 
 jobs:
   # https://docs.github.com/en/actions/using-workflows/reusing-workflows#calling-a-reusable-workflow
@@ -20,15 +20,25 @@ jobs:
     uses: ./.github/workflows/user-service-tests.yml
     secrets:
       codecov-token: ${{ secrets.CODECOV_TOKEN }}
-  build-and-push-docker-image:
+  extract-service-tag:
     runs-on: ubuntu-latest
     if: ${{ github.actor != 'github-actions[bot]' && github.event_name != 'push' || github.event.pusher.name != 'github-actions[bot]' }}
     needs: [tests]
+    # https://docs.github.com/en/actions/using-jobs/defining-outputs-for-jobs
+    outputs:
+      version: ${{ steps.user-service.outputs.tag }}
     steps:
       - uses: actions/checkout@v4
-      # https://stackoverflow.com/questions/58886293/getting-current-branch-and-commit-hash-in-github-action
-      - name: Extract commit hash
-        run: echo "GIT_COMMIT_HASH=$(git rev-parse --short $GITHUB_SHA)" >> $GITHUB_ENV
+      - name: Extract git commit hash
+        id: user-service
+        # https://stackoverflow.com/questions/58886293/getting-current-branch-and-commit-hash-in-github-action
+        run: echo "tag=$(git rev-parse --short $GITHUB_SHA)" >> $GITHUB_OUTPUT
+  build-and-push-docker-image:
+    runs-on: ubuntu-latest
+    if: ${{ github.actor != 'github-actions[bot]' && github.event_name != 'push' || github.event.pusher.name != 'github-actions[bot]' }}
+    needs: [extract-service-tag]
+    steps:
+      - uses: actions/checkout@v4
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
@@ -40,38 +50,13 @@ jobs:
         with:
           context: .
           file: ./build/users/Dockerfile
-          build-args: GIT_COMMIT_HASH=${{ env.GIT_COMMIT_HASH }}
+          build-args: GIT_COMMIT_HASH=${{ needs.extract-service-tag.outputs.version }}
           push: true
-          tags: totocorpsoftwareinc/user-service:${{ env.GIT_COMMIT_HASH }}
-  collect-services-versions:
-    runs-on: ubuntu-latest
+          tags: totocorpsoftwareinc/user-service:${{ needs.extract-service-tag.outputs.version }}
+  persist-service-tag:
     if: ${{ github.actor != 'github-actions[bot]' && github.event_name != 'push' || github.event.pusher.name != 'github-actions[bot]' }}
     needs: [build-and-push-docker-image]
-    # https://docs.github.com/en/actions/using-jobs/defining-outputs-for-jobs
-    outputs:
-      user-service-tag: ${{ steps.user-service.outputs.tag }}
-      webserver-tag: ${{ steps.webserver.outputs.tag }}
-    steps:
-      - uses: actions/checkout@v4
-      - name: Extract user service tag
-        id: user-service
-        run: echo "tag=$(git rev-parse --short $GITHUB_SHA)" >> $GITHUB_OUTPUT
-      - name: Extract webserver tag
-        id: webserver
-        run: echo "tag=$(cat ./build/webserver/version.txt)" >> $GITHUB_OUTPUT
-  deploy:
-    # https://stackoverflow.com/questions/58139406/only-run-job-on-specific-branch-with-github-actions
-    if: github.ref == 'refs/heads/master' && (${{ github.actor != 'github-actions[bot]' && github.event_name != 'push' || github.event.pusher.name != 'github-actions[bot]' }})
-    needs: [collect-services-versions]
-    # https://docs.github.com/en/actions/using-workflows/reusing-workflows#access-and-permissions
-    permissions:
-      contents: write
-    uses: ./.github/workflows/deploy-services.yml
+    uses: ./.github/workflows/services-persist-tag.yml
     with:
-      user-service-tag: ${{ needs.collect-services-versions.outputs.user-service-tag }}
-      webserver-tag: ${{ needs.collect-services-versions.outputs.webserver-tag }}
-    secrets:
-      deploy-ssh-key: ${{ secrets.EC2_DEPLOY_SSH_KEY }}
-      deploy-ssh-known-hosts: ${{ secrets.EC2_DEPLOY_SSH_KNOWN_HOSTS }}
-      deploy-host: ${{ secrets.EC2_DEPLOY_HOST }}
-      database-password: ${{ secrets.DATABASE_MANAGER_PASSWORD }}
+      service-name: users
+      service-tag: ${{ needs.extract-service-tag.outputs.version }}
