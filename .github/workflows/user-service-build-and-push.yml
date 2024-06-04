@@ -21,18 +21,8 @@ jobs:
     secrets:
       codecov-token: ${{ secrets.CODECOV_TOKEN }}
   extract-service-tag:
-    runs-on: ubuntu-latest
     if: ${{ github.actor != 'github-actions[bot]' && github.event_name != 'push' || github.event.pusher.name != 'github-actions[bot]' }}
-    needs: [tests]
-    # https://docs.github.com/en/actions/using-jobs/defining-outputs-for-jobs
-    outputs:
-      version: ${{ steps.user-service.outputs.tag }}
-    steps:
-      - uses: actions/checkout@v4
-      - name: Extract git commit hash
-        id: user-service
-        # https://stackoverflow.com/questions/58886293/getting-current-branch-and-commit-hash-in-github-action
-        run: echo "tag=$(git rev-parse --short $GITHUB_SHA)" >> $GITHUB_OUTPUT
+    uses: ./.github/workflows/services-extract-tag.yml
   build-and-push-docker-image:
     runs-on: ubuntu-latest
     if: ${{ github.actor != 'github-actions[bot]' && github.event_name != 'push' || github.event.pusher.name != 'github-actions[bot]' }}
