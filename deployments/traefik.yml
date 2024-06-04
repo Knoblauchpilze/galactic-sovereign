@@ -1,0 +1,22 @@
+api:
+  dashboard: true
+  # https://doc.traefik.io/traefik/operations/dashboard/#insecure-mode
+  insecure: false
+
+# https://doc.traefik.io/traefik/observability/logs/#level
+log:
+  level: DEBUG
+
+# https://doc.traefik.io/traefik/observability/access-logs/#configuration
+accesslog:
+  addInternals: true
+
+entryPoints:
+  web:
+    address: ":80"
+    forwardedHeaders:
+      insecure: true
+providers:
+  # https://doc.traefik.io/traefik/providers/file/#directory
+  file:
+    directory: "/etc/traefik/config"

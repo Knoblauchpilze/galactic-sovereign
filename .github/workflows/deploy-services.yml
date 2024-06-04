@@ -38,6 +38,8 @@ jobs:
           echo "USER_SERVICE_TAG=${{ inputs.user-service-tag }}" >> ./deployments/.env
           echo "WEBSERVER_TAG=${{ inputs.webserver-tag }}" >> ./deployments/.env
           echo "ENV_DATABASE_PASSWORD=${{ secrets.database-password }}" >> ./deployments/.env
+          echo "DEPLOY_HOST=${{ secrets.deploy-host }}"
+          echo "WEBSERVER_ORIGIN=http://dashboard.${{ secrets.deploy-host }}"
           docker \
             --host ssh://ubuntu@${{ secrets.deploy-host }} \
             compose \

@@ -1,13 +1,13 @@
 name: toto
+
 services:
   user-service:
     image: totocorpsoftwareinc/user-service:${USER_SERVICE_TAG}
     container_name: user-service
+    restart: on-failure:5
     networks:
       - corp-network
-    restart: on-failure:5
     ports:
-      - "80:80"
       - "5432"
     environment:
       # https://docs.docker.com/compose/environment-variables/set-environment-variables/#compose-file
@@ -16,11 +16,29 @@ services:
   webserver:
     image: totocorpsoftwareinc/webserver:${WEBSERVER_TAG}
     container_name: webserver
+    restart: on-failure:5
     networks:
       - corp-network
-    restart: on-failure:5
+    environment:
+      # https://docs.docker.com/compose/environment-variables/set-environment-variables/#compose-file
+      - ORIGIN=${WEBSERVER_ORIGIN:-http://dashboard.localhost}
+
+  # https://www.reddit.com/r/Traefik/comments/123oz36/traefik_dashboard_access_with_staticdynamic/
+  reverse-proxy:
+    image: traefik:v3.0
+    container_name: reverse-proxy
+    restart: always
+    networks:
+      - corp-network
     ports:
-      - "3001:3001"
+      - "80:80"
+    environment:
+      DEPLOY_HOST: ${DEPLOY_HOST:-localhost}
+    volumes:
+      # https://doc.traefik.io/traefik/getting-started/configuration-overview/#configuration-file
+      - ./traefik.yml:/etc/traefik/traefik.yml
+      - ./config/:/etc/traefik/config/
+      - /var/run/docker.sock:/var/run/docker.sock
 
 # https://docs.docker.com/compose/compose-file/06-networks/
 networks:
