@@ -56,6 +56,8 @@ jobs:
   persist-service-tag:
     if: ${{ github.actor != 'github-actions[bot]' && github.event_name != 'push' || github.event.pusher.name != 'github-actions[bot]' }}
     needs: [build-and-push-docker-image]
+    permissions:
+      contents: write
     uses: ./.github/workflows/services-persist-tag.yml
     with:
       service-name: users
