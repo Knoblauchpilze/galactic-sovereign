@@ -13,7 +13,7 @@ on:
         type: string
 
 jobs:
-  persist-user-service-tag:
+  persist-service-tag:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/master' && (${{ github.actor != 'github-actions[bot]' && github.event_name != 'push' || github.event.pusher.name != 'github-actions[bot]' }})
     # https://stackoverflow.com/questions/72851548/permission-denied-to-github-actionsbot
