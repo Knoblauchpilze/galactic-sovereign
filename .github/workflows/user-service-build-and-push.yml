@@ -22,6 +22,7 @@ jobs:
       codecov-token: ${{ secrets.CODECOV_TOKEN }}
   extract-service-tag:
     if: ${{ github.actor != 'github-actions[bot]' && github.event_name != 'push' || github.event.pusher.name != 'github-actions[bot]' }}
+    needs: [tests]
     uses: ./.github/workflows/services-extract-tag.yml
   build-and-push-docker-image:
     runs-on: ubuntu-latest
