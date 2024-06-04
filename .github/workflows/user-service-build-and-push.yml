@@ -55,7 +55,8 @@ jobs:
           tags: totocorpsoftwareinc/user-service:${{ needs.extract-service-tag.outputs.version }}
   persist-service-tag:
     if: ${{ github.actor != 'github-actions[bot]' && github.event_name != 'push' || github.event.pusher.name != 'github-actions[bot]' }}
-    needs: [build-and-push-docker-image]
+    # https://docs.github.com/en/actions/learn-github-actions/contexts#needs-context
+    needs: [build-and-push-docker-image, extract-service-tag]
     permissions:
       contents: write
     uses: ./.github/workflows/services-persist-tag.yml
