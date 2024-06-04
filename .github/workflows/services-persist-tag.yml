@@ -1,0 +1,31 @@
+name: Persist service tag
+
+on:
+  workflow_call:
+    inputs:
+      service-name:
+        description: "The name of the service whose version will be persisted"
+        required: true
+        type: string
+      service-tag:
+        description: "The version of the service to persist"
+        required: true
+        type: string
+
+jobs:
+  persist-user-service-tag:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master' && (${{ github.actor != 'github-actions[bot]' && github.event_name != 'push' || github.event.pusher.name != 'github-actions[bot]' }})
+    # https://stackoverflow.com/questions/72851548/permission-denied-to-github-actionsbot
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Save service tag
+        run: echo "${{ inputs.service-tag }}" > ./build/${{ inputs.service-name }}/version.txt
+      - name: Commit changes
+        run: |
+          git config --global user.name 'totocorpbot'
+          git config --global user.email 'totocorpbot@users.noreply.github.com'
+          git commit -am "infra: Bumped ${{ inputs.service-name }} version to ${{ inputs.service-tag }}"
+          git push
