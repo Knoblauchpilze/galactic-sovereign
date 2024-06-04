@@ -4,9 +4,11 @@ The definition of a service to manage users and authentication. This service com
 
 [![codecov](https://codecov.io/gh/Knoblauchpilze/user-service/branch/master/badge.svg?token=WNLIZF0FBL)](https://codecov.io/gh/Knoblauchpilze/user-service)
 
-[![user-service deployed](https://github.com/Knoblauchpilze/user-service/actions/workflows/user-service-deploy.yml/badge.svg)](https://github.com/Knoblauchpilze/user-service/actions/workflows/user-service-deploy.yml)
+[![Build and push user-service docker image](https://github.com/Knoblauchpilze/user-service/actions/workflows/user-service-build-and-push.yml/badge.svg)](https://github.com/Knoblauchpilze/user-service/actions/workflows/user-service-build-and-push.yml)
 
-[![Webserver deployed](https://github.com/Knoblauchpilze/user-service/actions/workflows/webserver-deploy.yml/badge.svg)](https://github.com/Knoblauchpilze/user-service/actions/workflows/webserver-deploy.yml)
+[![Build and push webserver docker image](https://github.com/Knoblauchpilze/user-service/actions/workflows/webserver-build-and-push.yml/badge.svg)](https://github.com/Knoblauchpilze/user-service/actions/workflows/webserver-build-and-push.yml)
+
+[![Deploy service](https://github.com/Knoblauchpilze/user-service/actions/workflows/deploy-services.yml/badge.svg)](https://github.com/Knoblauchpilze/user-service/actions/workflows/deploy-services.yml)
 
 # Installation
 
