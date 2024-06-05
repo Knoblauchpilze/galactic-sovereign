@@ -4,7 +4,7 @@ on:
   push:
     paths:
       - "website/**"
-      - "build/webserver/**"
+      - "build/webserver/Dockerfile"
       - "deployments/**"
       - ".github/workflows/webserver*.yml"
       - ".github/workflows/services*.yml"
