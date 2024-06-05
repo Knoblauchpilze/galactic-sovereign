@@ -2,6 +2,6 @@ http:
   routers:
     # https://doc.traefik.io/traefik/operations/dashboard/#secure-mode
     traefik-dashboard:
-      rule: 'Host(`{{ expandenv "traefik.$DEPLOY_HOST" }}`)'
+      rule: 'Host(`{{ env "TRAEFIK_DEPLOY_HOST" }}`)'
       entryPoints: web
       service: api@internal
