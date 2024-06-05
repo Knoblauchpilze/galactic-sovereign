@@ -10,7 +10,6 @@ on:
 jobs:
   collect-services-versions:
     runs-on: ubuntu-latest
-    # https://docs.github.com/en/actions/using-jobs/defining-outputs-for-jobs
     outputs:
       user-service-tag: ${{ steps.user-service.outputs.tag }}
       webserver-tag: ${{ steps.webserver.outputs.tag }}
@@ -41,8 +40,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Configure docker-compose deployment
-        # https://github.com/docker/compose/issues/10309
-        # https://stackoverflow.com/questions/39168239/update-only-one-container-via-docker-compose
         run: |
           echo "USER_SERVICE_TAG=${{ needs.collect-services-versions.outputs.user-service-tag }}" >> ./deployments/.env
           echo "ENV_DATABASE_PASSWORD=${{ secrets.DATABASE_MANAGER_PASSWORD }}" >> ./deployments/.env
