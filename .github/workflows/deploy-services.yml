@@ -83,4 +83,4 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_DEPLOY_SSH_KEY }}
           script: |
-            rm -rf ~/deployments/.env.bak
+            rm -rf ~/deployments.bak
