@@ -4,7 +4,7 @@ http:
     webserver:
       entryPoints:
         - "web"
-      rule: 'Host(`{{ expandenv "dashboard.$DEPLOY_HOST" }}`)'
+      rule: 'Host(`{{ env "WEBSERVER_DEPLOY_HOST" }}`)'
       service: webserver
 
   services:

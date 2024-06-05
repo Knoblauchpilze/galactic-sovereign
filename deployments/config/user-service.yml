@@ -6,7 +6,7 @@ http:
         - "web"
       # https://doc.traefik.io/traefik/providers/file/#go-templating
       # https://stackoverflow.com/questions/60273841/use-environment-variables-within-a-traefik-dynamic-configuration
-      rule: 'Host(`{{ expandenv "api.$DEPLOY_HOST" }}`)'
+      rule: "Host(`{{ env "API_DEPLOY_HOST" }}`)"
       service: user-service
 
   services:
