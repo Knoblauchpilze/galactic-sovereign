@@ -45,6 +45,22 @@ jobs:
           key: ${{ secrets.EC2_DEPLOY_SSH_KEY }}
           script: |
             cp -r ~/deployments ~/deployments.bak
+  verify-ssh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup
+        run: |
+          mkdir -p ~/.ssh/
+          echo "${{ secrets.EC2_DEPLOY_SSH_KEY }}" > ~/.ssh/id_rsa
+          sudo chmod 600 ~/.ssh/id_rsa
+          echo "Host *" > ~/.ssh/config
+          echo "  StrictHostKeyChecking no" >> ~/.ssh/config
+      - name: ssh
+        run: |
+          ssh ubuntur@${{ secrete.EC2_DEPLOY_HOST }} "ls deployments"
+      - name: display
+        run: cat ~/.ssh/known_hosts
   sync-deployment-configuration:
     runs-on: ubuntu-latest
     needs: [backup-deployment-config, collect-services-versions]
