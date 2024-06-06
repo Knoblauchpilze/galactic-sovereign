@@ -58,7 +58,7 @@ jobs:
           echo "  StrictHostKeyChecking no" >> ~/.ssh/config
       - name: ssh
         run: |
-          ssh ubuntur@${{ secrete.EC2_DEPLOY_HOST }} "ls deployments"
+          ssh ubuntu@${{ secrets.EC2_DEPLOY_HOST }} "ls deployments"
       - name: display
         run: cat ~/.ssh/known_hosts
   sync-deployment-configuration:
