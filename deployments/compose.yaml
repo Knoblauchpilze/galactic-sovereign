@@ -33,9 +33,7 @@ services:
     ports:
       - "80:80"
     environment:
-      API_DEPLOY_HOST: ${API_HOST:-api.localhost}
-      WEBSERVER_DEPLOY_HOST: ${WEBSERVER_HOST:-dashboard.localhost}
-      TRAEFIK_DEPLOY_HOST: ${TRAEFIK_HOST:-traefik.localhost}
+      DEPLOY_HOST: ${API_HOST:-localhost}
     volumes:
       # https://doc.traefik.io/traefik/getting-started/configuration-overview/#configuration-file
       - ./traefik.yml:/etc/traefik/traefik.yml
