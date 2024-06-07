@@ -56,7 +56,6 @@ jobs:
           echo "ENV_DATABASE_PASSWORD=${{ secrets.DATABASE_MANAGER_PASSWORD }}" >> ./deployments/.env
           echo "WEBSERVER_TAG=${{ needs.collect-services-versions.outputs.webserver-tag }}" >> ./deployments/.env
           echo "WEBSERVER_ORIGIN=${{ secrets.DOMAIN_NAME }}" >> ./deployments/.env
-          echo "DEPLOY_HOST=${{ secrets.DOMAIN_NAME }}" >> ./deployments/.env
       - name: Install SSH keys
         uses: shimataro/ssh-key-action@v2
         with:
