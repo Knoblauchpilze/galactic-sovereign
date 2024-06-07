@@ -4,10 +4,16 @@ http:
     user-service:
       entryPoints:
         - "web"
-      # https://doc.traefik.io/traefik/providers/file/#go-templating
-      # https://stackoverflow.com/questions/60273841/use-environment-variables-within-a-traefik-dynamic-configuration
-      rule: 'Host(`{{ env "DEPLOY_HOST" }}`) && PathPrefix(`/v1`)'
-      service: user-service/
+      rule: "PathPrefix(`/api`)"
+      service: user-service
+      middlewares:
+        - "user-service-strip-prefix"
+
+  middlewares:
+    user-service-strip-prefix:
+      stripPrefix:
+        prefixes:
+          - "/api"
 
   services:
     user-service:
