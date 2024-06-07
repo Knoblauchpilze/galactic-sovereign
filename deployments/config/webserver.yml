@@ -6,6 +6,8 @@ http:
         - "web"
       rule: 'Host(`{{ env "WEBSERVER_DEPLOY_HOST" }}`)'
       service: webserver
+      # https://doc.traefik.io/traefik/routing/routers/#priority
+      priority: 1
 
   services:
     webserver:

@@ -5,3 +5,4 @@ http:
       rule: 'Host(`{{ env "TRAEFIK_DEPLOY_HOST" }}`)'
       entryPoints: web
       service: api@internal
+      priority: 3
