@@ -32,8 +32,6 @@ services:
       - corp-network
     ports:
       - "80:80"
-    environment:
-      DEPLOY_HOST: ${API_HOST:-localhost}
     volumes:
       # https://doc.traefik.io/traefik/getting-started/configuration-overview/#configuration-file
       - ./traefik.yml:/etc/traefik/traefik.yml

@@ -2,6 +2,14 @@ http:
   routers:
     # https://doc.traefik.io/traefik/operations/dashboard/#secure-mode
     traefik-dashboard:
-      rule: 'Host(`{{ env "DEPLOY_HOST" }}`) && PathPrefix(`/traefik`)'
+      rule: "PathPrefix(`/traefik`)"
       entryPoints: web
       service: api@internal
+      middlewares:
+        - "traefik-strip-prefix"
+
+  middlewares:
+    traefik-strip-prefix:
+      stripPrefix:
+        prefixes:
+          - "/traefik"

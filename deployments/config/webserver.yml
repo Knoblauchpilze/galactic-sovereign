@@ -4,7 +4,7 @@ http:
     webserver:
       entryPoints:
         - "web"
-      rule: 'Host(`{{ env "DEPLOY_HOST" }}`) && PathPrefix(`/dashboard`)'
+      rule: "PathPrefix(`/dashboard`)"
       service: webserver
 
   services:
