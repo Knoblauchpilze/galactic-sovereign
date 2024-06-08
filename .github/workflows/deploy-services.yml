@@ -58,7 +58,7 @@ jobs:
           echo "WEBSERVER_TAG=${{ needs.collect-services-versions.outputs.webserver-tag }}" >> ./deployments/.env
           echo "WEBSERVER_ORIGIN=${{ secrets.DOMAIN_NAME }}" >> ./deployments/.env
           echo "TRAEFIK_USER=${{ secrets.TRAEFIK_USER }}" >> ./deployments/.env
-          echo "TRAEFIK_HASHED_PASSWORD=${{ secrets.TRAEFIK_HASHED_PASSWORD }}" >> ./deployments/.env
+          echo TRAEFIK_HASHED_PASSWORD=${{ secrets.TRAEFIK_HASHED_PASSWORD }} >> ./deployments/.env
       - name: Install SSH keys
         uses: shimataro/ssh-key-action@v2
         with:
