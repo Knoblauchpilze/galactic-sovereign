@@ -5,6 +5,7 @@ on:
     paths:
       - "build/users/version.txt"
       - "build/webserver/version.txt"
+      - "deployments/**"
       - ".github/workflows/deploy-services.yml"
   # # https://stackoverflow.com/questions/62750603/github-actions-trigger-another-action-after-one-action-is-completed
   # https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#workflow_run
