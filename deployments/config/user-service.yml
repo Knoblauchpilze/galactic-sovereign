@@ -7,15 +7,15 @@ http:
       rule: "PathPrefix(`/api/v1`)"
       service: user-service
       middlewares:
-        - "strip-path-prefix"
-        - "rate-limit"
+        - "us-strip-path-prefix"
+        - "us-rate-limit"
 
   middlewares:
-    strip-path-prefix:
+    us-strip-path-prefix:
       stripPrefix:
         prefixes:
           - "/api"
-    rate-limit:
+    us-rate-limit:
       rateLimit:
         average: 5
         burst: 10
