@@ -4,7 +4,7 @@ http:
     user-service:
       entryPoints:
         - "web"
-      rule: "PathPrefix(`/api`)"
+      rule: "PathPrefix(`/api/v1`)"
       service: user-service
       middlewares:
         - "user-service-strip-prefix"
