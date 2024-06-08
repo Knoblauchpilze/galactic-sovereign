@@ -6,10 +6,13 @@ http:
       entryPoints: web
       service: api@internal
       middlewares:
-        - "traefik-strip-prefix"
+        - "strip-path-prefix"
 
   middlewares:
-    traefik-strip-prefix:
+    strip-path-prefix:
       stripPrefix:
         prefixes:
           - "/traefik"
+    auth:
+      basicAuth:
+        users: '{{ env "TRAEFIK_USER"}}:{{ env "TRAEFIK_HASHED_PASSWORD" }}'

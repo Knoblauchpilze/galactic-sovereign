@@ -32,6 +32,9 @@ services:
       - corp-network
     ports:
       - "80:80"
+    environment:
+      - TRAEFIK_USER=${TRAEFIK_USER}
+      - TRAEFIK_HASHED_PASSWORD=${TRAEFIK_HASHED_PASSWORD}
     volumes:
       # https://doc.traefik.io/traefik/getting-started/configuration-overview/#configuration-file
       - ./traefik.yml:/etc/traefik/traefik.yml
