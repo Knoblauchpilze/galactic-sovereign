@@ -2,7 +2,7 @@ http:
   routers:
     # https://doc.traefik.io/traefik/operations/dashboard/#secure-mode
     traefik-dashboard:
-      rule: "PathPrefix(`/traefik`)"
+      rule: "PathPrefix(`/traefik`) || (PathPrefix(`/api`) && !PathPrefix(`/api/v1`))"
       entryPoints: web
       service: api@internal
       middlewares:
