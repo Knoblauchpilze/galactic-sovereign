@@ -73,7 +73,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [sync-deployment-configuration]
     steps:
-      - name: Back-up deployment config
+      - name: Deploy latest services version
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: "${{ secrets.EC2_DEPLOY_HOST }}"
