@@ -4,7 +4,7 @@ http:
     webserver:
       entryPoints:
         - "web"
-      rule: "PathPrefix(`/`)"
+      rule: 'HostRegexp(`^(www.)?{{ env "DOMAIN_NAME" }}`) && PathPrefix(`/`)'
       service: webserver
 
   services:
