@@ -33,6 +33,7 @@ services:
     ports:
       - "80:80"
     environment:
+      - DOMAIN_NAME=${DOMAIN_NAME}
       - TRAEFIK_USER=${TRAEFIK_USER}
       - TRAEFIK_HASHED_PASSWORD=${TRAEFIK_HASHED_PASSWORD}
     volumes:

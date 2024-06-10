@@ -4,17 +4,12 @@ http:
     user-service:
       entryPoints:
         - "web"
-      rule: "PathPrefix(`/api/v1`)"
+      rule: 'HostRegexp(`api.{{ env "DOMAIN_NAME" }}`) && PathPrefix(`/v1`)'
       service: user-service
       middlewares:
-        - "us-strip-path-prefix"
         - "us-rate-limit"
 
   middlewares:
-    us-strip-path-prefix:
-      stripPrefix:
-        prefixes:
-          - "/api"
     us-rate-limit:
       rateLimit:
         average: 5
