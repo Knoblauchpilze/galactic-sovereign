@@ -25,7 +25,7 @@ This projects uses:
 - [golang migrate](https://github.com/golang-migrate/migrate/blob/master/cmd/migrate/README.md): following the instructions there should be enough.
 - [postgresql](https://www.postgresql.org/) which can be taken from the packages with `sudo apt-get install postgresql-14` for example.
 - [docker](https://docs.docker.com/engine/install/ubuntu/#install-using-the-repository) which can be installed following the instructions of the previous link.
-- [aws cli](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html#getting-started-install-instructions) which can be installed using the instructions in the previous link.
+- [AWS cli](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html#getting-started-install-instructions) which can be installed using the instructions in the previous link.
 
 ## Clone the repository
 
@@ -470,7 +470,7 @@ A lightweight solution seems to be [docker compose](https://docs.docker.com/comp
 
 Regarding the API gateway, we chose [traefik](https://traefik.io/traefik/). This is not an API gateway in and of itself (at least [not for free](https://traefik.io/solutions/api-gateway/)) but seems like a good starting point in the world of container orchestration.
 
-### How is it implemented
+## How is it implemented
 
 The deployment is defined in two different folders:
 
@@ -479,7 +479,7 @@ The deployment is defined in two different folders:
 
 The CI workflow should automatically trigger when a docker image for one of the services is successfully built or when a change is detected in the configuration.
 
-### Traefik configuration
+## Traefik configuration
 
 We use traefik in its own container. Its role is to intercept all the incoming traffic and route it to the containers that are able to handle the incoming requests. There are numerous ways to configure traefik (see [docs](https://doc.traefik.io/traefik/getting-started/configuration-overview/)): we chose to for the file configuration which is supposed to be a bit tidier when the number of services grows.
 
@@ -490,11 +490,15 @@ The configuration is split into two parts:
 
 The configuration is replicated on the remote server and then executed remotely (through SSH) with the local files. We assume that `docker compose` is installed on the target server (see [prerequisites](#software-on-the-instance)).
 
-### Routing
+## Routing
 
 In order to clearly separate the concerns, it is quite common to rely on [subdomains](https://en.wikipedia.org/wiki/Subdomain#Subdomain_usage) to route traffic to different servers/applications depending on their type. As we would need a domain name to host the website anyway, it seems like a good approach to use the subdomains to host the different facets of the service.
 
 In addition, it is possible to use traefik to route only part of the traffic to specific containers. For example let's say we have a user-service and an order-service, we could have `api.example.com/v1/users` routed to the `user-service` contains and `api.example.com/v1/orders` routed to `order-service` by using the [PathPrefix](https://doc.traefik.io/traefik/routing/routers/#path-pathprefix-and-pathregexp) attribute in the rule of the router. The admin dashboard could be located at `admin.example.com` while the actual game/website would be at `example.com`.
+
+## Secrets in the CI
+
+The CI workflows define several secrets that are expected to be created for the repository when cloned/forked/used. Each secret should be self-explanatory based on its name. Most of them require to setup an account on one or the other service mentioned in this README.
 
 # Future work
 
