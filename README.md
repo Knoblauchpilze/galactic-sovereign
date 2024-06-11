@@ -1,6 +1,12 @@
 # user-service
 
-The definition of a service to manage users and authentication. This service comes with a working CI allowing to deploy it on an EC2 instance. The configuration also includes an automatic periodic backup of the database to a S3 storage to prevent data losses.
+The definition of a service to manage users and authentication, along with a minimalistic website presenting a simple user dashboard.
+
+From the infrasturcture point of view, the project manages a Postgre database running on an EC2 instance. A CI based on github actions is used to maintain, test and deploy the services. Additionally this README helps to configure a periodic back-up of the database to a S3 storage to prevent data losses.
+
+All services are dockerized and services are served behind traefik which serves as a reverse proxy to the cluster.
+
+Below are the required badges to indicate the code coverage and whether the CI and latest deployments succeeded.
 
 [![codecov](https://codecov.io/gh/Knoblauchpilze/user-service/branch/master/badge.svg?token=WNLIZF0FBL)](https://codecov.io/gh/Knoblauchpilze/user-service)
 
@@ -61,6 +67,8 @@ The instance should open the following ports:
 - allow outbound internet traffic (TCP 80 and 443 for http and https respectively)
 - allow incoming internet traffic (TCP 80 and 443 for http and https respectively)
 
+Additionally the instance should ideally be configured to support access for both IPv6 and IPv4. The reason for this is that as IPv4 are getting scarce, AWS decided to [start charging](https://aws.amazon.com/blogs/aws/new-aws-public-ipv4-address-charge-public-ip-insights/) when using one. In order to avoid unnecessary costs we attempt to allow reaching the services through IPv6. At the time of writing [github hosted runners](https://github.com/actions/runner/issues/3138) do not support IPv6 so we still have to keep the IPv4 support to deploy from the CI.
+
 Note that we don't open the `postgres` server port: this is because it is generally advised (see [this SO article](https://stackoverflow.com/questions/76541185/how-to-connect-to-postgresql-server-running-on-ec2)) to not publicly expose the database to the outside world but instead to use another secured connection mechanism (e.g. SSH) to open a tunnel to the instance and then make the DB connection transit through this tunnel. This is described in more details in the [following section](#in-case-of-a-remote-environment) on how to connect to the database.
 
 ### Instance role
@@ -69,7 +77,7 @@ So as to be able to access the S3 bucket to push the back-ups of the database, t
 
 ### Software on the instance
 
-The service is running in a docker container and requires a `postgres` server to be available on the machine. The back-up process uses the the AWS cli to perform the S3 related operations.
+The service is running in a docker container and requires a `postgres` server to be available on the machine. The back-up process uses the the AWS cli to perform the S3 related operations. The deployment process uses `docker compose`.
 
 ### Security keys
 
@@ -80,6 +88,13 @@ In order to allow the CI to update and deploy the new versions of the service, t
 In the AWS console there's already a convenience template meeting all of these requirements. It uses the `User data` mechanism to perform some configuration on the machine when it's first being booted. Is is accessible under the `ec2-postgres-docker-aws-cli` template:
 
 ![ec2 launch template](resources/ec2-launch-template.png)
+
+### How to replicate this
+
+During the course of setting up the EC2 instance, we used resources found online describing the different steps. Below is a collection of links that we found helpful:
+
+- this [AWS docs](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-instance-addressing.html) link explains a lot about instance addressing and what the lifecycle around it looks like.
+- this [4sysops](https://4sysops.com/archives/assign-an-ipv6-address-to-an-ec2-instance-dual-stack/#rtoc-3) link explains in a bit more detail how to actually attach an IPv6 to an EC2 instance and to change the default subnet created by AWS to allow IPv6 routing.
 
 ### A word on User data
 
@@ -152,6 +167,8 @@ The project defines a CI workflow which is able to automatically update the runn
 In order to allow the CI to execute the docker commands needed to update the containers, it is necessary to add the default user to the group of users who can execute docker without sudo. This can be done by following this [guide](https://docs.docker.com/engine/install/linux-postinstall/).
 
 ## Setup the database
+
+### The postgres password
 
 In order to properly execute them, make sure that you know the `postgres` password (see [this SO link](https://stackoverflow.com/questions/27107557/what-is-the-default-password-for-postgres) to alter it if needed).
 
@@ -326,9 +343,9 @@ In case something fails during the restore operation, the best course of action 
 
 ## Deploying the service to an EC2 instance
 
-### General principle
+### Deployment basics
 
-In order to deploy the services to run on an EC2 instance, we chose to have them distributed in the form of a docker image. This process i automatedi n the CI and runs on each push to the master branch. The process is only triggered if the tests passed and if the docker image could be built successfully.
+In order to deploy the services to run on an EC2 instance, we chose to have them distributed in the form of a docker image. This process is automated in the CI and runs on each push to the master branch. The process is only triggered if the tests passed and if the docker image could be built successfully.
 
 For each service the resulting image is pushed to a dedicated dockerhub repository with a tag corresponding to the short SHA of the commit which triggered the build:
 
@@ -352,7 +369,7 @@ Some of the properties of the containers are provided as environment variables i
 
 On the EC2 instance, docker is managing the containers and making sure that they are still running. This also plays nicely with the [monitoring](#monitoring-the-services) which is an additional mechanism to ensure the continuous availability of the services.
 
-In order for services to communicate with one another, we attach all of them to the same [docker bridge network](https://docs.docker.com/network/drivers/bridge/). The idea is to connect containers in the same virtual network where they can access each other's without sharing the host network. This removes the need to expose multiple times the same port and essentially act as if they would be on separate machine. The Docker daemon also provides convenience access to a DNS-like system to access containers by their name (e.g. `http://your-container-name:80/endpoint`). The network is automatically created by the docker compose command;
+In order for services to communicate with one another, we attach all of them to the same [docker bridge network](https://docs.docker.com/network/drivers/bridge/). The idea is to connect containers in the same virtual network where they can access each other's without sharing the host network. This removes the need to expose multiple times the same port and essentially act as if they would be on separate machine. The Docker daemon also provides convenience access to a DNS-like system to access containers by their name (e.g. `http://your-container-name:80/endpoint`). The network is automatically created by the docker compose command.
 
 ## Monitoring the services
 
@@ -391,7 +408,7 @@ This service exposes CRUD operations to manage users. A user is defined as a sim
 
 ## Logging in and out
 
-In order to allow users to access information about the service, we provide a session mechanism.
+In order to allow users to access information about the service, we provide a session mechanism. It is quite a wide topic and we gathered a few resources on whether this is a RESTful approach or not in the dedicated [PR #7](https://github.com/Knoblauchpilze/user-service/pull/7).
 
 Upon calling the `POST /v1/users/sessions` route, the user will be able to obtain a token valid for a certain period of time and which can be used to access other endpoints in the service. This endpoint (along with the `POST /v1/users` endpoint to create a new user) is the only one which can be called unauthenticated.
 
@@ -399,7 +416,7 @@ The session token is only valid for a certain amount of time and can be revoked 
 
 ## API keys
 
-We use API keys in a similar way as the session keys described in this [Kong article](https://konghq.com/blog/learning-center/what-are-api-keys). Each key is a simple identifier that is required to access our service.
+We use API keys in a similar way as the session keys described in this [Kong article](https://konghq.com/blog/learning-center/what-are-api-keys). Each key is a simple identifier that is required to access our service. It is created upon loggin in and deactivated upon logging out.
 
 ## Web framework
 
@@ -407,15 +424,83 @@ We chose to use [echo](https://echo.labstack.com/) as a web framework for this p
 
 ## Throttling
 
-Because this server is supposed to be deployed on a internet facing instance, we want to make sure that we don't risk being subjected to too many requests from undesired attackers. In an attempt to mitigate this we implemented a throttling mechanism which by default allows 10 requests per second from any sources before returning `429` on new requests.
+Because this server is supposed to be deployed on a internet facing instance, we want to make sure that we don't risk being subjected to too many requests from undesired attackers. In an attempt to mitigate this we implemented a throttling mechanism which by default allows 10 requests per second from any sources before returning `429` on new requests. This is also built-in in the [traefik](#traefik-configuration) configuration.
 
 # The website
 
 Along with the backend to handle the users and their authentication, this project also created a small toy website to access the features offered by the service. More information can be found in the dedicated [README](website/README.md) document.
 
+With the CI already in place it should be relatively easy to set up the secrets needed to perform the deployment and start serving an actual website with the code defined in this repository.
+
+# Infrastructure and deploying the services
+
+## The problem statement
+
+In order to verify that the user-service is doing what it is supposed to do, we wanted to have a visual way to interact with it and observe the responses. Therefore we decided to actually deploy all the code defined in this repository to an actual website.
+
+This means managing at least 2 (the user-service and the webserver) docker containers and deploying them to a remote instance. It is not usually recommended to have just simple docker commands to deploy a cluster of services: it gets tedious very fast and quite cumbersome to verify (and possibly scale) the amount of services running.
+
+In addition to this and with the goal of building a website in mind, we also want to route the incoming traffic to our application. This of course also means that the containers should be listening in the first place. And this is where the problem starts. Consider the following situation:
+
+- container A provides an API on port 80
+- container B would like to reach endpoints exposed by A on port 80
+
+To achieve this we somehow need to:
+
+- instruct Docker to bind the host port 80 to container A (e.g. with `-p 80:80`) so that it can serve the outside world
+- instruct Docker to bind the host port 80 to container B (with the same command as above!) so that it can target container A.
+
+This usually result in the following:
+
+![Docker bind failure](resources/docker-bind-failure.png)
+
+A third problem is that thinking a bit in the future, we consider this project as a toy example for an actual application that would be running on a server and that actual users could use. In there, we would like to offer some form of authentication and security to protect both our services and the users using them. A common solution is to only run the services behind a single entry point called an API gateway (see this (commercial) [explanation by Kong](https://konghq.com/blog/learning-center/what-is-an-api-gateway)).
+
+All of the above seem to point in a direction where we can't stick with just `docker` commands run from the CI on the remote server.
+
+## How to solve it
+
+Services like [Kubernetes](https://kubernetes.io/) or [Docker swarm](https://docs.docker.com/engine/swarm/) are typical examples of how to solve the above problem. They are pretty big and complex to master though and probably a bit overkill for our needs at the moment.
+
+A lightweight solution seems to be [docker compose](https://docs.docker.com/compose/) (as defined in the [deployment section](#deployment-basics)). This project is slightly different from swarm (see [this link](https://www.geeksforgeeks.org/docker-compose-vs-docker-swarm/) for more information) and essentially allows to manage a collection of services like a single one. Some convenience features are provided such as:
+
+- automaticc restarts of failing containers.
+- restart of only containers that were modified when deploying again.
+- centralized logging system and possibility to interface with different collectors.
+
+Regarding the API gateway, we chose [traefik](https://traefik.io/traefik/). This is not an API gateway in and of itself (at least [not for free](https://traefik.io/solutions/api-gateway/)) but seems like a good starting point in the world of container orchestration.
+
+### How is it implemented
+
+The deployment is defined in two different folders:
+
+- the infrastructure part is describedin the [deployments](deployments) folder and contains the `docker compose` configuration alongside the static traefik configuration but also the individual services' configuration files.
+- the [CI workflow](.github/workflows/deploy-services.yml) which is responsible to deploy the code to the remote server.
+
+The CI workflow should automatically trigger when a docker image for one of the services is successfully built or when a change is detected in the configuration.
+
+### Traefik configuration
+
+We use traefik in its own container. Its role is to intercept all the incoming traffic and route it to the containers that are able to handle the incoming requests. There are numerous ways to configure traefik (see [docs](https://doc.traefik.io/traefik/getting-started/configuration-overview/)): we chose to for the file configuration which is supposed to be a bit tidier when the number of services grows.
+
+The configuration is split into two parts:
+
+- the static configuration corresponding to how traefik will listen to the incoming requests.
+- the dynamic configuration corresponding to how traefik will route the requests once they have been verified.
+
+The configuration is replicated on the remote server and then executed remotely (through SSH) with the local files. We assume that `docker compose` is installed on the target server (see [prerequisites](#software-on-the-instance)).
+
+### Routing
+
+In order to clearly separate the concerns, it is quite common to rely on [subdomains](https://en.wikipedia.org/wiki/Subdomain#Subdomain_usage) to route traffic to different servers/applications depending on their type. As we would need a domain name to host the website anyway, it seems like a good approach to use the subdomains to host the different facets of the service.
+
+In addition, it is possible to use traefik to route only part of the traffic to specific containers. For example let's say we have a user-service and an order-service, we could have `api.example.com/v1/users` routed to the `user-service` contains and `api.example.com/v1/orders` routed to `order-service` by using the [PathPrefix](https://doc.traefik.io/traefik/routing/routers/#path-pathprefix-and-pathregexp) attribute in the rule of the router. The admin dashboard could be located at `admin.example.com` while the actual game/website would be at `example.com`.
+
 # Future work
 
 Currently we also listen on `http://...` and don't provide anything in regards to `https`. This should be changed for enhanced security.
+
+Additionally we don't have a real API gateway handling authentication. This might be handled by traefik using the [ForwardAuth](https://doc.traefik.io/traefik/middlewares/http/forwardauth/) middleware.
 
 # Cheat sheet
 
