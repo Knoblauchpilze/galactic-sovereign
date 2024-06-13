@@ -79,7 +79,3 @@ Depending on what kind of hosting is done for the website attaching a domain to 
 However some problems arised when trying to activate subdomains. This [post from Namecheap](https://www.namecheap.com/support/knowledgebase/article.aspx/9776/2237/how-to-create-a-subdomain-for-my-domain/) indicates that we can't benefit from subdomains when custom DNS servers are used. This would be the case in case we use `Route53` as the DNS for our website.
 
 Fortunately Namecheap also offers such services and also supports IPv6. A second approach we followed is described in [this knowledge base](https://www.namecheap.com/support/knowledgebase/article.aspx/434/2237/how-do-i-set-up-host-records-for-a-domain/) article to directly add the A(AAA) record for the server.
-
-## Certificates
-
-This is still open and needs to be tackled.
