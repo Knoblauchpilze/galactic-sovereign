@@ -1,13 +1,15 @@
 # https://doc.traefik.io/traefik/routing/services/#configuration-examples
 http:
   routers:
-    user-service:
+    user-service-https:
       entryPoints:
-        - "web"
-      rule: 'HostRegexp(`api.{{ env "DOMAIN_NAME" }}`) && PathPrefix(`/v1`)'
+        - "websecure"
+      rule: 'Host(`api.{{ env "DOMAIN_NAME" }}`) && PathPrefix(`/v1`)'
       service: user-service
       middlewares:
         - "us-rate-limit"
+      tls:
+        certResolver: letsencryptresolver
 
   middlewares:
     us-rate-limit:

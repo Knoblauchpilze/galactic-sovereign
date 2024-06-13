@@ -32,6 +32,7 @@ services:
       - corp-network
     ports:
       - "80:80"
+      - "443:443"
     environment:
       - DOMAIN_NAME=${DOMAIN_NAME}
       - TRAEFIK_USER=${TRAEFIK_USER}
@@ -41,6 +42,8 @@ services:
       - ./traefik.yml:/etc/traefik/traefik.yml
       - ./config/:/etc/traefik/config/
       - /var/run/docker.sock:/var/run/docker.sock
+      # https://doc.traefik.io/traefik/https/acme/#storage
+      - ./certificates:/etc/certificates/
 
 # https://docs.docker.com/compose/compose-file/06-networks/
 networks:

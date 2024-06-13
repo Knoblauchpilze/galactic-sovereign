@@ -16,7 +16,20 @@ entryPoints:
     address: ":80"
     forwardedHeaders:
       insecure: true
+  websecure:
+    address: ":443"
+
 providers:
   # https://doc.traefik.io/traefik/providers/file/#directory
   file:
     directory: "/etc/traefik/config"
+
+# https://doc.traefik.io/traefik/user-guides/docker-compose/acme-tls/
+certificatesResolvers:
+  letsencryptresolver:
+    acme:
+      # https://doc.traefik.io/traefik/v2.3/getting-started/configuration-overview/#the-static-configuration
+      # We need to replace this when generating the file.
+      email: ${EMAIL_TO_BE_REPLACED}
+      storage: "acme.json"
+      tlsChallenge: {}
