@@ -51,6 +51,10 @@ jobs:
     needs: [backup-deployment-config, collect-services-versions]
     steps:
       - uses: actions/checkout@v4
+      - name: Substitute acme email
+        run: |
+          mv deployments/traefik-template.yml deployments/traefik.yml
+          sed -i 's/${EMAIL_TO_BE_REPLACED}/${{ secrets.ACME_EMAIL }}/g' deployments/traefik.yml
       - name: Configure docker-compose deployment
         # https://deploy-preview-13474--docsdocker.netlify.app/compose/env-file/#compose-2x
         run: |
