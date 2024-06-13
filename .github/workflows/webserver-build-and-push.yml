@@ -7,6 +7,8 @@ on:
       - "build/webserver/Dockerfile"
       - ".github/workflows/webserver*.yml"
       - ".github/workflows/services*.yml"
+      # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#example-including-and-excluding-paths
+      - "!website/README.md"
 
 jobs:
   extract-service-tag:
