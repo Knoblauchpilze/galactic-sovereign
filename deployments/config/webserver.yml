@@ -4,7 +4,7 @@ http:
     webserver-https:
       entryPoints:
         - "websecure"
-      rule: 'Host({{ env "DOMAIN_NAME" }}`) && PathPrefix(`/`)'
+      rule: 'Host(`{{ env "DOMAIN_NAME" }}`) && PathPrefix(`/`)'
       service: webserver
       tls:
         certResolver: letsencryptresolver
@@ -12,7 +12,7 @@ http:
     webserver-www-https:
       entryPoints:
         - "websecure"
-      rule: 'Host(www.{{ env "DOMAIN_NAME" }}`) && PathPrefix(`/`)'
+      rule: 'Host(`www.{{ env "DOMAIN_NAME" }}`) && PathPrefix(`/`)'
       middlewares:
         - "ws-redirect"
       service: webserver
