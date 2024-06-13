@@ -1,11 +1,29 @@
 # https://doc.traefik.io/traefik/routing/services/#configuration-examples
 http:
   routers:
-    webserver:
+    webserver-https:
       entryPoints:
-        - "web"
-      rule: 'HostRegexp(`^(www.)?{{ env "DOMAIN_NAME" }}`) && PathPrefix(`/`)'
+        - "websecure"
+      rule: 'Host({{ env "DOMAIN_NAME" }}`) && PathPrefix(`/`)'
       service: webserver
+      tls:
+        certResolver: letsencryptresolver
+
+    webserver-www-https:
+      entryPoints:
+        - "websecure"
+      rule: 'Host(www.{{ env "DOMAIN_NAME" }}`) && PathPrefix(`/`)'
+      middlewares:
+        - "ws-redirect"
+      service: webserver
+      tls:
+        certResolver: letsencryptresolver
+
+  middlewares:
+    ws-redirect:
+      redirectRegex:
+        regex: '^https://www.{{ env "DOMAIN_NAME" }}/(.*)'
+        replacement: 'https://{{ env "DOMAIN_NAME" }}/${1}'
 
   services:
     webserver:

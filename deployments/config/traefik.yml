@@ -1,19 +1,17 @@
 http:
   routers:
     # https://doc.traefik.io/traefik/operations/dashboard/#secure-mode
-    traefik-dashboard:
-      rule: 'HostRegexp(`admin.{{ env "DOMAIN_NAME" }}`)'
-      entryPoints: web
+    traefik-dashboard-https:
+      rule: 'Host(`admin.{{ env "DOMAIN_NAME" }}`)'
+      entryPoints:
+        - "websecure"
       service: api@internal
       middlewares:
-        - "td-strip-path-prefix"
         - "td-auth"
+      tls:
+        certResolver: letsencryptresolver
 
   middlewares:
-    td-strip-path-prefix:
-      stripPrefix:
-        prefixes:
-          - "/traefik"
     td-auth:
       basicAuth:
         users: '{{ env "TRAEFIK_USER"}}:{{ env "TRAEFIK_HASHED_PASSWORD" }}'
