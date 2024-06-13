@@ -12,12 +12,16 @@ accesslog:
   addInternals: true
 
 entryPoints:
-  web:
-    address: ":80"
-    forwardedHeaders:
-      insecure: true
   websecure:
     address: ":443"
+  # https://doc.traefik.io/traefik/v2.2/routing/entrypoints/#redirection
+  web:
+    address: ":80"
+    http:
+      redirections:
+        entryPoint:
+          to: "websecure"
+          scheme: "https"
 
 providers:
   # https://doc.traefik.io/traefik/providers/file/#directory
@@ -31,5 +35,7 @@ certificatesResolvers:
       # https://doc.traefik.io/traefik/v2.3/getting-started/configuration-overview/#the-static-configuration
       # We need to replace this when generating the file.
       email: ${EMAIL_TO_BE_REPLACED}
+      # TODO: This should be removed
+      caServer: "https://acme-staging-v02.api.letsencrypt.org/directory"
       storage: "acme.json"
       tlsChallenge: {}
