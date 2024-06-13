@@ -500,9 +500,21 @@ In addition, it is possible to use traefik to route only part of the traffic to 
 
 The CI workflows define several secrets that are expected to be created for the repository when cloned/forked/used. Each secret should be self-explanatory based on its name. Most of them require to setup an account on one or the other service mentioned in this README.
 
-# Future work
+## Certificates
 
-Currently we also listen on `http://...` and don't provide anything in regards to `https`. This should be changed for enhanced security.
+Providing SSL certificates to the website can be achieved through various means. A popular and free way to get certificates is to use [Let's encrypt](https://letsencrypt.org/getting-started/).
+
+**Note:** Let's encrypt is recommending to use their [staging environment](https://letsencrypt.org/docs/staging-environment/) for testing to avoid hitting rate limits due to too many requests to issue certificates.
+
+There are multiple ways to generate certificates: Let's encrypt recommend using the [certbot](https://certbot.eff.org/instructions?ws=other&os=ubuntufocal&tab=standard) which seems to support a lot of things.
+
+We decided to use the bake-in solution provided by traefik as it supposedly plays well with it. This [traefik example](https://doc.traefik.io/traefik/user-guides/docker-compose/acme-tls/) defines a minimalistic example on how to modify an existing configuration to accomodate for certificates.
+
+With that in place, we can put in place a certificate for each of the subdomains available on our website. One subtelty was that we can't override some properties of traefik's static configuration with environment variables. This seems to be because the ways to statically configure traefik are [mutually exclusive](https://github.com/traefik/traefik/issues/7545).
+
+In order to solve this last problem we decided to move the static traefik configuration to a template file and replace the secret values in the CI when deploying to the remote server. This was inspired by [this comment](https://github.com/traefik/traefik/issues/3853#issuecomment-1874779480).
+
+# Future work
 
 Additionally we don't have a real API gateway handling authentication. This might be handled by traefik using the [ForwardAuth](https://doc.traefik.io/traefik/middlewares/http/forwardauth/) middleware.
 
