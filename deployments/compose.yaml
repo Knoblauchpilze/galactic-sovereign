@@ -43,7 +43,7 @@ services:
       - ./config/:/etc/traefik/config/
       - /var/run/docker.sock:/var/run/docker.sock
       # https://doc.traefik.io/traefik/https/acme/#storage
-      - ./certificates:/etc/certificates/
+      - /etc/certificates:/etc/certificates/
 
 # https://docs.docker.com/compose/compose-file/06-networks/
 networks:
