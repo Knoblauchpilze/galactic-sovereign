@@ -37,5 +37,5 @@ certificatesResolvers:
       email: ${EMAIL_TO_BE_REPLACED}
       # TODO: This should be removed
       caServer: "https://acme-staging-v02.api.letsencrypt.org/directory"
-      storage: "acme.json"
+      storage: "/etc/certificates/acme.json"
       tlsChallenge: {}
