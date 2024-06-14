@@ -382,6 +382,14 @@ In order to monitor the health of a service while deployed, it is possible to us
 
 The script will attempt to curl the endpoint providing the healtcheck for the service and check the return code. For a healthy service this shoud be 200. Anything else will be interepreted as a unhealthy service and the script will attempt to stop the running docker container (if any) and start it again.
 
+**It is necessary to copy this script on the EC2 instance hosting the services.**
+
+The script expects the domain name to be provided as environment variable under `DOMAIN_NAME`. Alternatively and in order to make it simpler to use the script with a cron job (see the rest of this section), in the remote case it can be beneficial to modify the copied version of the script to directly include the domain name in it. So change the line as follows (do not change the initial `:-` sequence):
+
+```bash
+DOMAIN_NAME=${DOMAIN_NAME:-the-actual-domain-name}
+```
+
 **Note:** the script is expected to run as root or alternatively to run with a user having the permissions to run `docker` without `sudo`.
 
 To install the script, you first need to open the crontab:
