@@ -1,12 +1,12 @@
 #!/bin/bash
 
 ENDPOINT=${SERVICE_ENDPOINT:-v1}
-PORT=${SERVICE_PORT:-80}
+DOMAIN_NAME=${DOMAIN_NAME:-}
 
 CONTAINER_NAME=${SERVICE_NAME:-user-service}
 DOCKER_COMPOSE_FILE=${COMPOSE_FILE:-/home/ubuntu/deployments/compose.yaml}
 
-URL="http://localhost:${PORT}/${ENDPOINT}/healthcheck"
+URL="https://${DOMAIN_NAME}/${ENDPOINT}/healthcheck"
 
 echo "Pinging ${URL}..."
 # https://stackoverflow.com/questions/38906626/curl-to-return-http-status-code-along-with-the-response
