@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - "build/user-service/version.txt"
+      - "build/user-dashboard/version.txt"
       - "build/webserver/version.txt"
       - "deployments/**"
       - ".github/workflows/deploy-services.yml"
@@ -13,6 +14,7 @@ on:
     workflows:
       [
         "Build and push user-service docker image",
+        "Build and push user-dashboard docker image",
         "Build and push webserver docker image",
       ]
     types:
@@ -24,12 +26,16 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       user-service-tag: ${{ steps.user-service.outputs.tag }}
+      user-dashboard-tag: ${{ steps.user-dashboard.outputs.tag }}
       webserver-tag: ${{ steps.webserver.outputs.tag }}
     steps:
       - uses: actions/checkout@v4
       - name: Extract user service tag
         id: user-service
         run: echo "tag=$(cat ./build/user-service/version.txt)" >> $GITHUB_OUTPUT
+      - name: Extract user dashboard tag
+        id: user-dashboard
+        run: echo "tag=$(cat ./build/user-dashboard/version.txt)" >> $GITHUB_OUTPUT
       - name: Extract webserver tag
         id: webserver
         run: echo "tag=$(cat ./build/webserver/version.txt)" >> $GITHUB_OUTPUT

@@ -1,0 +1,16 @@
+# https://doc.traefik.io/traefik/routing/services/#configuration-examples
+http:
+  routers:
+    user-dashboard-https:
+      entryPoints:
+        - "websecure"
+      rule: 'Host(`admin.{{ env "DOMAIN_NAME" }}`) && PathPrefix(`/`)'
+      service: user-dashboard
+      tls:
+        certResolver: letsencryptresolver
+
+  services:
+    webserver:
+      loadBalancer:
+        servers:
+          - url: "http://webserver:3001"
