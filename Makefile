@@ -60,33 +60,33 @@ user-service-stop:
 
 user-service-start: user-service-build user-service-run
 
-webserver-build:
+user-dashboard-build:
 	docker build \
 		--build-arg GIT_COMMIT_HASH=${GIT_COMMIT_HASH} \
 		--build-arg SERVER_ORIGIN=${SERVER_ORIGIN} \
 		--build-arg NODE_PORT=${NODE_PORT} \
 		--build-arg API_BASE_URL=${API_BASE_URL} \
-		--tag webserver:${GIT_COMMIT_HASH} \
-		-f build/webserver/Dockerfile \
+		--tag user-dashboard:${GIT_COMMIT_HASH} \
+		-f build/user-dashboard/Dockerfile \
 		.
 
-webserver-run:
+user-dashboard-run:
 	docker run \
 		--network ${DOCKER_NETWORK_BRIDGE_NAME} \
 		-p ${NODE_PORT}:${NODE_PORT} \
-		webserver:${GIT_COMMIT_HASH}
+		user-dashboard:${GIT_COMMIT_HASH}
 
-webserver-run-detached:
+user-dashboard-run-detached:
 	sudo docker run \
 		--network ${DOCKER_NETWORK_BRIDGE_NAME} \
 		-p ${NODE_PORT}:${NODE_PORT} \
-		--name webserver \
+		--name user-dashboard \
 		-d \
 		--restart on-failure:${RESTART_RETRIES_COUNT} \
-		webserver:${GIT_COMMIT_HASH}
+		user-dashboard:${GIT_COMMIT_HASH}
 
-webserver-stop:
-	sudo docker stop webserver
-	sudo docker rm webserver
+user-dashboard-stop:
+	sudo docker stop user-dashboard
+	sudo docker rm user-dashboard
 
-webserver-start: webserver-build webserver-run
+user-dashboard-start: user-dashboard-build user-dashboard-run
