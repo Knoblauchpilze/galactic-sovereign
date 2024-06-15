@@ -10,7 +10,7 @@ http:
         certResolver: letsencryptresolver
 
   services:
-    webserver:
+    user-dashboard:
       loadBalancer:
         servers:
           - url: "http://webserver:3001"
