@@ -11,6 +11,10 @@
 </script>
 
 <div class="wrapper">
+	<div class="signup-navbar">
+		Don't have an account yet? Click <a href="/dashboard/signup">here</a> to sign-up!
+	</div>
+
 	<h1>User dashboard</h1>
 	<h2>Login</h2>
 
@@ -53,6 +57,26 @@
 		flex-direction: column;
 		justify-content: space-between;
 		align-items: center;
+	}
+
+	.signup-navbar {
+		color: #1eb854;
+
+		position: fixed;
+		left: 1em;
+		top: 1em;
+	}
+
+	.signup-navbar a:link {
+		color: #1db8ab;
+	}
+
+	.signup-navbar a:visited {
+		color: #1db8ab;
+	}
+
+	.signup-navbar a:hover {
+		color: #fff;
 	}
 
 	h1,
