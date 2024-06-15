@@ -58,7 +58,7 @@ ORIGIN=http://localhost:3000 node /path/to/the/build/folder
 
 The first part corresponds to the problem described in this [SO post](https://stackoverflow.com/questions/73790956/cross-site-post-form-submissions-are-forbidden). With this, the website can be accessed locally on the browser by going to `http://localhost:3000/dashboard/login`.
 
-For convenience, the [Makefile](user-dashboard/Makefile) defines a `build` target to handle the build. Most likely though it is better to use the root [Makefile](/Makefile) and build the docker images for the webserver: this handles everything and allows to predictably setup the webserver.
+For convenience, the [Makefile](user-dashboard/Makefile) defines a `build` target to handle the build. Most likely though it is better to use the root [Makefile](/Makefile) and build the docker images for the user dashboard: this handles everything and allows to predictably setup the associated web server.
 
 # The website
 

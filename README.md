@@ -12,6 +12,8 @@ Below are the required badges to indicate the code coverage and whether the CI a
 
 [![Build and push user-service docker image](https://github.com/Knoblauchpilze/user-service/actions/workflows/user-service-build-and-push.yml/badge.svg)](https://github.com/Knoblauchpilze/user-service/actions/workflows/user-service-build-and-push.yml)
 
+[![Build and push user-dashboard docker image](https://github.com/Knoblauchpilze/user-service/actions/workflows/user-dashboard-build-and-push.yml/badge.svg)](https://github.com/Knoblauchpilze/user-service/actions/workflows/user-dashboard-build-and-push.yml)
+
 [![Build and push webserver docker image](https://github.com/Knoblauchpilze/user-service/actions/workflows/webserver-build-and-push.yml/badge.svg)](https://github.com/Knoblauchpilze/user-service/actions/workflows/webserver-build-and-push.yml)
 
 [![Deploy service](https://github.com/Knoblauchpilze/user-service/actions/workflows/deploy-services.yml/badge.svg)](https://github.com/Knoblauchpilze/user-service/actions/workflows/deploy-services.yml)
