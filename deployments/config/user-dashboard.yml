@@ -1,4 +1,3 @@
-# https://doc.traefik.io/traefik/routing/services/#configuration-examples
 http:
   routers:
     user-dashboard-https:
@@ -13,4 +12,4 @@ http:
     user-dashboard:
       loadBalancer:
         servers:
-          - url: "http://webserver:3001"
+          - url: "http://user-dashboard:3001"

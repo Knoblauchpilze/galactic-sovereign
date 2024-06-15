@@ -13,6 +13,15 @@ services:
       # https://docs.docker.com/compose/environment-variables/set-environment-variables/#compose-file
       - ENV_DATABASE_PASSWORD=${ENV_DATABASE_PASSWORD}
 
+  user-dashboard:
+    image: totocorpsoftwareinc/user-dashboard:${WEBSERVER_TAG}
+    container_name: user-dashboard
+    restart: on-failure:5
+    networks:
+      - corp-network
+    environment:
+      - ORIGIN=${WEBSERVER_ORIGIN:-http://admin.localhost}
+
   webserver:
     image: totocorpsoftwareinc/webserver:${WEBSERVER_TAG}
     container_name: webserver
@@ -20,8 +29,7 @@ services:
     networks:
       - corp-network
     environment:
-      # https://docs.docker.com/compose/environment-variables/set-environment-variables/#compose-file
-      - ORIGIN=${WEBSERVER_ORIGIN:-http://dashboard.localhost}
+      - ORIGIN=${WEBSERVER_ORIGIN:-http://admin.localhost}
 
   # https://www.reddit.com/r/Traefik/comments/123oz36/traefik_dashboard_access_with_staticdynamic/
   reverse-proxy:
