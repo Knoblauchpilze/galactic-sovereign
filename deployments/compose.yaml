@@ -14,13 +14,13 @@ services:
       - ENV_DATABASE_PASSWORD=${ENV_DATABASE_PASSWORD}
 
   user-dashboard:
-    image: totocorpsoftwareinc/user-dashboard:${WEBSERVER_TAG}
+    image: totocorpsoftwareinc/user-dashboard:${USER_DASHBOARD_TAG}
     container_name: user-dashboard
     restart: on-failure:5
     networks:
       - corp-network
     environment:
-      - ORIGIN=${WEBSERVER_ORIGIN:-http://admin.localhost}
+      - ORIGIN=${USER_DASHBOARD_ORIGIN:-http://admin.localhost}
 
   webserver:
     image: totocorpsoftwareinc/webserver:${WEBSERVER_TAG}
