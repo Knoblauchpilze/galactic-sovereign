@@ -2,7 +2,7 @@ http:
   routers:
     # https://doc.traefik.io/traefik/operations/dashboard/#secure-mode
     traefik-dashboard-https:
-      rule: 'Host(`admin.{{ env "DOMAIN_NAME" }}`)'
+      rule: 'Host(`traefik.{{ env "DOMAIN_NAME" }}`)'
       entryPoints:
         - "websecure"
       service: api@internal
