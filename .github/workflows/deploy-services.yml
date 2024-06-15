@@ -3,7 +3,7 @@ name: Deploy service
 on:
   push:
     paths:
-      - "build/users/version.txt"
+      - "build/user-service/version.txt"
       - "build/webserver/version.txt"
       - "deployments/**"
       - ".github/workflows/deploy-services.yml"
@@ -29,7 +29,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Extract user service tag
         id: user-service
-        run: echo "tag=$(cat ./build/users/version.txt)" >> $GITHUB_OUTPUT
+        run: echo "tag=$(cat ./build/user-service/version.txt)" >> $GITHUB_OUTPUT
       - name: Extract webserver tag
         id: webserver
         run: echo "tag=$(cat ./build/webserver/version.txt)" >> $GITHUB_OUTPUT

@@ -7,7 +7,7 @@ on:
       - "cmd/**"
       - "pkg/**"
       - "internal/**"
-      - "build/users/Dockerfile"
+      - "build/user-service/Dockerfile"
       - ".github/workflows/user-service*.yml"
       - ".github/workflows/services*.yml"
 
@@ -40,7 +40,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: ./build/users/Dockerfile
+          file: ./build/user-service/Dockerfile
           build-args: GIT_COMMIT_HASH=${{ needs.extract-service-tag.outputs.version }}
           push: true
           tags: totocorpsoftwareinc/user-service:${{ needs.extract-service-tag.outputs.version }}
@@ -53,5 +53,5 @@ jobs:
       contents: write
     uses: ./.github/workflows/services-persist-tag.yml
     with:
-      service-name: users
+      service-name: user-service
       service-tag: ${{ needs.extract-service-tag.outputs.version }}
