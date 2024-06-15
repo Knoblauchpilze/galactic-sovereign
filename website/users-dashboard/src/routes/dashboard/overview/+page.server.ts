@@ -1,6 +1,6 @@
 
 import { error, redirect } from '@sveltejs/kit';
-import User, { getUser,  } from '$lib/users';
+import User, { getUser } from '$lib/users';
 import { logoutUser } from '$lib/sessions';
 import { ApiFailureReason } from '$lib/responseEnvelope.js';
 
