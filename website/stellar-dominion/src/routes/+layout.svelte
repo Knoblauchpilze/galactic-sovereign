@@ -5,8 +5,6 @@
 </div>
 
 <style>
-	/* https://stackoverflow.com/questions/19026884/flexbox-center-horizontally-and-vertically */
-	/* https://stackoverflow.com/questions/71760177/styling-the-body-element-in-svelte */
 	:global(html),
 	:global(body) {
 		height: 100%;
