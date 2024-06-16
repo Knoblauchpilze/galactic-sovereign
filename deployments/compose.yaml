@@ -23,13 +23,13 @@ services:
       - ORIGIN=${USER_DASHBOARD_ORIGIN:-http://admin.localhost}
 
   stellar-dominion:
-    image: totocorpsoftwareinc/stellar-dominion:${WEBSERVER_TAG}
+    image: totocorpsoftwareinc/stellar-dominion:${STELLAR_DOMINION_TAG}
     container_name: stellar-dominion
     restart: on-failure:5
     networks:
       - corp-network
     environment:
-      - ORIGIN=${WEBSERVER_ORIGIN:-http://admin.localhost}
+      - ORIGIN=${STELLAR_DOMINION_ORIGIN:-http://admin.localhost}
 
   # https://www.reddit.com/r/Traefik/comments/123oz36/traefik_dashboard_access_with_staticdynamic/
   reverse-proxy:
