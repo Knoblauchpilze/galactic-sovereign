@@ -448,7 +448,7 @@ With the CI already in place it should be relatively easy to set up the secrets 
 
 In order to verify that the user-service is doing what it is supposed to do, we wanted to have a visual way to interact with it and observe the responses. Therefore we decided to actually deploy all the code defined in this repository to an actual website.
 
-This means managing at least 2 (the user-service and the webserver) docker containers and deploying them to a remote instance. It is not usually recommended to have just simple docker commands to deploy a cluster of services: it gets tedious very fast and quite cumbersome to verify (and possibly scale) the amount of services running.
+This means managing at least 2 (the user-service and the user-dashboard) docker containers and deploying them to a remote instance. It is not usually recommended to have just simple docker commands to deploy a cluster of services: it gets tedious very fast and quite cumbersome to verify (and possibly scale) the amount of services running.
 
 In addition to this and with the goal of building a website in mind, we also want to route the incoming traffic to our application. This of course also means that the containers should be listening in the first place. And this is where the problem starts. Consider the following situation:
 
