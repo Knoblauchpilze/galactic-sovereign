@@ -472,7 +472,7 @@ All of the above seem to point in a direction where we can't stick with just `do
 
 Services like [Kubernetes](https://kubernetes.io/) or [Docker swarm](https://docs.docker.com/engine/swarm/) are typical examples of how to solve the above problem. They are pretty big and complex to master though and probably a bit overkill for our needs at the moment.
 
-A lightweight solution seems to be [docker compose](https://docs.docker.com/compose/) (as defined in the [deployment section](#deployment-basics)). This project is slightly different from swarm (see [this link](https://www.geeksforgeeks.org/docker-compose-vs-docker-swarm/) for more information) and essentially allows to manage a collection of services like a single one. Some convenience features are provided such as:
+A lightweight solution seems to be `docker compose` (as defined in the [deployment section](#deployment-basics)). This project is slightly different from swarm (see [this link](https://www.geeksforgeeks.org/docker-compose-vs-docker-swarm/) for more information) and essentially allows to manage a collection of services like a single one. Some convenience features are provided such as:
 
 - automaticc restarts of failing containers.
 - restart of only containers that were modified when deploying again.
