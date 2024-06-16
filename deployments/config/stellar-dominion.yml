@@ -1,20 +1,20 @@
 http:
   routers:
-    webserver-https:
+    stellar-dominion-https:
       entryPoints:
         - "websecure"
       rule: 'Host(`{{ env "DOMAIN_NAME" }}`) && PathPrefix(`/`)'
-      service: webserver
+      service: stellar-dominion
       tls:
         certResolver: letsencryptresolver
 
-    webserver-www-https:
+    stellar-dominion-www-https:
       entryPoints:
         - "websecure"
       rule: 'Host(`www.{{ env "DOMAIN_NAME" }}`) && PathPrefix(`/`)'
       middlewares:
         - "ws-redirect"
-      service: webserver
+      service: stellar-dominion
       tls:
         certResolver: letsencryptresolver
 
@@ -25,7 +25,7 @@ http:
         replacement: 'https://{{ env "DOMAIN_NAME" }}/${1}'
 
   services:
-    webserver:
+    stellar-dominion:
       loadBalancer:
         servers:
-          - url: "http://webserver:3001"
+          - url: "http://stellar-dominion:3001"
