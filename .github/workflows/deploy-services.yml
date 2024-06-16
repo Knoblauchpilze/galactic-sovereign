@@ -68,8 +68,8 @@ jobs:
           echo "ENV_DATABASE_PASSWORD=${{ secrets.DATABASE_MANAGER_PASSWORD }}" >> ./deployments/.env
           echo "USER_DASHBOARD_TAG=${{ needs.collect-services-versions.outputs.user-dashboard-tag }}" >> ./deployments/.env
           echo "USER_DASHBOARD_ORIGIN=${{ secrets.USER_DASHBOARD_ORIGIN }}" >> ./deployments/.env
-          echo "WEBSERVER_TAG=${{ needs.collect-services-versions.outputs.stellar-dominion-tag }}" >> ./deployments/.env
-          echo "WEBSERVER_ORIGIN=${{ secrets.WEBSERVER_ORIGIN }}" >> ./deployments/.env
+          echo "STELLAR_DOMINION_TAG=${{ needs.collect-services-versions.outputs.stellar-dominion-tag }}" >> ./deployments/.env
+          echo "STELLAR_DOMINION_ORIGIN=${{ secrets.STELLAR_DOMINION_ORIGIN }}" >> ./deployments/.env
           echo "DOMAIN_NAME=${{ secrets.DOMAIN_NAME }}" >> ./deployments/.env
           echo "TRAEFIK_USER=${{ secrets.TRAEFIK_USER }}" >> ./deployments/.env
           echo "TRAEFIK_HASHED_PASSWORD='"'${{ secrets.TRAEFIK_HASHED_PASSWORD }}'"'" >> ./deployments/.env
