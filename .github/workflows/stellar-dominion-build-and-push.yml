@@ -30,9 +30,6 @@ jobs:
           file: ./build/stellar-dominion/Dockerfile
           build-args: |
             GIT_COMMIT_HASH=${{ needs.extract-service-tag.outputs.version }}
-            NODE_PORT=3001
-            SERVER_ORIGIN=http://dashboard.${{ secrets.EC2_DEPLOY_HOST }}
-            API_BASE_URL=http://user-service:80/v1/users
           push: true
           tags: totocorpsoftwareinc/stellar-dominion:${{ needs.extract-service-tag.outputs.version }}
   persist-service-tag:
