@@ -1,6 +1,5 @@
 
 setup:
-	cp .env-example .env
 	cp .env-example.local .env.local
 
 dev:

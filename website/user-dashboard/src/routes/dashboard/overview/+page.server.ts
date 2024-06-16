@@ -1,4 +1,3 @@
-
 import { error, redirect } from '@sveltejs/kit';
 import User, { getUser } from '$lib/users';
 import { logoutUser } from '$lib/sessions';
@@ -34,9 +33,9 @@ export async function load({ cookies }) {
 	const user = new User(userResponse);
 	return {
 		...user,
-		apiKey: apiKey,
+		apiKey: apiKey
 	};
-};
+}
 
 /** @type {import('./$types').Actions} */
 export const actions = {
@@ -61,5 +60,5 @@ export const actions = {
 		}
 
 		redirect(303, '/dashboard/login');
-	},
+	}
 };

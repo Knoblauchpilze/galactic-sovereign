@@ -1,13 +1,12 @@
-
 import { redirect } from '@sveltejs/kit';
 import { createUser } from '$lib/users';
 import ApiKey from '$lib/apiKey.js';
 
 /** @type {import('./$types').PageServerLoad} */
 export async function load({ cookies }) {
-	cookies.set('api-key', '', {path: '/'});
-	cookies.set('api-user', '', {path: '/'});
-};
+	cookies.set('api-key', '', { path: '/' });
+	cookies.set('api-user', '', { path: '/' });
+}
 
 /** @type {import('./$types').Actions} */
 export const actions = {
@@ -22,8 +21,8 @@ export const actions = {
 				missing: true,
 				message: 'Please fill in the email',
 
-				email,
-			}
+				email
+			};
 		}
 		if (!password) {
 			return {
@@ -31,8 +30,8 @@ export const actions = {
 				missing: true,
 				message: 'Please fill in the password',
 
-				email,
-			}
+				email
+			};
 		}
 
 		const signupResponse = await createUser(email as string, password as string);
@@ -43,8 +42,8 @@ export const actions = {
 				incorrect: true,
 				message: signupResponse.failureMessage(),
 
-				email,
-			}
+				email
+			};
 		}
 
 		const apiKey = new ApiKey(signupResponse);
@@ -53,5 +52,5 @@ export const actions = {
 		cookies.set('api-key', apiKey.key, { path: '/' });
 
 		redirect(303, '/dashboard/login');
-	},
+	}
 };
