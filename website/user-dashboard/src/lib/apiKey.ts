@@ -11,19 +11,17 @@ export default class ApiKey {
 			return
 		}
 
-		const maybeUser = (response.details as any).user;
-		if (typeof maybeUser === "string") {
-			this.user = maybeUser;
+		// https://stackoverflow.com/questions/455338/how-do-i-check-if-an-object-has-a-key-in-javascript
+		if ("user" in response.details && typeof response.details.user === "string") {
+			this.user = response.details.user;
 		}
 
-		const maybeKey = (response.details as any).key;
-		if (typeof maybeKey === "string") {
-			this.key = maybeKey;
+		if ("key" in response.details && typeof response.details.key === "string") {
+			this.key = response.details.key;
 		}
 
-		const maybeValidUntil = (response.details as any).validUntil;
-		if (typeof maybeValidUntil === "string") {
-			this.validUntil = new Date(maybeValidUntil);
+		if ("validUntil" in response.details && typeof response.details.validUntil === "string") {
+			this.validUntil = new Date(response.details.validUntil);
 		}
 	}
 }

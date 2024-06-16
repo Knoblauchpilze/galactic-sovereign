@@ -11,7 +11,7 @@ function trimTrailingSlash(url: string): string {
 }
 
 export function buildUrl(url: string): string {
-	let out = trimTrailingSlash(PUBLIC_API_BASE_URL);
+	const out = trimTrailingSlash(PUBLIC_API_BASE_URL);
 
 	if (url.length === 0) {
 		return out;

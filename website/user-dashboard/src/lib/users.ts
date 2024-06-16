@@ -14,25 +14,21 @@ export default class User {
 			return
 		}
 
-		const maybeId = (response.details as any).id;
-		if (typeof maybeId === "string") {
-			this.id = maybeId;
+		if ("id" in response.details && typeof response.details.id === "string") {
+			this.id = response.details.id;
 		}
 
-		const maybeEmail = (response.details as any).email;
-		if (typeof maybeId === "string") {
-			this.email = maybeEmail;
+		if ("email" in response.details && typeof response.details.email === "string") {
+			this.email = response.details.email;
 		}
 
-		const maybePassword = (response.details as any).password;
-		if (typeof maybeId === "string") {
-			this.password = maybePassword;
+		if ("password" in response.details && typeof response.details.password === "string") {
+			this.password = response.details.password;
 		}
 
 		// https://stackoverflow.com/questions/643782/how-to-check-whether-an-object-is-a-date
-		const maybeCreatedAt = (response.details as any).createdAt;
-		if (typeof maybeCreatedAt === "string") {
-			this.createdAt = new Date(maybeCreatedAt);
+		if ("createdAt" in response.details && typeof response.details.createdAt === "string") {
+			this.createdAt = new Date(response.details.createdAt);
 		}
 	}
 }
