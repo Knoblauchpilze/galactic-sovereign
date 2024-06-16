@@ -1,17 +1,16 @@
-
 export default class ResponseEnvelope {
 	readonly requestId: string;
 	readonly status: string;
 	readonly details: object;
 
-	constructor(response: {requestId: string, status: string, details: object}) {
+	constructor(response: { requestId: string; status: string; details: object }) {
 		this.requestId = response.requestId;
 		this.status = response.status;
 		this.details = response.details;
 	}
 
 	public success(): boolean {
-		return this.status === "SUCCESS";
+		return this.status === 'SUCCESS';
 	}
 
 	public error(): boolean {
@@ -19,11 +18,11 @@ export default class ResponseEnvelope {
 	}
 
 	public failureMessage(): string {
-		if (typeof this.details === "string") {
+		if (typeof this.details === 'string') {
 			return this.details;
 		}
 
-		return "Unexpected error";
+		return 'Unexpected error';
 	}
 
 	public failureReason(): ApiFailureReason {
@@ -32,7 +31,7 @@ export default class ResponseEnvelope {
 		}
 
 		switch (this.failureMessage()) {
-			case "API key expired":
+			case 'API key expired':
 				return ApiFailureReason.API_KEY_EXPIRED;
 			default:
 				return ApiFailureReason.UNKNOWN_ERROR;
@@ -42,24 +41,22 @@ export default class ResponseEnvelope {
 
 export function createFailedResponseEnvelope(details: object): ResponseEnvelope {
 	return new ResponseEnvelope({
-		requestId: "00000000-0000-0000-0000-000000000000",
-		status: "ERROR",
-		details: details,
+		requestId: '00000000-0000-0000-0000-000000000000',
+		status: 'ERROR',
+		details: details
 	});
 }
 
 export function createEmptySuccessResponseEnvelope(): ResponseEnvelope {
 	return new ResponseEnvelope({
-		requestId: "00000000-0000-0000-0000-000000000000",
-		status: "SUCCESS",
-		details: ("No content" as unknown) as object,
+		requestId: '00000000-0000-0000-0000-000000000000',
+		status: 'SUCCESS',
+		details: 'No content' as unknown as object
 	});
 }
 
 export enum ApiFailureReason {
 	NONE = 0,
 	UNKNOWN_ERROR = 1,
-	API_KEY_EXPIRED = 2,
+	API_KEY_EXPIRED = 2
 }
-
-

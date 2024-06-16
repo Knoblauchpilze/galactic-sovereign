@@ -1,5 +1,4 @@
-
-import {createFailedResponseEnvelope} from './responseEnvelope';
+import { createFailedResponseEnvelope } from './responseEnvelope';
 import { PUBLIC_API_BASE_URL } from '$env/static/public';
 
 function trimTrailingSlash(url: string): string {
@@ -16,10 +15,10 @@ export function buildUrl(url: string): string {
 	if (url.length === 0) {
 		return out;
 	}
-	return out + "/" + url;
+	return out + '/' + url;
 }
 
-const genericFailureReason : string = "Unknown failure";
+const genericFailureReason: string = 'Unknown failure';
 
 function analyzeFetchFailureReasone(reason: object): Response {
 	// https://developer.mozilla.org/en-US/docs/Web/API/Response/Response
@@ -28,12 +27,15 @@ function analyzeFetchFailureReasone(reason: object): Response {
 		failureReason = (reason as TypeError).message;
 	}
 
-	const responseEnvelope = createFailedResponseEnvelope((failureReason as unknown) as object);
+	const responseEnvelope = createFailedResponseEnvelope(failureReason as unknown as object);
 
 	const body = new Blob([JSON.stringify(responseEnvelope)]);
 	return new Response(body);
 }
 
-export async function safeFetch(url: URL | RequestInfo, init?: RequestInit | undefined): Promise<Response> {
-	return await fetch(url, init).catch(reason => analyzeFetchFailureReasone(reason));
+export async function safeFetch(
+	url: URL | RequestInfo,
+	init?: RequestInit | undefined
+): Promise<Response> {
+	return await fetch(url, init).catch((reason) => analyzeFetchFailureReasone(reason));
 }

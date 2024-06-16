@@ -1,11 +1,9 @@
-
 import ResponseEnvelope, { createEmptySuccessResponseEnvelope } from './responseEnvelope';
-import {buildUrl, safeFetch} from './api';
+import { buildUrl, safeFetch } from './api';
 import HttpStatus from './httpStatuses';
 
-
 export async function loginUser(email: string, password: string): Promise<ResponseEnvelope> {
-	const url = buildUrl("sessions");
+	const url = buildUrl('sessions');
 	const body = JSON.stringify({ email: email, password: password });
 
 	const params = {
@@ -23,12 +21,12 @@ export async function loginUser(email: string, password: string): Promise<Respon
 }
 
 export async function logoutUser(apiKey: string, userId: string): Promise<ResponseEnvelope> {
-	const url = buildUrl("sessions/" + userId);
+	const url = buildUrl('sessions/' + userId);
 
 	const params = {
 		method: 'DELETE',
 		headers: {
-			'X-Api-Key' : apiKey,
+			'X-Api-Key': apiKey
 		}
 	};
 
