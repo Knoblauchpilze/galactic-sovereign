@@ -3,12 +3,10 @@ name: Build and push webserver docker image
 on:
   push:
     paths:
-      - "website/**"
-      - "build/webserver/Dockerfile"
+      - "website/stellar-dominion/**"
+      - "build/stellar-dominion/Dockerfile"
       - ".github/workflows/webserver*.yml"
       - ".github/workflows/services*.yml"
-      # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#example-including-and-excluding-paths
-      - "!website/README.md"
 
 jobs:
   extract-service-tag:
@@ -29,7 +27,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: ./build/webserver/Dockerfile
+          file: ./build/stellar-dominion/Dockerfile
           build-args: |
             GIT_COMMIT_HASH=${{ needs.extract-service-tag.outputs.version }}
             NODE_PORT=3001
@@ -44,5 +42,5 @@ jobs:
       contents: write
     uses: ./.github/workflows/services-persist-tag.yml
     with:
-      service-name: webserver
+      service-name: stellar-dominion
       service-tag: ${{ needs.extract-service-tag.outputs.version }}
