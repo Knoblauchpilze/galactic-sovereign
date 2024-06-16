@@ -457,7 +457,7 @@ In addition to this and with the goal of building a website in mind, we also wan
 
 To achieve this we somehow need to:
 
-- instruct Docker to bind the host port 80 to container A (e.g. with `-p 80:80`) so that it can serve the outside world
+- instruct Docker to bind the host port 80 to container A (e.g. with `-p 80:80`) so that it can serve the outside world.
 - instruct Docker to bind the host port 80 to container B (with the same command as above!) so that it can target container A.
 
 This usually result in the following:
