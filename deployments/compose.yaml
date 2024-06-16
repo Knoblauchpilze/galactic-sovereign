@@ -22,9 +22,9 @@ services:
     environment:
       - ORIGIN=${USER_DASHBOARD_ORIGIN:-http://admin.localhost}
 
-  webserver:
-    image: totocorpsoftwareinc/webserver:${WEBSERVER_TAG}
-    container_name: webserver
+  stellar-dominion:
+    image: totocorpsoftwareinc/stellar-dominion:${WEBSERVER_TAG}
+    container_name: stellar-dominion
     restart: on-failure:5
     networks:
       - corp-network
