@@ -15,7 +15,7 @@ on:
       [
         "Build and push user-service docker image",
         "Build and push user-dashboard docker image",
-        "Build and push webserver docker image",
+        "Build and push stellar-dominion docker image",
       ]
     types:
       - completed

@@ -1,11 +1,11 @@
-name: Build and push webserver docker image
+name: Build and push stellar-dominion docker image
 
 on:
   push:
     paths:
       - "website/stellar-dominion/**"
       - "build/stellar-dominion/Dockerfile"
-      - ".github/workflows/webserver*.yml"
+      - ".github/workflows/stellar-dominion*.yml"
       - ".github/workflows/services*.yml"
 
 jobs:
