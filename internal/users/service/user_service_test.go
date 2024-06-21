@@ -100,7 +100,7 @@ func TestUserService_Create_CallsRepositoryCreate(t *testing.T) {
 	assert.Equal(1, mur.createCalled)
 }
 
-func TestUserService_Create_WhenUserRepositoryFails_ExpectError(t *testing.T) {
+func TestUserService_Create_WhenRepositoryFails_ExpectError(t *testing.T) {
 	assert := assert.New(t)
 
 	mur := &mockUserRepository{

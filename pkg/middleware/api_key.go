@@ -14,19 +14,19 @@ import (
 const apiKeyHeaderKey = "X-Api-Key"
 
 const (
-	apiKeyNotFound      errors.ErrorCode = 200
-	tooManyApiKeys      errors.ErrorCode = 201
-	invalidApiKeySyntax errors.ErrorCode = 202
+	ApiKeyNotFound      errors.ErrorCode = 200
+	TooManyApiKeys      errors.ErrorCode = 201
+	InvalidApiKeySyntax errors.ErrorCode = 202
 )
 
 func ApiKey(apiKeyRepository repositories.ApiKeyRepository) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			apiKeyValue, err := tryGetApiKeyHeader(c.Request())
+			apiKeyValue, err := TryGetApiKeyHeader(c.Request())
 			if err != nil {
 				c.Logger().Errorf("Failed to fetch key: %v", err)
 
-				if errors.IsErrorWithCode(err, invalidApiKeySyntax) {
+				if errors.IsErrorWithCode(err, InvalidApiKeySyntax) {
 					return c.JSON(http.StatusBadRequest, "API key has wrong format")
 				}
 
@@ -53,20 +53,20 @@ func ApiKey(apiKeyRepository repositories.ApiKeyRepository) echo.MiddlewareFunc 
 	}
 }
 
-func tryGetApiKeyHeader(req *http.Request) (apiKey uuid.UUID, err error) {
+func TryGetApiKeyHeader(req *http.Request) (apiKey uuid.UUID, err error) {
 	apiKeys, ok := req.Header[apiKeyHeaderKey]
 	if !ok {
-		err = errors.NewCode(apiKeyNotFound)
+		err = errors.NewCode(ApiKeyNotFound)
 		return
 	}
 	if len(apiKeys) != 1 {
-		err = errors.NewCode(tooManyApiKeys)
+		err = errors.NewCode(TooManyApiKeys)
 		return
 	}
 
 	apiKey, err = uuid.Parse(apiKeys[0])
 	if err != nil {
-		err = errors.NewCode(invalidApiKeySyntax)
+		err = errors.NewCode(InvalidApiKeySyntax)
 	}
 
 	return

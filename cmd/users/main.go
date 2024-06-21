@@ -49,6 +49,7 @@ func main() {
 	userRepo := repositories.NewUserRepository(pool)
 	apiKeyRepo := repositories.NewApiKeyRepository(pool)
 	userService := service.NewUserService(conf.ApiKey, pool, userRepo, apiKeyRepo)
+	authService := service.NewAuthService(pool, userRepo, apiKeyRepo)
 
 	s := rest.NewServer(conf.Server, apiKeyRepo)
 
@@ -60,6 +61,13 @@ func main() {
 	}
 
 	for _, route := range controller.HealthCheckEndpoints(pool) {
+		if err := s.Register(route); err != nil {
+			logger.Errorf("Failed to register route: %v", err)
+			os.Exit(1)
+		}
+	}
+
+	for _, route := range controller.AuthEndpoints(authService) {
 		if err := s.Register(route); err != nil {
 			logger.Errorf("Failed to register route: %v", err)
 			os.Exit(1)

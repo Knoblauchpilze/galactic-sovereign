@@ -38,12 +38,6 @@ type mockUserService struct {
 	inId   uuid.UUID
 }
 
-type testCase struct {
-	req            *http.Request
-	idAsRouteParam bool
-	handler        userServiceAwareHttpHandler
-}
-
 var defaultUuid = uuid.MustParse("08ce96a3-3430-48a8-a3b2-b1c987a207ca")
 var defaultUserDtoRequest = communication.UserDtoRequest{
 	Email:    "e.mail@domain.com",
@@ -59,6 +53,12 @@ var defaultUserDtoResponse = communication.UserDtoResponse{
 var defaultApiKeyDtoResponse = communication.ApiKeyDtoResponse{
 	Key:        uuid.MustParse("9380e881-39c3-42f1-b594-b5d2010e67c0"),
 	ValidUntil: time.Date(2024, 05, 05, 21, 32, 55, 651387237, time.UTC),
+}
+
+type testCase struct {
+	req            *http.Request
+	idAsRouteParam bool
+	handler        userServiceAwareHttpHandler
 }
 
 func TestUserEndpoints_GeneratesExpectedRoutes(t *testing.T) {

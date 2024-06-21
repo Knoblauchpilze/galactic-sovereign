@@ -14,10 +14,10 @@ CREATE TRIGGER trigger_acl_updated_at
 
 CREATE TABLE acl_permissions (
   acl UUID NOT NULL,
-  permissions TEXT NOT NULL,
+  permission TEXT NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP WITH TIME ZONE,
-  PRIMARY KEY (acl, permissions),
+  PRIMARY KEY (acl, permission),
   FOREIGN KEY (acl) REFERENCES acl(id)
 );
 

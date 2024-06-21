@@ -21,3 +21,11 @@ func fromDbAwareHttpHandler(handler dbAwareHttpHandler, pool db.ConnectionPool) 
 		return handler(c, pool)
 	}
 }
+
+type authServiceAwareHttpHandler func(echo.Context, service.AuthService) error
+
+func fromAuthServiceAwareHttpHandler(handler authServiceAwareHttpHandler, service service.AuthService) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		return handler(c, service)
+	}
+}
