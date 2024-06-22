@@ -247,3 +247,40 @@ func TestAclRepository_Delete_NominalCase(t *testing.T) {
 
 	assert.Nil(err)
 }
+
+func TestAclRepository_DeleteForUser_DbInteraction(t *testing.T) {
+	expectedPermissionsSqlQuery := `
+DELETE FROM acl_permissions
+	WHERE acl
+		IN (SELECT id FROM acl WHERE api_user = $1)
+`
+
+	s := RepositoryTransactionTestSuite{
+		sqlMode: ExecBased,
+		testFunc: func(ctx context.Context, tx db.Transaction) error {
+			repo := NewAclRepository()
+			return repo.DeleteForUser(context.Background(), tx, defaultUserId)
+		},
+		expectedSql: []string{
+			expectedPermissionsSqlQuery,
+			`DELETE FROM acl WHERE api_user = $1`,
+		},
+		expectedArguments: [][]interface{}{
+			{defaultUserId},
+			{defaultUserId},
+		},
+	}
+
+	suite.Run(t, &s)
+}
+
+func TestAclRepository_DeleteForUser_NominalCase(t *testing.T) {
+	assert := assert.New(t)
+
+	repo := NewAclRepository()
+	mt := &mockTransaction{}
+
+	err := repo.DeleteForUser(context.Background(), mt, defaultUserId)
+
+	assert.Nil(err)
+}

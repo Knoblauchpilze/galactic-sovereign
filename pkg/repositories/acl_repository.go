@@ -14,6 +14,7 @@ type AclRepository interface {
 	Get(ctx context.Context, tx db.Transaction, id uuid.UUID) (persistence.Acl, error)
 	GetForUser(ctx context.Context, tx db.Transaction, user uuid.UUID) ([]uuid.UUID, error)
 	Delete(ctx context.Context, tx db.Transaction, ids []uuid.UUID) error
+	DeleteForUser(ctx context.Context, tx db.Transaction, user uuid.UUID) error
 }
 
 type aclRepositoryImpl struct{}
@@ -149,5 +150,22 @@ func (r *aclRepositoryImpl) Delete(ctx context.Context, tx db.Transaction, ids [
 	aclSqlQuery := fmt.Sprintf(deleteAclSqlTemplate, db.GenerateInClauseForArgs(len(ids)))
 
 	_, err = tx.Exec(ctx, aclSqlQuery, in...)
+	return err
+}
+
+const deleteAclForUserSqlTemplate = "DELETE FROM acl WHERE api_user = $1"
+const deleteAclPermissionsForUserSqlTemplate = `
+DELETE FROM acl_permissions
+	WHERE acl
+		IN (SELECT id FROM acl WHERE api_user = $1)
+`
+
+func (r *aclRepositoryImpl) DeleteForUser(ctx context.Context, tx db.Transaction, user uuid.UUID) error {
+	_, err := tx.Exec(ctx, deleteAclPermissionsForUserSqlTemplate, user)
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.Exec(ctx, deleteAclForUserSqlTemplate, user)
 	return err
 }
