@@ -30,7 +30,7 @@ INSERT INTO acl (id, api_user, resource)
 		acl.id
 `
 const createAclPermissionsSqlTemplate = `
-INSERT INTO acl_permissions (acl, permission)
+INSERT INTO acl_permission (acl, permission)
 	VALUES($1, $2)
 `
 
@@ -70,7 +70,7 @@ FROM
 WHERE
 	id = $1
 `
-const getAclPermissionsSqlTemplate = `SELECT permission FROM acl_permissions WHERE acl = $1`
+const getAclPermissionsSqlTemplate = `SELECT permission FROM acl_permission WHERE acl = $1`
 
 func (r *aclRepositoryImpl) Get(ctx context.Context, tx db.Transaction, id uuid.UUID) (persistence.Acl, error) {
 	res := tx.Query(ctx, getAclSqlTemplate, id)
@@ -136,7 +136,7 @@ func (r *aclRepositoryImpl) GetForUser(ctx context.Context, tx db.Transaction, u
 }
 
 const deleteAclSqlTemplate = "DELETE FROM acl WHERE id IN (%s)"
-const deleteAclPermissionsSqlTemplate = "DELETE FROM acl_permissions WHERE acl in (%s)"
+const deleteAclPermissionsSqlTemplate = "DELETE FROM acl_permission WHERE acl in (%s)"
 
 func (r *aclRepositoryImpl) Delete(ctx context.Context, tx db.Transaction, ids []uuid.UUID) error {
 	in := db.ToSliceInterface(ids)

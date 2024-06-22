@@ -36,7 +36,7 @@ INSERT INTO acl (id, api_user, resource)
 		acl.id
 `
 	expectedPermissionSql := `
-INSERT INTO acl_permissions (acl, permission)
+INSERT INTO acl_permission (acl, permission)
 	VALUES($1, $2)
 `
 
@@ -117,7 +117,7 @@ WHERE
 		},
 		expectedSql: []string{
 			expectedSql,
-			`SELECT permission FROM acl_permissions WHERE acl = $1`,
+			`SELECT permission FROM acl_permission WHERE acl = $1`,
 		},
 		expectedArguments: [][]interface{}{
 			{defaultAclId},
@@ -198,7 +198,7 @@ func TestAclRepository_Delete_SingleId_DbInteraction(t *testing.T) {
 			return repo.Delete(context.Background(), tx, []uuid.UUID{defaultAclId})
 		},
 		expectedSql: []string{
-			`DELETE FROM acl_permissions WHERE acl in ($1)`,
+			`DELETE FROM acl_permission WHERE acl in ($1)`,
 			`DELETE FROM acl WHERE id IN ($1)`,
 		},
 		expectedArguments: [][]interface{}{
@@ -223,7 +223,7 @@ func TestAclRepository_Delete_MultipleIds_DbInteraction(t *testing.T) {
 			return repo.Delete(context.Background(), tx, ids)
 		},
 		expectedSql: []string{
-			`DELETE FROM acl_permissions WHERE acl in ($1,$2)`,
+			`DELETE FROM acl_permission WHERE acl in ($1,$2)`,
 			`DELETE FROM acl WHERE id IN ($1,$2)`,
 		},
 		expectedArguments: [][]interface{}{
