@@ -15,8 +15,9 @@ type RepositorySingleValueTransactionTestSuite struct {
 
 	testFunc testSingleValueTxFunc
 
-	expectedScanCalls    int
-	expectedScannedProps [][]interface{}
+	expectedSingleValueCalls int
+	expectedScanCalls        int
+	expectedScannedProps     [][]interface{}
 }
 
 func (s *RepositorySingleValueTransactionTestSuite) TestCallsGetSingleValue() {
@@ -26,7 +27,7 @@ func (s *RepositorySingleValueTransactionTestSuite) TestCallsGetSingleValue() {
 
 	s.testFunc(context.Background(), mock)
 
-	assert.Equal(1, mock.rows.singleValueCalled)
+	assert.Equal(s.expectedSingleValueCalls, mock.rows.singleValueCalled)
 }
 
 func (s *RepositorySingleValueTransactionTestSuite) TestPropagatesSingleValueError() {

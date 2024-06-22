@@ -73,7 +73,8 @@ func TestAclRepository_Create_RetrievesGeneratedAcl(t *testing.T) {
 			_, err := repo.Create(ctx, tx, defaultAcl)
 			return err
 		},
-		expectedScanCalls: 1,
+		expectedSingleValueCalls: 1,
+		expectedScanCalls:        1,
 		expectedScannedProps: [][]interface{}{
 			{&uuid.UUID{}},
 		},
@@ -137,7 +138,8 @@ func TestAclRepository_Get_InterpretDbData(t *testing.T) {
 			_, err := repo.Get(ctx, tx, defaultAclId)
 			return err
 		},
-		expectedScanCalls: 2,
+		expectedSingleValueCalls: 1,
+		expectedScanCalls:        2,
 		expectedScannedProps: [][]interface{}{
 			{
 				&uuid.UUID{},
