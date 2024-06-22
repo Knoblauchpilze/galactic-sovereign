@@ -291,3 +291,40 @@ func TestUserLimitRepository_Delete_NominalCase(t *testing.T) {
 
 	assert.Nil(err)
 }
+
+func TestUserLimitRepository_DeleteForUser_DbInteraction(t *testing.T) {
+	expectedLimitSqlQuery := `
+DELETE FROM limits
+	WHERE user_limit
+		IN (SELECT id FROM user_limit WHERE api_user = $1)
+`
+
+	s := RepositoryTransactionTestSuite{
+		sqlMode: ExecBased,
+		testFunc: func(ctx context.Context, tx db.Transaction) error {
+			repo := NewUserLimitRepository()
+			return repo.DeleteForUser(context.Background(), tx, defaultUserId)
+		},
+		expectedSql: []string{
+			expectedLimitSqlQuery,
+			`DELETE FROM user_limit WHERE api_user = $1`,
+		},
+		expectedArguments: [][]interface{}{
+			{defaultUserId},
+			{defaultUserId},
+		},
+	}
+
+	suite.Run(t, &s)
+}
+
+func TestUserLimitRepository_DeleteForUser_NominalCase(t *testing.T) {
+	assert := assert.New(t)
+
+	repo := NewUserLimitRepository()
+	mt := &mockTransaction{}
+
+	err := repo.DeleteForUser(context.Background(), mt, defaultUserId)
+
+	assert.Nil(err)
+}

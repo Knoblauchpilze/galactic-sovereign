@@ -14,6 +14,7 @@ type UserLimitRepository interface {
 	Get(ctx context.Context, tx db.Transaction, id uuid.UUID) (persistence.UserLimit, error)
 	GetForUser(ctx context.Context, tx db.Transaction, user uuid.UUID) ([]uuid.UUID, error)
 	Delete(ctx context.Context, tx db.Transaction, ids []uuid.UUID) error
+	DeleteForUser(ctx context.Context, tx db.Transaction, user uuid.UUID) error
 }
 
 type userLimitRepositoryImpl struct{}
@@ -180,8 +181,25 @@ func (r *userLimitRepositoryImpl) Delete(ctx context.Context, tx db.Transaction,
 		return err
 	}
 
-	aclSqlQuery := fmt.Sprintf(deleteUserLimitSqlTemplate, db.GenerateInClauseForArgs(len(ids)))
+	userLimitSqlQuery := fmt.Sprintf(deleteUserLimitSqlTemplate, db.GenerateInClauseForArgs(len(ids)))
 
-	_, err = tx.Exec(ctx, aclSqlQuery, in...)
+	_, err = tx.Exec(ctx, userLimitSqlQuery, in...)
+	return err
+}
+
+const deleteUserLimitForUserSqlTemplate = "DELETE FROM user_limit WHERE api_user = $1"
+const deleteLimitsForUserSqlTemplate = `
+DELETE FROM limits
+	WHERE user_limit
+		IN (SELECT id FROM user_limit WHERE api_user = $1)
+`
+
+func (r *userLimitRepositoryImpl) DeleteForUser(ctx context.Context, tx db.Transaction, user uuid.UUID) error {
+	_, err := tx.Exec(ctx, deleteLimitsForUserSqlTemplate, user)
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.Exec(ctx, deleteUserLimitForUserSqlTemplate, user)
 	return err
 }
