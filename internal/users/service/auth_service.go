@@ -32,8 +32,8 @@ func (s *authServiceImpl) Authenticate(ctx context.Context, apiKey uuid.UUID) (c
 	out := communication.AuthorizationResponseDto{
 		Acls: []communication.AclResponseDto{
 			{
-				Resource:   "r1",
-				Permission: "DELETE",
+				Resource:    "r1",
+				Permissions: []string{"DELETE", "GET"},
 			},
 		},
 		Limits: []communication.LimitResponseDto{

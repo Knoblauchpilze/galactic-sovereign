@@ -8,31 +8,31 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
-type testSingleValueFunc func(context.Context, db.ConnectionPool) error
+type testSingleValueTxFunc func(context.Context, db.Transaction) error
 
-type RepositorySingleValueTestSuite struct {
+type RepositorySingleValueTransactionTestSuite struct {
 	suite.Suite
 
-	testFunc testSingleValueFunc
+	testFunc testSingleValueTxFunc
 
 	expectedScanCalls    int
 	expectedScannedProps [][]interface{}
 }
 
-func (s *RepositorySingleValueTestSuite) TestCallsGetSingleValue() {
+func (s *RepositorySingleValueTransactionTestSuite) TestCallsGetSingleValue() {
 	assert := assert.New(s.T())
 
-	mock := &mockConnectionPool{}
+	mock := &mockTransaction{}
 
 	s.testFunc(context.Background(), mock)
 
 	assert.Equal(1, mock.rows.singleValueCalled)
 }
 
-func (s *RepositorySingleValueTestSuite) TestPropagatesSingleValueError() {
+func (s *RepositorySingleValueTransactionTestSuite) TestPropagatesSingleValueError() {
 	assert := assert.New(s.T())
 
-	mock := &mockConnectionPool{
+	mock := &mockTransaction{
 		rows: mockRows{
 			singleValueErr: errDefault,
 		},
@@ -43,10 +43,10 @@ func (s *RepositorySingleValueTestSuite) TestPropagatesSingleValueError() {
 	assert.Equal(errDefault, err)
 }
 
-func (s *RepositorySingleValueTestSuite) TestPropagatesScanError() {
+func (s *RepositorySingleValueTransactionTestSuite) TestPropagatesScanError() {
 	assert := assert.New(s.T())
 
-	mock := &mockConnectionPool{
+	mock := &mockTransaction{
 		rows: mockRows{
 			scanner: &mockScannable{
 				err: errDefault,
@@ -59,20 +59,20 @@ func (s *RepositorySingleValueTestSuite) TestPropagatesScanError() {
 	assert.Equal(errDefault, err)
 }
 
-func (s *RepositorySingleValueTestSuite) TestWhenSingleValueSucceedsExpectsNoError() {
+func (s *RepositorySingleValueTransactionTestSuite) TestWhenSingleValueSucceedsExpectsNoError() {
 	assert := assert.New(s.T())
 
-	mock := &mockConnectionPool{}
+	mock := &mockTransaction{}
 
 	err := s.testFunc(context.Background(), mock)
 
 	assert.Nil(err)
 }
 
-func (s *RepositorySingleValueTestSuite) TestScansExpectedProperties() {
+func (s *RepositorySingleValueTransactionTestSuite) TestScansExpectedProperties() {
 	assert := assert.New(s.T())
 
-	mock := &mockConnectionPool{
+	mock := &mockTransaction{
 		rows: mockRows{
 			scanner: &mockScannable{},
 		},

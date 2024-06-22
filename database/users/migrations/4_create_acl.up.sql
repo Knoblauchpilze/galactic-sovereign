@@ -1,10 +1,13 @@
 
 CREATE TABLE acl (
   id UUID NOT NULL,
+  api_user UUID NOT NULL,
   resource TEXT NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP WITH TIME ZONE,
-  PRIMARY KEY (id)
+  PRIMARY KEY (id),
+  FOREIGN KEY (api_user) REFERENCES api_user(id),
+  UNIQUE (api_user, resource)
 );
 
 CREATE TRIGGER trigger_acl_updated_at
@@ -12,11 +15,12 @@ CREATE TRIGGER trigger_acl_updated_at
   FOR EACH ROW
   EXECUTE FUNCTION update_updated_at();
 
+CREATE INDEX acl_api_user_index ON acl (api_user);
+
 CREATE TABLE acl_permissions (
   acl UUID NOT NULL,
   permission TEXT NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP WITH TIME ZONE,
   PRIMARY KEY (acl, permission),
   FOREIGN KEY (acl) REFERENCES acl(id)
 );
