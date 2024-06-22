@@ -36,7 +36,7 @@ func (s *authServiceImpl) Authenticate(ctx context.Context, apiKey uuid.UUID) (c
 				Permissions: []string{"DELETE", "GET"},
 			},
 		},
-		Limits: []communication.LimitResponseDto{
+		Limits: []communication.LimitDtoResponse{
 			{
 				Name:  "l1",
 				Value: "-1",

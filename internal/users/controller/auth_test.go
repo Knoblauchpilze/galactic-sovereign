@@ -33,7 +33,7 @@ var defaultAuthorizationResponseDto = communication.AuthorizationResponseDto{
 			Permissions: []string{"POST", "GET"},
 		},
 	},
-	Limits: []communication.LimitResponseDto{
+	Limits: []communication.LimitDtoResponse{
 		{
 			Name:  "limit-1",
 			Value: "10",
