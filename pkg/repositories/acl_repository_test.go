@@ -43,7 +43,7 @@ INSERT INTO acl_permissions (acl, permission)
 	s := RepositoryTransactionTestSuite{
 		sqlMode: QueryBased,
 		testFunc: func(ctx context.Context, tx db.Transaction) error {
-			repo := NewAclRepository(&mockConnectionPool{})
+			repo := NewAclRepository()
 			_, err := repo.Create(context.Background(), tx, defaultAcl)
 			return err
 		},
@@ -69,7 +69,7 @@ INSERT INTO acl_permissions (acl, permission)
 func TestAclRepository_Create_RetrievesGeneratedAcl(t *testing.T) {
 	s := RepositorySingleValueTransactionTestSuite{
 		testFunc: func(ctx context.Context, tx db.Transaction) error {
-			repo := NewAclRepository(&mockConnectionPool{})
+			repo := NewAclRepository()
 			_, err := repo.Create(ctx, tx, defaultAcl)
 			return err
 		},
@@ -85,8 +85,7 @@ func TestAclRepository_Create_RetrievesGeneratedAcl(t *testing.T) {
 func TestAclRepository_Create_ReturnsInputAcl(t *testing.T) {
 	assert := assert.New(t)
 
-	mc := &mockConnectionPool{}
-	repo := NewAclRepository(mc)
+	repo := NewAclRepository()
 	mt := &mockTransaction{}
 
 	actual, err := repo.Create(context.Background(), mt, defaultAcl)
@@ -102,7 +101,7 @@ SELECT
 	api_user,
 	resource,
 	created_at,
-	updared_at
+	updated_at
 FROM
 	acl
 WHERE
@@ -112,7 +111,7 @@ WHERE
 	s := RepositoryTransactionTestSuite{
 		sqlMode: QueryBased,
 		testFunc: func(ctx context.Context, tx db.Transaction) error {
-			repo := NewAclRepository(&mockConnectionPool{})
+			repo := NewAclRepository()
 			_, err := repo.Get(context.Background(), tx, defaultAclId)
 			return err
 		},
@@ -134,7 +133,7 @@ func TestAclRepository_Get_InterpretDbData(t *testing.T) {
 
 	s := RepositorySingleValueTransactionTestSuite{
 		testFunc: func(ctx context.Context, tx db.Transaction) error {
-			repo := NewAclRepository(&mockConnectionPool{})
+			repo := NewAclRepository()
 			_, err := repo.Get(ctx, tx, defaultAclId)
 			return err
 		},
@@ -160,7 +159,7 @@ func TestAclRepository_GetForUser_DbInteraction(t *testing.T) {
 	s := RepositoryTransactionTestSuite{
 		sqlMode: QueryBased,
 		testFunc: func(ctx context.Context, tx db.Transaction) error {
-			repo := NewAclRepository(&mockConnectionPool{})
+			repo := NewAclRepository()
 			_, err := repo.GetForUser(context.Background(), tx, defaultUserId)
 			return err
 		},
@@ -178,7 +177,7 @@ func TestAclRepository_GetForUser_DbInteraction(t *testing.T) {
 func TestAclRepository_GetForUser_InterpretDbData(t *testing.T) {
 	s := RepositoryGetAllTransactionTestSuite{
 		testFunc: func(ctx context.Context, tx db.Transaction) error {
-			repo := NewAclRepository(&mockConnectionPool{})
+			repo := NewAclRepository()
 			_, err := repo.GetForUser(ctx, tx, defaultUserId)
 			return err
 		},
@@ -195,7 +194,7 @@ func TestAclRepository_Delete_SingleId_DbInteraction(t *testing.T) {
 	s := RepositoryTransactionTestSuite{
 		sqlMode: ExecBased,
 		testFunc: func(ctx context.Context, tx db.Transaction) error {
-			repo := NewAclRepository(&mockConnectionPool{})
+			repo := NewAclRepository()
 			return repo.Delete(context.Background(), tx, []uuid.UUID{defaultAclId})
 		},
 		expectedSql: []string{
@@ -220,7 +219,7 @@ func TestAclRepository_Delete_MultipleIds_DbInteraction(t *testing.T) {
 	s := RepositoryTransactionTestSuite{
 		sqlMode: ExecBased,
 		testFunc: func(ctx context.Context, tx db.Transaction) error {
-			repo := NewAclRepository(&mockConnectionPool{})
+			repo := NewAclRepository()
 			return repo.Delete(context.Background(), tx, ids)
 		},
 		expectedSql: []string{
@@ -239,8 +238,7 @@ func TestAclRepository_Delete_MultipleIds_DbInteraction(t *testing.T) {
 func TestAclRepository_Delete_NominalCase(t *testing.T) {
 	assert := assert.New(t)
 
-	mc := &mockConnectionPool{}
-	repo := NewAclRepository(mc)
+	repo := NewAclRepository()
 	mt := &mockTransaction{}
 
 	err := repo.Delete(context.Background(), mt, []uuid.UUID{defaultAclId})

@@ -16,14 +16,10 @@ type AclRepository interface {
 	Delete(ctx context.Context, tx db.Transaction, ids []uuid.UUID) error
 }
 
-type aclRepositoryImpl struct {
-	conn db.ConnectionPool
-}
+type aclRepositoryImpl struct{}
 
-func NewAclRepository(conn db.ConnectionPool) AclRepository {
-	return &aclRepositoryImpl{
-		conn: conn,
-	}
+func NewAclRepository() AclRepository {
+	return &aclRepositoryImpl{}
 }
 
 const createAclSqlTemplate = `
@@ -68,7 +64,7 @@ SELECT
 	api_user,
 	resource,
 	created_at,
-	updared_at
+	updated_at
 FROM
 	acl
 WHERE
