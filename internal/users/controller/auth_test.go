@@ -27,7 +27,7 @@ type mockAuthService struct {
 
 var defaultApiKeyId = uuid.MustParse("4c2a950c-ce65-4fb4-87b3-ce588dcfc1ea")
 var defaultAuthorizationResponseDto = communication.AuthorizationResponseDto{
-	Acls: []communication.AclResponseDto{
+	Acls: []communication.AclDtoResponse{
 		{
 			Resource:    "resource-1",
 			Permissions: []string{"POST", "GET"},

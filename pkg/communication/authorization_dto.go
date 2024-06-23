@@ -1,6 +1,6 @@
 package communication
 
 type AuthorizationResponseDto struct {
-	Acls   []AclResponseDto   `json:"acls"`
+	Acls   []AclDtoResponse   `json:"acls"`
 	Limits []LimitDtoResponse `json:"limits"`
 }

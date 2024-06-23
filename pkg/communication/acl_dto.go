@@ -49,8 +49,3 @@ func ToAclDtoResponse(acl persistence.Acl) AclDtoResponse {
 		CreatedAt: acl.CreatedAt,
 	}
 }
-
-type AclResponseDto struct {
-	Resource    string   `json:"resource"`
-	Permissions []string `json:"permissions"`
-}

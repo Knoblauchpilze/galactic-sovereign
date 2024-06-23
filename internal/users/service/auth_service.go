@@ -30,7 +30,7 @@ func NewAuthService(conn db.ConnectionPool, userRepo repositories.UserRepository
 
 func (s *authServiceImpl) Authenticate(ctx context.Context, apiKey uuid.UUID) (communication.AuthorizationResponseDto, error) {
 	out := communication.AuthorizationResponseDto{
-		Acls: []communication.AclResponseDto{
+		Acls: []communication.AclDtoResponse{
 			{
 				Resource:    "r1",
 				Permissions: []string{"DELETE", "GET"},
