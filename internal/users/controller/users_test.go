@@ -167,7 +167,7 @@ func Test_WhenIdSyntaxIsWrong_SetsStatusTo400(t *testing.T) {
 		},
 		"updateUser": {
 			req:     httptest.NewRequest(http.MethodPatch, "/", nil),
-			handler: getUser,
+			handler: updateUser,
 		},
 		"deleteUser": {
 			req:     httptest.NewRequest(http.MethodDelete, "/", nil),
