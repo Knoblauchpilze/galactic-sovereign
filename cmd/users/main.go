@@ -47,8 +47,10 @@ func main() {
 	}
 
 	repos := repositories.Repositories{
-		ApiKey: repositories.NewApiKeyRepository(pool),
-		User:   repositories.NewUserRepository(pool),
+		Acl:       repositories.NewAclRepository(),
+		ApiKey:    repositories.NewApiKeyRepository(pool),
+		User:      repositories.NewUserRepository(pool),
+		UserLimit: repositories.NewUserLimitRepository(),
 	}
 
 	userService := service.NewUserService(conf.ApiKey, pool, repos)
