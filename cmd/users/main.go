@@ -54,7 +54,7 @@ func main() {
 	}
 
 	userService := service.NewUserService(conf.ApiKey, pool, repos)
-	authService := service.NewAuthService(pool, repos.User, repos.ApiKey)
+	authService := service.NewAuthService(pool, repos)
 
 	s := rest.NewServer(conf.Server, repos.ApiKey)
 

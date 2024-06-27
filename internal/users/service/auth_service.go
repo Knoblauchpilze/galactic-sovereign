@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"time"
 
 	"github.com/KnoblauchPilze/user-service/pkg/communication"
 	"github.com/KnoblauchPilze/user-service/pkg/db"
@@ -11,38 +12,76 @@ import (
 )
 
 type AuthService interface {
-	Authenticate(ctx context.Context, apiKey uuid.UUID) (communication.AuthorizationResponseDto, error)
+	Authenticate(ctx context.Context, apiKey uuid.UUID) (communication.AuthorizationDtoResponse, error)
 }
 
 type authServiceImpl struct {
 	conn       db.ConnectionPool
-	userRepo   repositories.UserRepository
+	aclRepo    repositories.AclRepository
 	apiKeyRepo repositories.ApiKeyRepository
+	userLimit  repositories.UserLimitRepository
 }
 
-func NewAuthService(conn db.ConnectionPool, userRepo repositories.UserRepository, apiKeyRepo repositories.ApiKeyRepository) AuthService {
+func NewAuthService(conn db.ConnectionPool, repos repositories.Repositories) AuthService {
 	return &authServiceImpl{
 		conn:       conn,
-		userRepo:   userRepo,
-		apiKeyRepo: apiKeyRepo,
+		aclRepo:    repos.Acl,
+		apiKeyRepo: repos.ApiKey,
+		userLimit:  repos.UserLimit,
 	}
 }
 
-func (s *authServiceImpl) Authenticate(ctx context.Context, apiKey uuid.UUID) (communication.AuthorizationResponseDto, error) {
-	out := communication.AuthorizationResponseDto{
-		Acls: []communication.AclDtoResponse{
-			{
-				Resource:    "r1",
-				Permissions: []string{"DELETE", "GET"},
-			},
-		},
-		Limits: []communication.LimitDtoResponse{
-			{
-				Name:  "l1",
-				Value: "-1",
-			},
-		},
+func (s *authServiceImpl) Authenticate(ctx context.Context, apiKey uuid.UUID) (communication.AuthorizationDtoResponse, error) {
+	var out communication.AuthorizationDtoResponse
+
+	key, err := s.apiKeyRepo.GetForKey(ctx, apiKey)
+	if err != nil {
+		if errors.IsErrorWithCode(err, db.NoMatchingSqlRows) {
+			return out, errors.NewCode(UserNotAuthenticated)
+		}
+
+		return out, err
 	}
 
-	return out, errors.NewCode(errors.NotImplementedCode)
+	if key.ValidUntil.Before(time.Now()) {
+		return out, errors.NewCode(AuthenticationExpired)
+	}
+
+	tx, err := s.conn.StartTransaction(ctx)
+	if err != nil {
+		return out, err
+	}
+	defer tx.Close(ctx)
+
+	ids, err := s.aclRepo.GetForUser(ctx, tx, key.ApiUser)
+	if err != nil {
+		return out, err
+	}
+
+	for _, id := range ids {
+		acl, err := s.aclRepo.Get(ctx, tx, id)
+		if err != nil {
+			return out, err
+		}
+
+		dto := communication.ToAclDtoResponse(acl)
+		out.Acls = append(out.Acls, dto)
+	}
+
+	ids, err = s.userLimit.GetForUser(ctx, tx, key.ApiUser)
+	if err != nil {
+		return out, err
+	}
+
+	for _, id := range ids {
+		userLimit, err := s.userLimit.Get(ctx, tx, id)
+		if err != nil {
+			return out, err
+		}
+
+		dto := communication.ToUserLimitDtoResponse(userLimit)
+		out.Limits = append(out.Limits, dto.Limits...)
+	}
+
+	return out, nil
 }

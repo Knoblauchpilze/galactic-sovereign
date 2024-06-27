@@ -17,7 +17,7 @@ import (
 type mockAuthService struct {
 	service.AuthService
 
-	authData communication.AuthorizationResponseDto
+	authData communication.AuthorizationDtoResponse
 	err      error
 
 	authCalled int
@@ -26,7 +26,7 @@ type mockAuthService struct {
 }
 
 var defaultApiKeyId = uuid.MustParse("4c2a950c-ce65-4fb4-87b3-ce588dcfc1ea")
-var defaultAuthorizationResponseDto = communication.AuthorizationResponseDto{
+var defaultAuthorizationResponseDto = communication.AuthorizationDtoResponse{
 	Acls: []communication.AclDtoResponse{
 		{
 			Resource:    "resource-1",
@@ -202,7 +202,7 @@ func Test_WhenAuthServiceSucceeds_ReturnsExpectedValue(t *testing.T) {
 		idAsRouteParam bool
 		handler        authServiceAwareHttpHandler
 
-		authData communication.AuthorizationResponseDto
+		authData communication.AuthorizationDtoResponse
 
 		expectedContent interface{}
 	}
@@ -273,7 +273,7 @@ func generateTestRequestWithApiKey(method string) *http.Request {
 	return req
 }
 
-func (m *mockAuthService) Authenticate(ctx context.Context, apiKey uuid.UUID) (communication.AuthorizationResponseDto, error) {
+func (m *mockAuthService) Authenticate(ctx context.Context, apiKey uuid.UUID) (communication.AuthorizationDtoResponse, error) {
 	m.authCalled++
 	m.inApiKey = apiKey
 	return m.authData, m.err
