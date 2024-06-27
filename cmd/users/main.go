@@ -46,12 +46,15 @@ func main() {
 		os.Exit(1)
 	}
 
-	userRepo := repositories.NewUserRepository(pool)
-	apiKeyRepo := repositories.NewApiKeyRepository(pool)
-	userService := service.NewUserService(conf.ApiKey, pool, userRepo, apiKeyRepo)
-	authService := service.NewAuthService(pool, userRepo, apiKeyRepo)
+	repos := repositories.Repositories{
+		ApiKey: repositories.NewApiKeyRepository(pool),
+		User:   repositories.NewUserRepository(pool),
+	}
 
-	s := rest.NewServer(conf.Server, apiKeyRepo)
+	userService := service.NewUserService(conf.ApiKey, pool, repos)
+	authService := service.NewAuthService(pool, repos.User, repos.ApiKey)
+
+	s := rest.NewServer(conf.Server, repos.ApiKey)
 
 	for _, route := range controller.UserEndpoints(userService) {
 		if err := s.Register(route); err != nil {
