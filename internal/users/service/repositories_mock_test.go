@@ -48,6 +48,24 @@ type mockApiKeyRepository struct {
 	deleteIds          []uuid.UUID
 }
 
+type mockAclRepository struct {
+	repositories.AclRepository
+
+	deleteErr error
+
+	userId       uuid.UUID
+	deleteCalled int
+}
+
+type mockUserLimitRepository struct {
+	repositories.UserLimitRepository
+
+	deleteErr error
+
+	userId       uuid.UUID
+	deleteCalled int
+}
+
 type mockConnectionPool struct {
 	db.ConnectionPool
 
@@ -127,6 +145,18 @@ func (m *mockApiKeyRepository) DeleteTx(ctx context.Context, tx db.Transaction, 
 	return m.deleteErr
 }
 
+func (m *mockAclRepository) DeleteForUser(ctx context.Context, tx db.Transaction, user uuid.UUID) error {
+	m.deleteCalled++
+	m.userId = user
+	return m.deleteErr
+}
+
+func (m *mockUserLimitRepository) DeleteForUser(ctx context.Context, tx db.Transaction, user uuid.UUID) error {
+	m.deleteCalled++
+	m.userId = user
+	return m.deleteErr
+}
+
 func (m *mockConnectionPool) StartTransaction(ctx context.Context) (db.Transaction, error) {
 	return &m.tx, m.err
 }
@@ -140,8 +170,14 @@ func (m *mockTransaction) TimeStamp() time.Time {
 }
 
 func createRepositories(apiKey *mockApiKeyRepository, user *mockUserRepository) repositories.Repositories {
+	return createAllRepositories(nil, apiKey, user, nil)
+}
+
+func createAllRepositories(acl *mockAclRepository, apiKey *mockApiKeyRepository, user *mockUserRepository, userLimit *mockUserLimitRepository) repositories.Repositories {
 	return repositories.Repositories{
-		ApiKey: apiKey,
-		User:   user,
+		Acl:       acl,
+		ApiKey:    apiKey,
+		User:      user,
+		UserLimit: userLimit,
 	}
 }

@@ -24,18 +24,23 @@ type UserService interface {
 }
 
 type userServiceImpl struct {
-	conn       db.ConnectionPool
-	userRepo   repositories.UserRepository
-	apiKeyRepo repositories.ApiKeyRepository
+	conn db.ConnectionPool
+
+	userRepo      repositories.UserRepository
+	apiKeyRepo    repositories.ApiKeyRepository
+	aclRepo       repositories.AclRepository
+	userLimitRepo repositories.UserLimitRepository
 
 	apiKeyValidity time.Duration
 }
 
 func NewUserService(config Config, conn db.ConnectionPool, repos repositories.Repositories) UserService {
 	return &userServiceImpl{
-		conn:       conn,
-		userRepo:   repos.User,
-		apiKeyRepo: repos.ApiKey,
+		conn:          conn,
+		userRepo:      repos.User,
+		apiKeyRepo:    repos.ApiKey,
+		aclRepo:       repos.Acl,
+		userLimitRepo: repos.UserLimit,
 
 		apiKeyValidity: config.ApiKeyValidity,
 	}
@@ -102,6 +107,14 @@ func (s *userServiceImpl) Delete(ctx context.Context, id uuid.UUID) error {
 		return err
 	}
 	err = s.userRepo.Delete(ctx, tx, id)
+	if err != nil {
+		return err
+	}
+	err = s.aclRepo.DeleteForUser(ctx, tx, id)
+	if err != nil {
+		return err
+	}
+	err = s.userLimitRepo.DeleteForUser(ctx, tx, id)
 	if err != nil {
 		return err
 	}
