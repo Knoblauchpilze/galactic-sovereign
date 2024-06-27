@@ -188,6 +188,8 @@ func (r *userLimitRepositoryImpl) Delete(ctx context.Context, tx db.Transaction,
 }
 
 const deleteUserLimitForUserSqlTemplate = "DELETE FROM user_limit WHERE api_user = $1"
+
+// https://www.postgresqltutorial.com/postgresql-tutorial/postgresql-delete-join/
 const deleteLimitsForUserSqlTemplate = `
 DELETE FROM limits
 	WHERE user_limit
