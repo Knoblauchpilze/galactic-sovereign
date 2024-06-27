@@ -97,16 +97,7 @@ func (s *userServiceImpl) Delete(ctx context.Context, id uuid.UUID) error {
 	}
 	defer tx.Close(ctx)
 
-	apiKeys, err := s.apiKeyRepo.GetForUserTx(ctx, tx, id)
-	if err != nil {
-		return err
-	}
-
-	err = s.apiKeyRepo.DeleteTx(ctx, tx, apiKeys)
-	if err != nil {
-		return err
-	}
-	err = s.userRepo.Delete(ctx, tx, id)
+	err = s.apiKeyRepo.DeleteForUser(ctx, tx, id)
 	if err != nil {
 		return err
 	}
@@ -115,6 +106,10 @@ func (s *userServiceImpl) Delete(ctx context.Context, id uuid.UUID) error {
 		return err
 	}
 	err = s.userLimitRepo.DeleteForUser(ctx, tx, id)
+	if err != nil {
+		return err
+	}
+	err = s.userRepo.Delete(ctx, tx, id)
 	if err != nil {
 		return err
 	}

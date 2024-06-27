@@ -16,7 +16,6 @@ type ApiKeyRepository interface {
 	GetForUser(ctx context.Context, user uuid.UUID) ([]uuid.UUID, error)
 	GetForUserTx(ctx context.Context, tx db.Transaction, user uuid.UUID) ([]uuid.UUID, error)
 	Delete(ctx context.Context, ids []uuid.UUID) error
-	DeleteTx(ctx context.Context, tx db.Transaction, ids []uuid.UUID) error
 	DeleteForUser(ctx context.Context, tx db.Transaction, user uuid.UUID) error
 }
 
@@ -158,14 +157,6 @@ func (r *apiKeyRepositoryImpl) Delete(ctx context.Context, ids []uuid.UUID) erro
 	sqlQuery := fmt.Sprintf(deleteApiKeysSqlTemplate, db.GenerateInClauseForArgs(len(ids)))
 
 	_, err := r.conn.Exec(ctx, sqlQuery, in...)
-	return err
-}
-
-func (r *apiKeyRepositoryImpl) DeleteTx(ctx context.Context, tx db.Transaction, ids []uuid.UUID) error {
-	in := db.ToSliceInterface(ids)
-	sqlQuery := fmt.Sprintf(deleteApiKeysSqlTemplate, db.GenerateInClauseForArgs(len(ids)))
-
-	_, err := tx.Exec(ctx, sqlQuery, in...)
 	return err
 }
 

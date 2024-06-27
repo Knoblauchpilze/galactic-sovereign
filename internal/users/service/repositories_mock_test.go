@@ -38,14 +38,15 @@ type mockApiKeyRepository struct {
 	getErr    error
 	deleteErr error
 
-	createCalled       int
-	createdApiKey      persistence.ApiKey
-	getForUserCalled   int
-	getForUserTxCalled int
-	userId             uuid.UUID
-	deleteCalled       int
-	deleteTxCalled     int
-	deleteIds          []uuid.UUID
+	createCalled        int
+	createdApiKey       persistence.ApiKey
+	getForUserCalled    int
+	getForUserTxCalled  int
+	userId              uuid.UUID
+	deleteCalled        int
+	deleteIds           []uuid.UUID
+	deleteForUserCalled int
+	deleteUserId        uuid.UUID
 }
 
 type mockAclRepository struct {
@@ -139,9 +140,9 @@ func (m *mockApiKeyRepository) Delete(ctx context.Context, ids []uuid.UUID) erro
 	return m.deleteErr
 }
 
-func (m *mockApiKeyRepository) DeleteTx(ctx context.Context, tx db.Transaction, ids []uuid.UUID) error {
-	m.deleteTxCalled++
-	m.deleteIds = ids
+func (m *mockApiKeyRepository) DeleteForUser(ctx context.Context, tx db.Transaction, user uuid.UUID) error {
+	m.deleteForUserCalled++
+	m.deleteUserId = user
 	return m.deleteErr
 }
 
