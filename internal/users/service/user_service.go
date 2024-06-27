@@ -31,11 +31,11 @@ type userServiceImpl struct {
 	apiKeyValidity time.Duration
 }
 
-func NewUserService(config Config, conn db.ConnectionPool, userRepo repositories.UserRepository, apiKeyRepo repositories.ApiKeyRepository) UserService {
+func NewUserService(config Config, conn db.ConnectionPool, repos repositories.Repositories) UserService {
 	return &userServiceImpl{
 		conn:       conn,
-		userRepo:   userRepo,
-		apiKeyRepo: apiKeyRepo,
+		userRepo:   repos.User,
+		apiKeyRepo: repos.ApiKey,
 
 		apiKeyValidity: config.ApiKeyValidity,
 	}
