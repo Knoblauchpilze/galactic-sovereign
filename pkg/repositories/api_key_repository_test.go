@@ -326,3 +326,32 @@ func TestApiKeyRepository_DeleteTx_NominalCase(t *testing.T) {
 
 	assert.Nil(err)
 }
+
+func TestApiKeyRepository_DeleteForUser_DbInteraction(t *testing.T) {
+	s := RepositoryTransactionTestSuite{
+		sqlMode: ExecBased,
+		testFunc: func(ctx context.Context, tx db.Transaction) error {
+			repo := NewApiKeyRepository(&mockConnectionPool{})
+			return repo.DeleteForUser(context.Background(), tx, defaultUserId)
+		},
+		expectedSql: []string{
+			`DELETE FROM api_key WHERE api_user = $1`,
+		},
+		expectedArguments: [][]interface{}{
+			{defaultUserId},
+		},
+	}
+
+	suite.Run(t, &s)
+}
+
+func TestApiKeyRepository_DeleteForUser_NominalCase(t *testing.T) {
+	assert := assert.New(t)
+
+	repo := NewAclRepository()
+	mt := &mockTransaction{}
+
+	err := repo.DeleteForUser(context.Background(), mt, defaultUserId)
+
+	assert.Nil(err)
+}

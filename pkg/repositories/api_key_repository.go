@@ -17,6 +17,7 @@ type ApiKeyRepository interface {
 	GetForUserTx(ctx context.Context, tx db.Transaction, user uuid.UUID) ([]uuid.UUID, error)
 	Delete(ctx context.Context, ids []uuid.UUID) error
 	DeleteTx(ctx context.Context, tx db.Transaction, ids []uuid.UUID) error
+	DeleteForUser(ctx context.Context, tx db.Transaction, user uuid.UUID) error
 }
 
 type apiKeyRepositoryImpl struct {
@@ -166,4 +167,15 @@ func (r *apiKeyRepositoryImpl) DeleteTx(ctx context.Context, tx db.Transaction, 
 
 	_, err := tx.Exec(ctx, sqlQuery, in...)
 	return err
+}
+
+const deleteApiKeyForUserSqlTemplate = `DELETE FROM api_key WHERE api_user = $1`
+
+func (r *apiKeyRepositoryImpl) DeleteForUser(ctx context.Context, tx db.Transaction, user uuid.UUID) error {
+	_, err := tx.Exec(ctx, deleteApiKeyForUserSqlTemplate, user)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
