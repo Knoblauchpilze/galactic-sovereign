@@ -2,7 +2,6 @@ package repositories
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/KnoblauchPilze/user-service/pkg/db"
 	"github.com/KnoblauchPilze/user-service/pkg/persistence"
@@ -147,16 +146,6 @@ func (r *apiKeyRepositoryImpl) GetForUserTx(ctx context.Context, tx db.Transacti
 	}
 
 	return out, nil
-}
-
-const deleteApiKeysSqlTemplate = "DELETE FROM api_key WHERE id IN (%s)"
-
-func (r *apiKeyRepositoryImpl) Delete(ctx context.Context, ids []uuid.UUID) error {
-	in := db.ToSliceInterface(ids)
-	sqlQuery := fmt.Sprintf(deleteApiKeysSqlTemplate, db.GenerateInClauseForArgs(len(ids)))
-
-	_, err := r.conn.Exec(ctx, sqlQuery, in...)
-	return err
 }
 
 const deleteApiKeyForUserSqlTemplate = `DELETE FROM api_key WHERE api_user = $1`
