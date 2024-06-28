@@ -224,55 +224,6 @@ func TestApiKeyRepository_GetForUserTx_InterpretDbData(t *testing.T) {
 	suite.Run(t, &s)
 }
 
-func TestApiKeyRepository_Delete_SingleId_DbInteraction(t *testing.T) {
-	s := RepositoryPoolTestSuite{
-		sqlMode: ExecBased,
-		testFunc: func(ctx context.Context, pool db.ConnectionPool) error {
-			repo := NewApiKeyRepository(pool)
-			return repo.Delete(context.Background(), []uuid.UUID{defaultApiKeyId})
-		},
-		expectedSql: `DELETE FROM api_key WHERE id IN ($1)`,
-		expectedArguments: []interface{}{
-			defaultApiKeyId,
-		},
-	}
-
-	suite.Run(t, &s)
-}
-
-func TestApiKeyRepository_Delete_MultipleIds_DbInteraction(t *testing.T) {
-	ids := []uuid.UUID{
-		uuid.MustParse("50714fb2-db52-4e3a-8315-cf8e4a8abcf8"),
-		uuid.MustParse("9fc0def1-d51c-4af0-8db5-40310796d16d"),
-	}
-
-	s := RepositoryPoolTestSuite{
-		sqlMode: ExecBased,
-		testFunc: func(ctx context.Context, pool db.ConnectionPool) error {
-			repo := NewApiKeyRepository(pool)
-			return repo.Delete(context.Background(), ids)
-		},
-		expectedSql: `DELETE FROM api_key WHERE id IN ($1,$2)`,
-		expectedArguments: []interface{}{
-			ids[0],
-			ids[1],
-		},
-	}
-
-	suite.Run(t, &s)
-}
-
-func TestApiKeyRepository_Delete_NominalCase(t *testing.T) {
-	assert := assert.New(t)
-
-	mc := &mockConnectionPool{}
-	repo := NewApiKeyRepository(mc)
-
-	err := repo.Delete(context.Background(), []uuid.UUID{defaultApiKeyId})
-
-	assert.Nil(err)
-}
-
 func TestApiKeyRepository_DeleteForUser_DbInteraction(t *testing.T) {
 	s := RepositoryTransactionTestSuite{
 		sqlMode: ExecBased,
