@@ -58,8 +58,9 @@ type mockAclRepository struct {
 	aclIds []uuid.UUID
 	acl    persistence.Acl
 
-	getErr    error
-	deleteErr error
+	getErr        error
+	getForUserErr error
+	deleteErr     error
 
 	inAclIds         []uuid.UUID
 	getCalled        int
@@ -74,8 +75,9 @@ type mockUserLimitRepository struct {
 	userLimitIds []uuid.UUID
 	userLimit    persistence.UserLimit
 
-	getErr    error
-	deleteErr error
+	getErr        error
+	getForUserErr error
+	deleteErr     error
 
 	inUserLimitIds   []uuid.UUID
 	getCalled        int
@@ -178,7 +180,7 @@ func (m *mockAclRepository) Get(ctx context.Context, tx db.Transaction, id uuid.
 func (m *mockAclRepository) GetForUser(ctx context.Context, tx db.Transaction, user uuid.UUID) ([]uuid.UUID, error) {
 	m.getForUserCalled++
 	m.inUserId = user
-	return m.aclIds, m.getErr
+	return m.aclIds, m.getForUserErr
 }
 
 func (m *mockAclRepository) DeleteForUser(ctx context.Context, tx db.Transaction, user uuid.UUID) error {
@@ -196,7 +198,7 @@ func (m *mockUserLimitRepository) Get(ctx context.Context, tx db.Transaction, id
 func (m *mockUserLimitRepository) GetForUser(ctx context.Context, tx db.Transaction, user uuid.UUID) ([]uuid.UUID, error) {
 	m.getForUserCalled++
 	m.inUserId = user
-	return m.userLimitIds, m.getErr
+	return m.userLimitIds, m.getForUserErr
 }
 
 func (m *mockUserLimitRepository) DeleteForUser(ctx context.Context, tx db.Transaction, user uuid.UUID) error {

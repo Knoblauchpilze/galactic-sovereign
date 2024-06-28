@@ -135,11 +135,11 @@ func TestAuthService_Authenticate_FetchesAclsForUser(t *testing.T) {
 	assert.Equal(defaultApiKey.ApiUser, mockAcl.inUserId)
 }
 
-func TestAuthService_Authenticate_WhenFetchingAclsFails_ExpectError(t *testing.T) {
+func TestAuthService_Authenticate_WhenFetchingAclsForUserFails_ExpectError(t *testing.T) {
 	assert := assert.New(t)
 
 	repos, mockAcl, _, _, _ := createMockRepositoriesWithValidApiKey()
-	mockAcl.getErr = errDefault
+	mockAcl.getForUserErr = errDefault
 	s := NewAuthService(&mockConnectionPool{}, repos)
 
 	_, err := s.Authenticate(context.Background(), defaultApiKey.Id)
@@ -159,6 +159,20 @@ func TestAuthService_Authenticate_FetchesAclsFromRepository(t *testing.T) {
 	assert.Equal(2, mockAcl.getCalled)
 	assert.Equal(defaultAclIds[0], mockAcl.inAclIds[0])
 	assert.Equal(defaultAclIds[1], mockAcl.inAclIds[1])
+}
+
+func TestAuthService_Authenticate_WhenFetchingOfAclsFails_ExpectError(t *testing.T) {
+	assert := assert.New(t)
+
+	repos, mockAcl, _, _, _ := createMockRepositoriesWithValidApiKey()
+	mockAcl.aclIds = defaultAclIds
+	mockAcl.getErr = errDefault
+	s := NewAuthService(&mockConnectionPool{}, repos)
+
+	_, err := s.Authenticate(context.Background(), defaultApiKey.Id)
+
+	assert.Equal(1, mockAcl.getCalled)
+	assert.Equal(errDefault, err)
 }
 
 func TestAuthService_Authenticate_ReturnsExpectedAcls(t *testing.T) {
@@ -194,11 +208,11 @@ func TestAuthService_Authenticate_FetchesUserLimitsForUser(t *testing.T) {
 	assert.Equal(defaultApiKey.ApiUser, mockUserLimit.inUserId)
 }
 
-func TestAuthService_Authenticate_WhenFetchingUserLimitsFails_ExpectError(t *testing.T) {
+func TestAuthService_Authenticate_WhenFetchingUserLimitsForUserFails_ExpectError(t *testing.T) {
 	assert := assert.New(t)
 
 	repos, _, _, _, mockUserLimit := createMockRepositoriesWithValidApiKey()
-	mockUserLimit.getErr = errDefault
+	mockUserLimit.getForUserErr = errDefault
 	s := NewAuthService(&mockConnectionPool{}, repos)
 
 	_, err := s.Authenticate(context.Background(), defaultApiKey.Id)
@@ -218,6 +232,20 @@ func TestAuthService_Authenticate_FetchesUserLimitsFromRepository(t *testing.T) 
 	assert.Equal(2, mockUserLimit.getCalled)
 	assert.Equal(defaultUserLimitIds[0], mockUserLimit.inUserLimitIds[0])
 	assert.Equal(defaultUserLimitIds[1], mockUserLimit.inUserLimitIds[1])
+}
+
+func TestAuthService_Authenticate_WhenFetchingOfUserLimitsFails_ExpectError(t *testing.T) {
+	assert := assert.New(t)
+
+	repos, _, _, _, mockUserLimit := createMockRepositoriesWithValidApiKey()
+	mockUserLimit.userLimitIds = defaultUserLimitIds
+	mockUserLimit.getErr = errDefault
+	s := NewAuthService(&mockConnectionPool{}, repos)
+
+	_, err := s.Authenticate(context.Background(), defaultApiKey.Id)
+
+	assert.Equal(1, mockUserLimit.getCalled)
+	assert.Equal(errDefault, err)
 }
 
 func TestAuthService_Authenticate_ReturnsExpectedUserLimits(t *testing.T) {
