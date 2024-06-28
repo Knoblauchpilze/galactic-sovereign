@@ -17,7 +17,6 @@ var errDefault = fmt.Errorf("some error")
 var defaultUserId = uuid.MustParse("08ce96a3-3430-48a8-a3b2-b1c987a207ca")
 var defaultUserEmail = "some-user@provider.com"
 var defaultUserPassword = "password"
-var defaultApiKeyId = uuid.MustParse("cc1742fa-77b4-4f5f-ac92-058c2e47a5d6")
 var testDate = time.Date(2024, 04, 01, 11, 8, 47, 651387237, time.UTC)
 
 var defaultUserDtoRequest = communication.UserDtoRequest{
@@ -675,7 +674,7 @@ func TestUserService_Logout_WhenGetUserFails_ExpectError(t *testing.T) {
 	assert.Equal(errDefault, err)
 }
 
-func TestUserService_Logout_FetchesUserKeys(t *testing.T) {
+func TestUserService_Logout_DeletesUserKeys(t *testing.T) {
 	assert := assert.New(t)
 
 	mur := &mockUserRepository{}
@@ -683,42 +682,11 @@ func TestUserService_Logout_FetchesUserKeys(t *testing.T) {
 	mc := &mockConnectionPool{}
 	s := NewUserService(Config{}, mc, createRepositories(mkr, mur))
 
-	s.Logout(context.Background(), defaultUserId)
-
-	assert.Equal(1, mkr.getForUserCalled)
-	assert.Equal(defaultUserId, mkr.userId)
-}
-
-func TestUserService_Logout_WhenGetForUserFails_ExpectError(t *testing.T) {
-	assert := assert.New(t)
-
-	mur := &mockUserRepository{}
-	mkr := &mockApiKeyRepository{
-		getErr: errDefault,
-	}
-	mc := &mockConnectionPool{}
-	s := NewUserService(Config{}, mc, createRepositories(mkr, mur))
-
-	err := s.Logout(context.Background(), defaultUserId)
-
-	assert.Equal(errDefault, err)
-}
-
-func TestUserService_Logout_DeletesUserKeys(t *testing.T) {
-	assert := assert.New(t)
-
-	mur := &mockUserRepository{}
-	mkr := &mockApiKeyRepository{
-		apiKeyIds: []uuid.UUID{defaultApiKeyId},
-	}
-	mc := &mockConnectionPool{}
-	s := NewUserService(Config{}, mc, createRepositories(mkr, mur))
-
 	err := s.Logout(context.Background(), defaultUserId)
 
 	assert.Nil(err)
-	assert.Equal(1, mkr.deleteCalled)
-	assert.Equal([]uuid.UUID{defaultApiKeyId}, mkr.deleteIds)
+	assert.Equal(1, mkr.deleteForUserCalled)
+	assert.Equal(defaultUserId, mkr.deleteUserId)
 }
 
 func TestUserService_Logout_WhenDeleteFails_ExpectError(t *testing.T) {
@@ -726,7 +694,6 @@ func TestUserService_Logout_WhenDeleteFails_ExpectError(t *testing.T) {
 
 	mur := &mockUserRepository{}
 	mkr := &mockApiKeyRepository{
-		apiKeyIds: []uuid.UUID{defaultApiKeyId},
 		deleteErr: errDefault,
 	}
 	mc := &mockConnectionPool{}
@@ -734,7 +701,7 @@ func TestUserService_Logout_WhenDeleteFails_ExpectError(t *testing.T) {
 
 	err := s.Logout(context.Background(), defaultUserId)
 
-	assert.Equal(1, mkr.deleteCalled)
+	assert.Equal(1, mkr.deleteForUserCalled)
 	assert.Equal(errDefault, err)
 }
 

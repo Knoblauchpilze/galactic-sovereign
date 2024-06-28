@@ -171,14 +171,11 @@ func (s *userServiceImpl) Logout(ctx context.Context, id uuid.UUID) error {
 		return err
 	}
 
-	apiKeys, err := s.apiKeyRepo.GetForUser(ctx, id)
+	tx, err := s.conn.StartTransaction(ctx)
 	if err != nil {
 		return err
 	}
+	defer tx.Close(ctx)
 
-	if len(apiKeys) == 0 {
-		return nil
-	}
-
-	return s.apiKeyRepo.Delete(ctx, apiKeys)
+	return s.apiKeyRepo.DeleteForUser(ctx, tx, id)
 }
