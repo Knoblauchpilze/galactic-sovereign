@@ -350,7 +350,7 @@ func TestUserService_Delete_DeletesTheRightAcls(t *testing.T) {
 
 	s.Delete(context.Background(), defaultUserId)
 
-	assert.Equal(defaultUserId, mar.userId)
+	assert.Equal(defaultUserId, mar.inUserId)
 }
 
 func TestUserService_Delete_DeletesTheRightUserLimits(t *testing.T) {
@@ -365,7 +365,7 @@ func TestUserService_Delete_DeletesTheRightUserLimits(t *testing.T) {
 
 	s.Delete(context.Background(), defaultUserId)
 
-	assert.Equal(defaultUserId, mlr.userId)
+	assert.Equal(defaultUserId, mlr.inUserId)
 }
 
 func TestUserService_Delete_WhenUserRepositoryFails_ExpectError(t *testing.T) {
