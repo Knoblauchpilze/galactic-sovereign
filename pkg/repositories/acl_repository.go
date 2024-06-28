@@ -155,7 +155,7 @@ func (r *aclRepositoryImpl) Delete(ctx context.Context, tx db.Transaction, ids [
 
 const deleteAclForUserSqlTemplate = "DELETE FROM acl WHERE api_user = $1"
 const deleteAclPermissionsForUserSqlTemplate = `
-DELETE FROM acl_permissions
+DELETE FROM acl_permission
 	WHERE acl
 		IN (SELECT id FROM acl WHERE api_user = $1)
 `

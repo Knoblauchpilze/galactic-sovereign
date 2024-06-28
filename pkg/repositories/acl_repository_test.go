@@ -250,7 +250,7 @@ func TestAclRepository_Delete_NominalCase(t *testing.T) {
 
 func TestAclRepository_DeleteForUser_DbInteraction(t *testing.T) {
 	expectedPermissionsSqlQuery := `
-DELETE FROM acl_permissions
+DELETE FROM acl_permission
 	WHERE acl
 		IN (SELECT id FROM acl WHERE api_user = $1)
 `
