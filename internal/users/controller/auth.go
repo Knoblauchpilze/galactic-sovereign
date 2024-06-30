@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"encoding/json"
 	"net/http"
 
 	"github.com/KnoblauchPilze/user-service/internal/users/service"
@@ -9,6 +10,9 @@ import (
 	"github.com/KnoblauchPilze/user-service/pkg/rest"
 	"github.com/labstack/echo/v4"
 )
+
+const aclHeaderKey = "X-Acl"
+const userLimitHeaderKey = "X-User-Limit"
 
 func AuthEndpoints(service service.AuthService) rest.Routes {
 	var out rest.Routes
@@ -43,5 +47,17 @@ func authUser(c echo.Context, as service.AuthService) error {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 
-	return c.JSON(http.StatusOK, out)
+	aclJson, err := json.Marshal(out.Acls)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, err)
+	}
+	c.Response().Header().Set(aclHeaderKey, string(aclJson))
+
+	userLimitJson, err := json.Marshal(out.Limits)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, err)
+	}
+	c.Response().Header().Set(userLimitHeaderKey, string(userLimitJson))
+
+	return c.NoContent(http.StatusNoContent)
 }

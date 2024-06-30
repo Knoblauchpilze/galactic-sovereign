@@ -2,11 +2,10 @@ package controller
 
 import (
 	"context"
-	"encoding/json"
 	"net/http"
 	"net/http/httptest"
-	"strings"
 	"testing"
+	"time"
 
 	"github.com/KnoblauchPilze/user-service/internal/users/service"
 	"github.com/KnoblauchPilze/user-service/pkg/communication"
@@ -27,17 +26,25 @@ type mockAuthService struct {
 }
 
 var defaultApiKeyId = uuid.MustParse("4c2a950c-ce65-4fb4-87b3-ce588dcfc1ea")
+
 var defaultAuthorizationResponseDto = communication.AuthorizationDtoResponse{
 	Acls: []communication.AclDtoResponse{
 		{
+			Id:          uuid.MustParse("d74072e4-c6d1-4486-9428-61f025bbf372"),
+			User:        uuid.MustParse("9676fdad-6d3d-4df2-85a6-382ab4aad9dc"),
 			Resource:    "resource-1",
 			Permissions: []string{"POST", "GET"},
+			CreatedAt:   time.Date(2024, 06, 30, 17, 44, 24, 651387237, time.UTC),
 		},
 	},
 	Limits: []communication.LimitDtoResponse{
 		{
 			Name:  "limit-1",
 			Value: "10",
+		},
+		{
+			Name:  "limit-2",
+			Value: "some-string",
 		},
 	},
 }
@@ -185,7 +192,7 @@ func Test_WhenAuthServiceSucceeds_SetsExpectedStatus(t *testing.T) {
 		"authUser": {
 			req:                generateTestRequestWithApiKey(http.MethodGet),
 			handler:            authUser,
-			expectedHttpStatus: http.StatusOK,
+			expectedHttpStatus: http.StatusNoContent,
 		},
 	}
 
@@ -207,7 +214,7 @@ func Test_WhenAuthServiceSucceeds_SetsExpectedStatus(t *testing.T) {
 	}
 }
 
-func Test_WhenAuthServiceSucceeds_ReturnsExpectedValue(t *testing.T) {
+func Test_WhenAuthServiceSucceeds_SetsResponseHeaderCorrectly(t *testing.T) {
 	assert := assert.New(t)
 
 	type testCaseReturn struct {
@@ -217,15 +224,18 @@ func Test_WhenAuthServiceSucceeds_ReturnsExpectedValue(t *testing.T) {
 
 		authData communication.AuthorizationDtoResponse
 
-		expectedContent interface{}
+		expectedHeaders map[string]string
 	}
 
 	testCases := map[string]testCaseReturn{
 		"authUser": {
-			req:             generateTestRequestWithApiKey(http.MethodPost),
-			handler:         authUser,
-			authData:        defaultAuthorizationResponseDto,
-			expectedContent: defaultAuthorizationResponseDto,
+			req:      generateTestRequestWithApiKey(http.MethodPost),
+			handler:  authUser,
+			authData: defaultAuthorizationResponseDto,
+			expectedHeaders: map[string]string{
+				"X-Acl":        `[{"id":"d74072e4-c6d1-4486-9428-61f025bbf372","user":"9676fdad-6d3d-4df2-85a6-382ab4aad9dc","resource":"resource-1","permissions":["POST","GET"],"createdAt":"2024-06-30T17:44:24.651387237Z"}]`,
+				"X-User-Limit": `[{"name":"limit-1","value":"10"},{"name":"limit-2","value":"some-string"}]`,
+			},
 		},
 	}
 
@@ -245,10 +255,14 @@ func Test_WhenAuthServiceSucceeds_ReturnsExpectedValue(t *testing.T) {
 
 			assert.Nil(err)
 
-			actual := strings.Trim(rw.Body.String(), "\n")
-			expected, err := json.Marshal(testCase.expectedContent)
-			assert.Nil(err)
-			assert.Equal(string(expected), actual)
+			assert.Equal(0, len(rw.Body.Bytes()))
+			assert.Equal(len(testCase.expectedHeaders), len(rw.Header()))
+
+			for headerKey, expectedHeader := range testCase.expectedHeaders {
+
+				actualHeader := rw.Header().Get(headerKey)
+				assert.Equal(expectedHeader, actualHeader)
+			}
 		})
 	}
 }
