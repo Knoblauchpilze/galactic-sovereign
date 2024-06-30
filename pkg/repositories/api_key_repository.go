@@ -2,7 +2,6 @@ package repositories
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/KnoblauchPilze/user-service/pkg/db"
 	"github.com/KnoblauchPilze/user-service/pkg/persistence"
@@ -15,8 +14,7 @@ type ApiKeyRepository interface {
 	GetForKey(ctx context.Context, apiKey uuid.UUID) (persistence.ApiKey, error)
 	GetForUser(ctx context.Context, user uuid.UUID) ([]uuid.UUID, error)
 	GetForUserTx(ctx context.Context, tx db.Transaction, user uuid.UUID) ([]uuid.UUID, error)
-	Delete(ctx context.Context, ids []uuid.UUID) error
-	DeleteTx(ctx context.Context, tx db.Transaction, ids []uuid.UUID) error
+	DeleteForUser(ctx context.Context, tx db.Transaction, user uuid.UUID) error
 }
 
 type apiKeyRepositoryImpl struct {
@@ -150,20 +148,13 @@ func (r *apiKeyRepositoryImpl) GetForUserTx(ctx context.Context, tx db.Transacti
 	return out, nil
 }
 
-const deleteApiKeysSqlTemplate = "DELETE FROM api_key WHERE id IN (%s)"
+const deleteApiKeyForUserSqlTemplate = `DELETE FROM api_key WHERE api_user = $1`
 
-func (r *apiKeyRepositoryImpl) Delete(ctx context.Context, ids []uuid.UUID) error {
-	in := db.ToSliceInterface(ids)
-	sqlQuery := fmt.Sprintf(deleteApiKeysSqlTemplate, db.GenerateInClauseForArgs(len(ids)))
+func (r *apiKeyRepositoryImpl) DeleteForUser(ctx context.Context, tx db.Transaction, user uuid.UUID) error {
+	_, err := tx.Exec(ctx, deleteApiKeyForUserSqlTemplate, user)
+	if err != nil {
+		return err
+	}
 
-	_, err := r.conn.Exec(ctx, sqlQuery, in...)
-	return err
-}
-
-func (r *apiKeyRepositoryImpl) DeleteTx(ctx context.Context, tx db.Transaction, ids []uuid.UUID) error {
-	in := db.ToSliceInterface(ids)
-	sqlQuery := fmt.Sprintf(deleteApiKeysSqlTemplate, db.GenerateInClauseForArgs(len(ids)))
-
-	_, err := tx.Exec(ctx, sqlQuery, in...)
-	return err
+	return nil
 }

@@ -17,11 +17,11 @@ type RepositoryTransactionTestSuite struct {
 	sqlMode  SqlQueryType
 	testFunc testTransactionFunc
 
-	expectedSql       string
-	expectedArguments []interface{}
+	expectedSql       []string
+	expectedArguments [][]interface{}
 }
 
-func (s *RepositoryTransactionTestSuite) TestUsesConnectionToRunSqlQuery() {
+func (s *RepositoryTransactionTestSuite) TestUsesTransactionToRunSqlQuery() {
 	assert := assert.New(s.T())
 
 	mock := &mockTransaction{}
@@ -29,7 +29,7 @@ func (s *RepositoryTransactionTestSuite) TestUsesConnectionToRunSqlQuery() {
 	s.testFunc(context.Background(), mock)
 
 	called := s.getCalledCount(mock)
-	assert.Equal(1, called)
+	assert.Equal(len(s.expectedSql), called)
 }
 
 func (s *RepositoryTransactionTestSuite) TestGeneratesValidSql() {
@@ -39,7 +39,7 @@ func (s *RepositoryTransactionTestSuite) TestGeneratesValidSql() {
 
 	s.testFunc(context.Background(), mock)
 
-	assert.Equal(s.expectedSql, mock.sqlQuery)
+	assert.Equal(s.expectedSql, mock.sqlQueries)
 }
 
 func (s *RepositoryTransactionTestSuite) TestProvidesValidArguments() {
@@ -50,9 +50,13 @@ func (s *RepositoryTransactionTestSuite) TestProvidesValidArguments() {
 	s.testFunc(context.Background(), mock)
 
 	assert.Equal(len(s.expectedArguments), len(mock.args))
-	for id, expected := range s.expectedArguments {
-		actual := mock.args[id]
-		assert.Equal(expected, actual)
+	for id, expectedArgs := range s.expectedArguments {
+		actualArgs := mock.args[id]
+
+		for idArg, expectedArg := range expectedArgs {
+			actualArg := actualArgs[idArg]
+			assert.Equal(expectedArg, actualArg)
+		}
 	}
 }
 

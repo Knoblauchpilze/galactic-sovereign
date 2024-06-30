@@ -98,13 +98,15 @@ func TestUserRepository_Get_InterpretDbData(t *testing.T) {
 			return err
 		},
 		expectedScanCalls: 1,
-		expectedScannedProps: []interface{}{
-			&uuid.UUID{},
-			&dummyStr,
-			&dummyStr,
-			&time.Time{},
-			&time.Time{},
-			&dummyInt,
+		expectedScannedProps: [][]interface{}{
+			{
+				&uuid.UUID{},
+				&dummyStr,
+				&dummyStr,
+				&time.Time{},
+				&time.Time{},
+				&dummyInt,
+			},
 		},
 	}
 
@@ -138,13 +140,15 @@ func TestUserRepository_GetByEmail_InterpretDbData(t *testing.T) {
 			return err
 		},
 		expectedScanCalls: 1,
-		expectedScannedProps: []interface{}{
-			&uuid.UUID{},
-			&dummyStr,
-			&dummyStr,
-			&time.Time{},
-			&time.Time{},
-			&dummyInt,
+		expectedScannedProps: [][]interface{}{
+			{
+				&uuid.UUID{},
+				&dummyStr,
+				&dummyStr,
+				&time.Time{},
+				&time.Time{},
+				&dummyInt,
+			},
 		},
 	}
 
@@ -172,8 +176,8 @@ func TestUserRepository_List_InterpretDbData(t *testing.T) {
 			return err
 		},
 		expectedScanCalls: 1,
-		expectedScannedProps: []interface{}{
-			&uuid.UUID{},
+		expectedScannedProps: [][]interface{}{
+			{&uuid.UUID{}},
 		},
 	}
 
@@ -271,9 +275,11 @@ func TestUserRepository_Delete_DbInteraction(t *testing.T) {
 			repo := NewUserRepository(&mockConnectionPool{})
 			return repo.Delete(ctx, tx, defaultUserId)
 		},
-		expectedSql: `DELETE FROM api_user WHERE id = $1`,
-		expectedArguments: []interface{}{
-			defaultUserId,
+		expectedSql: []string{`DELETE FROM api_user WHERE id = $1`},
+		expectedArguments: [][]interface{}{
+			{
+				defaultUserId,
+			},
 		},
 	}
 

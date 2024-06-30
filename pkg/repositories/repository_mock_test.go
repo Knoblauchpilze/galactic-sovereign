@@ -30,8 +30,8 @@ type mockTransaction struct {
 	affectedRows int
 	execErr      error
 
-	sqlQuery string
-	args     []interface{}
+	sqlQueries []string
+	args       [][]interface{}
 
 	rows mockRows
 }
@@ -50,7 +50,7 @@ type mockScannable struct {
 	err error
 
 	scanCalled int
-	props      []interface{}
+	props      [][]interface{}
 }
 
 func (m *mockConnectionPool) Query(ctx context.Context, sql string, arguments ...interface{}) db.Rows {
@@ -71,15 +71,25 @@ func (m *mockTransaction) Close(ctx context.Context) {}
 
 func (m *mockTransaction) Query(ctx context.Context, sql string, arguments ...interface{}) db.Rows {
 	m.queryCalled++
-	m.sqlQuery = sql
-	m.args = append(m.args, arguments...)
+
+	var newArgs []interface{}
+	newArgs = append(newArgs, arguments...)
+	m.args = append(m.args, newArgs)
+
+	m.sqlQueries = append(m.sqlQueries, sql)
+
 	return &m.rows
 }
 
 func (m *mockTransaction) Exec(ctx context.Context, sql string, arguments ...interface{}) (int, error) {
 	m.execCalled++
-	m.sqlQuery = sql
-	m.args = append(m.args, arguments...)
+
+	var newArgs []interface{}
+	newArgs = append(newArgs, arguments...)
+	m.args = append(m.args, newArgs)
+
+	m.sqlQueries = append(m.sqlQueries, sql)
+
 	return m.affectedRows, m.execErr
 }
 
@@ -107,6 +117,10 @@ func (m *mockRows) GetAll(parser db.RowParser) error {
 
 func (m *mockScannable) Scan(dest ...interface{}) error {
 	m.scanCalled++
-	m.props = append(m.props, dest...)
+
+	var newProps []interface{}
+	newProps = append(newProps, dest...)
+	m.props = append(m.props, newProps)
+
 	return m.err
 }

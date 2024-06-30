@@ -6,4 +6,7 @@ import (
 
 const (
 	InvalidCredentials errors.ErrorCode = 250
+
+	UserNotAuthenticated  errors.ErrorCode = 251
+	AuthenticationExpired errors.ErrorCode = 252
 )
