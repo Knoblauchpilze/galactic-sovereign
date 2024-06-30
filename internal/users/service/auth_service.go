@@ -32,7 +32,10 @@ func NewAuthService(conn db.ConnectionPool, repos repositories.Repositories) Aut
 }
 
 func (s *authServiceImpl) Authenticate(ctx context.Context, apiKey uuid.UUID) (communication.AuthorizationDtoResponse, error) {
-	var out communication.AuthorizationDtoResponse
+	out := communication.AuthorizationDtoResponse{
+		Acls:   []communication.AclDtoResponse{},
+		Limits: []communication.LimitDtoResponse{},
+	}
 
 	key, err := s.apiKeyRepo.GetForKey(ctx, apiKey)
 	if err != nil {

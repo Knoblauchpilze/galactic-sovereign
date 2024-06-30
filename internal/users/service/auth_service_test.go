@@ -196,6 +196,20 @@ func TestAuthService_Authenticate_ReturnsExpectedAcls(t *testing.T) {
 	assert.Equal(defaultAcl.CreatedAt, actual.Acls[0].CreatedAt)
 }
 
+func TestAuthService_Authenticate_WhenUserDoesNotHaveAcls_ExpectNonNilSliceReturned(t *testing.T) {
+	assert := assert.New(t)
+
+	repos, mockAcl, _, _, _ := createMockRepositoriesWithValidApiKey()
+	mockAcl.aclIds = nil
+	s := NewAuthService(&mockConnectionPool{}, repos)
+
+	actual, err := s.Authenticate(context.Background(), defaultApiKey.Id)
+
+	assert.Nil(err)
+	assert.NotNil(actual.Acls)
+	assert.Equal(0, len(actual.Acls))
+}
+
 func TestAuthService_Authenticate_FetchesUserLimitsForUser(t *testing.T) {
 	assert := assert.New(t)
 
@@ -264,6 +278,20 @@ func TestAuthService_Authenticate_ReturnsExpectedUserLimits(t *testing.T) {
 
 	assert.Equal(defaultUserLimit.Limits[0].Name, actual.Limits[0].Name)
 	assert.Equal(defaultUserLimit.Limits[0].Value, actual.Limits[0].Value)
+}
+
+func TestAuthService_Authenticate_WhenUserDoesNotHaveUserLimits_ExpectNonNilSliceReturned(t *testing.T) {
+	assert := assert.New(t)
+
+	repos, _, _, _, mockUserLimit := createMockRepositoriesWithValidApiKey()
+	mockUserLimit.userLimitIds = nil
+	s := NewAuthService(&mockConnectionPool{}, repos)
+
+	actual, err := s.Authenticate(context.Background(), defaultApiKey.Id)
+
+	assert.Nil(err)
+	assert.NotNil(actual.Limits)
+	assert.Equal(0, len(actual.Limits))
 }
 
 func createMockRepositories() (repositories.Repositories, *mockAclRepository, *mockApiKeyRepository, *mockUserRepository, *mockUserLimitRepository) {
