@@ -72,6 +72,35 @@ func TestFromDbAwareHttpHandler_PropagatesError(t *testing.T) {
 	assert.Equal(errDefault, err)
 }
 
+func TestFromAuthServiceAwareHttpHandler_CallsHandler(t *testing.T) {
+	assert := assert.New(t)
+
+	handlerCalled := false
+	in := func(_ echo.Context, _ service.AuthService) error {
+		handlerCalled = true
+		return nil
+	}
+
+	h := fromAuthServiceAwareHttpHandler(in, &mockAuthService{})
+
+	err := h(dummyEchoContext())
+	assert.Nil(err)
+	assert.True(handlerCalled)
+}
+
+func TestFromAuthServiceAwareHttpHandler_PropagatesError(t *testing.T) {
+	assert := assert.New(t)
+
+	in := func(_ echo.Context, _ service.AuthService) error {
+		return errDefault
+	}
+
+	h := fromAuthServiceAwareHttpHandler(in, &mockAuthService{})
+
+	err := h(dummyEchoContext())
+	assert.Equal(errDefault, err)
+}
+
 func dummyEchoContext() echo.Context {
 	ctx, _ := generateTestEchoContextWithMethod(http.MethodGet)
 	return ctx

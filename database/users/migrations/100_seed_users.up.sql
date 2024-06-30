@@ -7,6 +7,7 @@ INSERT INTO user_service_schema.api_user ("id", "email", "password")
     'strong-password'
   );
 
+-- https://www.postgresql.org/docs/current/functions-datetime.html#FUNCTIONS-DATETIME-CURRENT
 INSERT INTO user_service_schema.api_key ("id", "key", "api_user", "valid_until")
   VALUES (
     'a5eff7a9-9bd6-4f51-9b42-a7ca5ffd3f5e',
@@ -39,7 +40,6 @@ INSERT INTO user_service_schema.api_user ("id", "email", "password")
     'weakpassword'
   );
 
--- https://www.postgresql.org/docs/current/functions-datetime.html#FUNCTIONS-DATETIME-CURRENT
 INSERT INTO user_service_schema.api_key ("id", "key", "api_user", "valid_until")
   VALUES (
     '42698272-5b8f-42db-a43c-8108eaad66e1',

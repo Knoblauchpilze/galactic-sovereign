@@ -16,10 +16,10 @@ type RepositoryGetAllTransactionTestSuite struct {
 	testFunc testGetAllTxFunc
 
 	expectedScanCalls    int
-	expectedScannedProps []interface{}
+	expectedScannedProps [][]interface{}
 }
 
-func (s *RepositoryGetAllTransactionTestSuite) TestCallsGetSingleValue() {
+func (s *RepositoryGetAllTransactionTestSuite) TestCallsGetAll() {
 	assert := assert.New(s.T())
 
 	mock := &mockTransaction{}
@@ -82,8 +82,15 @@ func (s *RepositoryGetAllTransactionTestSuite) TestScansExpectedProperties() {
 
 	assert.Equal(s.expectedScanCalls, mock.rows.scanner.scanCalled)
 	assert.Equal(len(s.expectedScannedProps), len(mock.rows.scanner.props))
-	for id, expected := range s.expectedScannedProps {
-		actual := mock.rows.scanner.props[id]
-		assert.IsType(expected, actual)
+
+	for id, expectedProps := range s.expectedScannedProps {
+		actualProps := mock.rows.scanner.props[id]
+
+		assert.Equal(len(expectedProps), len(actualProps))
+
+		for idProp, expectedProp := range expectedProps {
+			actualProp := actualProps[idProp]
+			assert.IsType(expectedProp, actualProp)
+		}
 	}
 }

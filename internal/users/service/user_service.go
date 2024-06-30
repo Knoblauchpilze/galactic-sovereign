@@ -24,18 +24,23 @@ type UserService interface {
 }
 
 type userServiceImpl struct {
-	conn       db.ConnectionPool
-	userRepo   repositories.UserRepository
-	apiKeyRepo repositories.ApiKeyRepository
+	conn db.ConnectionPool
+
+	userRepo      repositories.UserRepository
+	apiKeyRepo    repositories.ApiKeyRepository
+	aclRepo       repositories.AclRepository
+	userLimitRepo repositories.UserLimitRepository
 
 	apiKeyValidity time.Duration
 }
 
-func NewUserService(config Config, conn db.ConnectionPool, userRepo repositories.UserRepository, apiKeyRepo repositories.ApiKeyRepository) UserService {
+func NewUserService(config Config, conn db.ConnectionPool, repos repositories.Repositories) UserService {
 	return &userServiceImpl{
-		conn:       conn,
-		userRepo:   userRepo,
-		apiKeyRepo: apiKeyRepo,
+		conn:          conn,
+		userRepo:      repos.User,
+		apiKeyRepo:    repos.ApiKey,
+		aclRepo:       repos.Acl,
+		userLimitRepo: repos.UserLimit,
 
 		apiKeyValidity: config.ApiKeyValidity,
 	}
@@ -92,12 +97,15 @@ func (s *userServiceImpl) Delete(ctx context.Context, id uuid.UUID) error {
 	}
 	defer tx.Close(ctx)
 
-	apiKeys, err := s.apiKeyRepo.GetForUserTx(ctx, tx, id)
+	err = s.apiKeyRepo.DeleteForUser(ctx, tx, id)
 	if err != nil {
 		return err
 	}
-
-	err = s.apiKeyRepo.DeleteTx(ctx, tx, apiKeys)
+	err = s.aclRepo.DeleteForUser(ctx, tx, id)
+	if err != nil {
+		return err
+	}
+	err = s.userLimitRepo.DeleteForUser(ctx, tx, id)
 	if err != nil {
 		return err
 	}
@@ -163,14 +171,11 @@ func (s *userServiceImpl) Logout(ctx context.Context, id uuid.UUID) error {
 		return err
 	}
 
-	apiKeys, err := s.apiKeyRepo.GetForUser(ctx, id)
+	tx, err := s.conn.StartTransaction(ctx)
 	if err != nil {
 		return err
 	}
+	defer tx.Close(ctx)
 
-	if len(apiKeys) == 0 {
-		return nil
-	}
-
-	return s.apiKeyRepo.Delete(ctx, apiKeys)
+	return s.apiKeyRepo.DeleteForUser(ctx, tx, id)
 }
