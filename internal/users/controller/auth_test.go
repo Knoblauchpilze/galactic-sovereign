@@ -10,6 +10,7 @@ import (
 
 	"github.com/KnoblauchPilze/user-service/internal/users/service"
 	"github.com/KnoblauchPilze/user-service/pkg/communication"
+	"github.com/KnoblauchPilze/user-service/pkg/errors"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 )
@@ -139,6 +140,18 @@ func Test_WhenAuthServiceFails_SetsExpectedStatus(t *testing.T) {
 			handler:            authUser,
 			err:                errDefault,
 			expectedHttpStatus: http.StatusInternalServerError,
+		},
+		"authUser_notLoggedIn": {
+			req:                generateTestRequestWithApiKey(http.MethodGet),
+			handler:            authUser,
+			err:                errors.NewCode(service.UserNotAuthenticated),
+			expectedHttpStatus: http.StatusForbidden,
+		},
+		"authUser_keyExpired": {
+			req:                generateTestRequestWithApiKey(http.MethodGet),
+			handler:            authUser,
+			err:                errors.NewCode(service.AuthenticationExpired),
+			expectedHttpStatus: http.StatusForbidden,
 		},
 	}
 

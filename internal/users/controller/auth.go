@@ -34,6 +34,12 @@ func authUser(c echo.Context, as service.AuthService) error {
 
 	out, err := as.Authenticate(c.Request().Context(), apiKey)
 	if err != nil {
+		if errors.IsErrorWithCode(err, service.UserNotAuthenticated) {
+			return c.JSON(http.StatusForbidden, err)
+		} else if errors.IsErrorWithCode(err, service.AuthenticationExpired) {
+			return c.JSON(http.StatusForbidden, err)
+		}
+
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 
