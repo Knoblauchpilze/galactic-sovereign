@@ -135,7 +135,7 @@ func TestServer_RegisterAuthorized_PropagatesPathFromConfig(t *testing.T) {
 	defer s.Stop()
 
 	s.Register(mr)
-	assert.Equal("/some-path/path", ms.groups[1].group.path)
+	assert.Equal("/some-path/path", ms.groups[0].group.path)
 }
 
 func TestServer_Register_SanitizesPath(t *testing.T) {
@@ -176,7 +176,7 @@ func TestServer_RegisterAuthorized_SanitizesPath(t *testing.T) {
 	defer s.Stop()
 
 	s.Register(mr)
-	assert.Equal("/some-path/addition", ms.groups[1].group.path)
+	assert.Equal("/some-path/addition", ms.groups[0].group.path)
 }
 
 func TestServer_Register_SupportsPost(t *testing.T) {
@@ -211,7 +211,7 @@ func TestServer_RegisterAuthorized_SupportsPost(t *testing.T) {
 
 	err := s.Register(mr)
 	assert.Nil(err)
-	assert.Equal(1, ms.groups[1].group.postCalled)
+	assert.Equal(1, ms.groups[0].group.postCalled)
 }
 
 func TestServer_Register_SupportsGet(t *testing.T) {
@@ -246,7 +246,7 @@ func TestServer_RegisterAuthorized_SupportsGet(t *testing.T) {
 
 	err := s.Register(mr)
 	assert.Nil(err)
-	assert.Equal(1, ms.groups[1].group.getCalled)
+	assert.Equal(1, ms.groups[0].group.getCalled)
 }
 
 func TestServer_Register_SupportsPatch(t *testing.T) {
@@ -281,7 +281,7 @@ func TestServer_RegisterAuthorized_SupportsPatch(t *testing.T) {
 
 	err := s.Register(mr)
 	assert.Nil(err)
-	assert.Equal(1, ms.groups[1].group.patchCalled)
+	assert.Equal(1, ms.groups[0].group.patchCalled)
 }
 
 func TestServer_Register_SupportsDelete(t *testing.T) {
@@ -316,7 +316,7 @@ func TestServer_RegisterAuthorized_SupportsDelete(t *testing.T) {
 
 	err := s.Register(mr)
 	assert.Nil(err)
-	assert.Equal(1, ms.groups[1].group.deleteCalled)
+	assert.Equal(1, ms.groups[0].group.deleteCalled)
 }
 
 func TestServer_Register_FailsForUnsupportedMethod(t *testing.T) {
