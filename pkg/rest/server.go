@@ -84,9 +84,6 @@ func (s *serverImpl) Register(route Route) error {
 	path = concatenateEndpoints(s.endpoint, path)
 
 	router := s.publicRoutes
-	if route.Authorized() {
-		router = s.authorizedRoutes
-	}
 
 	switch route.Method() {
 	case http.MethodGet:
