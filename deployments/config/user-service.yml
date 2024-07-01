@@ -8,6 +8,7 @@ http:
       service: user-service
       middlewares:
         - "us-rate-limit"
+        - "us-auth"
       tls:
         certResolver: letsencryptresolver
 
@@ -16,6 +17,12 @@ http:
       rateLimit:
         average: 5
         burst: 10
+    us-auth:
+      forwardAuth:
+        address: "http://auth-service:80/v1/users/auth"
+        authResponseHeaders:
+          - "X-Acl"
+          - "X-User-Limit"
 
   services:
     user-service:
