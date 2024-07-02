@@ -1,19 +1,16 @@
-<div class="main-panel">
-	<a href="/login">Login</a>
-	<a href="/signup">Sign up</a>
+<div class="wrapper">
+	<h2>Login</h2>
 </div>
 
 <style>
-	.main-panel {
+	.wrapper {
 		display: flex;
 		flex-direction: column;
 		justify-content: space-between;
 		align-items: center;
 	}
 
-	a {
-		padding: 1em 3em;
-
+	h2 {
 		color: #b87333;
 	}
 </style>

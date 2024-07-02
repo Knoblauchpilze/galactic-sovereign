@@ -1,6 +1,10 @@
 <div class="hero-image">
 	<div class="hero-panel">
-		<slot></slot>
+		<div class="main-panel">
+			<h1>Stellar dominion</h1>
+			<p>Battle for the galaxy</p>
+			<slot></slot>
+		</div>
 	</div>
 </div>
 
@@ -34,15 +38,15 @@
 		top: 50%;
 		left: 50%;
 
-		display: flex;
-		flex-direction: column;
-		justify-content: center;
-		align-items: center;
+		transform: translate(-50%, -50%);
+		background-color: #0005;
+	}
 
+	h1,
+	p {
 		font-weight: bold;
 		font-style: italic;
 
-		transform: translate(-50%, -50%);
-		background-color: #0005;
+		color: #b87333;
 	}
 </style>
