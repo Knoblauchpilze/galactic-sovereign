@@ -65,7 +65,7 @@ jobs:
         # https://deploy-preview-13474--docsdocker.netlify.app/compose/env-file/#compose-2x
         run: |
           echo "USER_SERVICE_TAG=${{ needs.collect-services-versions.outputs.user-service-tag }}" >> ./deployments/.env
-          echo "ENV_DATABASE_PASSWORD=${{ secrets.DATABASE_MANAGER_PASSWORD }}" >> ./deployments/.env
+          echo "ENV_USER_DATABASE_PASSWORD=${{ secrets.USER_DATABASE_MANAGER_PASSWORD }}" >> ./deployments/.env
           echo "USER_DASHBOARD_TAG=${{ needs.collect-services-versions.outputs.user-dashboard-tag }}" >> ./deployments/.env
           echo "USER_DASHBOARD_ORIGIN=${{ secrets.USER_DASHBOARD_ORIGIN }}" >> ./deployments/.env
           echo "STELLAR_DOMINION_TAG=${{ needs.collect-services-versions.outputs.stellar-dominion-tag }}" >> ./deployments/.env

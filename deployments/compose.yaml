@@ -11,7 +11,7 @@ services:
       - "5432"
     environment:
       # https://docs.docker.com/compose/environment-variables/set-environment-variables/#compose-file
-      - ENV_DATABASE_PASSWORD=${ENV_DATABASE_PASSWORD}
+      - ENV_DATABASE_PASSWORD=${ENV_USER_DATABASE_PASSWORD}
 
   user-dashboard:
     image: totocorpsoftwareinc/user-dashboard:${USER_DASHBOARD_TAG}
