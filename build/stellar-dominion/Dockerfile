@@ -1,6 +1,7 @@
-FROM node:22 as builder
+FROM node:22 AS builder
 WORKDIR /build
 COPY website/stellar-dominion ./
+RUN echo "PUBLIC_API_BASE_URL='${API_BASE_URL}'" > .env
 RUN npm install
 RUN npm run build
 
