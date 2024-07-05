@@ -90,3 +90,34 @@ user-dashboard-stop:
 	sudo docker rm user-dashboard
 
 user-dashboard-start: user-dashboard-build user-dashboard-run
+
+stellar-dominion-build:
+	docker build \
+		--build-arg GIT_COMMIT_HASH=${GIT_COMMIT_HASH} \
+		--build-arg SERVER_ORIGIN=${SERVER_ORIGIN} \
+		--build-arg NODE_PORT=${NODE_PORT} \
+		--build-arg API_BASE_URL=${API_BASE_URL} \
+		--tag stellar-dominion:${GIT_COMMIT_HASH} \
+		-f build/stellar-dominion/Dockerfile \
+		.
+
+stellar-dominion-run:
+	docker run \
+		--network ${DOCKER_NETWORK_BRIDGE_NAME} \
+		-p ${NODE_PORT}:${NODE_PORT} \
+		stellar-dominion:${GIT_COMMIT_HASH}
+
+stellar-dominion-run-detached:
+	sudo docker run \
+		--network ${DOCKER_NETWORK_BRIDGE_NAME} \
+		-p ${NODE_PORT}:${NODE_PORT} \
+		--name stellar-dominion \
+		-d \
+		--restart on-failure:${RESTART_RETRIES_COUNT} \
+		stellar-dominion:${GIT_COMMIT_HASH}
+
+stellar-dominion-stop:
+	sudo docker stop stellar-dominion
+	sudo docker rm stellar-dominion
+
+stellar-dominion-start: stellar-dominion-build stellar-dominion-run
