@@ -9,6 +9,7 @@ import (
 	"github.com/KnoblauchPilze/user-service/cmd/users/internal"
 	"github.com/KnoblauchPilze/user-service/internal/users/controller"
 	"github.com/KnoblauchPilze/user-service/internal/users/service"
+	"github.com/KnoblauchPilze/user-service/pkg/config"
 	"github.com/KnoblauchPilze/user-service/pkg/db"
 	"github.com/KnoblauchPilze/user-service/pkg/logger"
 	"github.com/KnoblauchPilze/user-service/pkg/repositories"
@@ -24,7 +25,7 @@ func determineConfigName() string {
 }
 
 func main() {
-	conf, err := internal.LoadConfiguration(determineConfigName())
+	conf, err := config.LoadConfiguration(determineConfigName(), internal.DefaultConf())
 	if err != nil {
 		logger.Errorf("Failed to load configuration: %v", err)
 		os.Exit(1)
