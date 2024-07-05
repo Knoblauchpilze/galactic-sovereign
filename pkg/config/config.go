@@ -2,7 +2,9 @@ package config
 
 import (
 	"strings"
+	"time"
 
+	"github.com/KnoblauchPilze/user-service/internal/users/service"
 	"github.com/KnoblauchPilze/user-service/pkg/db"
 	"github.com/KnoblauchPilze/user-service/pkg/rest"
 	"github.com/labstack/gommon/log"
@@ -12,6 +14,7 @@ import (
 type Configuration struct {
 	Server   rest.Config
 	Database db.Config
+	ApiKey   service.Config
 }
 
 type configurationParser interface {
@@ -30,7 +33,7 @@ type configurationParser interface {
 
 var configurator configurationParser = viper.New()
 
-func LoadConfiguration[T any](configName string, defaultConf T) (T, error) {
+func LoadConfiguration(configName string, defaultConf Configuration) (Configuration, error) {
 	// https://github.com/spf13/viper#reading-config-files
 	configurator.SetConfigType("yaml")
 	configurator.AddConfigPath("configs")
@@ -59,6 +62,9 @@ func DefaultConf() Configuration {
 			BasePath:  "/v1",
 			Port:      uint16(80),
 			RateLimit: 10,
+		},
+		ApiKey: service.Config{
+			ApiKeyValidity: time.Duration(3 * time.Hour),
 		},
 		Database: db.Config{
 			Host:                "172.17.0.1",

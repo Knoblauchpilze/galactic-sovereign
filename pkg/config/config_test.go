@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"strings"
 	"testing"
+	"time"
 
+	"github.com/KnoblauchPilze/user-service/internal/users/service"
 	"github.com/KnoblauchPilze/user-service/pkg/rest"
 	"github.com/labstack/gommon/log"
 	"github.com/spf13/viper"
@@ -24,6 +26,17 @@ func TestDefaultConfig_Server(t *testing.T) {
 		RateLimit: 10,
 	}
 	assert.Equal(expected, conf.Server)
+}
+
+func TestDefaultConfig_ApiKey(t *testing.T) {
+	assert := assert.New(t)
+
+	conf := DefaultConf()
+
+	expected := service.Config{
+		ApiKeyValidity: 3 * time.Hour,
+	}
+	assert.Equal(expected, conf.ApiKey)
 }
 
 func TestDefaultConfig_Database_AssumesDockerLocalhost(t *testing.T) {
