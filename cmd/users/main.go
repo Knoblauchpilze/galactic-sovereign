@@ -57,7 +57,7 @@ func main() {
 	userService := service.NewUserService(conf.ApiKey, pool, repos)
 	authService := service.NewAuthService(pool, repos)
 
-	s := rest.NewServer(conf.Server, repos.ApiKey)
+	s := rest.NewServerWithApiKey(conf.Server, repos.ApiKey)
 
 	for _, route := range controller.UserEndpoints(userService) {
 		if err := s.Register(route); err != nil {
