@@ -4,7 +4,7 @@ on:
   push:
     # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#example-including-paths
     paths:
-      - "cmd/**"
+      - "cmd/users/**"
       - "pkg/**"
       - "internal/**"
       - "build/user-service/Dockerfile"
