@@ -16,6 +16,8 @@ Below are the required badges to indicate the code coverage and whether the CI a
 
 [![Build and push stellar-dominion docker image](https://github.com/Knoblauchpilze/user-service/actions/workflows/stellar-dominion-build-and-push.yml/badge.svg)](https://github.com/Knoblauchpilze/user-service/actions/workflows/stellar-dominion-build-and-push.yml)
 
+[![Build and push stellar-dominion-service docker image](https://github.com/Knoblauchpilze/user-service/actions/workflows/stellar-dominion-service-build-and-push.yml/badge.svg)](https://github.com/Knoblauchpilze/user-service/actions/workflows/stellar-dominion-service-build-and-push.yml)
+
 [![Deploy services](https://github.com/Knoblauchpilze/user-service/actions/workflows/deploy-services.yml/badge.svg)](https://github.com/Knoblauchpilze/user-service/actions/workflows/deploy-services.yml)
 
 # Installation
