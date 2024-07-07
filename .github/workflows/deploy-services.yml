@@ -26,6 +26,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       user-service-tag: ${{ steps.user-service.outputs.tag }}
+      stellar-dominion-service-tag: ${{ steps.stellar-dominion-service.outputs.tag }}
       user-dashboard-tag: ${{ steps.user-dashboard.outputs.tag }}
       stellar-dominion-tag: ${{ steps.stellar-dominion.outputs.tag }}
     steps:
@@ -33,6 +34,9 @@ jobs:
       - name: Extract user service tag
         id: user-service
         run: echo "tag=$(cat ./build/user-service/version.txt)" >> $GITHUB_OUTPUT
+      - name: Extract stellar dominion service tag
+        id: stellar-dominion-service
+        run: echo "tag=$(cat ./build/stellar-dominion-service/version.txt)" >> $GITHUB_OUTPUT
       - name: Extract user dashboard tag
         id: user-dashboard
         run: echo "tag=$(cat ./build/user-dashboard/version.txt)" >> $GITHUB_OUTPUT
@@ -66,6 +70,8 @@ jobs:
         run: |
           echo "USER_SERVICE_TAG=${{ needs.collect-services-versions.outputs.user-service-tag }}" >> ./deployments/.env
           echo "ENV_USER_DATABASE_PASSWORD=${{ secrets.USER_DATABASE_MANAGER_PASSWORD }}" >> ./deployments/.env
+          echo "STELLAR_DOMINION_SERVICE_TAG=${{ needs.collect-services-versions.outputs.stellar-dominion-service-tag }}" >> ./deployments/.env
+          echo "ENV_STELLAR_DOMINION_DATABASE_PASSWORD=${{ secrets.STELLAR_DOMINION_DATABASE_MANAGER_PASSWORD }}" >> ./deployments/.env
           echo "USER_DASHBOARD_TAG=${{ needs.collect-services-versions.outputs.user-dashboard-tag }}" >> ./deployments/.env
           echo "USER_DASHBOARD_ORIGIN=${{ secrets.USER_DASHBOARD_ORIGIN }}" >> ./deployments/.env
           echo "STELLAR_DOMINION_TAG=${{ needs.collect-services-versions.outputs.stellar-dominion-tag }}" >> ./deployments/.env
