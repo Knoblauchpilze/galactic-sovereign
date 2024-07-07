@@ -1,0 +1,51 @@
+name: Build and push stellar-dominion-service docker image
+
+on:
+  push:
+    paths:
+      - "cmd/users/**"
+      - "pkg/**"
+      - "internal/**"
+      - "build/stellar-dominion/Dockerfile"
+      - ".github/workflows/stellar-dominion*.yml"
+      - ".github/workflows/go-tests.yml"
+      - ".github/workflows/services*.yml"
+
+jobs:
+  tests:
+    if: ${{ github.actor != 'github-actions[bot]' && github.event_name != 'push' || github.event.pusher.name != 'github-actions[bot]' }}
+    uses: ./.github/workflows/go-tests.yml
+    secrets:
+      codecov-token: ${{ secrets.CODECOV_TOKEN }}
+  extract-service-tag:
+    if: ${{ github.actor != 'github-actions[bot]' && github.event_name != 'push' || github.event.pusher.name != 'github-actions[bot]' }}
+    needs: [tests]
+    uses: ./.github/workflows/services-extract-tag.yml
+  build-and-push-docker-image:
+    runs-on: ubuntu-latest
+    if: ${{ github.actor != 'github-actions[bot]' && github.event_name != 'push' || github.event.pusher.name != 'github-actions[bot]' }}
+    needs: [extract-service-tag]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./build/stellar-dominion/Dockerfile
+          build-args: GIT_COMMIT_HASH=${{ needs.extract-service-tag.outputs.version }}
+          push: true
+          tags: totocorpsoftwareinc/stellar-dominion-service:${{ needs.extract-service-tag.outputs.version }}
+  persist-service-tag:
+    if: ${{ github.actor != 'github-actions[bot]' && github.event_name != 'push' || github.event.pusher.name != 'github-actions[bot]' }}
+    needs: [build-and-push-docker-image, extract-service-tag]
+    permissions:
+      contents: write
+    uses: ./.github/workflows/services-persist-tag.yml
+    with:
+      service-name: stellar-dominion-service
+      service-tag: ${{ needs.extract-service-tag.outputs.version }}
