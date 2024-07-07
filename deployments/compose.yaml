@@ -11,7 +11,18 @@ services:
       - "5432"
     environment:
       # https://docs.docker.com/compose/environment-variables/set-environment-variables/#compose-file
-      - ENV_DATABASE_PASSWORD=${ENV_DATABASE_PASSWORD}
+      - ENV_DATABASE_PASSWORD=${ENV_USER_DATABASE_PASSWORD}
+
+  stellar-dominion-service:
+    image: totocorpsoftwareinc/stellar-dominion-service:${STELLAR_DOMINION_SERVICE_TAG}
+    container_name: stellar-dominion-service
+    restart: on-failure:5
+    networks:
+      - corp-network
+    ports:
+      - "5432"
+    environment:
+      - ENV_DATABASE_PASSWORD=${ENV_STELLAR_DOMINION_DATABASE_PASSWORD}
 
   auth-service:
     image: totocorpsoftwareinc/user-service:${USER_SERVICE_TAG}

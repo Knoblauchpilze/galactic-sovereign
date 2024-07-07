@@ -16,6 +16,8 @@ Below are the required badges to indicate the code coverage and whether the CI a
 
 [![Build and push stellar-dominion docker image](https://github.com/Knoblauchpilze/user-service/actions/workflows/stellar-dominion-build-and-push.yml/badge.svg)](https://github.com/Knoblauchpilze/user-service/actions/workflows/stellar-dominion-build-and-push.yml)
 
+[![Build and push stellar-dominion-service docker image](https://github.com/Knoblauchpilze/user-service/actions/workflows/stellar-dominion-service-build-and-push.yml/badge.svg)](https://github.com/Knoblauchpilze/user-service/actions/workflows/stellar-dominion-service-build-and-push.yml)
+
 [![Deploy services](https://github.com/Knoblauchpilze/user-service/actions/workflows/deploy-services.yml/badge.svg)](https://github.com/Knoblauchpilze/user-service/actions/workflows/deploy-services.yml)
 
 # Installation
@@ -42,7 +44,7 @@ This projects uses:
 In the rest of the installation instructions, the project assumes that:
 
 - all necessary software is installed on the local machine.
-- 3 passwords have been generated and are available (for the db users).
+- 3 passwords have been generated and are available for each database needed for the project. As of now, we have two databases (for the users and for the game).
 - a RSA key pair is available along with an identity file wich authorization to log on the EC2 instance.
 
 ### Generate a RSA key pair
@@ -116,7 +118,7 @@ When the service is up and running, it will attempt to access a remote `postgres
 
 In the production case, the docker container is for now also connecting to a local `postgres` server on the same EC2 instance: the only difference is that it does so from within a docker container.
 
-The way docker exposes the `localhost` to application running within it is a bit different to how it works outside of it. This SO post describes [how to connect to localhost from inside a docker container](https://stackoverflow.com/questions/24319662/from-inside-of-a-docker-container-how-do-i-connect-to-the-localhost-of-the-mach) and goes into a bit of details on how it works. The TL;DR is that in the default network mode (bridge), the docker engine will associate an IP with a pattern like `172.17.X.Y` to reach localhost. This is already reflected in the [default config](cmd/users/internal/config.go) file.
+The way docker exposes the `localhost` to application running within it is a bit different to how it works outside of it. This SO post describes [how to connect to localhost from inside a docker container](https://stackoverflow.com/questions/24319662/from-inside-of-a-docker-container-how-do-i-connect-to-the-localhost-of-the-mach) and goes into a bit of details on how it works. The TL;DR is that in the default network mode (bridge), the docker engine will associate an IP with a pattern like `172.17.X.Y` to reach localhost. This is already reflected in the [default config](pkg/config/config.go) file.
 
 ### Allow incoming connections to the postgres server from docker host
 
@@ -168,7 +170,7 @@ The project defines a CI workflow which is able to automatically update the runn
 
 In order to allow the CI to execute the docker commands needed to update the containers, it is necessary to add the default user to the group of users who can execute docker without sudo. This can be done by following this [guide](https://docs.docker.com/engine/install/linux-postinstall/).
 
-## Setup the database
+## Setup the databases
 
 ### The postgres password
 
@@ -210,6 +212,8 @@ This command will by default create a tunnel allowing to access the remote `post
 
 ### Creating the database
 
+⚠️ In this section we will focus on setting up the users database but this approach can be extended to the other databases needed by the project.
+
 In both remote and local case, the configuration of the database happens in 3 steps:
 
 - creation of the users to manage the database
@@ -218,11 +222,11 @@ In both remote and local case, the configuration of the database happens in 3 st
 
 With the `postgres` password at hand, you can navigate to the [database](database) directory and use the following scripts defined there.
 
-Each script requires a few environment variables to be defined in order to properly work. A common one is `DATABASE_PORT` which should point to the port to reach the `postgres` server. Should be `5432` (default) locally and `5000` in case of remote.
+Each script requires a few environment variables to be defined in order to properly work. The very first one defines the path to reach the files related to the database to deploy. It is expected as an argument to the script. A common one is `DATABASE_PORT` which should point to the port to reach the `postgres` server. Should be `5432` (default) locally and `5000` in case of remote.
 
-Additionally, [create_user.sh](database/users/create_user.sh) requires `ADMIN_PASSWORD`, `MANAGER_PASSWORD` and `USER_PASSWORD` which correspond to the three passwords you should have generated beforehand.
+Additionally, [create_user.sh](database/create_user.sh) requires `ADMIN_PASSWORD`, `MANAGER_PASSWORD` and `USER_PASSWORD` which correspond to the three passwords you should have generated beforehand.
 
-Finally the [Makefile](database/users/Makefile) to perform the migration requires to define the variables `DB_PORT` (same value as `DATABASE_PORT`) and `DB_PASSWORD` which should correspond to `ADMIN_PASSWORD`.
+Finally the [Makefile](database/Makefile) to perform the migration requires to define the variables `DB_PORT` (same value as `DATABASE_PORT`) and `DB_PASSWORD` which should correspond to `ADMIN_PASSWORD`.
 
 As a recap, here are the required steps for the remote case:
 
@@ -232,11 +236,11 @@ export ADMIN_PASSWORD='admin-password'
 export MANAGER_PASSWORD='manager-password'
 export USER_PASSWORD='user-password'
 
-cd database/users
-./create_user.sh
-./create_database.sh
+cd database
+./create_user.sh users
+./create_database.sh users
 
-DB_PORT=5000 DB_PASSWORD='admin-password' make migrate
+DB_PATH=users DB_PORT=5000 DB_PASSWORD='admin-password' make migrate
 ```
 
 If everything goes well for the migration, you should obtain something like this:
@@ -244,7 +248,7 @@ If everything goes well for the migration, you should obtain something like this
 
 ### Connect and inspect the database
 
-If you want to connect to the database to inspect its content, you can use the `connect` target defined in the [Makefile](database/users/Makefile). Just like for the migration, it expects the `DB_PORT` and `DB_PASSWORD` environment variables to be available. An example command would be:
+If you want to connect to the database to inspect its content, you can use the `connect` target defined in the [Makefile](database/Makefile). Just like for the migration, it expects the `DB_PORT` and `DB_PASSWORD` environment variables to be available. An example command would be:
 
 ```bash
 DB_PORT=5000 DB_PASSWORD='admin-password' make connect
@@ -262,6 +266,8 @@ cd scripts
 ## Database back-up
 
 ### General principle
+
+⚠️ The following section is tailored to the user service database but can be extended easily for the other databases needed by the project.
 
 When the user-service is up and running it will perform some interactions with the database such as creating users or updating them. This means that in the event of a failure of this instance, we would loose some data.
 

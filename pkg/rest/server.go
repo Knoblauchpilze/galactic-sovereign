@@ -35,7 +35,24 @@ type serverImpl struct {
 
 var creationFunc = createEchoServerWrapper
 
-func NewServer(conf Config, apiKeyRepository repositories.ApiKeyRepository) Server {
+func NewServer(conf Config) Server {
+	s := creationFunc()
+	close := registerMiddlewares(s, conf.RateLimit)
+
+	publicRoutes := s.Group("")
+
+	return &serverImpl{
+		endpoint: strings.TrimSuffix(conf.BasePath, "/"),
+		port:     conf.Port,
+
+		server:       s,
+		publicRoutes: publicRoutes,
+
+		close: close,
+	}
+}
+
+func NewServerWithApiKey(conf Config, apiKeyRepository repositories.ApiKeyRepository) Server {
 	s := creationFunc()
 	close := registerMiddlewares(s, conf.RateLimit)
 
@@ -84,6 +101,12 @@ func (s *serverImpl) Register(route Route) error {
 	path = concatenateEndpoints(s.endpoint, path)
 
 	router := s.publicRoutes
+	if route.Authorized() {
+		if s.authorizedRoutes == nil {
+			return errors.NewCode(AuthorizationNotSupported)
+		}
+		router = s.authorizedRoutes
+	}
 
 	switch route.Method() {
 	case http.MethodGet:

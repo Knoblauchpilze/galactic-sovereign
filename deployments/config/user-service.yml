@@ -1,28 +1,10 @@
 # https://doc.traefik.io/traefik/routing/services/#configuration-examples
 http:
-  routers:
-    user-service-https:
-      entryPoints:
-        - "websecure"
-      rule: 'Host(`api.{{ env "DOMAIN_NAME" }}`) && PathPrefix(`/v1`)'
-      service: user-service
-      middlewares:
-        - "us-rate-limit"
-        - "us-auth"
-      tls:
-        certResolver: letsencryptresolver
-
   middlewares:
     us-rate-limit:
       rateLimit:
         average: 5
         burst: 10
-    us-auth:
-      forwardAuth:
-        address: "http://auth-service:80/v1/users/auth"
-        authResponseHeaders:
-          - "X-Acl"
-          - "X-User-Limit"
 
   services:
     user-service:

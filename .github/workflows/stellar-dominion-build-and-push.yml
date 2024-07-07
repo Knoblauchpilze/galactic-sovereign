@@ -7,6 +7,8 @@ on:
       - "build/stellar-dominion/Dockerfile"
       - ".github/workflows/stellar-dominion*.yml"
       - ".github/workflows/services*.yml"
+      # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#example-including-and-excluding-paths
+      - "!.github/workflows/stellar-dominion-service*.yml"
 
 jobs:
   extract-service-tag:
@@ -30,6 +32,7 @@ jobs:
           file: ./build/stellar-dominion/Dockerfile
           build-args: |
             GIT_COMMIT_HASH=${{ needs.extract-service-tag.outputs.version }}
+            API_BASE_URL=http://user-service:80/v1/users
           push: true
           tags: totocorpsoftwareinc/stellar-dominion:${{ needs.extract-service-tag.outputs.version }}
   persist-service-tag:

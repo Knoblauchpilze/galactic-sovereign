@@ -1,4 +1,4 @@
-FROM node:22 as builder
+FROM node:22 AS builder
 ARG API_BASE_URL="http://user-service:80/v1/users"
 WORKDIR /build
 COPY website/user-dashboard ./

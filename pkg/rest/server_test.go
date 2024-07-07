@@ -57,13 +57,26 @@ type mockEchoRouter struct {
 
 var errDefault = fmt.Errorf("some error")
 
-func TestServer_DefinesTwoGroups_OneWithMiddleware(t *testing.T) {
+func TestServer_DefinesOneGroup_WithoutMiddleware(t *testing.T) {
 	assert := assert.New(t)
 	t.Cleanup(resetCreatorFunc)
 
 	ms := setupMockServer()
 
-	s := NewServer(Config{}, &mockApiKeyRepository{})
+	s := NewServer(Config{})
+	defer s.Stop()
+
+	assert.Equal(1, ms.groupCalled)
+	assert.Equal(0, ms.groups[0].middlewares)
+}
+
+func TestServerWithApiKey_DefinesTwoGroups_OneWithMiddleware(t *testing.T) {
+	assert := assert.New(t)
+	t.Cleanup(resetCreatorFunc)
+
+	ms := setupMockServer()
+
+	s := NewServerWithApiKey(Config{}, &mockApiKeyRepository{})
 	defer s.Stop()
 
 	assert.Equal(2, ms.groupCalled)
@@ -76,21 +89,35 @@ func TestServer_Register_UsesPathFromRoute(t *testing.T) {
 
 	mr := &mockRoute{}
 
-	s := NewServer(Config{}, &mockApiKeyRepository{})
+	s := NewServer(Config{})
 	defer s.Stop()
 
 	s.Register(mr)
 	assert.Equal(1, mr.pathCalled)
 }
 
-func TestServer_RegisterAuthorized_UsesPathFromRoute(t *testing.T) {
+func TestServer_RegisterAuthorized_ExpectsErrorDueToMissingAuthorization(t *testing.T) {
 	assert := assert.New(t)
 
 	mr := &mockRoute{
 		authorized: true,
 	}
 
-	s := NewServer(Config{}, &mockApiKeyRepository{})
+	s := NewServer(Config{})
+	defer s.Stop()
+
+	err := s.Register(mr)
+	assert.True(errors.IsErrorWithCode(err, AuthorizationNotSupported))
+}
+
+func TestServerWithApiKey_RegisterAuthorized_UsesPathFromRoute(t *testing.T) {
+	assert := assert.New(t)
+
+	mr := &mockRoute{
+		authorized: true,
+	}
+
+	s := NewServerWithApiKey(Config{}, &mockApiKeyRepository{})
 	defer s.Stop()
 
 	s.Register(mr)
@@ -110,14 +137,14 @@ func TestServer_Register_PropagatesPathFromConfig(t *testing.T) {
 	}
 	ms := setupMockServer()
 
-	s := NewServer(c, &mockApiKeyRepository{})
+	s := NewServer(c)
 	defer s.Stop()
 
 	s.Register(mr)
 	assert.Equal("/some-path/path", ms.groups[0].group.path)
 }
 
-func TestServer_RegisterAuthorized_PropagatesPathFromConfig(t *testing.T) {
+func TestServerWithApiKey_RegisterAuthorized_PropagatesPathFromConfig(t *testing.T) {
 	assert := assert.New(t)
 	t.Cleanup(resetCreatorFunc)
 
@@ -131,11 +158,11 @@ func TestServer_RegisterAuthorized_PropagatesPathFromConfig(t *testing.T) {
 	}
 	ms := setupMockServer()
 
-	s := NewServer(c, &mockApiKeyRepository{})
+	s := NewServerWithApiKey(c, &mockApiKeyRepository{})
 	defer s.Stop()
 
 	s.Register(mr)
-	assert.Equal("/some-path/path", ms.groups[0].group.path)
+	assert.Equal("/some-path/path", ms.groups[1].group.path)
 }
 
 func TestServer_Register_SanitizesPath(t *testing.T) {
@@ -151,14 +178,14 @@ func TestServer_Register_SanitizesPath(t *testing.T) {
 	}
 	ms := setupMockServer()
 
-	s := NewServer(c, &mockApiKeyRepository{})
+	s := NewServer(c)
 	defer s.Stop()
 
 	s.Register(mr)
 	assert.Equal("/some-path/addition", ms.groups[0].group.path)
 }
 
-func TestServer_RegisterAuthorized_SanitizesPath(t *testing.T) {
+func TestServerWithApiKey_RegisterAuthorized_SanitizesPath(t *testing.T) {
 	assert := assert.New(t)
 	t.Cleanup(resetCreatorFunc)
 
@@ -172,11 +199,11 @@ func TestServer_RegisterAuthorized_SanitizesPath(t *testing.T) {
 	}
 	ms := setupMockServer()
 
-	s := NewServer(c, &mockApiKeyRepository{})
+	s := NewServerWithApiKey(c, &mockApiKeyRepository{})
 	defer s.Stop()
 
 	s.Register(mr)
-	assert.Equal("/some-path/addition", ms.groups[0].group.path)
+	assert.Equal("/some-path/addition", ms.groups[1].group.path)
 }
 
 func TestServer_Register_SupportsPost(t *testing.T) {
@@ -188,7 +215,7 @@ func TestServer_Register_SupportsPost(t *testing.T) {
 		method: http.MethodPost,
 	}
 
-	s := NewServer(Config{}, &mockApiKeyRepository{})
+	s := NewServer(Config{})
 	defer s.Stop()
 
 	err := s.Register(mr)
@@ -196,7 +223,7 @@ func TestServer_Register_SupportsPost(t *testing.T) {
 	assert.Equal(1, ms.groups[0].group.postCalled)
 }
 
-func TestServer_RegisterAuthorized_SupportsPost(t *testing.T) {
+func TestServerWithApiKey_RegisterAuthorized_SupportsPost(t *testing.T) {
 	assert := assert.New(t)
 	t.Cleanup(resetCreatorFunc)
 
@@ -206,12 +233,12 @@ func TestServer_RegisterAuthorized_SupportsPost(t *testing.T) {
 		authorized: true,
 	}
 
-	s := NewServer(Config{}, &mockApiKeyRepository{})
+	s := NewServerWithApiKey(Config{}, &mockApiKeyRepository{})
 	defer s.Stop()
 
 	err := s.Register(mr)
 	assert.Nil(err)
-	assert.Equal(1, ms.groups[0].group.postCalled)
+	assert.Equal(1, ms.groups[1].group.postCalled)
 }
 
 func TestServer_Register_SupportsGet(t *testing.T) {
@@ -223,7 +250,7 @@ func TestServer_Register_SupportsGet(t *testing.T) {
 		method: http.MethodGet,
 	}
 
-	s := NewServer(Config{}, &mockApiKeyRepository{})
+	s := NewServer(Config{})
 	defer s.Stop()
 
 	err := s.Register(mr)
@@ -231,7 +258,7 @@ func TestServer_Register_SupportsGet(t *testing.T) {
 	assert.Equal(1, ms.groups[0].group.getCalled)
 }
 
-func TestServer_RegisterAuthorized_SupportsGet(t *testing.T) {
+func TestServerWithApiKey_RegisterAuthorized_SupportsGet(t *testing.T) {
 	assert := assert.New(t)
 	t.Cleanup(resetCreatorFunc)
 
@@ -241,12 +268,12 @@ func TestServer_RegisterAuthorized_SupportsGet(t *testing.T) {
 		authorized: true,
 	}
 
-	s := NewServer(Config{}, &mockApiKeyRepository{})
+	s := NewServerWithApiKey(Config{}, &mockApiKeyRepository{})
 	defer s.Stop()
 
 	err := s.Register(mr)
 	assert.Nil(err)
-	assert.Equal(1, ms.groups[0].group.getCalled)
+	assert.Equal(1, ms.groups[1].group.getCalled)
 }
 
 func TestServer_Register_SupportsPatch(t *testing.T) {
@@ -258,7 +285,7 @@ func TestServer_Register_SupportsPatch(t *testing.T) {
 		method: http.MethodPatch,
 	}
 
-	s := NewServer(Config{}, &mockApiKeyRepository{})
+	s := NewServer(Config{})
 	defer s.Stop()
 
 	err := s.Register(mr)
@@ -266,7 +293,7 @@ func TestServer_Register_SupportsPatch(t *testing.T) {
 	assert.Equal(1, ms.groups[0].group.patchCalled)
 }
 
-func TestServer_RegisterAuthorized_SupportsPatch(t *testing.T) {
+func TestServerWithApiKey_RegisterAuthorized_SupportsPatch(t *testing.T) {
 	assert := assert.New(t)
 	t.Cleanup(resetCreatorFunc)
 
@@ -276,12 +303,12 @@ func TestServer_RegisterAuthorized_SupportsPatch(t *testing.T) {
 		authorized: true,
 	}
 
-	s := NewServer(Config{}, &mockApiKeyRepository{})
+	s := NewServerWithApiKey(Config{}, &mockApiKeyRepository{})
 	defer s.Stop()
 
 	err := s.Register(mr)
 	assert.Nil(err)
-	assert.Equal(1, ms.groups[0].group.patchCalled)
+	assert.Equal(1, ms.groups[1].group.patchCalled)
 }
 
 func TestServer_Register_SupportsDelete(t *testing.T) {
@@ -293,7 +320,7 @@ func TestServer_Register_SupportsDelete(t *testing.T) {
 		method: http.MethodDelete,
 	}
 
-	s := NewServer(Config{}, &mockApiKeyRepository{})
+	s := NewServer(Config{})
 	defer s.Stop()
 
 	err := s.Register(mr)
@@ -301,7 +328,7 @@ func TestServer_Register_SupportsDelete(t *testing.T) {
 	assert.Equal(1, ms.groups[0].group.deleteCalled)
 }
 
-func TestServer_RegisterAuthorized_SupportsDelete(t *testing.T) {
+func TestServerWithApiKey_RegisterAuthorized_SupportsDelete(t *testing.T) {
 	assert := assert.New(t)
 	t.Cleanup(resetCreatorFunc)
 
@@ -311,12 +338,12 @@ func TestServer_RegisterAuthorized_SupportsDelete(t *testing.T) {
 		authorized: true,
 	}
 
-	s := NewServer(Config{}, &mockApiKeyRepository{})
+	s := NewServerWithApiKey(Config{}, &mockApiKeyRepository{})
 	defer s.Stop()
 
 	err := s.Register(mr)
 	assert.Nil(err)
-	assert.Equal(1, ms.groups[0].group.deleteCalled)
+	assert.Equal(1, ms.groups[1].group.deleteCalled)
 }
 
 func TestServer_Register_FailsForUnsupportedMethod(t *testing.T) {
@@ -337,7 +364,7 @@ func TestServer_Register_FailsForUnsupportedMethod(t *testing.T) {
 				method: method,
 			}
 
-			s := NewServer(Config{}, &mockApiKeyRepository{})
+			s := NewServer(Config{})
 			defer s.Stop()
 
 			err := s.Register(mr)
@@ -346,7 +373,7 @@ func TestServer_Register_FailsForUnsupportedMethod(t *testing.T) {
 	}
 }
 
-func TestServer_RegisterAuthorized_FailsForUnsupportedMethod(t *testing.T) {
+func TestServerWithApiKey_RegisterAuthorized_FailsForUnsupportedMethod(t *testing.T) {
 	assert := assert.New(t)
 
 	testMethods := []string{
@@ -365,7 +392,7 @@ func TestServer_RegisterAuthorized_FailsForUnsupportedMethod(t *testing.T) {
 				authorized: true,
 			}
 
-			s := NewServer(Config{}, &mockApiKeyRepository{})
+			s := NewServerWithApiKey(Config{}, &mockApiKeyRepository{})
 			defer s.Stop()
 
 			err := s.Register(mr)
@@ -380,7 +407,7 @@ func TestServer_Start_CallsServerStart(t *testing.T) {
 
 	ms := setupMockServer()
 
-	s := NewServer(Config{}, mockApiKeyRepository{})
+	s := NewServer(Config{})
 	s.Start()
 	s.Wait()
 
@@ -396,7 +423,7 @@ func TestServer_Start_UsesPortFromConfig(t *testing.T) {
 		Port: 36,
 	}
 
-	s := NewServer(conf, mockApiKeyRepository{})
+	s := NewServer(conf)
 	s.Start()
 	s.Wait()
 
@@ -410,7 +437,7 @@ func TestServer_Start_ReturnsServerError(t *testing.T) {
 	ms := setupMockServer()
 	ms.err = errDefault
 
-	s := NewServer(Config{}, mockApiKeyRepository{})
+	s := NewServer(Config{})
 	s.Start()
 	err := s.Wait()
 
@@ -423,10 +450,13 @@ func TestServer_Wait_WhenNotStarted_ReturnsImmediately(t *testing.T) {
 
 	setupMockServer()
 
-	s := NewServer(Config{}, mockApiKeyRepository{})
+	s := NewServer(Config{})
+	start := time.Now()
 	err := s.Wait()
+	elapsed := time.Since(start)
 
 	assert.Nil(err)
+	assert.True(elapsed < time.Duration(100*time.Millisecond))
 }
 
 func TestServer_Wait_WhenStarted_TakesTime(t *testing.T) {
@@ -437,12 +467,14 @@ func TestServer_Wait_WhenStarted_TakesTime(t *testing.T) {
 
 	ms.sleep = time.Second
 
-	s := NewServer(Config{}, mockApiKeyRepository{})
+	s := NewServerWithApiKey(Config{}, mockApiKeyRepository{})
+	s.Start()
 	start := time.Now()
-	s.Wait()
+	err := s.Wait()
 	elapsed := time.Since(start)
 
-	assert.GreaterOrEqual(900*time.Millisecond, elapsed)
+	assert.Nil(err)
+	assert.True(900*time.Millisecond < elapsed)
 }
 
 func TestRegisterMiddlewares_registersExpectedMiddlewareCount(t *testing.T) {
