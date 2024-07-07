@@ -6,15 +6,22 @@ http:
       rule: 'Host(`api.{{ env "DOMAIN_NAME" }}`) && PathPrefix(`/v1`)'
       service: stellar-dominion-service
       middlewares:
-        - "stellar-dominion-rate-limit"
+        - "sd-rate-limit"
+        - "sd-auth"
       tls:
         certResolver: letsencryptresolver
 
   middlewares:
-    stellar-dominion-rate-limit:
+    sd-rate-limit:
       rateLimit:
         average: 5
         burst: 10
+    sd-auth:
+      forwardAuth:
+        address: "http://user-service:80/v1/users/auth"
+        authResponseHeaders:
+          - "X-Acl"
+          - "X-User-Limit"
 
   services:
     stellar-dominion-service:
