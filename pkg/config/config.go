@@ -67,6 +67,7 @@ func DefaultConf() Configuration {
 			ApiKeyValidity: time.Duration(3 * time.Hour),
 		},
 		Database: db.Config{
+			// https://stackoverflow.com/questions/68173651/connecting-to-a-localhost-postgres-database-from-within-a-docker-container
 			Host:                "172.17.0.1",
 			Port:                5432,
 			ConnectionsPoolSize: 1,
