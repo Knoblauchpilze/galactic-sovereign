@@ -9,6 +9,7 @@ on:
       - "internal/**"
       - "build/user-service/Dockerfile"
       - ".github/workflows/user-service*.yml"
+      - ".github/workflows/go-tests.yml"
       - ".github/workflows/services*.yml"
 
 jobs:
@@ -17,7 +18,7 @@ jobs:
     # https://github.com/orgs/community/discussions/74772
     # https://stackoverflow.com/questions/58139406/only-run-job-on-specific-branch-with-github-actions
     if: ${{ github.actor != 'github-actions[bot]' && github.event_name != 'push' || github.event.pusher.name != 'github-actions[bot]' }}
-    uses: ./.github/workflows/user-service-tests.yml
+    uses: ./.github/workflows/go-tests.yml
     secrets:
       codecov-token: ${{ secrets.CODECOV_TOKEN }}
   extract-service-tag:
