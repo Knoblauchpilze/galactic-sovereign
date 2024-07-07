@@ -1,0 +1,25 @@
+http:
+  routers:
+    stellar-dominion-service-https:
+      entryPoints:
+        - "websecure"
+      rule: 'Host(`api.{{ env "DOMAIN_NAME" }}`) && PathPrefix(`/v1`)'
+      service: stellar-dominion-service
+      middlewares:
+        - "stellar-dominion-rate-limit"
+      tls:
+        certResolver: letsencryptresolver
+
+  middlewares:
+    stellar-dominion-rate-limit:
+      rateLimit:
+        average: 5
+        burst: 10
+
+  services:
+    stellar-dominion-service:
+      loadBalancer:
+        servers:
+          - url: "http://stellar-dominion-service:80"
+        healthCheck:
+          path: /v1/healthcheck
