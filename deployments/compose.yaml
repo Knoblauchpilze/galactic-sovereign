@@ -13,6 +13,17 @@ services:
       # https://docs.docker.com/compose/environment-variables/set-environment-variables/#compose-file
       - ENV_DATABASE_PASSWORD=${ENV_USER_DATABASE_PASSWORD}
 
+  stellar-dominion-service:
+    image: totocorpsoftwareinc/stellar-dominion-service:${USER_SERVICE_TAG}
+    container_name: stellar-dominion-service
+    restart: on-failure:5
+    networks:
+      - corp-network
+    ports:
+      - "5432"
+    environment:
+      - ENV_DATABASE_PASSWORD=${ENV_USER_DATABASE_PASSWORD}
+
   user-dashboard:
     image: totocorpsoftwareinc/user-dashboard:${USER_DASHBOARD_TAG}
     container_name: user-dashboard
