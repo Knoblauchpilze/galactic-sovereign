@@ -3,7 +3,7 @@ name: Build and push stellar-dominion-service docker image
 on:
   push:
     paths:
-      - "cmd/users/**"
+      - "cmd/stellar-dominion/**"
       - "pkg/**"
       - "internal/**"
       - "build/stellar-dominion/Dockerfile"
@@ -36,7 +36,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: ./build/stellar-dominion/Dockerfile
+          file: ./build/stellar-dominion-service/Dockerfile
           build-args: GIT_COMMIT_HASH=${{ needs.extract-service-tag.outputs.version }}
           push: true
           tags: totocorpsoftwareinc/stellar-dominion-service:${{ needs.extract-service-tag.outputs.version }}
