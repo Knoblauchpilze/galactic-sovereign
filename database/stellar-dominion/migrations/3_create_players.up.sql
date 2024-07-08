@@ -17,3 +17,5 @@ CREATE TRIGGER trigger_player_updated_at
   BEFORE UPDATE OR INSERT ON player
   FOR EACH ROW
   EXECUTE FUNCTION update_updated_at();
+
+CREATE INDEX player_api_user_index ON player (api_user);
