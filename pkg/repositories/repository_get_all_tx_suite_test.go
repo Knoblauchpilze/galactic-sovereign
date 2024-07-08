@@ -59,7 +59,7 @@ func (s *RepositoryGetAllTransactionTestSuite) TestPropagatesScanError() {
 	assert.Equal(errDefault, err)
 }
 
-func (s *RepositoryGetAllTransactionTestSuite) TestWhenSingleValueSucceedsExpectsNoError() {
+func (s *RepositoryGetAllTransactionTestSuite) TestWhenGetAllSucceedsExpectsNoError() {
 	assert := assert.New(s.T())
 
 	mock := &mockTransaction{}

@@ -19,7 +19,7 @@ type RepositoryGetAllTestSuite struct {
 	expectedScannedProps [][]interface{}
 }
 
-func (s *RepositoryGetAllTestSuite) TestCallsGetSingleValue() {
+func (s *RepositoryGetAllTestSuite) TestCallsGetAll() {
 	assert := assert.New(s.T())
 
 	mock := &mockConnectionPool{}
@@ -59,7 +59,7 @@ func (s *RepositoryGetAllTestSuite) TestPropagatesScanError() {
 	assert.Equal(errDefault, err)
 }
 
-func (s *RepositoryGetAllTestSuite) TestWhenSingleValueSucceedsExpectsNoError() {
+func (s *RepositoryGetAllTestSuite) TestWhenGetAllSucceedsExpectsNoError() {
 	assert := assert.New(s.T())
 
 	mock := &mockConnectionPool{}
