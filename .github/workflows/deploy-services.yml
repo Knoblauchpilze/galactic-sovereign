@@ -6,6 +6,7 @@ on:
       - "build/user-service/version.txt"
       - "build/user-dashboard/version.txt"
       - "build/stellar-dominion/version.txt"
+      - "build/stellar-dominion-service/version.txt"
       - "deployments/**"
       - ".github/workflows/deploy-services.yml"
     branches: [master]
