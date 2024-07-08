@@ -47,7 +47,8 @@ func TestUniverseRepository_Create_WhenQueryIndicatesDuplicatedKey_ReturnsDuplic
 	assert := assert.New(t)
 
 	mc := &mockConnectionPool{
-		execErr: fmt.Errorf(`duplicate key value violates unique constraint "api_user_email_key" (SQLSTATE 23505)`),
+		// TODO: Verify this error message.
+		execErr: fmt.Errorf(`duplicate key value violates unique constraint "universe_name_key" (SQLSTATE 23505)`),
 	}
 	repo := NewUniverseRepository(mc)
 
