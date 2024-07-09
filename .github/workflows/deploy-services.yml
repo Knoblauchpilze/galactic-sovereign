@@ -25,10 +25,20 @@ on:
     branches: [master]
 
 jobs:
+  determine-execution-status:
+    runs-on: ubuntu-latest
+    outputs:
+      should-execute: ${{ steps.execution-status.outputs.should_run }}
+    steps:
+      - name: Determine execution status
+        id: execution-status
+        # https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#running-a-workflow-based-on-the-conclusion-of-another-workflow
+        if: ${{ github.ref == 'refs/heads/master' && ((github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') || (github.event_name == 'push')) }}
+        run: echo 'should_run=success' >> $GITHUB_OUTPUT
   collect-services-versions:
     runs-on: ubuntu-latest
-    # https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#running-a-workflow-based-on-the-conclusion-of-another-workflow
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    needs: [determine-execution-status]
+    if: ${{ needs.determine-execution-status.outputs.should-execute }}
     outputs:
       user-service-tag: ${{ steps.user-service.outputs.tag }}
       stellar-dominion-service-tag: ${{ steps.stellar-dominion-service.outputs.tag }}
@@ -50,9 +60,9 @@ jobs:
         run: echo "tag=$(cat ./build/stellar-dominion/version.txt)" >> $GITHUB_OUTPUT
   backup-deployment-config:
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idneeds
-    needs: [collect-services-versions]
+    needs: [determine-execution-status, collect-services-versions]
+    if: ${{ needs.determine-execution-status.outputs.should-execute }}
     steps:
       - name: Back-up deployment config
         uses: appleboy/ssh-action@v1.0.3
@@ -64,8 +74,13 @@ jobs:
             cp -r ~/deployments ~/deployments.bak
   sync-deployment-configuration:
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
-    needs: [backup-deployment-config, collect-services-versions]
+    needs:
+      [
+        determine-execution-status,
+        backup-deployment-config,
+        collect-services-versions,
+      ]
+    if: ${{ needs.determine-execution-status.outputs.should-execute }}
     steps:
       - uses: actions/checkout@v4
       - name: Substitute acme email
@@ -97,8 +112,8 @@ jobs:
           rsync -avzh ./deployments ubuntu@${{ secrets.EC2_DEPLOY_HOST }}:/home/ubuntu//
   deploy:
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
-    needs: [sync-deployment-configuration]
+    needs: [determine-execution-status, sync-deployment-configuration]
+    if: ${{ needs.determine-execution-status.outputs.should-execute }}
     steps:
       - name: Deploy latest services version
         uses: appleboy/ssh-action@v1.0.3
@@ -110,8 +125,8 @@ jobs:
             docker compose -f ./deployments/compose.yaml up -d
   clean-deployment-config-backup:
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
-    needs: [deploy]
+    needs: [determine-execution-status, deploy]
+    if: ${{ needs.determine-execution-status.outputs.should-execute }}
     steps:
       - name: Clean back-up of deployment config
         uses: appleboy/ssh-action@v1.0.3
