@@ -6,7 +6,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/KnoblauchPilze/user-service/internal/users/service"
+	"github.com/KnoblauchPilze/user-service/internal/service"
 	"github.com/KnoblauchPilze/user-service/pkg/db"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"

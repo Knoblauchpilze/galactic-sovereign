@@ -7,8 +7,8 @@ import (
 	"syscall"
 
 	"github.com/KnoblauchPilze/user-service/cmd/stellar-dominion/internal"
-	"github.com/KnoblauchPilze/user-service/internal/users/controller"
-	"github.com/KnoblauchPilze/user-service/pkg/config"
+	"github.com/KnoblauchPilze/user-service/internal/config"
+	"github.com/KnoblauchPilze/user-service/internal/controller"
 	"github.com/KnoblauchPilze/user-service/pkg/db"
 	"github.com/KnoblauchPilze/user-service/pkg/logger"
 	"github.com/KnoblauchPilze/user-service/pkg/rest"

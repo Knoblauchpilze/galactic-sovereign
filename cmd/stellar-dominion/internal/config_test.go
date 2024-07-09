@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/KnoblauchPilze/user-service/internal/users/service"
+	"github.com/KnoblauchPilze/user-service/internal/service"
 	"github.com/KnoblauchPilze/user-service/pkg/db"
 	"github.com/KnoblauchPilze/user-service/pkg/rest"
 	"github.com/labstack/gommon/log"

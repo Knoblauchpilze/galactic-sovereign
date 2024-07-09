@@ -1,7 +1,7 @@
 package internal
 
 import (
-	"github.com/KnoblauchPilze/user-service/pkg/config"
+	"github.com/KnoblauchPilze/user-service/internal/config"
 )
 
 func DefaultConf() config.Configuration {
