@@ -13,12 +13,12 @@ import (
 )
 
 type UserService interface {
-	Create(ctx context.Context, user communication.UserDtoRequest) (communication.UserDtoResponse, error)
+	Create(ctx context.Context, userDto communication.UserDtoRequest) (communication.UserDtoResponse, error)
 	Get(ctx context.Context, id uuid.UUID) (communication.UserDtoResponse, error)
 	List(ctx context.Context) ([]uuid.UUID, error)
-	Update(ctx context.Context, id uuid.UUID, user communication.UserDtoRequest) (communication.UserDtoResponse, error)
+	Update(ctx context.Context, id uuid.UUID, userDto communication.UserDtoRequest) (communication.UserDtoResponse, error)
 	Delete(ctx context.Context, id uuid.UUID) error
-	Login(ctx context.Context, user communication.UserDtoRequest) (communication.ApiKeyDtoResponse, error)
+	Login(ctx context.Context, userDto communication.UserDtoRequest) (communication.ApiKeyDtoResponse, error)
 	LoginById(ctx context.Context, id uuid.UUID) (communication.ApiKeyDtoResponse, error)
 	Logout(ctx context.Context, id uuid.UUID) error
 }

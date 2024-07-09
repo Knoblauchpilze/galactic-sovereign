@@ -42,6 +42,8 @@ func TestUserService_Create_CallsRepositoryCreate(t *testing.T) {
 	s.Create(context.Background(), defaultUserDtoRequest)
 
 	assert.Equal(1, mur.createCalled)
+	assert.Equal(defaultUserDtoRequest.Email, mur.createdUser.Email)
+	assert.Equal(defaultUserDtoRequest.Password, mur.createdUser.Password)
 }
 
 func TestUserService_Create_WhenRepositoryFails_ExpectError(t *testing.T) {
@@ -283,7 +285,7 @@ func TestUserService_Delete_CallsRepositoryDelete(t *testing.T) {
 	mur := &mockUserRepository{}
 	mlr := &mockUserLimitRepository{}
 	mc := &mockConnectionPool{}
-	s := NewUserService(Config{}, mc, createAllRepositories(mar, mkr, mur, mlr))
+	s := NewUserService(Config{}, mc, createAllRepositories(mar, mkr, mur, mlr, nil))
 
 	s.Delete(context.Background(), defaultUserId)
 
@@ -301,7 +303,7 @@ func TestUserService_Delete_CallsTransactionClose(t *testing.T) {
 	mur := &mockUserRepository{}
 	mlr := &mockUserLimitRepository{}
 	mc := &mockConnectionPool{}
-	s := NewUserService(Config{}, mc, createAllRepositories(mar, mkr, mur, mlr))
+	s := NewUserService(Config{}, mc, createAllRepositories(mar, mkr, mur, mlr, nil))
 
 	s.Delete(context.Background(), defaultUserId)
 
@@ -331,7 +333,7 @@ func TestUserService_Delete_DeletesTheRightKeys(t *testing.T) {
 	mur := &mockUserRepository{}
 	mlr := &mockUserLimitRepository{}
 	mc := &mockConnectionPool{}
-	s := NewUserService(Config{}, mc, createAllRepositories(mar, mkr, mur, mlr))
+	s := NewUserService(Config{}, mc, createAllRepositories(mar, mkr, mur, mlr, nil))
 
 	s.Delete(context.Background(), defaultUserId)
 
@@ -346,7 +348,7 @@ func TestUserService_Delete_DeletesTheRightAcls(t *testing.T) {
 	mur := &mockUserRepository{}
 	mlr := &mockUserLimitRepository{}
 	mc := &mockConnectionPool{}
-	s := NewUserService(Config{}, mc, createAllRepositories(mar, mkr, mur, mlr))
+	s := NewUserService(Config{}, mc, createAllRepositories(mar, mkr, mur, mlr, nil))
 
 	s.Delete(context.Background(), defaultUserId)
 
@@ -361,7 +363,7 @@ func TestUserService_Delete_DeletesTheRightUserLimits(t *testing.T) {
 	mlr := &mockUserLimitRepository{}
 	mur := &mockUserRepository{}
 	mc := &mockConnectionPool{}
-	s := NewUserService(Config{}, mc, createAllRepositories(mar, mkr, mur, mlr))
+	s := NewUserService(Config{}, mc, createAllRepositories(mar, mkr, mur, mlr, nil))
 
 	s.Delete(context.Background(), defaultUserId)
 
@@ -378,7 +380,7 @@ func TestUserService_Delete_WhenUserRepositoryFails_ExpectError(t *testing.T) {
 	}
 	mlr := &mockUserLimitRepository{}
 	mc := &mockConnectionPool{}
-	s := NewUserService(Config{}, mc, createAllRepositories(mar, mkr, mur, mlr))
+	s := NewUserService(Config{}, mc, createAllRepositories(mar, mkr, mur, mlr, nil))
 
 	err := s.Delete(context.Background(), defaultUserId)
 
@@ -395,7 +397,7 @@ func TestUserService_Delete_WhenApiKeyRepositoryDeleteFails_ExpectError(t *testi
 	mur := &mockUserRepository{}
 	mlr := &mockUserLimitRepository{}
 	mc := &mockConnectionPool{}
-	s := NewUserService(Config{}, mc, createAllRepositories(mar, mkr, mur, mlr))
+	s := NewUserService(Config{}, mc, createAllRepositories(mar, mkr, mur, mlr, nil))
 
 	err := s.Delete(context.Background(), defaultUserId)
 
@@ -412,7 +414,7 @@ func TestUserService_Delete_WhenAclRepositoryDeleteFails_ExpectError(t *testing.
 	mlr := &mockUserLimitRepository{}
 	mur := &mockUserRepository{}
 	mc := &mockConnectionPool{}
-	s := NewUserService(Config{}, mc, createAllRepositories(mar, mkr, mur, mlr))
+	s := NewUserService(Config{}, mc, createAllRepositories(mar, mkr, mur, mlr, nil))
 
 	err := s.Delete(context.Background(), defaultUserId)
 
@@ -429,7 +431,7 @@ func TestUserService_Delete_WhenUserLimitRepositoryDeleteFails_ExpectError(t *te
 	}
 	mur := &mockUserRepository{}
 	mc := &mockConnectionPool{}
-	s := NewUserService(Config{}, mc, createAllRepositories(mar, mkr, mur, mlr))
+	s := NewUserService(Config{}, mc, createAllRepositories(mar, mkr, mur, mlr, nil))
 
 	err := s.Delete(context.Background(), defaultUserId)
 
@@ -444,7 +446,7 @@ func TestUserService_Delete_WhenRepositoriesSucceeds_ExpectSuccess(t *testing.T)
 	mur := &mockUserRepository{}
 	mlr := &mockUserLimitRepository{}
 	mc := &mockConnectionPool{}
-	s := NewUserService(Config{}, mc, createAllRepositories(mar, mkr, mur, mlr))
+	s := NewUserService(Config{}, mc, createAllRepositories(mar, mkr, mur, mlr, nil))
 
 	err := s.Delete(context.Background(), defaultUserId)
 

@@ -5,4 +5,5 @@ type Repositories struct {
 	ApiKey    ApiKeyRepository
 	UserLimit UserLimitRepository
 	User      UserRepository
+	Universe  UniverseRepository
 }

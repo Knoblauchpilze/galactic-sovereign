@@ -28,6 +28,7 @@ type mockUserRepository struct {
 	updateCalled   int
 	updatedUser    persistence.User
 	deleteCalled   int
+	deleteId       uuid.UUID
 }
 
 type mockApiKeyRepository struct {
@@ -86,6 +87,21 @@ type mockUserLimitRepository struct {
 	deleteCalled     int
 }
 
+type mockUniverseRepository struct {
+	repositories.UniverseRepository
+
+	universe persistence.Universe
+	err      error
+
+	createCalled    int
+	createdUniverse persistence.Universe
+	getCalled       int
+	getId           uuid.UUID
+	listCalled      int
+	deleteCalled    int
+	deleteId        uuid.UUID
+}
+
 type mockConnectionPool struct {
 	db.ConnectionPool
 
@@ -132,6 +148,7 @@ func (m *mockUserRepository) Update(ctx context.Context, user persistence.User) 
 
 func (m *mockUserRepository) Delete(ctx context.Context, tx db.Transaction, id uuid.UUID) error {
 	m.deleteCalled++
+	m.deleteId = id
 	return m.err
 }
 
@@ -207,6 +224,29 @@ func (m *mockUserLimitRepository) DeleteForUser(ctx context.Context, tx db.Trans
 	return m.deleteErr
 }
 
+func (m *mockUniverseRepository) Create(ctx context.Context, universe persistence.Universe) (persistence.Universe, error) {
+	m.createCalled++
+	m.createdUniverse = universe
+	return m.universe, m.err
+}
+
+func (m *mockUniverseRepository) Get(ctx context.Context, id uuid.UUID) (persistence.Universe, error) {
+	m.getCalled++
+	m.getId = id
+	return m.universe, m.err
+}
+
+func (m *mockUniverseRepository) List(ctx context.Context) ([]persistence.Universe, error) {
+	m.listCalled++
+	return []persistence.Universe{m.universe}, m.err
+}
+
+func (m *mockUniverseRepository) Delete(ctx context.Context, tx db.Transaction, id uuid.UUID) error {
+	m.deleteCalled++
+	m.deleteId = id
+	return m.err
+}
+
 func (m *mockConnectionPool) StartTransaction(ctx context.Context) (db.Transaction, error) {
 	return &m.tx, m.err
 }
@@ -220,14 +260,15 @@ func (m *mockTransaction) TimeStamp() time.Time {
 }
 
 func createRepositories(apiKey *mockApiKeyRepository, user *mockUserRepository) repositories.Repositories {
-	return createAllRepositories(nil, apiKey, user, nil)
+	return createAllRepositories(nil, apiKey, user, nil, nil)
 }
 
-func createAllRepositories(acl *mockAclRepository, apiKey *mockApiKeyRepository, user *mockUserRepository, userLimit *mockUserLimitRepository) repositories.Repositories {
+func createAllRepositories(acl *mockAclRepository, apiKey *mockApiKeyRepository, user *mockUserRepository, userLimit *mockUserLimitRepository, universe *mockUniverseRepository) repositories.Repositories {
 	return repositories.Repositories{
 		Acl:       acl,
 		ApiKey:    apiKey,
-		User:      user,
 		UserLimit: userLimit,
+		User:      user,
+		Universe:  universe,
 	}
 }

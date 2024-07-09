@@ -300,7 +300,7 @@ func createMockRepositories() (repositories.Repositories, *mockAclRepository, *m
 	mockUser := &mockUserRepository{}
 	mockUserLimit := &mockUserLimitRepository{}
 
-	repos := createAllRepositories(mockAcl, mockApi, mockUser, mockUserLimit)
+	repos := createAllRepositories(mockAcl, mockApi, mockUser, mockUserLimit, nil)
 
 	return repos, mockAcl, mockApi, mockUser, mockUserLimit
 }
@@ -315,7 +315,7 @@ func createMockRepositoriesWithValidApiKey() (repositories.Repositories, *mockAc
 
 	mockApi.apiKey.ValidUntil = time.Now().Add(1 * time.Hour)
 
-	repos := createAllRepositories(mockAcl, mockApi, mockUser, mockUserLimit)
+	repos := createAllRepositories(mockAcl, mockApi, mockUser, mockUserLimit, nil)
 
 	return repos, mockAcl, mockApi, mockUser, mockUserLimit
 }
