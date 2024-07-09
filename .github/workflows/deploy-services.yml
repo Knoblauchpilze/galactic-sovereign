@@ -27,6 +27,8 @@ on:
 jobs:
   collect-services-versions:
     runs-on: ubuntu-latest
+    # https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#running-a-workflow-based-on-the-conclusion-of-another-workflow
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     outputs:
       user-service-tag: ${{ steps.user-service.outputs.tag }}
       stellar-dominion-service-tag: ${{ steps.stellar-dominion-service.outputs.tag }}
@@ -48,6 +50,7 @@ jobs:
         run: echo "tag=$(cat ./build/stellar-dominion/version.txt)" >> $GITHUB_OUTPUT
   backup-deployment-config:
     runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idneeds
     needs: [collect-services-versions]
     steps:
@@ -61,6 +64,7 @@ jobs:
             cp -r ~/deployments ~/deployments.bak
   sync-deployment-configuration:
     runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     needs: [backup-deployment-config, collect-services-versions]
     steps:
       - uses: actions/checkout@v4
@@ -93,6 +97,7 @@ jobs:
           rsync -avzh ./deployments ubuntu@${{ secrets.EC2_DEPLOY_HOST }}:/home/ubuntu//
   deploy:
     runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     needs: [sync-deployment-configuration]
     steps:
       - name: Deploy latest services version
@@ -105,6 +110,7 @@ jobs:
             docker compose -f ./deployments/compose.yaml up -d
   clean-deployment-config-backup:
     runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     needs: [deploy]
     steps:
       - name: Clean back-up of deployment config
