@@ -3,7 +3,7 @@ package controller
 import (
 	"net/http"
 
-	"github.com/KnoblauchPilze/user-service/internal/users/service"
+	"github.com/KnoblauchPilze/user-service/internal/service"
 	"github.com/KnoblauchPilze/user-service/pkg/communication"
 	"github.com/KnoblauchPilze/user-service/pkg/db"
 	"github.com/KnoblauchPilze/user-service/pkg/errors"
