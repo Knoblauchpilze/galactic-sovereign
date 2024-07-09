@@ -68,8 +68,8 @@ To start the instance on which the service will be running you need an account w
 The instance should open the following ports:
 
 - allow incoming SSH connections (TCP 22)
-- allow outbound internet traffic (TCP 80 and 443 for http and https respectively)
-- allow incoming internet traffic (TCP 80 and 443 for http and https respectively)
+- allow outbound internet traffic (TCP 443 for https)
+- allow incoming internet traffic (TCP 443 for https)
 
 Additionally the instance should ideally be configured to support access for both IPv6 and IPv4. The reason for this is that as IPv4 are getting scarce, AWS decided to [start charging](https://aws.amazon.com/blogs/aws/new-aws-public-ipv4-address-charge-public-ip-insights/) when using one. In order to avoid unnecessary costs we attempt to allow reaching the services through IPv6. At the time of writing [github hosted runners](https://github.com/actions/runner/issues/3138) do not support IPv6 so we still have to keep the IPv4 support to deploy from the CI.
 
@@ -118,7 +118,7 @@ When the service is up and running, it will attempt to access a remote `postgres
 
 In the production case, the docker container is for now also connecting to a local `postgres` server on the same EC2 instance: the only difference is that it does so from within a docker container.
 
-The way docker exposes the `localhost` to application running within it is a bit different to how it works outside of it. This SO post describes [how to connect to localhost from inside a docker container](https://stackoverflow.com/questions/24319662/from-inside-of-a-docker-container-how-do-i-connect-to-the-localhost-of-the-mach) and goes into a bit of details on how it works. The TL;DR is that in the default network mode (bridge), the docker engine will associate an IP with a pattern like `172.17.X.Y` to reach localhost. This is already reflected in the [default config](pkg/config/config.go) file.
+The way docker exposes the `localhost` to application running within it is a bit different to how it works outside of it. This SO post describes [how to connect to localhost from inside a docker container](https://stackoverflow.com/questions/24319662/from-inside-of-a-docker-container-how-do-i-connect-to-the-localhost-of-the-mach) and goes into a bit of details on how it works. The TL;DR is that in the default network mode (bridge), the docker engine will associate an IP with a pattern like `172.17.X.Y` to reach localhost. This is already reflected in the [default config](internal/config/config.go) file.
 
 ### Allow incoming connections to the postgres server from docker host
 
