@@ -25,6 +25,7 @@ jobs:
         run: echo "${{ inputs.service-tag }}" > ./build/${{ inputs.service-name }}/version.txt
       - name: Commit changes
         run: |
+          git pull
           git config --global user.name 'totocorpbot'
           git config --global user.email 'totocorpbot@users.noreply.github.com'
           git commit -am "infra: Bumped ${{ inputs.service-name }} version to ${{ inputs.service-tag }}"
