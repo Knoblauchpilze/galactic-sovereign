@@ -102,6 +102,36 @@ type mockUniverseRepository struct {
 	deleteId        uuid.UUID
 }
 
+type mockPlanetRepository struct {
+	repositories.PlanetRepository
+
+	planet persistence.Planet
+	err    error
+
+	createCalled  int
+	createdPlanet persistence.Planet
+	getCalled     int
+	getId         uuid.UUID
+	listCalled    int
+	deleteCalled  int
+	deleteId      uuid.UUID
+}
+
+type mockPlayerRepository struct {
+	repositories.PlayerRepository
+
+	player persistence.Player
+	err    error
+
+	createCalled  int
+	createdPlayer persistence.Player
+	getCalled     int
+	getId         uuid.UUID
+	listCalled    int
+	deleteCalled  int
+	deleteId      uuid.UUID
+}
+
 type mockConnectionPool struct {
 	db.ConnectionPool
 
@@ -247,6 +277,52 @@ func (m *mockUniverseRepository) Delete(ctx context.Context, tx db.Transaction, 
 	return m.err
 }
 
+func (m *mockPlanetRepository) Create(ctx context.Context, planet persistence.Planet) (persistence.Planet, error) {
+	m.createCalled++
+	m.createdPlanet = planet
+	return m.planet, m.err
+}
+
+func (m *mockPlanetRepository) Get(ctx context.Context, id uuid.UUID) (persistence.Planet, error) {
+	m.getCalled++
+	m.getId = id
+	return m.planet, m.err
+}
+
+func (m *mockPlanetRepository) List(ctx context.Context) ([]persistence.Planet, error) {
+	m.listCalled++
+	return []persistence.Planet{m.planet}, m.err
+}
+
+func (m *mockPlanetRepository) Delete(ctx context.Context, tx db.Transaction, id uuid.UUID) error {
+	m.deleteCalled++
+	m.deleteId = id
+	return m.err
+}
+
+func (m *mockPlayerRepository) Create(ctx context.Context, player persistence.Player) (persistence.Player, error) {
+	m.createCalled++
+	m.createdPlayer = player
+	return m.player, m.err
+}
+
+func (m *mockPlayerRepository) Get(ctx context.Context, id uuid.UUID) (persistence.Player, error) {
+	m.getCalled++
+	m.getId = id
+	return m.player, m.err
+}
+
+func (m *mockPlayerRepository) List(ctx context.Context) ([]persistence.Player, error) {
+	m.listCalled++
+	return []persistence.Player{m.player}, m.err
+}
+
+func (m *mockPlayerRepository) Delete(ctx context.Context, tx db.Transaction, id uuid.UUID) error {
+	m.deleteCalled++
+	m.deleteId = id
+	return m.err
+}
+
 func (m *mockConnectionPool) StartTransaction(ctx context.Context) (db.Transaction, error) {
 	return &m.tx, m.err
 }
@@ -257,18 +333,4 @@ func (m *mockTransaction) Close(ctx context.Context) {
 
 func (m *mockTransaction) TimeStamp() time.Time {
 	return m.timeStamp
-}
-
-func createRepositories(apiKey *mockApiKeyRepository, user *mockUserRepository) repositories.Repositories {
-	return createAllRepositories(nil, apiKey, user, nil, nil)
-}
-
-func createAllRepositories(acl *mockAclRepository, apiKey *mockApiKeyRepository, user *mockUserRepository, userLimit *mockUserLimitRepository, universe *mockUniverseRepository) repositories.Repositories {
-	return repositories.Repositories{
-		Acl:       acl,
-		ApiKey:    apiKey,
-		UserLimit: userLimit,
-		User:      user,
-		Universe:  universe,
-	}
 }

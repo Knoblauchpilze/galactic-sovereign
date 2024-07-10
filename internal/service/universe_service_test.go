@@ -6,6 +6,7 @@ import (
 
 	"github.com/KnoblauchPilze/user-service/pkg/communication"
 	"github.com/KnoblauchPilze/user-service/pkg/persistence"
+	"github.com/KnoblauchPilze/user-service/pkg/repositories"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 )
@@ -29,7 +30,10 @@ func TestUniverseService_Create_CallsRepositoryCreate(t *testing.T) {
 
 	mur := &mockUniverseRepository{}
 	mc := &mockConnectionPool{}
-	s := NewUniverseService(Config{}, mc, createAllRepositories(nil, nil, nil, nil, mur))
+	repos := repositories.Repositories{
+		Universe: mur,
+	}
+	s := NewUniverseService(Config{}, mc, repos)
 
 	s.Create(context.Background(), defaultUniverseDtoRequest)
 
@@ -44,7 +48,10 @@ func TestUniverseService_Create_WhenRepositoryFails_ExpectError(t *testing.T) {
 		err: errDefault,
 	}
 	mc := &mockConnectionPool{}
-	s := NewUniverseService(Config{}, mc, createAllRepositories(nil, nil, nil, nil, mur))
+	repos := repositories.Repositories{
+		Universe: mur,
+	}
+	s := NewUniverseService(Config{}, mc, repos)
 
 	_, err := s.Create(context.Background(), defaultUniverseDtoRequest)
 
@@ -58,7 +65,10 @@ func TestUniverseService_Create_ReturnsCreatedUniverse(t *testing.T) {
 		universe: defaultUniverse,
 	}
 	mc := &mockConnectionPool{}
-	s := NewUniverseService(Config{}, mc, createAllRepositories(nil, nil, nil, nil, mur))
+	repos := repositories.Repositories{
+		Universe: mur,
+	}
+	s := NewUniverseService(Config{}, mc, repos)
 
 	actual, err := s.Create(context.Background(), defaultUniverseDtoRequest)
 
@@ -78,7 +88,10 @@ func TestUniverseService_Get_CallsRepositoryGet(t *testing.T) {
 
 	mur := &mockUniverseRepository{}
 	mc := &mockConnectionPool{}
-	s := NewUniverseService(Config{}, mc, createAllRepositories(nil, nil, nil, nil, mur))
+	repos := repositories.Repositories{
+		Universe: mur,
+	}
+	s := NewUniverseService(Config{}, mc, repos)
 
 	s.Get(context.Background(), defaultUniverseId)
 
@@ -92,7 +105,10 @@ func TestUniverseService_Get_WhenRepositoryFails_ExpectError(t *testing.T) {
 		err: errDefault,
 	}
 	mc := &mockConnectionPool{}
-	s := NewUniverseService(Config{}, mc, createAllRepositories(nil, nil, nil, nil, mur))
+	repos := repositories.Repositories{
+		Universe: mur,
+	}
+	s := NewUniverseService(Config{}, mc, repos)
 
 	_, err := s.Get(context.Background(), defaultUniverseId)
 
@@ -106,7 +122,10 @@ func TestUniverseService_Get_ReturnsUniverse(t *testing.T) {
 		universe: defaultUniverse,
 	}
 	mc := &mockConnectionPool{}
-	s := NewUniverseService(Config{}, mc, createAllRepositories(nil, nil, nil, nil, mur))
+	repos := repositories.Repositories{
+		Universe: mur,
+	}
+	s := NewUniverseService(Config{}, mc, repos)
 
 	actual, err := s.Get(context.Background(), defaultUniverseId)
 
@@ -127,7 +146,10 @@ func TestUniverseService_List_CallsRepositoryList(t *testing.T) {
 
 	mur := &mockUniverseRepository{}
 	mc := &mockConnectionPool{}
-	s := NewUniverseService(Config{}, mc, createAllRepositories(nil, nil, nil, nil, mur))
+	repos := repositories.Repositories{
+		Universe: mur,
+	}
+	s := NewUniverseService(Config{}, mc, repos)
 
 	s.List(context.Background())
 
@@ -141,7 +163,10 @@ func TestUniverseService_List_WhenRepositoryFails_ExpectError(t *testing.T) {
 		err: errDefault,
 	}
 	mc := &mockConnectionPool{}
-	s := NewUniverseService(Config{}, mc, createAllRepositories(nil, nil, nil, nil, mur))
+	repos := repositories.Repositories{
+		Universe: mur,
+	}
+	s := NewUniverseService(Config{}, mc, repos)
 
 	_, err := s.List(context.Background())
 
@@ -155,7 +180,10 @@ func TestUniverseService_List_ReturnsAllUniverses(t *testing.T) {
 		universe: defaultUniverse,
 	}
 	mc := &mockConnectionPool{}
-	s := NewUniverseService(Config{}, mc, createAllRepositories(nil, nil, nil, nil, mur))
+	repos := repositories.Repositories{
+		Universe: mur,
+	}
+	s := NewUniverseService(Config{}, mc, repos)
 
 	actual, err := s.List(context.Background())
 
@@ -175,7 +203,10 @@ func TestUniverseService_Delete_CallsRepositoryDelete(t *testing.T) {
 
 	mur := &mockUniverseRepository{}
 	mc := &mockConnectionPool{}
-	s := NewUniverseService(Config{}, mc, createAllRepositories(nil, nil, nil, nil, mur))
+	repos := repositories.Repositories{
+		Universe: mur,
+	}
+	s := NewUniverseService(Config{}, mc, repos)
 
 	s.Delete(context.Background(), defaultUniverseId)
 
@@ -187,7 +218,10 @@ func TestUniverseService_Delete_CallsTransactionClose(t *testing.T) {
 
 	mur := &mockUniverseRepository{}
 	mc := &mockConnectionPool{}
-	s := NewUniverseService(Config{}, mc, createAllRepositories(nil, nil, nil, nil, mur))
+	repos := repositories.Repositories{
+		Universe: mur,
+	}
+	s := NewUniverseService(Config{}, mc, repos)
 
 	s.Delete(context.Background(), defaultUniverseId)
 
@@ -201,7 +235,10 @@ func TestUniverseService_Delete_WhenCreatingTransactionFails_ExpectError(t *test
 	mc := &mockConnectionPool{
 		err: errDefault,
 	}
-	s := NewUniverseService(Config{}, mc, createAllRepositories(nil, nil, nil, nil, mur))
+	repos := repositories.Repositories{
+		Universe: mur,
+	}
+	s := NewUniverseService(Config{}, mc, repos)
 
 	err := s.Delete(context.Background(), defaultUniverseId)
 
@@ -213,7 +250,10 @@ func TestUniverseService_Delete_DeletesTheRightUniverse(t *testing.T) {
 
 	mur := &mockUniverseRepository{}
 	mc := &mockConnectionPool{}
-	s := NewUniverseService(Config{}, mc, createAllRepositories(nil, nil, nil, nil, mur))
+	repos := repositories.Repositories{
+		Universe: mur,
+	}
+	s := NewUniverseService(Config{}, mc, repos)
 
 	s.Delete(context.Background(), defaultUniverseId)
 
@@ -227,7 +267,10 @@ func TestUniverseService_Delete_WhenUniverseRepositoryFails_ExpectError(t *testi
 		err: errDefault,
 	}
 	mc := &mockConnectionPool{}
-	s := NewUniverseService(Config{}, mc, createAllRepositories(nil, nil, nil, nil, mur))
+	repos := repositories.Repositories{
+		Universe: mur,
+	}
+	s := NewUniverseService(Config{}, mc, repos)
 
 	err := s.Delete(context.Background(), defaultUniverseId)
 
@@ -239,7 +282,10 @@ func TestUniverseService_Delete_WhenRepositoriesSucceeds_ExpectSuccess(t *testin
 
 	mur := &mockUniverseRepository{}
 	mc := &mockConnectionPool{}
-	s := NewUniverseService(Config{}, mc, createAllRepositories(nil, nil, nil, nil, mur))
+	repos := repositories.Repositories{
+		Universe: mur,
+	}
+	s := NewUniverseService(Config{}, mc, repos)
 
 	err := s.Delete(context.Background(), defaultUniverseId)
 
