@@ -297,10 +297,14 @@ func TestAuthService_Authenticate_WhenUserDoesNotHaveUserLimits_ExpectNonNilSlic
 func createMockRepositories() (repositories.Repositories, *mockAclRepository, *mockApiKeyRepository, *mockUserRepository, *mockUserLimitRepository) {
 	mockAcl := &mockAclRepository{}
 	mockApi := &mockApiKeyRepository{}
-	mockUser := &mockUserRepository{}
 	mockUserLimit := &mockUserLimitRepository{}
-
-	repos := createAllRepositories(mockAcl, mockApi, mockUser, mockUserLimit, nil)
+	mockUser := &mockUserRepository{}
+	repos := repositories.Repositories{
+		Acl:       mockAcl,
+		ApiKey:    mockApi,
+		UserLimit: mockUserLimit,
+		User:      mockUser,
+	}
 
 	return repos, mockAcl, mockApi, mockUser, mockUserLimit
 }
@@ -310,12 +314,16 @@ func createMockRepositoriesWithValidApiKey() (repositories.Repositories, *mockAc
 	mockApi := &mockApiKeyRepository{
 		apiKey: defaultApiKey,
 	}
-	mockUser := &mockUserRepository{}
 	mockUserLimit := &mockUserLimitRepository{}
+	mockUser := &mockUserRepository{}
+	repos := repositories.Repositories{
+		Acl:       mockAcl,
+		ApiKey:    mockApi,
+		UserLimit: mockUserLimit,
+		User:      mockUser,
+	}
 
 	mockApi.apiKey.ValidUntil = time.Now().Add(1 * time.Hour)
-
-	repos := createAllRepositories(mockAcl, mockApi, mockUser, mockUserLimit, nil)
 
 	return repos, mockAcl, mockApi, mockUser, mockUserLimit
 }

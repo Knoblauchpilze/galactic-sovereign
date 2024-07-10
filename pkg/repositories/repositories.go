@@ -6,4 +6,6 @@ type Repositories struct {
 	UserLimit UserLimitRepository
 	User      UserRepository
 	Universe  UniverseRepository
+	Player    PlayerRepository
+	Planet    PlanetRepository
 }
