@@ -6,15 +6,17 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
-	"strings"
 	"testing"
 	"time"
 
+	"github.com/KnoblauchPilze/user-service/internal/service"
 	"github.com/KnoblauchPilze/user-service/pkg/communication"
 	"github.com/KnoblauchPilze/user-service/pkg/db"
 	"github.com/KnoblauchPilze/user-service/pkg/errors"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/suite"
 )
 
 type mockUniverseService struct {
@@ -40,37 +42,6 @@ var defaultUniverseDtoResponse = communication.UniverseDtoResponse{
 	CreatedAt: time.Date(2024, 07, 12, 16, 40, 05, 651387232, time.UTC),
 }
 
-type universeTestCase struct {
-	req            *http.Request
-	idAsRouteParam bool
-	handler        universeServiceAwareHttpHandler
-}
-
-type universeErrorTestCase struct {
-	req                *http.Request
-	idAsRouteParam     bool
-	handler            universeServiceAwareHttpHandler
-	err                error
-	expectedHttpStatus int
-}
-
-type universeSuccessTestCase struct {
-	req                *http.Request
-	idAsRouteParam     bool
-	handler            universeServiceAwareHttpHandler
-	expectedHttpStatus int
-}
-
-type universeTestCaseReturn struct {
-	req            *http.Request
-	idAsRouteParam bool
-	handler        universeServiceAwareHttpHandler
-
-	universeDto communication.UniverseDtoResponse
-
-	expectedContent interface{}
-}
-
 func TestUniverseEndpoints_GeneratesExpectedRoutes(t *testing.T) {
 	assert := assert.New(t)
 
@@ -86,349 +57,203 @@ func TestUniverseEndpoints_GeneratesExpectedRoutes(t *testing.T) {
 }
 
 func Test_Universes_WhenBodyIsNotAValidUniverseDto_SetsStatusTo400(t *testing.T) {
-	assert := assert.New(t)
+	s := ControllerTestSuite[service.UniverseService]{
+		generateServiceMock:      generateUniverseServiceMock,
+		generateValidServiceMock: generateValidUniverseServiceMock,
 
-	postReq := httptest.NewRequest(http.MethodPost, "/", strings.NewReader("not-a-dto-request"))
+		badInputTestCases: map[string]badInputTestCase[service.UniverseService]{
+			"createUniverse": {
+				handler:            createUniverse,
+				expectedBodyString: "\"Invalid universe syntax\"\n",
+			},
+		},
 
-	testCases := map[string]universeTestCase{
-		"createUniverse": {
-			req:     postReq,
-			handler: createUniverse,
+		noIdTestCases: map[string]noIdTestCase[service.UniverseService]{
+			"getUniverse": {
+				req:     httptest.NewRequest(http.MethodGet, "/", nil),
+				handler: getUniverse,
+			},
+			"deleteUniverse": {
+				req:     httptest.NewRequest(http.MethodDelete, "/", nil),
+				handler: deleteUniverse,
+			},
+		},
+
+		badIdTestCases: map[string]badIdTestCase[service.UniverseService]{
+			"getUniverse": {
+				req:     httptest.NewRequest(http.MethodGet, "/", nil),
+				handler: getUniverse,
+			},
+			"deleteUniverse": {
+				req:     httptest.NewRequest(http.MethodDelete, "/", nil),
+				handler: deleteUniverse,
+			},
+		},
+
+		errorTestCases: map[string]errorTestCase[service.UniverseService]{
+			"createUniverse": {
+				req:                generateTestRequestWithDefaultUniverseBody(http.MethodPost),
+				handler:            createUniverse,
+				err:                errDefault,
+				expectedHttpStatus: http.StatusInternalServerError,
+			},
+			"createUniverse_duplicatedKey": {
+				req:                generateTestRequestWithDefaultUniverseBody(http.MethodPost),
+				handler:            createUniverse,
+				err:                errors.NewCode(db.DuplicatedKeySqlKey),
+				expectedHttpStatus: http.StatusConflict,
+			},
+			"getUniverse": {
+				req:                httptest.NewRequest(http.MethodGet, "/", nil),
+				idAsRouteParam:     true,
+				handler:            getUniverse,
+				err:                errDefault,
+				expectedHttpStatus: http.StatusInternalServerError,
+			},
+			"getUniverse_notFound": {
+				req:                httptest.NewRequest(http.MethodGet, "/", nil),
+				idAsRouteParam:     true,
+				handler:            getUniverse,
+				err:                errors.NewCode(db.NoMatchingSqlRows),
+				expectedHttpStatus: http.StatusNotFound,
+			},
+			"listUniverses": {
+				req:                generateTestPostRequest(),
+				handler:            listUniverses,
+				err:                errDefault,
+				expectedHttpStatus: http.StatusInternalServerError,
+			},
+			"deleteUniverse": {
+				req:                httptest.NewRequest(http.MethodDelete, "/", nil),
+				idAsRouteParam:     true,
+				handler:            deleteUniverse,
+				err:                errDefault,
+				expectedHttpStatus: http.StatusInternalServerError,
+			},
+			"deleteUniverse_notFound": {
+				req:                httptest.NewRequest(http.MethodDelete, "/", nil),
+				idAsRouteParam:     true,
+				handler:            deleteUniverse,
+				err:                errors.NewCode(db.NoMatchingSqlRows),
+				expectedHttpStatus: http.StatusNotFound,
+			},
+		},
+
+		successTestCases: map[string]successTestCase[service.UniverseService]{
+			"createUniverse": {
+				req:                generateTestRequestWithDefaultUniverseBody(http.MethodPost),
+				handler:            createUniverse,
+				expectedHttpStatus: http.StatusCreated,
+			},
+			"getUniverse": {
+				req:                httptest.NewRequest(http.MethodGet, "/", nil),
+				idAsRouteParam:     true,
+				handler:            getUniverse,
+				expectedHttpStatus: http.StatusOK,
+			},
+			"listUniverses": {
+				req:                httptest.NewRequest(http.MethodGet, "/", nil),
+				handler:            listUniverses,
+				expectedHttpStatus: http.StatusOK,
+			},
+			"deleteUniverse": {
+				req:                httptest.NewRequest(http.MethodDelete, "/", nil),
+				idAsRouteParam:     true,
+				handler:            deleteUniverse,
+				expectedHttpStatus: http.StatusNoContent,
+			},
+		},
+
+		returnTestCases: map[string]returnTestCase[service.UniverseService]{
+			"createUniverse": {
+				req:             generateTestRequestWithDefaultUniverseBody(http.MethodPost),
+				handler:         createUniverse,
+				expectedContent: defaultUniverseDtoResponse,
+			},
+			"getUniverse": {
+				req:             httptest.NewRequest(http.MethodGet, "/", nil),
+				idAsRouteParam:  true,
+				handler:         getUniverse,
+				expectedContent: defaultUniverseDtoResponse,
+			},
+			"listUniverses": {
+				req:             httptest.NewRequest(http.MethodGet, "/", nil),
+				handler:         listUniverses,
+				expectedContent: []communication.UniverseDtoResponse{defaultUniverseDtoResponse},
+			},
+		},
+
+		serviceInteractionTestCases: map[string]serviceInteractionTestCase[service.UniverseService]{
+			"createUniverse": {
+				req:     generateTestRequestWithDefaultUniverseBody(http.MethodPost),
+				handler: createUniverse,
+
+				verifyInteractions: func(us service.UniverseService, assert *require.Assertions) {
+					m := assertServiceIsAMock(us, assert)
+
+					assert.Equal(1, m.createCalled)
+					assert.Equal(defaultUniverseDtoRequest, m.inUniverse)
+				},
+			},
+			"getUniverse": {
+				req:            httptest.NewRequest(http.MethodGet, "/", nil),
+				idAsRouteParam: true,
+				handler:        getUniverse,
+
+				verifyInteractions: func(us service.UniverseService, assert *require.Assertions) {
+					m := assertServiceIsAMock(us, assert)
+
+					assert.Equal(1, m.getCalled)
+					assert.Equal(defaultUuid, m.inId)
+				},
+			},
+			"listUniverses": {
+				req:     httptest.NewRequest(http.MethodGet, "/", nil),
+				handler: listUniverses,
+
+				verifyInteractions: func(us service.UniverseService, assert *require.Assertions) {
+					m := assertServiceIsAMock(us, assert)
+
+					assert.Equal(1, m.listCalled)
+				},
+			},
+			"deleteUniverse": {
+				req:            httptest.NewRequest(http.MethodDelete, "/", nil),
+				idAsRouteParam: true,
+				handler:        deleteUniverse,
+
+				verifyInteractions: func(us service.UniverseService, assert *require.Assertions) {
+					m := assertServiceIsAMock(us, assert)
+
+					assert.Equal(1, m.deleteCalled)
+					assert.Equal(defaultUuid, m.inId)
+				},
+			},
 		},
 	}
 
-	for name, testCase := range testCases {
-		t.Run(name, func(t *testing.T) {
-			mock := &mockUniverseService{}
-			ctx, rw := generateTestEchoContextFromRequest(testCase.req)
-			if testCase.idAsRouteParam {
-				ctx.SetParamNames("id")
-				ctx.SetParamValues(defaultUuid.String())
-			}
+	suite.Run(t, &s)
+}
 
-			err := testCase.handler(ctx, mock)
-
-			assert.Nil(err)
-			assert.Equal(http.StatusBadRequest, rw.Code)
-			assert.Equal("\"Invalid universe syntax\"\n", rw.Body.String())
-		})
+func generateUniverseServiceMock(err error) service.UniverseService {
+	return &mockUniverseService{
+		err: err,
 	}
 }
 
-func Test_Universes_WhenNoId_SetsStatusTo400(t *testing.T) {
-	assert := assert.New(t)
-
-	testCases := map[string]universeTestCase{
-		"getUniverse": {
-			req:     httptest.NewRequest(http.MethodGet, "/", nil),
-			handler: getUniverse,
-		},
-		"deleteUniverse": {
-			req:     httptest.NewRequest(http.MethodDelete, "/", nil),
-			handler: deleteUniverse,
-		},
-	}
-
-	for name, testCase := range testCases {
-		t.Run(name, func(t *testing.T) {
-			mock := &mockUniverseService{}
-			ctx, rw := generateTestEchoContextFromRequest(testCase.req)
-
-			err := testCase.handler(ctx, mock)
-
-			assert.Nil(err)
-			assert.Equal(http.StatusBadRequest, rw.Code)
-			assert.Equal("\"Invalid id syntax\"\n", rw.Body.String())
-		})
-	}
-}
-
-func Test_Universes_WhenIdSyntaxIsWrong_SetsStatusTo400(t *testing.T) {
-	assert := assert.New(t)
-
-	testCases := map[string]universeTestCase{
-		"getUniverse": {
-			req:     httptest.NewRequest(http.MethodGet, "/", nil),
-			handler: getUniverse,
-		},
-		"deleteUniverse": {
-			req:     httptest.NewRequest(http.MethodDelete, "/", nil),
-			handler: deleteUniverse,
-		},
-	}
-
-	for name, testCase := range testCases {
-		t.Run(name, func(t *testing.T) {
-			mock := &mockUniverseService{}
-			ctx, rw := generateTestEchoContextFromRequest(testCase.req)
-			ctx.SetParamNames("id")
-			ctx.SetParamValues("not-a-uuid")
-
-			err := testCase.handler(ctx, mock)
-
-			assert.Nil(err)
-			assert.Equal(http.StatusBadRequest, rw.Code)
-			assert.Equal("\"Invalid id syntax\"\n", rw.Body.String())
-		})
-	}
-}
-
-func Test_Universes_WhenServiceFails_SetsExpectedStatus(t *testing.T) {
-	assert := assert.New(t)
-
-	testCases := map[string]universeErrorTestCase{
-		"createUniverse": {
-			req:                generateTestRequestWithDefaultUniverseBody(http.MethodPost),
-			handler:            createUniverse,
-			err:                errDefault,
-			expectedHttpStatus: http.StatusInternalServerError,
-		},
-		"createUniverse_duplicatedKey": {
-			req:                generateTestRequestWithDefaultUniverseBody(http.MethodPost),
-			handler:            createUniverse,
-			err:                errors.NewCode(db.DuplicatedKeySqlKey),
-			expectedHttpStatus: http.StatusConflict,
-		},
-		"getUniverse": {
-			req:                httptest.NewRequest(http.MethodGet, "/", nil),
-			idAsRouteParam:     true,
-			handler:            getUniverse,
-			err:                errDefault,
-			expectedHttpStatus: http.StatusInternalServerError,
-		},
-		"getUniverse_notFound": {
-			req:                httptest.NewRequest(http.MethodGet, "/", nil),
-			idAsRouteParam:     true,
-			handler:            getUniverse,
-			err:                errors.NewCode(db.NoMatchingSqlRows),
-			expectedHttpStatus: http.StatusNotFound,
-		},
-		"listUniverses": {
-			req:                generateTestPostRequest(),
-			handler:            listUniverses,
-			err:                errDefault,
-			expectedHttpStatus: http.StatusInternalServerError,
-		},
-		"deleteUniverse": {
-			req:                httptest.NewRequest(http.MethodDelete, "/", nil),
-			idAsRouteParam:     true,
-			handler:            deleteUniverse,
-			err:                errDefault,
-			expectedHttpStatus: http.StatusInternalServerError,
-		},
-		"deleteUniverse_notFound": {
-			req:                httptest.NewRequest(http.MethodDelete, "/", nil),
-			idAsRouteParam:     true,
-			handler:            deleteUniverse,
-			err:                errors.NewCode(db.NoMatchingSqlRows),
-			expectedHttpStatus: http.StatusNotFound,
-		},
-	}
-
-	for name, testCase := range testCases {
-		t.Run(name, func(t *testing.T) {
-			mock := &mockUniverseService{
-				err: testCase.err,
-			}
-
-			ctx, rw := generateTestEchoContextFromRequest(testCase.req)
-			if testCase.idAsRouteParam {
-				ctx.SetParamNames("id")
-				ctx.SetParamValues(defaultUuid.String())
-			}
-
-			err := testCase.handler(ctx, mock)
-
-			assert.Nil(err)
-			assert.Equal(testCase.expectedHttpStatus, rw.Code)
-		})
-	}
-}
-
-func Test_Universes_WhenServiceSucceeds_SetsExpectedStatus(t *testing.T) {
-	assert := assert.New(t)
-
-	testCases := map[string]universeSuccessTestCase{
-		"createUniverse": {
-			req:                generateTestRequestWithDefaultUniverseBody(http.MethodPost),
-			handler:            createUniverse,
-			expectedHttpStatus: http.StatusCreated,
-		},
-		"getUniverse": {
-			req:                httptest.NewRequest(http.MethodGet, "/", nil),
-			idAsRouteParam:     true,
-			handler:            getUniverse,
-			expectedHttpStatus: http.StatusOK,
-		},
-		"listUniverses": {
-			req:                httptest.NewRequest(http.MethodGet, "/", nil),
-			handler:            listUniverses,
-			expectedHttpStatus: http.StatusOK,
-		},
-		"deleteUniverse": {
-			req:                httptest.NewRequest(http.MethodDelete, "/", nil),
-			idAsRouteParam:     true,
-			handler:            deleteUniverse,
-			expectedHttpStatus: http.StatusNoContent,
-		},
-	}
-
-	for name, testCase := range testCases {
-		t.Run(name, func(t *testing.T) {
-			mock := &mockUniverseService{}
-
-			ctx, rw := generateTestEchoContextFromRequest(testCase.req)
-			if testCase.idAsRouteParam {
-				ctx.SetParamNames("id")
-				ctx.SetParamValues(defaultUuid.String())
-			}
-
-			err := testCase.handler(ctx, mock)
-
-			assert.Nil(err)
-			assert.Equal(testCase.expectedHttpStatus, rw.Code)
-		})
-	}
-}
-
-func Test_Universes_WhenServiceSucceeds_ReturnsExpectedValue(t *testing.T) {
-	assert := assert.New(t)
-
-	testCases := map[string]universeTestCaseReturn{
-		"createUniverse": {
-			req:             generateTestRequestWithDefaultUniverseBody(http.MethodPost),
-			handler:         createUniverse,
-			universeDto:     defaultUniverseDtoResponse,
-			expectedContent: defaultUniverseDtoResponse,
-		},
-		"getUniverse": {
-			req:             httptest.NewRequest(http.MethodGet, "/", nil),
-			idAsRouteParam:  true,
-			handler:         getUniverse,
-			universeDto:     defaultUniverseDtoResponse,
-			expectedContent: defaultUniverseDtoResponse,
-		},
-		"listUniverses": {
-			req:             httptest.NewRequest(http.MethodGet, "/", nil),
-			handler:         listUniverses,
-			universeDto:     defaultUniverseDtoResponse,
-			expectedContent: []communication.UniverseDtoResponse{defaultUniverseDtoResponse},
-		},
-	}
-
-	for name, testCase := range testCases {
-		t.Run(name, func(t *testing.T) {
-			mock := &mockUniverseService{
-				universes: []communication.UniverseDtoResponse{testCase.universeDto},
-			}
-
-			ctx, rw := generateTestEchoContextFromRequest(testCase.req)
-			if testCase.idAsRouteParam {
-				ctx.SetParamNames("id")
-				ctx.SetParamValues(defaultUuid.String())
-			}
-
-			err := testCase.handler(ctx, mock)
-
-			assert.Nil(err)
-
-			actual := strings.Trim(rw.Body.String(), "\n")
-			expected, err := json.Marshal(testCase.expectedContent)
-			assert.Nil(err)
-			assert.Equal(string(expected), actual)
-		})
-	}
-}
-
-func TestCreateUniverse_CallsServiceCreate(t *testing.T) {
-	assert := assert.New(t)
-
-	ctx, _ := generateTestEchoContextFromRequest(generateTestPostRequest())
-	ms := &mockUniverseService{}
-
-	err := createUniverse(ctx, ms)
-
-	assert.Nil(err)
-	assert.Equal(1, ms.createCalled)
-}
-
-func TestCreateUniverse_SavesExpectedUniverse(t *testing.T) {
-	assert := assert.New(t)
-
-	ctx, _ := generateTestEchoContextFromRequest(generateTestRequestWithDefaultUniverseBody(http.MethodPost))
-	ms := &mockUniverseService{
+func generateValidUniverseServiceMock() service.UniverseService {
+	return &mockUniverseService{
 		universes: []communication.UniverseDtoResponse{defaultUniverseDtoResponse},
 	}
-
-	err := createUniverse(ctx, ms)
-
-	assert.Nil(err)
-	assert.Equal(defaultUniverseDtoRequest, ms.inUniverse)
 }
 
-func TestGetUniverse_CallsServiceGet(t *testing.T) {
-	assert := assert.New(t)
-
-	ctx, _ := generateEchoContextWithValidUuid(http.MethodGet)
-	ms := &mockUniverseService{}
-
-	err := getUniverse(ctx, ms)
-
-	assert.Nil(err)
-	assert.Equal(1, ms.getCalled)
+func assertServiceIsAMock(us service.UniverseService, assert *require.Assertions) *mockUniverseService {
+	m, ok := us.(*mockUniverseService)
+	if !ok {
+		assert.Fail("Provided universe service is not a mock")
+	}
+	return m
 }
-
-func TestGetUniverse_GetsExpectedUniverse(t *testing.T) {
-	assert := assert.New(t)
-
-	ctx, _ := generateEchoContextWithValidUuid(http.MethodGet)
-	ms := &mockUniverseService{}
-
-	err := getUniverse(ctx, ms)
-
-	assert.Nil(err)
-	assert.Equal(defaultUuid, ms.inId)
-}
-
-func TestListUniverse_CallsServiceList(t *testing.T) {
-	assert := assert.New(t)
-
-	ctx, _ := generateTestEchoContextWithMethod(http.MethodGet)
-	ms := &mockUniverseService{}
-
-	err := listUniverses(ctx, ms)
-
-	assert.Nil(err)
-	assert.Equal(1, ms.listCalled)
-}
-
-func TestDeleteUniverse_CallsServiceDelete(t *testing.T) {
-	assert := assert.New(t)
-
-	ctx, _ := generateEchoContextWithValidUuid(http.MethodDelete)
-	ms := &mockUniverseService{}
-
-	err := deleteUniverse(ctx, ms)
-
-	assert.Nil(err)
-	assert.Equal(1, ms.deleteCalled)
-}
-
-func TestDeleteUniverse_DeletesExpectedUniverse(t *testing.T) {
-	assert := assert.New(t)
-
-	ctx, _ := generateEchoContextWithValidUuid(http.MethodDelete)
-	ms := &mockUniverseService{}
-
-	err := deleteUniverse(ctx, ms)
-
-	assert.Nil(err)
-	assert.Equal(defaultUuid, ms.inId)
-}
-
-// func generateTestPostRequest() *http.Request {
-// 	return generateTestRequestWithDefaultUserBody(http.MethodPost)
-// }
 
 func generateTestRequestWithDefaultUniverseBody(method string) *http.Request {
 	return generateTestRequestWithUniverseBody(method, defaultUniverseDtoRequest)
@@ -442,27 +267,6 @@ func generateTestRequestWithUniverseBody(method string, universeDto communicatio
 
 	return req
 }
-
-// func generateEchoContextWithValidUuid(method string) (echo.Context, *httptest.ResponseRecorder) {
-// 	ctx, rw := generateTestEchoContextWithMethod(method)
-// 	ctx.SetParamNames("id")
-// 	ctx.SetParamValues(defaultUuid.String())
-// 	return ctx, rw
-// }
-
-// func generateEchoContextWithBody(method string) (echo.Context, *httptest.ResponseRecorder) {
-// 	req := generateTestRequestWithDefaultUserBody(method)
-// 	return generateTestEchoContextFromRequest(req)
-// }
-
-// func generateEchoContextWithUuidAndBody(method string) (echo.Context, *httptest.ResponseRecorder) {
-// 	req := generateTestRequestWithDefaultUserBody(method)
-
-// 	ctx, rw := generateTestEchoContextFromRequest(req)
-// 	ctx.SetParamNames("id")
-// 	ctx.SetParamValues(defaultUuid.String())
-// 	return ctx, rw
-// }
 
 func (m *mockUniverseService) Create(ctx context.Context, universe communication.UniverseDtoRequest) (communication.UniverseDtoResponse, error) {
 	m.createCalled++
