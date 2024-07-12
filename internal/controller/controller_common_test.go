@@ -17,6 +17,7 @@ type generateServiceMock[Service any] func(err error) Service
 type generateValidServiceMock[Service any] func() Service
 
 type badInputTestCase[Service any] struct {
+	req                *http.Request
 	idAsRouteParam     bool
 	handler            handlerFunc[Service]
 	expectedBodyString string
@@ -52,6 +53,16 @@ type returnTestCase[Service any] struct {
 	expectedContent interface{}
 }
 
+type verifyResponse func(*httptest.ResponseRecorder, *require.Assertions)
+
+type responseTestCase[Service any] struct {
+	req            *http.Request
+	idAsRouteParam bool
+	handler        handlerFunc[Service]
+
+	verifyResponse verifyResponse
+}
+
 type verifyMockInteractions[Service any] func(Service, *require.Assertions)
 
 type serviceInteractionTestCase[Service any] struct {
@@ -75,15 +86,14 @@ type ControllerTestSuite[Service any] struct {
 	successTestCases  map[string]successTestCase[Service]
 
 	returnTestCases             map[string]returnTestCase[Service]
+	responseTestCases           map[string]responseTestCase[Service]
 	serviceInteractionTestCases map[string]serviceInteractionTestCase[Service]
 }
 
 func (s *ControllerTestSuite[Service]) TestWhenBadInputProvided_Expect400Status() {
-	postReq := httptest.NewRequest(http.MethodPost, "/", strings.NewReader("not-a-dto-request"))
-
 	for name, testCase := range s.badInputTestCases {
 		s.T().Run(name, func(t *testing.T) {
-			ctx, rw := generateTestEchoContextFromRequest(postReq)
+			ctx, rw := generateTestEchoContextFromRequest(testCase.req)
 			if testCase.idAsRouteParam {
 				ctx.SetParamNames("id")
 				ctx.SetParamValues(defaultUuid.String())
@@ -185,6 +195,24 @@ func (s *ControllerTestSuite[Service]) TestWhenServiceSucceeds_ReturnsExpectedVa
 			expected, err := json.Marshal(testCase.expectedContent)
 			s.Require().Nil(err)
 			s.Require().Equal(string(expected), actual)
+		})
+	}
+}
+
+func (s *ControllerTestSuite[Service]) TestWhenServiceSucceeds_ReturnsExpectedResponse() {
+	for name, testCase := range s.responseTestCases {
+		s.T().Run(name, func(t *testing.T) {
+			ctx, rw := generateTestEchoContextFromRequest(testCase.req)
+			if testCase.idAsRouteParam {
+				ctx.SetParamNames("id")
+				ctx.SetParamValues(defaultUuid.String())
+			}
+
+			m := s.generateValidServiceMock()
+			err := testCase.handler(ctx, m)
+
+			s.Require().Nil(err)
+			testCase.verifyResponse(rw, s.Require())
 		})
 	}
 }
