@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/KnoblauchPilze/user-service/pkg/db"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -20,18 +19,14 @@ type RepositoryGetAllTransactionTestSuite struct {
 }
 
 func (s *RepositoryGetAllTransactionTestSuite) TestCallsGetAll() {
-	assert := assert.New(s.T())
-
 	mock := &mockTransaction{}
 
 	s.testFunc(context.Background(), mock)
 
-	assert.Equal(1, mock.rows.allCalled)
+	s.Require().Equal(1, mock.rows.allCalled)
 }
 
 func (s *RepositoryGetAllTransactionTestSuite) TestPropagatesGetAllError() {
-	assert := assert.New(s.T())
-
 	mock := &mockTransaction{
 		rows: mockRows{
 			allErr: errDefault,
@@ -40,12 +35,10 @@ func (s *RepositoryGetAllTransactionTestSuite) TestPropagatesGetAllError() {
 
 	err := s.testFunc(context.Background(), mock)
 
-	assert.Equal(errDefault, err)
+	s.Require().Equal(errDefault, err)
 }
 
 func (s *RepositoryGetAllTransactionTestSuite) TestPropagatesScanError() {
-	assert := assert.New(s.T())
-
 	mock := &mockTransaction{
 		rows: mockRows{
 			scanner: &mockScannable{
@@ -56,22 +49,18 @@ func (s *RepositoryGetAllTransactionTestSuite) TestPropagatesScanError() {
 
 	err := s.testFunc(context.Background(), mock)
 
-	assert.Equal(errDefault, err)
+	s.Require().Equal(errDefault, err)
 }
 
 func (s *RepositoryGetAllTransactionTestSuite) TestWhenGetAllSucceedsExpectsNoError() {
-	assert := assert.New(s.T())
-
 	mock := &mockTransaction{}
 
 	err := s.testFunc(context.Background(), mock)
 
-	assert.Nil(err)
+	s.Require().Nil(err)
 }
 
 func (s *RepositoryGetAllTransactionTestSuite) TestScansExpectedProperties() {
-	assert := assert.New(s.T())
-
 	mock := &mockTransaction{
 		rows: mockRows{
 			scanner: &mockScannable{},
@@ -80,17 +69,17 @@ func (s *RepositoryGetAllTransactionTestSuite) TestScansExpectedProperties() {
 
 	s.testFunc(context.Background(), mock)
 
-	assert.Equal(s.expectedScanCalls, mock.rows.scanner.scanCalled)
-	assert.Equal(len(s.expectedScannedProps), len(mock.rows.scanner.props))
+	s.Require().Equal(s.expectedScanCalls, mock.rows.scanner.scanCalled)
+	s.Require().Equal(len(s.expectedScannedProps), len(mock.rows.scanner.props))
 
 	for id, expectedProps := range s.expectedScannedProps {
 		actualProps := mock.rows.scanner.props[id]
 
-		assert.Equal(len(expectedProps), len(actualProps))
+		s.Require().Equal(len(expectedProps), len(actualProps))
 
 		for idProp, expectedProp := range expectedProps {
 			actualProp := actualProps[idProp]
-			assert.IsType(expectedProp, actualProp)
+			s.Require().IsType(expectedProp, actualProp)
 		}
 	}
 }

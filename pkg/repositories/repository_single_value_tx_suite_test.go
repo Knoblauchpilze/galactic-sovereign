@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/KnoblauchPilze/user-service/pkg/db"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -21,18 +20,14 @@ type RepositorySingleValueTransactionTestSuite struct {
 }
 
 func (s *RepositorySingleValueTransactionTestSuite) TestCallsGetSingleValue() {
-	assert := assert.New(s.T())
-
 	mock := &mockTransaction{}
 
 	s.testFunc(context.Background(), mock)
 
-	assert.Equal(s.expectedSingleValueCalls, mock.rows.singleValueCalled)
+	s.Require().Equal(s.expectedSingleValueCalls, mock.rows.singleValueCalled)
 }
 
 func (s *RepositorySingleValueTransactionTestSuite) TestPropagatesSingleValueError() {
-	assert := assert.New(s.T())
-
 	mock := &mockTransaction{
 		rows: mockRows{
 			singleValueErr: errDefault,
@@ -41,12 +36,10 @@ func (s *RepositorySingleValueTransactionTestSuite) TestPropagatesSingleValueErr
 
 	err := s.testFunc(context.Background(), mock)
 
-	assert.Equal(errDefault, err)
+	s.Require().Equal(errDefault, err)
 }
 
 func (s *RepositorySingleValueTransactionTestSuite) TestPropagatesScanError() {
-	assert := assert.New(s.T())
-
 	mock := &mockTransaction{
 		rows: mockRows{
 			scanner: &mockScannable{
@@ -57,22 +50,18 @@ func (s *RepositorySingleValueTransactionTestSuite) TestPropagatesScanError() {
 
 	err := s.testFunc(context.Background(), mock)
 
-	assert.Equal(errDefault, err)
+	s.Require().Equal(errDefault, err)
 }
 
 func (s *RepositorySingleValueTransactionTestSuite) TestWhenSingleValueSucceedsExpectsNoError() {
-	assert := assert.New(s.T())
-
 	mock := &mockTransaction{}
 
 	err := s.testFunc(context.Background(), mock)
 
-	assert.Nil(err)
+	s.Require().Nil(err)
 }
 
 func (s *RepositorySingleValueTransactionTestSuite) TestScansExpectedProperties() {
-	assert := assert.New(s.T())
-
 	mock := &mockTransaction{
 		rows: mockRows{
 			scanner: &mockScannable{},
@@ -81,17 +70,17 @@ func (s *RepositorySingleValueTransactionTestSuite) TestScansExpectedProperties(
 
 	s.testFunc(context.Background(), mock)
 
-	assert.Equal(s.expectedScanCalls, mock.rows.scanner.scanCalled)
-	assert.Equal(len(s.expectedScannedProps), len(mock.rows.scanner.props))
+	s.Require().Equal(s.expectedScanCalls, mock.rows.scanner.scanCalled)
+	s.Require().Equal(len(s.expectedScannedProps), len(mock.rows.scanner.props))
 
 	for id, expectedProps := range s.expectedScannedProps {
 		actualProps := mock.rows.scanner.props[id]
 
-		assert.Equal(len(expectedProps), len(actualProps))
+		s.Require().Equal(len(expectedProps), len(actualProps))
 
 		for idProp, expectedProp := range expectedProps {
 			actualProp := actualProps[idProp]
-			assert.IsType(expectedProp, actualProp)
+			s.Require().IsType(expectedProp, actualProp)
 		}
 	}
 }
