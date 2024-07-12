@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/KnoblauchPilze/user-service/pkg/db"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -22,52 +21,44 @@ type RepositoryTransactionTestSuite struct {
 }
 
 func (s *RepositoryTransactionTestSuite) TestUsesTransactionToRunSqlQuery() {
-	assert := assert.New(s.T())
-
 	mock := &mockTransaction{}
 
 	s.testFunc(context.Background(), mock)
 
 	called := s.getCalledCount(mock)
-	assert.Equal(len(s.expectedSql), called)
+	s.Require().Equal(len(s.expectedSql), called)
 }
 
 func (s *RepositoryTransactionTestSuite) TestGeneratesValidSql() {
-	assert := assert.New(s.T())
-
 	mock := &mockTransaction{}
 
 	s.testFunc(context.Background(), mock)
 
-	assert.Equal(s.expectedSql, mock.sqlQueries)
+	s.Require().Equal(s.expectedSql, mock.sqlQueries)
 }
 
 func (s *RepositoryTransactionTestSuite) TestProvidesValidArguments() {
-	assert := assert.New(s.T())
-
 	mock := &mockTransaction{}
 
 	s.testFunc(context.Background(), mock)
 
-	assert.Equal(len(s.expectedArguments), len(mock.args))
+	s.Require().Equal(len(s.expectedArguments), len(mock.args))
 	for id, expectedArgs := range s.expectedArguments {
 		actualArgs := mock.args[id]
 
 		for idArg, expectedArg := range expectedArgs {
 			actualArg := actualArgs[idArg]
-			assert.Equal(expectedArg, actualArg)
+			s.Require().Equal(expectedArg, actualArg)
 		}
 	}
 }
 
 func (s *RepositoryTransactionTestSuite) TestPropagatesQueryError() {
-	assert := assert.New(s.T())
-
 	mock := s.generateErrorMock(errDefault)
 
 	err := s.testFunc(context.Background(), mock)
 
-	assert.Equal(errDefault, err)
+	s.Require().Equal(errDefault, err)
 }
 
 func (s *RepositoryTransactionTestSuite) getCalledCount(mock *mockTransaction) int {

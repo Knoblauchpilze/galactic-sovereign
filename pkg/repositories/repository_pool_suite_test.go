@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/KnoblauchPilze/user-service/pkg/db"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -29,48 +28,40 @@ type RepositoryPoolTestSuite struct {
 }
 
 func (s *RepositoryPoolTestSuite) TestUsesConnectionToRunSqlQuery() {
-	assert := assert.New(s.T())
-
 	mock := &mockConnectionPool{}
 
 	s.testFunc(context.Background(), mock)
 
 	called := s.getCalledCount(mock)
-	assert.Equal(1, called)
+	s.Require().Equal(1, called)
 }
 
 func (s *RepositoryPoolTestSuite) TestGeneratesValidSql() {
-	assert := assert.New(s.T())
-
 	mock := &mockConnectionPool{}
 
 	s.testFunc(context.Background(), mock)
 
-	assert.Equal(s.expectedSql, mock.sqlQuery)
+	s.Require().Equal(s.expectedSql, mock.sqlQuery)
 }
 
 func (s *RepositoryPoolTestSuite) TestProvidesValidArguments() {
-	assert := assert.New(s.T())
-
 	mock := &mockConnectionPool{}
 
 	s.testFunc(context.Background(), mock)
 
-	assert.Equal(len(s.expectedArguments), len(mock.args))
+	s.Require().Equal(len(s.expectedArguments), len(mock.args))
 	for id, expected := range s.expectedArguments {
 		actual := mock.args[id]
-		assert.Equal(expected, actual)
+		s.Require().Equal(expected, actual)
 	}
 }
 
 func (s *RepositoryPoolTestSuite) TestPropagatesQueryError() {
-	assert := assert.New(s.T())
-
 	mock := s.generateErrorMock(errDefault)
 
 	err := s.testFunc(context.Background(), mock)
 
-	assert.Equal(errDefault, err)
+	s.Require().Equal(errDefault, err)
 }
 
 func (s *RepositoryPoolTestSuite) getCalledCount(mock *mockConnectionPool) int {
