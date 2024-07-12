@@ -6,9 +6,9 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-type userServiceAwareHttpHandler func(echo.Context, service.UserService) error
+type authServiceAwareHttpHandler func(echo.Context, service.AuthService) error
 
-func fromUserServiceAwareHttpHandler(handler userServiceAwareHttpHandler, service service.UserService) echo.HandlerFunc {
+func fromAuthServiceAwareHttpHandler(handler authServiceAwareHttpHandler, service service.AuthService) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		return handler(c, service)
 	}
@@ -22,9 +22,17 @@ func fromDbAwareHttpHandler(handler dbAwareHttpHandler, pool db.ConnectionPool) 
 	}
 }
 
-type authServiceAwareHttpHandler func(echo.Context, service.AuthService) error
+type universeServiceAwareHttpHandler func(echo.Context, service.UniverseService) error
 
-func fromAuthServiceAwareHttpHandler(handler authServiceAwareHttpHandler, service service.AuthService) echo.HandlerFunc {
+func fromUniverseServiceAwareHttpHandler(handler universeServiceAwareHttpHandler, service service.UniverseService) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		return handler(c, service)
+	}
+}
+
+type userServiceAwareHttpHandler func(echo.Context, service.UserService) error
+
+func fromUserServiceAwareHttpHandler(handler userServiceAwareHttpHandler, service service.UserService) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		return handler(c, service)
 	}

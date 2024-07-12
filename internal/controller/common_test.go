@@ -10,95 +10,86 @@ import (
 	"github.com/KnoblauchPilze/user-service/pkg/db"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/suite"
 )
 
 var errDefault = fmt.Errorf("some error")
 
-func TestFromUserServiceAwareHttpHandler_CallsHandler(t *testing.T) {
-	assert := assert.New(t)
+type HandlerTestSuite[Service any] struct {
+	suite.Suite
+
+	generateTestFunc func(func(echo.Context, Service) error) echo.HandlerFunc
+}
+
+func (s *HandlerTestSuite[any]) TestCallsHandler() {
+	assert := assert.New(s.T())
 
 	handlerCalled := false
-	in := func(_ echo.Context, _ service.UserService) error {
+	in := func(_ echo.Context, _ any) error {
 		handlerCalled = true
 		return nil
 	}
 
-	h := fromUserServiceAwareHttpHandler(in, &mockUserService{})
+	h := s.generateTestFunc(in)
 
 	err := h(dummyEchoContext())
+
 	assert.Nil(err)
 	assert.True(handlerCalled)
 }
 
-func TestFromUserServiceAwareHttpHandler_PropagatesError(t *testing.T) {
-	assert := assert.New(t)
+func (s *HandlerTestSuite[any]) TestPropagatesError() {
+	assert := assert.New(s.T())
 
-	in := func(_ echo.Context, _ service.UserService) error {
+	in := func(_ echo.Context, _ any) error {
 		return errDefault
 	}
 
-	h := fromUserServiceAwareHttpHandler(in, &mockUserService{})
+	h := s.generateTestFunc(in)
 
 	err := h(dummyEchoContext())
+
 	assert.Equal(errDefault, err)
 }
 
-func TestFromDbAwareHttpHandler_CallsHandler(t *testing.T) {
-	assert := assert.New(t)
-
-	handlerCalled := false
-	in := func(_ echo.Context, _ db.ConnectionPool) error {
-		handlerCalled = true
-		return nil
+func TestFromAuthServiceAwareHttpHandler(t *testing.T) {
+	s := HandlerTestSuite[service.AuthService]{
+		generateTestFunc: func(in func(echo.Context, service.AuthService) error) echo.HandlerFunc {
+			return fromAuthServiceAwareHttpHandler(in, &mockAuthService{})
+		},
 	}
 
-	h := fromDbAwareHttpHandler(in, &mockConnectionPool{})
-
-	err := h(dummyEchoContext())
-	assert.Nil(err)
-	assert.True(handlerCalled)
+	suite.Run(t, &s)
 }
 
-func TestFromDbAwareHttpHandler_PropagatesError(t *testing.T) {
-	assert := assert.New(t)
-
-	in := func(_ echo.Context, _ db.ConnectionPool) error {
-		return errDefault
+func TestFromDbAwareHttpHandler(t *testing.T) {
+	s := HandlerTestSuite[db.ConnectionPool]{
+		generateTestFunc: func(in func(echo.Context, db.ConnectionPool) error) echo.HandlerFunc {
+			return fromDbAwareHttpHandler(in, &mockConnectionPool{})
+		},
 	}
 
-	h := fromDbAwareHttpHandler(in, &mockConnectionPool{})
-
-	err := h(dummyEchoContext())
-	assert.Equal(errDefault, err)
+	suite.Run(t, &s)
 }
 
-func TestFromAuthServiceAwareHttpHandler_CallsHandler(t *testing.T) {
-	assert := assert.New(t)
-
-	handlerCalled := false
-	in := func(_ echo.Context, _ service.AuthService) error {
-		handlerCalled = true
-		return nil
+func TestFromUniverseServiceAwareHttpHandler(t *testing.T) {
+	s := HandlerTestSuite[service.UniverseService]{
+		generateTestFunc: func(in func(echo.Context, service.UniverseService) error) echo.HandlerFunc {
+			return fromUniverseServiceAwareHttpHandler(in, &mockUniverseService{})
+		},
 	}
 
-	h := fromAuthServiceAwareHttpHandler(in, &mockAuthService{})
-
-	err := h(dummyEchoContext())
-	assert.Nil(err)
-	assert.True(handlerCalled)
+	suite.Run(t, &s)
 }
 
-func TestFromAuthServiceAwareHttpHandler_PropagatesError(t *testing.T) {
-	assert := assert.New(t)
-
-	in := func(_ echo.Context, _ service.AuthService) error {
-		return errDefault
+func TestFromUserServiceAwareHttpHandler(t *testing.T) {
+	s := HandlerTestSuite[service.UserService]{
+		generateTestFunc: func(in func(echo.Context, service.UserService) error) echo.HandlerFunc {
+			return fromUserServiceAwareHttpHandler(in, &mockUserService{})
+		},
 	}
 
-	h := fromAuthServiceAwareHttpHandler(in, &mockAuthService{})
-
-	err := h(dummyEchoContext())
-	assert.Equal(errDefault, err)
+	suite.Run(t, &s)
 }
 
 func dummyEchoContext() echo.Context {
