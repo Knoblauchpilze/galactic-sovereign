@@ -599,7 +599,7 @@ func TestDeleteUser_CallsServiceDelete(t *testing.T) {
 	assert.Equal(1, ms.deleteCalled)
 }
 
-func TestDeleteUser_LogsOutExpectedUser(t *testing.T) {
+func TestDeleteUser_DeletesExpectedUser(t *testing.T) {
 	assert := assert.New(t)
 
 	ctx, _ := generateEchoContextWithValidUuid(http.MethodDelete)
