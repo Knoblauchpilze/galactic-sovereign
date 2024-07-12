@@ -15,8 +15,9 @@ import (
 	"github.com/KnoblauchPilze/user-service/pkg/db"
 	"github.com/KnoblauchPilze/user-service/pkg/errors"
 	"github.com/google/uuid"
-	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/suite"
 )
 
 type mockUserService struct {
@@ -55,12 +56,6 @@ var defaultApiKeyDtoResponse = communication.ApiKeyDtoResponse{
 	ValidUntil: time.Date(2024, 05, 05, 21, 32, 55, 651387237, time.UTC),
 }
 
-type testCase struct {
-	req            *http.Request
-	idAsRouteParam bool
-	handler        userServiceAwareHttpHandler
-}
-
 func TestUserEndpoints_GeneratesExpectedRoutes(t *testing.T) {
 	assert := assert.New(t)
 
@@ -76,615 +71,408 @@ func TestUserEndpoints_GeneratesExpectedRoutes(t *testing.T) {
 	assert.Equal(2, actualRoutes[http.MethodDelete])
 }
 
-func Test_WhenBodyIsNotAUserDto_SetsStatusTo400(t *testing.T) {
-	assert := assert.New(t)
-
-	// https://github.com/labstack/echo/issues/2138
-	postReq := httptest.NewRequest(http.MethodPost, "/", strings.NewReader("not-a-user-dto-request"))
-
-	testCases := map[string]testCase{
-		"createUser": {
-			req:     postReq,
-			handler: createUser,
-		},
-		"updateUser": {
-			req:            httptest.NewRequest(http.MethodPatch, "/", strings.NewReader("not-a-user-dto-request")),
-			idAsRouteParam: true,
-			handler:        updateUser,
-		},
-		"loginUserByEmail": {
-			req:     postReq,
-			handler: loginUserByEmail,
-		},
-	}
-
-	for name, testCase := range testCases {
-		t.Run(name, func(t *testing.T) {
-			mock := &mockUserService{}
-			ctx, rw := generateTestEchoContextFromRequest(testCase.req)
-			if testCase.idAsRouteParam {
-				// https://echo.labstack.com/docs/testing#getuser
-				ctx.SetParamNames("id")
-				ctx.SetParamValues(defaultUuid.String())
-			}
-
-			err := testCase.handler(ctx, mock)
-
-			assert.Nil(err)
-			assert.Equal(http.StatusBadRequest, rw.Code)
-			assert.Equal("\"Invalid user syntax\"\n", rw.Body.String())
-		})
-	}
-}
-
-func Test_WhenNoId_SetsStatusTo400(t *testing.T) {
-	assert := assert.New(t)
-
-	testCases := map[string]testCase{
-		"getUser": {
-			req:     httptest.NewRequest(http.MethodGet, "/", nil),
-			handler: getUser,
-		},
-		"updateUser": {
-			req:     httptest.NewRequest(http.MethodPatch, "/", nil),
-			handler: getUser,
-		},
-		"deleteUser": {
-			req:     httptest.NewRequest(http.MethodDelete, "/", nil),
-			handler: deleteUser,
-		},
-		"loginUserById": {
-			req:     httptest.NewRequest(http.MethodPost, "/", nil),
-			handler: loginUserById,
-		},
-		"logoutUser": {
-			req:     httptest.NewRequest(http.MethodPost, "/", nil),
-			handler: logoutUser,
-		},
-	}
-
-	for name, testCase := range testCases {
-		t.Run(name, func(t *testing.T) {
-			mock := &mockUserService{}
-			ctx, rw := generateTestEchoContextFromRequest(testCase.req)
-
-			err := testCase.handler(ctx, mock)
-
-			assert.Nil(err)
-			assert.Equal(http.StatusBadRequest, rw.Code)
-			assert.Equal("\"Invalid id syntax\"\n", rw.Body.String())
-		})
-	}
-}
-
-func Test_WhenIdSyntaxIsWrong_SetsStatusTo400(t *testing.T) {
-	assert := assert.New(t)
-
-	testCases := map[string]testCase{
-		"getUser": {
-			req:     httptest.NewRequest(http.MethodGet, "/", nil),
-			handler: getUser,
-		},
-		"updateUser": {
-			req:     httptest.NewRequest(http.MethodPatch, "/", nil),
-			handler: updateUser,
-		},
-		"deleteUser": {
-			req:     httptest.NewRequest(http.MethodDelete, "/", nil),
-			handler: deleteUser,
-		},
-		"loginUserById": {
-			req:     httptest.NewRequest(http.MethodPost, "/", nil),
-			handler: loginUserById,
-		},
-		"logoutUser": {
-			req:     httptest.NewRequest(http.MethodPost, "/", nil),
-			handler: logoutUser,
-		},
-	}
-
-	for name, testCase := range testCases {
-		t.Run(name, func(t *testing.T) {
-			mock := &mockUserService{}
-			ctx, rw := generateTestEchoContextFromRequest(testCase.req)
-			ctx.SetParamNames("id")
-			ctx.SetParamValues("not-a-uuid")
-
-			err := testCase.handler(ctx, mock)
-
-			assert.Nil(err)
-			assert.Equal(http.StatusBadRequest, rw.Code)
-			assert.Equal("\"Invalid id syntax\"\n", rw.Body.String())
-		})
-	}
-}
-
-func Test_WhenServiceFails_SetsExpectedStatus(t *testing.T) {
-	assert := assert.New(t)
-
-	type testCaseError struct {
-		req                *http.Request
-		idAsRouteParam     bool
-		handler            userServiceAwareHttpHandler
-		err                error
-		expectedHttpStatus int
-	}
-
-	testCases := map[string]testCaseError{
-		"createUser": {
-			req:                generateTestRequestWithDefaultUserBody(http.MethodPost),
-			handler:            createUser,
-			err:                errDefault,
-			expectedHttpStatus: http.StatusInternalServerError,
-		},
-		"createUser_duplicatedKey": {
-			req:                generateTestRequestWithDefaultUserBody(http.MethodPost),
-			handler:            createUser,
-			err:                errors.NewCode(db.DuplicatedKeySqlKey),
-			expectedHttpStatus: http.StatusConflict,
-		},
-		"getUser": {
-			req:                httptest.NewRequest(http.MethodGet, "/", nil),
-			idAsRouteParam:     true,
-			handler:            getUser,
-			err:                errDefault,
-			expectedHttpStatus: http.StatusInternalServerError,
-		},
-		"getUser_notFound": {
-			req:                httptest.NewRequest(http.MethodGet, "/", nil),
-			idAsRouteParam:     true,
-			handler:            getUser,
-			err:                errors.NewCode(db.NoMatchingSqlRows),
-			expectedHttpStatus: http.StatusNotFound,
-		},
-		"listUsers": {
-			req:                generateTestPostRequest(),
-			handler:            listUsers,
-			err:                errDefault,
-			expectedHttpStatus: http.StatusInternalServerError,
-		},
-		"updateUser_notFound": {
-			req:                generateTestRequestWithDefaultUserBody(http.MethodPatch),
-			idAsRouteParam:     true,
-			handler:            updateUser,
-			err:                errors.NewCode(db.NoMatchingSqlRows),
-			expectedHttpStatus: http.StatusNotFound,
-		},
-		"updateUser_optimisticLock": {
-			req:                generateTestRequestWithDefaultUserBody(http.MethodPatch),
-			idAsRouteParam:     true,
-			handler:            updateUser,
-			err:                errors.NewCode(db.OptimisticLockException),
-			expectedHttpStatus: http.StatusConflict,
-		},
-		"deleteUser": {
-			req:                httptest.NewRequest(http.MethodDelete, "/", nil),
-			idAsRouteParam:     true,
-			handler:            deleteUser,
-			err:                errDefault,
-			expectedHttpStatus: http.StatusInternalServerError,
-		},
-		"deleteUser_notFound": {
-			req:                httptest.NewRequest(http.MethodDelete, "/", nil),
-			idAsRouteParam:     true,
-			handler:            deleteUser,
-			err:                errors.NewCode(db.NoMatchingSqlRows),
-			expectedHttpStatus: http.StatusNotFound,
-		},
-		"loginUserById": {
-			req:                httptest.NewRequest(http.MethodPost, "/", nil),
-			idAsRouteParam:     true,
-			handler:            loginUserById,
-			err:                errDefault,
-			expectedHttpStatus: http.StatusInternalServerError,
-		},
-		"loginUserById_notFound": {
-			req:                httptest.NewRequest(http.MethodPost, "/", nil),
-			idAsRouteParam:     true,
-			handler:            loginUserById,
-			err:                errors.NewCode(db.NoMatchingSqlRows),
-			expectedHttpStatus: http.StatusNotFound,
-		},
-		"loginUserByEmail": {
-			req:                generateTestRequestWithDefaultUserBody(http.MethodPost),
-			handler:            loginUserByEmail,
-			err:                errDefault,
-			expectedHttpStatus: http.StatusInternalServerError,
-		},
-		"loginUserByEmail_notFound": {
-			req:                generateTestRequestWithDefaultUserBody(http.MethodPost),
-			handler:            loginUserByEmail,
-			err:                errors.NewCode(db.NoMatchingSqlRows),
-			expectedHttpStatus: http.StatusNotFound,
-		},
-		"loginUserByEmail_invalidCredentials": {
-			req:                generateTestRequestWithDefaultUserBody(http.MethodPost),
-			handler:            loginUserByEmail,
-			err:                errors.NewCode(service.InvalidCredentials),
-			expectedHttpStatus: http.StatusUnauthorized,
-		},
-		"logoutUser": {
-			req:                httptest.NewRequest(http.MethodDelete, "/", nil),
-			idAsRouteParam:     true,
-			handler:            logoutUser,
-			err:                errDefault,
-			expectedHttpStatus: http.StatusInternalServerError,
-		},
-		"logoutUser_notFound": {
-			req:                httptest.NewRequest(http.MethodDelete, "/", nil),
-			idAsRouteParam:     true,
-			handler:            logoutUser,
-			err:                errors.NewCode(db.NoMatchingSqlRows),
-			expectedHttpStatus: http.StatusNotFound,
-		},
-	}
-
-	for name, testCase := range testCases {
-		t.Run(name, func(t *testing.T) {
-			mock := &mockUserService{
-				err: testCase.err,
-			}
-
-			ctx, rw := generateTestEchoContextFromRequest(testCase.req)
-			if testCase.idAsRouteParam {
-				ctx.SetParamNames("id")
-				ctx.SetParamValues(defaultUuid.String())
-			}
-
-			err := testCase.handler(ctx, mock)
-
-			assert.Nil(err)
-			assert.Equal(testCase.expectedHttpStatus, rw.Code)
-		})
-	}
-}
-
-func Test_WhenServiceSucceeds_SetsExpectedStatus(t *testing.T) {
-	assert := assert.New(t)
-
-	type testCaseSuccess struct {
-		req                *http.Request
-		idAsRouteParam     bool
-		handler            userServiceAwareHttpHandler
-		expectedHttpStatus int
-	}
-
-	testCases := map[string]testCaseSuccess{
-		"createUser": {
-			req:                generateTestRequestWithDefaultUserBody(http.MethodPost),
-			handler:            createUser,
-			expectedHttpStatus: http.StatusCreated,
-		},
-		"getUser": {
-			req:                httptest.NewRequest(http.MethodGet, "/", nil),
-			idAsRouteParam:     true,
-			handler:            getUser,
-			expectedHttpStatus: http.StatusOK,
-		},
-		"listUser": {
-			req:                httptest.NewRequest(http.MethodGet, "/", nil),
-			handler:            listUsers,
-			expectedHttpStatus: http.StatusOK,
-		},
-		"updateUser": {
-			req:                generateTestRequestWithDefaultUserBody(http.MethodPatch),
-			idAsRouteParam:     true,
-			handler:            updateUser,
-			expectedHttpStatus: http.StatusOK,
-		},
-		"deleteUser": {
-			req:                httptest.NewRequest(http.MethodDelete, "/", nil),
-			idAsRouteParam:     true,
-			handler:            deleteUser,
-			expectedHttpStatus: http.StatusNoContent,
-		},
-		"loginUserById": {
-			req:                httptest.NewRequest(http.MethodPost, "/", nil),
-			idAsRouteParam:     true,
-			handler:            loginUserById,
-			expectedHttpStatus: http.StatusCreated,
-		},
-		"loginUserByEmail": {
-			req:                generateTestRequestWithDefaultUserBody(http.MethodPost),
-			handler:            loginUserByEmail,
-			expectedHttpStatus: http.StatusCreated,
-		},
-		"logoutUser": {
-			req:                httptest.NewRequest(http.MethodDelete, "/", nil),
-			idAsRouteParam:     true,
-			handler:            logoutUser,
-			expectedHttpStatus: http.StatusNoContent,
-		},
-	}
-
-	for name, testCase := range testCases {
-		t.Run(name, func(t *testing.T) {
-			mock := &mockUserService{}
-
-			ctx, rw := generateTestEchoContextFromRequest(testCase.req)
-			if testCase.idAsRouteParam {
-				ctx.SetParamNames("id")
-				ctx.SetParamValues(defaultUuid.String())
-			}
-
-			err := testCase.handler(ctx, mock)
-
-			assert.Nil(err)
-			assert.Equal(testCase.expectedHttpStatus, rw.Code)
-		})
-	}
-}
-
-func Test_WhenServiceSucceeds_ReturnsExpectedValue(t *testing.T) {
-	assert := assert.New(t)
-
-	type testCaseReturn struct {
-		req            *http.Request
-		idAsRouteParam bool
-		handler        userServiceAwareHttpHandler
-
-		ids       []uuid.UUID
-		userDto   communication.UserDtoResponse
-		apiKeyDto communication.ApiKeyDtoResponse
-
-		expectedContent interface{}
-	}
-
-	updatedUser := communication.UserDtoRequest{
+func Test_UserController(t *testing.T) {
+	updatedUserDtoRequest := communication.UserDtoRequest{
 		Email:    "some-other@e.mail",
 		Password: "some-password",
 	}
-	updatedUserResponse := communication.UserDtoResponse{
-		Id:       defaultUserDtoResponse.Id,
-		Email:    updatedUser.Email,
-		Password: updatedUser.Password,
 
-		CreatedAt: defaultUserDtoResponse.CreatedAt,
+	s := ControllerTestSuite[service.UserService]{
+		generateServiceMock:      generateUserServiceMock,
+		generateValidServiceMock: generateValidUserServiceMock,
+
+		badInputTestCases: map[string]badInputTestCase[service.UserService]{
+			"createUser": {
+				// https://github.com/labstack/echo/issues/2138
+				req:                httptest.NewRequest(http.MethodPost, "/", strings.NewReader("not-a-user-dto-request")),
+				handler:            createUser,
+				expectedBodyString: "\"Invalid user syntax\"\n",
+			},
+			"updateUser": {
+				req:                httptest.NewRequest(http.MethodPatch, "/", strings.NewReader("not-a-user-dto-request")),
+				idAsRouteParam:     true,
+				handler:            updateUser,
+				expectedBodyString: "\"Invalid user syntax\"\n",
+			},
+			"loginUserByEmail": {
+				req:                httptest.NewRequest(http.MethodPost, "/", strings.NewReader("not-a-user-dto-request")),
+				handler:            loginUserByEmail,
+				expectedBodyString: "\"Invalid user syntax\"\n",
+			},
+		},
+
+		noIdTestCases: map[string]noIdTestCase[service.UserService]{
+			"getUser": {
+				req:     httptest.NewRequest(http.MethodGet, "/", nil),
+				handler: getUser,
+			},
+			"updateUser": {
+				req:     httptest.NewRequest(http.MethodPatch, "/", nil),
+				handler: getUser,
+			},
+			"deleteUser": {
+				req:     httptest.NewRequest(http.MethodDelete, "/", nil),
+				handler: deleteUser,
+			},
+			"loginUserById": {
+				req:     httptest.NewRequest(http.MethodPost, "/", nil),
+				handler: loginUserById,
+			},
+			"logoutUser": {
+				req:     httptest.NewRequest(http.MethodPost, "/", nil),
+				handler: logoutUser,
+			},
+		},
+
+		badIdTestCases: map[string]badIdTestCase[service.UserService]{
+			"getUser": {
+				req:     httptest.NewRequest(http.MethodGet, "/", nil),
+				handler: getUser,
+			},
+			"updateUser": {
+				req:     httptest.NewRequest(http.MethodPatch, "/", nil),
+				handler: updateUser,
+			},
+			"deleteUser": {
+				req:     httptest.NewRequest(http.MethodDelete, "/", nil),
+				handler: deleteUser,
+			},
+			"loginUserById": {
+				req:     httptest.NewRequest(http.MethodPost, "/", nil),
+				handler: loginUserById,
+			},
+			"logoutUser": {
+				req:     httptest.NewRequest(http.MethodPost, "/", nil),
+				handler: logoutUser,
+			},
+		},
+
+		errorTestCases: map[string]errorTestCase[service.UserService]{
+			"createUser": {
+				req:                generateTestRequestWithDefaultUserBody(http.MethodPost),
+				handler:            createUser,
+				err:                errDefault,
+				expectedHttpStatus: http.StatusInternalServerError,
+			},
+			"createUser_duplicatedKey": {
+				req:                generateTestRequestWithDefaultUserBody(http.MethodPost),
+				handler:            createUser,
+				err:                errors.NewCode(db.DuplicatedKeySqlKey),
+				expectedHttpStatus: http.StatusConflict,
+			},
+			"getUser": {
+				req:                httptest.NewRequest(http.MethodGet, "/", nil),
+				idAsRouteParam:     true,
+				handler:            getUser,
+				err:                errDefault,
+				expectedHttpStatus: http.StatusInternalServerError,
+			},
+			"getUser_notFound": {
+				req:                httptest.NewRequest(http.MethodGet, "/", nil),
+				idAsRouteParam:     true,
+				handler:            getUser,
+				err:                errors.NewCode(db.NoMatchingSqlRows),
+				expectedHttpStatus: http.StatusNotFound,
+			},
+			"listUsers": {
+				req:                generateTestRequestWithDefaultUserBody(http.MethodPost),
+				handler:            listUsers,
+				err:                errDefault,
+				expectedHttpStatus: http.StatusInternalServerError,
+			},
+			"updateUser_notFound": {
+				req:                generateTestRequestWithDefaultUserBody(http.MethodPatch),
+				idAsRouteParam:     true,
+				handler:            updateUser,
+				err:                errors.NewCode(db.NoMatchingSqlRows),
+				expectedHttpStatus: http.StatusNotFound,
+			},
+			"updateUser_optimisticLock": {
+				req:                generateTestRequestWithDefaultUserBody(http.MethodPatch),
+				idAsRouteParam:     true,
+				handler:            updateUser,
+				err:                errors.NewCode(db.OptimisticLockException),
+				expectedHttpStatus: http.StatusConflict,
+			},
+			"deleteUser": {
+				req:                httptest.NewRequest(http.MethodDelete, "/", nil),
+				idAsRouteParam:     true,
+				handler:            deleteUser,
+				err:                errDefault,
+				expectedHttpStatus: http.StatusInternalServerError,
+			},
+			"deleteUser_notFound": {
+				req:                httptest.NewRequest(http.MethodDelete, "/", nil),
+				idAsRouteParam:     true,
+				handler:            deleteUser,
+				err:                errors.NewCode(db.NoMatchingSqlRows),
+				expectedHttpStatus: http.StatusNotFound,
+			},
+			"loginUserById": {
+				req:                httptest.NewRequest(http.MethodPost, "/", nil),
+				idAsRouteParam:     true,
+				handler:            loginUserById,
+				err:                errDefault,
+				expectedHttpStatus: http.StatusInternalServerError,
+			},
+			"loginUserById_notFound": {
+				req:                httptest.NewRequest(http.MethodPost, "/", nil),
+				idAsRouteParam:     true,
+				handler:            loginUserById,
+				err:                errors.NewCode(db.NoMatchingSqlRows),
+				expectedHttpStatus: http.StatusNotFound,
+			},
+			"loginUserByEmail": {
+				req:                generateTestRequestWithDefaultUserBody(http.MethodPost),
+				handler:            loginUserByEmail,
+				err:                errDefault,
+				expectedHttpStatus: http.StatusInternalServerError,
+			},
+			"loginUserByEmail_notFound": {
+				req:                generateTestRequestWithDefaultUserBody(http.MethodPost),
+				handler:            loginUserByEmail,
+				err:                errors.NewCode(db.NoMatchingSqlRows),
+				expectedHttpStatus: http.StatusNotFound,
+			},
+			"loginUserByEmail_invalidCredentials": {
+				req:                generateTestRequestWithDefaultUserBody(http.MethodPost),
+				handler:            loginUserByEmail,
+				err:                errors.NewCode(service.InvalidCredentials),
+				expectedHttpStatus: http.StatusUnauthorized,
+			},
+			"logoutUser": {
+				req:                httptest.NewRequest(http.MethodDelete, "/", nil),
+				idAsRouteParam:     true,
+				handler:            logoutUser,
+				err:                errDefault,
+				expectedHttpStatus: http.StatusInternalServerError,
+			},
+			"logoutUser_notFound": {
+				req:                httptest.NewRequest(http.MethodDelete, "/", nil),
+				idAsRouteParam:     true,
+				handler:            logoutUser,
+				err:                errors.NewCode(db.NoMatchingSqlRows),
+				expectedHttpStatus: http.StatusNotFound,
+			},
+		},
+
+		successTestCases: map[string]successTestCase[service.UserService]{
+			"createUser": {
+				req:                generateTestRequestWithDefaultUserBody(http.MethodPost),
+				handler:            createUser,
+				expectedHttpStatus: http.StatusCreated,
+			},
+			"getUser": {
+				req:                httptest.NewRequest(http.MethodGet, "/", nil),
+				idAsRouteParam:     true,
+				handler:            getUser,
+				expectedHttpStatus: http.StatusOK,
+			},
+			"listUser": {
+				req:                httptest.NewRequest(http.MethodGet, "/", nil),
+				handler:            listUsers,
+				expectedHttpStatus: http.StatusOK,
+			},
+			"updateUser": {
+				req:                generateTestRequestWithDefaultUserBody(http.MethodPatch),
+				idAsRouteParam:     true,
+				handler:            updateUser,
+				expectedHttpStatus: http.StatusOK,
+			},
+			"deleteUser": {
+				req:                httptest.NewRequest(http.MethodDelete, "/", nil),
+				idAsRouteParam:     true,
+				handler:            deleteUser,
+				expectedHttpStatus: http.StatusNoContent,
+			},
+			"loginUserById": {
+				req:                httptest.NewRequest(http.MethodPost, "/", nil),
+				idAsRouteParam:     true,
+				handler:            loginUserById,
+				expectedHttpStatus: http.StatusCreated,
+			},
+			"loginUserByEmail": {
+				req:                generateTestRequestWithDefaultUserBody(http.MethodPost),
+				handler:            loginUserByEmail,
+				expectedHttpStatus: http.StatusCreated,
+			},
+			"logoutUser": {
+				req:                httptest.NewRequest(http.MethodDelete, "/", nil),
+				idAsRouteParam:     true,
+				handler:            logoutUser,
+				expectedHttpStatus: http.StatusNoContent,
+			},
+		},
+
+		returnTestCases: map[string]returnTestCase[service.UserService]{
+			"createUser": {
+				req:             generateTestRequestWithDefaultUserBody(http.MethodPost),
+				handler:         createUser,
+				expectedContent: defaultUserDtoResponse,
+			},
+			"getUser": {
+				req:             httptest.NewRequest(http.MethodGet, "/", nil),
+				idAsRouteParam:  true,
+				handler:         getUser,
+				expectedContent: defaultUserDtoResponse,
+			},
+			"listUsers": {
+				req:             httptest.NewRequest(http.MethodGet, "/", nil),
+				handler:         listUsers,
+				expectedContent: []uuid.UUID{defaultUuid},
+			},
+			"updateUser": {
+				req:            generateTestRequestWithUserBody(http.MethodPatch, updatedUserDtoRequest),
+				idAsRouteParam: true,
+				handler:        updateUser,
+				// TODO: Was different before.
+				expectedContent: defaultUserDtoResponse,
+			},
+			"loginUserById": {
+				req:             httptest.NewRequest(http.MethodPost, "/", nil),
+				idAsRouteParam:  true,
+				handler:         loginUserById,
+				expectedContent: defaultApiKeyDtoResponse,
+			},
+			"loginUserByEmail": {
+				req:             generateTestRequestWithDefaultUserBody(http.MethodPost),
+				idAsRouteParam:  true,
+				handler:         loginUserByEmail,
+				expectedContent: defaultApiKeyDtoResponse,
+			},
+		},
+
+		serviceInteractionTestCases: map[string]serviceInteractionTestCase[service.UserService]{
+			"createUser": {
+				req:     generateTestRequestWithDefaultUserBody(http.MethodPost),
+				handler: createUser,
+
+				verifyInteractions: func(us service.UserService, assert *require.Assertions) {
+					m := assertUserServiceIsAMock(us, assert)
+
+					assert.Equal(1, m.createCalled)
+					assert.Equal(defaultUserDtoRequest, m.inUser)
+				},
+			},
+			"getUser": {
+				req:            httptest.NewRequest(http.MethodGet, "/", nil),
+				idAsRouteParam: true,
+				handler:        getUser,
+
+				verifyInteractions: func(us service.UserService, assert *require.Assertions) {
+					m := assertUserServiceIsAMock(us, assert)
+
+					assert.Equal(1, m.getCalled)
+					assert.Equal(defaultUuid, m.inId)
+				},
+			},
+			"listUsers": {
+				req:     httptest.NewRequest(http.MethodGet, "/", nil),
+				handler: listUsers,
+
+				verifyInteractions: func(us service.UserService, assert *require.Assertions) {
+					m := assertUserServiceIsAMock(us, assert)
+
+					assert.Equal(1, m.listCalled)
+				},
+			},
+			"updateUser": {
+				req:            generateTestRequestWithUserBody(http.MethodPatch, updatedUserDtoRequest),
+				idAsRouteParam: true,
+				generateValidServiceMock: func() service.UserService {
+					return &mockUserService{
+						user: communication.UserDtoResponse{
+							Id:       defaultUserDtoResponse.Id,
+							Email:    updatedUserDtoRequest.Email,
+							Password: updatedUserDtoRequest.Password,
+
+							CreatedAt: defaultUserDtoResponse.CreatedAt,
+						},
+					}
+				},
+
+				handler: updateUser,
+
+				verifyInteractions: func(us service.UserService, assert *require.Assertions) {
+					m := assertUserServiceIsAMock(us, assert)
+
+					assert.Equal(1, m.updateCalled)
+					assert.Equal(updatedUserDtoRequest, m.inUser)
+				},
+			},
+			"deleteUser": {
+				req:            httptest.NewRequest(http.MethodDelete, "/", nil),
+				idAsRouteParam: true,
+				handler:        deleteUser,
+
+				verifyInteractions: func(us service.UserService, assert *require.Assertions) {
+					m := assertUserServiceIsAMock(us, assert)
+
+					assert.Equal(1, m.deleteCalled)
+					assert.Equal(defaultUuid, m.inId)
+				},
+			},
+			"loginUserById": {
+				req:            httptest.NewRequest(http.MethodPost, "/", nil),
+				idAsRouteParam: true,
+				handler:        loginUserById,
+
+				verifyInteractions: func(us service.UserService, assert *require.Assertions) {
+					m := assertUserServiceIsAMock(us, assert)
+
+					assert.Equal(1, m.loginByIdCalled)
+					assert.Equal(defaultUuid, m.inId)
+				},
+			},
+			"loginUserByEmail": {
+				req:     generateTestRequestWithDefaultUserBody(http.MethodPost),
+				handler: loginUserByEmail,
+
+				verifyInteractions: func(us service.UserService, assert *require.Assertions) {
+					m := assertUserServiceIsAMock(us, assert)
+
+					assert.Equal(1, m.loginCalled)
+					assert.Equal(defaultUserDtoRequest, m.inUser)
+				},
+			},
+			"logoutUser": {
+				req:            httptest.NewRequest(http.MethodPost, "/", nil),
+				idAsRouteParam: true,
+				handler:        logoutUser,
+
+				verifyInteractions: func(us service.UserService, assert *require.Assertions) {
+					m := assertUserServiceIsAMock(us, assert)
+
+					assert.Equal(1, m.logoutCalled)
+					assert.Equal(defaultUuid, m.inId)
+				},
+			},
+		},
 	}
 
-	testCases := map[string]testCaseReturn{
-		"createUser": {
-			req:             generateTestRequestWithDefaultUserBody(http.MethodPost),
-			handler:         createUser,
-			userDto:         defaultUserDtoResponse,
-			expectedContent: defaultUserDtoResponse,
-		},
-		"getUser": {
-			req:             httptest.NewRequest(http.MethodGet, "/", nil),
-			idAsRouteParam:  true,
-			handler:         getUser,
-			userDto:         defaultUserDtoResponse,
-			expectedContent: defaultUserDtoResponse,
-		},
-		"listUsers": {
-			req:             httptest.NewRequest(http.MethodGet, "/", nil),
-			handler:         listUsers,
-			ids:             []uuid.UUID{defaultUuid},
-			expectedContent: []uuid.UUID{defaultUuid},
-		},
-		"updateUser": {
-			req:             generateTestRequestWithUserBody(http.MethodPatch, updatedUser),
-			idAsRouteParam:  true,
-			handler:         updateUser,
-			userDto:         updatedUserResponse,
-			expectedContent: updatedUserResponse,
-		},
-		"loginUserById": {
-			req:             httptest.NewRequest(http.MethodPost, "/", nil),
-			idAsRouteParam:  true,
-			handler:         loginUserById,
-			apiKeyDto:       defaultApiKeyDtoResponse,
-			expectedContent: defaultApiKeyDtoResponse,
-		},
-		"loginUserByEmail": {
-			req:             generateTestRequestWithDefaultUserBody(http.MethodPost),
-			idAsRouteParam:  true,
-			handler:         loginUserByEmail,
-			apiKeyDto:       defaultApiKeyDtoResponse,
-			expectedContent: defaultApiKeyDtoResponse,
-		},
-	}
+	suite.Run(t, &s)
+}
 
-	for name, testCase := range testCases {
-		t.Run(name, func(t *testing.T) {
-			mock := &mockUserService{
-				ids:    testCase.ids,
-				user:   testCase.userDto,
-				apiKey: testCase.apiKeyDto,
-			}
-
-			ctx, rw := generateTestEchoContextFromRequest(testCase.req)
-			if testCase.idAsRouteParam {
-				ctx.SetParamNames("id")
-				ctx.SetParamValues(defaultUuid.String())
-			}
-
-			err := testCase.handler(ctx, mock)
-
-			assert.Nil(err)
-
-			actual := strings.Trim(rw.Body.String(), "\n")
-			expected, err := json.Marshal(testCase.expectedContent)
-			assert.Nil(err)
-			assert.Equal(string(expected), actual)
-		})
+func generateUserServiceMock(err error) service.UserService {
+	return &mockUserService{
+		err: err,
 	}
 }
 
-func TestCreateUser_CallsServiceCreate(t *testing.T) {
-	assert := assert.New(t)
-
-	ctx, _ := generateTestEchoContextFromRequest(generateTestPostRequest())
-	ms := &mockUserService{}
-
-	err := createUser(ctx, ms)
-
-	assert.Nil(err)
-	assert.Equal(1, ms.createCalled)
-}
-
-func TestCreateUser_SavesExpectedUser(t *testing.T) {
-	assert := assert.New(t)
-
-	ctx, _ := generateTestEchoContextFromRequest(generateTestPostRequest())
-	ms := &mockUserService{
-		user: defaultUserDtoResponse,
+func generateValidUserServiceMock() service.UserService {
+	return &mockUserService{
+		ids:    []uuid.UUID{defaultUuid},
+		user:   defaultUserDtoResponse,
+		apiKey: defaultApiKeyDtoResponse,
 	}
-
-	err := createUser(ctx, ms)
-
-	assert.Nil(err)
-	assert.Equal(defaultUserDtoRequest, ms.inUser)
 }
 
-func TestGetUser_CallsServiceGet(t *testing.T) {
-	assert := assert.New(t)
-
-	ctx, _ := generateEchoContextWithValidUuid(http.MethodGet)
-	ms := &mockUserService{}
-
-	err := getUser(ctx, ms)
-
-	assert.Nil(err)
-	assert.Equal(1, ms.getCalled)
-}
-
-func TestGetUser_GetsExpectedUser(t *testing.T) {
-	assert := assert.New(t)
-
-	ctx, _ := generateEchoContextWithValidUuid(http.MethodGet)
-	ms := &mockUserService{}
-
-	err := getUser(ctx, ms)
-
-	assert.Nil(err)
-	assert.Equal(defaultUuid, ms.inId)
-}
-
-func TestListUser_CallsServiceList(t *testing.T) {
-	assert := assert.New(t)
-
-	ctx, _ := generateTestEchoContextWithMethod(http.MethodGet)
-	ms := &mockUserService{}
-
-	err := listUsers(ctx, ms)
-
-	assert.Nil(err)
-	assert.Equal(1, ms.listCalled)
-}
-
-func TestUpdateUser_CallsServiceUpdate(t *testing.T) {
-	assert := assert.New(t)
-
-	ctx, _ := generateEchoContextWithUuidAndBody(http.MethodPatch)
-	ms := &mockUserService{}
-
-	err := updateUser(ctx, ms)
-
-	assert.Nil(err)
-	assert.Equal(1, ms.updateCalled)
-	assert.Equal(defaultUuid, ms.inId)
-	assert.Equal(defaultUserDtoRequest, ms.inUser)
-}
-
-func TestDeleteUser_CallsServiceDelete(t *testing.T) {
-	assert := assert.New(t)
-
-	ctx, _ := generateEchoContextWithValidUuid(http.MethodDelete)
-	ms := &mockUserService{}
-
-	err := deleteUser(ctx, ms)
-
-	assert.Nil(err)
-	assert.Equal(1, ms.deleteCalled)
-}
-
-func TestDeleteUser_DeletesExpectedUser(t *testing.T) {
-	assert := assert.New(t)
-
-	ctx, _ := generateEchoContextWithValidUuid(http.MethodDelete)
-	ms := &mockUserService{}
-
-	err := deleteUser(ctx, ms)
-
-	assert.Nil(err)
-	assert.Equal(defaultUuid, ms.inId)
-}
-
-func TestLoginUserById_CallsServiceLoginById(t *testing.T) {
-	assert := assert.New(t)
-
-	ctx, _ := generateEchoContextWithValidUuid(http.MethodPost)
-	ms := &mockUserService{}
-
-	err := loginUserById(ctx, ms)
-
-	assert.Nil(err)
-	assert.Equal(1, ms.loginByIdCalled)
-}
-
-func TestLoginUserById_LogsInExpectedUser(t *testing.T) {
-	assert := assert.New(t)
-
-	ctx, _ := generateEchoContextWithValidUuid(http.MethodPost)
-	ms := &mockUserService{}
-
-	err := loginUserById(ctx, ms)
-
-	assert.Nil(err)
-	assert.Equal(defaultUuid, ms.inId)
-}
-
-func TestLoginUserByEmail_CallsServiceLogin(t *testing.T) {
-	assert := assert.New(t)
-
-	ctx, _ := generateEchoContextWithBody(http.MethodPost)
-	ms := &mockUserService{}
-
-	err := loginUserByEmail(ctx, ms)
-
-	assert.Nil(err)
-	assert.Equal(1, ms.loginCalled)
-}
-
-func TestLoginUserByEmail_LogsInExpectedUser(t *testing.T) {
-	assert := assert.New(t)
-
-	ctx, _ := generateEchoContextWithBody(http.MethodPost)
-	ms := &mockUserService{}
-
-	err := loginUserByEmail(ctx, ms)
-
-	assert.Nil(err)
-	assert.Equal(defaultUserDtoRequest, ms.inUser)
-}
-
-func TestLogoutUser_CallsServiceLogout(t *testing.T) {
-	assert := assert.New(t)
-
-	ctx, _ := generateEchoContextWithValidUuid(http.MethodPost)
-	ms := &mockUserService{}
-
-	err := logoutUser(ctx, ms)
-
-	assert.Nil(err)
-	assert.Equal(1, ms.logoutCalled)
-}
-
-func TestLogoutUser_LogsOutExpectedUser(t *testing.T) {
-	assert := assert.New(t)
-
-	ctx, _ := generateEchoContextWithValidUuid(http.MethodPost)
-	ms := &mockUserService{}
-
-	err := logoutUser(ctx, ms)
-
-	assert.Nil(err)
-	assert.Equal(defaultUuid, ms.inId)
-}
-
-func generateTestPostRequest() *http.Request {
-	return generateTestRequestWithDefaultUserBody(http.MethodPost)
+func assertUserServiceIsAMock(us service.UserService, assert *require.Assertions) *mockUserService {
+	m, ok := us.(*mockUserService)
+	if !ok {
+		assert.Fail("Provided user service is not a mock")
+	}
+	return m
 }
 
 func generateTestRequestWithDefaultUserBody(method string) *http.Request {
@@ -698,27 +486,6 @@ func generateTestRequestWithUserBody(method string, userDto communication.UserDt
 	req.Header.Set("Content-Type", "application/json")
 
 	return req
-}
-
-func generateEchoContextWithValidUuid(method string) (echo.Context, *httptest.ResponseRecorder) {
-	ctx, rw := generateTestEchoContextWithMethod(method)
-	ctx.SetParamNames("id")
-	ctx.SetParamValues(defaultUuid.String())
-	return ctx, rw
-}
-
-func generateEchoContextWithBody(method string) (echo.Context, *httptest.ResponseRecorder) {
-	req := generateTestRequestWithDefaultUserBody(method)
-	return generateTestEchoContextFromRequest(req)
-}
-
-func generateEchoContextWithUuidAndBody(method string) (echo.Context, *httptest.ResponseRecorder) {
-	req := generateTestRequestWithDefaultUserBody(method)
-
-	ctx, rw := generateTestEchoContextFromRequest(req)
-	ctx.SetParamNames("id")
-	ctx.SetParamValues(defaultUuid.String())
-	return ctx, rw
 }
 
 func (m *mockUserService) Create(ctx context.Context, user communication.UserDtoRequest) (communication.UserDtoResponse, error) {

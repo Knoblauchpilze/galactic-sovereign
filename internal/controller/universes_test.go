@@ -120,7 +120,7 @@ func Test_UniverseController(t *testing.T) {
 				expectedHttpStatus: http.StatusNotFound,
 			},
 			"listUniverses": {
-				req:                generateTestPostRequest(),
+				req:                httptest.NewRequest(http.MethodGet, "/", nil),
 				handler:            listUniverses,
 				err:                errDefault,
 				expectedHttpStatus: http.StatusInternalServerError,

@@ -66,9 +66,11 @@ type responseTestCase[Service any] struct {
 type verifyMockInteractions[Service any] func(Service, *require.Assertions)
 
 type serviceInteractionTestCase[Service any] struct {
-	req            *http.Request
-	idAsRouteParam bool
-	handler        handlerFunc[Service]
+	req                      *http.Request
+	idAsRouteParam           bool
+	generateValidServiceMock generateValidServiceMock[Service]
+
+	handler handlerFunc[Service]
 
 	verifyInteractions verifyMockInteractions[Service]
 }
@@ -226,7 +228,12 @@ func (s *ControllerTestSuite[Service]) TestWhenServiceSucceeds_ExpectCorrectInte
 				ctx.SetParamValues(defaultUuid.String())
 			}
 
-			m := s.generateValidServiceMock()
+			var m Service
+			if testCase.generateValidServiceMock != nil {
+				m = testCase.generateValidServiceMock()
+			} else {
+				m = s.generateValidServiceMock()
+			}
 			err := testCase.handler(ctx, m)
 
 			s.Require().Nil(err)
