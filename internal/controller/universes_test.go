@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
@@ -56,13 +57,14 @@ func TestUniverseEndpoints_GeneratesExpectedRoutes(t *testing.T) {
 	assert.Equal(1, actualRoutes[http.MethodDelete])
 }
 
-func Test_Universes_WhenBodyIsNotAValidUniverseDto_SetsStatusTo400(t *testing.T) {
+func Test_UniverseController(t *testing.T) {
 	s := ControllerTestSuite[service.UniverseService]{
 		generateServiceMock:      generateUniverseServiceMock,
 		generateValidServiceMock: generateValidUniverseServiceMock,
 
 		badInputTestCases: map[string]badInputTestCase[service.UniverseService]{
 			"createUniverse": {
+				req:                httptest.NewRequest(http.MethodPost, "/", strings.NewReader("not-a-dto-request")),
 				handler:            createUniverse,
 				expectedBodyString: "\"Invalid universe syntax\"\n",
 			},
@@ -189,7 +191,7 @@ func Test_Universes_WhenBodyIsNotAValidUniverseDto_SetsStatusTo400(t *testing.T)
 				handler: createUniverse,
 
 				verifyInteractions: func(us service.UniverseService, assert *require.Assertions) {
-					m := assertServiceIsAMock(us, assert)
+					m := assertUniverseServiceIsAMock(us, assert)
 
 					assert.Equal(1, m.createCalled)
 					assert.Equal(defaultUniverseDtoRequest, m.inUniverse)
@@ -201,7 +203,7 @@ func Test_Universes_WhenBodyIsNotAValidUniverseDto_SetsStatusTo400(t *testing.T)
 				handler:        getUniverse,
 
 				verifyInteractions: func(us service.UniverseService, assert *require.Assertions) {
-					m := assertServiceIsAMock(us, assert)
+					m := assertUniverseServiceIsAMock(us, assert)
 
 					assert.Equal(1, m.getCalled)
 					assert.Equal(defaultUuid, m.inId)
@@ -212,7 +214,7 @@ func Test_Universes_WhenBodyIsNotAValidUniverseDto_SetsStatusTo400(t *testing.T)
 				handler: listUniverses,
 
 				verifyInteractions: func(us service.UniverseService, assert *require.Assertions) {
-					m := assertServiceIsAMock(us, assert)
+					m := assertUniverseServiceIsAMock(us, assert)
 
 					assert.Equal(1, m.listCalled)
 				},
@@ -223,7 +225,7 @@ func Test_Universes_WhenBodyIsNotAValidUniverseDto_SetsStatusTo400(t *testing.T)
 				handler:        deleteUniverse,
 
 				verifyInteractions: func(us service.UniverseService, assert *require.Assertions) {
-					m := assertServiceIsAMock(us, assert)
+					m := assertUniverseServiceIsAMock(us, assert)
 
 					assert.Equal(1, m.deleteCalled)
 					assert.Equal(defaultUuid, m.inId)
@@ -247,7 +249,7 @@ func generateValidUniverseServiceMock() service.UniverseService {
 	}
 }
 
-func assertServiceIsAMock(us service.UniverseService, assert *require.Assertions) *mockUniverseService {
+func assertUniverseServiceIsAMock(us service.UniverseService, assert *require.Assertions) *mockUniverseService {
 	m, ok := us.(*mockUniverseService)
 	if !ok {
 		assert.Fail("Provided universe service is not a mock")

@@ -12,6 +12,8 @@ import (
 	"github.com/KnoblauchPilze/user-service/pkg/errors"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/suite"
 )
 
 type mockAuthService struct {
@@ -49,11 +51,6 @@ var defaultAuthorizationResponseDto = communication.AuthorizationDtoResponse{
 	},
 }
 
-type authTestCase struct {
-	req     *http.Request
-	handler authServiceAwareHttpHandler
-}
-
 func TestAuthEndpoints_GeneratesExpectedRoutes(t *testing.T) {
 	assert := assert.New(t)
 
@@ -66,231 +63,119 @@ func TestAuthEndpoints_GeneratesExpectedRoutes(t *testing.T) {
 	assert.Equal(1, actualRoutes[http.MethodGet])
 }
 
-func Test_WhenNoApiKey_SetsStatusTo400(t *testing.T) {
-	assert := assert.New(t)
+func Test_AuthController(t *testing.T) {
+	s := ControllerTestSuite[service.AuthService]{
+		generateServiceMock:      generateAuthServiceMock,
+		generateValidServiceMock: generateValidAuthServiceMock,
 
-	testCases := map[string]authTestCase{
-		"authUser": {
-			req:     httptest.NewRequest(http.MethodGet, "/", nil),
-			handler: authUser,
+		badInputTestCases: map[string]badInputTestCase[service.AuthService]{
+			"authUser": {
+				req:                httptest.NewRequest(http.MethodGet, "/", nil),
+				handler:            authUser,
+				expectedBodyString: "\"Api key not found\"\n",
+			},
+			"authUser_multipleKeys": {
+				req: func() *http.Request {
+					req := httptest.NewRequest(http.MethodGet, "/", nil)
+
+					req.Header.Add("X-Api-Key", "e6349328-543b-4b4e-8a3c-4caf7b413589")
+					req.Header.Add("X-Api-Key", "de2108c2-f87b-4033-825c-4ccbbb8b778e")
+
+					return req
+				}(),
+				handler:            authUser,
+				expectedBodyString: "\"Api key not found\"\n",
+			},
 		},
-		"authUser_multipleKeys": {
-			req: func() *http.Request {
-				req := httptest.NewRequest(http.MethodGet, "/", nil)
 
-				req.Header.Add("X-Api-Key", "e6349328-543b-4b4e-8a3c-4caf7b413589")
-				req.Header.Add("X-Api-Key", "de2108c2-f87b-4033-825c-4ccbbb8b778e")
-
-				return req
-			}(),
-			handler: authUser,
+		errorTestCases: map[string]errorTestCase[service.AuthService]{
+			"authUser": {
+				req:                generateTestRequestWithApiKey(http.MethodGet),
+				handler:            authUser,
+				err:                errDefault,
+				expectedHttpStatus: http.StatusInternalServerError,
+			},
+			"authUser_notLoggedIn": {
+				req:                generateTestRequestWithApiKey(http.MethodGet),
+				handler:            authUser,
+				err:                errors.NewCode(service.UserNotAuthenticated),
+				expectedHttpStatus: http.StatusForbidden,
+			},
+			"authUser_keyExpired": {
+				req:                generateTestRequestWithApiKey(http.MethodGet),
+				handler:            authUser,
+				err:                errors.NewCode(service.AuthenticationExpired),
+				expectedHttpStatus: http.StatusForbidden,
+			},
 		},
-	}
 
-	for name, testCase := range testCases {
-		t.Run(name, func(t *testing.T) {
-			mock := &mockAuthService{}
-			ctx, rw := generateTestEchoContextFromRequest(testCase.req)
-
-			err := testCase.handler(ctx, mock)
-
-			assert.Nil(err)
-			assert.Equal(http.StatusBadRequest, rw.Code)
-			assert.Equal("\"Api key not found\"\n", rw.Body.String())
-		})
-	}
-}
-
-func Test_WhenApiKeySyntaxIsWrong_SetsStatusTo400(t *testing.T) {
-	assert := assert.New(t)
-
-	testCases := map[string]authTestCase{
-		"authUser": {
-			req: func() *http.Request {
-				req := httptest.NewRequest(http.MethodGet, "/", nil)
-
-				req.Header.Add("X-Api-Key", "not-a-uuid")
-
-				return req
-			}(),
-			handler: authUser,
+		successTestCases: map[string]successTestCase[service.AuthService]{
+			"authUser": {
+				req:                generateTestRequestWithApiKey(http.MethodGet),
+				handler:            authUser,
+				expectedHttpStatus: http.StatusNoContent,
+			},
 		},
-	}
 
-	for name, testCase := range testCases {
-		t.Run(name, func(t *testing.T) {
-			mock := &mockAuthService{}
-			ctx, rw := generateTestEchoContextFromRequest(testCase.req)
+		responseTestCases: map[string]responseTestCase[service.AuthService]{
+			"authUser": {
+				req:     generateTestRequestWithApiKey(http.MethodPost),
+				handler: authUser,
 
-			err := testCase.handler(ctx, mock)
+				verifyResponse: func(rw *httptest.ResponseRecorder, assert *require.Assertions) {
+					assert.Equal(0, len(rw.Body.Bytes()))
 
-			assert.Nil(err)
-			assert.Equal(http.StatusBadRequest, rw.Code)
-			assert.Equal("\"Invalid api key syntax\"\n", rw.Body.String())
-		})
-	}
-}
+					expectedHeaders := map[string]string{
+						"X-Acl":        `[{"id":"d74072e4-c6d1-4486-9428-61f025bbf372","user":"9676fdad-6d3d-4df2-85a6-382ab4aad9dc","resource":"resource-1","permissions":["POST","GET"],"createdAt":"2024-06-30T17:44:24.651387237Z"}]`,
+						"X-User-Limit": `[{"name":"limit-1","value":"10"},{"name":"limit-2","value":"some-string"}]`,
+					}
 
-func Test_WhenAuthServiceFails_SetsExpectedStatus(t *testing.T) {
-	assert := assert.New(t)
+					assert.Equal(len(expectedHeaders), len(rw.Header()))
 
-	type testCaseError struct {
-		req                *http.Request
-		handler            authServiceAwareHttpHandler
-		err                error
-		expectedHttpStatus int
-	}
-
-	testCases := map[string]testCaseError{
-		"authUser": {
-			req:                generateTestRequestWithApiKey(http.MethodGet),
-			handler:            authUser,
-			err:                errDefault,
-			expectedHttpStatus: http.StatusInternalServerError,
+					for headerKey, expectedHeader := range expectedHeaders {
+						actualHeader := rw.Header().Get(headerKey)
+						assert.Equal(expectedHeader, actualHeader)
+					}
+				},
+			},
 		},
-		"authUser_notLoggedIn": {
-			req:                generateTestRequestWithApiKey(http.MethodGet),
-			handler:            authUser,
-			err:                errors.NewCode(service.UserNotAuthenticated),
-			expectedHttpStatus: http.StatusForbidden,
-		},
-		"authUser_keyExpired": {
-			req:                generateTestRequestWithApiKey(http.MethodGet),
-			handler:            authUser,
-			err:                errors.NewCode(service.AuthenticationExpired),
-			expectedHttpStatus: http.StatusForbidden,
-		},
-	}
 
-	for name, testCase := range testCases {
-		t.Run(name, func(t *testing.T) {
-			mock := &mockAuthService{
-				err: testCase.err,
-			}
+		serviceInteractionTestCases: map[string]serviceInteractionTestCase[service.AuthService]{
+			"authUser": {
+				req:     generateTestRequestWithApiKey(http.MethodGet),
+				handler: authUser,
 
-			ctx, rw := generateTestEchoContextFromRequest(testCase.req)
+				verifyInteractions: func(as service.AuthService, assert *require.Assertions) {
+					m := assertAuthServiceIsAMock(as, assert)
 
-			err := testCase.handler(ctx, mock)
-
-			assert.Nil(err)
-			assert.Equal(testCase.expectedHttpStatus, rw.Code)
-		})
-	}
-}
-
-func Test_WhenAuthServiceSucceeds_SetsExpectedStatus(t *testing.T) {
-	assert := assert.New(t)
-
-	type testCaseSuccess struct {
-		req                *http.Request
-		idAsRouteParam     bool
-		handler            authServiceAwareHttpHandler
-		expectedHttpStatus int
-	}
-
-	testCases := map[string]testCaseSuccess{
-		"authUser": {
-			req:                generateTestRequestWithApiKey(http.MethodGet),
-			handler:            authUser,
-			expectedHttpStatus: http.StatusNoContent,
-		},
-	}
-
-	for name, testCase := range testCases {
-		t.Run(name, func(t *testing.T) {
-			mock := &mockAuthService{}
-
-			ctx, rw := generateTestEchoContextFromRequest(testCase.req)
-			if testCase.idAsRouteParam {
-				ctx.SetParamNames("id")
-				ctx.SetParamValues(defaultUuid.String())
-			}
-
-			err := testCase.handler(ctx, mock)
-
-			assert.Nil(err)
-			assert.Equal(testCase.expectedHttpStatus, rw.Code)
-		})
-	}
-}
-
-func Test_WhenAuthServiceSucceeds_SetsResponseHeaderCorrectly(t *testing.T) {
-	assert := assert.New(t)
-
-	type testCaseReturn struct {
-		req            *http.Request
-		idAsRouteParam bool
-		handler        authServiceAwareHttpHandler
-
-		authData communication.AuthorizationDtoResponse
-
-		expectedHeaders map[string]string
-	}
-
-	testCases := map[string]testCaseReturn{
-		"authUser": {
-			req:      generateTestRequestWithApiKey(http.MethodPost),
-			handler:  authUser,
-			authData: defaultAuthorizationResponseDto,
-			expectedHeaders: map[string]string{
-				"X-Acl":        `[{"id":"d74072e4-c6d1-4486-9428-61f025bbf372","user":"9676fdad-6d3d-4df2-85a6-382ab4aad9dc","resource":"resource-1","permissions":["POST","GET"],"createdAt":"2024-06-30T17:44:24.651387237Z"}]`,
-				"X-User-Limit": `[{"name":"limit-1","value":"10"},{"name":"limit-2","value":"some-string"}]`,
+					assert.Equal(1, m.authCalled)
+					assert.Equal(defaultApiKeyId, m.inApiKey)
+				},
 			},
 		},
 	}
 
-	for name, testCase := range testCases {
-		t.Run(name, func(t *testing.T) {
-			mock := &mockAuthService{
-				authData: testCase.authData,
-			}
+	suite.Run(t, &s)
+}
 
-			ctx, rw := generateTestEchoContextFromRequest(testCase.req)
-			if testCase.idAsRouteParam {
-				ctx.SetParamNames("id")
-				ctx.SetParamValues(defaultUuid.String())
-			}
-
-			err := testCase.handler(ctx, mock)
-
-			assert.Nil(err)
-
-			assert.Equal(0, len(rw.Body.Bytes()))
-			assert.Equal(len(testCase.expectedHeaders), len(rw.Header()))
-
-			for headerKey, expectedHeader := range testCase.expectedHeaders {
-
-				actualHeader := rw.Header().Get(headerKey)
-				assert.Equal(expectedHeader, actualHeader)
-			}
-		})
+func generateAuthServiceMock(err error) service.AuthService {
+	return &mockAuthService{
+		err: err,
 	}
 }
 
-func TestAuthUser_CallsServiceCreate(t *testing.T) {
-	assert := assert.New(t)
-
-	req := generateTestRequestWithApiKey(http.MethodGet)
-	ctx, _ := generateTestEchoContextFromRequest(req)
-	ms := &mockAuthService{}
-
-	err := authUser(ctx, ms)
-
-	assert.Nil(err)
-	assert.Equal(1, ms.authCalled)
+func generateValidAuthServiceMock() service.AuthService {
+	return &mockAuthService{
+		authData: defaultAuthorizationResponseDto,
+	}
 }
 
-func TestAuthUser_GetsExpectedApiKey(t *testing.T) {
-	assert := assert.New(t)
-
-	req := generateTestRequestWithApiKey(http.MethodGet)
-	ctx, _ := generateTestEchoContextFromRequest(req)
-	ms := &mockAuthService{}
-
-	err := authUser(ctx, ms)
-
-	assert.Nil(err)
-	assert.Equal(defaultApiKeyId, ms.inApiKey)
+func assertAuthServiceIsAMock(as service.AuthService, assert *require.Assertions) *mockAuthService {
+	m, ok := as.(*mockAuthService)
+	if !ok {
+		assert.Fail("Provided auth service is not a mock")
+	}
+	return m
 }
 
 func generateTestRequestWithApiKey(method string) *http.Request {
