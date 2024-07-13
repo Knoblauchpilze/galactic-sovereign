@@ -37,7 +37,7 @@ func TestPlayerService_Create_CallsRepositoryCreate(t *testing.T) {
 	repos := repositories.Repositories{
 		Player: mpr,
 	}
-	s := NewPlayerService(Config{}, mc, repos)
+	s := NewPlayerService(mc, repos)
 
 	s.Create(context.Background(), defaultPlayerDtoRequest)
 
@@ -57,7 +57,7 @@ func TestPlayerService_Create_WhenRepositoryFails_ExpectError(t *testing.T) {
 	repos := repositories.Repositories{
 		Player: mpr,
 	}
-	s := NewPlayerService(Config{}, mc, repos)
+	s := NewPlayerService(mc, repos)
 
 	_, err := s.Create(context.Background(), defaultPlayerDtoRequest)
 
@@ -74,7 +74,7 @@ func TestPlayerService_Create_ReturnsCreatedPlayer(t *testing.T) {
 	repos := repositories.Repositories{
 		Player: mpr,
 	}
-	s := NewPlayerService(Config{}, mc, repos)
+	s := NewPlayerService(mc, repos)
 
 	actual, err := s.Create(context.Background(), defaultPlayerDtoRequest)
 
@@ -99,7 +99,7 @@ func TestPlayerService_Get_CallsRepositoryGet(t *testing.T) {
 	repos := repositories.Repositories{
 		Player: mpr,
 	}
-	s := NewPlayerService(Config{}, mc, repos)
+	s := NewPlayerService(mc, repos)
 
 	s.Get(context.Background(), defaultPlayerId)
 
@@ -116,7 +116,7 @@ func TestPlayerService_Get_WhenRepositoryFails_ExpectError(t *testing.T) {
 	repos := repositories.Repositories{
 		Player: mpr,
 	}
-	s := NewPlayerService(Config{}, mc, repos)
+	s := NewPlayerService(mc, repos)
 
 	_, err := s.Get(context.Background(), defaultPlayerId)
 
@@ -133,7 +133,7 @@ func TestPlayerService_Get_ReturnsPlayer(t *testing.T) {
 	repos := repositories.Repositories{
 		Player: mpr,
 	}
-	s := NewPlayerService(Config{}, mc, repos)
+	s := NewPlayerService(mc, repos)
 
 	actual, err := s.Get(context.Background(), defaultPlayerId)
 
@@ -159,7 +159,7 @@ func TestPlayerService_List_CallsRepositoryList(t *testing.T) {
 	repos := repositories.Repositories{
 		Player: mpr,
 	}
-	s := NewPlayerService(Config{}, mc, repos)
+	s := NewPlayerService(mc, repos)
 
 	s.List(context.Background())
 
@@ -176,7 +176,7 @@ func TestPlayerService_List_WhenRepositoryFails_ExpectError(t *testing.T) {
 	repos := repositories.Repositories{
 		Player: mpr,
 	}
-	s := NewPlayerService(Config{}, mc, repos)
+	s := NewPlayerService(mc, repos)
 
 	_, err := s.List(context.Background())
 
@@ -193,7 +193,7 @@ func TestPlayerService_List_ReturnsAllPlayers(t *testing.T) {
 	repos := repositories.Repositories{
 		Player: mpr,
 	}
-	s := NewPlayerService(Config{}, mc, repos)
+	s := NewPlayerService(mc, repos)
 
 	actual, err := s.List(context.Background())
 
@@ -218,7 +218,7 @@ func TestPlayerService_Delete_CallsRepositoryDelete(t *testing.T) {
 	repos := repositories.Repositories{
 		Player: mpr,
 	}
-	s := NewPlayerService(Config{}, mc, repos)
+	s := NewPlayerService(mc, repos)
 
 	s.Delete(context.Background(), defaultPlayerId)
 
@@ -233,7 +233,7 @@ func TestPlayerService_Delete_CallsTransactionClose(t *testing.T) {
 	repos := repositories.Repositories{
 		Player: mpr,
 	}
-	s := NewPlayerService(Config{}, mc, repos)
+	s := NewPlayerService(mc, repos)
 
 	s.Delete(context.Background(), defaultPlayerId)
 
@@ -250,7 +250,7 @@ func TestPlayerService_Delete_WhenCreatingTransactionFails_ExpectError(t *testin
 	repos := repositories.Repositories{
 		Player: mpr,
 	}
-	s := NewPlayerService(Config{}, mc, repos)
+	s := NewPlayerService(mc, repos)
 
 	err := s.Delete(context.Background(), defaultPlayerId)
 
@@ -265,7 +265,7 @@ func TestPlayerService_Delete_DeletesTheRightPlayer(t *testing.T) {
 	repos := repositories.Repositories{
 		Player: mpr,
 	}
-	s := NewPlayerService(Config{}, mc, repos)
+	s := NewPlayerService(mc, repos)
 
 	s.Delete(context.Background(), defaultPlayerId)
 
@@ -282,7 +282,7 @@ func TestPlayerService_Delete_WhenPlayerRepositoryFails_ExpectError(t *testing.T
 	repos := repositories.Repositories{
 		Player: mpr,
 	}
-	s := NewPlayerService(Config{}, mc, repos)
+	s := NewPlayerService(mc, repos)
 
 	err := s.Delete(context.Background(), defaultPlayerId)
 
@@ -297,7 +297,7 @@ func TestPlayerService_Delete_WhenRepositoriesSucceeds_ExpectSuccess(t *testing.
 	repos := repositories.Repositories{
 		Player: mpr,
 	}
-	s := NewPlayerService(Config{}, mc, repos)
+	s := NewPlayerService(mc, repos)
 
 	err := s.Delete(context.Background(), defaultPlayerId)
 
