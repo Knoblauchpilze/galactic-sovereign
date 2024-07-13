@@ -69,12 +69,17 @@ func getPlanet(c echo.Context, s service.PlanetService) error {
 }
 
 func listPlanets(c echo.Context, s service.PlanetService) error {
-	out, err := s.List(c.Request().Context())
+	planets, err := s.List(c.Request().Context())
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 
-	return c.JSON(http.StatusOK, out)
+	out, err := marshalNilToEmptySlice(planets)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, err)
+	}
+
+	return c.JSONBlob(http.StatusOK, out)
 }
 
 func deletePlanet(c echo.Context, s service.PlanetService) error {

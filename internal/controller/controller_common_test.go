@@ -46,9 +46,11 @@ type successTestCase[Service any] struct {
 }
 
 type returnTestCase[Service any] struct {
-	req            *http.Request
-	idAsRouteParam bool
-	handler        handlerFunc[Service]
+	req                      *http.Request
+	idAsRouteParam           bool
+	generateValidServiceMock generateValidServiceMock[Service]
+
+	handler handlerFunc[Service]
 
 	expectedContent interface{}
 }
@@ -188,7 +190,12 @@ func (s *ControllerTestSuite[Service]) TestWhenServiceSucceeds_ReturnsExpectedVa
 				ctx.SetParamValues(defaultUuid.String())
 			}
 
-			m := s.generateValidServiceMock()
+			var m Service
+			if testCase.generateValidServiceMock != nil {
+				m = testCase.generateValidServiceMock()
+			} else {
+				m = s.generateValidServiceMock()
+			}
 			err := testCase.handler(ctx, m)
 
 			s.Require().Nil(err)

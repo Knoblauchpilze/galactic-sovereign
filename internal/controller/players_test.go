@@ -183,6 +183,17 @@ func Test_PlayerController(t *testing.T) {
 				handler:         listPlayers,
 				expectedContent: []communication.PlayerDtoResponse{defaultPlayerDtoResponse},
 			},
+			"listPlayers_noData": {
+				req: httptest.NewRequest(http.MethodGet, "/", nil),
+				generateValidServiceMock: func() service.PlayerService {
+					return &mockPlayerService{
+						players: nil,
+					}
+				},
+
+				handler:         listPlayers,
+				expectedContent: []communication.PlayerDtoResponse{},
+			},
 		},
 
 		serviceInteractionTestCases: map[string]serviceInteractionTestCase[service.PlayerService]{
