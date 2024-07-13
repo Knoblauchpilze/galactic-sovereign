@@ -48,12 +48,30 @@ func main() {
 	}
 
 	repos := repositories.Repositories{
+		Planet:   repositories.NewPlanetRepository(pool),
+		Player:   repositories.NewPlayerRepository(pool),
 		Universe: repositories.NewUniverseRepository(pool),
 	}
 
+	planetService := service.NewPlanetService(pool, repos)
+	playerService := service.NewPlayerService(pool, repos)
 	universeService := service.NewUniverseService(pool, repos)
 
 	s := rest.NewServer(conf.Server)
+
+	for _, route := range controller.PlanetEndpoints(planetService) {
+		if err := s.Register(route); err != nil {
+			logger.Errorf("Failed to register route: %v", err)
+			os.Exit(1)
+		}
+	}
+
+	for _, route := range controller.PlayerEndpoints(playerService) {
+		if err := s.Register(route); err != nil {
+			logger.Errorf("Failed to register route: %v", err)
+			os.Exit(1)
+		}
+	}
 
 	for _, route := range controller.UniverseEndpoints(universeService) {
 		if err := s.Register(route); err != nil {
