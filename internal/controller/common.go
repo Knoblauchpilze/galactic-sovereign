@@ -22,6 +22,14 @@ func fromDbAwareHttpHandler(handler dbAwareHttpHandler, pool db.ConnectionPool) 
 	}
 }
 
+type planetServiceAwareHttpHandler func(echo.Context, service.PlanetService) error
+
+func fromPlanetServiceAwareHttpHandler(handler planetServiceAwareHttpHandler, service service.PlanetService) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		return handler(c, service)
+	}
+}
+
 type universeServiceAwareHttpHandler func(echo.Context, service.UniverseService) error
 
 func fromUniverseServiceAwareHttpHandler(handler universeServiceAwareHttpHandler, service service.UniverseService) echo.HandlerFunc {
