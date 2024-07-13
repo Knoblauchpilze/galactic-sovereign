@@ -9,7 +9,6 @@ CREATE TABLE planet (
   FOREIGN KEY (player) REFERENCES player(id)
 );
 
-
 CREATE TRIGGER trigger_planet_updated_at
   BEFORE UPDATE OR INSERT ON planet
   FOR EACH ROW
