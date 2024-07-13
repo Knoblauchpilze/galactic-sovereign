@@ -73,12 +73,17 @@ func getPlayer(c echo.Context, s service.PlayerService) error {
 }
 
 func listPlayers(c echo.Context, s service.PlayerService) error {
-	out, err := s.List(c.Request().Context())
+	players, err := s.List(c.Request().Context())
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 
-	return c.JSON(http.StatusOK, out)
+	out, err := marshalNilToEmptySlice(players)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, err)
+	}
+
+	return c.JSONBlob(http.StatusOK, out)
 }
 
 func deletePlayer(c echo.Context, s service.PlayerService) error {

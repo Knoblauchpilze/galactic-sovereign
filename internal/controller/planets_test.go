@@ -179,6 +179,17 @@ func Test_PlanetController(t *testing.T) {
 				handler:         listPlanets,
 				expectedContent: []communication.PlanetDtoResponse{defaultPlanetDtoResponse},
 			},
+			"listPlanets_noData": {
+				req: httptest.NewRequest(http.MethodGet, "/", nil),
+				generateValidServiceMock: func() service.PlanetService {
+					return &mockPlanetService{
+						planets: nil,
+					}
+				},
+
+				handler:         listPlanets,
+				expectedContent: []communication.PlanetDtoResponse{},
+			},
 		},
 
 		serviceInteractionTestCases: map[string]serviceInteractionTestCase[service.PlanetService]{

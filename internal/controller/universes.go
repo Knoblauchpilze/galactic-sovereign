@@ -73,12 +73,17 @@ func getUniverse(c echo.Context, s service.UniverseService) error {
 }
 
 func listUniverses(c echo.Context, s service.UniverseService) error {
-	out, err := s.List(c.Request().Context())
+	universes, err := s.List(c.Request().Context())
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 
-	return c.JSON(http.StatusOK, out)
+	out, err := marshalNilToEmptySlice(universes)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, err)
+	}
+
+	return c.JSONBlob(http.StatusOK, out)
 }
 
 func deleteUniverse(c echo.Context, s service.UniverseService) error {

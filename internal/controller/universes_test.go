@@ -183,6 +183,17 @@ func Test_UniverseController(t *testing.T) {
 				handler:         listUniverses,
 				expectedContent: []communication.UniverseDtoResponse{defaultUniverseDtoResponse},
 			},
+			"listUniverses_noData": {
+				req: httptest.NewRequest(http.MethodGet, "/", nil),
+				generateValidServiceMock: func() service.UniverseService {
+					return &mockUniverseService{
+						universes: nil,
+					}
+				},
+
+				handler:         listUniverses,
+				expectedContent: []communication.UniverseDtoResponse{},
+			},
 		},
 
 		serviceInteractionTestCases: map[string]serviceInteractionTestCase[service.UniverseService]{
