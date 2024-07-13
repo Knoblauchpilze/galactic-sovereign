@@ -249,8 +249,8 @@ func generateValidUniverseServiceMock() service.UniverseService {
 	}
 }
 
-func assertUniverseServiceIsAMock(us service.UniverseService, assert *require.Assertions) *mockUniverseService {
-	m, ok := us.(*mockUniverseService)
+func assertUniverseServiceIsAMock(s service.UniverseService, assert *require.Assertions) *mockUniverseService {
+	m, ok := s.(*mockUniverseService)
 	if !ok {
 		assert.Fail("Provided universe service is not a mock")
 	}

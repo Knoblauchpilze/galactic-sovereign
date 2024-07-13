@@ -50,7 +50,7 @@ func UserEndpoints(service service.UserService) rest.Routes {
 	return out
 }
 
-func createUser(c echo.Context, us service.UserService) error {
+func createUser(c echo.Context, s service.UserService) error {
 	// https://echo.labstack.com/docs/binding
 	var userDtoRequest communication.UserDtoRequest
 	err := c.Bind(&userDtoRequest)
@@ -58,7 +58,7 @@ func createUser(c echo.Context, us service.UserService) error {
 		return c.JSON(http.StatusBadRequest, "Invalid user syntax")
 	}
 
-	out, err := us.Create(c.Request().Context(), userDtoRequest)
+	out, err := s.Create(c.Request().Context(), userDtoRequest)
 	if err != nil {
 		if errors.IsErrorWithCode(err, db.DuplicatedKeySqlKey) {
 			return c.JSON(http.StatusConflict, "Email already used")
@@ -70,14 +70,14 @@ func createUser(c echo.Context, us service.UserService) error {
 	return c.JSON(http.StatusCreated, out)
 }
 
-func getUser(c echo.Context, us service.UserService) error {
+func getUser(c echo.Context, s service.UserService) error {
 	maybeId := c.Param("id")
 	id, err := uuid.Parse(maybeId)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, "Invalid id syntax")
 	}
 
-	out, err := us.Get(c.Request().Context(), id)
+	out, err := s.Get(c.Request().Context(), id)
 	if err != nil {
 		if errors.IsErrorWithCode(err, db.NoMatchingSqlRows) {
 			return c.JSON(http.StatusNotFound, "No such user")
@@ -89,8 +89,8 @@ func getUser(c echo.Context, us service.UserService) error {
 	return c.JSON(http.StatusOK, out)
 }
 
-func listUsers(c echo.Context, us service.UserService) error {
-	out, err := us.List(c.Request().Context())
+func listUsers(c echo.Context, s service.UserService) error {
+	out, err := s.List(c.Request().Context())
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
@@ -98,7 +98,7 @@ func listUsers(c echo.Context, us service.UserService) error {
 	return c.JSON(http.StatusOK, out)
 }
 
-func updateUser(c echo.Context, us service.UserService) error {
+func updateUser(c echo.Context, s service.UserService) error {
 	maybeId := c.Param("id")
 	id, err := uuid.Parse(maybeId)
 	if err != nil {
@@ -111,7 +111,7 @@ func updateUser(c echo.Context, us service.UserService) error {
 		return c.JSON(http.StatusBadRequest, "Invalid user syntax")
 	}
 
-	out, err := us.Update(c.Request().Context(), id, userDtoRequest)
+	out, err := s.Update(c.Request().Context(), id, userDtoRequest)
 	if err != nil {
 		if errors.IsErrorWithCode(err, db.NoMatchingSqlRows) {
 			return c.JSON(http.StatusNotFound, "No such user")
@@ -127,14 +127,14 @@ func updateUser(c echo.Context, us service.UserService) error {
 	return c.JSON(http.StatusOK, out)
 }
 
-func deleteUser(c echo.Context, us service.UserService) error {
+func deleteUser(c echo.Context, s service.UserService) error {
 	maybeId := c.Param("id")
 	id, err := uuid.Parse(maybeId)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, "Invalid id syntax")
 	}
 
-	err = us.Delete(c.Request().Context(), id)
+	err = s.Delete(c.Request().Context(), id)
 	if err != nil {
 		if errors.IsErrorWithCode(err, db.NoMatchingSqlRows) {
 			return c.JSON(http.StatusNotFound, "No such user")
@@ -146,14 +146,14 @@ func deleteUser(c echo.Context, us service.UserService) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
-func loginUserByEmail(c echo.Context, us service.UserService) error {
+func loginUserByEmail(c echo.Context, s service.UserService) error {
 	var userDtoRequest communication.UserDtoRequest
 	err := c.Bind(&userDtoRequest)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, "Invalid user syntax")
 	}
 
-	out, err := us.Login(c.Request().Context(), userDtoRequest)
+	out, err := s.Login(c.Request().Context(), userDtoRequest)
 	if err != nil {
 		if errors.IsErrorWithCode(err, db.NoMatchingSqlRows) {
 			return c.JSON(http.StatusNotFound, "No such user")
@@ -168,14 +168,14 @@ func loginUserByEmail(c echo.Context, us service.UserService) error {
 	return c.JSON(http.StatusCreated, out)
 }
 
-func loginUserById(c echo.Context, us service.UserService) error {
+func loginUserById(c echo.Context, s service.UserService) error {
 	maybeId := c.Param("id")
 	id, err := uuid.Parse(maybeId)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, "Invalid id syntax")
 	}
 
-	out, err := us.LoginById(c.Request().Context(), id)
+	out, err := s.LoginById(c.Request().Context(), id)
 	if err != nil {
 		if errors.IsErrorWithCode(err, db.NoMatchingSqlRows) {
 			return c.JSON(http.StatusNotFound, "No such user")
@@ -187,14 +187,14 @@ func loginUserById(c echo.Context, us service.UserService) error {
 	return c.JSON(http.StatusCreated, out)
 }
 
-func logoutUser(c echo.Context, us service.UserService) error {
+func logoutUser(c echo.Context, s service.UserService) error {
 	maybeId := c.Param("id")
 	id, err := uuid.Parse(maybeId)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, "Invalid id syntax")
 	}
 
-	err = us.Logout(c.Request().Context(), id)
+	err = s.Logout(c.Request().Context(), id)
 	if err != nil {
 		if errors.IsErrorWithCode(err, db.NoMatchingSqlRows) {
 			return c.JSON(http.StatusNotFound, "No such user")
