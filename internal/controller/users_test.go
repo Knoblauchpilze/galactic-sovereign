@@ -347,8 +347,8 @@ func Test_UserController(t *testing.T) {
 				req:     generateTestRequestWithDefaultUserBody(http.MethodPost),
 				handler: createUser,
 
-				verifyInteractions: func(us service.UserService, assert *require.Assertions) {
-					m := assertUserServiceIsAMock(us, assert)
+				verifyInteractions: func(s service.UserService, assert *require.Assertions) {
+					m := assertUserServiceIsAMock(s, assert)
 
 					assert.Equal(1, m.createCalled)
 					assert.Equal(defaultUserDtoRequest, m.inUser)
@@ -359,8 +359,8 @@ func Test_UserController(t *testing.T) {
 				idAsRouteParam: true,
 				handler:        getUser,
 
-				verifyInteractions: func(us service.UserService, assert *require.Assertions) {
-					m := assertUserServiceIsAMock(us, assert)
+				verifyInteractions: func(s service.UserService, assert *require.Assertions) {
+					m := assertUserServiceIsAMock(s, assert)
 
 					assert.Equal(1, m.getCalled)
 					assert.Equal(defaultUuid, m.inId)
@@ -370,8 +370,8 @@ func Test_UserController(t *testing.T) {
 				req:     httptest.NewRequest(http.MethodGet, "/", nil),
 				handler: listUsers,
 
-				verifyInteractions: func(us service.UserService, assert *require.Assertions) {
-					m := assertUserServiceIsAMock(us, assert)
+				verifyInteractions: func(s service.UserService, assert *require.Assertions) {
+					m := assertUserServiceIsAMock(s, assert)
 
 					assert.Equal(1, m.listCalled)
 				},
@@ -393,8 +393,8 @@ func Test_UserController(t *testing.T) {
 
 				handler: updateUser,
 
-				verifyInteractions: func(us service.UserService, assert *require.Assertions) {
-					m := assertUserServiceIsAMock(us, assert)
+				verifyInteractions: func(s service.UserService, assert *require.Assertions) {
+					m := assertUserServiceIsAMock(s, assert)
 
 					assert.Equal(1, m.updateCalled)
 					assert.Equal(updatedUserDtoRequest, m.inUser)
@@ -405,8 +405,8 @@ func Test_UserController(t *testing.T) {
 				idAsRouteParam: true,
 				handler:        deleteUser,
 
-				verifyInteractions: func(us service.UserService, assert *require.Assertions) {
-					m := assertUserServiceIsAMock(us, assert)
+				verifyInteractions: func(s service.UserService, assert *require.Assertions) {
+					m := assertUserServiceIsAMock(s, assert)
 
 					assert.Equal(1, m.deleteCalled)
 					assert.Equal(defaultUuid, m.inId)
@@ -417,8 +417,8 @@ func Test_UserController(t *testing.T) {
 				idAsRouteParam: true,
 				handler:        loginUserById,
 
-				verifyInteractions: func(us service.UserService, assert *require.Assertions) {
-					m := assertUserServiceIsAMock(us, assert)
+				verifyInteractions: func(s service.UserService, assert *require.Assertions) {
+					m := assertUserServiceIsAMock(s, assert)
 
 					assert.Equal(1, m.loginByIdCalled)
 					assert.Equal(defaultUuid, m.inId)
@@ -428,8 +428,8 @@ func Test_UserController(t *testing.T) {
 				req:     generateTestRequestWithDefaultUserBody(http.MethodPost),
 				handler: loginUserByEmail,
 
-				verifyInteractions: func(us service.UserService, assert *require.Assertions) {
-					m := assertUserServiceIsAMock(us, assert)
+				verifyInteractions: func(s service.UserService, assert *require.Assertions) {
+					m := assertUserServiceIsAMock(s, assert)
 
 					assert.Equal(1, m.loginCalled)
 					assert.Equal(defaultUserDtoRequest, m.inUser)
@@ -440,8 +440,8 @@ func Test_UserController(t *testing.T) {
 				idAsRouteParam: true,
 				handler:        logoutUser,
 
-				verifyInteractions: func(us service.UserService, assert *require.Assertions) {
-					m := assertUserServiceIsAMock(us, assert)
+				verifyInteractions: func(s service.UserService, assert *require.Assertions) {
+					m := assertUserServiceIsAMock(s, assert)
 
 					assert.Equal(1, m.logoutCalled)
 					assert.Equal(defaultUuid, m.inId)
@@ -467,8 +467,8 @@ func generateValidUserServiceMock() service.UserService {
 	}
 }
 
-func assertUserServiceIsAMock(us service.UserService, assert *require.Assertions) *mockUserService {
-	m, ok := us.(*mockUserService)
+func assertUserServiceIsAMock(s service.UserService, assert *require.Assertions) *mockUserService {
+	m, ok := s.(*mockUserService)
 	if !ok {
 		assert.Fail("Provided user service is not a mock")
 	}

@@ -28,20 +28,20 @@ func UniverseEndpoints(service service.UniverseService) rest.Routes {
 	out = append(out, list)
 
 	deleteHandler := fromUniverseServiceAwareHttpHandler(deleteUniverse, service)
-	delete := rest.NewResourceRoute(http.MethodDelete, true, "/users", deleteHandler)
+	delete := rest.NewResourceRoute(http.MethodDelete, true, "/universes", deleteHandler)
 	out = append(out, delete)
 
 	return out
 }
 
-func createUniverse(c echo.Context, us service.UniverseService) error {
+func createUniverse(c echo.Context, s service.UniverseService) error {
 	var universeDtoRequest communication.UniverseDtoRequest
 	err := c.Bind(&universeDtoRequest)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, "Invalid universe syntax")
 	}
 
-	out, err := us.Create(c.Request().Context(), universeDtoRequest)
+	out, err := s.Create(c.Request().Context(), universeDtoRequest)
 	if err != nil {
 		if errors.IsErrorWithCode(err, db.DuplicatedKeySqlKey) {
 			return c.JSON(http.StatusConflict, "Name already used")
@@ -53,14 +53,14 @@ func createUniverse(c echo.Context, us service.UniverseService) error {
 	return c.JSON(http.StatusCreated, out)
 }
 
-func getUniverse(c echo.Context, us service.UniverseService) error {
+func getUniverse(c echo.Context, s service.UniverseService) error {
 	maybeId := c.Param("id")
 	id, err := uuid.Parse(maybeId)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, "Invalid id syntax")
 	}
 
-	out, err := us.Get(c.Request().Context(), id)
+	out, err := s.Get(c.Request().Context(), id)
 	if err != nil {
 		if errors.IsErrorWithCode(err, db.NoMatchingSqlRows) {
 			return c.JSON(http.StatusNotFound, "No such universe")
@@ -72,8 +72,8 @@ func getUniverse(c echo.Context, us service.UniverseService) error {
 	return c.JSON(http.StatusOK, out)
 }
 
-func listUniverses(c echo.Context, us service.UniverseService) error {
-	out, err := us.List(c.Request().Context())
+func listUniverses(c echo.Context, s service.UniverseService) error {
+	out, err := s.List(c.Request().Context())
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
@@ -81,14 +81,14 @@ func listUniverses(c echo.Context, us service.UniverseService) error {
 	return c.JSON(http.StatusOK, out)
 }
 
-func deleteUniverse(c echo.Context, us service.UniverseService) error {
+func deleteUniverse(c echo.Context, s service.UniverseService) error {
 	maybeId := c.Param("id")
 	id, err := uuid.Parse(maybeId)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, "Invalid id syntax")
 	}
 
-	err = us.Delete(c.Request().Context(), id)
+	err = s.Delete(c.Request().Context(), id)
 	if err != nil {
 		if errors.IsErrorWithCode(err, db.NoMatchingSqlRows) {
 			return c.JSON(http.StatusNotFound, "No such universe")

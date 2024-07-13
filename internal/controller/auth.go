@@ -24,7 +24,7 @@ func AuthEndpoints(service service.AuthService) rest.Routes {
 	return out
 }
 
-func authUser(c echo.Context, as service.AuthService) error {
+func authUser(c echo.Context, s service.AuthService) error {
 	apiKey, err := middleware.TryGetApiKeyHeader(c.Request())
 	if err != nil {
 		if errors.IsErrorWithCode(err, middleware.ApiKeyNotFound) || errors.IsErrorWithCode(err, middleware.TooManyApiKeys) {
@@ -36,7 +36,7 @@ func authUser(c echo.Context, as service.AuthService) error {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
 
-	out, err := as.Authenticate(c.Request().Context(), apiKey)
+	out, err := s.Authenticate(c.Request().Context(), apiKey)
 	if err != nil {
 		if errors.IsErrorWithCode(err, service.UserNotAuthenticated) {
 			return c.JSON(http.StatusForbidden, err)

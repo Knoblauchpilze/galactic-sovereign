@@ -145,8 +145,8 @@ func Test_AuthController(t *testing.T) {
 				req:     generateTestRequestWithApiKey(http.MethodGet),
 				handler: authUser,
 
-				verifyInteractions: func(as service.AuthService, assert *require.Assertions) {
-					m := assertAuthServiceIsAMock(as, assert)
+				verifyInteractions: func(s service.AuthService, assert *require.Assertions) {
+					m := assertAuthServiceIsAMock(s, assert)
 
 					assert.Equal(1, m.authCalled)
 					assert.Equal(defaultApiKeyId, m.inApiKey)
@@ -170,8 +170,8 @@ func generateValidAuthServiceMock() service.AuthService {
 	}
 }
 
-func assertAuthServiceIsAMock(as service.AuthService, assert *require.Assertions) *mockAuthService {
-	m, ok := as.(*mockAuthService)
+func assertAuthServiceIsAMock(s service.AuthService, assert *require.Assertions) *mockAuthService {
+	m, ok := s.(*mockAuthService)
 	if !ok {
 		assert.Fail("Provided auth service is not a mock")
 	}
