@@ -22,7 +22,7 @@ type universeServiceImpl struct {
 	universeRepo repositories.UniverseRepository
 }
 
-func NewUniverseService(config Config, conn db.ConnectionPool, repos repositories.Repositories) UniverseService {
+func NewUniverseService(conn db.ConnectionPool, repos repositories.Repositories) UniverseService {
 	return &universeServiceImpl{
 		conn:         conn,
 		universeRepo: repos.Universe,

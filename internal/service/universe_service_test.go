@@ -33,7 +33,7 @@ func TestUniverseService_Create_CallsRepositoryCreate(t *testing.T) {
 	repos := repositories.Repositories{
 		Universe: mur,
 	}
-	s := NewUniverseService(Config{}, mc, repos)
+	s := NewUniverseService(mc, repos)
 
 	s.Create(context.Background(), defaultUniverseDtoRequest)
 
@@ -51,7 +51,7 @@ func TestUniverseService_Create_WhenRepositoryFails_ExpectError(t *testing.T) {
 	repos := repositories.Repositories{
 		Universe: mur,
 	}
-	s := NewUniverseService(Config{}, mc, repos)
+	s := NewUniverseService(mc, repos)
 
 	_, err := s.Create(context.Background(), defaultUniverseDtoRequest)
 
@@ -68,7 +68,7 @@ func TestUniverseService_Create_ReturnsCreatedUniverse(t *testing.T) {
 	repos := repositories.Repositories{
 		Universe: mur,
 	}
-	s := NewUniverseService(Config{}, mc, repos)
+	s := NewUniverseService(mc, repos)
 
 	actual, err := s.Create(context.Background(), defaultUniverseDtoRequest)
 
@@ -91,7 +91,7 @@ func TestUniverseService_Get_CallsRepositoryGet(t *testing.T) {
 	repos := repositories.Repositories{
 		Universe: mur,
 	}
-	s := NewUniverseService(Config{}, mc, repos)
+	s := NewUniverseService(mc, repos)
 
 	s.Get(context.Background(), defaultUniverseId)
 
@@ -108,7 +108,7 @@ func TestUniverseService_Get_WhenRepositoryFails_ExpectError(t *testing.T) {
 	repos := repositories.Repositories{
 		Universe: mur,
 	}
-	s := NewUniverseService(Config{}, mc, repos)
+	s := NewUniverseService(mc, repos)
 
 	_, err := s.Get(context.Background(), defaultUniverseId)
 
@@ -125,7 +125,7 @@ func TestUniverseService_Get_ReturnsUniverse(t *testing.T) {
 	repos := repositories.Repositories{
 		Universe: mur,
 	}
-	s := NewUniverseService(Config{}, mc, repos)
+	s := NewUniverseService(mc, repos)
 
 	actual, err := s.Get(context.Background(), defaultUniverseId)
 
@@ -149,7 +149,7 @@ func TestUniverseService_List_CallsRepositoryList(t *testing.T) {
 	repos := repositories.Repositories{
 		Universe: mur,
 	}
-	s := NewUniverseService(Config{}, mc, repos)
+	s := NewUniverseService(mc, repos)
 
 	s.List(context.Background())
 
@@ -166,7 +166,7 @@ func TestUniverseService_List_WhenRepositoryFails_ExpectError(t *testing.T) {
 	repos := repositories.Repositories{
 		Universe: mur,
 	}
-	s := NewUniverseService(Config{}, mc, repos)
+	s := NewUniverseService(mc, repos)
 
 	_, err := s.List(context.Background())
 
@@ -183,7 +183,7 @@ func TestUniverseService_List_ReturnsAllUniverses(t *testing.T) {
 	repos := repositories.Repositories{
 		Universe: mur,
 	}
-	s := NewUniverseService(Config{}, mc, repos)
+	s := NewUniverseService(mc, repos)
 
 	actual, err := s.List(context.Background())
 
@@ -206,7 +206,7 @@ func TestUniverseService_Delete_CallsRepositoryDelete(t *testing.T) {
 	repos := repositories.Repositories{
 		Universe: mur,
 	}
-	s := NewUniverseService(Config{}, mc, repos)
+	s := NewUniverseService(mc, repos)
 
 	s.Delete(context.Background(), defaultUniverseId)
 
@@ -221,7 +221,7 @@ func TestUniverseService_Delete_CallsTransactionClose(t *testing.T) {
 	repos := repositories.Repositories{
 		Universe: mur,
 	}
-	s := NewUniverseService(Config{}, mc, repos)
+	s := NewUniverseService(mc, repos)
 
 	s.Delete(context.Background(), defaultUniverseId)
 
@@ -238,7 +238,7 @@ func TestUniverseService_Delete_WhenCreatingTransactionFails_ExpectError(t *test
 	repos := repositories.Repositories{
 		Universe: mur,
 	}
-	s := NewUniverseService(Config{}, mc, repos)
+	s := NewUniverseService(mc, repos)
 
 	err := s.Delete(context.Background(), defaultUniverseId)
 
@@ -253,7 +253,7 @@ func TestUniverseService_Delete_DeletesTheRightUniverse(t *testing.T) {
 	repos := repositories.Repositories{
 		Universe: mur,
 	}
-	s := NewUniverseService(Config{}, mc, repos)
+	s := NewUniverseService(mc, repos)
 
 	s.Delete(context.Background(), defaultUniverseId)
 
@@ -270,7 +270,7 @@ func TestUniverseService_Delete_WhenUniverseRepositoryFails_ExpectError(t *testi
 	repos := repositories.Repositories{
 		Universe: mur,
 	}
-	s := NewUniverseService(Config{}, mc, repos)
+	s := NewUniverseService(mc, repos)
 
 	err := s.Delete(context.Background(), defaultUniverseId)
 
@@ -285,7 +285,7 @@ func TestUniverseService_Delete_WhenRepositoriesSucceeds_ExpectSuccess(t *testin
 	repos := repositories.Repositories{
 		Universe: mur,
 	}
-	s := NewUniverseService(Config{}, mc, repos)
+	s := NewUniverseService(mc, repos)
 
 	err := s.Delete(context.Background(), defaultUniverseId)
 
