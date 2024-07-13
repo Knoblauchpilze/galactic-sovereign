@@ -20,15 +20,15 @@ func PlanetEndpoints(service service.PlanetService) rest.Routes {
 	out = append(out, post)
 
 	getHandler := fromPlanetServiceAwareHttpHandler(getPlanet, service)
-	get := rest.NewResourceRoute(http.MethodGet, true, "/planets", getHandler)
+	get := rest.NewResourceRoute(http.MethodGet, false, "/planets", getHandler)
 	out = append(out, get)
 
 	listHandler := fromPlanetServiceAwareHttpHandler(listPlanets, service)
-	list := rest.NewRoute(http.MethodGet, true, "/planets", listHandler)
+	list := rest.NewRoute(http.MethodGet, false, "/planets", listHandler)
 	out = append(out, list)
 
 	deleteHandler := fromPlanetServiceAwareHttpHandler(deletePlanet, service)
-	delete := rest.NewResourceRoute(http.MethodDelete, true, "/planets", deleteHandler)
+	delete := rest.NewResourceRoute(http.MethodDelete, false, "/planets", deleteHandler)
 	out = append(out, delete)
 
 	return out

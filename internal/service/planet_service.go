@@ -22,7 +22,7 @@ type planetServiceImpl struct {
 	planetRepo repositories.PlanetRepository
 }
 
-func NewPlanetService(config Config, conn db.ConnectionPool, repos repositories.Repositories) PlanetService {
+func NewPlanetService(conn db.ConnectionPool, repos repositories.Repositories) PlanetService {
 	return &planetServiceImpl{
 		conn:       conn,
 		planetRepo: repos.Planet,
