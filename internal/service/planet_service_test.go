@@ -35,7 +35,7 @@ func TestPlanetService_Create_CallsRepositoryCreate(t *testing.T) {
 	repos := repositories.Repositories{
 		Planet: mur,
 	}
-	s := NewPlanetService(Config{}, mc, repos)
+	s := NewPlanetService(mc, repos)
 
 	s.Create(context.Background(), defaultPlanetDtoRequest)
 
@@ -54,7 +54,7 @@ func TestPlanetService_Create_WhenRepositoryFails_ExpectError(t *testing.T) {
 	repos := repositories.Repositories{
 		Planet: mur,
 	}
-	s := NewPlanetService(Config{}, mc, repos)
+	s := NewPlanetService(mc, repos)
 
 	_, err := s.Create(context.Background(), defaultPlanetDtoRequest)
 
@@ -71,7 +71,7 @@ func TestPlanetService_Create_ReturnsCreatedPlanet(t *testing.T) {
 	repos := repositories.Repositories{
 		Planet: mur,
 	}
-	s := NewPlanetService(Config{}, mc, repos)
+	s := NewPlanetService(mc, repos)
 
 	actual, err := s.Create(context.Background(), defaultPlanetDtoRequest)
 
@@ -95,7 +95,7 @@ func TestPlanetService_Get_CallsRepositoryGet(t *testing.T) {
 	repos := repositories.Repositories{
 		Planet: mur,
 	}
-	s := NewPlanetService(Config{}, mc, repos)
+	s := NewPlanetService(mc, repos)
 
 	s.Get(context.Background(), defaultPlanetId)
 
@@ -112,7 +112,7 @@ func TestPlanetService_Get_WhenRepositoryFails_ExpectError(t *testing.T) {
 	repos := repositories.Repositories{
 		Planet: mur,
 	}
-	s := NewPlanetService(Config{}, mc, repos)
+	s := NewPlanetService(mc, repos)
 
 	_, err := s.Get(context.Background(), defaultPlanetId)
 
@@ -129,7 +129,7 @@ func TestPlanetService_Get_ReturnsPlanet(t *testing.T) {
 	repos := repositories.Repositories{
 		Planet: mur,
 	}
-	s := NewPlanetService(Config{}, mc, repos)
+	s := NewPlanetService(mc, repos)
 
 	actual, err := s.Get(context.Background(), defaultPlanetId)
 
@@ -154,7 +154,7 @@ func TestPlanetService_List_CallsRepositoryList(t *testing.T) {
 	repos := repositories.Repositories{
 		Planet: mur,
 	}
-	s := NewPlanetService(Config{}, mc, repos)
+	s := NewPlanetService(mc, repos)
 
 	s.List(context.Background())
 
@@ -171,7 +171,7 @@ func TestPlanetService_List_WhenRepositoryFails_ExpectError(t *testing.T) {
 	repos := repositories.Repositories{
 		Planet: mur,
 	}
-	s := NewPlanetService(Config{}, mc, repos)
+	s := NewPlanetService(mc, repos)
 
 	_, err := s.List(context.Background())
 
@@ -188,7 +188,7 @@ func TestPlanetService_List_ReturnsAllPlanets(t *testing.T) {
 	repos := repositories.Repositories{
 		Planet: mur,
 	}
-	s := NewPlanetService(Config{}, mc, repos)
+	s := NewPlanetService(mc, repos)
 
 	actual, err := s.List(context.Background())
 
@@ -212,7 +212,7 @@ func TestPlanetService_Delete_CallsRepositoryDelete(t *testing.T) {
 	repos := repositories.Repositories{
 		Planet: mur,
 	}
-	s := NewPlanetService(Config{}, mc, repos)
+	s := NewPlanetService(mc, repos)
 
 	s.Delete(context.Background(), defaultPlanetId)
 
@@ -227,7 +227,7 @@ func TestPlanetService_Delete_CallsTransactionClose(t *testing.T) {
 	repos := repositories.Repositories{
 		Planet: mur,
 	}
-	s := NewPlanetService(Config{}, mc, repos)
+	s := NewPlanetService(mc, repos)
 
 	s.Delete(context.Background(), defaultPlanetId)
 
@@ -244,7 +244,7 @@ func TestPlanetService_Delete_WhenCreatingTransactionFails_ExpectError(t *testin
 	repos := repositories.Repositories{
 		Planet: mur,
 	}
-	s := NewPlanetService(Config{}, mc, repos)
+	s := NewPlanetService(mc, repos)
 
 	err := s.Delete(context.Background(), defaultPlanetId)
 
@@ -259,7 +259,7 @@ func TestPlanetService_Delete_DeletesTheRightPlanet(t *testing.T) {
 	repos := repositories.Repositories{
 		Planet: mur,
 	}
-	s := NewPlanetService(Config{}, mc, repos)
+	s := NewPlanetService(mc, repos)
 
 	s.Delete(context.Background(), defaultPlanetId)
 
@@ -276,7 +276,7 @@ func TestPlanetService_Delete_WhenPlanetRepositoryFails_ExpectError(t *testing.T
 	repos := repositories.Repositories{
 		Planet: mur,
 	}
-	s := NewPlanetService(Config{}, mc, repos)
+	s := NewPlanetService(mc, repos)
 
 	err := s.Delete(context.Background(), defaultPlanetId)
 
@@ -291,7 +291,7 @@ func TestPlanetService_Delete_WhenRepositoriesSucceeds_ExpectSuccess(t *testing.
 	repos := repositories.Repositories{
 		Planet: mur,
 	}
-	s := NewPlanetService(Config{}, mc, repos)
+	s := NewPlanetService(mc, repos)
 
 	err := s.Delete(context.Background(), defaultPlanetId)
 
