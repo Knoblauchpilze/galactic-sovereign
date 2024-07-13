@@ -51,7 +51,6 @@ func TestPlayerRepository_Create_WhenQueryIndicatesDuplicatedKey_ReturnsDuplicat
 	assert := assert.New(t)
 
 	mc := &mockConnectionPool{
-		// TODO: Verify this error message.
 		execErr: fmt.Errorf(`duplicate key value violates unique constraint "player_universe_name_key" (SQLSTATE 23505)`),
 	}
 	repo := NewPlayerRepository(mc)

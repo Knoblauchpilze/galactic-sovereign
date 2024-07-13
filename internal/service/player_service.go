@@ -22,7 +22,7 @@ type playerServiceImpl struct {
 	playerRepo repositories.PlayerRepository
 }
 
-func NewPlayerService(config Config, conn db.ConnectionPool, repos repositories.Repositories) PlayerService {
+func NewPlayerService(conn db.ConnectionPool, repos repositories.Repositories) PlayerService {
 	return &playerServiceImpl{
 		conn:       conn,
 		playerRepo: repos.Player,
