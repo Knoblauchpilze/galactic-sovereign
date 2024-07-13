@@ -51,7 +51,7 @@ func main() {
 		Universe: repositories.NewUniverseRepository(pool),
 	}
 
-	universeService := service.NewUniverseService(conf.ApiKey, pool, repos)
+	universeService := service.NewUniverseService(pool, repos)
 
 	s := rest.NewServer(conf.Server)
 
