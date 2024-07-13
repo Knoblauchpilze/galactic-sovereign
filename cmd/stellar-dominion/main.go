@@ -9,8 +9,10 @@ import (
 	"github.com/KnoblauchPilze/user-service/cmd/stellar-dominion/internal"
 	"github.com/KnoblauchPilze/user-service/internal/config"
 	"github.com/KnoblauchPilze/user-service/internal/controller"
+	"github.com/KnoblauchPilze/user-service/internal/service"
 	"github.com/KnoblauchPilze/user-service/pkg/db"
 	"github.com/KnoblauchPilze/user-service/pkg/logger"
+	"github.com/KnoblauchPilze/user-service/pkg/repositories"
 	"github.com/KnoblauchPilze/user-service/pkg/rest"
 )
 
@@ -45,7 +47,20 @@ func main() {
 		os.Exit(1)
 	}
 
+	repos := repositories.Repositories{
+		Universe: repositories.NewUniverseRepository(pool),
+	}
+
+	universeService := service.NewUniverseService(conf.ApiKey, pool, repos)
+
 	s := rest.NewServer(conf.Server)
+
+	for _, route := range controller.UniverseEndpoints(universeService) {
+		if err := s.Register(route); err != nil {
+			logger.Errorf("Failed to register route: %v", err)
+			os.Exit(1)
+		}
+	}
 
 	for _, route := range controller.HealthCheckEndpoints(pool) {
 		if err := s.Register(route); err != nil {
