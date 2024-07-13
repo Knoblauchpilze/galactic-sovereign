@@ -34,12 +34,12 @@ type mockPlanetService struct {
 }
 
 var defaultPlanetDtoRequest = communication.PlanetDtoRequest{
-	Player: defualtPlayerId,
+	Player: defaultPlayerId,
 	Name:   "my-planet",
 }
 var defaultPlanetDtoResponse = communication.PlanetDtoResponse{
 	Id:     defaultUuid,
-	Player: defualtPlayerId,
+	Player: defaultPlayerId,
 	Name:   "my-planet",
 
 	CreatedAt: time.Date(2024, 07, 13, 10, 53, 10, 651387238, time.UTC),

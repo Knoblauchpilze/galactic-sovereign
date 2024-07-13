@@ -82,6 +82,16 @@ func TestFromPlanetServiceAwareHttpHandler(t *testing.T) {
 	suite.Run(t, &s)
 }
 
+func TestFromPlayerServiceAwareHttpHandler(t *testing.T) {
+	s := HandlerTestSuite[service.PlayerService]{
+		generateTestFunc: func(in func(echo.Context, service.PlayerService) error) echo.HandlerFunc {
+			return fromPlayerServiceAwareHttpHandler(in, &mockPlayerService{})
+		},
+	}
+
+	suite.Run(t, &s)
+}
+
 func TestFromUniverseServiceAwareHttpHandler(t *testing.T) {
 	s := HandlerTestSuite[service.UniverseService]{
 		generateTestFunc: func(in func(echo.Context, service.UniverseService) error) echo.HandlerFunc {

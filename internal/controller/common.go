@@ -30,6 +30,14 @@ func fromPlanetServiceAwareHttpHandler(handler planetServiceAwareHttpHandler, se
 	}
 }
 
+type playerServiceAwareHttpHandler func(echo.Context, service.PlayerService) error
+
+func fromPlayerServiceAwareHttpHandler(handler playerServiceAwareHttpHandler, service service.PlayerService) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		return handler(c, service)
+	}
+}
+
 type universeServiceAwareHttpHandler func(echo.Context, service.UniverseService) error
 
 func fromUniverseServiceAwareHttpHandler(handler universeServiceAwareHttpHandler, service service.UniverseService) echo.HandlerFunc {
