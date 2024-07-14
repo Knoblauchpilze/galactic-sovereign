@@ -461,6 +461,27 @@ func TestUserService_Delete_DeletesTheRightUserLimits(t *testing.T) {
 	assert.Equal(defaultUserId, mlr.inUserId)
 }
 
+func TestUserService_Delete_DeletesTheRightUser(t *testing.T) {
+	assert := assert.New(t)
+
+	mar := &mockAclRepository{}
+	mkr := &mockApiKeyRepository{}
+	mlr := &mockUserLimitRepository{}
+	mur := &mockUserRepository{}
+	mc := &mockConnectionPool{}
+	repos := repositories.Repositories{
+		Acl:       mar,
+		ApiKey:    mkr,
+		UserLimit: mlr,
+		User:      mur,
+	}
+	s := NewUserService(Config{}, mc, repos)
+
+	s.Delete(context.Background(), defaultUserId)
+
+	assert.Equal(defaultUserId, mur.deleteId)
+}
+
 func TestUserService_Delete_WhenUserRepositoryFails_ExpectError(t *testing.T) {
 	assert := assert.New(t)
 
