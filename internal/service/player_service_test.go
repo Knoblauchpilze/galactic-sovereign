@@ -5,10 +5,12 @@ import (
 	"testing"
 
 	"github.com/KnoblauchPilze/user-service/pkg/communication"
+	"github.com/KnoblauchPilze/user-service/pkg/db"
 	"github.com/KnoblauchPilze/user-service/pkg/persistence"
 	"github.com/KnoblauchPilze/user-service/pkg/repositories"
 	"github.com/google/uuid"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/suite"
 )
 
 var defaultPlayerId = uuid.MustParse("f16455b7-514c-44b1-847f-ba2cf99c765b")
@@ -29,277 +31,186 @@ var defaultPlayer = persistence.Player{
 	UpdatedAt: testDate,
 }
 
-func TestPlayerService_Create_CallsRepositoryCreate(t *testing.T) {
-	assert := assert.New(t)
+func Test_PlayerService(t *testing.T) {
+	s := ServiceTestSuite{
+		generateValidRepositoriesMock: generateValidPlayerRepositoryMock,
+		generateErrorRepositoriesMock: generateErrorPlayerRepositoryMock,
 
-	mpr := &mockPlayerRepository{}
-	mc := &mockConnectionPool{}
-	repos := repositories.Repositories{
-		Player: mpr,
-	}
-	s := NewPlayerService(mc, repos)
+		errorTestCases: map[string]errorTestCase{
+			"create": {
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewPlayerService(pool, repos)
+					_, err := s.Create(ctx, defaultPlayerDtoRequest)
+					return err
+				},
+			},
+			"get": {
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewPlayerService(pool, repos)
+					_, err := s.Get(ctx, defaultPlayerId)
+					return err
+				},
+			},
+			"list": {
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewPlayerService(pool, repos)
+					_, err := s.List(ctx)
+					return err
+				},
+			},
+			"delete": {
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewPlayerService(pool, repos)
+					return s.Delete(ctx, defaultPlayerId)
+				},
+			},
+		},
 
-	s.Create(context.Background(), defaultPlayerDtoRequest)
+		repositoryInteractionTestCases: map[string]repositoryInteractionTestCase{
+			"create": {
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewPlayerService(pool, repos)
+					_, err := s.Create(ctx, defaultPlayerDtoRequest)
+					return err
+				},
 
-	assert.Equal(1, mpr.createCalled)
-	assert.Equal(defaultPlayerDtoRequest.ApiUser, mpr.createdPlayer.ApiUser)
-	assert.Equal(defaultPlayerDtoRequest.Universe, mpr.createdPlayer.Universe)
-	assert.Equal(defaultPlayerDtoRequest.Name, mpr.createdPlayer.Name)
-}
+				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
+					m := assertPlayerRepoIsAMock(repos, assert)
 
-func TestPlayerService_Create_WhenRepositoryFails_ExpectError(t *testing.T) {
-	assert := assert.New(t)
+					assert.Equal(1, m.createCalled)
+					assert.Equal(defaultPlayerDtoRequest.ApiUser, m.createdPlayer.ApiUser)
+					assert.Equal(defaultPlayerDtoRequest.Universe, m.createdPlayer.Universe)
+					assert.Equal(defaultPlayerDtoRequest.Name, m.createdPlayer.Name)
+				},
+			},
+			"get": {
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewPlayerService(pool, repos)
+					_, err := s.Get(ctx, defaultPlayerId)
+					return err
+				},
 
-	mpr := &mockPlayerRepository{
-		err: errDefault,
-	}
-	mc := &mockConnectionPool{}
-	repos := repositories.Repositories{
-		Player: mpr,
-	}
-	s := NewPlayerService(mc, repos)
+				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
+					m := assertPlayerRepoIsAMock(repos, assert)
 
-	_, err := s.Create(context.Background(), defaultPlayerDtoRequest)
+					assert.Equal(1, m.getCalled)
+					assert.Equal(defaultPlayerId, m.getId)
+				},
+			},
+			"list": {
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewPlayerService(pool, repos)
+					_, err := s.List(ctx)
+					return err
+				},
 
-	assert.Equal(errDefault, err)
-}
+				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
+					m := assertPlayerRepoIsAMock(repos, assert)
 
-func TestPlayerService_Create_ReturnsCreatedPlayer(t *testing.T) {
-	assert := assert.New(t)
+					assert.Equal(1, m.listCalled)
+				},
+			},
+			"delete": {
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewPlayerService(pool, repos)
+					return s.Delete(ctx, defaultPlayerId)
+				},
 
-	mpr := &mockPlayerRepository{
-		player: defaultPlayer,
-	}
-	mc := &mockConnectionPool{}
-	repos := repositories.Repositories{
-		Player: mpr,
-	}
-	s := NewPlayerService(mc, repos)
+				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
+					m := assertPlayerRepoIsAMock(repos, assert)
 
-	actual, err := s.Create(context.Background(), defaultPlayerDtoRequest)
+					assert.Equal(1, m.deleteCalled)
+					assert.Equal(defaultPlayerId, m.deleteId)
+				},
+			},
+		},
 
-	assert.Nil(err)
+		returnTestCases: map[string]returnTestCase{
+			"create": {
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) interface{} {
+					s := NewPlayerService(pool, repos)
+					out, _ := s.Create(ctx, defaultPlayerDtoRequest)
+					return out
+				},
 
-	expected := communication.PlayerDtoResponse{
-		Id:       defaultPlayer.Id,
-		ApiUser:  defaultPlayer.ApiUser,
-		Universe: defaultPlayer.Universe,
-		Name:     defaultPlayer.Name,
+				expectedContent: communication.PlayerDtoResponse{
+					Id:       defaultPlayer.Id,
+					ApiUser:  defaultPlayer.ApiUser,
+					Universe: defaultPlayer.Universe,
+					Name:     defaultPlayer.Name,
 
-		CreatedAt: defaultPlayer.CreatedAt,
-	}
-	assert.Equal(expected, actual)
-}
+					CreatedAt: defaultPlayer.CreatedAt,
+				},
+			},
+			"get": {
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) interface{} {
+					s := NewPlayerService(pool, repos)
+					out, _ := s.Get(ctx, defaultPlayerId)
+					return out
+				},
 
-func TestPlayerService_Get_CallsRepositoryGet(t *testing.T) {
-	assert := assert.New(t)
+				expectedContent: communication.PlayerDtoResponse{
+					Id:       defaultPlayer.Id,
+					ApiUser:  defaultPlayer.ApiUser,
+					Universe: defaultPlayer.Universe,
+					Name:     defaultPlayer.Name,
 
-	mpr := &mockPlayerRepository{}
-	mc := &mockConnectionPool{}
-	repos := repositories.Repositories{
-		Player: mpr,
-	}
-	s := NewPlayerService(mc, repos)
+					CreatedAt: defaultPlayer.CreatedAt,
+				},
+			},
+			"list": {
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) interface{} {
+					s := NewPlayerService(pool, repos)
+					out, _ := s.List(ctx)
+					return out
+				},
 
-	s.Get(context.Background(), defaultPlayerId)
+				expectedContent: []communication.PlayerDtoResponse{
+					{
+						Id:       defaultPlayer.Id,
+						ApiUser:  defaultPlayer.ApiUser,
+						Universe: defaultPlayer.Universe,
+						Name:     defaultPlayer.Name,
 
-	assert.Equal(1, mpr.getCalled)
-}
+						CreatedAt: defaultPlayer.CreatedAt,
+					},
+				},
+			},
+		},
 
-func TestPlayerService_Get_WhenRepositoryFails_ExpectError(t *testing.T) {
-	assert := assert.New(t)
-
-	mpr := &mockPlayerRepository{
-		err: errDefault,
-	}
-	mc := &mockConnectionPool{}
-	repos := repositories.Repositories{
-		Player: mpr,
-	}
-	s := NewPlayerService(mc, repos)
-
-	_, err := s.Get(context.Background(), defaultPlayerId)
-
-	assert.Equal(errDefault, err)
-}
-
-func TestPlayerService_Get_ReturnsPlayer(t *testing.T) {
-	assert := assert.New(t)
-
-	mpr := &mockPlayerRepository{
-		player: defaultPlayer,
-	}
-	mc := &mockConnectionPool{}
-	repos := repositories.Repositories{
-		Player: mpr,
-	}
-	s := NewPlayerService(mc, repos)
-
-	actual, err := s.Get(context.Background(), defaultPlayerId)
-
-	assert.Nil(err)
-	assert.Equal(defaultPlayerId, mpr.getId)
-
-	expected := communication.PlayerDtoResponse{
-		Id:       defaultPlayer.Id,
-		ApiUser:  defaultPlayer.ApiUser,
-		Universe: defaultPlayer.Universe,
-		Name:     defaultPlayer.Name,
-
-		CreatedAt: defaultPlayer.CreatedAt,
-	}
-	assert.Equal(expected, actual)
-}
-
-func TestPlayerService_List_CallsRepositoryList(t *testing.T) {
-	assert := assert.New(t)
-
-	mpr := &mockPlayerRepository{}
-	mc := &mockConnectionPool{}
-	repos := repositories.Repositories{
-		Player: mpr,
-	}
-	s := NewPlayerService(mc, repos)
-
-	s.List(context.Background())
-
-	assert.Equal(1, mpr.listCalled)
-}
-
-func TestPlayerService_List_WhenRepositoryFails_ExpectError(t *testing.T) {
-	assert := assert.New(t)
-
-	mpr := &mockPlayerRepository{
-		err: errDefault,
-	}
-	mc := &mockConnectionPool{}
-	repos := repositories.Repositories{
-		Player: mpr,
-	}
-	s := NewPlayerService(mc, repos)
-
-	_, err := s.List(context.Background())
-
-	assert.Equal(errDefault, err)
-}
-
-func TestPlayerService_List_ReturnsAllPlayers(t *testing.T) {
-	assert := assert.New(t)
-
-	mpr := &mockPlayerRepository{
-		player: defaultPlayer,
-	}
-	mc := &mockConnectionPool{}
-	repos := repositories.Repositories{
-		Player: mpr,
-	}
-	s := NewPlayerService(mc, repos)
-
-	actual, err := s.List(context.Background())
-
-	assert.Nil(err)
-	expected := []communication.PlayerDtoResponse{
-		{
-			Id:        defaultPlayer.Id,
-			ApiUser:   defaultPlayer.ApiUser,
-			Universe:  defaultPlayer.Universe,
-			Name:      defaultPlayer.Name,
-			CreatedAt: defaultPlayer.CreatedAt,
+		transactionTestCases: map[string]transactionTestCase{
+			"delete": {
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) interface{} {
+					s := NewPlayerService(pool, repos)
+					return s.Delete(ctx, defaultPlayerId)
+				},
+			},
 		},
 	}
-	assert.Equal(expected, actual)
+
+	suite.Run(t, &s)
 }
 
-func TestPlayerService_Delete_CallsRepositoryDelete(t *testing.T) {
-	assert := assert.New(t)
-
-	mpr := &mockPlayerRepository{}
-	mc := &mockConnectionPool{}
-	repos := repositories.Repositories{
-		Player: mpr,
+func generateValidPlayerRepositoryMock() repositories.Repositories {
+	return repositories.Repositories{
+		Player: &mockPlayerRepository{
+			player: defaultPlayer,
+		},
 	}
-	s := NewPlayerService(mc, repos)
-
-	s.Delete(context.Background(), defaultPlayerId)
-
-	assert.Equal(1, mpr.deleteCalled)
 }
 
-func TestPlayerService_Delete_CallsTransactionClose(t *testing.T) {
-	assert := assert.New(t)
-
-	mpr := &mockPlayerRepository{}
-	mc := &mockConnectionPool{}
-	repos := repositories.Repositories{
-		Player: mpr,
+func generateErrorPlayerRepositoryMock(err error) repositories.Repositories {
+	return repositories.Repositories{
+		Player: &mockPlayerRepository{
+			err: err,
+		},
 	}
-	s := NewPlayerService(mc, repos)
-
-	s.Delete(context.Background(), defaultPlayerId)
-
-	assert.Equal(1, mc.tx.closeCalled)
 }
 
-func TestPlayerService_Delete_WhenCreatingTransactionFails_ExpectError(t *testing.T) {
-	assert := assert.New(t)
-
-	mpr := &mockPlayerRepository{}
-	mc := &mockConnectionPool{
-		err: errDefault,
+func assertPlayerRepoIsAMock(repos repositories.Repositories, assert *require.Assertions) *mockPlayerRepository {
+	m, ok := repos.Player.(*mockPlayerRepository)
+	if !ok {
+		assert.Fail("Provided player repository is not a mock")
 	}
-	repos := repositories.Repositories{
-		Player: mpr,
-	}
-	s := NewPlayerService(mc, repos)
-
-	err := s.Delete(context.Background(), defaultPlayerId)
-
-	assert.Equal(errDefault, err)
-}
-
-func TestPlayerService_Delete_DeletesTheRightPlayer(t *testing.T) {
-	assert := assert.New(t)
-
-	mpr := &mockPlayerRepository{}
-	mc := &mockConnectionPool{}
-	repos := repositories.Repositories{
-		Player: mpr,
-	}
-	s := NewPlayerService(mc, repos)
-
-	s.Delete(context.Background(), defaultPlayerId)
-
-	assert.Equal(defaultPlayerId, mpr.deleteId)
-}
-
-func TestPlayerService_Delete_WhenPlayerRepositoryFails_ExpectError(t *testing.T) {
-	assert := assert.New(t)
-
-	mpr := &mockPlayerRepository{
-		err: errDefault,
-	}
-	mc := &mockConnectionPool{}
-	repos := repositories.Repositories{
-		Player: mpr,
-	}
-	s := NewPlayerService(mc, repos)
-
-	err := s.Delete(context.Background(), defaultPlayerId)
-
-	assert.Equal(errDefault, err)
-}
-
-func TestPlayerService_Delete_WhenRepositoriesSucceeds_ExpectSuccess(t *testing.T) {
-	assert := assert.New(t)
-
-	mpr := &mockPlayerRepository{}
-	mc := &mockConnectionPool{}
-	repos := repositories.Repositories{
-		Player: mpr,
-	}
-	s := NewPlayerService(mc, repos)
-
-	err := s.Delete(context.Background(), defaultPlayerId)
-
-	assert.Nil(err)
+	return m
 }
