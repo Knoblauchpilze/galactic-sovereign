@@ -11,6 +11,16 @@ http:
       tls:
         certResolver: letsencryptresolver
 
+    stellar-dominion-service-public-https:
+      entryPoints:
+        - "websecure"
+      rule: 'Host(`api.{{ env "DOMAIN_NAME" }}`) && PathPrefix(`/v1/universes`)'
+      service: stellar-dominion-service
+      middlewares:
+        - "sd-rate-limit"
+      tls:
+        certResolver: letsencryptresolver
+
   middlewares:
     sd-rate-limit:
       rateLimit:
