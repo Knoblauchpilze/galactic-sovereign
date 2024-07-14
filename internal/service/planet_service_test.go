@@ -5,10 +5,12 @@ import (
 	"testing"
 
 	"github.com/KnoblauchPilze/user-service/pkg/communication"
+	"github.com/KnoblauchPilze/user-service/pkg/db"
 	"github.com/KnoblauchPilze/user-service/pkg/persistence"
 	"github.com/KnoblauchPilze/user-service/pkg/repositories"
 	"github.com/google/uuid"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/suite"
 )
 
 var defaultPlanetId = uuid.MustParse("5b0efd85-8817-4454-b8f3-7af5d93253a1")
@@ -27,273 +29,182 @@ var defaultPlanet = persistence.Planet{
 	UpdatedAt: testDate,
 }
 
-func TestPlanetService_Create_CallsRepositoryCreate(t *testing.T) {
-	assert := assert.New(t)
+func Test_PlanetService(t *testing.T) {
+	s := ServiceTestSuite{
+		generateValidRepositoriesMock: generateValidPlanetRepositoryMock,
+		generateErrorRepositoriesMock: generateErrorPlanetRepositoryMock,
 
-	mur := &mockPlanetRepository{}
-	mc := &mockConnectionPool{}
-	repos := repositories.Repositories{
-		Planet: mur,
-	}
-	s := NewPlanetService(mc, repos)
+		errorTestCases: map[string]errorTestCase{
+			"create": {
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewPlanetService(pool, repos)
+					_, err := s.Create(ctx, defaultPlanetDtoRequest)
+					return err
+				},
+			},
+			"get": {
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewPlanetService(pool, repos)
+					_, err := s.Get(ctx, defaultPlanetId)
+					return err
+				},
+			},
+			"list": {
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewPlanetService(pool, repos)
+					_, err := s.List(ctx)
+					return err
+				},
+			},
+			"delete": {
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewPlanetService(pool, repos)
+					return s.Delete(ctx, defaultPlanetId)
+				},
+			},
+		},
 
-	s.Create(context.Background(), defaultPlanetDtoRequest)
+		repositoryInteractionTestCases: map[string]repositoryInteractionTestCase{
+			"create": {
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewPlanetService(pool, repos)
+					_, err := s.Create(ctx, defaultPlanetDtoRequest)
+					return err
+				},
 
-	assert.Equal(1, mur.createCalled)
-	assert.Equal(defaultPlanetDtoRequest.Player, mur.createdPlanet.Player)
-	assert.Equal(defaultPlanetDtoRequest.Name, mur.createdPlanet.Name)
-}
+				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
+					m := assertPlanetRepoIsAMock(repos, assert)
 
-func TestPlanetService_Create_WhenRepositoryFails_ExpectError(t *testing.T) {
-	assert := assert.New(t)
+					assert.Equal(1, m.createCalled)
+					assert.Equal(defaultPlanetDtoRequest.Player, m.createdPlanet.Player)
+					assert.Equal(defaultPlanetDtoRequest.Name, m.createdPlanet.Name)
+				},
+			},
+			"get": {
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewPlanetService(pool, repos)
+					_, err := s.Get(ctx, defaultPlanetId)
+					return err
+				},
 
-	mur := &mockPlanetRepository{
-		err: errDefault,
-	}
-	mc := &mockConnectionPool{}
-	repos := repositories.Repositories{
-		Planet: mur,
-	}
-	s := NewPlanetService(mc, repos)
+				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
+					m := assertPlanetRepoIsAMock(repos, assert)
 
-	_, err := s.Create(context.Background(), defaultPlanetDtoRequest)
+					assert.Equal(1, m.getCalled)
+					assert.Equal(defaultPlanetId, m.getId)
+				},
+			},
+			"list": {
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewPlanetService(pool, repos)
+					_, err := s.List(ctx)
+					return err
+				},
 
-	assert.Equal(errDefault, err)
-}
+				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
+					m := assertPlanetRepoIsAMock(repos, assert)
 
-func TestPlanetService_Create_ReturnsCreatedPlanet(t *testing.T) {
-	assert := assert.New(t)
+					assert.Equal(1, m.listCalled)
+				},
+			},
+			"delete": {
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewPlanetService(pool, repos)
+					return s.Delete(ctx, defaultPlanetId)
+				},
 
-	mur := &mockPlanetRepository{
-		planet: defaultPlanet,
-	}
-	mc := &mockConnectionPool{}
-	repos := repositories.Repositories{
-		Planet: mur,
-	}
-	s := NewPlanetService(mc, repos)
+				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
+					m := assertPlanetRepoIsAMock(repos, assert)
 
-	actual, err := s.Create(context.Background(), defaultPlanetDtoRequest)
+					assert.Equal(1, m.deleteCalled)
+					assert.Equal(defaultPlanetId, m.deleteId)
+				},
+			},
+		},
 
-	assert.Nil(err)
+		returnTestCases: map[string]returnTestCase{
+			"create": {
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) interface{} {
+					s := NewPlanetService(pool, repos)
+					out, _ := s.Create(ctx, defaultPlanetDtoRequest)
+					return out
+				},
 
-	expected := communication.PlanetDtoResponse{
-		Id:     defaultPlanet.Id,
-		Player: defaultPlanet.Player,
-		Name:   defaultPlanet.Name,
+				expectedContent: communication.PlanetDtoResponse{
+					Id:     defaultPlanet.Id,
+					Player: defaultPlanet.Player,
+					Name:   defaultPlanet.Name,
 
-		CreatedAt: defaultPlanet.CreatedAt,
-	}
-	assert.Equal(expected, actual)
-}
+					CreatedAt: defaultPlanet.CreatedAt,
+				},
+			},
+			"get": {
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) interface{} {
+					s := NewPlanetService(pool, repos)
+					out, _ := s.Get(ctx, defaultPlanetId)
+					return out
+				},
 
-func TestPlanetService_Get_CallsRepositoryGet(t *testing.T) {
-	assert := assert.New(t)
+				expectedContent: communication.PlanetDtoResponse{
+					Id:     defaultPlanet.Id,
+					Player: defaultPlanet.Player,
+					Name:   defaultPlanet.Name,
 
-	mur := &mockPlanetRepository{}
-	mc := &mockConnectionPool{}
-	repos := repositories.Repositories{
-		Planet: mur,
-	}
-	s := NewPlanetService(mc, repos)
+					CreatedAt: defaultPlanet.CreatedAt,
+				},
+			},
+			"list": {
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) interface{} {
+					s := NewPlanetService(pool, repos)
+					out, _ := s.List(ctx)
+					return out
+				},
 
-	s.Get(context.Background(), defaultPlanetId)
+				expectedContent: []communication.PlanetDtoResponse{
+					{
+						Id:     defaultPlanet.Id,
+						Player: defaultPlanet.Player,
+						Name:   defaultPlanet.Name,
 
-	assert.Equal(1, mur.getCalled)
-}
+						CreatedAt: defaultPlanet.CreatedAt,
+					},
+				},
+			},
+		},
 
-func TestPlanetService_Get_WhenRepositoryFails_ExpectError(t *testing.T) {
-	assert := assert.New(t)
-
-	mur := &mockPlanetRepository{
-		err: errDefault,
-	}
-	mc := &mockConnectionPool{}
-	repos := repositories.Repositories{
-		Planet: mur,
-	}
-	s := NewPlanetService(mc, repos)
-
-	_, err := s.Get(context.Background(), defaultPlanetId)
-
-	assert.Equal(errDefault, err)
-}
-
-func TestPlanetService_Get_ReturnsPlanet(t *testing.T) {
-	assert := assert.New(t)
-
-	mur := &mockPlanetRepository{
-		planet: defaultPlanet,
-	}
-	mc := &mockConnectionPool{}
-	repos := repositories.Repositories{
-		Planet: mur,
-	}
-	s := NewPlanetService(mc, repos)
-
-	actual, err := s.Get(context.Background(), defaultPlanetId)
-
-	assert.Nil(err)
-	assert.Equal(defaultPlanetId, mur.getId)
-
-	expected := communication.PlanetDtoResponse{
-		Id:     defaultPlanet.Id,
-		Player: defaultPlanet.Player,
-		Name:   defaultPlanet.Name,
-
-		CreatedAt: defaultPlanet.CreatedAt,
-	}
-	assert.Equal(expected, actual)
-}
-
-func TestPlanetService_List_CallsRepositoryList(t *testing.T) {
-	assert := assert.New(t)
-
-	mur := &mockPlanetRepository{}
-	mc := &mockConnectionPool{}
-	repos := repositories.Repositories{
-		Planet: mur,
-	}
-	s := NewPlanetService(mc, repos)
-
-	s.List(context.Background())
-
-	assert.Equal(1, mur.listCalled)
-}
-
-func TestPlanetService_List_WhenRepositoryFails_ExpectError(t *testing.T) {
-	assert := assert.New(t)
-
-	mur := &mockPlanetRepository{
-		err: errDefault,
-	}
-	mc := &mockConnectionPool{}
-	repos := repositories.Repositories{
-		Planet: mur,
-	}
-	s := NewPlanetService(mc, repos)
-
-	_, err := s.List(context.Background())
-
-	assert.Equal(errDefault, err)
-}
-
-func TestPlanetService_List_ReturnsAllPlanets(t *testing.T) {
-	assert := assert.New(t)
-
-	mur := &mockPlanetRepository{
-		planet: defaultPlanet,
-	}
-	mc := &mockConnectionPool{}
-	repos := repositories.Repositories{
-		Planet: mur,
-	}
-	s := NewPlanetService(mc, repos)
-
-	actual, err := s.List(context.Background())
-
-	assert.Nil(err)
-	expected := []communication.PlanetDtoResponse{
-		{
-			Id:        defaultPlanet.Id,
-			Player:    defaultPlanet.Player,
-			Name:      defaultPlanet.Name,
-			CreatedAt: defaultPlanet.CreatedAt,
+		transactionTestCases: map[string]transactionTestCase{
+			"delete": {
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) interface{} {
+					s := NewPlanetService(pool, repos)
+					return s.Delete(ctx, defaultPlanetId)
+				},
+			},
 		},
 	}
-	assert.Equal(expected, actual)
+
+	suite.Run(t, &s)
 }
 
-func TestPlanetService_Delete_CallsRepositoryDelete(t *testing.T) {
-	assert := assert.New(t)
-
-	mur := &mockPlanetRepository{}
-	mc := &mockConnectionPool{}
-	repos := repositories.Repositories{
-		Planet: mur,
+func generateValidPlanetRepositoryMock() repositories.Repositories {
+	return repositories.Repositories{
+		Planet: &mockPlanetRepository{
+			planet: defaultPlanet,
+		},
 	}
-	s := NewPlanetService(mc, repos)
-
-	s.Delete(context.Background(), defaultPlanetId)
-
-	assert.Equal(1, mur.deleteCalled)
 }
 
-func TestPlanetService_Delete_CallsTransactionClose(t *testing.T) {
-	assert := assert.New(t)
-
-	mur := &mockPlanetRepository{}
-	mc := &mockConnectionPool{}
-	repos := repositories.Repositories{
-		Planet: mur,
+func generateErrorPlanetRepositoryMock(err error) repositories.Repositories {
+	return repositories.Repositories{
+		Planet: &mockPlanetRepository{
+			err: err,
+		},
 	}
-	s := NewPlanetService(mc, repos)
-
-	s.Delete(context.Background(), defaultPlanetId)
-
-	assert.Equal(1, mc.tx.closeCalled)
 }
 
-func TestPlanetService_Delete_WhenCreatingTransactionFails_ExpectError(t *testing.T) {
-	assert := assert.New(t)
-
-	mur := &mockPlanetRepository{}
-	mc := &mockConnectionPool{
-		err: errDefault,
+func assertPlanetRepoIsAMock(repos repositories.Repositories, assert *require.Assertions) *mockPlanetRepository {
+	m, ok := repos.Planet.(*mockPlanetRepository)
+	if !ok {
+		assert.Fail("Provided planet repository is not a mock")
 	}
-	repos := repositories.Repositories{
-		Planet: mur,
-	}
-	s := NewPlanetService(mc, repos)
-
-	err := s.Delete(context.Background(), defaultPlanetId)
-
-	assert.Equal(errDefault, err)
-}
-
-func TestPlanetService_Delete_DeletesTheRightPlanet(t *testing.T) {
-	assert := assert.New(t)
-
-	mur := &mockPlanetRepository{}
-	mc := &mockConnectionPool{}
-	repos := repositories.Repositories{
-		Planet: mur,
-	}
-	s := NewPlanetService(mc, repos)
-
-	s.Delete(context.Background(), defaultPlanetId)
-
-	assert.Equal(defaultPlanetId, mur.deleteId)
-}
-
-func TestPlanetService_Delete_WhenPlanetRepositoryFails_ExpectError(t *testing.T) {
-	assert := assert.New(t)
-
-	mur := &mockPlanetRepository{
-		err: errDefault,
-	}
-	mc := &mockConnectionPool{}
-	repos := repositories.Repositories{
-		Planet: mur,
-	}
-	s := NewPlanetService(mc, repos)
-
-	err := s.Delete(context.Background(), defaultPlanetId)
-
-	assert.Equal(errDefault, err)
-}
-
-func TestPlanetService_Delete_WhenRepositoriesSucceeds_ExpectSuccess(t *testing.T) {
-	assert := assert.New(t)
-
-	mur := &mockPlanetRepository{}
-	mc := &mockConnectionPool{}
-	repos := repositories.Repositories{
-		Planet: mur,
-	}
-	s := NewPlanetService(mc, repos)
-
-	err := s.Delete(context.Background(), defaultPlanetId)
-
-	assert.Nil(err)
+	return m
 }
