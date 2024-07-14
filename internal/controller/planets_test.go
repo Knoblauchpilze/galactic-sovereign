@@ -24,13 +24,15 @@ type mockPlanetService struct {
 	planets []communication.PlanetDtoResponse
 	err     error
 
-	createCalled int
-	getCalled    int
-	listCalled   int
-	deleteCalled int
+	createCalled        int
+	getCalled           int
+	listCalled          int
+	listForPlayerCalled int
+	deleteCalled        int
 
-	inPlanet communication.PlanetDtoRequest
-	inId     uuid.UUID
+	inPlanet   communication.PlanetDtoRequest
+	inId       uuid.UUID
+	inPlayerId uuid.UUID
 }
 
 var defaultPlanetDtoRequest = communication.PlanetDtoRequest{
@@ -87,6 +89,10 @@ func Test_PlanetController(t *testing.T) {
 			"getPlanet": {
 				req:     httptest.NewRequest(http.MethodGet, "/", nil),
 				handler: getPlanet,
+			},
+			"listPlanets_badPlayerId": {
+				req:     generateTestRequestWithPlayerIsQueryParam("not-a-uuid"),
+				handler: listPlanets,
 			},
 			"deletePlanet": {
 				req:     httptest.NewRequest(http.MethodDelete, "/", nil),
@@ -226,6 +232,16 @@ func Test_PlanetController(t *testing.T) {
 					assert.Equal(1, m.listCalled)
 				},
 			},
+			"listPlanets_withPlayerId": {
+				req:     generateTestRequestWithPlayerIsQueryParam(defaultPlayerId.String()),
+				handler: listPlanets,
+
+				verifyInteractions: func(s service.PlanetService, assert *require.Assertions) {
+					m := assertPlanetServiceIsAMock(s, assert)
+
+					assert.Equal(1, m.listForPlayerCalled)
+				},
+			},
 			"deletePlanet": {
 				req:            httptest.NewRequest(http.MethodDelete, "/", nil),
 				idAsRouteParam: true,
@@ -277,6 +293,14 @@ func generateTestRequestWithPlanetBody(method string, planetDto communication.Pl
 	return req
 }
 
+func generateTestRequestWithPlayerIsQueryParam(playerId string) *http.Request {
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	query := req.URL.Query()
+	query.Add("player", playerId)
+	req.URL.RawQuery = query.Encode()
+	return req
+}
+
 func (m *mockPlanetService) Create(ctx context.Context, planet communication.PlanetDtoRequest) (communication.PlanetDtoResponse, error) {
 	m.createCalled++
 	m.inPlanet = planet
@@ -301,6 +325,12 @@ func (m *mockPlanetService) Get(ctx context.Context, id uuid.UUID) (communicatio
 
 func (m *mockPlanetService) List(ctx context.Context) ([]communication.PlanetDtoResponse, error) {
 	m.listCalled++
+	return m.planets, m.err
+}
+
+func (m *mockPlanetService) ListForPlayer(ctx context.Context, player uuid.UUID) ([]communication.PlanetDtoResponse, error) {
+	m.listForPlayerCalled++
+	m.inPlayerId = player
 	return m.planets, m.err
 }
 
