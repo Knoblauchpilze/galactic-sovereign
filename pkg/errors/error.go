@@ -38,6 +38,10 @@ func NewCode(code ErrorCode) error {
 	return e
 }
 
+func NotImplemented() error {
+	return NewCode(NotImplementedCode)
+}
+
 func NewCodeWithDetails(code ErrorCode, details string) error {
 	e := errorImpl{
 		Value:   code,
