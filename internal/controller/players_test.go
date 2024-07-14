@@ -105,6 +105,12 @@ func Test_PlayerController(t *testing.T) {
 				err:                errDefault,
 				expectedHttpStatus: http.StatusInternalServerError,
 			},
+			"createPlayer_duplicatedKey": {
+				req:                generateTestRequestWithDefaultPlayerBody(http.MethodPost),
+				handler:            createPlayer,
+				err:                errors.NewCode(db.DuplicatedKeySqlKey),
+				expectedHttpStatus: http.StatusConflict,
+			},
 			"getPlayer": {
 				req:                httptest.NewRequest(http.MethodGet, "/", nil),
 				idAsRouteParam:     true,
