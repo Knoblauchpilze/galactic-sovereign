@@ -239,6 +239,7 @@ func Test_PlanetController(t *testing.T) {
 				verifyInteractions: func(s service.PlanetService, assert *require.Assertions) {
 					m := assertPlanetServiceIsAMock(s, assert)
 
+					assert.Equal(defaultPlayerId, m.inPlayerId)
 					assert.Equal(1, m.listForPlayerCalled)
 				},
 			},
