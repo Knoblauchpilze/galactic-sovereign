@@ -5,10 +5,12 @@ import (
 	"testing"
 
 	"github.com/KnoblauchPilze/user-service/pkg/communication"
+	"github.com/KnoblauchPilze/user-service/pkg/db"
 	"github.com/KnoblauchPilze/user-service/pkg/persistence"
 	"github.com/KnoblauchPilze/user-service/pkg/repositories"
 	"github.com/google/uuid"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/suite"
 )
 
 var defaultUniverseId = uuid.MustParse("3e7fde5c-ac70-4e5d-bd09-73029725048d")
@@ -25,269 +27,178 @@ var defaultUniverse = persistence.Universe{
 	UpdatedAt: testDate,
 }
 
-func TestUniverseService_Create_CallsRepositoryCreate(t *testing.T) {
-	assert := assert.New(t)
+func Test_UniverseService(t *testing.T) {
+	s := ServiceTestSuite{
+		generateValidRepositoriesMock: generateValidUniverseRepositoryMock,
+		generateErrorRepositoriesMock: generateErrorUniverseRepositoryMock,
 
-	mur := &mockUniverseRepository{}
-	mc := &mockConnectionPool{}
-	repos := repositories.Repositories{
-		Universe: mur,
-	}
-	s := NewUniverseService(mc, repos)
+		errorTestCases: map[string]errorTestCase{
+			"create": {
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewUniverseService(pool, repos)
+					_, err := s.Create(ctx, defaultUniverseDtoRequest)
+					return err
+				},
+			},
+			"get": {
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewUniverseService(pool, repos)
+					_, err := s.Get(ctx, defaultUniverseId)
+					return err
+				},
+			},
+			"list": {
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewUniverseService(pool, repos)
+					_, err := s.List(ctx)
+					return err
+				},
+			},
+			"delete": {
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewUniverseService(pool, repos)
+					return s.Delete(ctx, defaultUniverseId)
+				},
+			},
+		},
 
-	s.Create(context.Background(), defaultUniverseDtoRequest)
+		repositoryInteractionTestCases: map[string]repositoryInteractionTestCase{
+			"create": {
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewUniverseService(pool, repos)
+					_, err := s.Create(ctx, defaultUniverseDtoRequest)
+					return err
+				},
 
-	assert.Equal(1, mur.createCalled)
-	assert.Equal(defaultUniverseDtoRequest.Name, mur.createdUniverse.Name)
-}
+				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
+					m := assertUniverseRepoIsAMock(repos, assert)
 
-func TestUniverseService_Create_WhenRepositoryFails_ExpectError(t *testing.T) {
-	assert := assert.New(t)
+					assert.Equal(1, m.createCalled)
+					assert.Equal(defaultUniverseDtoRequest.Name, m.createdUniverse.Name)
+				},
+			},
+			"get": {
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewUniverseService(pool, repos)
+					_, err := s.Get(ctx, defaultUniverseId)
+					return err
+				},
 
-	mur := &mockUniverseRepository{
-		err: errDefault,
-	}
-	mc := &mockConnectionPool{}
-	repos := repositories.Repositories{
-		Universe: mur,
-	}
-	s := NewUniverseService(mc, repos)
+				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
+					m := assertUniverseRepoIsAMock(repos, assert)
 
-	_, err := s.Create(context.Background(), defaultUniverseDtoRequest)
+					assert.Equal(1, m.getCalled)
+					assert.Equal(defaultUniverseId, m.getId)
+				},
+			},
+			"list": {
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewUniverseService(pool, repos)
+					_, err := s.List(ctx)
+					return err
+				},
 
-	assert.Equal(errDefault, err)
-}
+				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
+					m := assertUniverseRepoIsAMock(repos, assert)
 
-func TestUniverseService_Create_ReturnsCreatedUniverse(t *testing.T) {
-	assert := assert.New(t)
+					assert.Equal(1, m.listCalled)
+				},
+			},
+			"delete": {
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewUniverseService(pool, repos)
+					return s.Delete(ctx, defaultUniverseId)
+				},
 
-	mur := &mockUniverseRepository{
-		universe: defaultUniverse,
-	}
-	mc := &mockConnectionPool{}
-	repos := repositories.Repositories{
-		Universe: mur,
-	}
-	s := NewUniverseService(mc, repos)
+				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
+					m := assertUniverseRepoIsAMock(repos, assert)
 
-	actual, err := s.Create(context.Background(), defaultUniverseDtoRequest)
+					assert.Equal(1, m.deleteCalled)
+					assert.Equal(defaultUniverseId, m.deleteId)
+				},
+			},
+		},
 
-	assert.Nil(err)
+		returnTestCases: map[string]returnTestCase{
+			"create": {
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) interface{} {
+					s := NewUniverseService(pool, repos)
+					out, _ := s.Create(ctx, defaultUniverseDtoRequest)
+					return out
+				},
 
-	expected := communication.UniverseDtoResponse{
-		Id:   defaultUniverse.Id,
-		Name: defaultUniverse.Name,
+				expectedContent: communication.UniverseDtoResponse{
+					Id:   defaultUniverse.Id,
+					Name: defaultUniverse.Name,
 
-		CreatedAt: defaultUniverse.CreatedAt,
-	}
-	assert.Equal(expected, actual)
-}
+					CreatedAt: defaultUniverse.CreatedAt,
+				},
+			},
+			"get": {
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) interface{} {
+					s := NewUniverseService(pool, repos)
+					out, _ := s.Get(ctx, defaultUniverseId)
+					return out
+				},
 
-func TestUniverseService_Get_CallsRepositoryGet(t *testing.T) {
-	assert := assert.New(t)
+				expectedContent: communication.UniverseDtoResponse{
+					Id:   defaultUniverse.Id,
+					Name: defaultUniverse.Name,
 
-	mur := &mockUniverseRepository{}
-	mc := &mockConnectionPool{}
-	repos := repositories.Repositories{
-		Universe: mur,
-	}
-	s := NewUniverseService(mc, repos)
+					CreatedAt: defaultUniverse.CreatedAt,
+				},
+			},
+			"list": {
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) interface{} {
+					s := NewUniverseService(pool, repos)
+					out, _ := s.List(ctx)
+					return out
+				},
 
-	s.Get(context.Background(), defaultUniverseId)
+				expectedContent: []communication.UniverseDtoResponse{
+					{
+						Id:   defaultUniverse.Id,
+						Name: defaultUniverse.Name,
 
-	assert.Equal(1, mur.getCalled)
-}
+						CreatedAt: defaultUniverse.CreatedAt,
+					},
+				},
+			},
+		},
 
-func TestUniverseService_Get_WhenRepositoryFails_ExpectError(t *testing.T) {
-	assert := assert.New(t)
-
-	mur := &mockUniverseRepository{
-		err: errDefault,
-	}
-	mc := &mockConnectionPool{}
-	repos := repositories.Repositories{
-		Universe: mur,
-	}
-	s := NewUniverseService(mc, repos)
-
-	_, err := s.Get(context.Background(), defaultUniverseId)
-
-	assert.Equal(errDefault, err)
-}
-
-func TestUniverseService_Get_ReturnsUniverse(t *testing.T) {
-	assert := assert.New(t)
-
-	mur := &mockUniverseRepository{
-		universe: defaultUniverse,
-	}
-	mc := &mockConnectionPool{}
-	repos := repositories.Repositories{
-		Universe: mur,
-	}
-	s := NewUniverseService(mc, repos)
-
-	actual, err := s.Get(context.Background(), defaultUniverseId)
-
-	assert.Nil(err)
-	assert.Equal(defaultUniverseId, mur.getId)
-
-	expected := communication.UniverseDtoResponse{
-		Id:   defaultUniverse.Id,
-		Name: defaultUniverse.Name,
-
-		CreatedAt: defaultUniverse.CreatedAt,
-	}
-	assert.Equal(expected, actual)
-}
-
-func TestUniverseService_List_CallsRepositoryList(t *testing.T) {
-	assert := assert.New(t)
-
-	mur := &mockUniverseRepository{}
-	mc := &mockConnectionPool{}
-	repos := repositories.Repositories{
-		Universe: mur,
-	}
-	s := NewUniverseService(mc, repos)
-
-	s.List(context.Background())
-
-	assert.Equal(1, mur.listCalled)
-}
-
-func TestUniverseService_List_WhenRepositoryFails_ExpectError(t *testing.T) {
-	assert := assert.New(t)
-
-	mur := &mockUniverseRepository{
-		err: errDefault,
-	}
-	mc := &mockConnectionPool{}
-	repos := repositories.Repositories{
-		Universe: mur,
-	}
-	s := NewUniverseService(mc, repos)
-
-	_, err := s.List(context.Background())
-
-	assert.Equal(errDefault, err)
-}
-
-func TestUniverseService_List_ReturnsAllUniverses(t *testing.T) {
-	assert := assert.New(t)
-
-	mur := &mockUniverseRepository{
-		universe: defaultUniverse,
-	}
-	mc := &mockConnectionPool{}
-	repos := repositories.Repositories{
-		Universe: mur,
-	}
-	s := NewUniverseService(mc, repos)
-
-	actual, err := s.List(context.Background())
-
-	assert.Nil(err)
-	expected := []communication.UniverseDtoResponse{
-		{
-			Id:        defaultUniverse.Id,
-			Name:      defaultUniverse.Name,
-			CreatedAt: defaultUniverse.CreatedAt,
+		transactionTestCases: map[string]transactionTestCase{
+			"delete": {
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) interface{} {
+					s := NewUniverseService(pool, repos)
+					return s.Delete(ctx, defaultUniverseId)
+				},
+			},
 		},
 	}
-	assert.Equal(expected, actual)
+
+	suite.Run(t, &s)
 }
 
-func TestUniverseService_Delete_CallsRepositoryDelete(t *testing.T) {
-	assert := assert.New(t)
-
-	mur := &mockUniverseRepository{}
-	mc := &mockConnectionPool{}
-	repos := repositories.Repositories{
-		Universe: mur,
+func generateValidUniverseRepositoryMock() repositories.Repositories {
+	return repositories.Repositories{
+		Universe: &mockUniverseRepository{
+			universe: defaultUniverse,
+		},
 	}
-	s := NewUniverseService(mc, repos)
-
-	s.Delete(context.Background(), defaultUniverseId)
-
-	assert.Equal(1, mur.deleteCalled)
 }
 
-func TestUniverseService_Delete_CallsTransactionClose(t *testing.T) {
-	assert := assert.New(t)
-
-	mur := &mockUniverseRepository{}
-	mc := &mockConnectionPool{}
-	repos := repositories.Repositories{
-		Universe: mur,
+func generateErrorUniverseRepositoryMock(err error) repositories.Repositories {
+	return repositories.Repositories{
+		Universe: &mockUniverseRepository{
+			err: err,
+		},
 	}
-	s := NewUniverseService(mc, repos)
-
-	s.Delete(context.Background(), defaultUniverseId)
-
-	assert.Equal(1, mc.tx.closeCalled)
 }
 
-func TestUniverseService_Delete_WhenCreatingTransactionFails_ExpectError(t *testing.T) {
-	assert := assert.New(t)
-
-	mur := &mockUniverseRepository{}
-	mc := &mockConnectionPool{
-		err: errDefault,
+func assertUniverseRepoIsAMock(repos repositories.Repositories, assert *require.Assertions) *mockUniverseRepository {
+	m, ok := repos.Universe.(*mockUniverseRepository)
+	if !ok {
+		assert.Fail("Provided universe repository is not a mock")
 	}
-	repos := repositories.Repositories{
-		Universe: mur,
-	}
-	s := NewUniverseService(mc, repos)
-
-	err := s.Delete(context.Background(), defaultUniverseId)
-
-	assert.Equal(errDefault, err)
-}
-
-func TestUniverseService_Delete_DeletesTheRightUniverse(t *testing.T) {
-	assert := assert.New(t)
-
-	mur := &mockUniverseRepository{}
-	mc := &mockConnectionPool{}
-	repos := repositories.Repositories{
-		Universe: mur,
-	}
-	s := NewUniverseService(mc, repos)
-
-	s.Delete(context.Background(), defaultUniverseId)
-
-	assert.Equal(defaultUniverseId, mur.deleteId)
-}
-
-func TestUniverseService_Delete_WhenUniverseRepositoryFails_ExpectError(t *testing.T) {
-	assert := assert.New(t)
-
-	mur := &mockUniverseRepository{
-		err: errDefault,
-	}
-	mc := &mockConnectionPool{}
-	repos := repositories.Repositories{
-		Universe: mur,
-	}
-	s := NewUniverseService(mc, repos)
-
-	err := s.Delete(context.Background(), defaultUniverseId)
-
-	assert.Equal(errDefault, err)
-}
-
-func TestUniverseService_Delete_WhenRepositoriesSucceeds_ExpectSuccess(t *testing.T) {
-	assert := assert.New(t)
-
-	mur := &mockUniverseRepository{}
-	mc := &mockConnectionPool{}
-	repos := repositories.Repositories{
-		Universe: mur,
-	}
-	s := NewUniverseService(mc, repos)
-
-	err := s.Delete(context.Background(), defaultUniverseId)
-
-	assert.Nil(err)
+	return m
 }
