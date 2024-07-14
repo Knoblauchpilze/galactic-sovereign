@@ -13,6 +13,7 @@ type PlanetService interface {
 	Create(ctx context.Context, planetDto communication.PlanetDtoRequest) (communication.PlanetDtoResponse, error)
 	Get(ctx context.Context, id uuid.UUID) (communication.PlanetDtoResponse, error)
 	List(ctx context.Context) ([]communication.PlanetDtoResponse, error)
+	ListForPlayer(ctx context.Context, player uuid.UUID) ([]communication.PlanetDtoResponse, error)
 	Delete(ctx context.Context, id uuid.UUID) error
 }
 
@@ -53,6 +54,21 @@ func (s *planetServiceImpl) Get(ctx context.Context, id uuid.UUID) (communicatio
 
 func (s *planetServiceImpl) List(ctx context.Context) ([]communication.PlanetDtoResponse, error) {
 	planets, err := s.planetRepo.List(ctx)
+	if err != nil {
+		return []communication.PlanetDtoResponse{}, err
+	}
+
+	var out []communication.PlanetDtoResponse
+	for _, planet := range planets {
+		dto := communication.ToPlanetDtoResponse(planet)
+		out = append(out, dto)
+	}
+
+	return out, nil
+}
+
+func (s *planetServiceImpl) ListForPlayer(ctx context.Context, player uuid.UUID) ([]communication.PlanetDtoResponse, error) {
+	planets, err := s.planetRepo.ListForPlayer(ctx, player)
 	if err != nil {
 		return []communication.PlanetDtoResponse{}, err
 	}
