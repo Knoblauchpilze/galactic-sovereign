@@ -108,13 +108,15 @@ type mockPlanetRepository struct {
 	planet persistence.Planet
 	err    error
 
-	createCalled  int
-	createdPlanet persistence.Planet
-	getCalled     int
-	getId         uuid.UUID
-	listCalled    int
-	deleteCalled  int
-	deleteId      uuid.UUID
+	createCalled        int
+	createdPlanet       persistence.Planet
+	getCalled           int
+	getId               uuid.UUID
+	listCalled          int
+	listForPlayerId     uuid.UUID
+	listForPlayerCalled int
+	deleteCalled        int
+	deleteId            uuid.UUID
 }
 
 func (m *mockPlanetRepository) Create(ctx context.Context, planet persistence.Planet) (persistence.Planet, error) {
@@ -131,6 +133,12 @@ func (m *mockPlanetRepository) Get(ctx context.Context, id uuid.UUID) (persisten
 
 func (m *mockPlanetRepository) List(ctx context.Context) ([]persistence.Planet, error) {
 	m.listCalled++
+	return []persistence.Planet{m.planet}, m.err
+}
+
+func (m *mockPlanetRepository) ListForPlayer(ctx context.Context, player uuid.UUID) ([]persistence.Planet, error) {
+	m.listForPlayerCalled++
+	m.listForPlayerId = player
 	return []persistence.Planet{m.planet}, m.err
 }
 
