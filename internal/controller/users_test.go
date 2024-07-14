@@ -180,6 +180,13 @@ func Test_UserController(t *testing.T) {
 				err:                errDefault,
 				expectedHttpStatus: http.StatusInternalServerError,
 			},
+			"updateUser": {
+				req:                generateTestRequestWithDefaultUserBody(http.MethodPatch),
+				idAsRouteParam:     true,
+				handler:            updateUser,
+				err:                errDefault,
+				expectedHttpStatus: http.StatusInternalServerError,
+			},
 			"updateUser_notFound": {
 				req:                generateTestRequestWithDefaultUserBody(http.MethodPatch),
 				idAsRouteParam:     true,

@@ -86,6 +86,17 @@ func Test_AuthController(t *testing.T) {
 				handler:            authUser,
 				expectedBodyString: "\"Api key not found\"\n",
 			},
+			"authUser_wrongKeySyntax": {
+				req: func() *http.Request {
+					req := httptest.NewRequest(http.MethodGet, "/", nil)
+
+					req.Header.Add("X-Api-Key", "not-a-uuid")
+
+					return req
+				}(),
+				handler:            authUser,
+				expectedBodyString: "\"Invalid api key syntax\"\n",
+			},
 		},
 
 		errorTestCases: map[string]errorTestCase[service.AuthService]{
