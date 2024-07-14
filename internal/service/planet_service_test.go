@@ -56,6 +56,13 @@ func Test_PlanetService(t *testing.T) {
 					return err
 				},
 			},
+			"listForPlayer": {
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewPlanetService(pool, repos)
+					_, err := s.ListForPlayer(ctx, defaultPlayerId)
+					return err
+				},
+			},
 			"delete": {
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
 					s := NewPlanetService(pool, repos)
@@ -105,6 +112,20 @@ func Test_PlanetService(t *testing.T) {
 					m := assertPlanetRepoIsAMock(repos, assert)
 
 					assert.Equal(1, m.listCalled)
+				},
+			},
+			"listForPlayer": {
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewPlanetService(pool, repos)
+					_, err := s.ListForPlayer(ctx, defaultPlayerId)
+					return err
+				},
+
+				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
+					m := assertPlanetRepoIsAMock(repos, assert)
+
+					assert.Equal(1, m.listForPlayerCalled)
+					assert.Equal(defaultPlayerId, m.listForPlayerId)
 				},
 			},
 			"delete": {
@@ -157,6 +178,23 @@ func Test_PlanetService(t *testing.T) {
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) interface{} {
 					s := NewPlanetService(pool, repos)
 					out, _ := s.List(ctx)
+					return out
+				},
+
+				expectedContent: []communication.PlanetDtoResponse{
+					{
+						Id:     defaultPlanet.Id,
+						Player: defaultPlanet.Player,
+						Name:   defaultPlanet.Name,
+
+						CreatedAt: defaultPlanet.CreatedAt,
+					},
+				},
+			},
+			"listForPlayer": {
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) interface{} {
+					s := NewPlanetService(pool, repos)
+					out, _ := s.ListForPlayer(ctx, defaultPlayerId)
 					return out
 				},
 
