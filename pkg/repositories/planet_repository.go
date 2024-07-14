@@ -13,6 +13,7 @@ type PlanetRepository interface {
 	Create(ctx context.Context, planet persistence.Planet) (persistence.Planet, error)
 	Get(ctx context.Context, id uuid.UUID) (persistence.Planet, error)
 	List(ctx context.Context) ([]persistence.Planet, error)
+	ListForPlayer(ctx context.Context, player uuid.UUID) ([]persistence.Planet, error)
 	Delete(ctx context.Context, tx db.Transaction, id uuid.UUID) error
 }
 
@@ -57,6 +58,33 @@ const listPlanetSqlTemplate = "SELECT id, player, name, created_at, updated_at F
 
 func (r *planetRepositoryImpl) List(ctx context.Context) ([]persistence.Planet, error) {
 	res := r.conn.Query(ctx, listPlanetSqlTemplate)
+	if err := res.Err(); err != nil {
+		return []persistence.Planet{}, err
+	}
+
+	var out []persistence.Planet
+	parser := func(rows db.Scannable) error {
+		var planet persistence.Planet
+		err := rows.Scan(&planet.Id, &planet.Player, &planet.Name, &planet.CreatedAt, &planet.UpdatedAt)
+		if err != nil {
+			return err
+		}
+
+		out = append(out, planet)
+		return nil
+	}
+
+	if err := res.GetAll(parser); err != nil {
+		return []persistence.Planet{}, err
+	}
+
+	return out, nil
+}
+
+const listPlanetForPlayerSqlTemplate = "SELECT id, player, name, created_at, updated_at FROM planet where player = $1"
+
+func (r *planetRepositoryImpl) ListForPlayer(ctx context.Context, player uuid.UUID) ([]persistence.Planet, error) {
+	res := r.conn.Query(ctx, listPlanetForPlayerSqlTemplate, player)
 	if err := res.Err(); err != nil {
 		return []persistence.Planet{}, err
 	}

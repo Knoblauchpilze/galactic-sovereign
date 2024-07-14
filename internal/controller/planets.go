@@ -69,7 +69,19 @@ func getPlanet(c echo.Context, s service.PlanetService) error {
 }
 
 func listPlanets(c echo.Context, s service.PlanetService) error {
-	planets, err := s.List(c.Request().Context())
+	exists, playerId, err := fetchIdFromQueryParam("player", c)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, "Invalid id syntax")
+	}
+
+	var planets []communication.PlanetDtoResponse
+
+	if exists {
+		planets, err = s.ListForPlayer(c.Request().Context(), playerId)
+	} else {
+		planets, err = s.List(c.Request().Context())
+	}
+
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err)
 	}
