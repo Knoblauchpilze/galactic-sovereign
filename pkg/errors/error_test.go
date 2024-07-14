@@ -57,6 +57,18 @@ func TestError_NewCode_WhenGenericCode_ExpectMessage(t *testing.T) {
 	}
 }
 
+func TestError_NewNotImplemented(t *testing.T) {
+	assert := assert.New(t)
+
+	err := NotImplemented()
+
+	impl, ok := err.(errorImpl)
+	assert.True(ok)
+	assert.Equal("Not implemented", impl.Message)
+	assert.Nil(impl.Cause)
+	assert.Equal(NotImplementedCode, impl.Value)
+}
+
 func TestError_NewCodeWithDetails(t *testing.T) {
 	assert := assert.New(t)
 
