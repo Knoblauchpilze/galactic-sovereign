@@ -180,7 +180,7 @@ func Test_PlayerService(t *testing.T) {
 
 		transactionTestCases: map[string]transactionTestCase{
 			"delete": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) interface{} {
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
 					s := NewPlayerService(pool, repos)
 					return s.Delete(ctx, defaultPlayerId)
 				},

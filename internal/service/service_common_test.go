@@ -15,16 +15,20 @@ type returnTestFunc func(context.Context, db.ConnectionPool, repositories.Reposi
 type generateValidRepositoriesMock func() repositories.Repositories
 type generateErrorRepositoriesMock func(err error) repositories.Repositories
 
-type verifyMockInteractions func(repositories.Repositories, *require.Assertions)
+type verifyError func(error, *require.Assertions)
 
 type errorTestCase struct {
 	generateErrorRepositoriesMock generateErrorRepositoriesMock
 	handler                       testFunc
+	verifyError                   verifyError
 }
+
+type verifyMockInteractions func(repositories.Repositories, *require.Assertions)
 
 type repositoryInteractionTestCase struct {
 	generateValidRepositoriesMock generateValidRepositoriesMock
 	handler                       testFunc
+	expectedError                 error
 	verifyInteractions            verifyMockInteractions
 }
 
@@ -36,7 +40,7 @@ type returnTestCase struct {
 
 type transactionTestCase struct {
 	generateValidRepositoriesMock generateValidRepositoriesMock
-	handler                       returnTestFunc
+	handler                       testFunc
 }
 
 type ServiceTestSuite struct {
@@ -63,7 +67,11 @@ func (s *ServiceTestSuite) TestWhenRepositoryFails_ExpectErrorIsPropagated() {
 
 			err := testCase.handler(context.Background(), &mockConnectionPool{}, repos)
 
-			s.Require().Equal(errDefault, err)
+			if testCase.verifyError != nil {
+				testCase.verifyError(err, s.Require())
+			} else {
+				s.Require().Equal(errDefault, err)
+			}
 		})
 	}
 }
@@ -80,7 +88,7 @@ func (s *ServiceTestSuite) TestWhenRepositorySucceeds_ExpectCorrectInteraction()
 
 			err := testCase.handler(context.Background(), &mockConnectionPool{}, repos)
 
-			s.Require().Nil(err)
+			s.Require().Equal(testCase.expectedError, err)
 			testCase.verifyInteractions(repos, s.Require())
 		})
 	}
