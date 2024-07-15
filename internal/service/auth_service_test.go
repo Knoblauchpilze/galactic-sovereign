@@ -5,12 +5,14 @@ import (
 	"testing"
 	"time"
 
+	"github.com/KnoblauchPilze/user-service/pkg/communication"
 	"github.com/KnoblauchPilze/user-service/pkg/db"
 	"github.com/KnoblauchPilze/user-service/pkg/errors"
 	"github.com/KnoblauchPilze/user-service/pkg/persistence"
 	"github.com/KnoblauchPilze/user-service/pkg/repositories"
 	"github.com/google/uuid"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/suite"
 )
 
 var defaultApiKey = persistence.ApiKey{
@@ -59,271 +61,449 @@ var defaultUserLimit = persistence.UserLimit{
 	UpdatedAt: time.Date(2024, 06, 28, 15, 18, 12, 651387237, time.UTC),
 }
 
-func TestAuthService_Authenticate_FetchesTheApiKeyDetails(t *testing.T) {
-	assert := assert.New(t)
+func Test_AuthService(t *testing.T) {
+	s := ServiceTestSuite{
+		generateValidRepositoriesMock: generateValidAuthRepositoryMocks,
 
-	repos, _, mockApi, _, _ := createMockRepositories()
-	s := NewAuthService(&mockConnectionPool{}, repos)
+		errorTestCases: map[string]errorTestCase{
+			"authenticate_getApiKeyFails": {
+				generateErrorRepositoriesMock: func(err error) repositories.Repositories {
+					return repositories.Repositories{
+						ApiKey: &mockApiKeyRepository{
+							getErr: err,
+						},
+					}
+				},
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewAuthService(pool, repos)
+					_, err := s.Authenticate(ctx, defaultApiKey.Key)
+					return err
+				},
+			},
+			"authenticate_apiKeyDoesNotExist": {
+				generateErrorRepositoriesMock: func(_ error) repositories.Repositories {
+					return repositories.Repositories{
+						ApiKey: &mockApiKeyRepository{
+							getErr: errors.NewCode(db.NoMatchingSqlRows),
+						},
+					}
+				},
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewAuthService(pool, repos)
+					_, err := s.Authenticate(ctx, defaultApiKey.Key)
+					return err
+				},
+				verifyError: func(err error, assert *require.Assertions) {
+					assert.True(errors.IsErrorWithCode(err, UserNotAuthenticated))
+				},
+			},
+			"authenticate_apiKeyExpired": {
+				generateErrorRepositoriesMock: func(_ error) repositories.Repositories {
+					return repositories.Repositories{
+						ApiKey: &mockApiKeyRepository{
+							apiKey: persistence.ApiKey{
+								ValidUntil: time.Now().Add(-2 * time.Minute),
+							},
+						},
+					}
+				},
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewAuthService(pool, repos)
+					_, err := s.Authenticate(ctx, defaultApiKey.Key)
+					return err
+				},
+				verifyError: func(err error, assert *require.Assertions) {
+					assert.True(errors.IsErrorWithCode(err, AuthenticationExpired))
+				},
+			},
+			"authenticate_getAclForUserFails": {
+				generateErrorRepositoriesMock: func(_ error) repositories.Repositories {
+					return repositories.Repositories{
+						Acl: &mockAclRepository{
+							getForUserErr: errDefault,
+						},
+						ApiKey: generateApiKeyRepositoryWithValidApiKey(),
+					}
+				},
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewAuthService(pool, repos)
+					_, err := s.Authenticate(ctx, defaultApiKey.Key)
+					return err
+				},
+			},
+			"authenticate_getAclFails": {
+				generateErrorRepositoriesMock: func(_ error) repositories.Repositories {
+					return repositories.Repositories{
+						Acl: &mockAclRepository{
+							aclIds: defaultAclIds,
+							getErr: errDefault,
+						},
+						ApiKey: generateApiKeyRepositoryWithValidApiKey(),
+					}
+				},
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewAuthService(pool, repos)
+					_, err := s.Authenticate(ctx, defaultApiKey.Key)
+					return err
+				},
+			},
+			"authenticate_getUserLimitForUserFails": {
+				generateErrorRepositoriesMock: func(_ error) repositories.Repositories {
+					return repositories.Repositories{
+						Acl:    &mockAclRepository{},
+						ApiKey: generateApiKeyRepositoryWithValidApiKey(),
+						UserLimit: &mockUserLimitRepository{
+							getForUserErr: errDefault,
+						},
+					}
+				},
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewAuthService(pool, repos)
+					_, err := s.Authenticate(ctx, defaultApiKey.Key)
+					return err
+				},
+			},
+			"authenticate_getUserLimitFails": {
+				generateErrorRepositoriesMock: func(_ error) repositories.Repositories {
+					return repositories.Repositories{
+						Acl:    &mockAclRepository{},
+						ApiKey: generateApiKeyRepositoryWithValidApiKey(),
+						UserLimit: &mockUserLimitRepository{
+							userLimitIds:  defaultUserLimitIds,
+							getForUserErr: errDefault,
+						},
+					}
+				},
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewAuthService(pool, repos)
+					_, err := s.Authenticate(ctx, defaultApiKey.Key)
+					return err
+				},
+			},
+		},
 
-	s.Authenticate(context.Background(), defaultApiKey.Id)
+		repositoryInteractionTestCases: map[string]repositoryInteractionTestCase{
+			"authenticate_apiKey": {
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewAuthService(pool, repos)
+					_, err := s.Authenticate(ctx, defaultApiKey.Key)
+					return err
+				},
 
-	assert.Equal(1, mockApi.getForKeyCalled)
-	assert.Equal(defaultApiKey.Id, mockApi.apiKeyId)
-}
+				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
+					m := assertApiKeyRepoIsAMock(repos, assert)
 
-func TestAuthService_Authenticate_WhenApiKeyDoesNotExist_ReturnsNotAuthenticated(t *testing.T) {
-	assert := assert.New(t)
+					assert.Equal(1, m.getForKeyCalled)
+					assert.Equal(defaultApiKey.Key, m.apiKeyId)
+				},
+			},
+			"authenticate_aclForUser": {
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewAuthService(pool, repos)
+					_, err := s.Authenticate(ctx, defaultApiKey.Key)
+					return err
+				},
 
-	repos, _, mockApi, _, _ := createMockRepositories()
-	mockApi.getErr = errors.NewCode(db.NoMatchingSqlRows)
-	s := NewAuthService(&mockConnectionPool{}, repos)
+				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
+					m := assertAclRepoIsAMock(repos, assert)
 
-	_, err := s.Authenticate(context.Background(), defaultApiKey.Id)
+					assert.Equal(1, m.getForUserCalled)
+					assert.Equal(defaultApiKey.ApiUser, m.inUserId)
+				},
+			},
+			"authenticate_aclForUserFails": {
+				generateValidRepositoriesMock: func() repositories.Repositories {
+					return repositories.Repositories{
+						Acl: &mockAclRepository{
+							getForUserErr: errDefault,
+						},
+						ApiKey: generateApiKeyRepositoryWithValidApiKey(),
+					}
+				},
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewAuthService(pool, repos)
+					_, err := s.Authenticate(ctx, defaultApiKey.Key)
+					return err
+				},
+				expectedError: errDefault,
+				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
+					m := assertAclRepoIsAMock(repos, assert)
 
-	assert.True(errors.IsErrorWithCode(err, UserNotAuthenticated))
-}
+					assert.Equal(1, m.getForUserCalled)
+				},
+			},
+			"authenticate_acl": {
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewAuthService(pool, repos)
+					_, err := s.Authenticate(ctx, defaultApiKey.Key)
+					return err
+				},
 
-func TestAuthService_Authenticate_WhenFetchingApiKeyFails_ExpectError(t *testing.T) {
-	assert := assert.New(t)
+				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
+					m := assertAclRepoIsAMock(repos, assert)
 
-	repos, _, mockApi, _, _ := createMockRepositories()
-	mockApi.getErr = errDefault
-	s := NewAuthService(&mockConnectionPool{}, repos)
+					assert.Equal(2, m.getCalled)
+					assert.Equal(defaultAclIds[0], m.inAclIds[0])
+					assert.Equal(defaultAclIds[1], m.inAclIds[1])
+				},
+			},
+			"authenticate_aclFails": {
+				generateValidRepositoriesMock: func() repositories.Repositories {
+					return repositories.Repositories{
+						Acl: &mockAclRepository{
+							aclIds: defaultAclIds,
+							getErr: errDefault,
+						},
+						ApiKey: generateApiKeyRepositoryWithValidApiKey(),
+					}
+				},
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewAuthService(pool, repos)
+					_, err := s.Authenticate(ctx, defaultApiKey.Key)
+					return err
+				},
+				expectedError: errDefault,
+				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
+					m := assertAclRepoIsAMock(repos, assert)
 
-	_, err := s.Authenticate(context.Background(), defaultApiKey.Id)
+					assert.Equal(1, m.getForUserCalled)
+					assert.Equal(1, m.getCalled)
+				},
+			},
+			"authenticate_userLimitForUser": {
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewAuthService(pool, repos)
+					_, err := s.Authenticate(ctx, defaultApiKey.Key)
+					return err
+				},
 
-	assert.Equal(errDefault, err)
-}
+				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
+					m := assertUserLimitRepoIsAMock(repos, assert)
 
-func TestAuthService_Authenticate_WhenApiKeyExpired_ReturnsAuthenticationExpired(t *testing.T) {
-	assert := assert.New(t)
+					assert.Equal(1, m.getForUserCalled)
+					assert.Equal(defaultApiKey.ApiUser, m.inUserId)
+				},
+			},
+			"authenticate_userLimitForUserFails": {
+				generateValidRepositoriesMock: func() repositories.Repositories {
+					return repositories.Repositories{
+						Acl:    &mockAclRepository{},
+						ApiKey: generateApiKeyRepositoryWithValidApiKey(),
+						UserLimit: &mockUserLimitRepository{
+							getForUserErr: errDefault,
+						},
+					}
+				},
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewAuthService(pool, repos)
+					_, err := s.Authenticate(ctx, defaultApiKey.Key)
+					return err
+				},
+				expectedError: errDefault,
+				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
+					m := assertUserLimitRepoIsAMock(repos, assert)
 
-	repos, _, mockApi, _, _ := createMockRepositories()
-	mockApi.apiKey = persistence.ApiKey{
-		ValidUntil: time.Now().Add(-2 * time.Minute),
+					assert.Equal(1, m.getForUserCalled)
+				},
+			},
+			"authenticate_userLimit": {
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewAuthService(pool, repos)
+					_, err := s.Authenticate(ctx, defaultApiKey.Key)
+					return err
+				},
+
+				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
+					m := assertUserLimitRepoIsAMock(repos, assert)
+
+					assert.Equal(2, m.getCalled)
+					assert.Equal(defaultUserLimitIds[0], m.inUserLimitIds[0])
+					assert.Equal(defaultUserLimitIds[1], m.inUserLimitIds[1])
+				},
+			},
+			"authenticate_userLimitFails": {
+				generateValidRepositoriesMock: func() repositories.Repositories {
+					return repositories.Repositories{
+						Acl:    &mockAclRepository{},
+						ApiKey: generateApiKeyRepositoryWithValidApiKey(),
+						UserLimit: &mockUserLimitRepository{
+							userLimitIds: defaultUserLimitIds,
+							getErr:       errDefault,
+						},
+					}
+				},
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewAuthService(pool, repos)
+					_, err := s.Authenticate(ctx, defaultApiKey.Key)
+					return err
+				},
+				expectedError: errDefault,
+				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
+					m := assertUserLimitRepoIsAMock(repos, assert)
+
+					assert.Equal(1, m.getForUserCalled)
+					assert.Equal(1, m.getCalled)
+				},
+			},
+		},
+
+		returnTestCases: map[string]returnTestCase{
+			"authenticate_acls": {
+				generateValidRepositoriesMock: func() repositories.Repositories {
+					return repositories.Repositories{
+						Acl: &mockAclRepository{
+							aclIds: defaultAclIds[:1],
+							acl:    defaultAcl,
+						},
+						ApiKey:    generateApiKeyRepositoryWithValidApiKey(),
+						UserLimit: &mockUserLimitRepository{},
+					}
+				},
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) interface{} {
+					s := NewAuthService(pool, repos)
+					out, _ := s.Authenticate(ctx, defaultApiKey.Key)
+					return out
+				},
+				expectedContent: communication.AuthorizationDtoResponse{
+					Acls: []communication.AclDtoResponse{
+						{
+							Id:          defaultAcl.Id,
+							User:        defaultAcl.User,
+							Resource:    defaultAcl.Resource,
+							Permissions: defaultAcl.Permissions,
+							CreatedAt:   defaultAcl.CreatedAt,
+						},
+					},
+					Limits: []communication.LimitDtoResponse{},
+				},
+			},
+			"authenticate_noAclsReturnsNotNilSlice": {
+				generateValidRepositoriesMock: func() repositories.Repositories {
+					return repositories.Repositories{
+						Acl: &mockAclRepository{
+							aclIds: nil,
+						},
+						ApiKey:    generateApiKeyRepositoryWithValidApiKey(),
+						UserLimit: &mockUserLimitRepository{},
+					}
+				},
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) interface{} {
+					s := NewAuthService(pool, repos)
+					out, _ := s.Authenticate(ctx, defaultApiKey.Key)
+					return out
+				},
+				expectedContent: communication.AuthorizationDtoResponse{
+					Acls:   []communication.AclDtoResponse{},
+					Limits: []communication.LimitDtoResponse{},
+				},
+			},
+			"authenticate_userLimits": {
+				generateValidRepositoriesMock: func() repositories.Repositories {
+					return repositories.Repositories{
+						Acl:    &mockAclRepository{},
+						ApiKey: generateApiKeyRepositoryWithValidApiKey(),
+						UserLimit: &mockUserLimitRepository{
+							userLimitIds: defaultUserLimitIds[:1],
+							userLimit:    defaultUserLimit,
+						},
+					}
+				},
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) interface{} {
+					s := NewAuthService(pool, repos)
+					out, _ := s.Authenticate(ctx, defaultApiKey.Key)
+					return out
+				},
+
+				expectedContent: communication.AuthorizationDtoResponse{
+					Acls: []communication.AclDtoResponse{},
+					Limits: []communication.LimitDtoResponse{
+						{
+							Name:  defaultUserLimit.Limits[0].Name,
+							Value: defaultUserLimit.Limits[0].Value,
+						},
+					},
+				},
+			},
+			"authenticate_noUserLimitsReturnsNotNilSlice": {
+				generateValidRepositoriesMock: func() repositories.Repositories {
+					return repositories.Repositories{
+						Acl:    &mockAclRepository{},
+						ApiKey: generateApiKeyRepositoryWithValidApiKey(),
+						UserLimit: &mockUserLimitRepository{
+							userLimitIds: nil,
+						},
+					}
+				},
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) interface{} {
+					s := NewAuthService(pool, repos)
+					out, _ := s.Authenticate(ctx, defaultApiKey.Key)
+					return out
+				},
+
+				expectedContent: communication.AuthorizationDtoResponse{
+					Acls:   []communication.AclDtoResponse{},
+					Limits: []communication.LimitDtoResponse{},
+				},
+			},
+		},
+
+		transactionTestCases: map[string]transactionTestCase{
+			"authenticate": {
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewAuthService(pool, repos)
+					_, err := s.Authenticate(ctx, defaultApiKey.Key)
+					return err
+				},
+			},
+		},
 	}
-	s := NewAuthService(&mockConnectionPool{}, repos)
 
-	_, err := s.Authenticate(context.Background(), defaultApiKey.Id)
-
-	assert.True(errors.IsErrorWithCode(err, AuthenticationExpired))
+	suite.Run(t, &s)
 }
 
-func TestAuthService_Authenticate_WhenTransactionFailsToBeCreated_ExpectError(t *testing.T) {
-	assert := assert.New(t)
-
-	repos, _, _, _, _ := createMockRepositoriesWithValidApiKey()
-	mockPool := &mockConnectionPool{
-		err: errDefault,
+func generateValidAuthRepositoryMocks() repositories.Repositories {
+	return repositories.Repositories{
+		Acl: &mockAclRepository{
+			aclIds: defaultAclIds,
+		},
+		ApiKey: generateApiKeyRepositoryWithValidApiKey(),
+		UserLimit: &mockUserLimitRepository{
+			userLimitIds: defaultUserLimitIds,
+		},
 	}
-	s := NewAuthService(mockPool, repos)
-
-	_, err := s.Authenticate(context.Background(), defaultApiKey.Id)
-
-	assert.Equal(errDefault, err)
 }
 
-func TestAuthService_Authenticate_FetchesAclsForUser(t *testing.T) {
-	assert := assert.New(t)
-
-	repos, mockAcl, _, _, _ := createMockRepositoriesWithValidApiKey()
-	s := NewAuthService(&mockConnectionPool{}, repos)
-
-	s.Authenticate(context.Background(), defaultApiKey.Id)
-
-	assert.Equal(1, mockAcl.getForUserCalled)
-	assert.Equal(defaultApiKey.ApiUser, mockAcl.inUserId)
-}
-
-func TestAuthService_Authenticate_WhenFetchingAclsForUserFails_ExpectError(t *testing.T) {
-	assert := assert.New(t)
-
-	repos, mockAcl, _, _, _ := createMockRepositoriesWithValidApiKey()
-	mockAcl.getForUserErr = errDefault
-	s := NewAuthService(&mockConnectionPool{}, repos)
-
-	_, err := s.Authenticate(context.Background(), defaultApiKey.Id)
-
-	assert.Equal(errDefault, err)
-}
-
-func TestAuthService_Authenticate_FetchesAclsFromRepository(t *testing.T) {
-	assert := assert.New(t)
-
-	repos, mockAcl, _, _, _ := createMockRepositoriesWithValidApiKey()
-	mockAcl.aclIds = defaultAclIds
-	s := NewAuthService(&mockConnectionPool{}, repos)
-
-	s.Authenticate(context.Background(), defaultApiKey.Id)
-
-	assert.Equal(2, mockAcl.getCalled)
-	assert.Equal(defaultAclIds[0], mockAcl.inAclIds[0])
-	assert.Equal(defaultAclIds[1], mockAcl.inAclIds[1])
-}
-
-func TestAuthService_Authenticate_WhenFetchingOfAclsFails_ExpectError(t *testing.T) {
-	assert := assert.New(t)
-
-	repos, mockAcl, _, _, _ := createMockRepositoriesWithValidApiKey()
-	mockAcl.aclIds = defaultAclIds
-	mockAcl.getErr = errDefault
-	s := NewAuthService(&mockConnectionPool{}, repos)
-
-	_, err := s.Authenticate(context.Background(), defaultApiKey.Id)
-
-	assert.Equal(1, mockAcl.getCalled)
-	assert.Equal(errDefault, err)
-}
-
-func TestAuthService_Authenticate_ReturnsExpectedAcls(t *testing.T) {
-	assert := assert.New(t)
-
-	repos, mockAcl, _, _, _ := createMockRepositoriesWithValidApiKey()
-	mockAcl.aclIds = defaultAclIds[:1]
-	mockAcl.acl = defaultAcl
-	s := NewAuthService(&mockConnectionPool{}, repos)
-
-	actual, err := s.Authenticate(context.Background(), defaultApiKey.Id)
-
-	assert.Nil(err)
-	assert.Equal(1, len(actual.Acls))
-	assert.Equal(0, len(actual.Limits))
-
-	assert.Equal(defaultAcl.Id, actual.Acls[0].Id)
-	assert.Equal(defaultAcl.User, actual.Acls[0].User)
-	assert.Equal(defaultAcl.Resource, actual.Acls[0].Resource)
-	assert.Equal(defaultAcl.Permissions, actual.Acls[0].Permissions)
-	assert.Equal(defaultAcl.CreatedAt, actual.Acls[0].CreatedAt)
-}
-
-func TestAuthService_Authenticate_WhenUserDoesNotHaveAcls_ExpectNonNilSliceReturned(t *testing.T) {
-	assert := assert.New(t)
-
-	repos, mockAcl, _, _, _ := createMockRepositoriesWithValidApiKey()
-	mockAcl.aclIds = nil
-	s := NewAuthService(&mockConnectionPool{}, repos)
-
-	actual, err := s.Authenticate(context.Background(), defaultApiKey.Id)
-
-	assert.Nil(err)
-	assert.NotNil(actual.Acls)
-	assert.Equal(0, len(actual.Acls))
-}
-
-func TestAuthService_Authenticate_FetchesUserLimitsForUser(t *testing.T) {
-	assert := assert.New(t)
-
-	repos, _, _, _, mockUserLimit := createMockRepositoriesWithValidApiKey()
-	s := NewAuthService(&mockConnectionPool{}, repos)
-
-	s.Authenticate(context.Background(), defaultApiKey.Id)
-
-	assert.Equal(1, mockUserLimit.getForUserCalled)
-	assert.Equal(defaultApiKey.ApiUser, mockUserLimit.inUserId)
-}
-
-func TestAuthService_Authenticate_WhenFetchingUserLimitsForUserFails_ExpectError(t *testing.T) {
-	assert := assert.New(t)
-
-	repos, _, _, _, mockUserLimit := createMockRepositoriesWithValidApiKey()
-	mockUserLimit.getForUserErr = errDefault
-	s := NewAuthService(&mockConnectionPool{}, repos)
-
-	_, err := s.Authenticate(context.Background(), defaultApiKey.Id)
-
-	assert.Equal(errDefault, err)
-}
-
-func TestAuthService_Authenticate_FetchesUserLimitsFromRepository(t *testing.T) {
-	assert := assert.New(t)
-
-	repos, _, _, _, mockUserLimit := createMockRepositoriesWithValidApiKey()
-	mockUserLimit.userLimitIds = defaultUserLimitIds
-	s := NewAuthService(&mockConnectionPool{}, repos)
-
-	s.Authenticate(context.Background(), defaultApiKey.Id)
-
-	assert.Equal(2, mockUserLimit.getCalled)
-	assert.Equal(defaultUserLimitIds[0], mockUserLimit.inUserLimitIds[0])
-	assert.Equal(defaultUserLimitIds[1], mockUserLimit.inUserLimitIds[1])
-}
-
-func TestAuthService_Authenticate_WhenFetchingOfUserLimitsFails_ExpectError(t *testing.T) {
-	assert := assert.New(t)
-
-	repos, _, _, _, mockUserLimit := createMockRepositoriesWithValidApiKey()
-	mockUserLimit.userLimitIds = defaultUserLimitIds
-	mockUserLimit.getErr = errDefault
-	s := NewAuthService(&mockConnectionPool{}, repos)
-
-	_, err := s.Authenticate(context.Background(), defaultApiKey.Id)
-
-	assert.Equal(1, mockUserLimit.getCalled)
-	assert.Equal(errDefault, err)
-}
-
-func TestAuthService_Authenticate_ReturnsExpectedUserLimits(t *testing.T) {
-	assert := assert.New(t)
-
-	repos, _, _, _, mockUserLimit := createMockRepositoriesWithValidApiKey()
-	mockUserLimit.userLimitIds = defaultUserLimitIds[:1]
-	mockUserLimit.userLimit = defaultUserLimit
-	s := NewAuthService(&mockConnectionPool{}, repos)
-
-	actual, err := s.Authenticate(context.Background(), defaultApiKey.Id)
-
-	assert.Nil(err)
-	assert.Equal(0, len(actual.Acls))
-	assert.Equal(1, len(actual.Limits))
-
-	assert.Equal(defaultUserLimit.Limits[0].Name, actual.Limits[0].Name)
-	assert.Equal(defaultUserLimit.Limits[0].Value, actual.Limits[0].Value)
-}
-
-func TestAuthService_Authenticate_WhenUserDoesNotHaveUserLimits_ExpectNonNilSliceReturned(t *testing.T) {
-	assert := assert.New(t)
-
-	repos, _, _, _, mockUserLimit := createMockRepositoriesWithValidApiKey()
-	mockUserLimit.userLimitIds = nil
-	s := NewAuthService(&mockConnectionPool{}, repos)
-
-	actual, err := s.Authenticate(context.Background(), defaultApiKey.Id)
-
-	assert.Nil(err)
-	assert.NotNil(actual.Limits)
-	assert.Equal(0, len(actual.Limits))
-}
-
-func createMockRepositories() (repositories.Repositories, *mockAclRepository, *mockApiKeyRepository, *mockUserRepository, *mockUserLimitRepository) {
-	mockAcl := &mockAclRepository{}
-	mockApi := &mockApiKeyRepository{}
-	mockUserLimit := &mockUserLimitRepository{}
-	mockUser := &mockUserRepository{}
-	repos := repositories.Repositories{
-		Acl:       mockAcl,
-		ApiKey:    mockApi,
-		UserLimit: mockUserLimit,
-		User:      mockUser,
+func generateApiKeyRepositoryWithValidApiKey() *mockApiKeyRepository {
+	return &mockApiKeyRepository{
+		apiKey: persistence.ApiKey{
+			Id:         defaultApiKey.Id,
+			Key:        defaultApiKey.Key,
+			ApiUser:    defaultApiKey.ApiUser,
+			ValidUntil: time.Now().Add(1 * time.Hour),
+		},
 	}
-
-	return repos, mockAcl, mockApi, mockUser, mockUserLimit
 }
 
-func createMockRepositoriesWithValidApiKey() (repositories.Repositories, *mockAclRepository, *mockApiKeyRepository, *mockUserRepository, *mockUserLimitRepository) {
-	mockAcl := &mockAclRepository{}
-	mockApi := &mockApiKeyRepository{
-		apiKey: defaultApiKey,
+func assertAclRepoIsAMock(repos repositories.Repositories, assert *require.Assertions) *mockAclRepository {
+	m, ok := repos.Acl.(*mockAclRepository)
+	if !ok {
+		assert.Fail("Provided acl repository is not a mock")
 	}
-	mockUserLimit := &mockUserLimitRepository{}
-	mockUser := &mockUserRepository{}
-	repos := repositories.Repositories{
-		Acl:       mockAcl,
-		ApiKey:    mockApi,
-		UserLimit: mockUserLimit,
-		User:      mockUser,
+	return m
+}
+
+func assertApiKeyRepoIsAMock(repos repositories.Repositories, assert *require.Assertions) *mockApiKeyRepository {
+	m, ok := repos.ApiKey.(*mockApiKeyRepository)
+	if !ok {
+		assert.Fail("Provided api key repository is not a mock")
 	}
+	return m
+}
 
-	mockApi.apiKey.ValidUntil = time.Now().Add(1 * time.Hour)
-
-	return repos, mockAcl, mockApi, mockUser, mockUserLimit
+func assertUserLimitRepoIsAMock(repos repositories.Repositories, assert *require.Assertions) *mockUserLimitRepository {
+	m, ok := repos.UserLimit.(*mockUserLimitRepository)
+	if !ok {
+		assert.Fail("Provided user limit repository is not a mock")
+	}
+	return m
 }

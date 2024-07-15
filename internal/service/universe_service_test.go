@@ -168,7 +168,7 @@ func Test_UniverseService(t *testing.T) {
 
 		transactionTestCases: map[string]transactionTestCase{
 			"delete": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) interface{} {
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
 					s := NewUniverseService(pool, repos)
 					return s.Delete(ctx, defaultUniverseId)
 				},
