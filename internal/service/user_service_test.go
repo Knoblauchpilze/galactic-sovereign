@@ -66,7 +66,24 @@ func Test_UserService(t *testing.T) {
 					return err
 				},
 			},
+			"update_getUserFails": {
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewUserService(Config{}, pool, repos)
+					_, err := s.Update(ctx, defaultUserId, defaultUpdatedUserDtoRequest)
+					return err
+				},
+			},
 			"update": {
+				generateErrorRepositoriesMock: func(err error) repositories.Repositories {
+					return repositories.Repositories{
+						Acl:    &mockAclRepository{},
+						ApiKey: &mockApiKeyRepository{},
+						User: &mockUserRepository{
+							updateErr: err,
+						},
+						UserLimit: &mockUserLimitRepository{},
+					}
+				},
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
 					s := NewUserService(Config{}, pool, repos)
 					_, err := s.Update(ctx, defaultUserId, defaultUpdatedUserDtoRequest)
