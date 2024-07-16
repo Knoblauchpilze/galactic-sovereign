@@ -12,7 +12,7 @@ import (
 
 type testFunc func(context.Context, db.ConnectionPool, repositories.Repositories) error
 type returnTestFunc func(context.Context, db.ConnectionPool, repositories.Repositories) interface{}
-type generateValidRepositoriesMock func() repositories.Repositories
+type generateRepositoriesMock func() repositories.Repositories
 type generateErrorRepositoriesMock func(err error) repositories.Repositories
 
 type verifyError func(error, *require.Assertions)
@@ -26,30 +26,30 @@ type errorTestCase struct {
 type verifyMockInteractions func(repositories.Repositories, *require.Assertions)
 
 type repositoryInteractionTestCase struct {
-	generateValidRepositoriesMock generateValidRepositoriesMock
-	handler                       testFunc
-	expectedError                 error
-	verifyInteractions            verifyMockInteractions
+	generateRepositoriesMock generateRepositoriesMock
+	handler                  testFunc
+	expectedError            error
+	verifyInteractions       verifyMockInteractions
 }
 
 type verifyContent func(interface{}, repositories.Repositories, *require.Assertions)
 
 type returnTestCase struct {
-	generateValidRepositoriesMock generateValidRepositoriesMock
-	handler                       returnTestFunc
-	expectedContent               interface{}
-	verifyContent                 verifyContent
+	generateRepositoriesMock generateRepositoriesMock
+	handler                  returnTestFunc
+	expectedContent          interface{}
+	verifyContent            verifyContent
 }
 
 type transactionTestCase struct {
-	generateValidRepositoriesMock generateValidRepositoriesMock
-	handler                       testFunc
+	generateRepositoriesMock generateRepositoriesMock
+	handler                  testFunc
 }
 
 type ServiceTestSuite struct {
 	suite.Suite
 
-	generateValidRepositoriesMock generateValidRepositoriesMock
+	generateRepositoriesMock      generateRepositoriesMock
 	generateErrorRepositoriesMock generateErrorRepositoriesMock
 
 	errorTestCases                 map[string]errorTestCase
@@ -79,14 +79,14 @@ func (s *ServiceTestSuite) TestWhenRepositoryFails_ExpectErrorIsPropagated() {
 	}
 }
 
-func (s *ServiceTestSuite) TestWhenRepositorySucceeds_ExpectCorrectInteraction() {
+func (s *ServiceTestSuite) TestWhenCallingHandler_ExpectCorrectInteraction() {
 	for name, testCase := range s.repositoryInteractionTestCases {
 		s.T().Run(name, func(t *testing.T) {
 			var repos repositories.Repositories
-			if testCase.generateValidRepositoriesMock != nil {
-				repos = testCase.generateValidRepositoriesMock()
+			if testCase.generateRepositoriesMock != nil {
+				repos = testCase.generateRepositoriesMock()
 			} else {
-				repos = s.generateValidRepositoriesMock()
+				repos = s.generateRepositoriesMock()
 			}
 
 			err := testCase.handler(context.Background(), &mockConnectionPool{}, repos)
@@ -101,10 +101,10 @@ func (s *ServiceTestSuite) TestWhenRepositorySucceeds_ReturnsExpectedValue() {
 	for name, testCase := range s.returnTestCases {
 		s.T().Run(name, func(t *testing.T) {
 			var repos repositories.Repositories
-			if testCase.generateValidRepositoriesMock != nil {
-				repos = testCase.generateValidRepositoriesMock()
+			if testCase.generateRepositoriesMock != nil {
+				repos = testCase.generateRepositoriesMock()
 			} else {
-				repos = s.generateValidRepositoriesMock()
+				repos = s.generateRepositoriesMock()
 			}
 
 			actual := testCase.handler(context.Background(), &mockConnectionPool{}, repos)
@@ -122,10 +122,10 @@ func (s *ServiceTestSuite) TestWhenUsingTransaction_ExpectCallsClose() {
 	for name, testCase := range s.transactionTestCases {
 		s.T().Run(name, func(t *testing.T) {
 			var repos repositories.Repositories
-			if testCase.generateValidRepositoriesMock != nil {
-				repos = testCase.generateValidRepositoriesMock()
+			if testCase.generateRepositoriesMock != nil {
+				repos = testCase.generateRepositoriesMock()
 			} else {
-				repos = s.generateValidRepositoriesMock()
+				repos = s.generateRepositoriesMock()
 			}
 
 			m := &mockConnectionPool{}
@@ -140,10 +140,10 @@ func (s *ServiceTestSuite) TestWhenCreatingTransactionFails_ExpectErrorIsPropaga
 	for name, testCase := range s.transactionTestCases {
 		s.T().Run(name, func(t *testing.T) {
 			var repos repositories.Repositories
-			if testCase.generateValidRepositoriesMock != nil {
-				repos = testCase.generateValidRepositoriesMock()
+			if testCase.generateRepositoriesMock != nil {
+				repos = testCase.generateRepositoriesMock()
 			} else {
-				repos = s.generateValidRepositoriesMock()
+				repos = s.generateRepositoriesMock()
 			}
 
 			m := &mockConnectionPool{

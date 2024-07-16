@@ -31,7 +31,7 @@ var defaultPlanet = persistence.Planet{
 
 func Test_PlanetService(t *testing.T) {
 	s := ServiceTestSuite{
-		generateValidRepositoriesMock: generateValidPlanetRepositoryMock,
+		generateRepositoriesMock:      generateValidPlanetRepositoryMock,
 		generateErrorRepositoriesMock: generateErrorPlanetRepositoryMock,
 
 		errorTestCases: map[string]errorTestCase{

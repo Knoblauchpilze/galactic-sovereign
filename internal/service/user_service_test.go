@@ -40,7 +40,7 @@ var defaultUser = persistence.User{
 
 func Test_UserService(t *testing.T) {
 	s := ServiceTestSuite{
-		generateValidRepositoriesMock: generateValidUserRepositoryMock,
+		generateRepositoriesMock:      generateValidUserRepositoryMock,
 		generateErrorRepositoriesMock: generateErrorUserRepositoryMock,
 
 		errorTestCases: map[string]errorTestCase{
@@ -326,7 +326,7 @@ func Test_UserService(t *testing.T) {
 				},
 			},
 			"delete_aclFails": {
-				generateValidRepositoriesMock: func() repositories.Repositories {
+				generateRepositoriesMock: func() repositories.Repositories {
 					return repositories.Repositories{
 						Acl: &mockAclRepository{
 							deleteErr: errDefault,
@@ -348,7 +348,7 @@ func Test_UserService(t *testing.T) {
 				},
 			},
 			"delete_apiKeyFails": {
-				generateValidRepositoriesMock: func() repositories.Repositories {
+				generateRepositoriesMock: func() repositories.Repositories {
 					return repositories.Repositories{
 						Acl: &mockAclRepository{},
 						ApiKey: &mockApiKeyRepository{
@@ -370,7 +370,7 @@ func Test_UserService(t *testing.T) {
 				},
 			},
 			"delete_userFails": {
-				generateValidRepositoriesMock: func() repositories.Repositories {
+				generateRepositoriesMock: func() repositories.Repositories {
 					return repositories.Repositories{
 						Acl:    &mockAclRepository{},
 						ApiKey: &mockApiKeyRepository{},
@@ -392,7 +392,7 @@ func Test_UserService(t *testing.T) {
 				},
 			},
 			"delete_userLimitFails": {
-				generateValidRepositoriesMock: func() repositories.Repositories {
+				generateRepositoriesMock: func() repositories.Repositories {
 					return repositories.Repositories{
 						Acl:    &mockAclRepository{},
 						ApiKey: &mockApiKeyRepository{},
@@ -445,7 +445,7 @@ func Test_UserService(t *testing.T) {
 				},
 			},
 			"login_apiKeyFails": {
-				generateValidRepositoriesMock: func() repositories.Repositories {
+				generateRepositoriesMock: func() repositories.Repositories {
 					return repositories.Repositories{
 						Acl: &mockAclRepository{},
 						ApiKey: &mockApiKeyRepository{
@@ -501,7 +501,7 @@ func Test_UserService(t *testing.T) {
 				},
 			},
 			"loginById_apiKeyFails": {
-				generateValidRepositoriesMock: func() repositories.Repositories {
+				generateRepositoriesMock: func() repositories.Repositories {
 					return repositories.Repositories{
 						Acl: &mockAclRepository{},
 						ApiKey: &mockApiKeyRepository{
@@ -550,7 +550,7 @@ func Test_UserService(t *testing.T) {
 				},
 			},
 			"logout_userFails": {
-				generateValidRepositoriesMock: func() repositories.Repositories {
+				generateRepositoriesMock: func() repositories.Repositories {
 					return repositories.Repositories{
 						Acl:    &mockAclRepository{},
 						ApiKey: &mockApiKeyRepository{},
@@ -572,7 +572,7 @@ func Test_UserService(t *testing.T) {
 				},
 			},
 			"logout_apiKeyFails": {
-				generateValidRepositoriesMock: func() repositories.Repositories {
+				generateRepositoriesMock: func() repositories.Repositories {
 					return repositories.Repositories{
 						Acl: &mockAclRepository{},
 						ApiKey: &mockApiKeyRepository{
@@ -627,7 +627,7 @@ func Test_UserService(t *testing.T) {
 				},
 			},
 			"list": {
-				generateValidRepositoriesMock: func() repositories.Repositories {
+				generateRepositoriesMock: func() repositories.Repositories {
 					return repositories.Repositories{
 						Acl:    &mockAclRepository{},
 						ApiKey: &mockApiKeyRepository{},
