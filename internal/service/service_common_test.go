@@ -32,10 +32,13 @@ type repositoryInteractionTestCase struct {
 	verifyInteractions            verifyMockInteractions
 }
 
+type verifyContent func(interface{}, repositories.Repositories, *require.Assertions)
+
 type returnTestCase struct {
 	generateValidRepositoriesMock generateValidRepositoriesMock
 	handler                       returnTestFunc
 	expectedContent               interface{}
+	verifyContent                 verifyContent
 }
 
 type transactionTestCase struct {
@@ -106,7 +109,11 @@ func (s *ServiceTestSuite) TestWhenRepositorySucceeds_ReturnsExpectedValue() {
 
 			actual := testCase.handler(context.Background(), &mockConnectionPool{}, repos)
 
-			s.Require().Equal(testCase.expectedContent, actual)
+			if testCase.verifyContent != nil {
+				testCase.verifyContent(actual, repos, s.Require())
+			} else {
+				s.Require().Equal(testCase.expectedContent, actual)
+			}
 		})
 	}
 }
