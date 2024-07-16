@@ -29,7 +29,7 @@ var defaultUniverse = persistence.Universe{
 
 func Test_UniverseService(t *testing.T) {
 	s := ServiceTestSuite{
-		generateValidRepositoriesMock: generateValidUniverseRepositoryMock,
+		generateRepositoriesMock:      generateValidUniverseRepositoryMock,
 		generateErrorRepositoriesMock: generateErrorUniverseRepositoryMock,
 
 		errorTestCases: map[string]errorTestCase{
