@@ -12,7 +12,6 @@ import (
 	"github.com/KnoblauchPilze/user-service/pkg/persistence"
 	"github.com/KnoblauchPilze/user-service/pkg/repositories"
 	"github.com/google/uuid"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 )
@@ -666,6 +665,42 @@ func Test_UserService(t *testing.T) {
 					CreatedAt: defaultUser.CreatedAt,
 				},
 			},
+			"login": {
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) interface{} {
+					c := Config{
+						ApiKeyValidity: 1 * time.Hour,
+					}
+					s := NewUserService(c, pool, repos)
+					out, _ := s.Login(ctx, defaultUserDtoRequest)
+					return out
+				},
+
+				verifyContent: func(in interface{}, repos repositories.Repositories, assert *require.Assertions) {
+					actual := assertInterfaceIsAnApiKeyDtoResponse(in, assert)
+					m := assertApiKeyRepoIsAMock(repos, assert)
+
+					assert.Equal(actual.Key, m.createdApiKey.Key)
+					assert.Equal(actual.ValidUntil, m.createdApiKey.ValidUntil)
+				},
+			},
+			"loginById": {
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) interface{} {
+					c := Config{
+						ApiKeyValidity: 1 * time.Hour,
+					}
+					s := NewUserService(c, pool, repos)
+					out, _ := s.LoginById(ctx, defaultUserId)
+					return out
+				},
+
+				verifyContent: func(in interface{}, repos repositories.Repositories, assert *require.Assertions) {
+					actual := assertInterfaceIsAnApiKeyDtoResponse(in, assert)
+					m := assertApiKeyRepoIsAMock(repos, assert)
+
+					assert.Equal(actual.Key, m.createdApiKey.Key)
+					assert.Equal(actual.ValidUntil, m.createdApiKey.ValidUntil)
+				},
+			},
 		},
 
 		transactionTestCases: map[string]transactionTestCase{
@@ -717,50 +752,10 @@ func assertUserRepoIsAMock(repos repositories.Repositories, assert *require.Asse
 	return m
 }
 
-func TestUserService_Login_ReturnsCreatedKey(t *testing.T) {
-	assert := assert.New(t)
-
-	mur := &mockUserRepository{
-		user: defaultUser,
+func assertInterfaceIsAnApiKeyDtoResponse(in interface{}, assert *require.Assertions) communication.ApiKeyDtoResponse {
+	out, ok := in.(communication.ApiKeyDtoResponse)
+	if !ok {
+		assert.Fail("Provided input is not an ApiKeyDtoResponse")
 	}
-	mkr := &mockApiKeyRepository{}
-	mc := &mockConnectionPool{}
-	repos := repositories.Repositories{
-		ApiKey: mkr,
-		User:   mur,
-	}
-	c := Config{
-		ApiKeyValidity: 1 * time.Hour,
-	}
-	s := NewUserService(c, mc, repos)
-
-	actual, err := s.Login(context.Background(), defaultUserDtoRequest)
-
-	assert.Nil(err)
-	assert.Equal(mkr.createdApiKey.Key, actual.Key)
-	assert.Equal(mkr.createdApiKey.ValidUntil, actual.ValidUntil)
-}
-
-func TestUserService_LoginById_ReturnsCreatedKey(t *testing.T) {
-	assert := assert.New(t)
-
-	mur := &mockUserRepository{
-		user: defaultUser,
-	}
-	mkr := &mockApiKeyRepository{}
-	mc := &mockConnectionPool{}
-	repos := repositories.Repositories{
-		ApiKey: mkr,
-		User:   mur,
-	}
-	c := Config{
-		ApiKeyValidity: 1 * time.Hour,
-	}
-	s := NewUserService(c, mc, repos)
-
-	actual, err := s.LoginById(context.Background(), defaultUserId)
-
-	assert.Nil(err)
-	assert.Equal(mkr.createdApiKey.Key, actual.Key)
-	assert.Equal(mkr.createdApiKey.ValidUntil, actual.ValidUntil)
+	return out
 }
