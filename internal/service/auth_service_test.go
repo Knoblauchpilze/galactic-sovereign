@@ -67,10 +67,10 @@ func Test_AuthService(t *testing.T) {
 
 		errorTestCases: map[string]errorTestCase{
 			"authenticate_getApiKeyFails": {
-				generateErrorRepositoriesMock: func(err error) repositories.Repositories {
+				generateRepositoriesMock: func() repositories.Repositories {
 					return repositories.Repositories{
 						ApiKey: &mockApiKeyRepository{
-							getErr: err,
+							getErr: errDefault,
 						},
 					}
 				},
@@ -81,7 +81,7 @@ func Test_AuthService(t *testing.T) {
 				},
 			},
 			"authenticate_apiKeyDoesNotExist": {
-				generateErrorRepositoriesMock: func(_ error) repositories.Repositories {
+				generateRepositoriesMock: func() repositories.Repositories {
 					return repositories.Repositories{
 						ApiKey: &mockApiKeyRepository{
 							getErr: errors.NewCode(db.NoMatchingSqlRows),
@@ -98,7 +98,7 @@ func Test_AuthService(t *testing.T) {
 				},
 			},
 			"authenticate_apiKeyExpired": {
-				generateErrorRepositoriesMock: func(_ error) repositories.Repositories {
+				generateRepositoriesMock: func() repositories.Repositories {
 					return repositories.Repositories{
 						ApiKey: &mockApiKeyRepository{
 							apiKey: persistence.ApiKey{
@@ -117,7 +117,7 @@ func Test_AuthService(t *testing.T) {
 				},
 			},
 			"authenticate_getAclForUserFails": {
-				generateErrorRepositoriesMock: func(_ error) repositories.Repositories {
+				generateRepositoriesMock: func() repositories.Repositories {
 					return repositories.Repositories{
 						Acl: &mockAclRepository{
 							getForUserErr: errDefault,
@@ -132,7 +132,7 @@ func Test_AuthService(t *testing.T) {
 				},
 			},
 			"authenticate_getAclFails": {
-				generateErrorRepositoriesMock: func(_ error) repositories.Repositories {
+				generateRepositoriesMock: func() repositories.Repositories {
 					return repositories.Repositories{
 						Acl: &mockAclRepository{
 							aclIds: defaultAclIds,
@@ -148,7 +148,7 @@ func Test_AuthService(t *testing.T) {
 				},
 			},
 			"authenticate_getUserLimitForUserFails": {
-				generateErrorRepositoriesMock: func(_ error) repositories.Repositories {
+				generateRepositoriesMock: func() repositories.Repositories {
 					return repositories.Repositories{
 						Acl:    &mockAclRepository{},
 						ApiKey: generateApiKeyRepositoryWithValidApiKey(),
@@ -164,7 +164,7 @@ func Test_AuthService(t *testing.T) {
 				},
 			},
 			"authenticate_getUserLimitFails": {
-				generateErrorRepositoriesMock: func(_ error) repositories.Repositories {
+				generateRepositoriesMock: func() repositories.Repositories {
 					return repositories.Repositories{
 						Acl:    &mockAclRepository{},
 						ApiKey: generateApiKeyRepositoryWithValidApiKey(),
