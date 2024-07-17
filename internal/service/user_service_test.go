@@ -43,174 +43,6 @@ func Test_UserService(t *testing.T) {
 		generateRepositoriesMock:      generateValidUserRepositoryMock,
 		generateErrorRepositoriesMock: generateErrorUserRepositoryMock,
 
-		errorTestCases: map[string]errorTestCase{
-			"create": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewUserService(Config{}, pool, repos)
-					_, err := s.Create(ctx, defaultUserDtoRequest)
-					return err
-				},
-			},
-			"get": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewUserService(Config{}, pool, repos)
-					_, err := s.Get(ctx, defaultUserId)
-					return err
-				},
-			},
-			"list": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewUserService(Config{}, pool, repos)
-					_, err := s.List(ctx)
-					return err
-				},
-			},
-			"update_getUserFails": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewUserService(Config{}, pool, repos)
-					_, err := s.Update(ctx, defaultUserId, defaultUpdatedUserDtoRequest)
-					return err
-				},
-			},
-			"update": {
-				generateRepositoriesMock: func() repositories.Repositories {
-					return repositories.Repositories{
-						Acl:    &mockAclRepository{},
-						ApiKey: &mockApiKeyRepository{},
-						User: &mockUserRepository{
-							updateErr: errDefault,
-						},
-						UserLimit: &mockUserLimitRepository{},
-					}
-				},
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewUserService(Config{}, pool, repos)
-					_, err := s.Update(ctx, defaultUserId, defaultUpdatedUserDtoRequest)
-					return err
-				},
-			},
-			"delete_aclFails": {
-				generateRepositoriesMock: func() repositories.Repositories {
-					return repositories.Repositories{
-						Acl: &mockAclRepository{
-							deleteErr: errDefault,
-						},
-						ApiKey:    &mockApiKeyRepository{},
-						User:      &mockUserRepository{},
-						UserLimit: &mockUserLimitRepository{},
-					}
-				},
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewUserService(Config{}, pool, repos)
-					return s.Delete(ctx, defaultUserId)
-				},
-			},
-			"delete_apiKeyFails": {
-				generateRepositoriesMock: func() repositories.Repositories {
-					return repositories.Repositories{
-						Acl: &mockAclRepository{},
-						ApiKey: &mockApiKeyRepository{
-							deleteErr: errDefault,
-						},
-						User:      &mockUserRepository{},
-						UserLimit: &mockUserLimitRepository{},
-					}
-				},
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewUserService(Config{}, pool, repos)
-					return s.Delete(ctx, defaultUserId)
-				},
-			},
-			"delete_userFails": {
-				generateRepositoriesMock: func() repositories.Repositories {
-					return repositories.Repositories{
-						Acl:    &mockAclRepository{},
-						ApiKey: &mockApiKeyRepository{},
-						User: &mockUserRepository{
-							err: errDefault,
-						},
-						UserLimit: &mockUserLimitRepository{},
-					}
-				},
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewUserService(Config{}, pool, repos)
-					return s.Delete(ctx, defaultUserId)
-				},
-			},
-			"delete_userLimitFails": {
-				generateRepositoriesMock: func() repositories.Repositories {
-					return repositories.Repositories{
-						Acl:    &mockAclRepository{},
-						ApiKey: &mockApiKeyRepository{},
-						User:   &mockUserRepository{},
-						UserLimit: &mockUserLimitRepository{
-							deleteErr: errDefault,
-						},
-					}
-				},
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewUserService(Config{}, pool, repos)
-					return s.Delete(ctx, defaultUserId)
-				},
-			},
-			"login_userFails": {
-				generateRepositoriesMock: func() repositories.Repositories {
-					return repositories.Repositories{
-						Acl:    &mockAclRepository{},
-						ApiKey: &mockApiKeyRepository{},
-						User: &mockUserRepository{
-							err: errDefault,
-						},
-						UserLimit: &mockUserLimitRepository{},
-					}
-				},
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewUserService(Config{}, pool, repos)
-					_, err := s.Login(ctx, defaultUserDtoRequest)
-					return err
-				},
-			},
-			"login_wrongCredentials": {
-				generateRepositoriesMock: func() repositories.Repositories {
-					return repositories.Repositories{
-						Acl:       &mockAclRepository{},
-						ApiKey:    &mockApiKeyRepository{},
-						User:      &mockUserRepository{},
-						UserLimit: &mockUserLimitRepository{},
-					}
-				},
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewUserService(Config{}, pool, repos)
-					userRequest := communication.UserDtoRequest{
-						Email:    defaultUserEmail,
-						Password: "not-the-right-password",
-					}
-					_, err := s.Login(ctx, userRequest)
-					return err
-				},
-				verifyError: func(err error, assert *require.Assertions) {
-					assert.True(errors.IsErrorWithCode(err, InvalidCredentials))
-				},
-			},
-			"loginById_userFails": {
-				generateRepositoriesMock: func() repositories.Repositories {
-					return repositories.Repositories{
-						Acl:    &mockAclRepository{},
-						ApiKey: &mockApiKeyRepository{},
-						User: &mockUserRepository{
-							err: errDefault,
-						},
-						UserLimit: &mockUserLimitRepository{},
-					}
-				},
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewUserService(Config{}, pool, repos)
-					_, err := s.LoginById(ctx, defaultUserId)
-					return err
-				},
-			},
-		},
-
 		repositoryInteractionTestCases: map[string]repositoryInteractionTestCase{
 			"create": {
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
@@ -227,6 +59,15 @@ func Test_UserService(t *testing.T) {
 					assert.Equal(defaultUserDtoRequest.Password, m.createdUser.Password)
 				},
 			},
+			"create_userFails": {
+				generateRepositoriesMock: generateErrorUserRepositoryMock,
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewUserService(Config{}, pool, repos)
+					_, err := s.Create(ctx, defaultUserDtoRequest)
+					return err
+				},
+				expectedError: errDefault,
+			},
 			"get": {
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
 					s := NewUserService(Config{}, pool, repos)
@@ -241,6 +82,15 @@ func Test_UserService(t *testing.T) {
 					assert.Equal(defaultUserId, m.getId)
 				},
 			},
+			"get_userFails": {
+				generateRepositoriesMock: generateErrorUserRepositoryMock,
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewUserService(Config{}, pool, repos)
+					_, err := s.Get(ctx, defaultUserId)
+					return err
+				},
+				expectedError: errDefault,
+			},
 			"list": {
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
 					s := NewUserService(Config{}, pool, repos)
@@ -253,6 +103,15 @@ func Test_UserService(t *testing.T) {
 
 					assert.Equal(1, m.listCalled)
 				},
+			},
+			"list_userFails": {
+				generateRepositoriesMock: generateErrorUserRepositoryMock,
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewUserService(Config{}, pool, repos)
+					_, err := s.List(ctx)
+					return err
+				},
+				expectedError: errDefault,
 			},
 			"update": {
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
@@ -276,6 +135,33 @@ func Test_UserService(t *testing.T) {
 					}
 					assert.Equal(expectedUpdatedUser, m.updatedUser)
 				},
+			},
+			"update_userFails": {
+				generateRepositoriesMock: generateErrorUserRepositoryMock,
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewUserService(Config{}, pool, repos)
+					_, err := s.Update(ctx, defaultUserId, defaultUpdatedUserDtoRequest)
+					return err
+				},
+				expectedError: errDefault,
+			},
+			"update_fails": {
+				generateRepositoriesMock: func() repositories.Repositories {
+					return repositories.Repositories{
+						Acl:    &mockAclRepository{},
+						ApiKey: &mockApiKeyRepository{},
+						User: &mockUserRepository{
+							updateErr: errDefault,
+						},
+						UserLimit: &mockUserLimitRepository{},
+					}
+				},
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewUserService(Config{}, pool, repos)
+					_, err := s.Update(ctx, defaultUserId, defaultUpdatedUserDtoRequest)
+					return err
+				},
+				expectedError: errDefault,
 			},
 			"delete_acl": {
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
@@ -370,16 +256,7 @@ func Test_UserService(t *testing.T) {
 				},
 			},
 			"delete_userFails": {
-				generateRepositoriesMock: func() repositories.Repositories {
-					return repositories.Repositories{
-						Acl:    &mockAclRepository{},
-						ApiKey: &mockApiKeyRepository{},
-						User: &mockUserRepository{
-							err: errDefault,
-						},
-						UserLimit: &mockUserLimitRepository{},
-					}
-				},
+				generateRepositoriesMock: generateErrorUserRepositoryMock,
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
 					s := NewUserService(Config{}, pool, repos)
 					return s.Delete(ctx, defaultUserId)
@@ -426,6 +303,15 @@ func Test_UserService(t *testing.T) {
 					assert.Equal(defaultUser.Email, m.getEmail)
 				},
 			},
+			"login_userFails": {
+				generateRepositoriesMock: generateErrorUserRepositoryMock,
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewUserService(Config{}, pool, repos)
+					_, err := s.Login(ctx, defaultUserDtoRequest)
+					return err
+				},
+				expectedError: errDefault,
+			},
 			"login_apiKey": {
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
 					c := Config{
@@ -469,6 +355,20 @@ func Test_UserService(t *testing.T) {
 					assert.Equal(1, m.createCalled)
 				},
 			},
+			"login_wrongCredentials": {
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewUserService(Config{}, pool, repos)
+					userRequest := communication.UserDtoRequest{
+						Email:    defaultUserEmail,
+						Password: "not-the-right-password",
+					}
+					_, err := s.Login(ctx, userRequest)
+					return err
+				},
+				verifyError: func(err error, assert *require.Assertions) {
+					assert.True(errors.IsErrorWithCode(err, InvalidCredentials))
+				},
+			},
 			"loginById": {
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
 					s := NewUserService(Config{}, pool, repos)
@@ -481,6 +381,15 @@ func Test_UserService(t *testing.T) {
 					assert.Equal(1, m.getCalled)
 					assert.Equal(defaultUser.Id, m.getId)
 				},
+			},
+			"loginById_userFails": {
+				generateRepositoriesMock: generateErrorUserRepositoryMock,
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewUserService(Config{}, pool, repos)
+					_, err := s.LoginById(ctx, defaultUserId)
+					return err
+				},
+				expectedError: errDefault,
 			},
 			"loginById_apiKey": {
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
