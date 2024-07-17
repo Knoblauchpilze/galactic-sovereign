@@ -34,43 +34,6 @@ func Test_PlanetService(t *testing.T) {
 		generateRepositoriesMock:      generateValidPlanetRepositoryMock,
 		generateErrorRepositoriesMock: generateErrorPlanetRepositoryMock,
 
-		errorTestCases: map[string]errorTestCase{
-			"create": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewPlanetService(pool, repos)
-					_, err := s.Create(ctx, defaultPlanetDtoRequest)
-					return err
-				},
-			},
-			"get": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewPlanetService(pool, repos)
-					_, err := s.Get(ctx, defaultPlanetId)
-					return err
-				},
-			},
-			"list": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewPlanetService(pool, repos)
-					_, err := s.List(ctx)
-					return err
-				},
-			},
-			"listForPlayer": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewPlanetService(pool, repos)
-					_, err := s.ListForPlayer(ctx, defaultPlayerId)
-					return err
-				},
-			},
-			"delete": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewPlanetService(pool, repos)
-					return s.Delete(ctx, defaultPlanetId)
-				},
-			},
-		},
-
 		repositoryInteractionTestCases: map[string]repositoryInteractionTestCase{
 			"create": {
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
@@ -87,6 +50,15 @@ func Test_PlanetService(t *testing.T) {
 					assert.Equal(defaultPlanetDtoRequest.Name, m.createdPlanet.Name)
 				},
 			},
+			"create_repositoryFails": {
+				generateRepositoriesMock: generateErrorPlanetRepositoryMock,
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewPlanetService(pool, repos)
+					_, err := s.Create(ctx, defaultPlanetDtoRequest)
+					return err
+				},
+				expectedError: errDefault,
+			},
 			"get": {
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
 					s := NewPlanetService(pool, repos)
@@ -101,6 +73,15 @@ func Test_PlanetService(t *testing.T) {
 					assert.Equal(defaultPlanetId, m.getId)
 				},
 			},
+			"get_repositoryFails": {
+				generateRepositoriesMock: generateErrorPlanetRepositoryMock,
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewPlanetService(pool, repos)
+					_, err := s.Get(ctx, defaultPlanetId)
+					return err
+				},
+				expectedError: errDefault,
+			},
 			"list": {
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
 					s := NewPlanetService(pool, repos)
@@ -113,6 +94,15 @@ func Test_PlanetService(t *testing.T) {
 
 					assert.Equal(1, m.listCalled)
 				},
+			},
+			"list_repositoryFails": {
+				generateRepositoriesMock: generateErrorPlanetRepositoryMock,
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewPlanetService(pool, repos)
+					_, err := s.List(ctx)
+					return err
+				},
+				expectedError: errDefault,
 			},
 			"listForPlayer": {
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
@@ -128,6 +118,15 @@ func Test_PlanetService(t *testing.T) {
 					assert.Equal(defaultPlayerId, m.listForPlayerId)
 				},
 			},
+			"listForPlayer_repositoryFails": {
+				generateRepositoriesMock: generateErrorPlanetRepositoryMock,
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewPlanetService(pool, repos)
+					_, err := s.ListForPlayer(ctx, defaultPlayerId)
+					return err
+				},
+				expectedError: errDefault,
+			},
 			"delete": {
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
 					s := NewPlanetService(pool, repos)
@@ -140,6 +139,14 @@ func Test_PlanetService(t *testing.T) {
 					assert.Equal(1, m.deleteCalled)
 					assert.Equal(defaultPlanetId, m.deleteId)
 				},
+			},
+			"delete_repositoryFails": {
+				generateRepositoriesMock: generateErrorPlanetRepositoryMock,
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewPlanetService(pool, repos)
+					return s.Delete(ctx, defaultPlanetId)
+				},
+				expectedError: errDefault,
 			},
 		},
 

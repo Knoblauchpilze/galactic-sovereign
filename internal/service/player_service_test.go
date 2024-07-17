@@ -36,36 +36,6 @@ func Test_PlayerService(t *testing.T) {
 		generateRepositoriesMock:      generateValidPlayerRepositoryMock,
 		generateErrorRepositoriesMock: generateErrorPlayerRepositoryMock,
 
-		errorTestCases: map[string]errorTestCase{
-			"create": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewPlayerService(pool, repos)
-					_, err := s.Create(ctx, defaultPlayerDtoRequest)
-					return err
-				},
-			},
-			"get": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewPlayerService(pool, repos)
-					_, err := s.Get(ctx, defaultPlayerId)
-					return err
-				},
-			},
-			"list": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewPlayerService(pool, repos)
-					_, err := s.List(ctx)
-					return err
-				},
-			},
-			"delete": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewPlayerService(pool, repos)
-					return s.Delete(ctx, defaultPlayerId)
-				},
-			},
-		},
-
 		repositoryInteractionTestCases: map[string]repositoryInteractionTestCase{
 			"create": {
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
@@ -83,6 +53,15 @@ func Test_PlayerService(t *testing.T) {
 					assert.Equal(defaultPlayerDtoRequest.Name, m.createdPlayer.Name)
 				},
 			},
+			"create_repositoryFails": {
+				generateRepositoriesMock: generateErrorPlayerRepositoryMock,
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewPlayerService(pool, repos)
+					_, err := s.Create(ctx, defaultPlayerDtoRequest)
+					return err
+				},
+				expectedError: errDefault,
+			},
 			"get": {
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
 					s := NewPlayerService(pool, repos)
@@ -97,6 +76,15 @@ func Test_PlayerService(t *testing.T) {
 					assert.Equal(defaultPlayerId, m.getId)
 				},
 			},
+			"get_repositoryFails": {
+				generateRepositoriesMock: generateErrorPlayerRepositoryMock,
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewPlayerService(pool, repos)
+					_, err := s.Get(ctx, defaultPlayerId)
+					return err
+				},
+				expectedError: errDefault,
+			},
 			"list": {
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
 					s := NewPlayerService(pool, repos)
@@ -110,6 +98,15 @@ func Test_PlayerService(t *testing.T) {
 					assert.Equal(1, m.listCalled)
 				},
 			},
+			"list_repositoryFails": {
+				generateRepositoriesMock: generateErrorPlayerRepositoryMock,
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewPlayerService(pool, repos)
+					_, err := s.List(ctx)
+					return err
+				},
+				expectedError: errDefault,
+			},
 			"delete": {
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
 					s := NewPlayerService(pool, repos)
@@ -122,6 +119,14 @@ func Test_PlayerService(t *testing.T) {
 					assert.Equal(1, m.deleteCalled)
 					assert.Equal(defaultPlayerId, m.deleteId)
 				},
+			},
+			"delete_repositoryFails": {
+				generateRepositoriesMock: generateErrorPlayerRepositoryMock,
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewPlayerService(pool, repos)
+					return s.Delete(ctx, defaultPlayerId)
+				},
+				expectedError: errDefault,
 			},
 		},
 

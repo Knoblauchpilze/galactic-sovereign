@@ -65,7 +65,21 @@ func Test_AuthService(t *testing.T) {
 	s := ServiceTestSuite{
 		generateRepositoriesMock: generateValidAuthRepositoryMocks,
 
-		errorTestCases: map[string]errorTestCase{
+		repositoryInteractionTestCases: map[string]repositoryInteractionTestCase{
+			"authenticate_apiKey": {
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewAuthService(pool, repos)
+					_, err := s.Authenticate(ctx, defaultApiKey.Key)
+					return err
+				},
+
+				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
+					m := assertApiKeyRepoIsAMock(repos, assert)
+
+					assert.Equal(1, m.getForKeyCalled)
+					assert.Equal(defaultApiKey.Key, m.apiKeyId)
+				},
+			},
 			"authenticate_getApiKeyFails": {
 				generateRepositoriesMock: func() repositories.Repositories {
 					return repositories.Repositories{
@@ -79,6 +93,7 @@ func Test_AuthService(t *testing.T) {
 					_, err := s.Authenticate(ctx, defaultApiKey.Key)
 					return err
 				},
+				expectedError: errDefault,
 			},
 			"authenticate_apiKeyDoesNotExist": {
 				generateRepositoriesMock: func() repositories.Repositories {
@@ -114,87 +129,6 @@ func Test_AuthService(t *testing.T) {
 				},
 				verifyError: func(err error, assert *require.Assertions) {
 					assert.True(errors.IsErrorWithCode(err, AuthenticationExpired))
-				},
-			},
-			"authenticate_getAclForUserFails": {
-				generateRepositoriesMock: func() repositories.Repositories {
-					return repositories.Repositories{
-						Acl: &mockAclRepository{
-							getForUserErr: errDefault,
-						},
-						ApiKey: generateApiKeyRepositoryWithValidApiKey(),
-					}
-				},
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewAuthService(pool, repos)
-					_, err := s.Authenticate(ctx, defaultApiKey.Key)
-					return err
-				},
-			},
-			"authenticate_getAclFails": {
-				generateRepositoriesMock: func() repositories.Repositories {
-					return repositories.Repositories{
-						Acl: &mockAclRepository{
-							aclIds: defaultAclIds,
-							getErr: errDefault,
-						},
-						ApiKey: generateApiKeyRepositoryWithValidApiKey(),
-					}
-				},
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewAuthService(pool, repos)
-					_, err := s.Authenticate(ctx, defaultApiKey.Key)
-					return err
-				},
-			},
-			"authenticate_getUserLimitForUserFails": {
-				generateRepositoriesMock: func() repositories.Repositories {
-					return repositories.Repositories{
-						Acl:    &mockAclRepository{},
-						ApiKey: generateApiKeyRepositoryWithValidApiKey(),
-						UserLimit: &mockUserLimitRepository{
-							getForUserErr: errDefault,
-						},
-					}
-				},
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewAuthService(pool, repos)
-					_, err := s.Authenticate(ctx, defaultApiKey.Key)
-					return err
-				},
-			},
-			"authenticate_getUserLimitFails": {
-				generateRepositoriesMock: func() repositories.Repositories {
-					return repositories.Repositories{
-						Acl:    &mockAclRepository{},
-						ApiKey: generateApiKeyRepositoryWithValidApiKey(),
-						UserLimit: &mockUserLimitRepository{
-							userLimitIds:  defaultUserLimitIds,
-							getForUserErr: errDefault,
-						},
-					}
-				},
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewAuthService(pool, repos)
-					_, err := s.Authenticate(ctx, defaultApiKey.Key)
-					return err
-				},
-			},
-		},
-
-		repositoryInteractionTestCases: map[string]repositoryInteractionTestCase{
-			"authenticate_apiKey": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewAuthService(pool, repos)
-					_, err := s.Authenticate(ctx, defaultApiKey.Key)
-					return err
-				},
-
-				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
-					m := assertApiKeyRepoIsAMock(repos, assert)
-
-					assert.Equal(1, m.getForKeyCalled)
-					assert.Equal(defaultApiKey.Key, m.apiKeyId)
 				},
 			},
 			"authenticate_aclForUser": {

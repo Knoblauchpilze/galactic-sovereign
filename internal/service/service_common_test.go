@@ -15,19 +15,13 @@ type returnTestFunc func(context.Context, db.ConnectionPool, repositories.Reposi
 type generateRepositoriesMock func() repositories.Repositories
 
 type verifyError func(error, *require.Assertions)
-
-type errorTestCase struct {
-	generateRepositoriesMock generateRepositoriesMock
-	handler                  testFunc
-	verifyError              verifyError
-}
-
 type verifyMockInteractions func(repositories.Repositories, *require.Assertions)
 
 type repositoryInteractionTestCase struct {
 	generateRepositoriesMock generateRepositoriesMock
 	handler                  testFunc
 	expectedError            error
+	verifyError              verifyError
 	verifyInteractions       verifyMockInteractions
 }
 
@@ -51,31 +45,9 @@ type ServiceTestSuite struct {
 	generateRepositoriesMock      generateRepositoriesMock
 	generateErrorRepositoriesMock generateRepositoriesMock
 
-	errorTestCases                 map[string]errorTestCase
 	repositoryInteractionTestCases map[string]repositoryInteractionTestCase
 	returnTestCases                map[string]returnTestCase
 	transactionTestCases           map[string]transactionTestCase
-}
-
-func (s *ServiceTestSuite) TestWhenRepositoryFails_ExpectErrorIsPropagated() {
-	for name, testCase := range s.errorTestCases {
-		s.T().Run(name, func(t *testing.T) {
-			var repos repositories.Repositories
-			if testCase.generateRepositoriesMock != nil {
-				repos = testCase.generateRepositoriesMock()
-			} else {
-				repos = s.generateErrorRepositoriesMock()
-			}
-
-			err := testCase.handler(context.Background(), &mockConnectionPool{}, repos)
-
-			if testCase.verifyError != nil {
-				testCase.verifyError(err, s.Require())
-			} else {
-				s.Require().Equal(errDefault, err)
-			}
-		})
-	}
 }
 
 func (s *ServiceTestSuite) TestWhenCallingHandler_ExpectCorrectInteraction() {
@@ -90,8 +62,14 @@ func (s *ServiceTestSuite) TestWhenCallingHandler_ExpectCorrectInteraction() {
 
 			err := testCase.handler(context.Background(), &mockConnectionPool{}, repos)
 
-			s.Require().Equal(testCase.expectedError, err)
-			testCase.verifyInteractions(repos, s.Require())
+			if testCase.verifyError != nil {
+				testCase.verifyError(err, s.Require())
+			} else {
+				s.Require().Equal(testCase.expectedError, err)
+			}
+			if testCase.verifyInteractions != nil {
+				testCase.verifyInteractions(repos, s.Require())
+			}
 		})
 	}
 }
