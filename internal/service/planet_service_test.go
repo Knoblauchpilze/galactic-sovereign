@@ -231,10 +231,10 @@ func generateValidPlanetRepositoryMock() repositories.Repositories {
 	}
 }
 
-func generateErrorPlanetRepositoryMock(err error) repositories.Repositories {
+func generateErrorPlanetRepositoryMock() repositories.Repositories {
 	return repositories.Repositories{
 		Planet: &mockPlanetRepository{
-			err: err,
+			err: errDefault,
 		},
 	}
 }

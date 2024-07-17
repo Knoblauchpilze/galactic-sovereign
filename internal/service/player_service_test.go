@@ -199,10 +199,10 @@ func generateValidPlayerRepositoryMock() repositories.Repositories {
 	}
 }
 
-func generateErrorPlayerRepositoryMock(err error) repositories.Repositories {
+func generateErrorPlayerRepositoryMock() repositories.Repositories {
 	return repositories.Repositories{
 		Player: &mockPlayerRepository{
-			err: err,
+			err: errDefault,
 		},
 	}
 }

@@ -187,10 +187,10 @@ func generateValidUniverseRepositoryMock() repositories.Repositories {
 	}
 }
 
-func generateErrorUniverseRepositoryMock(err error) repositories.Repositories {
+func generateErrorUniverseRepositoryMock() repositories.Repositories {
 	return repositories.Repositories{
 		Universe: &mockUniverseRepository{
-			err: err,
+			err: errDefault,
 		},
 	}
 }

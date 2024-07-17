@@ -13,14 +13,13 @@ import (
 type testFunc func(context.Context, db.ConnectionPool, repositories.Repositories) error
 type returnTestFunc func(context.Context, db.ConnectionPool, repositories.Repositories) interface{}
 type generateRepositoriesMock func() repositories.Repositories
-type generateErrorRepositoriesMock func(err error) repositories.Repositories
 
 type verifyError func(error, *require.Assertions)
 
 type errorTestCase struct {
-	generateErrorRepositoriesMock generateErrorRepositoriesMock
-	handler                       testFunc
-	verifyError                   verifyError
+	generateRepositoriesMock generateRepositoriesMock
+	handler                  testFunc
+	verifyError              verifyError
 }
 
 type verifyMockInteractions func(repositories.Repositories, *require.Assertions)
@@ -50,7 +49,7 @@ type ServiceTestSuite struct {
 	suite.Suite
 
 	generateRepositoriesMock      generateRepositoriesMock
-	generateErrorRepositoriesMock generateErrorRepositoriesMock
+	generateErrorRepositoriesMock generateRepositoriesMock
 
 	errorTestCases                 map[string]errorTestCase
 	repositoryInteractionTestCases map[string]repositoryInteractionTestCase
@@ -62,10 +61,10 @@ func (s *ServiceTestSuite) TestWhenRepositoryFails_ExpectErrorIsPropagated() {
 	for name, testCase := range s.errorTestCases {
 		s.T().Run(name, func(t *testing.T) {
 			var repos repositories.Repositories
-			if testCase.generateErrorRepositoriesMock != nil {
-				repos = testCase.generateErrorRepositoriesMock(errDefault)
+			if testCase.generateRepositoriesMock != nil {
+				repos = testCase.generateRepositoriesMock()
 			} else {
-				repos = s.generateErrorRepositoriesMock(errDefault)
+				repos = s.generateErrorRepositoriesMock()
 			}
 
 			err := testCase.handler(context.Background(), &mockConnectionPool{}, repos)

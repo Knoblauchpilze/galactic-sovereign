@@ -73,12 +73,12 @@ func Test_UserService(t *testing.T) {
 				},
 			},
 			"update": {
-				generateErrorRepositoriesMock: func(err error) repositories.Repositories {
+				generateRepositoriesMock: func() repositories.Repositories {
 					return repositories.Repositories{
 						Acl:    &mockAclRepository{},
 						ApiKey: &mockApiKeyRepository{},
 						User: &mockUserRepository{
-							updateErr: err,
+							updateErr: errDefault,
 						},
 						UserLimit: &mockUserLimitRepository{},
 					}
@@ -90,10 +90,10 @@ func Test_UserService(t *testing.T) {
 				},
 			},
 			"delete_aclFails": {
-				generateErrorRepositoriesMock: func(err error) repositories.Repositories {
+				generateRepositoriesMock: func() repositories.Repositories {
 					return repositories.Repositories{
 						Acl: &mockAclRepository{
-							deleteErr: err,
+							deleteErr: errDefault,
 						},
 						ApiKey:    &mockApiKeyRepository{},
 						User:      &mockUserRepository{},
@@ -106,11 +106,11 @@ func Test_UserService(t *testing.T) {
 				},
 			},
 			"delete_apiKeyFails": {
-				generateErrorRepositoriesMock: func(err error) repositories.Repositories {
+				generateRepositoriesMock: func() repositories.Repositories {
 					return repositories.Repositories{
 						Acl: &mockAclRepository{},
 						ApiKey: &mockApiKeyRepository{
-							deleteErr: err,
+							deleteErr: errDefault,
 						},
 						User:      &mockUserRepository{},
 						UserLimit: &mockUserLimitRepository{},
@@ -122,12 +122,12 @@ func Test_UserService(t *testing.T) {
 				},
 			},
 			"delete_userFails": {
-				generateErrorRepositoriesMock: func(err error) repositories.Repositories {
+				generateRepositoriesMock: func() repositories.Repositories {
 					return repositories.Repositories{
 						Acl:    &mockAclRepository{},
 						ApiKey: &mockApiKeyRepository{},
 						User: &mockUserRepository{
-							err: err,
+							err: errDefault,
 						},
 						UserLimit: &mockUserLimitRepository{},
 					}
@@ -138,13 +138,13 @@ func Test_UserService(t *testing.T) {
 				},
 			},
 			"delete_userLimitFails": {
-				generateErrorRepositoriesMock: func(err error) repositories.Repositories {
+				generateRepositoriesMock: func() repositories.Repositories {
 					return repositories.Repositories{
 						Acl:    &mockAclRepository{},
 						ApiKey: &mockApiKeyRepository{},
 						User:   &mockUserRepository{},
 						UserLimit: &mockUserLimitRepository{
-							deleteErr: err,
+							deleteErr: errDefault,
 						},
 					}
 				},
@@ -154,12 +154,12 @@ func Test_UserService(t *testing.T) {
 				},
 			},
 			"login_userFails": {
-				generateErrorRepositoriesMock: func(err error) repositories.Repositories {
+				generateRepositoriesMock: func() repositories.Repositories {
 					return repositories.Repositories{
 						Acl:    &mockAclRepository{},
 						ApiKey: &mockApiKeyRepository{},
 						User: &mockUserRepository{
-							err: err,
+							err: errDefault,
 						},
 						UserLimit: &mockUserLimitRepository{},
 					}
@@ -171,7 +171,7 @@ func Test_UserService(t *testing.T) {
 				},
 			},
 			"login_wrongCredentials": {
-				generateErrorRepositoriesMock: func(err error) repositories.Repositories {
+				generateRepositoriesMock: func() repositories.Repositories {
 					return repositories.Repositories{
 						Acl:       &mockAclRepository{},
 						ApiKey:    &mockApiKeyRepository{},
@@ -193,12 +193,12 @@ func Test_UserService(t *testing.T) {
 				},
 			},
 			"loginById_userFails": {
-				generateErrorRepositoriesMock: func(err error) repositories.Repositories {
+				generateRepositoriesMock: func() repositories.Repositories {
 					return repositories.Repositories{
 						Acl:    &mockAclRepository{},
 						ApiKey: &mockApiKeyRepository{},
 						User: &mockUserRepository{
-							err: err,
+							err: errDefault,
 						},
 						UserLimit: &mockUserLimitRepository{},
 					}
@@ -733,12 +733,12 @@ func generateValidUserRepositoryMock() repositories.Repositories {
 	}
 }
 
-func generateErrorUserRepositoryMock(err error) repositories.Repositories {
+func generateErrorUserRepositoryMock() repositories.Repositories {
 	return repositories.Repositories{
 		Acl:    &mockAclRepository{},
 		ApiKey: &mockApiKeyRepository{},
 		User: &mockUserRepository{
-			err: err,
+			err: errDefault,
 		},
 		UserLimit: &mockUserLimitRepository{},
 	}
