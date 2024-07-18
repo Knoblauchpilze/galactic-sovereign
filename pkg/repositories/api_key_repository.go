@@ -13,7 +13,6 @@ type ApiKeyRepository interface {
 	Get(ctx context.Context, id uuid.UUID) (persistence.ApiKey, error)
 	GetForKey(ctx context.Context, apiKey uuid.UUID) (persistence.ApiKey, error)
 	GetForUser(ctx context.Context, user uuid.UUID) ([]uuid.UUID, error)
-	GetForUserTx(ctx context.Context, tx db.Transaction, user uuid.UUID) ([]uuid.UUID, error)
 	DeleteForUser(ctx context.Context, tx db.Transaction, user uuid.UUID) error
 }
 
@@ -100,31 +99,6 @@ const getApiKeyForUserSqlTemplate = "SELECT id FROM api_key WHERE api_user = $1"
 
 func (r *apiKeyRepositoryImpl) GetForUser(ctx context.Context, user uuid.UUID) ([]uuid.UUID, error) {
 	res := r.conn.Query(ctx, getApiKeyForUserSqlTemplate, user)
-	if err := res.Err(); err != nil {
-		return []uuid.UUID{}, err
-	}
-
-	var out []uuid.UUID
-	parser := func(rows db.Scannable) error {
-		var id uuid.UUID
-		err := rows.Scan(&id)
-		if err != nil {
-			return err
-		}
-
-		out = append(out, id)
-		return nil
-	}
-
-	if err := res.GetAll(parser); err != nil {
-		return []uuid.UUID{}, err
-	}
-
-	return out, nil
-}
-
-func (r *apiKeyRepositoryImpl) GetForUserTx(ctx context.Context, tx db.Transaction, user uuid.UUID) ([]uuid.UUID, error) {
-	res := tx.Query(ctx, getApiKeyForUserSqlTemplate, user)
 	if err := res.Err(); err != nil {
 		return []uuid.UUID{}, err
 	}

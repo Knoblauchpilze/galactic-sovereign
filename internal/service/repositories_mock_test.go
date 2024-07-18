@@ -58,7 +58,6 @@ type mockApiKeyRepository struct {
 	getForKeyCalled     int
 	apiKeyId            uuid.UUID
 	getForUserCalled    int
-	getForUserTxCalled  int
 	userId              uuid.UUID
 	deleteCalled        int
 	deleteIds           []uuid.UUID
@@ -74,12 +73,6 @@ func (m *mockApiKeyRepository) Create(ctx context.Context, apiKey persistence.Ap
 
 func (m *mockApiKeyRepository) GetForUser(ctx context.Context, user uuid.UUID) ([]uuid.UUID, error) {
 	m.getForUserCalled++
-	m.userId = user
-	return m.apiKeyIds, m.getErr
-}
-
-func (m *mockApiKeyRepository) GetForUserTx(ctx context.Context, tx db.Transaction, user uuid.UUID) ([]uuid.UUID, error) {
-	m.getForUserTxCalled++
 	m.userId = user
 	return m.apiKeyIds, m.getErr
 }

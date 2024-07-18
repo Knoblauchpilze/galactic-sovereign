@@ -20,8 +20,17 @@ var defaultApiKey = persistence.ApiKey{
 	ApiUser: defaultUserId,
 }
 
-func TestApiKeyRepository_Create_DbInteraction(t *testing.T) {
-	expectedSql := `
+func Test_ApiKeyRepository(t *testing.T) {
+	s := RepositoryTestSuite{
+
+		dbPoolInteractionTestCases: map[string]dbPoolInteractionTestCase{
+			"create": {
+				handler: func(ctx context.Context, pool db.ConnectionPool) error {
+					s := NewApiKeyRepository(pool)
+					_, err := s.Create(ctx, defaultApiKey)
+					return err
+				},
+				expectedSql: `
 INSERT INTO api_key (id, key, api_user, valid_until)
 	VALUES($1, $2, $3, $4)
 	ON CONFLICT (api_user) DO UPDATE
@@ -31,21 +40,58 @@ INSERT INTO api_key (id, key, api_user, valid_until)
 		api_key.api_user = excluded.api_user
 	RETURNING
 		api_key.key
-`
-
-	s := RepositoryPoolTestSuite{
-		sqlMode: QueryBased,
-		testFunc: func(ctx context.Context, pool db.ConnectionPool) error {
-			repo := NewApiKeyRepository(pool)
-			_, err := repo.Create(context.Background(), defaultApiKey)
-			return err
+`,
+				expectedArguments: []interface{}{
+					defaultApiKey.Id,
+					defaultApiKey.Key,
+					defaultApiKey.ApiUser,
+					defaultApiKey.ValidUntil,
+				},
+			},
+			"get": {
+				handler: func(ctx context.Context, pool db.ConnectionPool) error {
+					s := NewApiKeyRepository(pool)
+					_, err := s.Get(ctx, defaultApiKeyId)
+					return err
+				},
+				expectedSql: `SELECT id, key, api_user, valid_until FROM api_key WHERE id = $1`,
+				expectedArguments: []interface{}{
+					defaultApiKeyId,
+				},
+			},
+			"getForKey": {
+				handler: func(ctx context.Context, pool db.ConnectionPool) error {
+					s := NewApiKeyRepository(pool)
+					_, err := s.GetForKey(ctx, defaultApiKeyValue)
+					return err
+				},
+				expectedSql: `SELECT id, key, api_user, valid_until FROM api_key WHERE key = $1`,
+				expectedArguments: []interface{}{
+					defaultApiKeyValue,
+				},
+			},
+			"getForUser": {
+				handler: func(ctx context.Context, pool db.ConnectionPool) error {
+					s := NewApiKeyRepository(pool)
+					_, err := s.GetForUser(ctx, defaultUserId)
+					return err
+				},
+				expectedSql: `SELECT id FROM api_key WHERE api_user = $1`,
+				expectedArguments: []interface{}{
+					defaultUserId,
+				},
+			},
 		},
-		expectedSql: expectedSql,
-		expectedArguments: []interface{}{
-			defaultApiKey.Id,
-			defaultApiKey.Key,
-			defaultApiKey.ApiUser,
-			defaultApiKey.ValidUntil,
+
+		dbPoolReturnTestCases: map[string]dbPoolReturnTestCase{
+			"create": {
+				handler: func(ctx context.Context, pool db.ConnectionPool) interface{} {
+					s := NewApiKeyRepository(pool)
+					out, _ := s.Create(ctx, defaultApiKey)
+					return out
+				},
+				expectedContent: defaultApiKey,
+			},
 		},
 	}
 
@@ -62,35 +108,6 @@ func TestApiKeyRepository_Create_RetrievesGeneratedApiKey(t *testing.T) {
 		expectedScanCalls: 1,
 		expectedScannedProps: [][]interface{}{
 			{&uuid.UUID{}},
-		},
-	}
-
-	suite.Run(t, &s)
-}
-
-func TestApiKeyRepository_Create_ReturnsInputApiKey(t *testing.T) {
-	assert := assert.New(t)
-
-	mc := &mockConnectionPool{}
-	repo := NewApiKeyRepository(mc)
-
-	actual, err := repo.Create(context.Background(), defaultApiKey)
-
-	assert.Nil(err)
-	assert.Equal(defaultApiKey, actual)
-}
-
-func TestApiKeyRepository_Get_DbInteraction(t *testing.T) {
-	s := RepositoryPoolTestSuite{
-		sqlMode: QueryBased,
-		testFunc: func(ctx context.Context, pool db.ConnectionPool) error {
-			repo := NewApiKeyRepository(pool)
-			_, err := repo.Get(context.Background(), defaultApiKeyId)
-			return err
-		},
-		expectedSql: `SELECT id, key, api_user, valid_until FROM api_key WHERE id = $1`,
-		expectedArguments: []interface{}{
-			defaultApiKeyId,
 		},
 	}
 
@@ -118,23 +135,6 @@ func TestApiKeyRepository_Get_InterpretDbData(t *testing.T) {
 	suite.Run(t, &s)
 }
 
-func TestApiKeyRepository_GetForKey_DbInteraction(t *testing.T) {
-	s := RepositoryPoolTestSuite{
-		sqlMode: QueryBased,
-		testFunc: func(ctx context.Context, pool db.ConnectionPool) error {
-			repo := NewApiKeyRepository(pool)
-			_, err := repo.GetForKey(context.Background(), defaultApiKeyValue)
-			return err
-		},
-		expectedSql: `SELECT id, key, api_user, valid_until FROM api_key WHERE key = $1`,
-		expectedArguments: []interface{}{
-			defaultApiKeyValue,
-		},
-	}
-
-	suite.Run(t, &s)
-}
-
 func TestApiKeyRepository_GetForKey_InterpretDbData(t *testing.T) {
 	s := RepositorySingleValueTestSuite{
 		testFunc: func(ctx context.Context, pool db.ConnectionPool) error {
@@ -156,63 +156,11 @@ func TestApiKeyRepository_GetForKey_InterpretDbData(t *testing.T) {
 	suite.Run(t, &s)
 }
 
-func TestApiKeyRepository_GetForUser_DbInteraction(t *testing.T) {
-	s := RepositoryPoolTestSuite{
-		sqlMode: QueryBased,
-		testFunc: func(ctx context.Context, pool db.ConnectionPool) error {
-			repo := NewApiKeyRepository(pool)
-			_, err := repo.GetForUser(context.Background(), defaultUserId)
-			return err
-		},
-		expectedSql: `SELECT id FROM api_key WHERE api_user = $1`,
-		expectedArguments: []interface{}{
-			defaultUserId,
-		},
-	}
-
-	suite.Run(t, &s)
-}
-
 func TestApiKeyRepository_GetForUser_InterpretDbData(t *testing.T) {
 	s := RepositoryGetAllTestSuite{
 		testFunc: func(ctx context.Context, pool db.ConnectionPool) error {
 			repo := NewApiKeyRepository(pool)
 			_, err := repo.GetForUser(ctx, defaultUserId)
-			return err
-		},
-		expectedScanCalls: 1,
-		expectedScannedProps: [][]interface{}{
-			{&uuid.UUID{}},
-		},
-	}
-
-	suite.Run(t, &s)
-}
-
-func TestApiKeyRepository_GetForUserTx_DbInteraction(t *testing.T) {
-	s := RepositoryTransactionTestSuite{
-		sqlMode: QueryBased,
-		testFunc: func(ctx context.Context, tx db.Transaction) error {
-			repo := NewApiKeyRepository(&mockConnectionPool{})
-			_, err := repo.GetForUserTx(context.Background(), tx, defaultUserId)
-			return err
-		},
-		expectedSql: []string{`SELECT id FROM api_key WHERE api_user = $1`},
-		expectedArguments: [][]interface{}{
-			{
-				defaultUserId,
-			},
-		},
-	}
-
-	suite.Run(t, &s)
-}
-
-func TestApiKeyRepository_GetForUserTx_InterpretDbData(t *testing.T) {
-	s := RepositoryGetAllTransactionTestSuite{
-		testFunc: func(ctx context.Context, tx db.Transaction) error {
-			repo := NewApiKeyRepository(&mockConnectionPool{})
-			_, err := repo.GetForUserTx(ctx, tx, defaultUserId)
 			return err
 		},
 		expectedScanCalls: 1,
