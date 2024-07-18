@@ -4,18 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/KnoblauchPilze/user-service/pkg/db"
 	"github.com/stretchr/testify/suite"
 )
-
-type SqlQueryType int
-
-const (
-	QueryBased SqlQueryType = 0
-	ExecBased  SqlQueryType = 1
-)
-
-type testPoolFunc func(context.Context, db.ConnectionPool) error
 
 type RepositoryPoolTestSuite struct {
 	suite.Suite

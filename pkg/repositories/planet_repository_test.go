@@ -23,48 +23,55 @@ var defaultPlanet = persistence.Planet{
 	UpdatedAt: time.Date(2024, 7, 9, 20, 11, 21, 651387230, time.UTC),
 }
 
-func TestPlanetRepository_Create_DbInteraction(t *testing.T) {
-	s := RepositoryPoolTestSuite{
-		sqlMode: ExecBased,
-		testFunc: func(ctx context.Context, pool db.ConnectionPool) error {
-			repo := NewPlanetRepository(pool)
-			_, err := repo.Create(ctx, defaultPlanet)
-			return err
+func Test_PlanetRepository(t *testing.T) {
+	s := RepositoryTestSuite{
+
+		dbPoolInteractionTestCases: map[string]dbPoolInteractionTestCase{
+			"create": {
+				sqlMode: ExecBased,
+				handler: func(ctx context.Context, pool db.ConnectionPool) error {
+					s := NewPlanetRepository(pool)
+					_, err := s.Create(ctx, defaultPlanet)
+					return err
+				},
+				expectedSql: `INSERT INTO planet (id, player, name, created_at) VALUES($1, $2, $3, $4)`,
+				expectedArguments: []interface{}{
+					defaultPlanet.Id,
+					defaultPlanet.Player,
+					defaultPlanet.Name,
+					defaultPlanet.CreatedAt,
+				},
+			},
+			"get": {
+				handler: func(ctx context.Context, pool db.ConnectionPool) error {
+					s := NewPlanetRepository(pool)
+					_, err := s.Get(ctx, defaultPlanetId)
+					return err
+				},
+				expectedSql: `SELECT id, player, name, created_at, updated_at FROM planet WHERE id = $1`,
+				expectedArguments: []interface{}{
+					defaultPlanetId,
+				},
+			},
+			"list": {
+				handler: func(ctx context.Context, pool db.ConnectionPool) error {
+					s := NewPlanetRepository(pool)
+					_, err := s.List(ctx)
+					return err
+				},
+				expectedSql: `SELECT id, player, name, created_at, updated_at FROM planet`,
+			},
 		},
-		expectedSql: `INSERT INTO planet (id, player, name, created_at) VALUES($1, $2, $3, $4)`,
-		expectedArguments: []interface{}{
-			defaultPlanet.Id,
-			defaultPlanet.Player,
-			defaultPlanet.Name,
-			defaultPlanet.CreatedAt,
-		},
-	}
 
-	suite.Run(t, &s)
-}
-
-func TestPlanetRepository_Create_ReturnsInputPlanet(t *testing.T) {
-	assert := assert.New(t)
-
-	mc := &mockConnectionPool{}
-	repo := NewPlanetRepository(mc)
-
-	actual, err := repo.Create(context.Background(), defaultPlanet)
-
-	assert.Nil(err)
-	assert.Equal(defaultPlanet, actual)
-}
-
-func TestPlanetRepository_Get_DbInteraction(t *testing.T) {
-	s := RepositoryPoolTestSuite{
-		testFunc: func(ctx context.Context, pool db.ConnectionPool) error {
-			repo := NewPlanetRepository(pool)
-			_, err := repo.Get(ctx, defaultPlanetId)
-			return err
-		},
-		expectedSql: `SELECT id, player, name, created_at, updated_at FROM planet WHERE id = $1`,
-		expectedArguments: []interface{}{
-			defaultPlanetId,
+		dbPoolReturnTestCases: map[string]dbPoolReturnTestCase{
+			"create": {
+				handler: func(ctx context.Context, pool db.ConnectionPool) interface{} {
+					s := NewPlanetRepository(pool)
+					out, _ := s.Create(ctx, defaultPlanet)
+					return out
+				},
+				expectedContent: defaultPlanet,
+			},
 		},
 	}
 
@@ -90,19 +97,6 @@ func TestPlanetRepository_Get_InterpretDbData(t *testing.T) {
 				&time.Time{},
 			},
 		},
-	}
-
-	suite.Run(t, &s)
-}
-
-func TestPlanetRepository_List_DbInteraction(t *testing.T) {
-	s := RepositoryPoolTestSuite{
-		testFunc: func(ctx context.Context, pool db.ConnectionPool) error {
-			repo := NewPlanetRepository(pool)
-			_, err := repo.List(ctx)
-			return err
-		},
-		expectedSql: `SELECT id, player, name, created_at, updated_at FROM planet`,
 	}
 
 	suite.Run(t, &s)
