@@ -24,19 +24,54 @@ var defaultUniverse = persistence.Universe{
 	Version:   5,
 }
 
-func TestUniverseRepository_Create_DbInteraction(t *testing.T) {
-	s := RepositoryPoolTestSuite{
-		sqlMode: ExecBased,
-		testFunc: func(ctx context.Context, pool db.ConnectionPool) error {
-			repo := NewUniverseRepository(pool)
-			_, err := repo.Create(ctx, defaultUniverse)
-			return err
+func Test_UniverseRepository(t *testing.T) {
+	s := RepositoryTestSuite{
+
+		dbPoolInteractionTestCases: map[string]dbPoolInteractionTestCase{
+			"create": {
+				sqlMode: ExecBased,
+				handler: func(ctx context.Context, pool db.ConnectionPool) error {
+					s := NewUniverseRepository(pool)
+					_, err := s.Create(ctx, defaultUniverse)
+					return err
+				},
+				expectedSql: `INSERT INTO universe (id, name, created_at) VALUES($1, $2, $3)`,
+				expectedArguments: []interface{}{
+					defaultUniverse.Id,
+					defaultUniverse.Name,
+					defaultUniverse.CreatedAt,
+				},
+			},
+			"get": {
+				handler: func(ctx context.Context, pool db.ConnectionPool) error {
+					s := NewUniverseRepository(pool)
+					_, err := s.Get(ctx, defaultUniverseId)
+					return err
+				},
+				expectedSql: `SELECT id, name, created_at, updated_at, version FROM universe WHERE id = $1`,
+				expectedArguments: []interface{}{
+					defaultUniverseId,
+				},
+			},
+			"list": {
+				handler: func(ctx context.Context, pool db.ConnectionPool) error {
+					s := NewUniverseRepository(pool)
+					_, err := s.List(ctx)
+					return err
+				},
+				expectedSql: `SELECT id, name, created_at, updated_at, version FROM universe`,
+			},
 		},
-		expectedSql: `INSERT INTO universe (id, name, created_at) VALUES($1, $2, $3)`,
-		expectedArguments: []interface{}{
-			defaultUniverse.Id,
-			defaultUniverse.Name,
-			defaultUniverse.CreatedAt,
+
+		dbPoolReturnTestCases: map[string]dbPoolReturnTestCase{
+			"create": {
+				handler: func(ctx context.Context, pool db.ConnectionPool) interface{} {
+					s := NewUniverseRepository(pool)
+					out, _ := s.Create(ctx, defaultUniverse)
+					return out
+				},
+				expectedContent: defaultUniverse,
+			},
 		},
 	}
 
@@ -54,34 +89,6 @@ func TestUniverseRepository_Create_WhenQueryIndicatesDuplicatedKey_ReturnsDuplic
 	_, err := repo.Create(context.Background(), defaultUniverse)
 
 	assert.True(errors.IsErrorWithCode(err, db.DuplicatedKeySqlKey))
-}
-
-func TestUniverseRepository_Create_ReturnsInputUniverse(t *testing.T) {
-	assert := assert.New(t)
-
-	mc := &mockConnectionPool{}
-	repo := NewUniverseRepository(mc)
-
-	actual, err := repo.Create(context.Background(), defaultUniverse)
-
-	assert.Nil(err)
-	assert.Equal(defaultUniverse, actual)
-}
-
-func TestUniverseRepository_Get_DbInteraction(t *testing.T) {
-	s := RepositoryPoolTestSuite{
-		testFunc: func(ctx context.Context, pool db.ConnectionPool) error {
-			repo := NewUniverseRepository(pool)
-			_, err := repo.Get(ctx, defaultUniverseId)
-			return err
-		},
-		expectedSql: `SELECT id, name, created_at, updated_at, version FROM universe WHERE id = $1`,
-		expectedArguments: []interface{}{
-			defaultUniverseId,
-		},
-	}
-
-	suite.Run(t, &s)
 }
 
 func TestUniverseRepository_Get_InterpretDbData(t *testing.T) {
@@ -104,19 +111,6 @@ func TestUniverseRepository_Get_InterpretDbData(t *testing.T) {
 				&dummyInt,
 			},
 		},
-	}
-
-	suite.Run(t, &s)
-}
-
-func TestUniverseRepository_List_DbInteraction(t *testing.T) {
-	s := RepositoryPoolTestSuite{
-		testFunc: func(ctx context.Context, pool db.ConnectionPool) error {
-			repo := NewUniverseRepository(pool)
-			_, err := repo.List(ctx)
-			return err
-		},
-		expectedSql: `SELECT id, name, created_at, updated_at, version FROM universe`,
 	}
 
 	suite.Run(t, &s)
