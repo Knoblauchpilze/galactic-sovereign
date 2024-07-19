@@ -82,6 +82,26 @@ INSERT INTO api_key (id, key, api_user, valid_until)
 			},
 		},
 
+		dbPoolSingleValueTestCases: map[string]dbPoolSingleValueTestCase{
+			"get": {
+				handler: func(ctx context.Context, pool db.ConnectionPool) error {
+					repo := NewApiKeyRepository(pool)
+					_, err := repo.Get(ctx, defaultApiKeyId)
+					return err
+				},
+				expectedGetSingleValueCalls: 1,
+				expectedScanCalls:           1,
+				expectedScannedProps: [][]interface{}{
+					{
+						&uuid.UUID{},
+						&uuid.UUID{},
+						&uuid.UUID{},
+						&time.Time{},
+					},
+				},
+			},
+		},
+
 		dbPoolReturnTestCases: map[string]dbPoolReturnTestCase{
 			"create": {
 				handler: func(ctx context.Context, pool db.ConnectionPool) interface{} {
