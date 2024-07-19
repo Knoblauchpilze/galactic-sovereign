@@ -331,9 +331,25 @@ func Test_UserController(t *testing.T) {
 			"updateUser": {
 				req:            generateTestRequestWithUserBody(http.MethodPatch, updatedUserDtoRequest),
 				idAsRouteParam: true,
-				handler:        updateUser,
-				// TODO: Was different before.
-				expectedContent: defaultUserDtoResponse,
+				generateValidServiceMock: func() service.UserService {
+					return &mockUserService{
+						ids: []uuid.UUID{defaultUuid},
+						user: communication.UserDtoResponse{
+							Id:        defaultUserDtoResponse.Id,
+							Email:     updatedUserDtoRequest.Email,
+							Password:  updatedUserDtoRequest.Password,
+							CreatedAt: defaultUserDtoResponse.CreatedAt,
+						},
+						apiKey: defaultApiKeyDtoResponse,
+					}
+				},
+				handler: updateUser,
+				expectedContent: communication.UserDtoResponse{
+					Id:        defaultUserDtoResponse.Id,
+					Email:     updatedUserDtoRequest.Email,
+					Password:  updatedUserDtoRequest.Password,
+					CreatedAt: defaultUserDtoResponse.CreatedAt,
+				},
 			},
 			"loginUserById": {
 				req:             httptest.NewRequest(http.MethodPost, "/", nil),
