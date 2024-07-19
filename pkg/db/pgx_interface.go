@@ -39,8 +39,8 @@ type ConnectionPool interface {
 type Transaction interface {
 	Close(ctx context.Context)
 
-	Query(ctx context.Context, sql string, arguments ...interface{}) Rows
-	Exec(ctx context.Context, sql string, arguments ...interface{}) (int, error)
+	Query(ctx context.Context, sql string, arguments ...any) Rows
+	Exec(ctx context.Context, sql string, arguments ...any) (int, error)
 }
 
 // The public interface of what we expose in sql rows.
