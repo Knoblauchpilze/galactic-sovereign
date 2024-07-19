@@ -25,6 +25,9 @@ var defaultUniverse = persistence.Universe{
 }
 
 func Test_UniverseRepository(t *testing.T) {
+	dummyStr := ""
+	dummyInt := 0
+
 	s := RepositoryTestSuite{
 		dbPoolInteractionTestCases: map[string]dbPoolInteractionTestCase{
 			"create": {
@@ -62,6 +65,27 @@ func Test_UniverseRepository(t *testing.T) {
 			},
 		},
 
+		dbPoolSingleValueTestCases: map[string]dbPoolSingleValueTestCase{
+			"get": {
+				handler: func(ctx context.Context, pool db.ConnectionPool) error {
+					repo := NewUniverseRepository(pool)
+					_, err := repo.Get(ctx, defaultUniverseId)
+					return err
+				},
+				expectedGetSingleValueCalls: 1,
+				expectedScanCalls:           1,
+				expectedScannedProps: [][]interface{}{
+					{
+						&uuid.UUID{},
+						&dummyStr,
+						&time.Time{},
+						&time.Time{},
+						&dummyInt,
+					},
+				},
+			},
+		},
+
 		dbPoolReturnTestCases: map[string]dbPoolReturnTestCase{
 			"create": {
 				handler: func(ctx context.Context, pool db.ConnectionPool) interface{} {
@@ -88,31 +112,6 @@ func TestUniverseRepository_Create_WhenQueryIndicatesDuplicatedKey_ReturnsDuplic
 	_, err := repo.Create(context.Background(), defaultUniverse)
 
 	assert.True(errors.IsErrorWithCode(err, db.DuplicatedKeySqlKey))
-}
-
-func TestUniverseRepository_Get_InterpretDbData(t *testing.T) {
-	dummyStr := ""
-	dummyInt := 0
-
-	s := RepositorySingleValueTestSuite{
-		testFunc: func(ctx context.Context, pool db.ConnectionPool) error {
-			repo := NewUniverseRepository(pool)
-			_, err := repo.Get(ctx, defaultUniverseId)
-			return err
-		},
-		expectedScanCalls: 1,
-		expectedScannedProps: [][]interface{}{
-			{
-				&uuid.UUID{},
-				&dummyStr,
-				&time.Time{},
-				&time.Time{},
-				&dummyInt,
-			},
-		},
-	}
-
-	suite.Run(t, &s)
 }
 
 func TestUniverseRepository_List_InterpretDbData(t *testing.T) {
