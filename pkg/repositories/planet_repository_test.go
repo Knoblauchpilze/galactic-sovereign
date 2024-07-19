@@ -85,6 +85,27 @@ func Test_PlanetRepository(t *testing.T) {
 			},
 		},
 
+		dbPoolGetAllTestCases: map[string]dbPoolGetAllTestCase{
+			"list": {
+				handler: func(ctx context.Context, pool db.ConnectionPool) error {
+					repo := NewPlanetRepository(pool)
+					_, err := repo.List(ctx)
+					return err
+				},
+				expectedGetAllCalls: 1,
+				expectedScanCalls:   1,
+				expectedScannedProps: [][]interface{}{
+					{
+						&uuid.UUID{},
+						&uuid.UUID{},
+						&dummyStr,
+						&time.Time{},
+						&time.Time{},
+					},
+				},
+			},
+		},
+
 		dbPoolReturnTestCases: map[string]dbPoolReturnTestCase{
 			"create": {
 				handler: func(ctx context.Context, pool db.ConnectionPool) interface{} {
@@ -93,30 +114,6 @@ func Test_PlanetRepository(t *testing.T) {
 					return out
 				},
 				expectedContent: defaultPlanet,
-			},
-		},
-	}
-
-	suite.Run(t, &s)
-}
-
-func TestPlanetRepository_List_InterpretDbData(t *testing.T) {
-	dummyStr := ""
-
-	s := RepositoryGetAllTestSuite{
-		testFunc: func(ctx context.Context, pool db.ConnectionPool) error {
-			repo := NewPlanetRepository(pool)
-			_, err := repo.List(ctx)
-			return err
-		},
-		expectedScanCalls: 1,
-		expectedScannedProps: [][]interface{}{
-			{
-				&uuid.UUID{},
-				&uuid.UUID{},
-				&dummyStr,
-				&time.Time{},
-				&time.Time{},
 			},
 		},
 	}
