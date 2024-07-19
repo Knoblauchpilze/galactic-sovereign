@@ -27,6 +27,9 @@ var defaultPlayer = persistence.Player{
 }
 
 func Test_PlayerRepository(t *testing.T) {
+	dummyStr := ""
+	dummyInt := 0
+
 	s := RepositoryTestSuite{
 		dbPoolInteractionTestCases: map[string]dbPoolInteractionTestCase{
 			"create": {
@@ -66,6 +69,29 @@ func Test_PlayerRepository(t *testing.T) {
 			},
 		},
 
+		dbPoolSingleValueTestCases: map[string]dbPoolSingleValueTestCase{
+			"get": {
+				handler: func(ctx context.Context, pool db.ConnectionPool) error {
+					repo := NewPlayerRepository(pool)
+					_, err := repo.Get(ctx, defaultPlayerId)
+					return err
+				},
+				expectedGetSingleValueCalls: 1,
+				expectedScanCalls:           1,
+				expectedScannedProps: [][]interface{}{
+					{
+						&uuid.UUID{},
+						&uuid.UUID{},
+						&uuid.UUID{},
+						&dummyStr,
+						&time.Time{},
+						&time.Time{},
+						&dummyInt,
+					},
+				},
+			},
+		},
+
 		dbPoolReturnTestCases: map[string]dbPoolReturnTestCase{
 			"create": {
 				handler: func(ctx context.Context, pool db.ConnectionPool) interface{} {
@@ -92,33 +118,6 @@ func TestPlayerRepository_Create_WhenQueryIndicatesDuplicatedKey_ReturnsDuplicat
 	_, err := repo.Create(context.Background(), defaultPlayer)
 
 	assert.True(errors.IsErrorWithCode(err, db.DuplicatedKeySqlKey))
-}
-
-func TestPlayerRepository_Get_InterpretDbData(t *testing.T) {
-	dummyStr := ""
-	dummyInt := 0
-
-	s := RepositorySingleValueTestSuite{
-		testFunc: func(ctx context.Context, pool db.ConnectionPool) error {
-			repo := NewPlayerRepository(pool)
-			_, err := repo.Get(ctx, defaultPlayerId)
-			return err
-		},
-		expectedScanCalls: 1,
-		expectedScannedProps: [][]interface{}{
-			{
-				&uuid.UUID{},
-				&uuid.UUID{},
-				&uuid.UUID{},
-				&dummyStr,
-				&time.Time{},
-				&time.Time{},
-				&dummyInt,
-			},
-		},
-	}
-
-	suite.Run(t, &s)
 }
 
 func TestPlayerRepository_List_InterpretDbData(t *testing.T) {
