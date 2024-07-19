@@ -144,6 +144,23 @@ func Test_UserRepository(t *testing.T) {
 			},
 		},
 
+		dbPoolGetAllTestCases: map[string]dbPoolGetAllTestCase{
+			"list": {
+				handler: func(ctx context.Context, pool db.ConnectionPool) error {
+					repo := NewUserRepository(pool)
+					_, err := repo.List(ctx)
+					return err
+				},
+				expectedGetAllCalls: 1,
+				expectedScanCalls:   1,
+				expectedScannedProps: [][]interface{}{
+					{
+						&uuid.UUID{},
+					},
+				},
+			},
+		},
+
 		dbPoolReturnTestCases: map[string]dbPoolReturnTestCase{
 			"create": {
 				handler: func(ctx context.Context, pool db.ConnectionPool) interface{} {
@@ -178,22 +195,6 @@ func TestUserRepository_Create_WhenQueryIndicatesDuplicatedKey_ReturnsDuplicated
 	_, err := repo.Create(context.Background(), defaultUser)
 
 	assert.True(errors.IsErrorWithCode(err, db.DuplicatedKeySqlKey))
-}
-
-func TestUserRepository_List_InterpretDbData(t *testing.T) {
-	s := RepositoryGetAllTestSuite{
-		testFunc: func(ctx context.Context, pool db.ConnectionPool) error {
-			repo := NewUserRepository(pool)
-			_, err := repo.List(ctx)
-			return err
-		},
-		expectedScanCalls: 1,
-		expectedScannedProps: [][]interface{}{
-			{&uuid.UUID{}},
-		},
-	}
-
-	suite.Run(t, &s)
 }
 
 func TestUserRepository_Update_WhenAffectedRowsIsZero_ReturnsOptimisticLockException(t *testing.T) {
