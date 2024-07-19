@@ -22,7 +22,6 @@ var defaultApiKey = persistence.ApiKey{
 
 func Test_ApiKeyRepository(t *testing.T) {
 	s := RepositoryTestSuite{
-
 		dbPoolInteractionTestCases: map[string]dbPoolInteractionTestCase{
 			"create": {
 				handler: func(ctx context.Context, pool db.ConnectionPool) error {
