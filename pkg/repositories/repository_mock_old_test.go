@@ -67,23 +67,6 @@ func (m *mockRows) GetAll(parser db.RowParser) error {
 	return m.allErr
 }
 
-type mockScannable struct {
-	err error
-
-	scanCalled int
-	props      [][]interface{}
-}
-
-func (m *mockScannable) Scan(dest ...interface{}) error {
-	m.scanCalled++
-
-	var newProps []interface{}
-	newProps = append(newProps, dest...)
-	m.props = append(m.props, newProps)
-
-	return m.err
-}
-
 type mockTransaction struct {
 	db.Transaction
 
