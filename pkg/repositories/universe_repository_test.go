@@ -26,7 +26,6 @@ var defaultUniverse = persistence.Universe{
 
 func Test_UniverseRepository(t *testing.T) {
 	s := RepositoryTestSuite{
-
 		dbPoolInteractionTestCases: map[string]dbPoolInteractionTestCase{
 			"create": {
 				sqlMode: ExecBased,

@@ -28,7 +28,6 @@ var defaultPlayer = persistence.Player{
 
 func Test_PlayerRepository(t *testing.T) {
 	s := RepositoryTestSuite{
-
 		dbPoolInteractionTestCases: map[string]dbPoolInteractionTestCase{
 			"create": {
 				sqlMode: ExecBased,
