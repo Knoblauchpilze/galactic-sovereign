@@ -26,8 +26,8 @@ var defaultPlanet = persistence.Planet{
 func Test_PlanetRepository(t *testing.T) {
 	dummyStr := ""
 
-	s := RepositoryTestSuite{
-		dbPoolInteractionTestCases: map[string]dbPoolInteractionTestCase{
+	s := RepositoryPoolTestSuite{
+		dbInteractionTestCases: map[string]dbPoolInteractionTestCase{
 			"create": {
 				sqlMode: ExecBased,
 				handler: func(ctx context.Context, pool db.ConnectionPool) error {
@@ -64,7 +64,7 @@ func Test_PlanetRepository(t *testing.T) {
 			},
 		},
 
-		dbPoolSingleValueTestCases: map[string]dbPoolSingleValueTestCase{
+		dbSingleValueTestCases: map[string]dbPoolSingleValueTestCase{
 			"get": {
 				handler: func(ctx context.Context, pool db.ConnectionPool) error {
 					repo := NewPlanetRepository(pool)
@@ -85,7 +85,7 @@ func Test_PlanetRepository(t *testing.T) {
 			},
 		},
 
-		dbPoolGetAllTestCases: map[string]dbPoolGetAllTestCase{
+		dbGetAllTestCases: map[string]dbPoolGetAllTestCase{
 			"list": {
 				handler: func(ctx context.Context, pool db.ConnectionPool) error {
 					repo := NewPlanetRepository(pool)
@@ -106,7 +106,7 @@ func Test_PlanetRepository(t *testing.T) {
 			},
 		},
 
-		dbPoolReturnTestCases: map[string]dbPoolReturnTestCase{
+		dbReturnTestCases: map[string]dbPoolReturnTestCase{
 			"create": {
 				handler: func(ctx context.Context, pool db.ConnectionPool) interface{} {
 					s := NewPlanetRepository(pool)
