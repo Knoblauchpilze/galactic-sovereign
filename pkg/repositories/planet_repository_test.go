@@ -24,8 +24,9 @@ var defaultPlanet = persistence.Planet{
 }
 
 func Test_PlanetRepository(t *testing.T) {
-	s := RepositoryTestSuite{
+	dummyStr := ""
 
+	s := RepositoryTestSuite{
 		dbPoolInteractionTestCases: map[string]dbPoolInteractionTestCase{
 			"create": {
 				sqlMode: ExecBased,
@@ -63,6 +64,27 @@ func Test_PlanetRepository(t *testing.T) {
 			},
 		},
 
+		dbPoolSingleValueTestCases: map[string]dbPoolSingleValueTestCase{
+			"get": {
+				handler: func(ctx context.Context, pool db.ConnectionPool) error {
+					repo := NewPlanetRepository(pool)
+					_, err := repo.Get(ctx, defaultPlanetId)
+					return err
+				},
+				expectedGetSingleValueCalls: 1,
+				expectedScanCalls:           1,
+				expectedScannedProps: [][]interface{}{
+					{
+						&uuid.UUID{},
+						&uuid.UUID{},
+						&dummyStr,
+						&time.Time{},
+						&time.Time{},
+					},
+				},
+			},
+		},
+
 		dbPoolReturnTestCases: map[string]dbPoolReturnTestCase{
 			"create": {
 				handler: func(ctx context.Context, pool db.ConnectionPool) interface{} {
@@ -71,30 +93,6 @@ func Test_PlanetRepository(t *testing.T) {
 					return out
 				},
 				expectedContent: defaultPlanet,
-			},
-		},
-	}
-
-	suite.Run(t, &s)
-}
-
-func TestPlanetRepository_Get_InterpretDbData(t *testing.T) {
-	dummyStr := ""
-
-	s := RepositorySingleValueTestSuite{
-		testFunc: func(ctx context.Context, pool db.ConnectionPool) error {
-			repo := NewPlanetRepository(pool)
-			_, err := repo.Get(ctx, defaultPlanetId)
-			return err
-		},
-		expectedScanCalls: 1,
-		expectedScannedProps: [][]interface{}{
-			{
-				&uuid.UUID{},
-				&uuid.UUID{},
-				&dummyStr,
-				&time.Time{},
-				&time.Time{},
 			},
 		},
 	}
