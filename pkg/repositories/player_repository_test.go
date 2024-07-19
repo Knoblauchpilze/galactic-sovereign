@@ -92,6 +92,29 @@ func Test_PlayerRepository(t *testing.T) {
 			},
 		},
 
+		dbPoolGetAllTestCases: map[string]dbPoolGetAllTestCase{
+			"list": {
+				handler: func(ctx context.Context, pool db.ConnectionPool) error {
+					repo := NewPlayerRepository(pool)
+					_, err := repo.List(ctx)
+					return err
+				},
+				expectedGetAllCalls: 1,
+				expectedScanCalls:   1,
+				expectedScannedProps: [][]interface{}{
+					{
+						&uuid.UUID{},
+						&uuid.UUID{},
+						&uuid.UUID{},
+						&dummyStr,
+						&time.Time{},
+						&time.Time{},
+						&dummyInt,
+					},
+				},
+			},
+		},
+
 		dbPoolReturnTestCases: map[string]dbPoolReturnTestCase{
 			"create": {
 				handler: func(ctx context.Context, pool db.ConnectionPool) interface{} {
@@ -118,33 +141,6 @@ func TestPlayerRepository_Create_WhenQueryIndicatesDuplicatedKey_ReturnsDuplicat
 	_, err := repo.Create(context.Background(), defaultPlayer)
 
 	assert.True(errors.IsErrorWithCode(err, db.DuplicatedKeySqlKey))
-}
-
-func TestPlayerRepository_List_InterpretDbData(t *testing.T) {
-	dummyStr := ""
-	dummyInt := 0
-
-	s := RepositoryGetAllTestSuite{
-		testFunc: func(ctx context.Context, pool db.ConnectionPool) error {
-			repo := NewPlayerRepository(pool)
-			_, err := repo.List(ctx)
-			return err
-		},
-		expectedScanCalls: 1,
-		expectedScannedProps: [][]interface{}{
-			{
-				&uuid.UUID{},
-				&uuid.UUID{},
-				&uuid.UUID{},
-				&dummyStr,
-				&time.Time{},
-				&time.Time{},
-				&dummyInt,
-			},
-		},
-	}
-
-	suite.Run(t, &s)
 }
 
 func TestPlayerRepository_Delete_DbInteraction(t *testing.T) {
