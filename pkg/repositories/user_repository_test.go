@@ -25,21 +25,142 @@ var defaultUser = persistence.User{
 	UpdatedAt: time.Date(2009, 11, 17, 20, 34, 59, 651387237, time.UTC),
 	Version:   4,
 }
+var defaultUpdatedUser = persistence.User{
+	Id:        defaultUserId,
+	Email:     "my-updated-email",
+	Password:  "my-updated-password",
+	CreatedAt: time.Date(2009, 11, 17, 20, 34, 58, 651387237, time.UTC),
+	UpdatedAt: time.Date(2009, 11, 17, 20, 34, 59, 651387237, time.UTC),
+	Version:   4,
+}
 
-func TestUserRepository_Create_DbInteraction(t *testing.T) {
-	s := RepositoryPoolTestSuite{
-		sqlMode: ExecBased,
-		testFunc: func(ctx context.Context, pool db.ConnectionPool) error {
-			repo := NewUserRepository(pool)
-			_, err := repo.Create(ctx, defaultUser)
-			return err
+func Test_UserRepository(t *testing.T) {
+	dummyStr := ""
+	dummyInt := 0
+
+	s := RepositoryTestSuite{
+		dbPoolInteractionTestCases: map[string]dbPoolInteractionTestCase{
+			"create": {
+				sqlMode: ExecBased,
+				handler: func(ctx context.Context, pool db.ConnectionPool) error {
+					s := NewUserRepository(pool)
+					_, err := s.Create(ctx, defaultUser)
+					return err
+				},
+				expectedSql: `INSERT INTO api_user (id, email, password, created_at) VALUES($1, $2, $3, $4)`,
+				expectedArguments: []interface{}{
+					defaultUser.Id,
+					defaultUser.Email,
+					defaultUser.Password,
+					defaultUser.CreatedAt,
+				},
+			},
+			"get": {
+				handler: func(ctx context.Context, pool db.ConnectionPool) error {
+					s := NewUserRepository(pool)
+					_, err := s.Get(ctx, defaultUserId)
+					return err
+				},
+				expectedSql: `SELECT id, email, password, created_at, updated_at, version FROM api_user WHERE id = $1`,
+				expectedArguments: []interface{}{
+					defaultUserId,
+				},
+			},
+			"getByEmail": {
+				handler: func(ctx context.Context, pool db.ConnectionPool) error {
+					s := NewUserRepository(pool)
+					_, err := s.GetByEmail(ctx, defaultUserEmail)
+					return err
+				},
+				expectedSql: `SELECT id, email, password, created_at, updated_at, version FROM api_user WHERE email = $1`,
+				expectedArguments: []interface{}{
+					defaultUserEmail,
+				},
+			},
+			"list": {
+				handler: func(ctx context.Context, pool db.ConnectionPool) error {
+					s := NewUserRepository(pool)
+					_, err := s.List(ctx)
+					return err
+				},
+				expectedSql: `SELECT id FROM api_user`,
+			},
+			"update": {
+				sqlMode: ExecBased,
+				handler: func(ctx context.Context, pool db.ConnectionPool) error {
+					s := NewUserRepository(pool)
+					_, err := s.Update(ctx, defaultUpdatedUser)
+					return err
+				},
+				expectedSql: `UPDATE api_user SET email = $1, password = $2, version = $3 WHERE id = $4 AND version = $5`,
+				expectedArguments: []interface{}{
+					defaultUpdatedUser.Email,
+					defaultUpdatedUser.Password,
+					defaultUpdatedUser.Version + 1,
+					defaultUpdatedUser.Id,
+					defaultUpdatedUser.Version,
+				},
+			},
 		},
-		expectedSql: `INSERT INTO api_user (id, email, password, created_at) VALUES($1, $2, $3, $4)`,
-		expectedArguments: []interface{}{
-			defaultUser.Id,
-			defaultUser.Email,
-			defaultUser.Password,
-			defaultUser.CreatedAt,
+
+		dbPoolSingleValueTestCases: map[string]dbPoolSingleValueTestCase{
+			"get": {
+				handler: func(ctx context.Context, pool db.ConnectionPool) error {
+					repo := NewUserRepository(pool)
+					_, err := repo.Get(ctx, defaultUserId)
+					return err
+				},
+				expectedGetSingleValueCalls: 1,
+				expectedScanCalls:           1,
+				expectedScannedProps: [][]interface{}{
+					{
+						&uuid.UUID{},
+						&dummyStr,
+						&dummyStr,
+						&time.Time{},
+						&time.Time{},
+						&dummyInt,
+					},
+				},
+			},
+			"getByEmail": {
+				handler: func(ctx context.Context, pool db.ConnectionPool) error {
+					repo := NewUserRepository(pool)
+					_, err := repo.Get(ctx, defaultUserId)
+					return err
+				},
+				expectedGetSingleValueCalls: 1,
+				expectedScanCalls:           1,
+				expectedScannedProps: [][]interface{}{
+					{
+						&uuid.UUID{},
+						&dummyStr,
+						&dummyStr,
+						&time.Time{},
+						&time.Time{},
+						&dummyInt,
+					},
+				},
+			},
+		},
+
+		dbPoolReturnTestCases: map[string]dbPoolReturnTestCase{
+			"create": {
+				handler: func(ctx context.Context, pool db.ConnectionPool) interface{} {
+					s := NewUserRepository(pool)
+					out, _ := s.Create(ctx, defaultUser)
+					return out
+				},
+				expectedContent: defaultUser,
+			},
+			"update": {
+				handler: func(ctx context.Context, pool db.ConnectionPool) interface{} {
+					s := NewUserRepository(pool)
+					out, _ := s.Update(ctx, defaultUser)
+					return out
+				},
+				expectedContent: defaultUser,
+			},
 		},
 	}
 
@@ -59,115 +180,6 @@ func TestUserRepository_Create_WhenQueryIndicatesDuplicatedKey_ReturnsDuplicated
 	assert.True(errors.IsErrorWithCode(err, db.DuplicatedKeySqlKey))
 }
 
-func TestUserRepository_Create_ReturnsInputUser(t *testing.T) {
-	assert := assert.New(t)
-
-	mc := &mockConnectionPool{}
-	repo := NewUserRepository(mc)
-
-	actual, err := repo.Create(context.Background(), defaultUser)
-
-	assert.Nil(err)
-	assert.Equal(defaultUser, actual)
-}
-
-func TestUserRepository_Get_DbInteraction(t *testing.T) {
-	s := RepositoryPoolTestSuite{
-		testFunc: func(ctx context.Context, pool db.ConnectionPool) error {
-			repo := NewUserRepository(pool)
-			_, err := repo.Get(ctx, defaultUserId)
-			return err
-		},
-		expectedSql: `SELECT id, email, password, created_at, updated_at, version FROM api_user WHERE id = $1`,
-		expectedArguments: []interface{}{
-			defaultUserId,
-		},
-	}
-
-	suite.Run(t, &s)
-}
-
-func TestUserRepository_Get_InterpretDbData(t *testing.T) {
-	dummyStr := ""
-	dummyInt := 0
-
-	s := RepositorySingleValueTestSuite{
-		testFunc: func(ctx context.Context, pool db.ConnectionPool) error {
-			repo := NewUserRepository(pool)
-			_, err := repo.Get(ctx, defaultUserId)
-			return err
-		},
-		expectedScanCalls: 1,
-		expectedScannedProps: [][]interface{}{
-			{
-				&uuid.UUID{},
-				&dummyStr,
-				&dummyStr,
-				&time.Time{},
-				&time.Time{},
-				&dummyInt,
-			},
-		},
-	}
-
-	suite.Run(t, &s)
-}
-
-func TestUserRepository_GetByEmail_DbInteraction(t *testing.T) {
-	s := RepositoryPoolTestSuite{
-		testFunc: func(ctx context.Context, pool db.ConnectionPool) error {
-			repo := NewUserRepository(pool)
-			_, err := repo.GetByEmail(ctx, defaultUserEmail)
-			return err
-		},
-		expectedSql: `SELECT id, email, password, created_at, updated_at, version FROM api_user WHERE email = $1`,
-		expectedArguments: []interface{}{
-			defaultUserEmail,
-		},
-	}
-
-	suite.Run(t, &s)
-}
-
-func TestUserRepository_GetByEmail_InterpretDbData(t *testing.T) {
-	dummyStr := ""
-	dummyInt := 0
-
-	s := RepositorySingleValueTestSuite{
-		testFunc: func(ctx context.Context, pool db.ConnectionPool) error {
-			repo := NewUserRepository(pool)
-			_, err := repo.GetByEmail(ctx, defaultUserEmail)
-			return err
-		},
-		expectedScanCalls: 1,
-		expectedScannedProps: [][]interface{}{
-			{
-				&uuid.UUID{},
-				&dummyStr,
-				&dummyStr,
-				&time.Time{},
-				&time.Time{},
-				&dummyInt,
-			},
-		},
-	}
-
-	suite.Run(t, &s)
-}
-
-func TestUserRepository_List_DbInteraction(t *testing.T) {
-	s := RepositoryPoolTestSuite{
-		testFunc: func(ctx context.Context, pool db.ConnectionPool) error {
-			repo := NewUserRepository(pool)
-			_, err := repo.List(ctx)
-			return err
-		},
-		expectedSql: `SELECT id FROM api_user`,
-	}
-
-	suite.Run(t, &s)
-}
-
 func TestUserRepository_List_InterpretDbData(t *testing.T) {
 	s := RepositoryGetAllTestSuite{
 		testFunc: func(ctx context.Context, pool db.ConnectionPool) error {
@@ -178,27 +190,6 @@ func TestUserRepository_List_InterpretDbData(t *testing.T) {
 		expectedScanCalls: 1,
 		expectedScannedProps: [][]interface{}{
 			{&uuid.UUID{}},
-		},
-	}
-
-	suite.Run(t, &s)
-}
-
-func TestUserRepository_Update_DbInteraction(t *testing.T) {
-	s := RepositoryPoolTestSuite{
-		sqlMode: ExecBased,
-		testFunc: func(ctx context.Context, pool db.ConnectionPool) error {
-			repo := NewUserRepository(pool)
-			_, err := repo.Update(context.Background(), defaultUser)
-			return err
-		},
-		expectedSql: `UPDATE api_user SET email = $1, password = $2, version = $3 WHERE id = $4 AND version = $5`,
-		expectedArguments: []interface{}{
-			defaultUser.Email,
-			defaultUser.Password,
-			defaultUser.Version + 1,
-			defaultUser.Id,
-			defaultUser.Version,
 		},
 	}
 
@@ -242,30 +233,6 @@ func TestUserRepository_Update_WhenAffectedRowsIsOne_Succeeds(t *testing.T) {
 	_, err := repo.Update(context.Background(), defaultUser)
 
 	assert.Nil(err)
-}
-
-func TestUserRepository_Update_ReturnsUpdatedUser(t *testing.T) {
-	assert := assert.New(t)
-
-	mc := &mockConnectionPool{
-		affectedRows: 1,
-	}
-	repo := NewUserRepository(mc)
-
-	actual, _ := repo.Update(context.Background(), defaultUser)
-
-	expected := persistence.User{
-		Id:       defaultUser.Id,
-		Email:    defaultUser.Email,
-		Password: defaultUser.Password,
-
-		CreatedAt: defaultUser.CreatedAt,
-		UpdatedAt: defaultUser.UpdatedAt,
-
-		Version: defaultUser.Version + 1,
-	}
-
-	assert.Equal(expected, actual)
 }
 
 func TestUserRepository_Delete_DbInteraction(t *testing.T) {
