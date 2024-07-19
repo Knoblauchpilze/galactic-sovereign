@@ -16,8 +16,6 @@ const (
 	ExecBased  SqlQueryType = 1
 )
 
-type testPoolFunc func(context.Context, db.ConnectionPool) error
-
 type dbPoolInteractionTestCase struct {
 	sqlMode SqlQueryType
 
@@ -27,24 +25,35 @@ type dbPoolInteractionTestCase struct {
 	expectedArguments []interface{}
 }
 
-type dbReturnTestFunc func(context.Context, db.ConnectionPool) interface{}
+type testPoolFunc func(context.Context, db.ConnectionPool) error
 
 type dbPoolReturnTestCase struct {
-	handler         dbReturnTestFunc
+	handler         testPoolReturnFunc
 	expectedContent interface{}
+}
+
+type testPoolReturnFunc func(context.Context, db.ConnectionPool) interface{}
+
+type dbPoolSingleValueTestCase struct {
+	handler testPoolFunc
+
+	expectedGetSingleValueCalls int
+	expectedScanCalls           int
+	expectedScannedProps        [][]interface{}
 }
 
 type RepositoryTestSuite struct {
 	suite.Suite
 
 	dbPoolInteractionTestCases map[string]dbPoolInteractionTestCase
+	dbPoolSingleValueTestCases map[string]dbPoolSingleValueTestCase
 	dbPoolReturnTestCases      map[string]dbPoolReturnTestCase
 }
 
-func (s *RepositoryTestSuite) TestUsesPoolToRunSqlQuery() {
+func (s *RepositoryTestSuite) TestPool_ExpectCorrectNumberOfCalls() {
 	for name, testCase := range s.dbPoolInteractionTestCases {
 		s.T().Run(name, func(t *testing.T) {
-			m := &mockConnectionPool{}
+			m := &mockConnectionPoolNew{}
 
 			testCase.handler(context.Background(), m)
 
@@ -54,10 +63,10 @@ func (s *RepositoryTestSuite) TestUsesPoolToRunSqlQuery() {
 	}
 }
 
-func (s *RepositoryTestSuite) TestWhenCallingHandler_ExpectPoolReceivesCorrectSql() {
+func (s *RepositoryTestSuite) TestPool_ExpectCorrectSqlQuery() {
 	for name, testCase := range s.dbPoolInteractionTestCases {
 		s.T().Run(name, func(t *testing.T) {
-			m := &mockConnectionPool{}
+			m := &mockConnectionPoolNew{}
 
 			testCase.handler(context.Background(), m)
 
@@ -66,10 +75,10 @@ func (s *RepositoryTestSuite) TestWhenCallingHandler_ExpectPoolReceivesCorrectSq
 	}
 }
 
-func (s *RepositoryTestSuite) TestWhenCallingHandler_ExpectPoolReceivesCorrectArguments() {
+func (s *RepositoryTestSuite) TestPool_ExpectCorrectSqlArguments() {
 	for name, testCase := range s.dbPoolInteractionTestCases {
 		s.T().Run(name, func(t *testing.T) {
-			m := &mockConnectionPool{}
+			m := &mockConnectionPoolNew{}
 
 			testCase.handler(context.Background(), m)
 
@@ -82,7 +91,7 @@ func (s *RepositoryTestSuite) TestWhenCallingHandler_ExpectPoolReceivesCorrectAr
 	}
 }
 
-func (s *RepositoryTestSuite) TestWhenCallingHandler_PropagatesPoolError() {
+func (s *RepositoryTestSuite) TestPool_PropagatesError() {
 	for name, testCase := range s.dbPoolInteractionTestCases {
 		s.T().Run(name, func(t *testing.T) {
 			m := testCase.generateErrorMock(errDefault)
@@ -94,17 +103,104 @@ func (s *RepositoryTestSuite) TestWhenCallingHandler_PropagatesPoolError() {
 	}
 }
 
-func (s *RepositoryTestSuite) TestWhenRequestSucceeds_ReturnsExpectedValue() {
+func (s *RepositoryTestSuite) TestGetSingleValue_ExpectCorrectNumberOfCalls() {
+	for name, testCase := range s.dbPoolSingleValueTestCases {
+		s.T().Run(name, func(t *testing.T) {
+			m := &mockConnectionPoolNew{}
+
+			testCase.handler(context.Background(), m)
+
+			s.Require().Equal(testCase.expectedGetSingleValueCalls, m.rows.getSingleValueCalled)
+		})
+	}
+}
+
+func (s *RepositoryTestSuite) TestGetSingleValue_WhenSuccess_ExpectNoError() {
+	for name, testCase := range s.dbPoolSingleValueTestCases {
+		s.T().Run(name, func(t *testing.T) {
+			m := &mockConnectionPoolNew{}
+
+			err := testCase.handler(context.Background(), m)
+
+			s.Require().Nil(err)
+		})
+	}
+}
+
+func (s *RepositoryTestSuite) TestGetSingleValue_PropagatesError() {
+	for name, testCase := range s.dbPoolSingleValueTestCases {
+		s.T().Run(name, func(t *testing.T) {
+			m := &mockConnectionPoolNew{
+				rows: mockRowsNew{
+					getSingleValueErrs: []error{errDefault},
+				},
+			}
+
+			err := testCase.handler(context.Background(), m)
+
+			s.Require().Equal(errDefault, err)
+		})
+	}
+}
+
+func (s *RepositoryTestSuite) TestGetSingleValue_PropagatesScanError() {
+	for name, testCase := range s.dbPoolSingleValueTestCases {
+		s.T().Run(name, func(t *testing.T) {
+			m := &mockConnectionPoolNew{
+				rows: mockRowsNew{
+					scanner: &mockScannable{
+						err: errDefault,
+					},
+				},
+			}
+
+			err := testCase.handler(context.Background(), m)
+
+			s.Require().Equal(errDefault, err)
+		})
+	}
+}
+
+func (s *RepositoryTestSuite) TestGetSingleValue_ExpectedCorrectPropertiesAreScanned() {
+	for name, testCase := range s.dbPoolSingleValueTestCases {
+		s.T().Run(name, func(t *testing.T) {
+			scanner := &mockScannable{}
+			m := &mockConnectionPoolNew{
+				rows: mockRowsNew{
+					scanner: scanner,
+				},
+			}
+
+			testCase.handler(context.Background(), m)
+
+			s.Require().Equal(testCase.expectedScanCalls, scanner.scanCalled)
+			s.Require().Equal(len(testCase.expectedScannedProps), len(scanner.props))
+
+			for id, expectedProps := range testCase.expectedScannedProps {
+				actualProps := scanner.props[id]
+
+				s.Require().Equal(len(expectedProps), len(actualProps))
+
+				for idProp, expectedProp := range expectedProps {
+					actualProp := actualProps[idProp]
+					s.Require().IsType(expectedProp, actualProp)
+				}
+			}
+		})
+	}
+}
+
+func (s *RepositoryTestSuite) TestReturnsExpectedValue() {
 	for name, testCase := range s.dbPoolReturnTestCases {
 		s.T().Run(name, func(t *testing.T) {
-			actual := testCase.handler(context.Background(), &mockConnectionPool{})
+			actual := testCase.handler(context.Background(), &mockConnectionPoolNew{})
 
 			s.Require().Equal(testCase.expectedContent, actual)
 		})
 	}
 }
 
-func (tc *dbPoolInteractionTestCase) getCalledCount(m *mockConnectionPool) int {
+func (tc *dbPoolInteractionTestCase) getCalledCount(m *mockConnectionPoolNew) int {
 	switch tc.sqlMode {
 	case QueryBased:
 		return m.queryCalled
@@ -115,16 +211,16 @@ func (tc *dbPoolInteractionTestCase) getCalledCount(m *mockConnectionPool) int {
 	}
 }
 
-func (tc *dbPoolInteractionTestCase) generateErrorMock(err error) *mockConnectionPool {
+func (tc *dbPoolInteractionTestCase) generateErrorMock(err error) *mockConnectionPoolNew {
 	switch tc.sqlMode {
 	case QueryBased:
-		return &mockConnectionPool{
-			rows: mockRows{
+		return &mockConnectionPoolNew{
+			rows: mockRowsNew{
 				err: err,
 			},
 		}
 	case ExecBased:
-		return &mockConnectionPool{
+		return &mockConnectionPoolNew{
 			execErr: err,
 		}
 	default:
