@@ -17,7 +17,7 @@ const (
 type testFunc[T any] func(context.Context, T) error
 type testReturnFunc[T any] func(context.Context, T) interface{}
 type generateMock[T any] func() T
-type verifyError[T any] func(error, *require.Assertions)
+type verifyError func(error, *require.Assertions)
 
 type dbInteractionTestCase[T any] struct {
 	sqlMode      SqlQueryType
@@ -54,7 +54,7 @@ type dbErrorTestCase[T any] struct {
 	generateMock  generateMock[T]
 	handler       testFunc[T]
 	expectedError error
-	verifyError   verifyError[T]
+	verifyError   verifyError
 }
 
 func getPoolCalledCount(sqlMode SqlQueryType, m *mockConnectionPool) int {
