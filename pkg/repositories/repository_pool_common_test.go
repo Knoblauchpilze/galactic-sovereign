@@ -12,6 +12,7 @@ type dbPoolInteractionTestCase dbInteractionTestCase[db.ConnectionPool]
 type dbPoolSingleValueTestCase dbSingleValueTestCase[db.ConnectionPool]
 type dbPoolGetAllTestCase dbGetAllTestCase[db.ConnectionPool]
 type dbPoolReturnTestCase dbReturnTestCase[db.ConnectionPool]
+type dbPoolErrorTestCase dbErrorTestCase[db.ConnectionPool]
 
 type RepositoryPoolTestSuite struct {
 	suite.Suite
@@ -20,6 +21,7 @@ type RepositoryPoolTestSuite struct {
 	dbSingleValueTestCases map[string]dbPoolSingleValueTestCase
 	dbGetAllTestCases      map[string]dbPoolGetAllTestCase
 	dbReturnTestCases      map[string]dbPoolReturnTestCase
+	dbErrorTestCases       map[string]dbPoolErrorTestCase
 }
 
 func (s *RepositoryPoolTestSuite) TestPool_ExpectCorrectNumberOfCalls() {
@@ -265,6 +267,22 @@ func (s *RepositoryPoolTestSuite) TestReturnsExpectedValue() {
 			actual := testCase.handler(context.Background(), &mockConnectionPoolNew{})
 
 			s.Require().Equal(testCase.expectedContent, actual)
+		})
+	}
+}
+
+func (s *RepositoryPoolTestSuite) TestHandler_ExpectCorrectError() {
+	for name, testCase := range s.dbErrorTestCases {
+		s.T().Run(name, func(t *testing.T) {
+			m := testCase.generateMock()
+
+			err := testCase.handler(context.Background(), m)
+
+			if testCase.verifyError == nil {
+				s.Require().Equal(testCase.expectedError, err)
+			} else {
+				testCase.verifyError(err, s.Require())
+			}
 		})
 	}
 }

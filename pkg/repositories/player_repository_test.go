@@ -10,7 +10,6 @@ import (
 	"github.com/KnoblauchPilze/user-service/pkg/errors"
 	"github.com/KnoblauchPilze/user-service/pkg/persistence"
 	"github.com/google/uuid"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 )
@@ -134,6 +133,24 @@ func Test_PlayerRepository(t *testing.T) {
 				expectedContent: defaultPlayer,
 			},
 		},
+
+		dbErrorTestCases: map[string]dbPoolErrorTestCase{
+			"create_duplicatedKey": {
+				generateMock: func() db.ConnectionPool {
+					return &mockConnectionPoolNew{
+						execErr: fmt.Errorf(`duplicate key value violates unique constraint "player_universe_name_key" (SQLSTATE 23505)`),
+					}
+				},
+				handler: func(ctx context.Context, pool db.ConnectionPool) error {
+					s := NewPlayerRepository(pool)
+					_, err := s.Create(ctx, defaultPlayer)
+					return err
+				},
+				verifyError: func(err error, assert *require.Assertions) {
+					assert.True(errors.IsErrorWithCode(err, db.DuplicatedKeySqlKey))
+				},
+			},
+		},
 	}
 
 	suite.Run(t, &s)
@@ -197,17 +214,4 @@ func Test_PlayerRepository_Transaction(t *testing.T) {
 	}
 
 	suite.Run(t, &s)
-}
-
-func TestPlayerRepository_Create_WhenQueryIndicatesDuplicatedKey_ReturnsDuplicatedKey(t *testing.T) {
-	assert := assert.New(t)
-
-	mc := &mockConnectionPool{
-		execErr: fmt.Errorf(`duplicate key value violates unique constraint "player_universe_name_key" (SQLSTATE 23505)`),
-	}
-	repo := NewPlayerRepository(mc)
-
-	_, err := repo.Create(context.Background(), defaultPlayer)
-
-	assert.True(errors.IsErrorWithCode(err, db.DuplicatedKeySqlKey))
 }
