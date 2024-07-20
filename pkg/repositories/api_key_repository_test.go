@@ -8,7 +8,6 @@ import (
 	"github.com/KnoblauchPilze/user-service/pkg/db"
 	"github.com/KnoblauchPilze/user-service/pkg/persistence"
 	"github.com/google/uuid"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -173,31 +172,31 @@ INSERT INTO api_key (id, key, api_user, valid_until)
 	suite.Run(t, &s)
 }
 
-func TestApiKeyRepository_DeleteForUser_DbInteraction(t *testing.T) {
-	s := RepositoryTransactionTestSuite{
-		sqlMode: ExecBased,
-		testFunc: func(ctx context.Context, tx db.Transaction) error {
-			repo := NewApiKeyRepository(&mockConnectionPool{})
-			return repo.DeleteForUser(context.Background(), tx, defaultUserId)
-		},
-		expectedSql: []string{
-			`DELETE FROM api_key WHERE api_user = $1`,
-		},
-		expectedArguments: [][]interface{}{
-			{defaultUserId},
+func Test_ApiKeyRepository_Transaction(t *testing.T) {
+	s := RepositoryTransactionTestSuiteNew{
+		dbInteractionTestCases: map[string]dbTransactionInteractionTestCase{
+			"delete": {
+				sqlMode: ExecBased,
+				generateMock: func() db.Transaction {
+					return &mockTransactionNew{
+						affectedRows: 1,
+					}
+				},
+				handler: func(ctx context.Context, tx db.Transaction) error {
+					s := NewApiKeyRepository(&mockConnectionPoolNew{})
+					return s.DeleteForUser(ctx, tx, defaultUserId)
+				},
+				expectedSqlQueries: []string{
+					`DELETE FROM api_key WHERE api_user = $1`,
+				},
+				expectedArguments: [][]interface{}{
+					{
+						defaultUserId,
+					},
+				},
+			},
 		},
 	}
 
 	suite.Run(t, &s)
-}
-
-func TestApiKeyRepository_DeleteForUser_NominalCase(t *testing.T) {
-	assert := assert.New(t)
-
-	repo := NewAclRepository()
-	mt := &mockTransaction{}
-
-	err := repo.DeleteForUser(context.Background(), mt, defaultUserId)
-
-	assert.Nil(err)
 }
