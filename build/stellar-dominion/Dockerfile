@@ -15,5 +15,6 @@ ENV ORIGIN=$SERVER_ORIGIN
 WORKDIR /app
 COPY --from=builder build/build bin/
 COPY --from=builder build/package.json bin/
+COPY --from=builder build/.env bin/
 WORKDIR /app/bin
 CMD ["node", "."]
