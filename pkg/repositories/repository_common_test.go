@@ -72,8 +72,8 @@ func generatePoolErrorMock(sqlMode SqlQueryType, err error) *mockConnectionPool 
 	switch sqlMode {
 	case QueryBased:
 		return &mockConnectionPool{
-			rows: mockRowsNew{
-				err: err,
+			rows: mockRows{
+				errs: []error{err},
 			},
 		}
 	case ExecBased:
@@ -100,13 +100,13 @@ func generateTransactionErrorMock(sqlMode SqlQueryType, err error) *mockTransact
 	switch sqlMode {
 	case QueryBased:
 		return &mockTransaction{
-			rows: mockRowsNew{
-				err: err,
+			rows: mockRows{
+				errs: []error{err},
 			},
 		}
 	case ExecBased:
 		return &mockTransaction{
-			execErr: err,
+			execErrs: []error{err},
 		}
 	default:
 		panic(fmt.Errorf("Unsupported sql mode %v", sqlMode))

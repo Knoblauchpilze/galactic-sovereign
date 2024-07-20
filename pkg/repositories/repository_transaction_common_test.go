@@ -108,7 +108,7 @@ func (s *RepositoryTransactionTestSuite) TestGetSingleValue_PropagatesError() {
 	for name, testCase := range s.dbSingleValueTestCases {
 		s.T().Run(name, func(t *testing.T) {
 			m := &mockTransaction{
-				rows: mockRowsNew{
+				rows: mockRows{
 					getSingleValueErrs: []error{errDefault},
 				},
 			}
@@ -124,9 +124,9 @@ func (s *RepositoryTransactionTestSuite) TestGetSingleValue_PropagatesScanError(
 	for name, testCase := range s.dbSingleValueTestCases {
 		s.T().Run(name, func(t *testing.T) {
 			m := &mockTransaction{
-				rows: mockRowsNew{
+				rows: mockRows{
 					scanner: &mockScannable{
-						err: errDefault,
+						errs: []error{errDefault},
 					},
 				},
 			}
@@ -143,7 +143,7 @@ func (s *RepositoryTransactionTestSuite) TestGetSingleValue_ExpectedCorrectPrope
 		s.T().Run(name, func(t *testing.T) {
 			scanner := &mockScannable{}
 			m := &mockTransaction{
-				rows: mockRowsNew{
+				rows: mockRows{
 					scanner: scanner,
 				},
 			}
@@ -195,7 +195,7 @@ func (s *RepositoryTransactionTestSuite) TestGetAll_PropagatesError() {
 	for name, testCase := range s.dbGetAllTestCases {
 		s.T().Run(name, func(t *testing.T) {
 			m := &mockTransaction{
-				rows: mockRowsNew{
+				rows: mockRows{
 					getAllErrs: []error{errDefault},
 				},
 			}
@@ -211,9 +211,9 @@ func (s *RepositoryTransactionTestSuite) TestGetAll_PropagatesScanError() {
 	for name, testCase := range s.dbGetAllTestCases {
 		s.T().Run(name, func(t *testing.T) {
 			m := &mockTransaction{
-				rows: mockRowsNew{
+				rows: mockRows{
 					scanner: &mockScannable{
-						err: errDefault,
+						errs: []error{errDefault},
 					},
 				},
 			}
@@ -230,7 +230,7 @@ func (s *RepositoryTransactionTestSuite) TestGetAll_ExpectedCorrectPropertiesAre
 		s.T().Run(name, func(t *testing.T) {
 			scanner := &mockScannable{}
 			m := &mockTransaction{
-				rows: mockRowsNew{
+				rows: mockRows{
 					scanner: scanner,
 				},
 			}
