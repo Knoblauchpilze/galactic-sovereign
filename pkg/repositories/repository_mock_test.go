@@ -54,6 +54,7 @@ type mockRowsNew struct {
 
 func (m *mockRowsNew) Err() error { return m.err }
 
+// TODO: Add tests verifying this.
 func (m *mockRowsNew) Close() {
 	m.closeCalled++
 }
@@ -84,6 +85,68 @@ func (m *mockRowsNew) GetAll(parser db.RowParser) error {
 		return nil
 	}
 	return *err
+}
+
+type mockScannable struct {
+	props [][]interface{}
+
+	scanCalled int
+
+	err error
+}
+
+func (m *mockScannable) Scan(dest ...interface{}) error {
+	m.scanCalled++
+
+	var newProps []interface{}
+	newProps = append(newProps, dest...)
+	m.props = append(m.props, newProps)
+
+	return m.err
+}
+
+type mockTransactionNew struct {
+	db.Transaction
+
+	sqlQueries []string
+	args       [][]interface{}
+
+	closeCalled int
+	queryCalled int
+	execCalled  int
+
+	rows         mockRowsNew
+	affectedRows int
+	execErr      error
+}
+
+// TODO: Add tests to verify this
+func (m *mockTransactionNew) Close(ctx context.Context) {
+	m.closeCalled++
+}
+
+func (m *mockTransactionNew) Query(ctx context.Context, sql string, arguments ...interface{}) db.Rows {
+	m.queryCalled++
+
+	var newArgs []interface{}
+	newArgs = append(newArgs, arguments...)
+	m.args = append(m.args, newArgs)
+
+	m.sqlQueries = append(m.sqlQueries, sql)
+
+	return &m.rows
+}
+
+func (m *mockTransactionNew) Exec(ctx context.Context, sql string, arguments ...interface{}) (int, error) {
+	m.execCalled++
+
+	var newArgs []interface{}
+	newArgs = append(newArgs, arguments...)
+	m.args = append(m.args, newArgs)
+
+	m.sqlQueries = append(m.sqlQueries, sql)
+
+	return m.affectedRows, m.execErr
 }
 
 func getValueToReturn[T any](count int, values []T) *T {
