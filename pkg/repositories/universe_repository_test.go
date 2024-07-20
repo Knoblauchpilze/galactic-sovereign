@@ -136,8 +136,8 @@ func Test_UniverseRepository(t *testing.T) {
 					}
 				},
 				handler: func(ctx context.Context, pool db.ConnectionPool) error {
-					s := NewUserRepository(pool)
-					_, err := s.Create(ctx, defaultUser)
+					s := NewUniverseRepository(pool)
+					_, err := s.Create(ctx, defaultUniverse)
 					return err
 				},
 				verifyError: func(err error, assert *require.Assertions) {

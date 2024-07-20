@@ -147,7 +147,7 @@ func Test_UserRepository(t *testing.T) {
 			"getByEmail": {
 				handler: func(ctx context.Context, pool db.ConnectionPool) error {
 					repo := NewUserRepository(pool)
-					_, err := repo.Get(ctx, defaultUserId)
+					_, err := repo.GetByEmail(ctx, defaultUserEmail)
 					return err
 				},
 				expectedGetSingleValueCalls: 1,
