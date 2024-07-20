@@ -37,6 +37,10 @@ export default class ResponseEnvelope {
 				return ApiFailureReason.UNKNOWN_ERROR;
 		}
 	}
+
+	public getDetails(): object {
+		return this.details;
+	}
 }
 
 export function createFailedResponseEnvelope(details: object): ResponseEnvelope {
