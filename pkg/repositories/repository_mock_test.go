@@ -41,7 +41,6 @@ func (m *mockConnectionPool) Exec(ctx context.Context, sql string, arguments ...
 type mockRows struct {
 	db.Rows
 
-	closeCalled          int
 	getSingleValueCalled int
 	getAllCalled         int
 
@@ -59,11 +58,6 @@ func (m *mockRows) Err() error {
 		return nil
 	}
 	return *err
-}
-
-// TODO: Add tests verifying this.
-func (m *mockRows) Close() {
-	m.closeCalled++
 }
 
 func (m *mockRows) GetSingleValue(parser db.RowParser) error {

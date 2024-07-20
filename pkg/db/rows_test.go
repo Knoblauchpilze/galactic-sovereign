@@ -25,8 +25,8 @@ func TestRows_Err_WithError(t *testing.T) {
 func TestRows_Close_DoesNotPanicWhenRowsIsNil(t *testing.T) {
 	assert := assert.New(t)
 
-	r := newRows(nil, nil)
-	assert.NotPanics(r.Close)
+	r := rowsImpl{}
+	assert.NotPanics(r.close)
 }
 
 type mockPgxRows struct {
@@ -42,8 +42,10 @@ func TestRows_Close_ClosesRows(t *testing.T) {
 	assert := assert.New(t)
 
 	m := mockPgxRows{}
-	r := newRows(&m, nil)
-	r.Close()
+	r := rowsImpl{
+		rows: &m,
+	}
+	r.close()
 	assert.Equal(1, m.closeCalled)
 }
 

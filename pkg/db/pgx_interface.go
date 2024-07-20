@@ -48,8 +48,6 @@ type Transaction interface {
 type Rows interface {
 	Err() error
 
-	Close()
-
 	GetSingleValue(parser RowParser) error
 	GetAll(parser RowParser) error
 }

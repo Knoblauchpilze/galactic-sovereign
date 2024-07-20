@@ -39,7 +39,7 @@ func (r *rowsImpl) Err() error {
 	return r.err
 }
 
-func (r *rowsImpl) Close() {
+func (r *rowsImpl) close() {
 	if r.rows != nil {
 		r.rows.Close()
 	}
@@ -53,7 +53,7 @@ func (r *rowsImpl) GetSingleValue(parser RowParser) error {
 		return errors.NewCode(NoMatchingSqlRows)
 	}
 
-	defer r.Close()
+	defer r.close()
 
 	if err := parser(r.rows); err != nil {
 		return err
@@ -72,7 +72,7 @@ func (r *rowsImpl) GetAll(parser RowParser) error {
 		return err
 	}
 
-	defer r.Close()
+	defer r.close()
 
 	for r.next {
 		if err := parser(r.rows); err != nil {
