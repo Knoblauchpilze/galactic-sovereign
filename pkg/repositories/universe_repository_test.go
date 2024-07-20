@@ -131,7 +131,7 @@ func Test_UniverseRepository(t *testing.T) {
 		dbErrorTestCases: map[string]dbPoolErrorTestCase{
 			"create_duplicatedKey": {
 				generateMock: func() db.ConnectionPool {
-					return &mockConnectionPoolNew{
+					return &mockConnectionPool{
 						execErr: fmt.Errorf(`duplicate key value violates unique constraint "universe_name_key" (SQLSTATE 23505)`),
 					}
 				},
@@ -161,7 +161,7 @@ func Test_UniverseRepository_Transaction(t *testing.T) {
 					}
 				},
 				handler: func(ctx context.Context, tx db.Transaction) error {
-					s := NewUniverseRepository(&mockConnectionPoolNew{})
+					s := NewUniverseRepository(&mockConnectionPool{})
 					return s.Delete(ctx, tx, defaultUniverseId)
 				},
 				expectedSqlQueries: []string{
@@ -183,7 +183,7 @@ func Test_UniverseRepository_Transaction(t *testing.T) {
 					}
 				},
 				handler: func(ctx context.Context, tx db.Transaction) error {
-					s := NewUniverseRepository(&mockConnectionPoolNew{})
+					s := NewUniverseRepository(&mockConnectionPool{})
 					return s.Delete(ctx, tx, defaultUniverseId)
 				},
 				verifyError: func(err error, assert *require.Assertions) {
@@ -197,7 +197,7 @@ func Test_UniverseRepository_Transaction(t *testing.T) {
 					}
 				},
 				handler: func(ctx context.Context, tx db.Transaction) error {
-					s := NewUniverseRepository(&mockConnectionPoolNew{})
+					s := NewUniverseRepository(&mockConnectionPool{})
 					return s.Delete(ctx, tx, defaultUniverseId)
 				},
 				verifyError: func(err error, assert *require.Assertions) {

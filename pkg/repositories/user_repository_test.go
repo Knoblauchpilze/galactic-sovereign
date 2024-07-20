@@ -100,7 +100,7 @@ func Test_UserRepository(t *testing.T) {
 			"update": {
 				sqlMode: ExecBased,
 				generateMock: func() db.ConnectionPool {
-					return &mockConnectionPoolNew{
+					return &mockConnectionPool{
 						affectedRows: 1,
 					}
 				},
@@ -204,7 +204,7 @@ func Test_UserRepository(t *testing.T) {
 		dbErrorTestCases: map[string]dbPoolErrorTestCase{
 			"create_duplicatedKey": {
 				generateMock: func() db.ConnectionPool {
-					return &mockConnectionPoolNew{
+					return &mockConnectionPool{
 						execErr: fmt.Errorf(`duplicate key value violates unique constraint "api_user_email_key" (SQLSTATE 23505)`),
 					}
 				},
@@ -219,7 +219,7 @@ func Test_UserRepository(t *testing.T) {
 			},
 			"update_optimisticLockException": {
 				generateMock: func() db.ConnectionPool {
-					return &mockConnectionPoolNew{
+					return &mockConnectionPool{
 						affectedRows: 0,
 					}
 				},
@@ -234,7 +234,7 @@ func Test_UserRepository(t *testing.T) {
 			},
 			"update_moreThanOneRowAffected": {
 				generateMock: func() db.ConnectionPool {
-					return &mockConnectionPoolNew{
+					return &mockConnectionPool{
 						affectedRows: 2,
 					}
 				},
@@ -264,7 +264,7 @@ func Test_UserRepository_Transaction(t *testing.T) {
 					}
 				},
 				handler: func(ctx context.Context, tx db.Transaction) error {
-					s := NewUserRepository(&mockConnectionPoolNew{})
+					s := NewUserRepository(&mockConnectionPool{})
 					return s.Delete(ctx, tx, defaultUserId)
 				},
 				expectedSqlQueries: []string{
@@ -286,7 +286,7 @@ func Test_UserRepository_Transaction(t *testing.T) {
 					}
 				},
 				handler: func(ctx context.Context, tx db.Transaction) error {
-					s := NewUserRepository(&mockConnectionPoolNew{})
+					s := NewUserRepository(&mockConnectionPool{})
 					return s.Delete(ctx, tx, defaultUserId)
 				},
 				verifyError: func(err error, assert *require.Assertions) {
@@ -300,7 +300,7 @@ func Test_UserRepository_Transaction(t *testing.T) {
 					}
 				},
 				handler: func(ctx context.Context, tx db.Transaction) error {
-					s := NewUserRepository(&mockConnectionPoolNew{})
+					s := NewUserRepository(&mockConnectionPool{})
 					return s.Delete(ctx, tx, defaultUserId)
 				},
 				verifyError: func(err error, assert *require.Assertions) {

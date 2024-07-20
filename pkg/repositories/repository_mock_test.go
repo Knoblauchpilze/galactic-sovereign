@@ -6,7 +6,7 @@ import (
 	"github.com/KnoblauchPilze/user-service/pkg/db"
 )
 
-type mockConnectionPoolNew struct {
+type mockConnectionPool struct {
 	db.ConnectionPool
 
 	sqlQuery string
@@ -20,7 +20,7 @@ type mockConnectionPoolNew struct {
 	execErr      error
 }
 
-func (m *mockConnectionPoolNew) Query(ctx context.Context, sql string, arguments ...interface{}) db.Rows {
+func (m *mockConnectionPool) Query(ctx context.Context, sql string, arguments ...interface{}) db.Rows {
 	m.sqlQuery = sql
 	m.args = append(m.args, arguments...)
 
@@ -29,7 +29,7 @@ func (m *mockConnectionPoolNew) Query(ctx context.Context, sql string, arguments
 	return &m.rows
 }
 
-func (m *mockConnectionPoolNew) Exec(ctx context.Context, sql string, arguments ...interface{}) (int, error) {
+func (m *mockConnectionPool) Exec(ctx context.Context, sql string, arguments ...interface{}) (int, error) {
 	m.sqlQuery = sql
 	m.args = append(m.args, arguments...)
 

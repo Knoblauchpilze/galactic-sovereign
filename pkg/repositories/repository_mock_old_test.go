@@ -6,35 +6,6 @@ import (
 	"github.com/KnoblauchPilze/user-service/pkg/db"
 )
 
-type mockConnectionPool struct {
-	db.ConnectionPool
-
-	queryCalled int
-	execCalled  int
-
-	affectedRows int
-	execErr      error
-
-	sqlQuery string
-	args     []interface{}
-
-	rows mockRows
-}
-
-func (m *mockConnectionPool) Query(ctx context.Context, sql string, arguments ...interface{}) db.Rows {
-	m.queryCalled++
-	m.sqlQuery = sql
-	m.args = append(m.args, arguments...)
-	return &m.rows
-}
-
-func (m *mockConnectionPool) Exec(ctx context.Context, sql string, arguments ...interface{}) (int, error) {
-	m.execCalled++
-	m.sqlQuery = sql
-	m.args = append(m.args, arguments...)
-	return m.affectedRows, m.execErr
-}
-
 type mockRows struct {
 	err            error
 	singleValueErr error
