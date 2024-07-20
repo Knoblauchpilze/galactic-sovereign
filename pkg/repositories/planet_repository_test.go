@@ -9,7 +9,7 @@ import (
 	"github.com/KnoblauchPilze/user-service/pkg/errors"
 	"github.com/KnoblauchPilze/user-service/pkg/persistence"
 	"github.com/google/uuid"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -155,35 +155,38 @@ func Test_PlanetRepository_Transaction(t *testing.T) {
 				},
 			},
 		},
+
+		dbErrorTestCases: map[string]dbTransactionErrorTestCase{
+			"delete_noRowsAffected": {
+				generateMock: func() db.Transaction {
+					return &mockTransactionNew{
+						affectedRows: 0,
+					}
+				},
+				handler: func(ctx context.Context, tx db.Transaction) error {
+					s := NewPlanetRepository(&mockConnectionPoolNew{})
+					return s.Delete(ctx, tx, defaultPlanetId)
+				},
+				verifyError: func(err error, assert *require.Assertions) {
+					assert.True(errors.IsErrorWithCode(err, db.NoMatchingSqlRows))
+				},
+			},
+			"delete_moreThanOneRowAffected": {
+				generateMock: func() db.Transaction {
+					return &mockTransactionNew{
+						affectedRows: 2,
+					}
+				},
+				handler: func(ctx context.Context, tx db.Transaction) error {
+					s := NewPlanetRepository(&mockConnectionPoolNew{})
+					return s.Delete(ctx, tx, defaultPlanetId)
+				},
+				verifyError: func(err error, assert *require.Assertions) {
+					assert.True(errors.IsErrorWithCode(err, db.NoMatchingSqlRows))
+				},
+			},
+		},
 	}
 
 	suite.Run(t, &s)
-}
-
-func TestPlanetRepository_Delete_WhenAffectedRowsIsZero_Fails(t *testing.T) {
-	assert := assert.New(t)
-
-	mc := &mockConnectionPool{}
-	repo := NewPlanetRepository(mc)
-	mt := &mockTransaction{
-		affectedRows: 0,
-	}
-
-	err := repo.Delete(context.Background(), mt, defaultPlanetId)
-
-	assert.True(errors.IsErrorWithCode(err, db.NoMatchingSqlRows))
-}
-
-func TestPlanetRepository_Delete_WhenAffectedRowsIsGreaterThanOne_Fails(t *testing.T) {
-	assert := assert.New(t)
-
-	mc := &mockConnectionPool{}
-	repo := NewPlanetRepository(mc)
-	mt := &mockTransaction{
-		affectedRows: 2,
-	}
-
-	err := repo.Delete(context.Background(), mt, defaultPlanetId)
-
-	assert.True(errors.IsErrorWithCode(err, db.NoMatchingSqlRows))
 }

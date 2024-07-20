@@ -12,6 +12,7 @@ type dbTransactionInteractionTestCase dbInteractionTestCase[db.Transaction]
 type dbTransactionSingleValueTestCase dbSingleValueTestCase[db.Transaction]
 type dbTransactionGetAllTestCase dbGetAllTestCase[db.Transaction]
 type dbTransactionReturnTestCase dbReturnTestCase[db.Transaction]
+type dbTransactionErrorTestCase dbErrorTestCase[db.Transaction]
 
 type RepositoryTransactionTestSuiteNew struct {
 	suite.Suite
@@ -20,6 +21,7 @@ type RepositoryTransactionTestSuiteNew struct {
 	dbSingleValueTestCases map[string]dbTransactionSingleValueTestCase
 	dbGetAllTestCases      map[string]dbTransactionGetAllTestCase
 	dbReturnTestCases      map[string]dbTransactionReturnTestCase
+	dbErrorTestCases       map[string]dbTransactionErrorTestCase
 }
 
 func (s *RepositoryTransactionTestSuiteNew) TestTransaction_ExpectCorrectNumberOfCalls() {
@@ -256,9 +258,26 @@ func (s *RepositoryTransactionTestSuiteNew) TestReturnsExpectedValue() {
 	for name, testCase := range s.dbReturnTestCases {
 		s.T().Run(name, func(t *testing.T) {
 			m := &mockTransactionNew{}
+
 			actual := testCase.handler(context.Background(), m)
 
 			s.Require().Equal(testCase.expectedContent, actual)
+		})
+	}
+}
+
+func (s *RepositoryTransactionTestSuiteNew) TestHandler_ExpectCorrectError() {
+	for name, testCase := range s.dbErrorTestCases {
+		s.T().Run(name, func(t *testing.T) {
+			m := testCase.generateMock()
+
+			err := testCase.handler(context.Background(), m)
+
+			if testCase.verifyError == nil {
+				s.Require().Equal(testCase.expectedError, err)
+			} else {
+				testCase.verifyError(err, s.Require())
+			}
 		})
 	}
 }
