@@ -2,6 +2,9 @@
 	/** @type {import('./$types').ActionData} */
 	export let form: HTMLFormElement;
 
+	/** @type {import('./$types').PageData} */
+	export let data;
+
 	function resetFormError() {
 		if (!form) {
 			return;
@@ -20,6 +23,14 @@
 
 	<form method="POST" action="?/login" class="form">
 		<div class="field">
+			<label for="form-universe">Universe:</label>
+			<select name="universe" id="universe">
+				{#each data.universes as universe}
+					<option value={universe.id}>{universe.name}</option>
+				{/each}
+			</select>
+		</div>
+		<div class="field">
 			<label for="form-email">e-mail:</label>
 			<input
 				type="text"
@@ -31,7 +42,7 @@
 			/>
 		</div>
 		<div class="field">
-			<label for="form-password"> password:</label>
+			<label for="form-password">password:</label>
 			<input
 				type="text"
 				name="password"
