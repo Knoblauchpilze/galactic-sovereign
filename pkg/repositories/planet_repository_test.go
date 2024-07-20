@@ -72,6 +72,21 @@ func Test_PlanetRepository(t *testing.T) {
 					`SELECT id, player, name, created_at, updated_at FROM planet`,
 				},
 			},
+			"listForPlayer": {
+				handler: func(ctx context.Context, pool db.ConnectionPool) error {
+					s := NewPlanetRepository(pool)
+					_, err := s.ListForPlayer(ctx, defaultPlayerId)
+					return err
+				},
+				expectedSqlQueries: []string{
+					`SELECT id, player, name, created_at, updated_at FROM planet where player = $1`,
+				},
+				expectedArguments: [][]interface{}{
+					{
+						defaultPlayerId,
+					},
+				},
+			},
 		},
 
 		dbSingleValueTestCases: map[string]dbPoolSingleValueTestCase{
@@ -100,6 +115,24 @@ func Test_PlanetRepository(t *testing.T) {
 				handler: func(ctx context.Context, pool db.ConnectionPool) error {
 					repo := NewPlanetRepository(pool)
 					_, err := repo.List(ctx)
+					return err
+				},
+				expectedGetAllCalls: 1,
+				expectedScanCalls:   1,
+				expectedScannedProps: [][]interface{}{
+					{
+						&uuid.UUID{},
+						&uuid.UUID{},
+						&dummyStr,
+						&time.Time{},
+						&time.Time{},
+					},
+				},
+			},
+			"listForPlayer": {
+				handler: func(ctx context.Context, pool db.ConnectionPool) error {
+					repo := NewPlanetRepository(pool)
+					_, err := repo.ListForPlayer(ctx, defaultPlayerId)
 					return err
 				},
 				expectedGetAllCalls: 1,
