@@ -37,11 +37,15 @@ func Test_UniverseRepository(t *testing.T) {
 					_, err := s.Create(ctx, defaultUniverse)
 					return err
 				},
-				expectedSql: `INSERT INTO universe (id, name, created_at) VALUES($1, $2, $3)`,
-				expectedArguments: []interface{}{
-					defaultUniverse.Id,
-					defaultUniverse.Name,
-					defaultUniverse.CreatedAt,
+				expectedSqlQueries: []string{
+					`INSERT INTO universe (id, name, created_at) VALUES($1, $2, $3)`,
+				},
+				expectedArguments: [][]interface{}{
+					{
+						defaultUniverse.Id,
+						defaultUniverse.Name,
+						defaultUniverse.CreatedAt,
+					},
 				},
 			},
 			"get": {
@@ -50,9 +54,13 @@ func Test_UniverseRepository(t *testing.T) {
 					_, err := s.Get(ctx, defaultUniverseId)
 					return err
 				},
-				expectedSql: `SELECT id, name, created_at, updated_at, version FROM universe WHERE id = $1`,
-				expectedArguments: []interface{}{
-					defaultUniverseId,
+				expectedSqlQueries: []string{
+					`SELECT id, name, created_at, updated_at, version FROM universe WHERE id = $1`,
+				},
+				expectedArguments: [][]interface{}{
+					{
+						defaultUniverseId,
+					},
 				},
 			},
 			"list": {
@@ -61,7 +69,9 @@ func Test_UniverseRepository(t *testing.T) {
 					_, err := s.List(ctx)
 					return err
 				},
-				expectedSql: `SELECT id, name, created_at, updated_at, version FROM universe`,
+				expectedSqlQueries: []string{
+					`SELECT id, name, created_at, updated_at, version FROM universe`,
+				},
 			},
 		},
 

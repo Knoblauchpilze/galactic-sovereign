@@ -25,10 +25,11 @@ type RepositoryPoolTestSuite struct {
 func (s *RepositoryPoolTestSuite) TestPool_ExpectCorrectNumberOfCalls() {
 	for name, testCase := range s.dbInteractionTestCases {
 		s.T().Run(name, func(t *testing.T) {
-			m := &mockConnectionPoolNew{}
+			m := s.generateMockAndAssertType(testCase)
 
-			testCase.handler(context.Background(), m)
+			err := testCase.handler(context.Background(), m)
 
+			s.Require().Nil(err)
 			called := getPoolCalledCount(testCase.sqlMode, m)
 			s.Require().Equal(1, called)
 		})
@@ -38,11 +39,13 @@ func (s *RepositoryPoolTestSuite) TestPool_ExpectCorrectNumberOfCalls() {
 func (s *RepositoryPoolTestSuite) TestPool_ExpectCorrectSqlQuery() {
 	for name, testCase := range s.dbInteractionTestCases {
 		s.T().Run(name, func(t *testing.T) {
-			m := &mockConnectionPoolNew{}
+			m := s.generateMockAndAssertType(testCase)
 
-			testCase.handler(context.Background(), m)
+			err := testCase.handler(context.Background(), m)
 
-			s.Require().Equal(testCase.expectedSql, m.sqlQuery)
+			s.Require().Nil(err)
+			s.Require().Equal(1, len(testCase.expectedSqlQueries))
+			s.Require().Equal(testCase.expectedSqlQueries[0], m.sqlQuery)
 		})
 	}
 }
@@ -50,14 +53,21 @@ func (s *RepositoryPoolTestSuite) TestPool_ExpectCorrectSqlQuery() {
 func (s *RepositoryPoolTestSuite) TestPool_ExpectCorrectSqlArguments() {
 	for name, testCase := range s.dbInteractionTestCases {
 		s.T().Run(name, func(t *testing.T) {
-			m := &mockConnectionPoolNew{}
+			m := s.generateMockAndAssertType(testCase)
 
-			testCase.handler(context.Background(), m)
+			err := testCase.handler(context.Background(), m)
 
-			s.Require().Equal(len(testCase.expectedArguments), len(m.args))
-			for id, expected := range testCase.expectedArguments {
-				actual := m.args[id]
-				s.Require().Equal(expected, actual)
+			s.Require().Nil(err)
+			s.Require().GreaterOrEqual(1, len(testCase.expectedArguments))
+			if len(testCase.expectedArguments) == 0 {
+				s.Require().Nil(m.args)
+			} else {
+				expectedArguments := testCase.expectedArguments[0]
+				s.Require().Equal(len(expectedArguments), len(m.args))
+				for id, expected := range expectedArguments {
+					actual := m.args[id]
+					s.Require().Equal(expected, actual)
+				}
 			}
 		})
 	}
@@ -257,4 +267,21 @@ func (s *RepositoryPoolTestSuite) TestReturnsExpectedValue() {
 			s.Require().Equal(testCase.expectedContent, actual)
 		})
 	}
+}
+
+func (s *RepositoryPoolTestSuite) generateMockAndAssertType(tc dbPoolInteractionTestCase) *mockConnectionPoolNew {
+	var out *mockConnectionPoolNew
+
+	if tc.generateMock == nil {
+		out = &mockConnectionPoolNew{}
+	} else {
+		maybeMock := tc.generateMock()
+		if mock, ok := maybeMock.(*mockConnectionPoolNew); !ok {
+			s.Fail("Connection pool mock has not the right type")
+		} else {
+			out = mock
+		}
+	}
+
+	return out
 }
