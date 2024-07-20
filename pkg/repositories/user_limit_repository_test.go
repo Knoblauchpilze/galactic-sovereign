@@ -37,7 +37,7 @@ var defaultUserLimit = persistence.UserLimit{
 func Test_UserLimitRepository(t *testing.T) {
 	dummyStr := ""
 
-	s := RepositoryTransactionTestSuiteNew{
+	s := RepositoryTransactionTestSuite{
 		dbInteractionTestCases: map[string]dbTransactionInteractionTestCase{
 			"create": {
 				sqlMode: QueryBased,

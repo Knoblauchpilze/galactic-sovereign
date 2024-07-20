@@ -132,12 +132,12 @@ func Test_PlanetRepository(t *testing.T) {
 }
 
 func Test_PlanetRepository_Transaction(t *testing.T) {
-	s := RepositoryTransactionTestSuiteNew{
+	s := RepositoryTransactionTestSuite{
 		dbInteractionTestCases: map[string]dbTransactionInteractionTestCase{
 			"delete": {
 				sqlMode: ExecBased,
 				generateMock: func() db.Transaction {
-					return &mockTransactionNew{
+					return &mockTransaction{
 						affectedRows: 1,
 					}
 				},
@@ -159,7 +159,7 @@ func Test_PlanetRepository_Transaction(t *testing.T) {
 		dbErrorTestCases: map[string]dbTransactionErrorTestCase{
 			"delete_noRowsAffected": {
 				generateMock: func() db.Transaction {
-					return &mockTransactionNew{
+					return &mockTransaction{
 						affectedRows: 0,
 					}
 				},
@@ -173,7 +173,7 @@ func Test_PlanetRepository_Transaction(t *testing.T) {
 			},
 			"delete_moreThanOneRowAffected": {
 				generateMock: func() db.Transaction {
-					return &mockTransactionNew{
+					return &mockTransaction{
 						affectedRows: 2,
 					}
 				},

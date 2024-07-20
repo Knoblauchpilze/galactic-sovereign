@@ -173,12 +173,12 @@ INSERT INTO api_key (id, key, api_user, valid_until)
 }
 
 func Test_ApiKeyRepository_Transaction(t *testing.T) {
-	s := RepositoryTransactionTestSuiteNew{
+	s := RepositoryTransactionTestSuite{
 		dbInteractionTestCases: map[string]dbTransactionInteractionTestCase{
 			"delete": {
 				sqlMode: ExecBased,
 				generateMock: func() db.Transaction {
-					return &mockTransactionNew{
+					return &mockTransaction{
 						affectedRows: 1,
 					}
 				},
