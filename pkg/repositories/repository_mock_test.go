@@ -116,7 +116,6 @@ type mockTransaction struct {
 	sqlQueries []string
 	args       [][]interface{}
 
-	closeCalled int
 	queryCalled int
 	execCalled  int
 
@@ -125,9 +124,9 @@ type mockTransaction struct {
 	execErrs     []error
 }
 
-// TODO: Add tests to verify this
 func (m *mockTransaction) Close(ctx context.Context) {
-	m.closeCalled++
+	// We don't count the calls here because the repositories are not
+	// closing the transaction. It is usually done at the service level.
 }
 
 func (m *mockTransaction) Query(ctx context.Context, sql string, arguments ...interface{}) db.Rows {
