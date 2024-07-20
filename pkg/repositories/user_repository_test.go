@@ -47,12 +47,16 @@ func Test_UserRepository(t *testing.T) {
 					_, err := s.Create(ctx, defaultUser)
 					return err
 				},
-				expectedSql: `INSERT INTO api_user (id, email, password, created_at) VALUES($1, $2, $3, $4)`,
-				expectedArguments: []interface{}{
-					defaultUser.Id,
-					defaultUser.Email,
-					defaultUser.Password,
-					defaultUser.CreatedAt,
+				expectedSqlQueries: []string{
+					`INSERT INTO api_user (id, email, password, created_at) VALUES($1, $2, $3, $4)`,
+				},
+				expectedArguments: [][]interface{}{
+					{
+						defaultUser.Id,
+						defaultUser.Email,
+						defaultUser.Password,
+						defaultUser.CreatedAt,
+					},
 				},
 			},
 			"get": {
@@ -61,9 +65,11 @@ func Test_UserRepository(t *testing.T) {
 					_, err := s.Get(ctx, defaultUserId)
 					return err
 				},
-				expectedSql: `SELECT id, email, password, created_at, updated_at, version FROM api_user WHERE id = $1`,
-				expectedArguments: []interface{}{
-					defaultUserId,
+				expectedSqlQueries: []string{
+					`SELECT id, email, password, created_at, updated_at, version FROM api_user WHERE id = $1`,
+				},
+				expectedArguments: [][]interface{}{
+					{defaultUserId},
 				},
 			},
 			"getByEmail": {
@@ -72,9 +78,13 @@ func Test_UserRepository(t *testing.T) {
 					_, err := s.GetByEmail(ctx, defaultUserEmail)
 					return err
 				},
-				expectedSql: `SELECT id, email, password, created_at, updated_at, version FROM api_user WHERE email = $1`,
-				expectedArguments: []interface{}{
-					defaultUserEmail,
+				expectedSqlQueries: []string{
+					`SELECT id, email, password, created_at, updated_at, version FROM api_user WHERE email = $1`,
+				},
+				expectedArguments: [][]interface{}{
+					{
+						defaultUserEmail,
+					},
 				},
 			},
 			"list": {
@@ -83,22 +93,33 @@ func Test_UserRepository(t *testing.T) {
 					_, err := s.List(ctx)
 					return err
 				},
-				expectedSql: `SELECT id FROM api_user`,
+				expectedSqlQueries: []string{
+					`SELECT id FROM api_user`,
+				},
 			},
 			"update": {
 				sqlMode: ExecBased,
+				generateMock: func() db.ConnectionPool {
+					return &mockConnectionPoolNew{
+						affectedRows: 1,
+					}
+				},
 				handler: func(ctx context.Context, pool db.ConnectionPool) error {
 					s := NewUserRepository(pool)
 					_, err := s.Update(ctx, defaultUpdatedUser)
 					return err
 				},
-				expectedSql: `UPDATE api_user SET email = $1, password = $2, version = $3 WHERE id = $4 AND version = $5`,
-				expectedArguments: []interface{}{
-					defaultUpdatedUser.Email,
-					defaultUpdatedUser.Password,
-					defaultUpdatedUser.Version + 1,
-					defaultUpdatedUser.Id,
-					defaultUpdatedUser.Version,
+				expectedSqlQueries: []string{
+					`UPDATE api_user SET email = $1, password = $2, version = $3 WHERE id = $4 AND version = $5`,
+				},
+				expectedArguments: [][]interface{}{
+					{
+						defaultUpdatedUser.Email,
+						defaultUpdatedUser.Password,
+						defaultUpdatedUser.Version + 1,
+						defaultUpdatedUser.Id,
+						defaultUpdatedUser.Version,
+					},
 				},
 			},
 		},
