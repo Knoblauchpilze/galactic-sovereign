@@ -10,7 +10,6 @@ import (
 	"github.com/KnoblauchPilze/user-service/pkg/errors"
 	"github.com/KnoblauchPilze/user-service/pkg/persistence"
 	"github.com/google/uuid"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 )
@@ -201,6 +200,54 @@ func Test_UserRepository(t *testing.T) {
 				expectedContent: defaultUser,
 			},
 		},
+
+		dbErrorTestCases: map[string]dbPoolErrorTestCase{
+			"create_duplicatedKey": {
+				generateMock: func() db.ConnectionPool {
+					return &mockConnectionPoolNew{
+						execErr: fmt.Errorf(`duplicate key value violates unique constraint "api_user_email_key" (SQLSTATE 23505)`),
+					}
+				},
+				handler: func(ctx context.Context, pool db.ConnectionPool) error {
+					s := NewUserRepository(pool)
+					_, err := s.Create(ctx, defaultUser)
+					return err
+				},
+				verifyError: func(err error, assert *require.Assertions) {
+					assert.True(errors.IsErrorWithCode(err, db.DuplicatedKeySqlKey))
+				},
+			},
+			"update_optimisticLockException": {
+				generateMock: func() db.ConnectionPool {
+					return &mockConnectionPoolNew{
+						affectedRows: 0,
+					}
+				},
+				handler: func(ctx context.Context, pool db.ConnectionPool) error {
+					s := NewUserRepository(pool)
+					_, err := s.Update(ctx, defaultUpdatedUser)
+					return err
+				},
+				verifyError: func(err error, assert *require.Assertions) {
+					assert.True(errors.IsErrorWithCode(err, db.OptimisticLockException))
+				},
+			},
+			"update_moreThanOneRowAffected": {
+				generateMock: func() db.ConnectionPool {
+					return &mockConnectionPoolNew{
+						affectedRows: 2,
+					}
+				},
+				handler: func(ctx context.Context, pool db.ConnectionPool) error {
+					s := NewUserRepository(pool)
+					_, err := s.Update(ctx, defaultUpdatedUser)
+					return err
+				},
+				verifyError: func(err error, assert *require.Assertions) {
+					assert.True(errors.IsErrorWithCode(err, db.MoreThanOneMatchingSqlRows))
+				},
+			},
+		},
 	}
 
 	suite.Run(t, &s)
@@ -264,56 +311,4 @@ func Test_UserRepository_Transaction(t *testing.T) {
 	}
 
 	suite.Run(t, &s)
-}
-
-func TestUserRepository_Create_WhenQueryIndicatesDuplicatedKey_ReturnsDuplicatedKey(t *testing.T) {
-	assert := assert.New(t)
-
-	mc := &mockConnectionPool{
-		execErr: fmt.Errorf(`duplicate key value violates unique constraint "api_user_email_key" (SQLSTATE 23505)`),
-	}
-	repo := NewUserRepository(mc)
-
-	_, err := repo.Create(context.Background(), defaultUser)
-
-	assert.True(errors.IsErrorWithCode(err, db.DuplicatedKeySqlKey))
-}
-
-func TestUserRepository_Update_WhenAffectedRowsIsZero_ReturnsOptimisticLockException(t *testing.T) {
-	assert := assert.New(t)
-
-	mc := &mockConnectionPool{
-		affectedRows: 0,
-	}
-	repo := NewUserRepository(mc)
-
-	_, err := repo.Update(context.Background(), defaultUser)
-
-	assert.True(errors.IsErrorWithCode(err, db.OptimisticLockException))
-}
-
-func TestUserRepository_Update_WhenAffectedRowsIsGreaterThanOne_Fails(t *testing.T) {
-	assert := assert.New(t)
-
-	mc := &mockConnectionPool{
-		affectedRows: 2,
-	}
-	repo := NewUserRepository(mc)
-
-	_, err := repo.Update(context.Background(), defaultUser)
-
-	assert.True(errors.IsErrorWithCode(err, db.MoreThanOneMatchingSqlRows))
-}
-
-func TestUserRepository_Update_WhenAffectedRowsIsOne_Succeeds(t *testing.T) {
-	assert := assert.New(t)
-
-	mc := &mockConnectionPool{
-		affectedRows: 1,
-	}
-	repo := NewUserRepository(mc)
-
-	_, err := repo.Update(context.Background(), defaultUser)
-
-	assert.Nil(err)
 }
