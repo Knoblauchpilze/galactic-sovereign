@@ -15,7 +15,7 @@ type mockConnectionPool struct {
 	queryCalled int
 	execCalled  int
 
-	rows         mockRowsNew
+	rows         mockRows
 	affectedRows int
 	execErr      error
 }
@@ -38,28 +38,35 @@ func (m *mockConnectionPool) Exec(ctx context.Context, sql string, arguments ...
 	return m.affectedRows, m.execErr
 }
 
-type mockRowsNew struct {
+type mockRows struct {
 	db.Rows
 
 	closeCalled          int
 	getSingleValueCalled int
 	getAllCalled         int
 
-	err                error
+	errs               []error
 	getSingleValueErrs []error
 	getAllErrs         []error
 
 	scanner *mockScannable
 }
 
-func (m *mockRowsNew) Err() error { return m.err }
+func (m *mockRows) Err() error {
+	err := getValueToReturn(m.getAllCalled+m.getSingleValueCalled, m.errs)
+
+	if err == nil {
+		return nil
+	}
+	return *err
+}
 
 // TODO: Add tests verifying this.
-func (m *mockRowsNew) Close() {
+func (m *mockRows) Close() {
 	m.closeCalled++
 }
 
-func (m *mockRowsNew) GetSingleValue(parser db.RowParser) error {
+func (m *mockRows) GetSingleValue(parser db.RowParser) error {
 	if m.scanner != nil {
 		return parser(m.scanner)
 	}
@@ -73,7 +80,7 @@ func (m *mockRowsNew) GetSingleValue(parser db.RowParser) error {
 	return *err
 }
 
-func (m *mockRowsNew) GetAll(parser db.RowParser) error {
+func (m *mockRows) GetAll(parser db.RowParser) error {
 	if m.scanner != nil {
 		return parser(m.scanner)
 	}
@@ -92,17 +99,21 @@ type mockScannable struct {
 
 	scanCalled int
 
-	err error
+	errs []error
 }
 
 func (m *mockScannable) Scan(dest ...interface{}) error {
-	m.scanCalled++
-
 	var newProps []interface{}
 	newProps = append(newProps, dest...)
 	m.props = append(m.props, newProps)
 
-	return m.err
+	err := getValueToReturn(m.scanCalled, m.errs)
+	m.scanCalled++
+
+	if err == nil {
+		return nil
+	}
+	return *err
 }
 
 type mockTransaction struct {
@@ -115,9 +126,9 @@ type mockTransaction struct {
 	queryCalled int
 	execCalled  int
 
-	rows         mockRowsNew
+	rows         mockRows
 	affectedRows int
-	execErr      error
+	execErrs     []error
 }
 
 // TODO: Add tests to verify this
@@ -138,15 +149,19 @@ func (m *mockTransaction) Query(ctx context.Context, sql string, arguments ...in
 }
 
 func (m *mockTransaction) Exec(ctx context.Context, sql string, arguments ...interface{}) (int, error) {
-	m.execCalled++
-
 	var newArgs []interface{}
 	newArgs = append(newArgs, arguments...)
 	m.args = append(m.args, newArgs)
 
 	m.sqlQueries = append(m.sqlQueries, sql)
 
-	return m.affectedRows, m.execErr
+	err := getValueToReturn(m.execCalled, m.execErrs)
+	m.execCalled++
+
+	if err == nil {
+		return m.affectedRows, nil
+	}
+	return m.affectedRows, *err
 }
 
 func getValueToReturn[T any](count int, values []T) *T {

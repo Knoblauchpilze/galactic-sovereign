@@ -246,6 +246,65 @@ DELETE FROM acl_permission
 				expectedContent: defaultAcl,
 			},
 		},
+
+		dbErrorTestCases: map[string]dbTransactionErrorTestCase{
+			"create_aclPermissionsFail": {
+				generateMock: func() db.Transaction {
+					return &mockTransaction{
+						rows: mockRows{
+							errs: []error{
+								nil,
+								errDefault,
+							},
+						},
+					}
+				},
+				handler: func(ctx context.Context, tx db.Transaction) error {
+					s := NewAclRepository()
+					_, err := s.Create(ctx, tx, defaultAcl)
+					return err
+				},
+				expectedError: errDefault,
+			},
+			"get_aclPermissionsFail": {
+				generateMock: func() db.Transaction {
+					return &mockTransaction{
+						rows: mockRows{
+							errs: []error{
+								nil,
+								errDefault,
+							},
+						},
+					}
+				},
+				handler: func(ctx context.Context, tx db.Transaction) error {
+					s := NewAclRepository()
+					_, err := s.Get(ctx, tx, defaultAclId)
+					return err
+				},
+				expectedError: errDefault,
+			},
+			"get_aclPermissionsScanFail": {
+				generateMock: func() db.Transaction {
+					return &mockTransaction{
+						rows: mockRows{
+							scanner: &mockScannable{
+								errs: []error{
+									nil,
+									errDefault,
+								},
+							},
+						},
+					}
+				},
+				handler: func(ctx context.Context, tx db.Transaction) error {
+					s := NewAclRepository()
+					_, err := s.Get(ctx, tx, defaultAclId)
+					return err
+				},
+				expectedError: errDefault,
+			},
+		},
 	}
 
 	suite.Run(t, &s)

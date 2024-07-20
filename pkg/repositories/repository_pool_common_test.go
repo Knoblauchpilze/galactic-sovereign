@@ -115,7 +115,7 @@ func (s *RepositoryPoolTestSuite) TestGetSingleValue_PropagatesError() {
 	for name, testCase := range s.dbSingleValueTestCases {
 		s.T().Run(name, func(t *testing.T) {
 			m := &mockConnectionPool{
-				rows: mockRowsNew{
+				rows: mockRows{
 					getSingleValueErrs: []error{errDefault},
 				},
 			}
@@ -131,9 +131,9 @@ func (s *RepositoryPoolTestSuite) TestGetSingleValue_PropagatesScanError() {
 	for name, testCase := range s.dbSingleValueTestCases {
 		s.T().Run(name, func(t *testing.T) {
 			m := &mockConnectionPool{
-				rows: mockRowsNew{
+				rows: mockRows{
 					scanner: &mockScannable{
-						err: errDefault,
+						errs: []error{errDefault},
 					},
 				},
 			}
@@ -150,7 +150,7 @@ func (s *RepositoryPoolTestSuite) TestGetSingleValue_ExpectedCorrectPropertiesAr
 		s.T().Run(name, func(t *testing.T) {
 			scanner := &mockScannable{}
 			m := &mockConnectionPool{
-				rows: mockRowsNew{
+				rows: mockRows{
 					scanner: scanner,
 				},
 			}
@@ -202,7 +202,7 @@ func (s *RepositoryPoolTestSuite) TestGetAll_PropagatesError() {
 	for name, testCase := range s.dbGetAllTestCases {
 		s.T().Run(name, func(t *testing.T) {
 			m := &mockConnectionPool{
-				rows: mockRowsNew{
+				rows: mockRows{
 					getAllErrs: []error{errDefault},
 				},
 			}
@@ -218,9 +218,9 @@ func (s *RepositoryPoolTestSuite) TestGetAll_PropagatesScanError() {
 	for name, testCase := range s.dbGetAllTestCases {
 		s.T().Run(name, func(t *testing.T) {
 			m := &mockConnectionPool{
-				rows: mockRowsNew{
+				rows: mockRows{
 					scanner: &mockScannable{
-						err: errDefault,
+						errs: []error{errDefault},
 					},
 				},
 			}
@@ -237,7 +237,7 @@ func (s *RepositoryPoolTestSuite) TestGetAll_ExpectedCorrectPropertiesAreScanned
 		s.T().Run(name, func(t *testing.T) {
 			scanner := &mockScannable{}
 			m := &mockConnectionPool{
-				rows: mockRowsNew{
+				rows: mockRows{
 					scanner: scanner,
 				},
 			}
