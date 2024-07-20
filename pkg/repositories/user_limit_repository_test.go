@@ -302,7 +302,82 @@ DELETE FROM limits
 			},
 		},
 
-		dbErrorTestCases: map[string]dbTransactionErrorTestCase{},
+		dbErrorTestCases: map[string]dbTransactionErrorTestCase{
+			"create_createLimitsFail": {
+				generateMock: func() db.Transaction {
+					return &mockTransaction{
+						rows: mockRows{
+							errs: []error{
+								nil,
+								errDefault,
+							},
+						},
+					}
+				},
+				handler: func(ctx context.Context, tx db.Transaction) error {
+					s := NewUserLimitRepository()
+					_, err := s.Create(ctx, tx, defaultUserLimit)
+					return err
+				},
+				expectedError: errDefault,
+			},
+			"create_getLimitsFail": {
+				generateMock: func() db.Transaction {
+					return &mockTransaction{
+						rows: mockRows{
+							getSingleValueErrs: []error{
+								nil,
+								errDefault,
+							},
+						},
+					}
+				},
+				handler: func(ctx context.Context, tx db.Transaction) error {
+					s := NewUserLimitRepository()
+					_, err := s.Create(ctx, tx, defaultUserLimit)
+					return err
+				},
+				expectedError: errDefault,
+			},
+			"get_userLimitsFail": {
+				generateMock: func() db.Transaction {
+					return &mockTransaction{
+						rows: mockRows{
+							errs: []error{
+								nil,
+								errDefault,
+							},
+						},
+					}
+				},
+				handler: func(ctx context.Context, tx db.Transaction) error {
+					s := NewUserLimitRepository()
+					_, err := s.Get(ctx, tx, defaultUserLimitId)
+					return err
+				},
+				expectedError: errDefault,
+			},
+			"get_userLimitsScanFail": {
+				generateMock: func() db.Transaction {
+					return &mockTransaction{
+						rows: mockRows{
+							scanner: &mockScannable{
+								errs: []error{
+									nil,
+									errDefault,
+								},
+							},
+						},
+					}
+				},
+				handler: func(ctx context.Context, tx db.Transaction) error {
+					s := NewUserLimitRepository()
+					_, err := s.Get(ctx, tx, defaultUserLimitId)
+					return err
+				},
+				expectedError: errDefault,
+			},
+		},
 	}
 
 	suite.Run(t, &s)
