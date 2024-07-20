@@ -32,7 +32,7 @@
 			/>
 		</div>
 		<div class="field">
-			<label for="form-password"> password:</label>
+			<label for="form-password">password:</label>
 			<input
 				type="text"
 				name="password"
