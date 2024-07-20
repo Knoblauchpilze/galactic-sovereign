@@ -137,7 +137,7 @@ func Test_PlayerRepository(t *testing.T) {
 		dbErrorTestCases: map[string]dbPoolErrorTestCase{
 			"create_duplicatedKey": {
 				generateMock: func() db.ConnectionPool {
-					return &mockConnectionPoolNew{
+					return &mockConnectionPool{
 						execErr: fmt.Errorf(`duplicate key value violates unique constraint "player_universe_name_key" (SQLSTATE 23505)`),
 					}
 				},
@@ -167,7 +167,7 @@ func Test_PlayerRepository_Transaction(t *testing.T) {
 					}
 				},
 				handler: func(ctx context.Context, tx db.Transaction) error {
-					s := NewPlayerRepository(&mockConnectionPoolNew{})
+					s := NewPlayerRepository(&mockConnectionPool{})
 					return s.Delete(ctx, tx, defaultPlayerId)
 				},
 				expectedSqlQueries: []string{
@@ -189,7 +189,7 @@ func Test_PlayerRepository_Transaction(t *testing.T) {
 					}
 				},
 				handler: func(ctx context.Context, tx db.Transaction) error {
-					s := NewPlayerRepository(&mockConnectionPoolNew{})
+					s := NewPlayerRepository(&mockConnectionPool{})
 					return s.Delete(ctx, tx, defaultPlayerId)
 				},
 				verifyError: func(err error, assert *require.Assertions) {
@@ -203,7 +203,7 @@ func Test_PlayerRepository_Transaction(t *testing.T) {
 					}
 				},
 				handler: func(ctx context.Context, tx db.Transaction) error {
-					s := NewPlayerRepository(&mockConnectionPoolNew{})
+					s := NewPlayerRepository(&mockConnectionPool{})
 					return s.Delete(ctx, tx, defaultPlayerId)
 				},
 				verifyError: func(err error, assert *require.Assertions) {

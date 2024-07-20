@@ -142,7 +142,7 @@ func Test_PlanetRepository_Transaction(t *testing.T) {
 					}
 				},
 				handler: func(ctx context.Context, tx db.Transaction) error {
-					s := NewPlanetRepository(&mockConnectionPoolNew{})
+					s := NewPlanetRepository(&mockConnectionPool{})
 					return s.Delete(ctx, tx, defaultPlanetId)
 				},
 				expectedSqlQueries: []string{
@@ -164,7 +164,7 @@ func Test_PlanetRepository_Transaction(t *testing.T) {
 					}
 				},
 				handler: func(ctx context.Context, tx db.Transaction) error {
-					s := NewPlanetRepository(&mockConnectionPoolNew{})
+					s := NewPlanetRepository(&mockConnectionPool{})
 					return s.Delete(ctx, tx, defaultPlanetId)
 				},
 				verifyError: func(err error, assert *require.Assertions) {
@@ -178,7 +178,7 @@ func Test_PlanetRepository_Transaction(t *testing.T) {
 					}
 				},
 				handler: func(ctx context.Context, tx db.Transaction) error {
-					s := NewPlanetRepository(&mockConnectionPoolNew{})
+					s := NewPlanetRepository(&mockConnectionPool{})
 					return s.Delete(ctx, tx, defaultPlanetId)
 				},
 				verifyError: func(err error, assert *require.Assertions) {

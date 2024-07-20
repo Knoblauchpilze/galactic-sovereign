@@ -90,7 +90,7 @@ func (s *RepositoryPoolTestSuite) TestPool_PropagatesError() {
 func (s *RepositoryPoolTestSuite) TestGetSingleValue_ExpectCorrectNumberOfCalls() {
 	for name, testCase := range s.dbSingleValueTestCases {
 		s.T().Run(name, func(t *testing.T) {
-			m := &mockConnectionPoolNew{}
+			m := &mockConnectionPool{}
 
 			testCase.handler(context.Background(), m)
 
@@ -102,7 +102,7 @@ func (s *RepositoryPoolTestSuite) TestGetSingleValue_ExpectCorrectNumberOfCalls(
 func (s *RepositoryPoolTestSuite) TestGetSingleValue_WhenSuccess_ExpectNoError() {
 	for name, testCase := range s.dbSingleValueTestCases {
 		s.T().Run(name, func(t *testing.T) {
-			m := &mockConnectionPoolNew{}
+			m := &mockConnectionPool{}
 
 			err := testCase.handler(context.Background(), m)
 
@@ -114,7 +114,7 @@ func (s *RepositoryPoolTestSuite) TestGetSingleValue_WhenSuccess_ExpectNoError()
 func (s *RepositoryPoolTestSuite) TestGetSingleValue_PropagatesError() {
 	for name, testCase := range s.dbSingleValueTestCases {
 		s.T().Run(name, func(t *testing.T) {
-			m := &mockConnectionPoolNew{
+			m := &mockConnectionPool{
 				rows: mockRowsNew{
 					getSingleValueErrs: []error{errDefault},
 				},
@@ -130,7 +130,7 @@ func (s *RepositoryPoolTestSuite) TestGetSingleValue_PropagatesError() {
 func (s *RepositoryPoolTestSuite) TestGetSingleValue_PropagatesScanError() {
 	for name, testCase := range s.dbSingleValueTestCases {
 		s.T().Run(name, func(t *testing.T) {
-			m := &mockConnectionPoolNew{
+			m := &mockConnectionPool{
 				rows: mockRowsNew{
 					scanner: &mockScannable{
 						err: errDefault,
@@ -149,7 +149,7 @@ func (s *RepositoryPoolTestSuite) TestGetSingleValue_ExpectedCorrectPropertiesAr
 	for name, testCase := range s.dbSingleValueTestCases {
 		s.T().Run(name, func(t *testing.T) {
 			scanner := &mockScannable{}
-			m := &mockConnectionPoolNew{
+			m := &mockConnectionPool{
 				rows: mockRowsNew{
 					scanner: scanner,
 				},
@@ -177,7 +177,7 @@ func (s *RepositoryPoolTestSuite) TestGetSingleValue_ExpectedCorrectPropertiesAr
 func (s *RepositoryPoolTestSuite) TestGetAll_ExpectCorrectNumberOfCalls() {
 	for name, testCase := range s.dbGetAllTestCases {
 		s.T().Run(name, func(t *testing.T) {
-			m := &mockConnectionPoolNew{}
+			m := &mockConnectionPool{}
 
 			testCase.handler(context.Background(), m)
 
@@ -189,7 +189,7 @@ func (s *RepositoryPoolTestSuite) TestGetAll_ExpectCorrectNumberOfCalls() {
 func (s *RepositoryPoolTestSuite) TestGetAll_WhenSuccess_ExpectNoError() {
 	for name, testCase := range s.dbGetAllTestCases {
 		s.T().Run(name, func(t *testing.T) {
-			m := &mockConnectionPoolNew{}
+			m := &mockConnectionPool{}
 
 			err := testCase.handler(context.Background(), m)
 
@@ -201,7 +201,7 @@ func (s *RepositoryPoolTestSuite) TestGetAll_WhenSuccess_ExpectNoError() {
 func (s *RepositoryPoolTestSuite) TestGetAll_PropagatesError() {
 	for name, testCase := range s.dbGetAllTestCases {
 		s.T().Run(name, func(t *testing.T) {
-			m := &mockConnectionPoolNew{
+			m := &mockConnectionPool{
 				rows: mockRowsNew{
 					getAllErrs: []error{errDefault},
 				},
@@ -217,7 +217,7 @@ func (s *RepositoryPoolTestSuite) TestGetAll_PropagatesError() {
 func (s *RepositoryPoolTestSuite) TestGetAll_PropagatesScanError() {
 	for name, testCase := range s.dbGetAllTestCases {
 		s.T().Run(name, func(t *testing.T) {
-			m := &mockConnectionPoolNew{
+			m := &mockConnectionPool{
 				rows: mockRowsNew{
 					scanner: &mockScannable{
 						err: errDefault,
@@ -236,7 +236,7 @@ func (s *RepositoryPoolTestSuite) TestGetAll_ExpectedCorrectPropertiesAreScanned
 	for name, testCase := range s.dbGetAllTestCases {
 		s.T().Run(name, func(t *testing.T) {
 			scanner := &mockScannable{}
-			m := &mockConnectionPoolNew{
+			m := &mockConnectionPool{
 				rows: mockRowsNew{
 					scanner: scanner,
 				},
@@ -264,7 +264,7 @@ func (s *RepositoryPoolTestSuite) TestGetAll_ExpectedCorrectPropertiesAreScanned
 func (s *RepositoryPoolTestSuite) TestReturnsExpectedValue() {
 	for name, testCase := range s.dbReturnTestCases {
 		s.T().Run(name, func(t *testing.T) {
-			actual := testCase.handler(context.Background(), &mockConnectionPoolNew{})
+			actual := testCase.handler(context.Background(), &mockConnectionPool{})
 
 			s.Require().Equal(testCase.expectedContent, actual)
 		})
@@ -287,14 +287,14 @@ func (s *RepositoryPoolTestSuite) TestHandler_ExpectCorrectError() {
 	}
 }
 
-func (s *RepositoryPoolTestSuite) generateMockAndAssertType(tc dbPoolInteractionTestCase) *mockConnectionPoolNew {
-	var out *mockConnectionPoolNew
+func (s *RepositoryPoolTestSuite) generateMockAndAssertType(tc dbPoolInteractionTestCase) *mockConnectionPool {
+	var out *mockConnectionPool
 
 	if tc.generateMock == nil {
-		out = &mockConnectionPoolNew{}
+		out = &mockConnectionPool{}
 	} else {
 		maybeMock := tc.generateMock()
-		if mock, ok := maybeMock.(*mockConnectionPoolNew); !ok {
+		if mock, ok := maybeMock.(*mockConnectionPool); !ok {
 			s.Fail("Connection pool mock has not the right type")
 		} else {
 			out = mock

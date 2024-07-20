@@ -183,7 +183,7 @@ func Test_ApiKeyRepository_Transaction(t *testing.T) {
 					}
 				},
 				handler: func(ctx context.Context, tx db.Transaction) error {
-					s := NewApiKeyRepository(&mockConnectionPoolNew{})
+					s := NewApiKeyRepository(&mockConnectionPool{})
 					return s.DeleteForUser(ctx, tx, defaultUserId)
 				},
 				expectedSqlQueries: []string{

@@ -57,7 +57,7 @@ type dbErrorTestCase[T any] struct {
 	verifyError   verifyError[T]
 }
 
-func getPoolCalledCount(sqlMode SqlQueryType, m *mockConnectionPoolNew) int {
+func getPoolCalledCount(sqlMode SqlQueryType, m *mockConnectionPool) int {
 	switch sqlMode {
 	case QueryBased:
 		return m.queryCalled
@@ -68,16 +68,16 @@ func getPoolCalledCount(sqlMode SqlQueryType, m *mockConnectionPoolNew) int {
 	}
 }
 
-func generatePoolErrorMock(sqlMode SqlQueryType, err error) *mockConnectionPoolNew {
+func generatePoolErrorMock(sqlMode SqlQueryType, err error) *mockConnectionPool {
 	switch sqlMode {
 	case QueryBased:
-		return &mockConnectionPoolNew{
+		return &mockConnectionPool{
 			rows: mockRowsNew{
 				err: err,
 			},
 		}
 	case ExecBased:
-		return &mockConnectionPoolNew{
+		return &mockConnectionPool{
 			execErr: err,
 		}
 	default:
