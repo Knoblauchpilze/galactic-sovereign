@@ -85,7 +85,7 @@ func generatePoolErrorMock(sqlMode SqlQueryType, err error) *mockConnectionPool 
 	}
 }
 
-func getTransactionCalledCount(sqlMode SqlQueryType, m *mockTransactionNew) int {
+func getTransactionCalledCount(sqlMode SqlQueryType, m *mockTransaction) int {
 	switch sqlMode {
 	case QueryBased:
 		return m.queryCalled
@@ -96,16 +96,16 @@ func getTransactionCalledCount(sqlMode SqlQueryType, m *mockTransactionNew) int 
 	}
 }
 
-func generateTransactionErrorMock(sqlMode SqlQueryType, err error) *mockTransactionNew {
+func generateTransactionErrorMock(sqlMode SqlQueryType, err error) *mockTransaction {
 	switch sqlMode {
 	case QueryBased:
-		return &mockTransactionNew{
+		return &mockTransaction{
 			rows: mockRowsNew{
 				err: err,
 			},
 		}
 	case ExecBased:
-		return &mockTransactionNew{
+		return &mockTransaction{
 			execErr: err,
 		}
 	default:

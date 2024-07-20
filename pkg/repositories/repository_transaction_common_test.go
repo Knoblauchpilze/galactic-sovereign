@@ -14,7 +14,7 @@ type dbTransactionGetAllTestCase dbGetAllTestCase[db.Transaction]
 type dbTransactionReturnTestCase dbReturnTestCase[db.Transaction]
 type dbTransactionErrorTestCase dbErrorTestCase[db.Transaction]
 
-type RepositoryTransactionTestSuiteNew struct {
+type RepositoryTransactionTestSuite struct {
 	suite.Suite
 
 	dbInteractionTestCases map[string]dbTransactionInteractionTestCase
@@ -24,7 +24,7 @@ type RepositoryTransactionTestSuiteNew struct {
 	dbErrorTestCases       map[string]dbTransactionErrorTestCase
 }
 
-func (s *RepositoryTransactionTestSuiteNew) TestTransaction_ExpectCorrectNumberOfCalls() {
+func (s *RepositoryTransactionTestSuite) TestTransaction_ExpectCorrectNumberOfCalls() {
 	for name, testCase := range s.dbInteractionTestCases {
 		s.T().Run(name, func(t *testing.T) {
 			m := s.generateMockAndAssertType(testCase)
@@ -38,7 +38,7 @@ func (s *RepositoryTransactionTestSuiteNew) TestTransaction_ExpectCorrectNumberO
 	}
 }
 
-func (s *RepositoryTransactionTestSuiteNew) TestTransaction_ExpectCorrectSqlQueries() {
+func (s *RepositoryTransactionTestSuite) TestTransaction_ExpectCorrectSqlQueries() {
 	for name, testCase := range s.dbInteractionTestCases {
 		s.T().Run(name, func(t *testing.T) {
 			m := s.generateMockAndAssertType(testCase)
@@ -51,7 +51,7 @@ func (s *RepositoryTransactionTestSuiteNew) TestTransaction_ExpectCorrectSqlQuer
 	}
 }
 
-func (s *RepositoryTransactionTestSuiteNew) TestTransaction_ExpectCorrectSqlArguments() {
+func (s *RepositoryTransactionTestSuite) TestTransaction_ExpectCorrectSqlArguments() {
 	for name, testCase := range s.dbInteractionTestCases {
 		s.T().Run(name, func(t *testing.T) {
 			m := s.generateMockAndAssertType(testCase)
@@ -68,7 +68,7 @@ func (s *RepositoryTransactionTestSuiteNew) TestTransaction_ExpectCorrectSqlArgu
 	}
 }
 
-func (s *RepositoryTransactionTestSuiteNew) TestTransaction_PropagatesError() {
+func (s *RepositoryTransactionTestSuite) TestTransaction_PropagatesError() {
 	for name, testCase := range s.dbInteractionTestCases {
 		s.T().Run(name, func(t *testing.T) {
 			m := generateTransactionErrorMock(testCase.sqlMode, errDefault)
@@ -80,10 +80,10 @@ func (s *RepositoryTransactionTestSuiteNew) TestTransaction_PropagatesError() {
 	}
 }
 
-func (s *RepositoryTransactionTestSuiteNew) TestGetSingleValue_ExpectCorrectNumberOfCalls() {
+func (s *RepositoryTransactionTestSuite) TestGetSingleValue_ExpectCorrectNumberOfCalls() {
 	for name, testCase := range s.dbSingleValueTestCases {
 		s.T().Run(name, func(t *testing.T) {
-			m := &mockTransactionNew{}
+			m := &mockTransaction{}
 
 			testCase.handler(context.Background(), m)
 
@@ -92,10 +92,10 @@ func (s *RepositoryTransactionTestSuiteNew) TestGetSingleValue_ExpectCorrectNumb
 	}
 }
 
-func (s *RepositoryTransactionTestSuiteNew) TestGetSingleValue_WhenSuccess_ExpectNoError() {
+func (s *RepositoryTransactionTestSuite) TestGetSingleValue_WhenSuccess_ExpectNoError() {
 	for name, testCase := range s.dbSingleValueTestCases {
 		s.T().Run(name, func(t *testing.T) {
-			m := &mockTransactionNew{}
+			m := &mockTransaction{}
 
 			err := testCase.handler(context.Background(), m)
 
@@ -104,10 +104,10 @@ func (s *RepositoryTransactionTestSuiteNew) TestGetSingleValue_WhenSuccess_Expec
 	}
 }
 
-func (s *RepositoryTransactionTestSuiteNew) TestGetSingleValue_PropagatesError() {
+func (s *RepositoryTransactionTestSuite) TestGetSingleValue_PropagatesError() {
 	for name, testCase := range s.dbSingleValueTestCases {
 		s.T().Run(name, func(t *testing.T) {
-			m := &mockTransactionNew{
+			m := &mockTransaction{
 				rows: mockRowsNew{
 					getSingleValueErrs: []error{errDefault},
 				},
@@ -120,10 +120,10 @@ func (s *RepositoryTransactionTestSuiteNew) TestGetSingleValue_PropagatesError()
 	}
 }
 
-func (s *RepositoryTransactionTestSuiteNew) TestGetSingleValue_PropagatesScanError() {
+func (s *RepositoryTransactionTestSuite) TestGetSingleValue_PropagatesScanError() {
 	for name, testCase := range s.dbSingleValueTestCases {
 		s.T().Run(name, func(t *testing.T) {
-			m := &mockTransactionNew{
+			m := &mockTransaction{
 				rows: mockRowsNew{
 					scanner: &mockScannable{
 						err: errDefault,
@@ -138,11 +138,11 @@ func (s *RepositoryTransactionTestSuiteNew) TestGetSingleValue_PropagatesScanErr
 	}
 }
 
-func (s *RepositoryTransactionTestSuiteNew) TestGetSingleValue_ExpectedCorrectPropertiesAreScanned() {
+func (s *RepositoryTransactionTestSuite) TestGetSingleValue_ExpectedCorrectPropertiesAreScanned() {
 	for name, testCase := range s.dbSingleValueTestCases {
 		s.T().Run(name, func(t *testing.T) {
 			scanner := &mockScannable{}
-			m := &mockTransactionNew{
+			m := &mockTransaction{
 				rows: mockRowsNew{
 					scanner: scanner,
 				},
@@ -167,10 +167,10 @@ func (s *RepositoryTransactionTestSuiteNew) TestGetSingleValue_ExpectedCorrectPr
 	}
 }
 
-func (s *RepositoryTransactionTestSuiteNew) TestGetAll_ExpectCorrectNumberOfCalls() {
+func (s *RepositoryTransactionTestSuite) TestGetAll_ExpectCorrectNumberOfCalls() {
 	for name, testCase := range s.dbGetAllTestCases {
 		s.T().Run(name, func(t *testing.T) {
-			m := &mockTransactionNew{}
+			m := &mockTransaction{}
 
 			testCase.handler(context.Background(), m)
 
@@ -179,10 +179,10 @@ func (s *RepositoryTransactionTestSuiteNew) TestGetAll_ExpectCorrectNumberOfCall
 	}
 }
 
-func (s *RepositoryTransactionTestSuiteNew) TestGetAll_WhenSuccess_ExpectNoError() {
+func (s *RepositoryTransactionTestSuite) TestGetAll_WhenSuccess_ExpectNoError() {
 	for name, testCase := range s.dbGetAllTestCases {
 		s.T().Run(name, func(t *testing.T) {
-			m := &mockTransactionNew{}
+			m := &mockTransaction{}
 
 			err := testCase.handler(context.Background(), m)
 
@@ -191,10 +191,10 @@ func (s *RepositoryTransactionTestSuiteNew) TestGetAll_WhenSuccess_ExpectNoError
 	}
 }
 
-func (s *RepositoryTransactionTestSuiteNew) TestGetAll_PropagatesError() {
+func (s *RepositoryTransactionTestSuite) TestGetAll_PropagatesError() {
 	for name, testCase := range s.dbGetAllTestCases {
 		s.T().Run(name, func(t *testing.T) {
-			m := &mockTransactionNew{
+			m := &mockTransaction{
 				rows: mockRowsNew{
 					getAllErrs: []error{errDefault},
 				},
@@ -207,10 +207,10 @@ func (s *RepositoryTransactionTestSuiteNew) TestGetAll_PropagatesError() {
 	}
 }
 
-func (s *RepositoryTransactionTestSuiteNew) TestGetAll_PropagatesScanError() {
+func (s *RepositoryTransactionTestSuite) TestGetAll_PropagatesScanError() {
 	for name, testCase := range s.dbGetAllTestCases {
 		s.T().Run(name, func(t *testing.T) {
-			m := &mockTransactionNew{
+			m := &mockTransaction{
 				rows: mockRowsNew{
 					scanner: &mockScannable{
 						err: errDefault,
@@ -225,11 +225,11 @@ func (s *RepositoryTransactionTestSuiteNew) TestGetAll_PropagatesScanError() {
 	}
 }
 
-func (s *RepositoryTransactionTestSuiteNew) TestGetAll_ExpectedCorrectPropertiesAreScanned() {
+func (s *RepositoryTransactionTestSuite) TestGetAll_ExpectedCorrectPropertiesAreScanned() {
 	for name, testCase := range s.dbGetAllTestCases {
 		s.T().Run(name, func(t *testing.T) {
 			scanner := &mockScannable{}
-			m := &mockTransactionNew{
+			m := &mockTransaction{
 				rows: mockRowsNew{
 					scanner: scanner,
 				},
@@ -254,10 +254,10 @@ func (s *RepositoryTransactionTestSuiteNew) TestGetAll_ExpectedCorrectProperties
 	}
 }
 
-func (s *RepositoryTransactionTestSuiteNew) TestReturnsExpectedValue() {
+func (s *RepositoryTransactionTestSuite) TestReturnsExpectedValue() {
 	for name, testCase := range s.dbReturnTestCases {
 		s.T().Run(name, func(t *testing.T) {
-			m := &mockTransactionNew{}
+			m := &mockTransaction{}
 
 			actual := testCase.handler(context.Background(), m)
 
@@ -266,7 +266,7 @@ func (s *RepositoryTransactionTestSuiteNew) TestReturnsExpectedValue() {
 	}
 }
 
-func (s *RepositoryTransactionTestSuiteNew) TestHandler_ExpectCorrectError() {
+func (s *RepositoryTransactionTestSuite) TestHandler_ExpectCorrectError() {
 	for name, testCase := range s.dbErrorTestCases {
 		s.T().Run(name, func(t *testing.T) {
 			m := testCase.generateMock()
@@ -282,14 +282,14 @@ func (s *RepositoryTransactionTestSuiteNew) TestHandler_ExpectCorrectError() {
 	}
 }
 
-func (s *RepositoryTransactionTestSuiteNew) generateMockAndAssertType(tc dbTransactionInteractionTestCase) *mockTransactionNew {
-	var out *mockTransactionNew
+func (s *RepositoryTransactionTestSuite) generateMockAndAssertType(tc dbTransactionInteractionTestCase) *mockTransaction {
+	var out *mockTransaction
 
 	if tc.generateMock == nil {
-		out = &mockTransactionNew{}
+		out = &mockTransaction{}
 	} else {
 		maybeMock := tc.generateMock()
-		if mock, ok := maybeMock.(*mockTransactionNew); !ok {
+		if mock, ok := maybeMock.(*mockTransaction); !ok {
 			s.Fail("Transaction mock has not the right type")
 		} else {
 			out = mock

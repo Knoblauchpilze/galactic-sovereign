@@ -105,7 +105,7 @@ func (m *mockScannable) Scan(dest ...interface{}) error {
 	return m.err
 }
 
-type mockTransactionNew struct {
+type mockTransaction struct {
 	db.Transaction
 
 	sqlQueries []string
@@ -121,11 +121,11 @@ type mockTransactionNew struct {
 }
 
 // TODO: Add tests to verify this
-func (m *mockTransactionNew) Close(ctx context.Context) {
+func (m *mockTransaction) Close(ctx context.Context) {
 	m.closeCalled++
 }
 
-func (m *mockTransactionNew) Query(ctx context.Context, sql string, arguments ...interface{}) db.Rows {
+func (m *mockTransaction) Query(ctx context.Context, sql string, arguments ...interface{}) db.Rows {
 	m.queryCalled++
 
 	var newArgs []interface{}
@@ -137,7 +137,7 @@ func (m *mockTransactionNew) Query(ctx context.Context, sql string, arguments ..
 	return &m.rows
 }
 
-func (m *mockTransactionNew) Exec(ctx context.Context, sql string, arguments ...interface{}) (int, error) {
+func (m *mockTransaction) Exec(ctx context.Context, sql string, arguments ...interface{}) (int, error) {
 	m.execCalled++
 
 	var newArgs []interface{}
