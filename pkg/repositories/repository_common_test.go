@@ -14,14 +14,16 @@ const (
 
 type testFunc[T any] func(context.Context, T) error
 type testReturnFunc[T any] func(context.Context, T) interface{}
+type generateMock[T any] func() T
 
 type dbInteractionTestCase[T any] struct {
-	sqlMode SqlQueryType
+	sqlMode      SqlQueryType
+	generateMock generateMock[T]
 
 	handler testFunc[T]
 
-	expectedSql       string
-	expectedArguments []interface{}
+	expectedSqlQueries []string
+	expectedArguments  [][]interface{}
 }
 
 type dbReturnTestCase[T any] struct {

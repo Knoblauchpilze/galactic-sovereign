@@ -39,13 +39,17 @@ func Test_PlayerRepository(t *testing.T) {
 					_, err := s.Create(ctx, defaultPlayer)
 					return err
 				},
-				expectedSql: `INSERT INTO player (id, api_user, universe, name, created_at) VALUES($1, $2, $3, $4, $5)`,
-				expectedArguments: []interface{}{
-					defaultPlayer.Id,
-					defaultPlayer.ApiUser,
-					defaultPlayer.Universe,
-					defaultPlayer.Name,
-					defaultPlayer.CreatedAt,
+				expectedSqlQueries: []string{
+					`INSERT INTO player (id, api_user, universe, name, created_at) VALUES($1, $2, $3, $4, $5)`,
+				},
+				expectedArguments: [][]interface{}{
+					{
+						defaultPlayer.Id,
+						defaultPlayer.ApiUser,
+						defaultPlayer.Universe,
+						defaultPlayer.Name,
+						defaultPlayer.CreatedAt,
+					},
 				},
 			},
 			"get": {
@@ -54,9 +58,11 @@ func Test_PlayerRepository(t *testing.T) {
 					_, err := s.Get(ctx, defaultPlayerId)
 					return err
 				},
-				expectedSql: `SELECT id, api_user, universe, name, created_at, updated_at, version FROM player WHERE id = $1`,
-				expectedArguments: []interface{}{
-					defaultPlayerId,
+				expectedSqlQueries: []string{
+					`SELECT id, api_user, universe, name, created_at, updated_at, version FROM player WHERE id = $1`,
+				},
+				expectedArguments: [][]interface{}{
+					{defaultPlayerId},
 				},
 			},
 			"list": {
@@ -65,7 +71,9 @@ func Test_PlayerRepository(t *testing.T) {
 					_, err := s.List(ctx)
 					return err
 				},
-				expectedSql: `SELECT id, api_user, universe, name, created_at, updated_at, version FROM player`,
+				expectedSqlQueries: []string{
+					`SELECT id, api_user, universe, name, created_at, updated_at, version FROM player`,
+				},
 			},
 		},
 

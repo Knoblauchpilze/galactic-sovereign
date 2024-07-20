@@ -29,7 +29,7 @@ func Test_ApiKeyRepository(t *testing.T) {
 					_, err := s.Create(ctx, defaultApiKey)
 					return err
 				},
-				expectedSql: `
+				expectedSqlQueries: []string{`
 INSERT INTO api_key (id, key, api_user, valid_until)
 	VALUES($1, $2, $3, $4)
 	ON CONFLICT (api_user) DO UPDATE
@@ -40,11 +40,13 @@ INSERT INTO api_key (id, key, api_user, valid_until)
 	RETURNING
 		api_key.key
 `,
-				expectedArguments: []interface{}{
-					defaultApiKey.Id,
-					defaultApiKey.Key,
-					defaultApiKey.ApiUser,
-					defaultApiKey.ValidUntil,
+				},
+				expectedArguments: [][]interface{}{
+					{defaultApiKey.Id,
+						defaultApiKey.Key,
+						defaultApiKey.ApiUser,
+						defaultApiKey.ValidUntil,
+					},
 				},
 			},
 			"get": {
@@ -53,9 +55,11 @@ INSERT INTO api_key (id, key, api_user, valid_until)
 					_, err := s.Get(ctx, defaultApiKeyId)
 					return err
 				},
-				expectedSql: `SELECT id, key, api_user, valid_until FROM api_key WHERE id = $1`,
-				expectedArguments: []interface{}{
-					defaultApiKeyId,
+				expectedSqlQueries: []string{
+					`SELECT id, key, api_user, valid_until FROM api_key WHERE id = $1`,
+				},
+				expectedArguments: [][]interface{}{
+					{defaultApiKeyId},
 				},
 			},
 			"getForKey": {
@@ -64,9 +68,11 @@ INSERT INTO api_key (id, key, api_user, valid_until)
 					_, err := s.GetForKey(ctx, defaultApiKeyValue)
 					return err
 				},
-				expectedSql: `SELECT id, key, api_user, valid_until FROM api_key WHERE key = $1`,
-				expectedArguments: []interface{}{
-					defaultApiKeyValue,
+				expectedSqlQueries: []string{
+					`SELECT id, key, api_user, valid_until FROM api_key WHERE key = $1`,
+				},
+				expectedArguments: [][]interface{}{
+					{defaultApiKeyValue},
 				},
 			},
 			"getForUser": {
@@ -75,9 +81,11 @@ INSERT INTO api_key (id, key, api_user, valid_until)
 					_, err := s.GetForUser(ctx, defaultUserId)
 					return err
 				},
-				expectedSql: `SELECT id FROM api_key WHERE api_user = $1`,
-				expectedArguments: []interface{}{
-					defaultUserId,
+				expectedSqlQueries: []string{
+					`SELECT id FROM api_key WHERE api_user = $1`,
+				},
+				expectedArguments: [][]interface{}{
+					{defaultUserId},
 				},
 			},
 		},
