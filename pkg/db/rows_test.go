@@ -32,10 +32,10 @@ func TestRows_Close_DoesNotPanicWhenRowsIsNil(t *testing.T) {
 type mockPgxRows struct {
 	pgx.Rows
 
-	row        int
-	rowsCount  int
-	scanError  error
-	closeCalls int
+	row         int
+	rowsCount   int
+	scanError   error
+	closeCalled int
 }
 
 func TestRows_Close_ClosesRows(t *testing.T) {
@@ -44,7 +44,7 @@ func TestRows_Close_ClosesRows(t *testing.T) {
 	m := mockPgxRows{}
 	r := newRows(&m, nil)
 	r.Close()
-	assert.Equal(1, m.closeCalls)
+	assert.Equal(1, m.closeCalled)
 }
 
 type mockParser struct {
@@ -86,7 +86,7 @@ func TestRows_GetAll_WhenNoRows_Fails(t *testing.T) {
 	err := r.GetSingleValue(mp.ScanRow)
 
 	assert.True(errors.IsErrorWithCode(err, NoMatchingSqlRows))
-	assert.Equal(0, mr.closeCalls)
+	assert.Equal(0, mr.closeCalled)
 	assert.Equal(0, mp.scanCalled)
 }
 
@@ -131,7 +131,7 @@ func TestRows_GetSingleValue_CallsClose(t *testing.T) {
 	r := newRows(mr, nil)
 	r.GetSingleValue(mp.ScanRow)
 
-	assert.Equal(1, mr.closeCalls)
+	assert.Equal(1, mr.closeCalled)
 }
 
 func TestRows_GetSingleValue_CallsCloseAlsoWhenScanFails(t *testing.T) {
@@ -148,6 +148,7 @@ func TestRows_GetSingleValue_CallsCloseAlsoWhenScanFails(t *testing.T) {
 	r.GetSingleValue(mp.ScanRow)
 
 	assert.Equal(1, mp.scanCalled)
+	assert.Equal(1, mr.closeCalled)
 }
 
 func TestRows_GetSingleValue_WithMultipleValues_Fails(t *testing.T) {
@@ -228,7 +229,7 @@ func TestRows_GetAll_CallsClose(t *testing.T) {
 	r := newRows(mr, nil)
 	r.GetAll(mp.ScanRow)
 
-	assert.Equal(1, mr.closeCalls)
+	assert.Equal(1, mr.closeCalled)
 }
 
 func TestRows_GetAll_ReturnsScanError(t *testing.T) {
@@ -275,7 +276,7 @@ func (m *mockPgxRows) Scan(dest ...interface{}) error {
 }
 
 func (m *mockPgxRows) Close() {
-	m.closeCalls++
+	m.closeCalled++
 }
 
 func (m *mockParser) ScanRow(row Scannable) error {
