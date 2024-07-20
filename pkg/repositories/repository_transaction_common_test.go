@@ -33,7 +33,7 @@ func (s *RepositoryTransactionTestSuiteNew) TestTransaction_ExpectCorrectNumberO
 
 			s.Require().Nil(err)
 			called := getTransactionCalledCount(testCase.sqlMode, m)
-			s.Require().Equal(1, called)
+			s.Require().Equal(len(testCase.expectedSqlQueries), called)
 		})
 	}
 }
