@@ -3,6 +3,8 @@ package repositories
 import (
 	"context"
 	"fmt"
+
+	"github.com/stretchr/testify/require"
 )
 
 type SqlQueryType int
@@ -15,6 +17,7 @@ const (
 type testFunc[T any] func(context.Context, T) error
 type testReturnFunc[T any] func(context.Context, T) interface{}
 type generateMock[T any] func() T
+type verifyError[T any] func(error, *require.Assertions)
 
 type dbInteractionTestCase[T any] struct {
 	sqlMode      SqlQueryType
@@ -24,11 +27,6 @@ type dbInteractionTestCase[T any] struct {
 
 	expectedSqlQueries []string
 	expectedArguments  [][]interface{}
-}
-
-type dbReturnTestCase[T any] struct {
-	handler         testReturnFunc[T]
-	expectedContent interface{}
 }
 
 type dbSingleValueTestCase[T any] struct {
@@ -45,6 +43,18 @@ type dbGetAllTestCase[T any] struct {
 	expectedGetAllCalls  int
 	expectedScanCalls    int
 	expectedScannedProps [][]interface{}
+}
+
+type dbReturnTestCase[T any] struct {
+	handler         testReturnFunc[T]
+	expectedContent interface{}
+}
+
+type dbErrorTestCase[T any] struct {
+	generateMock  generateMock[T]
+	handler       testFunc[T]
+	expectedError error
+	verifyError   verifyError[T]
 }
 
 func getPoolCalledCount(sqlMode SqlQueryType, m *mockConnectionPoolNew) int {
