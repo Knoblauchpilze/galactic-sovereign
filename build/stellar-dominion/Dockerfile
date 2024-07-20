@@ -1,4 +1,5 @@
 FROM node:22 AS builder
+ARG API_BASE_URL="http://stellar-dominion-service:80/v1"
 WORKDIR /build
 COPY website/stellar-dominion ./
 RUN echo "PUBLIC_API_BASE_URL='${API_BASE_URL}'" > .env
