@@ -11,6 +11,7 @@ import (
 	"github.com/KnoblauchPilze/user-service/pkg/persistence"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -132,6 +133,66 @@ func Test_UniverseRepository(t *testing.T) {
 	suite.Run(t, &s)
 }
 
+func Test_UniverseRepository_Transaction(t *testing.T) {
+	s := RepositoryTransactionTestSuiteNew{
+		dbInteractionTestCases: map[string]dbTransactionInteractionTestCase{
+			"delete": {
+				sqlMode: ExecBased,
+				generateMock: func() db.Transaction {
+					return &mockTransactionNew{
+						affectedRows: 1,
+					}
+				},
+				handler: func(ctx context.Context, tx db.Transaction) error {
+					s := NewUniverseRepository(&mockConnectionPoolNew{})
+					return s.Delete(ctx, tx, defaultUniverseId)
+				},
+				expectedSqlQueries: []string{
+					`DELETE FROM universe WHERE id = $1`,
+				},
+				expectedArguments: [][]interface{}{
+					{
+						defaultUniverseId,
+					},
+				},
+			},
+		},
+
+		dbErrorTestCases: map[string]dbTransactionErrorTestCase{
+			"delete_noRowsAffected": {
+				generateMock: func() db.Transaction {
+					return &mockTransactionNew{
+						affectedRows: 0,
+					}
+				},
+				handler: func(ctx context.Context, tx db.Transaction) error {
+					s := NewUniverseRepository(&mockConnectionPoolNew{})
+					return s.Delete(ctx, tx, defaultUniverseId)
+				},
+				verifyError: func(err error, assert *require.Assertions) {
+					assert.True(errors.IsErrorWithCode(err, db.NoMatchingSqlRows))
+				},
+			},
+			"delete_moreThanOneRowAffected": {
+				generateMock: func() db.Transaction {
+					return &mockTransactionNew{
+						affectedRows: 2,
+					}
+				},
+				handler: func(ctx context.Context, tx db.Transaction) error {
+					s := NewUniverseRepository(&mockConnectionPoolNew{})
+					return s.Delete(ctx, tx, defaultUniverseId)
+				},
+				verifyError: func(err error, assert *require.Assertions) {
+					assert.True(errors.IsErrorWithCode(err, db.NoMatchingSqlRows))
+				},
+			},
+		},
+	}
+
+	suite.Run(t, &s)
+}
+
 func TestUniverseRepository_Create_WhenQueryIndicatesDuplicatedKey_ReturnsDuplicatedKey(t *testing.T) {
 	assert := assert.New(t)
 
@@ -143,64 +204,4 @@ func TestUniverseRepository_Create_WhenQueryIndicatesDuplicatedKey_ReturnsDuplic
 	_, err := repo.Create(context.Background(), defaultUniverse)
 
 	assert.True(errors.IsErrorWithCode(err, db.DuplicatedKeySqlKey))
-}
-
-func TestUniverseRepository_Delete_DbInteraction(t *testing.T) {
-	s := RepositoryTransactionTestSuite{
-		sqlMode: ExecBased,
-		testFunc: func(ctx context.Context, tx db.Transaction) error {
-			repo := NewUniverseRepository(&mockConnectionPool{})
-			return repo.Delete(ctx, tx, defaultUniverseId)
-		},
-		expectedSql: []string{`DELETE FROM universe WHERE id = $1`},
-		expectedArguments: [][]interface{}{
-			{
-				defaultUniverseId,
-			},
-		},
-	}
-
-	suite.Run(t, &s)
-}
-
-func TestUniverseRepository_Delete_WhenAffectedRowsIsZero_Fails(t *testing.T) {
-	assert := assert.New(t)
-
-	mc := &mockConnectionPool{}
-	repo := NewUniverseRepository(mc)
-	mt := &mockTransaction{
-		affectedRows: 0,
-	}
-
-	err := repo.Delete(context.Background(), mt, defaultUniverseId)
-
-	assert.True(errors.IsErrorWithCode(err, db.NoMatchingSqlRows))
-}
-
-func TestUniverseRepository_Delete_WhenAffectedRowsIsGreaterThanOne_Fails(t *testing.T) {
-	assert := assert.New(t)
-
-	mc := &mockConnectionPool{}
-	repo := NewUniverseRepository(mc)
-	mt := &mockTransaction{
-		affectedRows: 2,
-	}
-
-	err := repo.Delete(context.Background(), mt, defaultUniverseId)
-
-	assert.True(errors.IsErrorWithCode(err, db.NoMatchingSqlRows))
-}
-
-func TestUniverseRepository_Delete_WhenAffectedRowsIsOne_Succeeds(t *testing.T) {
-	assert := assert.New(t)
-
-	mc := &mockConnectionPool{}
-	repo := NewUniverseRepository(mc)
-	mt := &mockTransaction{
-		affectedRows: 1,
-	}
-
-	err := repo.Delete(context.Background(), mt, defaultUniverseId)
-
-	assert.Nil(err)
 }
