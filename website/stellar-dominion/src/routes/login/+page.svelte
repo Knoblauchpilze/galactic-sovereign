@@ -51,6 +51,16 @@
 				on:input={resetFormError}
 			/>
 		</div>
+		<div class="field">
+			<label for="form-player-name">name:</label>
+			<input
+				type="text"
+				name="player"
+				placeholder="Choose a name"
+				required
+				on:input={resetFormError}
+			/>
+		</div>
 		<button class="action-button">Login</button>
 	</form>
 
