@@ -20,7 +20,7 @@ export async function getUniverses(): Promise<ResponseEnvelope> {
 	const url = buildUrl('universes');
 
 	const params = {
-		method: 'GET',
+		method: 'GET'
 	};
 
 	const response = await safeFetch(url, params);
