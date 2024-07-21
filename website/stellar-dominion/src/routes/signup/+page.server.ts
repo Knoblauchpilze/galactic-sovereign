@@ -6,6 +6,7 @@ import Universe, { getUniverses } from '$lib/universes';
 export async function load({ cookies }) {
 	cookies.set('api-key', '', { path: '/' });
 	cookies.set('api-user', '', { path: '/' });
+	cookies.set('player-id', '', { path: '/' });
 
 	const universesResponse = await getUniverses();
 
