@@ -91,7 +91,7 @@ func Test_PlanetController(t *testing.T) {
 				handler: getPlanet,
 			},
 			"listPlanets_badPlayerId": {
-				req:     generateTestRequestWithPlayerIsQueryParam("not-a-uuid"),
+				req:     generateTestRequestWithPlayerAsQueryParam("not-a-uuid"),
 				handler: listPlanets,
 			},
 			"deletePlanet": {
@@ -233,7 +233,7 @@ func Test_PlanetController(t *testing.T) {
 				},
 			},
 			"listPlanets_withPlayerId": {
-				req:     generateTestRequestWithPlayerIsQueryParam(defaultPlayerId.String()),
+				req:     generateTestRequestWithPlayerAsQueryParam(defaultPlayerId.String()),
 				handler: listPlanets,
 
 				verifyInteractions: func(s service.PlanetService, assert *require.Assertions) {
@@ -294,7 +294,7 @@ func generateTestRequestWithPlanetBody(method string, planetDto communication.Pl
 	return req
 }
 
-func generateTestRequestWithPlayerIsQueryParam(playerId string) *http.Request {
+func generateTestRequestWithPlayerAsQueryParam(playerId string) *http.Request {
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
 	query := req.URL.Query()
 	query.Add("player", playerId)
