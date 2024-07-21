@@ -75,6 +75,21 @@ func Test_PlayerRepository(t *testing.T) {
 					`SELECT id, api_user, universe, name, created_at, updated_at, version FROM player`,
 				},
 			},
+			"listForApiUser": {
+				handler: func(ctx context.Context, pool db.ConnectionPool) error {
+					s := NewPlayerRepository(pool)
+					_, err := s.ListForApiUser(ctx, defaultUserId)
+					return err
+				},
+				expectedSqlQueries: []string{
+					`SELECT id, api_user, universe, name, created_at, updated_at, version FROM player where api_user = $1`,
+				},
+				expectedArguments: [][]interface{}{
+					{
+						defaultUserId,
+					},
+				},
+			},
 		},
 
 		dbSingleValueTestCases: map[string]dbPoolSingleValueTestCase{
@@ -105,6 +120,26 @@ func Test_PlayerRepository(t *testing.T) {
 				handler: func(ctx context.Context, pool db.ConnectionPool) error {
 					repo := NewPlayerRepository(pool)
 					_, err := repo.List(ctx)
+					return err
+				},
+				expectedGetAllCalls: 1,
+				expectedScanCalls:   1,
+				expectedScannedProps: [][]interface{}{
+					{
+						&uuid.UUID{},
+						&uuid.UUID{},
+						&uuid.UUID{},
+						&dummyStr,
+						&time.Time{},
+						&time.Time{},
+						&dummyInt,
+					},
+				},
+			},
+			"listForApiUser": {
+				handler: func(ctx context.Context, pool db.ConnectionPool) error {
+					repo := NewPlayerRepository(pool)
+					_, err := repo.ListForApiUser(ctx, defaultUserId)
 					return err
 				},
 				expectedGetAllCalls: 1,

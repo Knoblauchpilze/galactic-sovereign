@@ -13,6 +13,7 @@ type PlayerService interface {
 	Create(ctx context.Context, playerDto communication.PlayerDtoRequest) (communication.PlayerDtoResponse, error)
 	Get(ctx context.Context, id uuid.UUID) (communication.PlayerDtoResponse, error)
 	List(ctx context.Context) ([]communication.PlayerDtoResponse, error)
+	ListForApiUser(ctx context.Context, apiUser uuid.UUID) ([]communication.PlayerDtoResponse, error)
 	Delete(ctx context.Context, id uuid.UUID) error
 }
 
@@ -53,6 +54,21 @@ func (s *playerServiceImpl) Get(ctx context.Context, id uuid.UUID) (communicatio
 
 func (s *playerServiceImpl) List(ctx context.Context) ([]communication.PlayerDtoResponse, error) {
 	players, err := s.playerRepo.List(ctx)
+	if err != nil {
+		return []communication.PlayerDtoResponse{}, err
+	}
+
+	var out []communication.PlayerDtoResponse
+	for _, player := range players {
+		dto := communication.ToPlayerDtoResponse(player)
+		out = append(out, dto)
+	}
+
+	return out, nil
+}
+
+func (s *playerServiceImpl) ListForApiUser(ctx context.Context, apiUser uuid.UUID) ([]communication.PlayerDtoResponse, error) {
+	players, err := s.playerRepo.ListForApiUser(ctx, apiUser)
 	if err != nil {
 		return []communication.PlayerDtoResponse{}, err
 	}

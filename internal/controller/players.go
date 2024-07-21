@@ -73,7 +73,19 @@ func getPlayer(c echo.Context, s service.PlayerService) error {
 }
 
 func listPlayers(c echo.Context, s service.PlayerService) error {
-	players, err := s.List(c.Request().Context())
+	exists, apiUser, err := fetchIdFromQueryParam("api_user", c)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, "Invalid id syntax")
+	}
+
+	var players []communication.PlayerDtoResponse
+
+	if exists {
+		players, err = s.ListForApiUser(c.Request().Context(), apiUser)
+	} else {
+		players, err = s.List(c.Request().Context())
+	}
+
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err)
 	}

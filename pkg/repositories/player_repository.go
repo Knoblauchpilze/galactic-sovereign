@@ -13,6 +13,7 @@ type PlayerRepository interface {
 	Create(ctx context.Context, player persistence.Player) (persistence.Player, error)
 	Get(ctx context.Context, id uuid.UUID) (persistence.Player, error)
 	List(ctx context.Context) ([]persistence.Player, error)
+	ListForApiUser(ctx context.Context, apiUser uuid.UUID) ([]persistence.Player, error)
 	Delete(ctx context.Context, tx db.Transaction, id uuid.UUID) error
 }
 
@@ -61,6 +62,33 @@ const listPlayerSqlTemplate = "SELECT id, api_user, universe, name, created_at, 
 
 func (r *playerRepositoryImpl) List(ctx context.Context) ([]persistence.Player, error) {
 	res := r.conn.Query(ctx, listPlayerSqlTemplate)
+	if err := res.Err(); err != nil {
+		return []persistence.Player{}, err
+	}
+
+	var out []persistence.Player
+	parser := func(rows db.Scannable) error {
+		var player persistence.Player
+		err := rows.Scan(&player.Id, &player.ApiUser, &player.Universe, &player.Name, &player.CreatedAt, &player.UpdatedAt, &player.Version)
+		if err != nil {
+			return err
+		}
+
+		out = append(out, player)
+		return nil
+	}
+
+	if err := res.GetAll(parser); err != nil {
+		return []persistence.Player{}, err
+	}
+
+	return out, nil
+}
+
+const listPlayerForApiUserSqlTemplate = "SELECT id, api_user, universe, name, created_at, updated_at, version FROM player where api_user = $1"
+
+func (r *playerRepositoryImpl) ListForApiUser(ctx context.Context, apiUser uuid.UUID) ([]persistence.Player, error) {
+	res := r.conn.Query(ctx, listPlayerForApiUserSqlTemplate, apiUser)
 	if err := res.Err(); err != nil {
 		return []persistence.Player{}, err
 	}
