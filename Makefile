@@ -9,7 +9,8 @@ ENV_SERVER_PORT ?= 80
 
 NODE_PORT ?= 3001
 SERVER_ORIGIN ?= "http://localhost:3001"
-API_BASE_URL ?= "http://user-service:80/v1/users"
+API_BASE_URL ?= "http://stellar-dominion-service:80/v1"
+USER_API_BASE_URL ?= "http://user-service:80/v1/users"
 
 # https://docs.docker.com/network/drivers/bridge/
 DOCKER_NETWORK_BRIDGE_NAME ?= "corp-network"
@@ -65,7 +66,7 @@ user-dashboard-build:
 		--build-arg GIT_COMMIT_HASH=${GIT_COMMIT_HASH} \
 		--build-arg SERVER_ORIGIN=${SERVER_ORIGIN} \
 		--build-arg NODE_PORT=${NODE_PORT} \
-		--build-arg API_BASE_URL=${API_BASE_URL} \
+		--build-arg API_BASE_URL=${USER_API_BASE_URL} \
 		--tag user-dashboard:${GIT_COMMIT_HASH} \
 		-f build/user-dashboard/Dockerfile \
 		.
@@ -97,6 +98,7 @@ stellar-dominion-build:
 		--build-arg SERVER_ORIGIN=${SERVER_ORIGIN} \
 		--build-arg NODE_PORT=${NODE_PORT} \
 		--build-arg API_BASE_URL=${API_BASE_URL} \
+		--build-arg USER_API_BASE_URL=${USER_API_BASE_URL} \
 		--tag stellar-dominion:${GIT_COMMIT_HASH} \
 		-f build/stellar-dominion/Dockerfile \
 		.
