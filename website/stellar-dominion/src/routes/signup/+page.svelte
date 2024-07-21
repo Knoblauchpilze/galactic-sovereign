@@ -2,6 +2,9 @@
 	/** @type {import('./$types').ActionData} */
 	export let form: HTMLFormElement;
 
+	/** @type {import('./$types').PageData} */
+	export let data;
+
 	function resetFormError() {
 		if (!form) {
 			return;
@@ -15,6 +18,14 @@
 	<h2>Sign up</h2>
 
 	<form method="POST" action="?/signup" class="form">
+		<div class="field">
+			<label for="form-universe">Universe:</label>
+			<select name="universe" id="universe">
+				{#each data.universes as universe}
+					<option value={universe.id}>{universe.name}</option>
+				{/each}
+			</select>
+		</div>
 		<div class="field">
 			<label for="form-email">e-mail:</label>
 			<input
