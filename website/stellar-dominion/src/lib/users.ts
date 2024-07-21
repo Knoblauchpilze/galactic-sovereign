@@ -45,7 +45,5 @@ export async function createUser(email: string, password: string): Promise<Respo
 	const response = await safeFetch(url, params);
 	const jsonContent = await response.json();
 
-	console.log('response: ', JSON.stringify(jsonContent));
-
 	return new ResponseEnvelope(jsonContent);
 }

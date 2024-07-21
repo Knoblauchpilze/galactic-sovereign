@@ -80,7 +80,6 @@ export const actions = {
 				email
 			};
 		}
-		console.log('universe: ', universeId);
 
 		const playerResponse = await registerPlayer(
 			email as string,
