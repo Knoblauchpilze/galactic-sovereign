@@ -26,13 +26,13 @@ export async function load({ cookies }) {
 		universes.push(universe);
 	}
 
-	const universesData = universes.map(u => ({
+	const universesData = universes.map((u) => ({
 		id: u.id,
-		name: u.name,
+		name: u.name
 	}));
 
 	return {
-		universes: universesData,
+		universes: universesData
 	};
 }
 
