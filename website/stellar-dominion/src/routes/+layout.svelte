@@ -35,7 +35,7 @@
 		transform: translate(-50%, -50%);
 
 		width: 60%;
-		height: 60%;
+		height: 80%;
 
 		display: flex;
 		flex-direction: column;
