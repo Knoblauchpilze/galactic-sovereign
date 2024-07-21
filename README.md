@@ -1,8 +1,14 @@
 # user-service
 
-The definition of a service to manage users and authentication, along with a minimalistic website presenting a simple user dashboard.
+This repository started as an experiment to create a service to manage users and authentication, along with a minimalistic website presenting a simple user dashboard.
 
-From the infrasturcture point of view, the project manages a Postgre database running on an EC2 instance. A CI based on github actions is used to maintain, test and deploy the services. Additionally this README helps to configure a periodic back-up of the database to a S3 storage to prevent data losses.
+After achieveing this goal, we continued building on top of it to create a browser game which would use the service and add more.
+
+The goal is to make something that looks like [OGame](https://en.wikipedia.org/wiki/OGame), a famous strategy game. We chose a different name though: **Stellar Dominion: battle for the galaxy** [(1)](#a-note-on-the-name). Below is a screenshot of the welcome page:
+
+![Welcome page of the Stellar Dominion website](resources/stellar-dominion-welcome-page.png)
+
+From the infrasturcture point of view, the project manages several `postgre` databases running on an EC2 instance. A CI based on github actions is used to maintain, test and deploy the services. Additionally this README helps to configure a periodic back-up of the databases to a S3 storage to prevent data losses.
 
 All services are dockerized and services are served behind traefik which serves as a reverse proxy to the cluster.
 
@@ -19,6 +25,8 @@ Below are the required badges to indicate the code coverage and whether the CI a
 [![Build and push stellar-dominion-service docker image](https://github.com/Knoblauchpilze/user-service/actions/workflows/stellar-dominion-service-build-and-push.yml/badge.svg)](https://github.com/Knoblauchpilze/user-service/actions/workflows/stellar-dominion-service-build-and-push.yml)
 
 [![Deploy services](https://github.com/Knoblauchpilze/user-service/actions/workflows/deploy-services.yml/badge.svg)](https://github.com/Knoblauchpilze/user-service/actions/workflows/deploy-services.yml)
+
+## A note on the name
 
 # Installation
 
