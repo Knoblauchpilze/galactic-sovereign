@@ -1,12 +1,16 @@
 #!/bin/bash
 
 ENDPOINT=${SERVICE_ENDPOINT:-v1}
-DOMAIN_NAME=${DOMAIN_NAME:-}
 
 CONTAINER_NAME=${SERVICE_NAME:-user-service}
 DOCKER_COMPOSE_FILE=${COMPOSE_FILE:-/home/ubuntu/deployments/compose.yaml}
 
-URL="https://${DOMAIN_NAME}/${ENDPOINT}/healthcheck"
+# https://stackoverflow.com/questions/39070547/how-to-expose-a-docker-network-to-the-host-machine
+echo "Fetching IP of ${CONTAINER_NAME}"
+# The '/' seems to be added to the container's name.
+CONTAINER_IP=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' /${CONTAINER_NAME})
+
+URL="http://${CONTAINER_IP}/${ENDPOINT}/healthcheck"
 
 echo "Pinging ${URL}..."
 # https://stackoverflow.com/questions/38906626/curl-to-return-http-status-code-along-with-the-response
@@ -20,7 +24,7 @@ fi
 echo "Server returned ${CODE}, attempting to restart"
 
 echo "Stopping existing docker container..."
-docker container ls -la --format "{{.Names}}" | \
+docker container ls --format "{{.Names}}" | \
   grep ${CONTAINER_NAME} | \
   xargs --no-run-if-empty docker stop ${CONTAINER_NAME}
 

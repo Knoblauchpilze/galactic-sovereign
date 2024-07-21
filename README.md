@@ -402,11 +402,13 @@ The script will attempt to curl the endpoint providing the healtcheck for the se
 
 **It is necessary to copy this script on the EC2 instance hosting the services.**
 
-The script expects the domain name to be provided as environment variable under `DOMAIN_NAME`. Alternatively and in order to make it simpler to use the script with a cron job (see the rest of this section), in the remote case it can be beneficial to modify the copied version of the script to directly include the domain name in it. So change the line as follows (do not change the initial `:-` sequence):
+The script attempts to list the docker containers currently running the machine and tries to find the IP to reach the container hosting the configured service. The service name is expected to be provided as environment variable under `SERVICE_NAME`. Alternatively and in order to make it simpler to use the script with a cron job (see the rest of this section), in the remote case it can be beneficial to modify the copied version of the script to directly include the domain name in it. So change the line as follows (do not change the initial `:-` sequence):
 
 ```bash
-DOMAIN_NAME=${DOMAIN_NAME:-the-actual-domain-name}
+CONTAINER_NAME=${CONTAINER_NAME:-the-actual-service-name}
 ```
+
+In a similar way it is possible to configure the endpoint to query to perform the healthcheck.
 
 **Note:** the script is expected to run as root or alternatively to run with a user having the permissions to run `docker` without `sudo`.
 
@@ -422,7 +424,7 @@ Once this is done, insert the following line:
 */5 * * * * /path/to/service-monitoring.sh
 ```
 
-Most likely locally this will be the path to where the user cloned the repository and then `scripts/service-monitoring.sh` while in an EC2 instance it will be `/home/ubuntu/scripts/service-monitoring.sh` for example.
+Most likely locally this will be the path to where the user cloned the repository and then `scripts/service-monitoring.sh` while in an EC2 instance it will be `/home/ubuntu/scripts/monitoringservice-monitoring.sh` for example.
 
 As it is presented here the cron job will trigger every 5 minutes and take actions appropriately. The script only handles one service so typically it is recommended to have such a cron job running for each and every service in the platform.
 
