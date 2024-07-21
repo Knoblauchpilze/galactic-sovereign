@@ -37,10 +37,7 @@ export async function registerPlayer(
 
 	const apiUser = new User(signupResponse);
 
-	console.log('signup response: ', JSON.stringify(apiUser));
-
 	const playerResponse = await createPlayer(apiUser.id, universeId, playerName);
 
-	console.log('player response: ', JSON.stringify(playerResponse));
 	return playerResponse;
 }
