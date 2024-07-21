@@ -33,6 +33,7 @@ jobs:
           build-args: |
             GIT_COMMIT_HASH=${{ needs.extract-service-tag.outputs.version }}
             API_BASE_URL=http://stellar-dominion-service:80/v1
+            USER_API_BASE_URL=http://user-service:80/v1/users
           push: true
           tags: totocorpsoftwareinc/stellar-dominion:${{ needs.extract-service-tag.outputs.version }}
   persist-service-tag:
