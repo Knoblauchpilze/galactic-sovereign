@@ -147,13 +147,15 @@ type mockPlayerRepository struct {
 	player persistence.Player
 	err    error
 
-	createCalled  int
-	createdPlayer persistence.Player
-	getCalled     int
-	getId         uuid.UUID
-	listCalled    int
-	deleteCalled  int
-	deleteId      uuid.UUID
+	createCalled         int
+	createdPlayer        persistence.Player
+	getCalled            int
+	getId                uuid.UUID
+	listCalled           int
+	listForApiUserId     uuid.UUID
+	listForApiUserCalled int
+	deleteCalled         int
+	deleteId             uuid.UUID
 }
 
 func (m *mockPlayerRepository) Create(ctx context.Context, player persistence.Player) (persistence.Player, error) {
@@ -170,6 +172,12 @@ func (m *mockPlayerRepository) Get(ctx context.Context, id uuid.UUID) (persisten
 
 func (m *mockPlayerRepository) List(ctx context.Context) ([]persistence.Player, error) {
 	m.listCalled++
+	return []persistence.Player{m.player}, m.err
+}
+
+func (m *mockPlayerRepository) ListForApiUser(ctx context.Context, apiUser uuid.UUID) ([]persistence.Player, error) {
+	m.listForApiUserCalled++
+	m.listForApiUserId = apiUser
 	return []persistence.Player{m.player}, m.err
 }
 

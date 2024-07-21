@@ -24,13 +24,15 @@ type mockPlayerService struct {
 	players []communication.PlayerDtoResponse
 	err     error
 
-	createCalled int
-	getCalled    int
-	listCalled   int
-	deleteCalled int
+	createCalled         int
+	getCalled            int
+	listCalled           int
+	listForApiUserCalled int
+	deleteCalled         int
 
-	inPlayer communication.PlayerDtoRequest
-	inId     uuid.UUID
+	inPlayer    communication.PlayerDtoRequest
+	inId        uuid.UUID
+	inApiUserId uuid.UUID
 }
 
 var defaultPlayerId = uuid.MustParse("bd7cb2c0-2124-4c1b-8ff8-2d3eb928ffa9")
@@ -91,6 +93,10 @@ func Test_PlayerController(t *testing.T) {
 			"getPlayer": {
 				req:     httptest.NewRequest(http.MethodGet, "/", nil),
 				handler: getPlayer,
+			},
+			"listPlayers_badApiUserId": {
+				req:     generateTestRequestWithApiUserAsQueryParam("not-a-uuid"),
+				handler: listPlayers,
 			},
 			"deletePlayer": {
 				req:     httptest.NewRequest(http.MethodDelete, "/", nil),
@@ -236,6 +242,17 @@ func Test_PlayerController(t *testing.T) {
 					assert.Equal(1, m.listCalled)
 				},
 			},
+			"listPlayers_withApiUserId": {
+				req:     generateTestRequestWithApiUserAsQueryParam(defaultUuid.String()),
+				handler: listPlayers,
+
+				verifyInteractions: func(s service.PlayerService, assert *require.Assertions) {
+					m := assertPlayerServiceIsAMock(s, assert)
+
+					assert.Equal(defaultUuid, m.inApiUserId)
+					assert.Equal(1, m.listForApiUserCalled)
+				},
+			},
 			"deletePlayer": {
 				req:            httptest.NewRequest(http.MethodDelete, "/", nil),
 				idAsRouteParam: true,
@@ -287,6 +304,14 @@ func generateTestRequestWithPlayerBody(method string, playerDto communication.Pl
 	return req
 }
 
+func generateTestRequestWithApiUserAsQueryParam(apiUserId string) *http.Request {
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	query := req.URL.Query()
+	query.Add("api_user", apiUserId)
+	req.URL.RawQuery = query.Encode()
+	return req
+}
+
 func (m *mockPlayerService) Create(ctx context.Context, player communication.PlayerDtoRequest) (communication.PlayerDtoResponse, error) {
 	m.createCalled++
 	m.inPlayer = player
@@ -311,6 +336,12 @@ func (m *mockPlayerService) Get(ctx context.Context, id uuid.UUID) (communicatio
 
 func (m *mockPlayerService) List(ctx context.Context) ([]communication.PlayerDtoResponse, error) {
 	m.listCalled++
+	return m.players, m.err
+}
+
+func (m *mockPlayerService) ListForApiUser(ctx context.Context, apiUser uuid.UUID) ([]communication.PlayerDtoResponse, error) {
+	m.listForApiUserCalled++
+	m.inApiUserId = apiUser
 	return m.players, m.err
 }
 

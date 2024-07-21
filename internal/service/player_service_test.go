@@ -107,6 +107,29 @@ func Test_PlayerService(t *testing.T) {
 				},
 				expectedError: errDefault,
 			},
+			"listForApiUser": {
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewPlayerService(pool, repos)
+					_, err := s.ListForApiUser(ctx, defaultUserId)
+					return err
+				},
+
+				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
+					m := assertPlayerRepoIsAMock(repos, assert)
+
+					assert.Equal(1, m.listForApiUserCalled)
+					assert.Equal(defaultUserId, m.listForApiUserId)
+				},
+			},
+			"listForApiUser_repositoryFails": {
+				generateRepositoriesMock: generateErrorPlayerRepositoryMock,
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewPlayerService(pool, repos)
+					_, err := s.ListForApiUser(ctx, defaultUserId)
+					return err
+				},
+				expectedError: errDefault,
+			},
 			"delete": {
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
 					s := NewPlayerService(pool, repos)
@@ -167,6 +190,24 @@ func Test_PlayerService(t *testing.T) {
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) interface{} {
 					s := NewPlayerService(pool, repos)
 					out, _ := s.List(ctx)
+					return out
+				},
+
+				expectedContent: []communication.PlayerDtoResponse{
+					{
+						Id:       defaultPlayer.Id,
+						ApiUser:  defaultPlayer.ApiUser,
+						Universe: defaultPlayer.Universe,
+						Name:     defaultPlayer.Name,
+
+						CreatedAt: defaultPlayer.CreatedAt,
+					},
+				},
+			},
+			"listForApiUser": {
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) interface{} {
+					s := NewPlayerService(pool, repos)
+					out, _ := s.ListForApiUser(ctx, defaultUserId)
 					return out
 				},
 
