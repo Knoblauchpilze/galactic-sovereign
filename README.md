@@ -28,6 +28,8 @@ Below are the required badges to indicate the code coverage and whether the CI a
 
 ## A note on the name
 
+There's a [similar project](http://www.stellardominion.com/) with the same name: this is just an unfortunate coincidence. As this project progresses we will most likely switch to another name. If you're involved in maintaining the existing _Stellar Dominion_ project please open an issue in this project and we'll contact you.
+
 # Installation
 
 ## Prerequisite
