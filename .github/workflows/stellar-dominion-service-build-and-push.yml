@@ -6,7 +6,7 @@ on:
       - "cmd/stellar-dominion/**"
       - "pkg/**"
       - "internal/**"
-      - "build/stellar-dominion/Dockerfile"
+      - "build/stellar-dominion-service/Dockerfile"
       - ".github/workflows/stellar-dominion*.yml"
       - ".github/workflows/go-tests.yml"
       - ".github/workflows/services*.yml"
