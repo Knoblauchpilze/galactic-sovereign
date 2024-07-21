@@ -1,7 +1,6 @@
 import { error, redirect } from '@sveltejs/kit';
-import { createUser } from '$lib/users';
+import { registerPlayer } from '$lib/players';
 import Universe, { getUniverses } from '$lib/universes';
-import ApiKey from '$lib/apiKey.js';
 
 /** @type {import('./$types').PageServerLoad} */
 export async function load({ cookies }) {
@@ -26,13 +25,13 @@ export async function load({ cookies }) {
 		universes.push(universe);
 	}
 
-	const universesData = universes.map(u => ({
+	const universesData = universes.map((u) => ({
 		id: u.id,
-		name: u.name,
+		name: u.name
 	}));
 
 	return {
-		universes: universesData,
+		universes: universesData
 	};
 }
 
@@ -43,6 +42,7 @@ export const actions = {
 
 		const email = data.get('email');
 		const password = data.get('password');
+		const universeId = data.get('universe');
 		if (!email) {
 			return {
 				success: false,
@@ -61,23 +61,35 @@ export const actions = {
 				email
 			};
 		}
+		if (!universeId) {
+			return {
+				success: false,
+				missing: true,
+				message: 'Please select a universe',
 
-		const signupResponse = await createUser(email as string, password as string);
+				email
+			};
+		}
+		console.log('universe: ', universeId);
 
-		if (signupResponse.error()) {
+		const playerResponse = await registerPlayer(
+			email as string,
+			password as string,
+			universeId as string,
+			'some-random-name'
+		);
+		if (playerResponse.error()) {
 			return {
 				success: false,
 				incorrect: true,
-				message: signupResponse.failureMessage(),
+				message: playerResponse.failureMessage(),
 
 				email
 			};
 		}
 
-		const apiKey = new ApiKey(signupResponse);
-
-		cookies.set('api-user', apiKey.user, { path: '/' });
-		cookies.set('api-key', apiKey.key, { path: '/' });
+		cookies.set('api-user', '', { path: '/' });
+		cookies.set('api-key', '', { path: '/' });
 
 		redirect(303, '/login');
 	}
