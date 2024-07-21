@@ -40,9 +40,19 @@ export const actions = {
 	signup: async ({ cookies, request }) => {
 		const data = await request.formData();
 
+		const universeId = data.get('universe');
 		const email = data.get('email');
 		const password = data.get('password');
-		const universeId = data.get('universe');
+		const playerName = data.get('player');
+		if (!universeId) {
+			return {
+				success: false,
+				missing: true,
+				message: 'Please select a universe',
+
+				universeId
+			};
+		}
 		if (!email) {
 			return {
 				success: false,
@@ -61,11 +71,11 @@ export const actions = {
 				email
 			};
 		}
-		if (!universeId) {
+		if (!playerName) {
 			return {
 				success: false,
 				missing: true,
-				message: 'Please select a universe',
+				message: 'Please choose a name',
 
 				email
 			};
@@ -76,7 +86,7 @@ export const actions = {
 			email as string,
 			password as string,
 			universeId as string,
-			'some-random-name'
+			playerName as string
 		);
 		if (playerResponse.error()) {
 			return {
@@ -90,6 +100,7 @@ export const actions = {
 
 		cookies.set('api-user', '', { path: '/' });
 		cookies.set('api-key', '', { path: '/' });
+		cookies.set('player-id', '', { path: '/' });
 
 		redirect(303, '/login');
 	}
