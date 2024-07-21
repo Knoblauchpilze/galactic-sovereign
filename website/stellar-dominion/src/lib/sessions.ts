@@ -1,8 +1,8 @@
 import ResponseEnvelope from './responseEnvelope';
-import { buildUrl, safeFetch } from './api';
+import { buildUserUrl, safeFetch } from './api';
 
 export async function loginUser(email: string, password: string): Promise<ResponseEnvelope> {
-	const url = buildUrl('sessions');
+	const url = buildUserUrl('sessions');
 	const body = JSON.stringify({ email: email, password: password });
 
 	const params = {
