@@ -1,6 +1,5 @@
 import { redirect } from '@sveltejs/kit';
 import { createUser } from '$lib/users';
-import ApiKey from '$lib/apiKey.js';
 
 /** @type {import('./$types').PageServerLoad} */
 export async function load({ cookies }) {
@@ -46,10 +45,8 @@ export const actions = {
 			};
 		}
 
-		const apiKey = new ApiKey(signupResponse);
-
-		cookies.set('api-user', apiKey.user, { path: '/' });
-		cookies.set('api-key', apiKey.key, { path: '/' });
+		cookies.set('api-user', '', { path: '/' });
+		cookies.set('api-key', '', { path: '/' });
 
 		redirect(303, '/dashboard/login');
 	}
