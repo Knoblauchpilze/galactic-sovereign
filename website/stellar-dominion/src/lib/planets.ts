@@ -22,7 +22,7 @@ export default class Planet {
 }
 
 export async function getPlanet(apiKey: string, id: string): Promise<ResponseEnvelope> {
-	const url = buildUrl('planet/' + id);
+	const url = buildUrl('planets/' + id);
 
 	const params = {
 		method: 'GET',
