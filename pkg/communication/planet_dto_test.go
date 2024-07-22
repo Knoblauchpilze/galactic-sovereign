@@ -41,6 +41,7 @@ func TestFromPlanetDtoRequest(t *testing.T) {
 	assert.Nil(uuid.Validate(actual.Id.String()))
 	assert.Equal(defaultPlayer, actual.Player)
 	assert.Equal("my-planet", actual.Name)
+	assert.False(actual.Homeworld)
 	assert.True(actual.CreatedAt.After(beforeConversion))
 	assert.Equal(actual.CreatedAt, actual.UpdatedAt)
 }
@@ -49,9 +50,10 @@ func TestToPlanetDtoResponse(t *testing.T) {
 	assert := assert.New(t)
 
 	p := persistence.Planet{
-		Id:     defaultUuid,
-		Player: defaultPlayer,
-		Name:   "my-player",
+		Id:        defaultUuid,
+		Player:    defaultPlayer,
+		Name:      "my-player",
+		Homeworld: true,
 
 		CreatedAt: someTime,
 	}
@@ -61,6 +63,7 @@ func TestToPlanetDtoResponse(t *testing.T) {
 	assert.Equal(defaultUuid, actual.Id)
 	assert.Equal(defaultPlayer, actual.Player)
 	assert.Equal("my-player", actual.Name)
+	assert.True(actual.Homeworld)
 	assert.Equal(someTime, actual.CreatedAt)
 }
 
@@ -71,11 +74,12 @@ func TestPlanetDtoResponse_MarshalsToCamelCase(t *testing.T) {
 		Id:        defaultUuid,
 		Player:    defaultPlayer,
 		Name:      "my-planet",
+		Homeworld: true,
 		CreatedAt: someTime,
 	}
 
 	out, err := json.Marshal(u)
 
 	assert.Nil(err)
-	assert.Equal(`{"id":"08ce96a3-3430-48a8-a3b2-b1c987a207ca","player":"efc01287-830f-4b95-8b26-3deff7135f2d","name":"my-planet","createdAt":"2024-05-05T20:50:18.651387237Z"}`, string(out))
+	assert.Equal(`{"id":"08ce96a3-3430-48a8-a3b2-b1c987a207ca","player":"efc01287-830f-4b95-8b26-3deff7135f2d","name":"my-planet","homeworld":true,"createdAt":"2024-05-05T20:50:18.651387237Z"}`, string(out))
 }

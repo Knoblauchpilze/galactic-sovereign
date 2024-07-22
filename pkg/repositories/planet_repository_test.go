@@ -19,12 +19,14 @@ var defaultPlanet = persistence.Planet{
 	Id:        defaultPlanetId,
 	Player:    defaultPlayerId,
 	Name:      defaultPlanetName,
+	Homeworld: true,
 	CreatedAt: time.Date(2024, 7, 9, 20, 11, 21, 651387230, time.UTC),
 	UpdatedAt: time.Date(2024, 7, 9, 20, 11, 21, 651387230, time.UTC),
 }
 
 func Test_PlanetRepository(t *testing.T) {
 	dummyStr := ""
+	dummyBool := false
 
 	s := RepositoryPoolTestSuite{
 		dbInteractionTestCases: map[string]dbPoolInteractionTestCase{
@@ -36,13 +38,14 @@ func Test_PlanetRepository(t *testing.T) {
 					return err
 				},
 				expectedSqlQueries: []string{
-					`INSERT INTO planet (id, player, name, created_at) VALUES($1, $2, $3, $4)`,
+					`INSERT INTO planet (id, player, name, homeworld, created_at) VALUES($1, $2, $3, $4, $5)`,
 				},
 				expectedArguments: [][]interface{}{
 					{
 						defaultPlanet.Id,
 						defaultPlanet.Player,
 						defaultPlanet.Name,
+						defaultPlanet.Homeworld,
 						defaultPlanet.CreatedAt,
 					},
 				},
@@ -54,7 +57,7 @@ func Test_PlanetRepository(t *testing.T) {
 					return err
 				},
 				expectedSqlQueries: []string{
-					`SELECT id, player, name, created_at, updated_at FROM planet WHERE id = $1`,
+					`SELECT id, player, name, homeworld, created_at, updated_at FROM planet WHERE id = $1`,
 				},
 				expectedArguments: [][]interface{}{
 					{
@@ -69,7 +72,7 @@ func Test_PlanetRepository(t *testing.T) {
 					return err
 				},
 				expectedSqlQueries: []string{
-					`SELECT id, player, name, created_at, updated_at FROM planet`,
+					`SELECT id, player, name, homeworld, created_at, updated_at FROM planet`,
 				},
 			},
 			"listForPlayer": {
@@ -79,7 +82,7 @@ func Test_PlanetRepository(t *testing.T) {
 					return err
 				},
 				expectedSqlQueries: []string{
-					`SELECT id, player, name, created_at, updated_at FROM planet where player = $1`,
+					`SELECT id, player, name, homeworld, created_at, updated_at FROM planet where player = $1`,
 				},
 				expectedArguments: [][]interface{}{
 					{
@@ -103,6 +106,7 @@ func Test_PlanetRepository(t *testing.T) {
 						&uuid.UUID{},
 						&uuid.UUID{},
 						&dummyStr,
+						&dummyBool,
 						&time.Time{},
 						&time.Time{},
 					},
@@ -124,6 +128,7 @@ func Test_PlanetRepository(t *testing.T) {
 						&uuid.UUID{},
 						&uuid.UUID{},
 						&dummyStr,
+						&dummyBool,
 						&time.Time{},
 						&time.Time{},
 					},
@@ -142,6 +147,7 @@ func Test_PlanetRepository(t *testing.T) {
 						&uuid.UUID{},
 						&uuid.UUID{},
 						&dummyStr,
+						&dummyBool,
 						&time.Time{},
 						&time.Time{},
 					},

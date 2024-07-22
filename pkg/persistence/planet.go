@@ -7,9 +7,10 @@ import (
 )
 
 type Planet struct {
-	Id     uuid.UUID
-	Player uuid.UUID
-	Name   string
+	Id        uuid.UUID
+	Player    uuid.UUID
+	Name      string
+	Homeworld bool
 
 	CreatedAt time.Time
 	UpdatedAt time.Time
