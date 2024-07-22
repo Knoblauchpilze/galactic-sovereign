@@ -27,14 +27,14 @@ func NewPlanetRepository(conn db.ConnectionPool) PlanetRepository {
 	}
 }
 
-const createPlanetSqlTemplate = "INSERT INTO planet (id, player, name, created_at) VALUES($1, $2, $3, $4)"
+const createPlanetSqlTemplate = "INSERT INTO planet (id, player, name, homeworld, created_at) VALUES($1, $2, $3, $4, $5)"
 
 func (r *planetRepositoryImpl) Create(ctx context.Context, planet persistence.Planet) (persistence.Planet, error) {
-	_, err := r.conn.Exec(ctx, createPlanetSqlTemplate, planet.Id, planet.Player, planet.Name, planet.CreatedAt)
+	_, err := r.conn.Exec(ctx, createPlanetSqlTemplate, planet.Id, planet.Player, planet.Name, planet.Homeworld, planet.CreatedAt)
 	return planet, err
 }
 
-const getPlanetSqlTemplate = "SELECT id, player, name, created_at, updated_at FROM planet WHERE id = $1"
+const getPlanetSqlTemplate = "SELECT id, player, name, homeworld, created_at, updated_at FROM planet WHERE id = $1"
 
 func (r *planetRepositoryImpl) Get(ctx context.Context, id uuid.UUID) (persistence.Planet, error) {
 	res := r.conn.Query(ctx, getPlanetSqlTemplate, id)
@@ -44,7 +44,7 @@ func (r *planetRepositoryImpl) Get(ctx context.Context, id uuid.UUID) (persisten
 
 	var out persistence.Planet
 	parser := func(rows db.Scannable) error {
-		return rows.Scan(&out.Id, &out.Player, &out.Name, &out.CreatedAt, &out.UpdatedAt)
+		return rows.Scan(&out.Id, &out.Player, &out.Name, &out.Homeworld, &out.CreatedAt, &out.UpdatedAt)
 	}
 
 	if err := res.GetSingleValue(parser); err != nil {
@@ -54,7 +54,7 @@ func (r *planetRepositoryImpl) Get(ctx context.Context, id uuid.UUID) (persisten
 	return out, nil
 }
 
-const listPlanetSqlTemplate = "SELECT id, player, name, created_at, updated_at FROM planet"
+const listPlanetSqlTemplate = "SELECT id, player, name, homeworld, created_at, updated_at FROM planet"
 
 func (r *planetRepositoryImpl) List(ctx context.Context) ([]persistence.Planet, error) {
 	res := r.conn.Query(ctx, listPlanetSqlTemplate)
@@ -65,7 +65,7 @@ func (r *planetRepositoryImpl) List(ctx context.Context) ([]persistence.Planet, 
 	var out []persistence.Planet
 	parser := func(rows db.Scannable) error {
 		var planet persistence.Planet
-		err := rows.Scan(&planet.Id, &planet.Player, &planet.Name, &planet.CreatedAt, &planet.UpdatedAt)
+		err := rows.Scan(&planet.Id, &planet.Player, &planet.Name, &planet.Homeworld, &planet.CreatedAt, &planet.UpdatedAt)
 		if err != nil {
 			return err
 		}
@@ -81,7 +81,7 @@ func (r *planetRepositoryImpl) List(ctx context.Context) ([]persistence.Planet, 
 	return out, nil
 }
 
-const listPlanetForPlayerSqlTemplate = "SELECT id, player, name, created_at, updated_at FROM planet where player = $1"
+const listPlanetForPlayerSqlTemplate = "SELECT id, player, name, homeworld, created_at, updated_at FROM planet where player = $1"
 
 func (r *planetRepositoryImpl) ListForPlayer(ctx context.Context, player uuid.UUID) ([]persistence.Planet, error) {
 	res := r.conn.Query(ctx, listPlanetForPlayerSqlTemplate, player)
@@ -92,7 +92,7 @@ func (r *planetRepositoryImpl) ListForPlayer(ctx context.Context, player uuid.UU
 	var out []persistence.Planet
 	parser := func(rows db.Scannable) error {
 		var planet persistence.Planet
-		err := rows.Scan(&planet.Id, &planet.Player, &planet.Name, &planet.CreatedAt, &planet.UpdatedAt)
+		err := rows.Scan(&planet.Id, &planet.Player, &planet.Name, &planet.Homeworld, &planet.CreatedAt, &planet.UpdatedAt)
 		if err != nil {
 			return err
 		}
