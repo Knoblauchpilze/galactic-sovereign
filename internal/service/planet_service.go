@@ -33,7 +33,13 @@ func NewPlanetService(conn db.ConnectionPool, repos repositories.Repositories) P
 func (s *planetServiceImpl) Create(ctx context.Context, planetDto communication.PlanetDtoRequest) (communication.PlanetDtoResponse, error) {
 	planet := communication.FromPlanetDtoRequest(planetDto)
 
-	createdPlanet, err := s.planetRepo.Create(ctx, planet)
+	tx, err := s.conn.StartTransaction(ctx)
+	if err != nil {
+		return communication.PlanetDtoResponse{}, err
+	}
+	defer tx.Close(ctx)
+
+	createdPlanet, err := s.planetRepo.Create(ctx, tx, planet)
 	if err != nil {
 		return communication.PlanetDtoResponse{}, err
 	}

@@ -10,7 +10,7 @@ import (
 )
 
 type PlanetRepository interface {
-	Create(ctx context.Context, planet persistence.Planet) (persistence.Planet, error)
+	Create(ctx context.Context, tx db.Transaction, planet persistence.Planet) (persistence.Planet, error)
 	Get(ctx context.Context, id uuid.UUID) (persistence.Planet, error)
 	List(ctx context.Context) ([]persistence.Planet, error)
 	ListForPlayer(ctx context.Context, player uuid.UUID) ([]persistence.Planet, error)
@@ -27,10 +27,19 @@ func NewPlanetRepository(conn db.ConnectionPool) PlanetRepository {
 	}
 }
 
-const createPlanetSqlTemplate = "INSERT INTO planet (id, player, name, homeworld, created_at) VALUES($1, $2, $3, $4, $5)"
+const createPlanetSqlTemplate = "INSERT INTO planet (id, player, name, created_at) VALUES($1, $2, $3, $4)"
+const createPlanetHomeworldSqlTemplate = "INSERT INTO homeworld (player, planet) VALUES($1, $2)"
 
-func (r *planetRepositoryImpl) Create(ctx context.Context, planet persistence.Planet) (persistence.Planet, error) {
-	_, err := r.conn.Exec(ctx, createPlanetSqlTemplate, planet.Id, planet.Player, planet.Name, planet.Homeworld, planet.CreatedAt)
+func (r *planetRepositoryImpl) Create(ctx context.Context, tx db.Transaction, planet persistence.Planet) (persistence.Planet, error) {
+	_, err := tx.Exec(ctx, createPlanetSqlTemplate, planet.Id, planet.Player, planet.Name, planet.CreatedAt)
+	if err != nil {
+		return planet, err
+	}
+
+	if planet.Homeworld {
+		_, err = tx.Exec(ctx, createPlanetHomeworldSqlTemplate, planet.Player, planet.Id)
+	}
+
 	return planet, err
 }
 

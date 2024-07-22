@@ -218,6 +218,13 @@ func Test_PlanetService(t *testing.T) {
 		},
 
 		transactionTestCases: map[string]transactionTestCase{
+			"create": {
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewPlanetService(pool, repos)
+					_, err := s.Create(ctx, defaultPlanetDtoRequest)
+					return err
+				},
+			},
 			"delete": {
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
 					s := NewPlanetService(pool, repos)

@@ -30,26 +30,6 @@ func Test_PlanetRepository(t *testing.T) {
 
 	s := RepositoryPoolTestSuite{
 		dbInteractionTestCases: map[string]dbPoolInteractionTestCase{
-			"create": {
-				sqlMode: ExecBased,
-				handler: func(ctx context.Context, pool db.ConnectionPool) error {
-					s := NewPlanetRepository(pool)
-					_, err := s.Create(ctx, defaultPlanet)
-					return err
-				},
-				expectedSqlQueries: []string{
-					`INSERT INTO planet (id, player, name, homeworld, created_at) VALUES($1, $2, $3, $4, $5)`,
-				},
-				expectedArguments: [][]interface{}{
-					{
-						defaultPlanet.Id,
-						defaultPlanet.Player,
-						defaultPlanet.Name,
-						defaultPlanet.Homeworld,
-						defaultPlanet.CreatedAt,
-					},
-				},
-			},
 			"get": {
 				handler: func(ctx context.Context, pool db.ConnectionPool) error {
 					s := NewPlanetRepository(pool)
@@ -200,17 +180,6 @@ WHERE
 				},
 			},
 		},
-
-		dbReturnTestCases: map[string]dbPoolReturnTestCase{
-			"create": {
-				handler: func(ctx context.Context, pool db.ConnectionPool) interface{} {
-					s := NewPlanetRepository(pool)
-					out, _ := s.Create(ctx, defaultPlanet)
-					return out
-				},
-				expectedContent: defaultPlanet,
-			},
-		},
 	}
 
 	suite.Run(t, &s)
@@ -219,6 +188,60 @@ WHERE
 func Test_PlanetRepository_Transaction(t *testing.T) {
 	s := RepositoryTransactionTestSuite{
 		dbInteractionTestCases: map[string]dbTransactionInteractionTestCase{
+			"create": {
+				sqlMode: ExecBased,
+				handler: func(ctx context.Context, tx db.Transaction) error {
+					s := NewPlanetRepository(&mockConnectionPool{})
+
+					planet := persistence.Planet{
+						Id:        defaultPlanet.Id,
+						Player:    defaultPlanet.Player,
+						Name:      defaultPlanet.Name,
+						Homeworld: false,
+						CreatedAt: defaultPlanet.CreatedAt,
+						UpdatedAt: defaultPlanet.UpdatedAt,
+					}
+
+					_, err := s.Create(ctx, tx, planet)
+					return err
+				},
+				expectedSqlQueries: []string{
+					`INSERT INTO planet (id, player, name, created_at) VALUES($1, $2, $3, $4)`,
+				},
+				expectedArguments: [][]interface{}{
+					{
+						defaultPlanet.Id,
+						defaultPlanet.Player,
+						defaultPlanet.Name,
+						defaultPlanet.CreatedAt,
+					},
+				},
+			},
+			"create_homeworld": {
+				sqlMode: ExecBased,
+				handler: func(ctx context.Context, tx db.Transaction) error {
+					s := NewPlanetRepository(&mockConnectionPool{})
+					_, err := s.Create(ctx, tx, defaultPlanet)
+					return err
+				},
+				expectedSqlQueries: []string{
+					`INSERT INTO planet (id, player, name, created_at) VALUES($1, $2, $3, $4)`,
+					`INSERT INTO homeworld (player, planet) VALUES($1, $2)`,
+				},
+				expectedArguments: [][]interface{}{
+					{
+						defaultPlanet.Id,
+						defaultPlanet.Player,
+						defaultPlanet.Name,
+						defaultPlanet.CreatedAt,
+					},
+					{
+						defaultPlanet.Player,
+						defaultPlanet.Id,
+					},
+				},
+			},
+
 			"delete": {
 				sqlMode: ExecBased,
 				generateMock: func() db.Transaction {
@@ -238,6 +261,17 @@ func Test_PlanetRepository_Transaction(t *testing.T) {
 						defaultPlanetId,
 					},
 				},
+			},
+		},
+
+		dbReturnTestCases: map[string]dbTransactionReturnTestCase{
+			"create": {
+				handler: func(ctx context.Context, tx db.Transaction) interface{} {
+					s := NewPlanetRepository(&mockConnectionPool{})
+					out, _ := s.Create(ctx, tx, defaultPlanet)
+					return out
+				},
+				expectedContent: defaultPlanet,
 			},
 		},
 
