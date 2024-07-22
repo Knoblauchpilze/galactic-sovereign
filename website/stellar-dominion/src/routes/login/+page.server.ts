@@ -2,6 +2,7 @@ import { error, redirect } from '@sveltejs/kit';
 import { fetchPlayerFromApiUser, responseToPlayerArray } from '$lib/players';
 import ApiKey, { loginUser } from '$lib/sessions';
 import Universe, { getUniverses } from '$lib/universes';
+import { fetchPlanetsFromPlayer, responseToPlanetArray } from '$lib/planets';
 
 /** @type {import('./$types').PageServerLoad} */
 export async function load({ cookies }) {
@@ -122,7 +123,31 @@ export const actions = {
 			};
 		}
 
-		console.log('player: ', JSON.stringify(maybePlayer));
+		const planetsResponse = await fetchPlanetsFromPlayer(maybePlayer.id, apiKey.key);
+		if (planetsResponse.error()) {
+			return {
+				success: false,
+				incorrect: true,
+				message: planetsResponse.failureMessage(),
+
+				email
+			};
+		}
+
+		const planets = responseToPlanetArray(planetsResponse);
+
+		// https://stackoverflow.com/questions/35605548/get-first-object-from-array
+		const [maybePlanet] = planets;
+
+		if (maybePlanet === undefined) {
+			return {
+				success: false,
+				incorrect: true,
+				message: 'Player does not have any planet',
+
+				email
+			};
+		}
 
 		const opts = {
 			path: '/'
@@ -131,7 +156,6 @@ export const actions = {
 		cookies.set('api-key', apiKey.key, opts);
 		cookies.set('player-id', maybePlayer.id, opts);
 
-		// TODO: Should fetch the planet and redirect to the overview
-		redirect(303, '/dashboard/overview');
+		redirect(303, '/planets/' + maybePlanet.id + '/overview');
 	}
 };
