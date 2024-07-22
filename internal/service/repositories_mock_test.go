@@ -112,7 +112,7 @@ type mockPlanetRepository struct {
 	deleteId            uuid.UUID
 }
 
-func (m *mockPlanetRepository) Create(ctx context.Context, planet persistence.Planet) (persistence.Planet, error) {
+func (m *mockPlanetRepository) Create(ctx context.Context, tx db.Transaction, planet persistence.Planet) (persistence.Planet, error) {
 	m.createCalled++
 	m.createdPlanet = planet
 	return m.planet, m.err
