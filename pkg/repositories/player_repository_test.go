@@ -32,26 +32,6 @@ func Test_PlayerRepository(t *testing.T) {
 
 	s := RepositoryPoolTestSuite{
 		dbInteractionTestCases: map[string]dbPoolInteractionTestCase{
-			"create": {
-				sqlMode: ExecBased,
-				handler: func(ctx context.Context, pool db.ConnectionPool) error {
-					s := NewPlayerRepository(pool)
-					_, err := s.Create(ctx, defaultPlayer)
-					return err
-				},
-				expectedSqlQueries: []string{
-					`INSERT INTO player (id, api_user, universe, name, created_at) VALUES($1, $2, $3, $4, $5)`,
-				},
-				expectedArguments: [][]interface{}{
-					{
-						defaultPlayer.Id,
-						defaultPlayer.ApiUser,
-						defaultPlayer.Universe,
-						defaultPlayer.Name,
-						defaultPlayer.CreatedAt,
-					},
-				},
-			},
 			"get": {
 				handler: func(ctx context.Context, pool db.ConnectionPool) error {
 					s := NewPlayerRepository(pool)
@@ -157,35 +137,6 @@ func Test_PlayerRepository(t *testing.T) {
 				},
 			},
 		},
-
-		dbReturnTestCases: map[string]dbPoolReturnTestCase{
-			"create": {
-				handler: func(ctx context.Context, pool db.ConnectionPool) interface{} {
-					s := NewPlayerRepository(pool)
-					out, _ := s.Create(ctx, defaultPlayer)
-					return out
-				},
-				expectedContent: defaultPlayer,
-			},
-		},
-
-		dbErrorTestCases: map[string]dbPoolErrorTestCase{
-			"create_duplicatedKey": {
-				generateMock: func() db.ConnectionPool {
-					return &mockConnectionPool{
-						execErr: fmt.Errorf(`duplicate key value violates unique constraint "player_universe_name_key" (SQLSTATE 23505)`),
-					}
-				},
-				handler: func(ctx context.Context, pool db.ConnectionPool) error {
-					s := NewPlayerRepository(pool)
-					_, err := s.Create(ctx, defaultPlayer)
-					return err
-				},
-				verifyError: func(err error, assert *require.Assertions) {
-					assert.True(errors.IsErrorWithCode(err, db.DuplicatedKeySqlKey))
-				},
-			},
-		},
 	}
 
 	suite.Run(t, &s)
@@ -194,6 +145,26 @@ func Test_PlayerRepository(t *testing.T) {
 func Test_PlayerRepository_Transaction(t *testing.T) {
 	s := RepositoryTransactionTestSuite{
 		dbInteractionTestCases: map[string]dbTransactionInteractionTestCase{
+			"create": {
+				sqlMode: ExecBased,
+				handler: func(ctx context.Context, tx db.Transaction) error {
+					s := NewPlayerRepository(&mockConnectionPool{})
+					_, err := s.Create(ctx, tx, defaultPlayer)
+					return err
+				},
+				expectedSqlQueries: []string{
+					`INSERT INTO player (id, api_user, universe, name, created_at) VALUES($1, $2, $3, $4, $5)`,
+				},
+				expectedArguments: [][]interface{}{
+					{
+						defaultPlayer.Id,
+						defaultPlayer.ApiUser,
+						defaultPlayer.Universe,
+						defaultPlayer.Name,
+						defaultPlayer.CreatedAt,
+					},
+				},
+			},
 			"delete": {
 				sqlMode: ExecBased,
 				generateMock: func() db.Transaction {
@@ -216,7 +187,35 @@ func Test_PlayerRepository_Transaction(t *testing.T) {
 			},
 		},
 
+		dbReturnTestCases: map[string]dbTransactionReturnTestCase{
+			"create": {
+				handler: func(ctx context.Context, tx db.Transaction) interface{} {
+					s := NewPlayerRepository(&mockConnectionPool{})
+					out, _ := s.Create(ctx, tx, defaultPlayer)
+					return out
+				},
+				expectedContent: defaultPlayer,
+			},
+		},
+
 		dbErrorTestCases: map[string]dbTransactionErrorTestCase{
+			"create_duplicatedKey": {
+				generateMock: func() db.Transaction {
+					return &mockTransaction{
+						execErrs: []error{
+							fmt.Errorf(`duplicate key value violates unique constraint "player_universe_name_key" (SQLSTATE 23505)`),
+						},
+					}
+				},
+				handler: func(ctx context.Context, tx db.Transaction) error {
+					s := NewPlayerRepository(&mockConnectionPool{})
+					_, err := s.Create(ctx, tx, defaultPlayer)
+					return err
+				},
+				verifyError: func(err error, assert *require.Assertions) {
+					assert.True(errors.IsErrorWithCode(err, db.DuplicatedKeySqlKey))
+				},
+			},
 			"delete_noRowsAffected": {
 				generateMock: func() db.Transaction {
 					return &mockTransaction{
