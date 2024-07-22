@@ -5,6 +5,7 @@ import (
 
 	"github.com/KnoblauchPilze/user-service/pkg/communication"
 	"github.com/KnoblauchPilze/user-service/pkg/db"
+	"github.com/KnoblauchPilze/user-service/pkg/persistence"
 	"github.com/KnoblauchPilze/user-service/pkg/repositories"
 	"github.com/google/uuid"
 )
@@ -42,6 +43,20 @@ func (s *playerServiceImpl) Create(ctx context.Context, playerDto communication.
 	defer tx.Close(ctx)
 
 	createdPlayer, err := s.playerRepo.Create(ctx, tx, player)
+	if err != nil {
+		return communication.PlayerDtoResponse{}, err
+	}
+
+	planet := persistence.Planet{
+		Id:        uuid.New(),
+		Player:    createdPlayer.Id,
+		Name:      "homeworld",
+		Homeworld: true,
+		CreatedAt: createdPlayer.CreatedAt,
+		UpdatedAt: createdPlayer.UpdatedAt,
+	}
+
+	_, err = s.planetRepo.Create(ctx, tx, planet)
 	if err != nil {
 		return communication.PlayerDtoResponse{}, err
 	}
