@@ -53,8 +53,39 @@ func Test_PlayerService(t *testing.T) {
 					assert.Equal(defaultPlayerDtoRequest.Name, m.createdPlayer.Name)
 				},
 			},
-			"create_repositoryFails": {
+			"create_createPlanet": {
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewPlayerService(pool, repos)
+					_, err := s.Create(ctx, defaultPlayerDtoRequest)
+					return err
+				},
+
+				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
+					m := assertPlanetRepoIsAMock(repos, assert)
+
+					assert.Equal(defaultPlayer.Id, m.createdPlanet.Player)
+					assert.Equal("homeworld", m.createdPlanet.Name)
+					assert.True(m.createdPlanet.Homeworld)
+				},
+			},
+			"create_playerRepositoryFails": {
 				generateRepositoriesMock: generateErrorPlayerRepositoryMock,
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewPlayerService(pool, repos)
+					_, err := s.Create(ctx, defaultPlayerDtoRequest)
+					return err
+				},
+				expectedError: errDefault,
+			},
+			"create_planetRepositoryFails": {
+				generateRepositoriesMock: func() repositories.Repositories {
+					return repositories.Repositories{
+						Planet: &mockPlanetRepository{
+							err: errDefault,
+						},
+						Player: &mockPlayerRepository{},
+					}
+				},
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
 					s := NewPlayerService(pool, repos)
 					_, err := s.Create(ctx, defaultPlayerDtoRequest)
@@ -246,6 +277,9 @@ func Test_PlayerService(t *testing.T) {
 
 func generateValidPlayerRepositoryMock() repositories.Repositories {
 	return repositories.Repositories{
+		Planet: &mockPlanetRepository{
+			planet: defaultPlanet,
+		},
 		Player: &mockPlayerRepository{
 			player: defaultPlayer,
 		},
