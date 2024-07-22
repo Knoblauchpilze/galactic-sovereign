@@ -57,7 +57,23 @@ func Test_PlanetRepository(t *testing.T) {
 					return err
 				},
 				expectedSqlQueries: []string{
-					`SELECT id, player, name, homeworld, created_at, updated_at FROM planet WHERE id = $1`,
+					`
+SELECT
+	p.id,
+	p.player,
+	p.name,
+	CASE
+		WHEN h.planet IS NOT NULL THEN true
+		ELSE false
+	END AS homeworld,
+	p.created_at,
+	p.updated_at
+FROM
+	planet AS p
+	LEFT JOIN homeworld AS h ON h.planet = p.id
+WHERE
+	id = $1
+`,
 				},
 				expectedArguments: [][]interface{}{
 					{
@@ -72,7 +88,21 @@ func Test_PlanetRepository(t *testing.T) {
 					return err
 				},
 				expectedSqlQueries: []string{
-					`SELECT id, player, name, homeworld, created_at, updated_at FROM planet`,
+					`
+SELECT
+	p.id,
+	p.player,
+	p.name,
+	CASE
+		WHEN h.planet IS NOT NULL THEN true
+		ELSE false
+	END AS homeworld,
+	p.created_at,
+	p.updated_at
+FROM
+	planet AS p
+	LEFT JOIN homeworld AS h ON h.planet = p.id
+`,
 				},
 			},
 			"listForPlayer": {
@@ -82,7 +112,23 @@ func Test_PlanetRepository(t *testing.T) {
 					return err
 				},
 				expectedSqlQueries: []string{
-					`SELECT id, player, name, homeworld, created_at, updated_at FROM planet where player = $1`,
+					`
+SELECT
+	p.id,
+	p.player,
+	p.name,
+	CASE
+		WHEN h.planet IS NOT NULL THEN true
+		ELSE false
+	END AS homeworld,
+	p.created_at,
+	p.updated_at
+FROM
+	planet AS p
+	LEFT JOIN homeworld AS h ON h.planet = p.id
+WHERE
+	p.player = $1
+`,
 				},
 				expectedArguments: [][]interface{}{
 					{

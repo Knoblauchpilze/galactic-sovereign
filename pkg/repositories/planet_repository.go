@@ -34,7 +34,23 @@ func (r *planetRepositoryImpl) Create(ctx context.Context, planet persistence.Pl
 	return planet, err
 }
 
-const getPlanetSqlTemplate = "SELECT id, player, name, homeworld, created_at, updated_at FROM planet WHERE id = $1"
+const getPlanetSqlTemplate = `
+SELECT
+	p.id,
+	p.player,
+	p.name,
+	CASE
+		WHEN h.planet IS NOT NULL THEN true
+		ELSE false
+	END AS homeworld,
+	p.created_at,
+	p.updated_at
+FROM
+	planet AS p
+	LEFT JOIN homeworld AS h ON h.planet = p.id
+WHERE
+	id = $1
+`
 
 func (r *planetRepositoryImpl) Get(ctx context.Context, id uuid.UUID) (persistence.Planet, error) {
 	res := r.conn.Query(ctx, getPlanetSqlTemplate, id)
@@ -54,7 +70,21 @@ func (r *planetRepositoryImpl) Get(ctx context.Context, id uuid.UUID) (persisten
 	return out, nil
 }
 
-const listPlanetSqlTemplate = "SELECT id, player, name, homeworld, created_at, updated_at FROM planet"
+const listPlanetSqlTemplate = `
+SELECT
+	p.id,
+	p.player,
+	p.name,
+	CASE
+		WHEN h.planet IS NOT NULL THEN true
+		ELSE false
+	END AS homeworld,
+	p.created_at,
+	p.updated_at
+FROM
+	planet AS p
+	LEFT JOIN homeworld AS h ON h.planet = p.id
+`
 
 func (r *planetRepositoryImpl) List(ctx context.Context) ([]persistence.Planet, error) {
 	res := r.conn.Query(ctx, listPlanetSqlTemplate)
@@ -81,7 +111,23 @@ func (r *planetRepositoryImpl) List(ctx context.Context) ([]persistence.Planet, 
 	return out, nil
 }
 
-const listPlanetForPlayerSqlTemplate = "SELECT id, player, name, homeworld, created_at, updated_at FROM planet where player = $1"
+const listPlanetForPlayerSqlTemplate = `
+SELECT
+	p.id,
+	p.player,
+	p.name,
+	CASE
+		WHEN h.planet IS NOT NULL THEN true
+		ELSE false
+	END AS homeworld,
+	p.created_at,
+	p.updated_at
+FROM
+	planet AS p
+	LEFT JOIN homeworld AS h ON h.planet = p.id
+WHERE
+	p.player = $1
+`
 
 func (r *planetRepositoryImpl) ListForPlayer(ctx context.Context, player uuid.UUID) ([]persistence.Planet, error) {
 	res := r.conn.Query(ctx, listPlanetForPlayerSqlTemplate, player)
