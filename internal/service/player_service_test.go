@@ -225,6 +225,13 @@ func Test_PlayerService(t *testing.T) {
 		},
 
 		transactionTestCases: map[string]transactionTestCase{
+			"create": {
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewPlayerService(pool, repos)
+					_, err := s.Create(ctx, defaultPlayerDtoRequest)
+					return err
+				},
+			},
 			"delete": {
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
 					s := NewPlayerService(pool, repos)

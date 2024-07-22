@@ -158,7 +158,7 @@ type mockPlayerRepository struct {
 	deleteId             uuid.UUID
 }
 
-func (m *mockPlayerRepository) Create(ctx context.Context, player persistence.Player) (persistence.Player, error) {
+func (m *mockPlayerRepository) Create(ctx context.Context, tx db.Transaction, player persistence.Player) (persistence.Player, error) {
 	m.createCalled++
 	m.createdPlayer = player
 	return m.player, m.err

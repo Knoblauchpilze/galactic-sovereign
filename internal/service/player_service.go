@@ -21,19 +21,27 @@ type playerServiceImpl struct {
 	conn db.ConnectionPool
 
 	playerRepo repositories.PlayerRepository
+	planetRepo repositories.PlanetRepository
 }
 
 func NewPlayerService(conn db.ConnectionPool, repos repositories.Repositories) PlayerService {
 	return &playerServiceImpl{
 		conn:       conn,
 		playerRepo: repos.Player,
+		planetRepo: repos.Planet,
 	}
 }
 
 func (s *playerServiceImpl) Create(ctx context.Context, playerDto communication.PlayerDtoRequest) (communication.PlayerDtoResponse, error) {
 	player := communication.FromPlayerDtoRequest(playerDto)
 
-	createdPlayer, err := s.playerRepo.Create(ctx, player)
+	tx, err := s.conn.StartTransaction(ctx)
+	if err != nil {
+		return communication.PlayerDtoResponse{}, err
+	}
+	defer tx.Close(ctx)
+
+	createdPlayer, err := s.playerRepo.Create(ctx, tx, player)
 	if err != nil {
 		return communication.PlayerDtoResponse{}, err
 	}

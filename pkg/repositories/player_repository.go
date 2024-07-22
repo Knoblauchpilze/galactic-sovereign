@@ -10,7 +10,7 @@ import (
 )
 
 type PlayerRepository interface {
-	Create(ctx context.Context, player persistence.Player) (persistence.Player, error)
+	Create(ctx context.Context, tx db.Transaction, player persistence.Player) (persistence.Player, error)
 	Get(ctx context.Context, id uuid.UUID) (persistence.Player, error)
 	List(ctx context.Context) ([]persistence.Player, error)
 	ListForApiUser(ctx context.Context, apiUser uuid.UUID) ([]persistence.Player, error)
@@ -29,8 +29,8 @@ func NewPlayerRepository(conn db.ConnectionPool) PlayerRepository {
 
 const createPlayerSqlTemplate = "INSERT INTO player (id, api_user, universe, name, created_at) VALUES($1, $2, $3, $4, $5)"
 
-func (r *playerRepositoryImpl) Create(ctx context.Context, player persistence.Player) (persistence.Player, error) {
-	_, err := r.conn.Exec(ctx, createPlayerSqlTemplate, player.Id, player.ApiUser, player.Universe, player.Name, player.CreatedAt)
+func (r *playerRepositoryImpl) Create(ctx context.Context, tx db.Transaction, player persistence.Player) (persistence.Player, error) {
+	_, err := tx.Exec(ctx, createPlayerSqlTemplate, player.Id, player.ApiUser, player.Universe, player.Name, player.CreatedAt)
 	if err != nil && duplicatedKeySqlErrorRegexp.MatchString(err.Error()) {
 		return persistence.Player{}, errors.NewCode(db.DuplicatedKeySqlKey)
 	}
