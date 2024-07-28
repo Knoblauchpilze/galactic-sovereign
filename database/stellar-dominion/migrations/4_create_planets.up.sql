@@ -36,3 +36,15 @@ CREATE TRIGGER trigger_resource_updated_at
   BEFORE UPDATE OR INSERT ON resource
   FOR EACH ROW
   EXECUTE FUNCTION update_updated_at();
+
+CREATE TABLE planet_resource (
+  planet uuid NOT NULL,
+  resource uuid NOT NULL,
+  amount numeric(15, 5) NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  version INTEGER DEFAULT 0,
+  FOREIGN KEY (planet) REFERENCES planet(id),
+  FOREIGN KEY (resource) REFERENCES resource(id),
+  UNIQUE (planet, resource)
+);
