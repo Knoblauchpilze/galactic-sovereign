@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"context"
+	"time"
 
 	"github.com/KnoblauchPilze/user-service/pkg/db"
 )
@@ -113,6 +114,8 @@ func (m *mockScannable) Scan(dest ...interface{}) error {
 type mockTransaction struct {
 	db.Transaction
 
+	timeStamp time.Time
+
 	sqlQueries []string
 	args       [][]interface{}
 
@@ -127,6 +130,10 @@ type mockTransaction struct {
 func (m *mockTransaction) Close(ctx context.Context) {
 	// We don't count the calls here because the repositories are not
 	// closing the transaction. It is usually done at the service level.
+}
+
+func (m *mockTransaction) TimeStamp() time.Time {
+	return m.timeStamp
 }
 
 func (m *mockTransaction) Query(ctx context.Context, sql string, arguments ...interface{}) db.Rows {
