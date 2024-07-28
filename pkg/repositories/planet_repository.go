@@ -30,6 +30,19 @@ func NewPlanetRepository(conn db.ConnectionPool) PlanetRepository {
 const createPlanetSqlTemplate = "INSERT INTO planet (id, player, name, created_at) VALUES($1, $2, $3, $4)"
 const createPlanetHomeworldSqlTemplate = "INSERT INTO homeworld (player, planet) VALUES($1, $2)"
 
+// https://stackoverflow.com/questions/4141370/sql-insert-with-select-and-hard-coded-values
+const createPlanetResourcesSqlTemplate = `
+INSERT INTO
+	planet_resource (planet, resource, amount, created_at)
+SELECT
+	$1,
+	id,
+	start_amount,
+	$2
+FROM
+	resource
+`
+
 func (r *planetRepositoryImpl) Create(ctx context.Context, tx db.Transaction, planet persistence.Planet) (persistence.Planet, error) {
 	_, err := tx.Exec(ctx, createPlanetSqlTemplate, planet.Id, planet.Player, planet.Name, planet.CreatedAt)
 	if err != nil {
@@ -38,7 +51,12 @@ func (r *planetRepositoryImpl) Create(ctx context.Context, tx db.Transaction, pl
 
 	if planet.Homeworld {
 		_, err = tx.Exec(ctx, createPlanetHomeworldSqlTemplate, planet.Player, planet.Id)
+		if err != nil {
+			return planet, err
+		}
 	}
+
+	_, err = tx.Exec(ctx, createPlanetResourcesSqlTemplate, planet.Id, planet.CreatedAt)
 
 	return planet, err
 }

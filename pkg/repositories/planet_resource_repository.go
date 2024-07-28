@@ -11,7 +11,6 @@ import (
 
 type PlanetResourceRepository interface {
 	Create(ctx context.Context, tx db.Transaction, resource persistence.PlanetResource) (persistence.PlanetResource, error)
-	CreateForPlanet(ctx context.Context, tx db.Transaction, planet uuid.UUID) error
 	ListForPlanet(ctx context.Context, tx db.Transaction, planet uuid.UUID) ([]persistence.PlanetResource, error)
 	Update(ctx context.Context, tx db.Transaction, resource persistence.PlanetResource) (persistence.PlanetResource, error)
 	DeleteForPlanet(ctx context.Context, tx db.Transaction, planet uuid.UUID) error
@@ -28,24 +27,6 @@ const createPlanetResourceSqlTemplate = "INSERT INTO planet_resource (planet, re
 func (r *planetResourceRepositoryImpl) Create(ctx context.Context, tx db.Transaction, resource persistence.PlanetResource) (persistence.PlanetResource, error) {
 	_, err := tx.Exec(ctx, createPlanetResourceSqlTemplate, resource.Planet, resource.Resource, resource.Amount, resource.CreatedAt)
 	return resource, err
-}
-
-// https://stackoverflow.com/questions/4141370/sql-insert-with-select-and-hard-coded-values
-const createPlanetResourceForPlanetSqlTemplate = `
-INSERT INTO
-	planet_resource (planet, resource, amount, created_at)
-SELECT
-	$1,
-	id,
-	start_amount,
-	$2
-FROM
-	resource
-`
-
-func (r *planetResourceRepositoryImpl) CreateForPlanet(ctx context.Context, tx db.Transaction, planet uuid.UUID) error {
-	_, err := tx.Exec(ctx, createPlanetResourceForPlanetSqlTemplate, planet, tx.TimeStamp())
-	return err
 }
 
 const listPlanetResourceForPlanetSqlTemplate = `
