@@ -29,6 +29,7 @@ var defaultUpdatedPlanetResource = persistence.PlanetResource{
 	UpdatedAt: time.Date(2024, 7, 28, 11, 23, 12, 651387233, time.UTC),
 	Version:   6,
 }
+var defaultTransactionTime = time.Date(2024, 7, 28, 16, 32, 14, 651387233, time.UTC)
 
 func Test_PlanetResourceRepository_Transaction(t *testing.T) {
 	var dummyFloat64 float64
@@ -52,6 +53,37 @@ func Test_PlanetResourceRepository_Transaction(t *testing.T) {
 						defaultPlanetResource.Resource,
 						defaultPlanetResource.Amount,
 						defaultPlanetResource.CreatedAt,
+					},
+				},
+			},
+			"createForPlanet": {
+				sqlMode: ExecBased,
+				generateMock: func() db.Transaction {
+					return &mockTransaction{
+						timeStamp: defaultTransactionTime,
+					}
+				},
+				handler: func(ctx context.Context, tx db.Transaction) error {
+					s := NewPlanetResourceRepository()
+					return s.CreateForPlanet(ctx, tx, defaultPlanetId)
+				},
+				expectedSqlQueries: []string{
+					`
+INSERT INTO
+	planet_resource (planet, resource, amount, created_at)
+SELECT
+	$1,
+	id,
+	start_amount,
+	$2
+FROM
+	resource
+`,
+				},
+				expectedArguments: [][]interface{}{
+					{
+						defaultPlanetId,
+						defaultTransactionTime,
 					},
 				},
 			},
