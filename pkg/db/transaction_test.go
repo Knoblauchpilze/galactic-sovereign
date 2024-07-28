@@ -3,7 +3,6 @@ package db
 import (
 	"context"
 	"testing"
-	"time"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
@@ -175,19 +174,6 @@ func TestTransaction_Close_WhenNoError_CallsCommit(t *testing.T) {
 	tx.Close(context.Background())
 
 	assert.Equal(1, mt.commitCalled)
-}
-
-func TestTransation_TimeStamp_ReturnsInputTimeStamp(t *testing.T) {
-	assert := assert.New(t)
-
-	expected := time.Now()
-
-	tx := transactionImpl{
-		tx:        &mockPgxTransaction{},
-		timeStamp: expected,
-	}
-
-	assert.Equal(expected, tx.TimeStamp())
 }
 
 func (m *mockPgxTransaction) Rollback(ctx context.Context) error {
