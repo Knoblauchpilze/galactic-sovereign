@@ -33,7 +33,7 @@ func TestDefaultConfig_ApiKey(t *testing.T) {
 
 	conf := DefaultConf()
 
-	expected := service.Config{
+	expected := service.ApiConfig{
 		ApiKeyValidity: 3 * time.Hour,
 	}
 	assert.Equal(expected, conf.ApiKey)

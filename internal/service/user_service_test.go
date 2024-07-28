@@ -46,7 +46,7 @@ func Test_UserService(t *testing.T) {
 		repositoryInteractionTestCases: map[string]repositoryInteractionTestCase{
 			"create": {
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewUserService(Config{}, pool, repos)
+					s := NewUserService(ApiConfig{}, pool, repos)
 					_, err := s.Create(ctx, defaultUserDtoRequest)
 					return err
 				},
@@ -62,7 +62,7 @@ func Test_UserService(t *testing.T) {
 			"create_userFails": {
 				generateRepositoriesMock: generateErrorUserRepositoryMock,
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewUserService(Config{}, pool, repos)
+					s := NewUserService(ApiConfig{}, pool, repos)
 					_, err := s.Create(ctx, defaultUserDtoRequest)
 					return err
 				},
@@ -70,7 +70,7 @@ func Test_UserService(t *testing.T) {
 			},
 			"get": {
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewUserService(Config{}, pool, repos)
+					s := NewUserService(ApiConfig{}, pool, repos)
 					_, err := s.Get(ctx, defaultUserId)
 					return err
 				},
@@ -85,7 +85,7 @@ func Test_UserService(t *testing.T) {
 			"get_userFails": {
 				generateRepositoriesMock: generateErrorUserRepositoryMock,
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewUserService(Config{}, pool, repos)
+					s := NewUserService(ApiConfig{}, pool, repos)
 					_, err := s.Get(ctx, defaultUserId)
 					return err
 				},
@@ -93,7 +93,7 @@ func Test_UserService(t *testing.T) {
 			},
 			"list": {
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewUserService(Config{}, pool, repos)
+					s := NewUserService(ApiConfig{}, pool, repos)
 					_, err := s.List(ctx)
 					return err
 				},
@@ -107,7 +107,7 @@ func Test_UserService(t *testing.T) {
 			"list_userFails": {
 				generateRepositoriesMock: generateErrorUserRepositoryMock,
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewUserService(Config{}, pool, repos)
+					s := NewUserService(ApiConfig{}, pool, repos)
 					_, err := s.List(ctx)
 					return err
 				},
@@ -115,7 +115,7 @@ func Test_UserService(t *testing.T) {
 			},
 			"update": {
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewUserService(Config{}, pool, repos)
+					s := NewUserService(ApiConfig{}, pool, repos)
 					_, err := s.Update(ctx, defaultUserId, defaultUpdatedUserDtoRequest)
 					return err
 				},
@@ -139,7 +139,7 @@ func Test_UserService(t *testing.T) {
 			"update_userFails": {
 				generateRepositoriesMock: generateErrorUserRepositoryMock,
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewUserService(Config{}, pool, repos)
+					s := NewUserService(ApiConfig{}, pool, repos)
 					_, err := s.Update(ctx, defaultUserId, defaultUpdatedUserDtoRequest)
 					return err
 				},
@@ -157,7 +157,7 @@ func Test_UserService(t *testing.T) {
 					}
 				},
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewUserService(Config{}, pool, repos)
+					s := NewUserService(ApiConfig{}, pool, repos)
 					_, err := s.Update(ctx, defaultUserId, defaultUpdatedUserDtoRequest)
 					return err
 				},
@@ -165,7 +165,7 @@ func Test_UserService(t *testing.T) {
 			},
 			"delete_acl": {
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewUserService(Config{}, pool, repos)
+					s := NewUserService(ApiConfig{}, pool, repos)
 					return s.Delete(ctx, defaultUserId)
 				},
 
@@ -177,7 +177,7 @@ func Test_UserService(t *testing.T) {
 			},
 			"delete_apiKey": {
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewUserService(Config{}, pool, repos)
+					s := NewUserService(ApiConfig{}, pool, repos)
 					return s.Delete(ctx, defaultUserId)
 				},
 
@@ -189,7 +189,7 @@ func Test_UserService(t *testing.T) {
 			},
 			"delete_user": {
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewUserService(Config{}, pool, repos)
+					s := NewUserService(ApiConfig{}, pool, repos)
 					return s.Delete(ctx, defaultUserId)
 				},
 
@@ -201,7 +201,7 @@ func Test_UserService(t *testing.T) {
 			},
 			"delete_userLimit": {
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewUserService(Config{}, pool, repos)
+					s := NewUserService(ApiConfig{}, pool, repos)
 					return s.Delete(ctx, defaultUserId)
 				},
 
@@ -223,7 +223,7 @@ func Test_UserService(t *testing.T) {
 					}
 				},
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewUserService(Config{}, pool, repos)
+					s := NewUserService(ApiConfig{}, pool, repos)
 					return s.Delete(ctx, defaultUserId)
 				},
 				expectedError: errDefault,
@@ -245,7 +245,7 @@ func Test_UserService(t *testing.T) {
 					}
 				},
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewUserService(Config{}, pool, repos)
+					s := NewUserService(ApiConfig{}, pool, repos)
 					return s.Delete(ctx, defaultUserId)
 				},
 				expectedError: errDefault,
@@ -258,7 +258,7 @@ func Test_UserService(t *testing.T) {
 			"delete_userFails": {
 				generateRepositoriesMock: generateErrorUserRepositoryMock,
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewUserService(Config{}, pool, repos)
+					s := NewUserService(ApiConfig{}, pool, repos)
 					return s.Delete(ctx, defaultUserId)
 				},
 				expectedError: errDefault,
@@ -280,7 +280,7 @@ func Test_UserService(t *testing.T) {
 					}
 				},
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewUserService(Config{}, pool, repos)
+					s := NewUserService(ApiConfig{}, pool, repos)
 					return s.Delete(ctx, defaultUserId)
 				},
 				expectedError: errDefault,
@@ -292,7 +292,7 @@ func Test_UserService(t *testing.T) {
 			},
 			"login": {
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewUserService(Config{}, pool, repos)
+					s := NewUserService(ApiConfig{}, pool, repos)
 					_, err := s.Login(ctx, defaultUserDtoRequest)
 					return err
 				},
@@ -306,7 +306,7 @@ func Test_UserService(t *testing.T) {
 			"login_userFails": {
 				generateRepositoriesMock: generateErrorUserRepositoryMock,
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewUserService(Config{}, pool, repos)
+					s := NewUserService(ApiConfig{}, pool, repos)
 					_, err := s.Login(ctx, defaultUserDtoRequest)
 					return err
 				},
@@ -314,7 +314,7 @@ func Test_UserService(t *testing.T) {
 			},
 			"login_apiKey": {
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					c := Config{
+					c := ApiConfig{
 						ApiKeyValidity: 1 * time.Hour,
 					}
 					s := NewUserService(c, pool, repos)
@@ -344,7 +344,7 @@ func Test_UserService(t *testing.T) {
 					}
 				},
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewUserService(Config{}, pool, repos)
+					s := NewUserService(ApiConfig{}, pool, repos)
 					_, err := s.Login(ctx, defaultUserDtoRequest)
 					return err
 				},
@@ -357,7 +357,7 @@ func Test_UserService(t *testing.T) {
 			},
 			"login_wrongCredentials": {
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewUserService(Config{}, pool, repos)
+					s := NewUserService(ApiConfig{}, pool, repos)
 					userRequest := communication.UserDtoRequest{
 						Email:    defaultUserEmail,
 						Password: "not-the-right-password",
@@ -371,7 +371,7 @@ func Test_UserService(t *testing.T) {
 			},
 			"loginById": {
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewUserService(Config{}, pool, repos)
+					s := NewUserService(ApiConfig{}, pool, repos)
 					_, err := s.LoginById(ctx, defaultUserId)
 					return err
 				},
@@ -385,7 +385,7 @@ func Test_UserService(t *testing.T) {
 			"loginById_userFails": {
 				generateRepositoriesMock: generateErrorUserRepositoryMock,
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewUserService(Config{}, pool, repos)
+					s := NewUserService(ApiConfig{}, pool, repos)
 					_, err := s.LoginById(ctx, defaultUserId)
 					return err
 				},
@@ -393,7 +393,7 @@ func Test_UserService(t *testing.T) {
 			},
 			"loginById_apiKey": {
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					c := Config{
+					c := ApiConfig{
 						ApiKeyValidity: 1 * time.Hour,
 					}
 					s := NewUserService(c, pool, repos)
@@ -423,7 +423,7 @@ func Test_UserService(t *testing.T) {
 					}
 				},
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewUserService(Config{}, pool, repos)
+					s := NewUserService(ApiConfig{}, pool, repos)
 					_, err := s.LoginById(ctx, defaultUserId)
 					return err
 				},
@@ -436,7 +436,7 @@ func Test_UserService(t *testing.T) {
 			},
 			"logout": {
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewUserService(Config{}, pool, repos)
+					s := NewUserService(ApiConfig{}, pool, repos)
 					return s.Logout(ctx, defaultUserId)
 				},
 				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
@@ -448,7 +448,7 @@ func Test_UserService(t *testing.T) {
 			},
 			"logout_apiKey": {
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewUserService(Config{}, pool, repos)
+					s := NewUserService(ApiConfig{}, pool, repos)
 					return s.Logout(ctx, defaultUserId)
 				},
 				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
@@ -470,7 +470,7 @@ func Test_UserService(t *testing.T) {
 					}
 				},
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewUserService(Config{}, pool, repos)
+					s := NewUserService(ApiConfig{}, pool, repos)
 					return s.Logout(ctx, defaultUserId)
 				},
 				expectedError: errDefault,
@@ -492,7 +492,7 @@ func Test_UserService(t *testing.T) {
 					}
 				},
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewUserService(Config{}, pool, repos)
+					s := NewUserService(ApiConfig{}, pool, repos)
 					return s.Logout(ctx, defaultUserId)
 				},
 				expectedError: errDefault,
@@ -507,7 +507,7 @@ func Test_UserService(t *testing.T) {
 		returnTestCases: map[string]returnTestCase{
 			"create": {
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) interface{} {
-					s := NewUserService(Config{}, pool, repos)
+					s := NewUserService(ApiConfig{}, pool, repos)
 					out, _ := s.Create(ctx, defaultUserDtoRequest)
 					return out
 				},
@@ -522,7 +522,7 @@ func Test_UserService(t *testing.T) {
 			},
 			"get": {
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) interface{} {
-					s := NewUserService(Config{}, pool, repos)
+					s := NewUserService(ApiConfig{}, pool, repos)
 					out, _ := s.Get(ctx, defaultUserId)
 					return out
 				},
@@ -550,7 +550,7 @@ func Test_UserService(t *testing.T) {
 					}
 				},
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) interface{} {
-					s := NewUserService(Config{}, pool, repos)
+					s := NewUserService(ApiConfig{}, pool, repos)
 					out, _ := s.List(ctx)
 					return out
 				},
@@ -562,7 +562,7 @@ func Test_UserService(t *testing.T) {
 			},
 			"update": {
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) interface{} {
-					s := NewUserService(Config{}, pool, repos)
+					s := NewUserService(ApiConfig{}, pool, repos)
 					out, _ := s.Update(ctx, defaultUserId, defaultUpdatedUserDtoRequest)
 					return out
 				},
@@ -576,7 +576,7 @@ func Test_UserService(t *testing.T) {
 			},
 			"login": {
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) interface{} {
-					c := Config{
+					c := ApiConfig{
 						ApiKeyValidity: 1 * time.Hour,
 					}
 					s := NewUserService(c, pool, repos)
@@ -594,7 +594,7 @@ func Test_UserService(t *testing.T) {
 			},
 			"loginById": {
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) interface{} {
-					c := Config{
+					c := ApiConfig{
 						ApiKeyValidity: 1 * time.Hour,
 					}
 					s := NewUserService(c, pool, repos)
@@ -615,13 +615,13 @@ func Test_UserService(t *testing.T) {
 		transactionTestCases: map[string]transactionTestCase{
 			"delete": {
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewUserService(Config{}, pool, repos)
+					s := NewUserService(ApiConfig{}, pool, repos)
 					return s.Delete(ctx, defaultUserId)
 				},
 			},
 			"logout": {
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewUserService(Config{}, pool, repos)
+					s := NewUserService(ApiConfig{}, pool, repos)
 					return s.Logout(ctx, defaultUserId)
 				},
 			},

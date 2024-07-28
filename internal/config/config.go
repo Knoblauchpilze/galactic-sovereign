@@ -14,7 +14,7 @@ import (
 type Configuration struct {
 	Server   rest.Config
 	Database db.Config
-	ApiKey   service.Config
+	ApiKey   service.ApiConfig
 }
 
 type configurationParser interface {
@@ -63,7 +63,7 @@ func DefaultConf() Configuration {
 			Port:      uint16(80),
 			RateLimit: 10,
 		},
-		ApiKey: service.Config{
+		ApiKey: service.ApiConfig{
 			ApiKeyValidity: time.Duration(3 * time.Hour),
 		},
 		Database: db.Config{

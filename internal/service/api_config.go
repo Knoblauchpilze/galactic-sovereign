@@ -4,6 +4,6 @@ import (
 	"time"
 )
 
-type Config struct {
+type ApiConfig struct {
 	ApiKeyValidity time.Duration
 }
