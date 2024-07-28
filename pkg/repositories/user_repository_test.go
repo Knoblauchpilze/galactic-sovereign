@@ -194,10 +194,10 @@ func Test_UserRepository(t *testing.T) {
 			"update": {
 				handler: func(ctx context.Context, pool db.ConnectionPool) interface{} {
 					s := NewUserRepository(pool)
-					out, _ := s.Update(ctx, defaultUser)
+					out, _ := s.Update(ctx, defaultUpdatedUser)
 					return out
 				},
-				expectedContent: defaultUser,
+				expectedContent: defaultUpdatedUser,
 			},
 		},
 
