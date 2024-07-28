@@ -225,6 +225,27 @@ func Test_PlanetService(t *testing.T) {
 					return err
 				},
 			},
+			"get": {
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewPlanetService(pool, repos)
+					_, err := s.Get(ctx, defaultPlanetId)
+					return err
+				},
+			},
+			"list": {
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewPlanetService(pool, repos)
+					_, err := s.List(ctx)
+					return err
+				},
+			},
+			"listForPlayer": {
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewPlanetService(pool, repos)
+					_, err := s.ListForPlayer(ctx, defaultPlayerId)
+					return err
+				},
+			},
 			"delete": {
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
 					s := NewPlanetService(pool, repos)

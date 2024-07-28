@@ -118,18 +118,18 @@ func (m *mockPlanetRepository) Create(ctx context.Context, tx db.Transaction, pl
 	return m.planet, m.err
 }
 
-func (m *mockPlanetRepository) Get(ctx context.Context, id uuid.UUID) (persistence.Planet, error) {
+func (m *mockPlanetRepository) Get(ctx context.Context, tx db.Transaction, id uuid.UUID) (persistence.Planet, error) {
 	m.getCalled++
 	m.getId = id
 	return m.planet, m.err
 }
 
-func (m *mockPlanetRepository) List(ctx context.Context) ([]persistence.Planet, error) {
+func (m *mockPlanetRepository) List(ctx context.Context, tx db.Transaction) ([]persistence.Planet, error) {
 	m.listCalled++
 	return []persistence.Planet{m.planet}, m.err
 }
 
-func (m *mockPlanetRepository) ListForPlayer(ctx context.Context, player uuid.UUID) ([]persistence.Planet, error) {
+func (m *mockPlanetRepository) ListForPlayer(ctx context.Context, tx db.Transaction, player uuid.UUID) ([]persistence.Planet, error) {
 	m.listForPlayerCalled++
 	m.listForPlayerId = player
 	return []persistence.Planet{m.planet}, m.err
