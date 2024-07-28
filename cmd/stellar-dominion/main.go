@@ -48,9 +48,10 @@ func main() {
 	}
 
 	repos := repositories.Repositories{
-		Planet:   repositories.NewPlanetRepository(pool),
-		Player:   repositories.NewPlayerRepository(pool),
-		Universe: repositories.NewUniverseRepository(pool),
+		Planet:         repositories.NewPlanetRepository(pool),
+		PlanetResource: repositories.NewPlanetResourceRepository(),
+		Player:         repositories.NewPlayerRepository(pool),
+		Universe:       repositories.NewUniverseRepository(pool),
 	}
 
 	planetService := service.NewPlanetService(pool, repos)
