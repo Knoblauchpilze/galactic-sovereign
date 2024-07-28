@@ -49,12 +49,27 @@ func Test_PlanetRepository_Transaction(t *testing.T) {
 				},
 				expectedSqlQueries: []string{
 					`INSERT INTO planet (id, player, name, created_at) VALUES($1, $2, $3, $4)`,
+					`
+INSERT INTO
+	planet_resource (planet, resource, amount, created_at)
+SELECT
+	$1,
+	id,
+	start_amount,
+	$2
+FROM
+	resource
+`,
 				},
 				expectedArguments: [][]interface{}{
 					{
 						defaultPlanet.Id,
 						defaultPlanet.Player,
 						defaultPlanet.Name,
+						defaultPlanet.CreatedAt,
+					},
+					{
+						defaultPlanet.Id,
 						defaultPlanet.CreatedAt,
 					},
 				},
@@ -69,6 +84,17 @@ func Test_PlanetRepository_Transaction(t *testing.T) {
 				expectedSqlQueries: []string{
 					`INSERT INTO planet (id, player, name, created_at) VALUES($1, $2, $3, $4)`,
 					`INSERT INTO homeworld (player, planet) VALUES($1, $2)`,
+					`
+INSERT INTO
+	planet_resource (planet, resource, amount, created_at)
+SELECT
+	$1,
+	id,
+	start_amount,
+	$2
+FROM
+	resource
+`,
 				},
 				expectedArguments: [][]interface{}{
 					{
@@ -80,6 +106,10 @@ func Test_PlanetRepository_Transaction(t *testing.T) {
 					{
 						defaultPlanet.Player,
 						defaultPlanet.Id,
+					},
+					{
+						defaultPlanet.Id,
+						defaultPlanet.CreatedAt,
 					},
 				},
 			},
