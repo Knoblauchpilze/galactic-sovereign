@@ -20,13 +20,15 @@ type PlanetService interface {
 type planetServiceImpl struct {
 	conn db.ConnectionPool
 
-	planetRepo repositories.PlanetRepository
+	planetRepo         repositories.PlanetRepository
+	planetResourceRepo repositories.PlanetResourceRepository
 }
 
 func NewPlanetService(conn db.ConnectionPool, repos repositories.Repositories) PlanetService {
 	return &planetServiceImpl{
-		conn:       conn,
-		planetRepo: repos.Planet,
+		conn:               conn,
+		planetRepo:         repos.Planet,
+		planetResourceRepo: repos.PlanetResource,
 	}
 }
 
