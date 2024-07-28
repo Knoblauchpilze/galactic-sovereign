@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"time"
 
 	"github.com/KnoblauchPilze/user-service/pkg/db"
 )
@@ -20,9 +21,15 @@ func (m *mockConnectionPool) StartTransaction(ctx context.Context) (db.Transacti
 type mockTransaction struct {
 	db.Transaction
 
+	timeStamp time.Time
+
 	closeCalled int
 }
 
 func (m *mockTransaction) Close(ctx context.Context) {
 	m.closeCalled++
+}
+
+func (m *mockTransaction) TimeStamp() time.Time {
+	return m.timeStamp
 }
