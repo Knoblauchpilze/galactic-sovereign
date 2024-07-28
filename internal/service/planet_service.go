@@ -49,7 +49,13 @@ func (s *planetServiceImpl) Create(ctx context.Context, planetDto communication.
 }
 
 func (s *planetServiceImpl) Get(ctx context.Context, id uuid.UUID) (communication.PlanetDtoResponse, error) {
-	planet, err := s.planetRepo.Get(ctx, id)
+	tx, err := s.conn.StartTransaction(ctx)
+	if err != nil {
+		return communication.PlanetDtoResponse{}, err
+	}
+	defer tx.Close(ctx)
+
+	planet, err := s.planetRepo.Get(ctx, tx, id)
 	if err != nil {
 		return communication.PlanetDtoResponse{}, err
 	}
@@ -59,7 +65,13 @@ func (s *planetServiceImpl) Get(ctx context.Context, id uuid.UUID) (communicatio
 }
 
 func (s *planetServiceImpl) List(ctx context.Context) ([]communication.PlanetDtoResponse, error) {
-	planets, err := s.planetRepo.List(ctx)
+	tx, err := s.conn.StartTransaction(ctx)
+	if err != nil {
+		return []communication.PlanetDtoResponse{}, err
+	}
+	defer tx.Close(ctx)
+
+	planets, err := s.planetRepo.List(ctx, tx)
 	if err != nil {
 		return []communication.PlanetDtoResponse{}, err
 	}
@@ -74,7 +86,13 @@ func (s *planetServiceImpl) List(ctx context.Context) ([]communication.PlanetDto
 }
 
 func (s *planetServiceImpl) ListForPlayer(ctx context.Context, player uuid.UUID) ([]communication.PlanetDtoResponse, error) {
-	planets, err := s.planetRepo.ListForPlayer(ctx, player)
+	tx, err := s.conn.StartTransaction(ctx)
+	if err != nil {
+		return []communication.PlanetDtoResponse{}, err
+	}
+	defer tx.Close(ctx)
+
+	planets, err := s.planetRepo.ListForPlayer(ctx, tx, player)
 	if err != nil {
 		return []communication.PlanetDtoResponse{}, err
 	}

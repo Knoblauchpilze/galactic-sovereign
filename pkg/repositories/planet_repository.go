@@ -11,9 +11,9 @@ import (
 
 type PlanetRepository interface {
 	Create(ctx context.Context, tx db.Transaction, planet persistence.Planet) (persistence.Planet, error)
-	Get(ctx context.Context, id uuid.UUID) (persistence.Planet, error)
-	List(ctx context.Context) ([]persistence.Planet, error)
-	ListForPlayer(ctx context.Context, player uuid.UUID) ([]persistence.Planet, error)
+	Get(ctx context.Context, tx db.Transaction, id uuid.UUID) (persistence.Planet, error)
+	List(ctx context.Context, tx db.Transaction) ([]persistence.Planet, error)
+	ListForPlayer(ctx context.Context, tx db.Transaction, player uuid.UUID) ([]persistence.Planet, error)
 	Delete(ctx context.Context, tx db.Transaction, id uuid.UUID) error
 }
 
@@ -61,8 +61,8 @@ WHERE
 	id = $1
 `
 
-func (r *planetRepositoryImpl) Get(ctx context.Context, id uuid.UUID) (persistence.Planet, error) {
-	res := r.conn.Query(ctx, getPlanetSqlTemplate, id)
+func (r *planetRepositoryImpl) Get(ctx context.Context, tx db.Transaction, id uuid.UUID) (persistence.Planet, error) {
+	res := tx.Query(ctx, getPlanetSqlTemplate, id)
 	if err := res.Err(); err != nil {
 		return persistence.Planet{}, err
 	}
@@ -95,8 +95,8 @@ FROM
 	LEFT JOIN homeworld AS h ON h.planet = p.id
 `
 
-func (r *planetRepositoryImpl) List(ctx context.Context) ([]persistence.Planet, error) {
-	res := r.conn.Query(ctx, listPlanetSqlTemplate)
+func (r *planetRepositoryImpl) List(ctx context.Context, tx db.Transaction) ([]persistence.Planet, error) {
+	res := tx.Query(ctx, listPlanetSqlTemplate)
 	if err := res.Err(); err != nil {
 		return []persistence.Planet{}, err
 	}
@@ -138,8 +138,8 @@ WHERE
 	p.player = $1
 `
 
-func (r *planetRepositoryImpl) ListForPlayer(ctx context.Context, player uuid.UUID) ([]persistence.Planet, error) {
-	res := r.conn.Query(ctx, listPlanetForPlayerSqlTemplate, player)
+func (r *planetRepositoryImpl) ListForPlayer(ctx context.Context, tx db.Transaction, player uuid.UUID) ([]persistence.Planet, error) {
+	res := tx.Query(ctx, listPlanetForPlayerSqlTemplate, player)
 	if err := res.Err(); err != nil {
 		return []persistence.Planet{}, err
 	}

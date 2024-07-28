@@ -132,9 +132,11 @@ func (m *mockTransaction) Close(ctx context.Context) {
 func (m *mockTransaction) Query(ctx context.Context, sql string, arguments ...interface{}) db.Rows {
 	m.queryCalled++
 
-	var newArgs []interface{}
-	newArgs = append(newArgs, arguments...)
-	m.args = append(m.args, newArgs)
+	if len(arguments) > 0 {
+		var newArgs []interface{}
+		newArgs = append(newArgs, arguments...)
+		m.args = append(m.args, newArgs)
+	}
 
 	m.sqlQueries = append(m.sqlQueries, sql)
 

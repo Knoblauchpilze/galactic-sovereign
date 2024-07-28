@@ -24,168 +24,10 @@ var defaultPlanet = persistence.Planet{
 	UpdatedAt: time.Date(2024, 7, 9, 20, 11, 21, 651387230, time.UTC),
 }
 
-func Test_PlanetRepository(t *testing.T) {
+func Test_PlanetRepository_Transaction(t *testing.T) {
 	dummyStr := ""
 	dummyBool := false
 
-	s := RepositoryPoolTestSuite{
-		dbInteractionTestCases: map[string]dbPoolInteractionTestCase{
-			"get": {
-				handler: func(ctx context.Context, pool db.ConnectionPool) error {
-					s := NewPlanetRepository(pool)
-					_, err := s.Get(ctx, defaultPlanetId)
-					return err
-				},
-				expectedSqlQueries: []string{
-					`
-SELECT
-	p.id,
-	p.player,
-	p.name,
-	CASE
-		WHEN h.planet IS NOT NULL THEN true
-		ELSE false
-	END AS homeworld,
-	p.created_at,
-	p.updated_at
-FROM
-	planet AS p
-	LEFT JOIN homeworld AS h ON h.planet = p.id
-WHERE
-	id = $1
-`,
-				},
-				expectedArguments: [][]interface{}{
-					{
-						defaultPlanetId,
-					},
-				},
-			},
-			"list": {
-				handler: func(ctx context.Context, pool db.ConnectionPool) error {
-					s := NewPlanetRepository(pool)
-					_, err := s.List(ctx)
-					return err
-				},
-				expectedSqlQueries: []string{
-					`
-SELECT
-	p.id,
-	p.player,
-	p.name,
-	CASE
-		WHEN h.planet IS NOT NULL THEN true
-		ELSE false
-	END AS homeworld,
-	p.created_at,
-	p.updated_at
-FROM
-	planet AS p
-	LEFT JOIN homeworld AS h ON h.planet = p.id
-`,
-				},
-			},
-			"listForPlayer": {
-				handler: func(ctx context.Context, pool db.ConnectionPool) error {
-					s := NewPlanetRepository(pool)
-					_, err := s.ListForPlayer(ctx, defaultPlayerId)
-					return err
-				},
-				expectedSqlQueries: []string{
-					`
-SELECT
-	p.id,
-	p.player,
-	p.name,
-	CASE
-		WHEN h.planet IS NOT NULL THEN true
-		ELSE false
-	END AS homeworld,
-	p.created_at,
-	p.updated_at
-FROM
-	planet AS p
-	LEFT JOIN homeworld AS h ON h.planet = p.id
-WHERE
-	p.player = $1
-`,
-				},
-				expectedArguments: [][]interface{}{
-					{
-						defaultPlayerId,
-					},
-				},
-			},
-		},
-
-		dbSingleValueTestCases: map[string]dbPoolSingleValueTestCase{
-			"get": {
-				handler: func(ctx context.Context, pool db.ConnectionPool) error {
-					repo := NewPlanetRepository(pool)
-					_, err := repo.Get(ctx, defaultPlanetId)
-					return err
-				},
-				expectedGetSingleValueCalls: 1,
-				expectedScanCalls:           1,
-				expectedScannedProps: [][]interface{}{
-					{
-						&uuid.UUID{},
-						&uuid.UUID{},
-						&dummyStr,
-						&dummyBool,
-						&time.Time{},
-						&time.Time{},
-					},
-				},
-			},
-		},
-
-		dbGetAllTestCases: map[string]dbPoolGetAllTestCase{
-			"list": {
-				handler: func(ctx context.Context, pool db.ConnectionPool) error {
-					repo := NewPlanetRepository(pool)
-					_, err := repo.List(ctx)
-					return err
-				},
-				expectedGetAllCalls: 1,
-				expectedScanCalls:   1,
-				expectedScannedProps: [][]interface{}{
-					{
-						&uuid.UUID{},
-						&uuid.UUID{},
-						&dummyStr,
-						&dummyBool,
-						&time.Time{},
-						&time.Time{},
-					},
-				},
-			},
-			"listForPlayer": {
-				handler: func(ctx context.Context, pool db.ConnectionPool) error {
-					repo := NewPlanetRepository(pool)
-					_, err := repo.ListForPlayer(ctx, defaultPlayerId)
-					return err
-				},
-				expectedGetAllCalls: 1,
-				expectedScanCalls:   1,
-				expectedScannedProps: [][]interface{}{
-					{
-						&uuid.UUID{},
-						&uuid.UUID{},
-						&dummyStr,
-						&dummyBool,
-						&time.Time{},
-						&time.Time{},
-					},
-				},
-			},
-		},
-	}
-
-	suite.Run(t, &s)
-}
-
-func Test_PlanetRepository_Transaction(t *testing.T) {
 	s := RepositoryTransactionTestSuite{
 		dbInteractionTestCases: map[string]dbTransactionInteractionTestCase{
 			"create": {
@@ -241,7 +83,92 @@ func Test_PlanetRepository_Transaction(t *testing.T) {
 					},
 				},
 			},
-
+			"get": {
+				handler: func(ctx context.Context, tx db.Transaction) error {
+					s := NewPlanetRepository(&mockConnectionPool{})
+					_, err := s.Get(ctx, tx, defaultPlanetId)
+					return err
+				},
+				expectedSqlQueries: []string{
+					`
+SELECT
+	p.id,
+	p.player,
+	p.name,
+	CASE
+		WHEN h.planet IS NOT NULL THEN true
+		ELSE false
+	END AS homeworld,
+	p.created_at,
+	p.updated_at
+FROM
+	planet AS p
+	LEFT JOIN homeworld AS h ON h.planet = p.id
+WHERE
+	id = $1
+`,
+				},
+				expectedArguments: [][]interface{}{
+					{
+						defaultPlanetId,
+					},
+				},
+			},
+			"list": {
+				handler: func(ctx context.Context, tx db.Transaction) error {
+					s := NewPlanetRepository(&mockConnectionPool{})
+					_, err := s.List(ctx, tx)
+					return err
+				},
+				expectedSqlQueries: []string{
+					`
+SELECT
+	p.id,
+	p.player,
+	p.name,
+	CASE
+		WHEN h.planet IS NOT NULL THEN true
+		ELSE false
+	END AS homeworld,
+	p.created_at,
+	p.updated_at
+FROM
+	planet AS p
+	LEFT JOIN homeworld AS h ON h.planet = p.id
+`,
+				},
+			},
+			"listForPlayer": {
+				handler: func(ctx context.Context, tx db.Transaction) error {
+					s := NewPlanetRepository(&mockConnectionPool{})
+					_, err := s.ListForPlayer(ctx, tx, defaultPlayerId)
+					return err
+				},
+				expectedSqlQueries: []string{
+					`
+SELECT
+	p.id,
+	p.player,
+	p.name,
+	CASE
+		WHEN h.planet IS NOT NULL THEN true
+		ELSE false
+	END AS homeworld,
+	p.created_at,
+	p.updated_at
+FROM
+	planet AS p
+	LEFT JOIN homeworld AS h ON h.planet = p.id
+WHERE
+	p.player = $1
+`,
+				},
+				expectedArguments: [][]interface{}{
+					{
+						defaultPlayerId,
+					},
+				},
+			},
 			"delete": {
 				sqlMode: ExecBased,
 				generateMock: func() db.Transaction {
@@ -259,6 +186,69 @@ func Test_PlanetRepository_Transaction(t *testing.T) {
 				expectedArguments: [][]interface{}{
 					{
 						defaultPlanetId,
+					},
+				},
+			},
+		},
+
+		dbSingleValueTestCases: map[string]dbTransactionSingleValueTestCase{
+			"get": {
+				handler: func(ctx context.Context, tx db.Transaction) error {
+					repo := NewPlanetRepository(&mockConnectionPool{})
+					_, err := repo.Get(ctx, tx, defaultPlanetId)
+					return err
+				},
+				expectedGetSingleValueCalls: 1,
+				expectedScanCalls:           1,
+				expectedScannedProps: [][]interface{}{
+					{
+						&uuid.UUID{},
+						&uuid.UUID{},
+						&dummyStr,
+						&dummyBool,
+						&time.Time{},
+						&time.Time{},
+					},
+				},
+			},
+		},
+
+		dbGetAllTestCases: map[string]dbTransactionGetAllTestCase{
+			"list": {
+				handler: func(ctx context.Context, tx db.Transaction) error {
+					repo := NewPlanetRepository(&mockConnectionPool{})
+					_, err := repo.List(ctx, tx)
+					return err
+				},
+				expectedGetAllCalls: 1,
+				expectedScanCalls:   1,
+				expectedScannedProps: [][]interface{}{
+					{
+						&uuid.UUID{},
+						&uuid.UUID{},
+						&dummyStr,
+						&dummyBool,
+						&time.Time{},
+						&time.Time{},
+					},
+				},
+			},
+			"listForPlayer": {
+				handler: func(ctx context.Context, tx db.Transaction) error {
+					repo := NewPlanetRepository(&mockConnectionPool{})
+					_, err := repo.ListForPlayer(ctx, tx, defaultPlayerId)
+					return err
+				},
+				expectedGetAllCalls: 1,
+				expectedScanCalls:   1,
+				expectedScannedProps: [][]interface{}{
+					{
+						&uuid.UUID{},
+						&uuid.UUID{},
+						&dummyStr,
+						&dummyBool,
+						&time.Time{},
+						&time.Time{},
 					},
 				},
 			},
