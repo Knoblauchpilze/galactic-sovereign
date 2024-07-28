@@ -141,6 +141,55 @@ func (m *mockPlanetRepository) Delete(ctx context.Context, tx db.Transaction, id
 	return m.err
 }
 
+type mockPlanetResourceRepository struct {
+	repositories.PlanetResourceRepository
+
+	planetResource persistence.PlanetResource
+	err            error
+	updateErr      error
+
+	createCalled          int
+	createdPlanetResource persistence.PlanetResource
+	createForPlanetCalled int
+	createForPlanetId     uuid.UUID
+	listForPlanetId       uuid.UUID
+	listForPlanetCalled   int
+	updateCalled          int
+	updatedPlanetResource persistence.PlanetResource
+	deleteForPlanetCalled int
+	deleteForPlanetId     uuid.UUID
+}
+
+func (m *mockPlanetResourceRepository) Create(ctx context.Context, tx db.Transaction, resource persistence.PlanetResource) (persistence.PlanetResource, error) {
+	m.createCalled++
+	m.createdPlanetResource = resource
+	return m.planetResource, m.err
+}
+
+func (m *mockPlanetResourceRepository) CreateForPlanet(ctx context.Context, tx db.Transaction, planet uuid.UUID) error {
+	m.createForPlanetCalled++
+	m.createForPlanetId = planet
+	return m.err
+}
+
+func (m *mockPlanetResourceRepository) ListForPlanet(ctx context.Context, tx db.Transaction, planet uuid.UUID) ([]persistence.PlanetResource, error) {
+	m.listForPlanetCalled++
+	m.listForPlanetId = planet
+	return []persistence.PlanetResource{m.planetResource}, m.err
+}
+
+func (m *mockPlanetResourceRepository) Update(ctx context.Context, tx db.Transaction, resource persistence.PlanetResource) (persistence.PlanetResource, error) {
+	m.updateCalled++
+	m.updatedPlanetResource = resource
+	return m.updatedPlanetResource, m.updateErr
+}
+
+func (m *mockPlanetResourceRepository) DeleteForPlanet(ctx context.Context, tx db.Transaction, planet uuid.UUID) error {
+	m.deleteForPlanetCalled++
+	m.deleteForPlanetId = planet
+	return m.err
+}
+
 type mockPlayerRepository struct {
 	repositories.PlayerRepository
 

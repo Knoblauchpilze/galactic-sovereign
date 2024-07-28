@@ -46,6 +46,11 @@ func (s *planetServiceImpl) Create(ctx context.Context, planetDto communication.
 		return communication.PlanetDtoResponse{}, err
 	}
 
+	err = s.planetResourceRepo.CreateForPlanet(ctx, tx, createdPlanet.Id)
+	if err != nil {
+		return communication.PlanetDtoResponse{}, err
+	}
+
 	out := communication.ToPlanetDtoResponse(createdPlanet)
 	return out, nil
 }
