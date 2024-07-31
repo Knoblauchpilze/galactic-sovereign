@@ -13,12 +13,12 @@ import (
 func TestLimitDtoRequest_MarshalsToCamelCase(t *testing.T) {
 	assert := assert.New(t)
 
-	u := LimitDtoRequest{
+	dto := LimitDtoRequest{
 		Name:  "my-name",
 		Value: "my-value",
 	}
 
-	out, err := json.Marshal(u)
+	out, err := json.Marshal(dto)
 
 	assert.Nil(err)
 	assert.Equal(`{"name":"my-name","value":"my-value"}`, string(out))
@@ -29,12 +29,12 @@ func TestFromLimitDtoRequest(t *testing.T) {
 
 	beforeConversion := time.Now()
 
-	l := LimitDtoRequest{
+	dto := LimitDtoRequest{
 		Name:  "my-name",
 		Value: "my-value",
 	}
 
-	actual := FromLimitDtoRequest(l)
+	actual := FromLimitDtoRequest(dto)
 
 	assert.Nil(uuid.Validate(actual.Id.String()))
 	assert.Equal("my-name", actual.Name)
@@ -46,7 +46,7 @@ func TestFromLimitDtoRequest(t *testing.T) {
 func TestToLimitDtoResponse(t *testing.T) {
 	assert := assert.New(t)
 
-	l := persistence.Limit{
+	entity := persistence.Limit{
 		Id:    defaultUuid,
 		Name:  "my-name",
 		Value: "my-value",
@@ -55,7 +55,7 @@ func TestToLimitDtoResponse(t *testing.T) {
 		UpdatedAt: someTime,
 	}
 
-	actual := ToLimitDtoResponse(l)
+	actual := ToLimitDtoResponse(entity)
 
 	assert.Equal("my-name", actual.Name)
 	assert.Equal("my-value", actual.Value)
@@ -64,12 +64,12 @@ func TestToLimitDtoResponse(t *testing.T) {
 func TestLimitDtoResponse_MarshalsToCamelCase(t *testing.T) {
 	assert := assert.New(t)
 
-	u := LimitDtoResponse{
+	dto := LimitDtoResponse{
 		Name:  "my-name",
 		Value: "my-value",
 	}
 
-	out, err := json.Marshal(u)
+	out, err := json.Marshal(dto)
 
 	assert.Nil(err)
 	assert.Equal(`{"name":"my-name","value":"my-value"}`, string(out))
@@ -78,7 +78,7 @@ func TestLimitDtoResponse_MarshalsToCamelCase(t *testing.T) {
 func TestUserLimitDtoRequest_MarshalsToCamelCase(t *testing.T) {
 	assert := assert.New(t)
 
-	u := UserLimitDtoRequest{
+	dto := UserLimitDtoRequest{
 		Name: "my-name",
 		User: uuid.MustParse("7aaa145a-5ad8-4d63-be87-177d6abcf1b5"),
 		Limits: []LimitDtoRequest{
@@ -89,7 +89,7 @@ func TestUserLimitDtoRequest_MarshalsToCamelCase(t *testing.T) {
 		},
 	}
 
-	out, err := json.Marshal(u)
+	out, err := json.Marshal(dto)
 
 	assert.Nil(err)
 	assert.Equal(`{"name":"my-name","user":"7aaa145a-5ad8-4d63-be87-177d6abcf1b5","limits":[{"name":"limit","value":"test"}]}`, string(out))
@@ -100,7 +100,7 @@ func TestFromUserLimitDtoRequest(t *testing.T) {
 
 	beforeConversion := time.Now()
 
-	u := UserLimitDtoRequest{
+	dto := UserLimitDtoRequest{
 		Name: "my-name",
 		User: uuid.MustParse("7aaa145a-5ad8-4d63-be87-177d6abcf1b5"),
 		Limits: []LimitDtoRequest{
@@ -111,7 +111,7 @@ func TestFromUserLimitDtoRequest(t *testing.T) {
 		},
 	}
 
-	actual := FromUserLimitDtoRequest(u)
+	actual := FromUserLimitDtoRequest(dto)
 
 	assert.Nil(uuid.Validate(actual.Id.String()))
 	assert.Equal("my-name", actual.Name)
@@ -130,7 +130,7 @@ func TestFromUserLimitDtoRequest(t *testing.T) {
 func TestToUserLimitDtoResponse(t *testing.T) {
 	assert := assert.New(t)
 
-	u := persistence.UserLimit{
+	entity := persistence.UserLimit{
 		Id:   uuid.MustParse("2f3b7c63-5b4a-422a-bd9d-7da0f78b6294"),
 		Name: "my-limit",
 		User: uuid.MustParse("3657b088-ba88-497a-a158-9d6c7faae94f"),
@@ -148,22 +148,22 @@ func TestToUserLimitDtoResponse(t *testing.T) {
 		UpdatedAt: someTime,
 	}
 
-	actual := ToUserLimitDtoResponse(u)
+	actual := ToUserLimitDtoResponse(entity)
 
-	assert.Equal(u.Id, actual.Id)
-	assert.Equal(u.Name, actual.Name)
-	assert.Equal(u.User, actual.User)
-	assert.Equal(u.CreatedAt, actual.CreatedAt)
+	assert.Equal(entity.Id, actual.Id)
+	assert.Equal(entity.Name, actual.Name)
+	assert.Equal(entity.User, actual.User)
+	assert.Equal(entity.CreatedAt, actual.CreatedAt)
 
-	assert.Equal(len(u.Limits), len(actual.Limits))
-	assert.Equal(u.Limits[0].Name, actual.Limits[0].Name)
-	assert.Equal(u.Limits[0].Value, actual.Limits[0].Value)
+	assert.Equal(len(entity.Limits), len(actual.Limits))
+	assert.Equal(entity.Limits[0].Name, actual.Limits[0].Name)
+	assert.Equal(entity.Limits[0].Value, actual.Limits[0].Value)
 }
 
 func TestUserLimitDtoResponse_MarshalsToCamelCase(t *testing.T) {
 	assert := assert.New(t)
 
-	u := UserLimitDtoResponse{
+	dto := UserLimitDtoResponse{
 		Id:        uuid.MustParse("2f3b7c63-5b4a-422a-bd9d-7da0f78b6294"),
 		Name:      "my-limit",
 		User:      uuid.MustParse("3657b088-ba88-497a-a158-9d6c7faae94f"),
@@ -176,7 +176,7 @@ func TestUserLimitDtoResponse_MarshalsToCamelCase(t *testing.T) {
 		},
 	}
 
-	out, err := json.Marshal(u)
+	out, err := json.Marshal(dto)
 
 	assert.Nil(err)
 	assert.Equal(`{"id":"2f3b7c63-5b4a-422a-bd9d-7da0f78b6294","name":"my-limit","user":"3657b088-ba88-497a-a158-9d6c7faae94f","limits":[{"name":"limit-1","value":"my-value"}],"createdAt":"2024-05-05T20:50:18.651387237Z"}`, string(out))

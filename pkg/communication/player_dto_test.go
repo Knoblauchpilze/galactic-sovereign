@@ -15,13 +15,13 @@ var defaultUniverse = uuid.MustParse("06fedf46-80ed-4188-b94c-ed0a494ec7bd")
 func TestPlayerDtoRequest_MarshalsToCamelCase(t *testing.T) {
 	assert := assert.New(t)
 
-	p := PlayerDtoRequest{
+	dto := PlayerDtoRequest{
 		ApiUser:  defaultUser,
 		Universe: defaultUniverse,
 		Name:     "my-player",
 	}
 
-	out, err := json.Marshal(p)
+	out, err := json.Marshal(dto)
 
 	assert.Nil(err)
 	assert.Equal(`{"api_user":"c74a22da-8a05-43a9-a8b9-717e422b0af4","universe":"06fedf46-80ed-4188-b94c-ed0a494ec7bd","name":"my-player"}`, string(out))
@@ -32,13 +32,13 @@ func TestFromPlayerDtoRequest(t *testing.T) {
 
 	beforeConversion := time.Now()
 
-	p := PlayerDtoRequest{
+	dto := PlayerDtoRequest{
 		ApiUser:  defaultUser,
 		Universe: defaultUniverse,
 		Name:     "my-player",
 	}
 
-	actual := FromPlayerDtoRequest(p)
+	actual := FromPlayerDtoRequest(dto)
 
 	assert.Nil(uuid.Validate(actual.Id.String()))
 	assert.Equal(defaultUser, actual.ApiUser)
@@ -51,7 +51,7 @@ func TestFromPlayerDtoRequest(t *testing.T) {
 func TestToPlayerDtoResponse(t *testing.T) {
 	assert := assert.New(t)
 
-	p := persistence.Player{
+	entity := persistence.Player{
 		Id:       defaultUuid,
 		ApiUser:  defaultUser,
 		Universe: defaultUniverse,
@@ -60,7 +60,7 @@ func TestToPlayerDtoResponse(t *testing.T) {
 		CreatedAt: someTime,
 	}
 
-	actual := ToPlayerDtoResponse(p)
+	actual := ToPlayerDtoResponse(entity)
 
 	assert.Equal(defaultUuid, actual.Id)
 	assert.Equal(defaultUser, actual.ApiUser)
@@ -72,7 +72,7 @@ func TestToPlayerDtoResponse(t *testing.T) {
 func TestPlayerDtoResponse_MarshalsToCamelCase(t *testing.T) {
 	assert := assert.New(t)
 
-	p := PlayerDtoResponse{
+	dto := PlayerDtoResponse{
 		Id:       defaultUuid,
 		ApiUser:  defaultUser,
 		Universe: defaultUniverse,
@@ -81,7 +81,7 @@ func TestPlayerDtoResponse_MarshalsToCamelCase(t *testing.T) {
 		CreatedAt: someTime,
 	}
 
-	out, err := json.Marshal(p)
+	out, err := json.Marshal(dto)
 
 	assert.Nil(err)
 	assert.Equal(`{"id":"08ce96a3-3430-48a8-a3b2-b1c987a207ca","api_user":"c74a22da-8a05-43a9-a8b9-717e422b0af4","universe":"06fedf46-80ed-4188-b94c-ed0a494ec7bd","name":"my-player","createdAt":"2024-05-05T20:50:18.651387237Z"}`, string(out))

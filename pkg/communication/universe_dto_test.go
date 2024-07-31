@@ -13,11 +13,11 @@ import (
 func TestUniverseDtoRequest_MarshalsToCamelCase(t *testing.T) {
 	assert := assert.New(t)
 
-	u := UniverseDtoRequest{
+	dto := UniverseDtoRequest{
 		Name: "my-universe",
 	}
 
-	out, err := json.Marshal(u)
+	out, err := json.Marshal(dto)
 
 	assert.Nil(err)
 	assert.Equal(`{"name":"my-universe"}`, string(out))
@@ -28,11 +28,11 @@ func TestFromUniverseDtoRequest(t *testing.T) {
 
 	beforeConversion := time.Now()
 
-	u := UniverseDtoRequest{
+	dto := UniverseDtoRequest{
 		Name: "my-universe",
 	}
 
-	actual := FromUniverseDtoRequest(u)
+	actual := FromUniverseDtoRequest(dto)
 
 	assert.Nil(uuid.Validate(actual.Id.String()))
 	assert.Equal("my-universe", actual.Name)
@@ -43,14 +43,14 @@ func TestFromUniverseDtoRequest(t *testing.T) {
 func TestToUniverseDtoResponse(t *testing.T) {
 	assert := assert.New(t)
 
-	u := persistence.Universe{
+	entity := persistence.Universe{
 		Id:   defaultUuid,
 		Name: "my-universe",
 
 		CreatedAt: someTime,
 	}
 
-	actual := ToUniverseDtoResponse(u)
+	actual := ToUniverseDtoResponse(entity)
 
 	assert.Equal(defaultUuid, actual.Id)
 	assert.Equal("my-universe", actual.Name)
@@ -60,13 +60,13 @@ func TestToUniverseDtoResponse(t *testing.T) {
 func TestUniverseDtoResponse_MarshalsToCamelCase(t *testing.T) {
 	assert := assert.New(t)
 
-	u := UniverseDtoResponse{
+	dto := UniverseDtoResponse{
 		Id:        defaultUuid,
 		Name:      "my-universe",
 		CreatedAt: someTime,
 	}
 
-	out, err := json.Marshal(u)
+	out, err := json.Marshal(dto)
 
 	assert.Nil(err)
 	assert.Equal(`{"id":"08ce96a3-3430-48a8-a3b2-b1c987a207ca","name":"my-universe","createdAt":"2024-05-05T20:50:18.651387237Z"}`, string(out))

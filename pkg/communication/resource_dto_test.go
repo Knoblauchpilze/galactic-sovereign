@@ -11,14 +11,14 @@ import (
 func TestToResourceDtoResponse(t *testing.T) {
 	assert := assert.New(t)
 
-	r := persistence.Resource{
+	entity := persistence.Resource{
 		Id:   defaultUuid,
 		Name: "my-resource",
 
 		CreatedAt: someTime,
 	}
 
-	actual := ToResourceDtoResponse(r)
+	actual := ToResourceDtoResponse(entity)
 
 	assert.Equal(defaultUuid, actual.Id)
 	assert.Equal("my-resource", actual.Name)
@@ -28,13 +28,13 @@ func TestToResourceDtoResponse(t *testing.T) {
 func TestResourceDtoResponse_MarshalsToCamelCase(t *testing.T) {
 	assert := assert.New(t)
 
-	u := ResourceDtoResponse{
+	dto := ResourceDtoResponse{
 		Id:        defaultUuid,
 		Name:      "my-resource",
 		CreatedAt: someTime,
 	}
 
-	out, err := json.Marshal(u)
+	out, err := json.Marshal(dto)
 
 	assert.Nil(err)
 	assert.Equal(`{"id":"08ce96a3-3430-48a8-a3b2-b1c987a207ca","name":"my-resource","createdAt":"2024-05-05T20:50:18.651387237Z"}`, string(out))
