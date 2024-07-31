@@ -21,7 +21,7 @@ import (
 )
 
 type mockPlanetService struct {
-	planets []communication.PlanetDtoResponse
+	planets []communication.FullPlanetDtoResponse
 	err     error
 
 	createCalled        int
@@ -35,6 +35,8 @@ type mockPlanetService struct {
 	inPlayerId uuid.UUID
 }
 
+var defaultPlanetId = uuid.MustParse("080f5a2b-800a-458d-9806-7660bde4db00")
+var defaultResourceId = uuid.MustParse("84e01480-5433-4ebe-a078-7e1cd18c86c4")
 var defaultPlanetDtoRequest = communication.PlanetDtoRequest{
 	Player: defaultPlayerId,
 	Name:   "my-planet",
@@ -45,6 +47,20 @@ var defaultPlanetDtoResponse = communication.PlanetDtoResponse{
 	Name:   "my-planet",
 
 	CreatedAt: time.Date(2024, 07, 13, 10, 53, 10, 651387238, time.UTC),
+}
+var defaultPlanetResourceDtoResponse = communication.PlanetResourceDtoResponse{
+	Planet:   defaultPlanetId,
+	Resource: defaultResourceId,
+	Amount:   654.321,
+
+	CreatedAt: time.Date(2024, 07, 31, 18, 10, 30, 651387238, time.UTC),
+	UpdatedAt: time.Date(2024, 07, 31, 18, 10, 59, 651387238, time.UTC),
+}
+var defaultFullPlanetDtoResponse = communication.FullPlanetDtoResponse{
+	PlanetDtoResponse: defaultPlanetDtoResponse,
+	Resources: []communication.PlanetResourceDtoResponse{
+		defaultPlanetResourceDtoResponse,
+	},
 }
 
 func TestPlanetEndpoints_GeneratesExpectedRoutes(t *testing.T) {
@@ -178,12 +194,12 @@ func Test_PlanetController(t *testing.T) {
 				req:             httptest.NewRequest(http.MethodGet, "/", nil),
 				idAsRouteParam:  true,
 				handler:         getPlanet,
-				expectedContent: defaultPlanetDtoResponse,
+				expectedContent: defaultFullPlanetDtoResponse,
 			},
 			"listPlanets": {
 				req:             httptest.NewRequest(http.MethodGet, "/", nil),
 				handler:         listPlanets,
-				expectedContent: []communication.PlanetDtoResponse{defaultPlanetDtoResponse},
+				expectedContent: []communication.FullPlanetDtoResponse{defaultFullPlanetDtoResponse},
 			},
 			"listPlanets_noData": {
 				req: httptest.NewRequest(http.MethodGet, "/", nil),
@@ -194,7 +210,7 @@ func Test_PlanetController(t *testing.T) {
 				},
 
 				handler:         listPlanets,
-				expectedContent: []communication.PlanetDtoResponse{},
+				expectedContent: []communication.FullPlanetDtoResponse{},
 			},
 		},
 
@@ -269,7 +285,7 @@ func generatePlanetServiceMock(err error) service.PlanetService {
 
 func generateValidPlanetServiceMock() service.PlanetService {
 	return &mockPlanetService{
-		planets: []communication.PlanetDtoResponse{defaultPlanetDtoResponse},
+		planets: []communication.FullPlanetDtoResponse{defaultFullPlanetDtoResponse},
 	}
 }
 
@@ -306,30 +322,30 @@ func (m *mockPlanetService) Create(ctx context.Context, planet communication.Pla
 	m.createCalled++
 	m.inPlanet = planet
 
-	var out communication.PlanetDtoResponse
+	var out communication.FullPlanetDtoResponse
 	if m.planets != nil {
 		out = m.planets[0]
 	}
-	return out, m.err
+	return out.PlanetDtoResponse, m.err
 }
 
-func (m *mockPlanetService) Get(ctx context.Context, id uuid.UUID) (communication.PlanetDtoResponse, error) {
+func (m *mockPlanetService) Get(ctx context.Context, id uuid.UUID) (communication.FullPlanetDtoResponse, error) {
 	m.getCalled++
 	m.inId = id
 
-	var out communication.PlanetDtoResponse
+	var out communication.FullPlanetDtoResponse
 	if m.planets != nil {
 		out = m.planets[0]
 	}
 	return out, m.err
 }
 
-func (m *mockPlanetService) List(ctx context.Context) ([]communication.PlanetDtoResponse, error) {
+func (m *mockPlanetService) List(ctx context.Context) ([]communication.FullPlanetDtoResponse, error) {
 	m.listCalled++
 	return m.planets, m.err
 }
 
-func (m *mockPlanetService) ListForPlayer(ctx context.Context, player uuid.UUID) ([]communication.PlanetDtoResponse, error) {
+func (m *mockPlanetService) ListForPlayer(ctx context.Context, player uuid.UUID) ([]communication.FullPlanetDtoResponse, error) {
 	m.listForPlayerCalled++
 	m.inPlayerId = player
 	return m.planets, m.err

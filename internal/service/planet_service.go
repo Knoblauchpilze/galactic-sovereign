@@ -11,9 +11,9 @@ import (
 
 type PlanetService interface {
 	Create(ctx context.Context, planetDto communication.PlanetDtoRequest) (communication.PlanetDtoResponse, error)
-	Get(ctx context.Context, id uuid.UUID) (communication.PlanetDtoResponse, error)
-	List(ctx context.Context) ([]communication.PlanetDtoResponse, error)
-	ListForPlayer(ctx context.Context, player uuid.UUID) ([]communication.PlanetDtoResponse, error)
+	Get(ctx context.Context, id uuid.UUID) (communication.FullPlanetDtoResponse, error)
+	List(ctx context.Context) ([]communication.FullPlanetDtoResponse, error)
+	ListForPlayer(ctx context.Context, player uuid.UUID) ([]communication.FullPlanetDtoResponse, error)
 	Delete(ctx context.Context, id uuid.UUID) error
 }
 
@@ -50,58 +50,76 @@ func (s *planetServiceImpl) Create(ctx context.Context, planetDto communication.
 	return out, nil
 }
 
-func (s *planetServiceImpl) Get(ctx context.Context, id uuid.UUID) (communication.PlanetDtoResponse, error) {
+func (s *planetServiceImpl) Get(ctx context.Context, id uuid.UUID) (communication.FullPlanetDtoResponse, error) {
 	tx, err := s.conn.StartTransaction(ctx)
 	if err != nil {
-		return communication.PlanetDtoResponse{}, err
+		return communication.FullPlanetDtoResponse{}, err
 	}
 	defer tx.Close(ctx)
 
 	planet, err := s.planetRepo.Get(ctx, tx, id)
 	if err != nil {
-		return communication.PlanetDtoResponse{}, err
+		return communication.FullPlanetDtoResponse{}, err
 	}
 
-	out := communication.ToPlanetDtoResponse(planet)
+	resources, err := s.planetResourceRepo.ListForPlanet(ctx, tx, planet.Id)
+	if err != nil {
+		return communication.FullPlanetDtoResponse{}, err
+	}
+
+	out := communication.ToFullPlanetDtoResponse(planet, resources)
+
 	return out, nil
 }
 
-func (s *planetServiceImpl) List(ctx context.Context) ([]communication.PlanetDtoResponse, error) {
+func (s *planetServiceImpl) List(ctx context.Context) ([]communication.FullPlanetDtoResponse, error) {
 	tx, err := s.conn.StartTransaction(ctx)
 	if err != nil {
-		return []communication.PlanetDtoResponse{}, err
+		return []communication.FullPlanetDtoResponse{}, err
 	}
 	defer tx.Close(ctx)
 
 	planets, err := s.planetRepo.List(ctx, tx)
 	if err != nil {
-		return []communication.PlanetDtoResponse{}, err
+		return []communication.FullPlanetDtoResponse{}, err
 	}
 
-	var out []communication.PlanetDtoResponse
+	var out []communication.FullPlanetDtoResponse
 	for _, planet := range planets {
-		dto := communication.ToPlanetDtoResponse(planet)
+		resources, err := s.planetResourceRepo.ListForPlanet(ctx, tx, planet.Id)
+		if err != nil {
+			return []communication.FullPlanetDtoResponse{}, err
+		}
+
+		dto := communication.ToFullPlanetDtoResponse(planet, resources)
+
 		out = append(out, dto)
 	}
 
 	return out, nil
 }
 
-func (s *planetServiceImpl) ListForPlayer(ctx context.Context, player uuid.UUID) ([]communication.PlanetDtoResponse, error) {
+func (s *planetServiceImpl) ListForPlayer(ctx context.Context, player uuid.UUID) ([]communication.FullPlanetDtoResponse, error) {
 	tx, err := s.conn.StartTransaction(ctx)
 	if err != nil {
-		return []communication.PlanetDtoResponse{}, err
+		return []communication.FullPlanetDtoResponse{}, err
 	}
 	defer tx.Close(ctx)
 
 	planets, err := s.planetRepo.ListForPlayer(ctx, tx, player)
 	if err != nil {
-		return []communication.PlanetDtoResponse{}, err
+		return []communication.FullPlanetDtoResponse{}, err
 	}
 
-	var out []communication.PlanetDtoResponse
+	var out []communication.FullPlanetDtoResponse
 	for _, planet := range planets {
-		dto := communication.ToPlanetDtoResponse(planet)
+		resources, err := s.planetResourceRepo.ListForPlanet(ctx, tx, planet.Id)
+		if err != nil {
+			return []communication.FullPlanetDtoResponse{}, err
+		}
+
+		dto := communication.ToFullPlanetDtoResponse(planet, resources)
+
 		out = append(out, dto)
 	}
 
