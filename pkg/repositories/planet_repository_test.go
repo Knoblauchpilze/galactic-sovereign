@@ -296,6 +296,24 @@ WHERE
 		},
 
 		dbErrorTestCases: map[string]dbTransactionErrorTestCase{
+			"create_homeworld": {
+				generateMock: func() db.Transaction {
+					return &mockTransaction{
+						execErrs: []error{
+							nil,
+							errDefault,
+						},
+					}
+				},
+				handler: func(ctx context.Context, tx db.Transaction) error {
+					s := NewPlanetRepository(&mockConnectionPool{})
+					_, err := s.Create(ctx, tx, defaultPlanet)
+					return err
+				},
+				verifyError: func(err error, assert *require.Assertions) {
+					assert.Equal(errDefault, err)
+				},
+			},
 			"delete_noRowsAffected": {
 				generateMock: func() db.Transaction {
 					return &mockTransaction{
