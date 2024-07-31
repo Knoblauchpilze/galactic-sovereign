@@ -13,7 +13,7 @@ import (
 func TestAclDtoRequest_MarshalsToCamelCase(t *testing.T) {
 	assert := assert.New(t)
 
-	a := AclDtoRequest{
+	dto := AclDtoRequest{
 		User: defaultUser,
 
 		Resource: "my-resource",
@@ -23,7 +23,7 @@ func TestAclDtoRequest_MarshalsToCamelCase(t *testing.T) {
 		},
 	}
 
-	out, err := json.Marshal(a)
+	out, err := json.Marshal(dto)
 
 	assert.Nil(err)
 	assert.Equal(`{"user":"c74a22da-8a05-43a9-a8b9-717e422b0af4","resource":"my-resource","permissions":["permission-1","permission-2"]}`, string(out))
@@ -34,7 +34,7 @@ func TestFromAclDtoRequest(t *testing.T) {
 
 	beforeConversion := time.Now()
 
-	a := AclDtoRequest{
+	dto := AclDtoRequest{
 		User: defaultUser,
 
 		Resource: "my-resource",
@@ -44,7 +44,7 @@ func TestFromAclDtoRequest(t *testing.T) {
 		},
 	}
 
-	actual := FromAclDtoRequest(a)
+	actual := FromAclDtoRequest(dto)
 
 	assert.Nil(uuid.Validate(actual.Id.String()))
 	assert.Equal(defaultUser, actual.User)
@@ -57,7 +57,7 @@ func TestFromAclDtoRequest(t *testing.T) {
 func TestToAclDtoResponse(t *testing.T) {
 	assert := assert.New(t)
 
-	a := persistence.Acl{
+	entity := persistence.Acl{
 		Id:   defaultUuid,
 		User: defaultUser,
 
@@ -71,7 +71,7 @@ func TestToAclDtoResponse(t *testing.T) {
 		UpdatedAt: someTime,
 	}
 
-	actual := ToAclDtoResponse(a)
+	actual := ToAclDtoResponse(entity)
 
 	assert.Equal(defaultUuid, actual.Id)
 	assert.Equal(defaultUser, actual.User)
@@ -85,7 +85,7 @@ func TestToAclDtoResponse(t *testing.T) {
 func TestAclDtoResponse_MarshalsToCamelCase(t *testing.T) {
 	assert := assert.New(t)
 
-	a := AclDtoResponse{
+	dto := AclDtoResponse{
 		Id:   defaultUuid,
 		User: defaultUser,
 
@@ -98,7 +98,7 @@ func TestAclDtoResponse_MarshalsToCamelCase(t *testing.T) {
 		CreatedAt: someTime,
 	}
 
-	out, err := json.Marshal(a)
+	out, err := json.Marshal(dto)
 
 	assert.Nil(err)
 	assert.Equal(`{"id":"08ce96a3-3430-48a8-a3b2-b1c987a207ca","user":"c74a22da-8a05-43a9-a8b9-717e422b0af4","resource":"some-resource","permissions":["my-permission","another-permission"],"createdAt":"2024-05-05T20:50:18.651387237Z"}`, string(out))

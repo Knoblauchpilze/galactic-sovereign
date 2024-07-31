@@ -16,12 +16,12 @@ var someTime = time.Date(2024, 05, 05, 20, 50, 18, 651387237, time.UTC)
 func TestUserDtoRequest_MarshalsToCamelCase(t *testing.T) {
 	assert := assert.New(t)
 
-	u := UserDtoRequest{
+	dto := UserDtoRequest{
 		Email:    "some@e.mail",
 		Password: "secret",
 	}
 
-	out, err := json.Marshal(u)
+	out, err := json.Marshal(dto)
 
 	assert.Nil(err)
 	assert.Equal(`{"email":"some@e.mail","password":"secret"}`, string(out))
@@ -32,12 +32,12 @@ func TestFromUserDtoRequest(t *testing.T) {
 
 	beforeConversion := time.Now()
 
-	u := UserDtoRequest{
+	dto := UserDtoRequest{
 		Email:    "email",
 		Password: "password",
 	}
 
-	actual := FromUserDtoRequest(u)
+	actual := FromUserDtoRequest(dto)
 
 	assert.Nil(uuid.Validate(actual.Id.String()))
 	assert.Equal("email", actual.Email)
@@ -49,7 +49,7 @@ func TestFromUserDtoRequest(t *testing.T) {
 func TestToUserDtoResponse(t *testing.T) {
 	assert := assert.New(t)
 
-	u := persistence.User{
+	entity := persistence.User{
 		Id:       defaultUuid,
 		Email:    "email",
 		Password: "password",
@@ -57,7 +57,7 @@ func TestToUserDtoResponse(t *testing.T) {
 		CreatedAt: someTime,
 	}
 
-	actual := ToUserDtoResponse(u)
+	actual := ToUserDtoResponse(entity)
 
 	assert.Equal(defaultUuid, actual.Id)
 	assert.Equal("email", actual.Email)
@@ -68,14 +68,14 @@ func TestToUserDtoResponse(t *testing.T) {
 func TestUserDtoResponse_MarshalsToCamelCase(t *testing.T) {
 	assert := assert.New(t)
 
-	u := UserDtoResponse{
+	dto := UserDtoResponse{
 		Id:        defaultUuid,
 		Email:     "some@e.mail",
 		Password:  "secret",
 		CreatedAt: someTime,
 	}
 
-	out, err := json.Marshal(u)
+	out, err := json.Marshal(dto)
 
 	assert.Nil(err)
 	assert.Equal(`{"id":"08ce96a3-3430-48a8-a3b2-b1c987a207ca","email":"some@e.mail","password":"secret","createdAt":"2024-05-05T20:50:18.651387237Z"}`, string(out))

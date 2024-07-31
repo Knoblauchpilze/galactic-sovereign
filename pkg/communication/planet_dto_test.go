@@ -11,16 +11,31 @@ import (
 )
 
 var defaultPlayer = uuid.MustParse("efc01287-830f-4b95-8b26-3deff7135f2d")
+var defaultPlanet = persistence.Planet{
+	Id:        defaultUuid,
+	Player:    defaultPlayer,
+	Name:      "my-player",
+	Homeworld: true,
+
+	CreatedAt: someTime,
+}
+var defaultPlanetDtoResponse = PlanetDtoResponse{
+	Id:        defaultUuid,
+	Player:    defaultPlayer,
+	Name:      "my-planet",
+	Homeworld: true,
+	CreatedAt: someTime,
+}
 
 func TestPlanetDtoRequest_MarshalsToCamelCase(t *testing.T) {
 	assert := assert.New(t)
 
-	p := PlanetDtoRequest{
+	dto := PlanetDtoRequest{
 		Player: defaultPlayer,
 		Name:   "my-planet",
 	}
 
-	out, err := json.Marshal(p)
+	out, err := json.Marshal(dto)
 
 	assert.Nil(err)
 	assert.Equal(`{"player":"efc01287-830f-4b95-8b26-3deff7135f2d","name":"my-planet"}`, string(out))
@@ -31,12 +46,12 @@ func TestFromPlanetDtoRequest(t *testing.T) {
 
 	beforeConversion := time.Now()
 
-	p := PlanetDtoRequest{
+	dto := PlanetDtoRequest{
 		Player: defaultPlayer,
 		Name:   "my-planet",
 	}
 
-	actual := FromPlanetDtoRequest(p)
+	actual := FromPlanetDtoRequest(dto)
 
 	assert.Nil(uuid.Validate(actual.Id.String()))
 	assert.Equal(defaultPlayer, actual.Player)
@@ -49,16 +64,7 @@ func TestFromPlanetDtoRequest(t *testing.T) {
 func TestToPlanetDtoResponse(t *testing.T) {
 	assert := assert.New(t)
 
-	p := persistence.Planet{
-		Id:        defaultUuid,
-		Player:    defaultPlayer,
-		Name:      "my-player",
-		Homeworld: true,
-
-		CreatedAt: someTime,
-	}
-
-	actual := ToPlanetDtoResponse(p)
+	actual := ToPlanetDtoResponse(defaultPlanet)
 
 	assert.Equal(defaultUuid, actual.Id)
 	assert.Equal(defaultPlayer, actual.Player)
@@ -70,15 +76,7 @@ func TestToPlanetDtoResponse(t *testing.T) {
 func TestPlanetDtoResponse_MarshalsToCamelCase(t *testing.T) {
 	assert := assert.New(t)
 
-	u := PlanetDtoResponse{
-		Id:        defaultUuid,
-		Player:    defaultPlayer,
-		Name:      "my-planet",
-		Homeworld: true,
-		CreatedAt: someTime,
-	}
-
-	out, err := json.Marshal(u)
+	out, err := json.Marshal(defaultPlanetDtoResponse)
 
 	assert.Nil(err)
 	assert.Equal(`{"id":"08ce96a3-3430-48a8-a3b2-b1c987a207ca","player":"efc01287-830f-4b95-8b26-3deff7135f2d","name":"my-planet","homeworld":true,"createdAt":"2024-05-05T20:50:18.651387237Z"}`, string(out))
