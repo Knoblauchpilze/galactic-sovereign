@@ -1,6 +1,13 @@
-<div class="hero-image">
-	<div class="hero-panel">
-		<slot></slot>
+<script>
+	const width = 'w-3/5';
+	const height = 'h-4/5';
+	const bgImage = 'bg-homepage';
+</script>
+
+<!-- https://stackoverflow.com/questions/70805041/background-image-in-tailwindcss-using-dynamic-url-react-js -->
+<div  class="relative h-full bg-center bg-no-repeat bg-cover {bgImage}">
+	<div class="flex flex-col items-center justify-around absolute left-1/2 top-1/2 {width} {height} -translate-x-1/2 -translate-y-1/2 bg-[#0005]">
+		<slot/>
 	</div>
 </div>
 
@@ -13,34 +20,5 @@
 	:global(body) {
 		margin: 0;
 		padding: 0;
-	}
-
-	.hero-image {
-		background-image: url('$lib/assets/background.webp');
-
-		height: 100%;
-
-		background-position: center;
-		background-repeat: no-repeat;
-		background-size: cover;
-		position: relative;
-	}
-
-	.hero-panel {
-		text-align: center;
-
-		position: absolute;
-		top: 50%;
-		left: 50%;
-		transform: translate(-50%, -50%);
-
-		width: 60%;
-		height: 80%;
-
-		display: flex;
-		flex-direction: column;
-		justify-content: space-around;
-
-		background-color: #0005;
 	}
 </style>
