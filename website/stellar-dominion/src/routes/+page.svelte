@@ -1,37 +1,16 @@
-<div>
-	<h1>Stellar Dominion</h1>
-	<p>Battle for the galaxy</p>
-</div>
+<script>
+	import '../app.css';
+	import { CenteredWrapper, StyledLink, StyledText, StyledTitle } from '$lib/components';
+</script>
 
-<div>
-	<a class="action-button" href="/login">Login</a>
-</div>
-<div>
-	<a class="action-button" href="/signup">Sign up</a>
-</div>
+<CenteredWrapper width="w-4/5" height="h-3/5">
+	<StyledTitle text="Stellar Dominion" />
+	<StyledText text="Battle for the galaxy" />
 
-<style>
-	h1,
-	p {
-		font-weight: bold;
-		font-style: italic;
+	<CenteredWrapper>
+		<!-- https://svelte.dev/docs/component-directives -->
+		<StyledLink link="/login" text="Login" />
 
-		color: #b87333;
-	}
-
-	.action-button {
-		padding: 1em 3em;
-		border-radius: 8px;
-
-		color: #b87333;
-		background-color: #263037;
-	}
-
-	.action-button:hover {
-		padding: 1em 3em;
-		border-radius: 8px;
-
-		color: #b87333;
-		background-color: #36454f;
-	}
-</style>
+		<StyledLink link="/signup" text="Sign up" />
+	</CenteredWrapper>
+</CenteredWrapper>
