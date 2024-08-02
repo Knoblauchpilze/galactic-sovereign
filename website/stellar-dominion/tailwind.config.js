@@ -8,7 +8,8 @@ export default {
 				'primary-hover': '#36454f',
 				secondary: '#b87333',
 				'secondary-hover': '#fff',
-				error: '#d92d0f'
+				error: '#d92d0f',
+				overlay: '#0005'
 			},
 			backgroundImage: {
 				homepage: "url('$lib/assets/background.webp')",
