@@ -3,7 +3,7 @@ name: Build and push user-dashboard docker image
 on:
   push:
     paths:
-      - "website/user-dashboard"
+      - "website/user-dashboard/**"
       - "build/user-dashboard/Dockerfile"
       - ".github/workflows/user-dashboard*.yml"
       - ".github/workflows/services*.yml"
