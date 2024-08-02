@@ -1,7 +1,7 @@
 <!-- https://svelte.dev/docs/svelte-components -->
 <script lang="ts">
-	export let link: string = "/";
 	export let text: string = "Home";
+	export let link: string = "/";
 	export let showAsButton: boolean = false;
 </script>
 
