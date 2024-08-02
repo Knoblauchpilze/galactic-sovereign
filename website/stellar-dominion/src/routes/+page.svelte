@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 	import '$styles/app.css';
 	import { CenteredWrapper, StyledLink, StyledText, StyledTitle } from '$lib/components';
 </script>

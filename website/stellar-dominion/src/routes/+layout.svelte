@@ -1,7 +1,7 @@
-<script>
-	const width = 'w-3/5';
-	const height = 'h-4/5';
-	const bgImage = 'bg-homepage';
+<script lang="ts">
+	const width: string = 'w-3/5';
+	const height: string = 'h-4/5';
+	const bgImage: string = 'bg-homepage';
 </script>
 
 <!-- https://stackoverflow.com/questions/70805041/background-image-in-tailwindcss-using-dynamic-url-react-js -->

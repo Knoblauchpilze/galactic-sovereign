@@ -7,6 +7,7 @@ export default {
 				primary: '#263037',
 				'primary-hover': '#36454f',
 				secondary: '#b87333',
+				'secondary-hover': '#fff',
 				error: '#d92d0f'
 			},
 			backgroundImage: {
