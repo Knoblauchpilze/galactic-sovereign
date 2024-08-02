@@ -19,5 +19,5 @@
 		</tr>
 	</table>
 
-	<StyledLink link="/" text="Back to safety" showAsButton={true} />
+	<StyledLink text="Back to safety" link="/" showAsButton={true} />
 </CenteredWrapper>

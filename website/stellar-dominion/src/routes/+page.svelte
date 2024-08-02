@@ -9,8 +9,8 @@
 
 	<CenteredWrapper>
 		<!-- https://svelte.dev/docs/component-directives -->
-		<StyledLink link="/login" text="Login" showAsButton={true} />
+		<StyledLink text="Login" link="/login" showAsButton={true} />
 
-		<StyledLink link="/signup" text="Sign up" showAsButton={true} />
+		<StyledLink text="Sign up" link="/signup" showAsButton={true} />
 	</CenteredWrapper>
 </CenteredWrapper>
