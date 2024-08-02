@@ -1,6 +1,6 @@
-<script>
-  export let width = 'w-full';
-  export let height = 'h-full';
+<script lang="ts">
+	export let width: string = 'w-full';
+	export let height: string = 'h-full';
 </script>
 
 <!-- https://stackoverflow.com/questions/67852559/pass-svelte-component-as-props -->
