@@ -39,7 +39,7 @@ export async function load({ cookies }) {
 
 /** @type {import('./$types').Actions} */
 export const actions = {
-	logout: async ({ cookies, request }) => {
+	logout: async ({ cookies }) => {
 		const apiKey = cookies.get('api-key');
 		if (!apiKey) {
 			redirect(303, '/dashboard/login');
