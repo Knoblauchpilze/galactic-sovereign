@@ -1,5 +1,5 @@
 <script>
-	import '../app.css';
+	import '$styles/app.css';
 	import { CenteredWrapper, StyledLink, StyledText, StyledTitle } from '$lib/components';
 </script>
 
