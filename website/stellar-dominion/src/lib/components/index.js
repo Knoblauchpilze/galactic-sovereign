@@ -8,3 +8,5 @@ export { default as StyledText } from './StyledText.svelte';
 export { default as CenteredWrapper } from './CenteredWrapper.svelte';
 export { default as FormField } from './FormField.svelte';
 export { default as HeroContainer } from './HeroContainer.svelte';
+export { default as Header } from './Header.svelte';
+export { default as Footer } from './Footer.svelte';
