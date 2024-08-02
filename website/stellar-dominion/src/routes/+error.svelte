@@ -1,5 +1,5 @@
 <script lang="ts">
-	import '../app.css';
+	import '$styles/app.css';
 	import { page } from '$app/stores';
 	import { CenteredWrapper, StyledLink, StyledTitle } from '$lib/components';
 
