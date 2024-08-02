@@ -1,6 +1,6 @@
 <script lang="ts">
 	import '$styles/app.css';
-	import { CenteredWrapper, StyledText, StyledTitle } from '$lib/components';
+	import { CenteredWrapper, Header, StyledText, StyledTitle } from '$lib/components';
 
 	import heroImage from '$lib/stores/heroImage';
 	import heroContainer from '$lib/stores/heroContainer';
@@ -22,6 +22,12 @@
 </script>
 
 <CenteredWrapper width='w-4/5' height='h-4/5' bgColor='bg-overlay'>
+	<Header>
+		<form method="POST" action="?/logout">
+			<button class="hover:underline">Logout</button>
+		</form>
+	</Header>
+
 	<StyledTitle text="Welcome to {name}!" />
 	<StyledText text="Your id is {id}, and you are in the empire of {player}" />
 	<StyledText text="This page will soon contain more information!" />
