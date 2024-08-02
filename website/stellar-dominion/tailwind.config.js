@@ -11,7 +11,8 @@ export default {
 				error: '#d92d0f'
 			},
 			backgroundImage: {
-				homepage: "url('$lib/assets/background.webp')"
+				homepage: "url('$lib/assets/background.webp')",
+				overview: "url('$lib/assets/overview.webp')"
 			}
 		}
 	},

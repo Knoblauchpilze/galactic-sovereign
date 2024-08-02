@@ -7,3 +7,4 @@ export { default as StyledText } from './StyledText.svelte';
 
 export { default as CenteredWrapper } from './CenteredWrapper.svelte';
 export { default as FormField } from './FormField.svelte';
+export { default as HeroContainer } from './HeroContainer.svelte';
