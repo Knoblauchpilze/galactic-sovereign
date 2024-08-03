@@ -201,8 +201,8 @@ func Test_UniverseController(t *testing.T) {
 				req:     generateTestRequestWithDefaultUniverseBody(http.MethodPost),
 				handler: createUniverse,
 
-				verifyInteractions: func(us service.UniverseService, assert *require.Assertions) {
-					m := assertUniverseServiceIsAMock(us, assert)
+				verifyInteractions: func(s service.UniverseService, assert *require.Assertions) {
+					m := assertUniverseServiceIsAMock(s, assert)
 
 					assert.Equal(1, m.createCalled)
 					assert.Equal(defaultUniverseDtoRequest, m.inUniverse)
@@ -213,8 +213,8 @@ func Test_UniverseController(t *testing.T) {
 				idAsRouteParam: true,
 				handler:        getUniverse,
 
-				verifyInteractions: func(us service.UniverseService, assert *require.Assertions) {
-					m := assertUniverseServiceIsAMock(us, assert)
+				verifyInteractions: func(s service.UniverseService, assert *require.Assertions) {
+					m := assertUniverseServiceIsAMock(s, assert)
 
 					assert.Equal(1, m.getCalled)
 					assert.Equal(defaultUuid, m.inId)
@@ -224,8 +224,8 @@ func Test_UniverseController(t *testing.T) {
 				req:     httptest.NewRequest(http.MethodGet, "/", nil),
 				handler: listUniverses,
 
-				verifyInteractions: func(us service.UniverseService, assert *require.Assertions) {
-					m := assertUniverseServiceIsAMock(us, assert)
+				verifyInteractions: func(s service.UniverseService, assert *require.Assertions) {
+					m := assertUniverseServiceIsAMock(s, assert)
 
 					assert.Equal(1, m.listCalled)
 				},
@@ -235,8 +235,8 @@ func Test_UniverseController(t *testing.T) {
 				idAsRouteParam: true,
 				handler:        deleteUniverse,
 
-				verifyInteractions: func(us service.UniverseService, assert *require.Assertions) {
-					m := assertUniverseServiceIsAMock(us, assert)
+				verifyInteractions: func(s service.UniverseService, assert *require.Assertions) {
+					m := assertUniverseServiceIsAMock(s, assert)
 
 					assert.Equal(1, m.deleteCalled)
 					assert.Equal(defaultUuid, m.inId)
