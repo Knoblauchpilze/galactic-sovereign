@@ -236,6 +236,20 @@ func (m *mockPlayerRepository) Delete(ctx context.Context, tx db.Transaction, id
 	return m.err
 }
 
+type mockResourceRepository struct {
+	repositories.ResourceRepository
+
+	resource persistence.Resource
+	err      error
+
+	listCalled int
+}
+
+func (m *mockResourceRepository) List(ctx context.Context) ([]persistence.Resource, error) {
+	m.listCalled++
+	return []persistence.Resource{m.resource}, m.err
+}
+
 type mockUniverseRepository struct {
 	repositories.UniverseRepository
 
