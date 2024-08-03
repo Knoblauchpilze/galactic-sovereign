@@ -68,7 +68,7 @@ func TestPlayerEndpoints_GeneratesExpectedRoutes(t *testing.T) {
 func Test_PlayerController(t *testing.T) {
 	s := ControllerTestSuite[service.PlayerService]{
 		generateServiceMock:      generatePlayerServiceMock,
-		generateValidServiceMock: generateValidPlayerServiceMock,
+		generateErrorServiceMock: generateErrorPlayerServiceMock,
 
 		badInputTestCases: map[string]badInputTestCase[service.PlayerService]{
 			"createPlayer": {
@@ -197,7 +197,7 @@ func Test_PlayerController(t *testing.T) {
 			},
 			"listPlayers_noData": {
 				req: httptest.NewRequest(http.MethodGet, "/", nil),
-				generateValidServiceMock: func() service.PlayerService {
+				generateServiceMock: func() service.PlayerService {
 					return &mockPlayerService{
 						players: nil,
 					}
@@ -271,15 +271,15 @@ func Test_PlayerController(t *testing.T) {
 	suite.Run(t, &s)
 }
 
-func generatePlayerServiceMock(err error) service.PlayerService {
+func generatePlayerServiceMock() service.PlayerService {
 	return &mockPlayerService{
-		err: err,
+		players: []communication.PlayerDtoResponse{defaultPlayerDtoResponse},
 	}
 }
 
-func generateValidPlayerServiceMock() service.PlayerService {
+func generateErrorPlayerServiceMock(err error) service.PlayerService {
 	return &mockPlayerService{
-		players: []communication.PlayerDtoResponse{defaultPlayerDtoResponse},
+		err: err,
 	}
 }
 

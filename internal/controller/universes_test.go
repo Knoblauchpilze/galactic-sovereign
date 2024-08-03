@@ -60,7 +60,7 @@ func TestUniverseEndpoints_GeneratesExpectedRoutes(t *testing.T) {
 func Test_UniverseController(t *testing.T) {
 	s := ControllerTestSuite[service.UniverseService]{
 		generateServiceMock:      generateUniverseServiceMock,
-		generateValidServiceMock: generateValidUniverseServiceMock,
+		generateErrorServiceMock: generateErrorUniverseServiceMock,
 
 		badInputTestCases: map[string]badInputTestCase[service.UniverseService]{
 			"createUniverse": {
@@ -185,7 +185,7 @@ func Test_UniverseController(t *testing.T) {
 			},
 			"listUniverses_noData": {
 				req: httptest.NewRequest(http.MethodGet, "/", nil),
-				generateValidServiceMock: func() service.UniverseService {
+				generateServiceMock: func() service.UniverseService {
 					return &mockUniverseService{
 						universes: nil,
 					}
@@ -248,15 +248,15 @@ func Test_UniverseController(t *testing.T) {
 	suite.Run(t, &s)
 }
 
-func generateUniverseServiceMock(err error) service.UniverseService {
+func generateUniverseServiceMock() service.UniverseService {
 	return &mockUniverseService{
-		err: err,
+		universes: []communication.UniverseDtoResponse{defaultUniverseDtoResponse},
 	}
 }
 
-func generateValidUniverseServiceMock() service.UniverseService {
+func generateErrorUniverseServiceMock(err error) service.UniverseService {
 	return &mockUniverseService{
-		universes: []communication.UniverseDtoResponse{defaultUniverseDtoResponse},
+		err: err,
 	}
 }
 
