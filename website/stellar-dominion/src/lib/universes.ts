@@ -14,6 +14,13 @@ export default class Universe {
 			this.name = response.name;
 		}
 	}
+
+	public toJson(): object {
+		return {
+			id: this.id,
+			name: this.name
+		};
+	}
 }
 
 export async function getUniverses(): Promise<ResponseEnvelope> {
