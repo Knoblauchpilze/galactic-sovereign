@@ -1,6 +1,11 @@
 import ResponseEnvelope from '$lib/responseEnvelope';
 import { buildUrl, safeFetch } from '$lib/api';
 
+export interface ApiUniverse {
+	readonly id: string;
+	readonly name: string;
+}
+
 export default class Universe {
 	readonly id: string = '00000000-0000-0000-0000-000000000000';
 	readonly name: string = '';
@@ -15,7 +20,7 @@ export default class Universe {
 		}
 	}
 
-	public toJson(): object {
+	public toJson(): ApiUniverse {
 		return {
 			id: this.id,
 			name: this.name

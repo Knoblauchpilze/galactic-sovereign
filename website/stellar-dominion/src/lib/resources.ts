@@ -1,6 +1,11 @@
 import ResponseEnvelope from '$lib/responseEnvelope';
 import { buildUrl, safeFetch } from '$lib/api';
 
+export interface ApiResource {
+	readonly id: string;
+	readonly name: string;
+}
+
 export class Resource {
 	readonly id: string = '00000000-0000-0000-0000-000000000000';
 	readonly name: string = '';
@@ -16,7 +21,7 @@ export class Resource {
 	}
 
 	// https://stackoverflow.com/questions/65512526/cannot-stringify-arbitrary-non-pojos-and-invalid-prop-type-check-failed-for
-	public toJson(): object {
+	public toJson(): ApiResource {
 		return {
 			id: this.id,
 			name: this.name
