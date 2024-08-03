@@ -1,5 +1,5 @@
-import ResponseEnvelope from './responseEnvelope';
-import { buildUrl, safeFetch } from './api';
+import ResponseEnvelope from '$lib/responseEnvelope';
+import { buildUrl, safeFetch } from '$lib/api';
 import ApiKey, { loginUser, logoutUser } from '$lib/sessions';
 import User, { createUser } from '$lib/users';
 

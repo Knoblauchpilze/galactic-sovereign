@@ -1,6 +1,6 @@
-import ResponseEnvelope, { createEmptySuccessResponseEnvelope } from './responseEnvelope';
-import { buildUserUrl, safeFetch } from './api';
-import HttpStatus from './httpStatuses';
+import ResponseEnvelope, { createEmptySuccessResponseEnvelope } from '$lib/responseEnvelope';
+import { buildUserUrl, safeFetch } from '$lib/api';
+import HttpStatus from '$lib/httpStatuses';
 
 export default class ApiKey {
 	readonly user: string = '00000000-0000-0000-0000-000000000000';

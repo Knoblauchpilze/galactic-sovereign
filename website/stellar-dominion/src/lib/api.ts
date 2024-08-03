@@ -1,4 +1,4 @@
-import { createFailedResponseEnvelope } from './responseEnvelope';
+import { createFailedResponseEnvelope } from '$lib/responseEnvelope';
 import { PUBLIC_API_BASE_URL } from '$env/static/public';
 import { PUBLIC_USER_API_BASE_URL } from '$env/static/public';
 
