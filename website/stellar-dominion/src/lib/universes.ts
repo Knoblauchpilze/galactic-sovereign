@@ -1,5 +1,5 @@
-import ResponseEnvelope from './responseEnvelope';
-import { buildUrl, safeFetch } from './api';
+import ResponseEnvelope from '$lib/responseEnvelope';
+import { buildUrl, safeFetch } from '$lib/api';
 
 export default class Universe {
 	readonly id: string = '00000000-0000-0000-0000-000000000000';

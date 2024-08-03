@@ -1,6 +1,6 @@
-import ResponseEnvelope, { createEmptySuccessResponseEnvelope } from './responseEnvelope';
-import { buildUrl, safeFetch } from './api';
-import HttpStatus from './httpStatuses';
+import ResponseEnvelope, { createEmptySuccessResponseEnvelope } from '$lib/responseEnvelope';
+import { buildUrl, safeFetch } from '$lib/api';
+import HttpStatus from '$lib/httpStatuses';
 
 export async function loginUser(email: string, password: string): Promise<ResponseEnvelope> {
 	const url = buildUrl('sessions');
