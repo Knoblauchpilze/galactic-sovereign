@@ -1,7 +1,7 @@
 <script lang="ts">
 	// https://stackoverflow.com/questions/70927735/pass-variable-up-from-page-to-svelte-layout-via-slot
-	import heroImage from '$lib/stores/heroImage';
-	import heroContainer from '$lib/stores/heroContainer';
+	import heroImage from '$lib/stores/ui/heroImage';
+	import heroContainer from '$lib/stores/ui/heroContainer';
 </script>
 
 <!-- https://stackoverflow.com/questions/70805041/background-image-in-tailwindcss-using-dynamic-url-react-js -->
