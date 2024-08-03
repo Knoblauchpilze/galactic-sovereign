@@ -1,5 +1,6 @@
 import { error, redirect } from '@sveltejs/kit';
 import Planet, { getPlanet } from '$lib/planets';
+import { getResources, responseToResourcesArray } from '$lib/resources';
 import { ApiFailureReason } from '$lib/responseEnvelope.js';
 import { logoutUser } from '$lib/sessions';
 
@@ -14,6 +15,21 @@ export async function load({ params, cookies }) {
 	if (!apiUser) {
 		redirect(303, '/login');
 	}
+
+	const resourcesResponse = await getResources(apiKey);
+	if (resourcesResponse.error()) {
+		const reason = resourcesResponse.failureReason();
+
+		switch (reason) {
+			case ApiFailureReason.API_KEY_EXPIRED:
+				redirect(303, '/login');
+		}
+
+		error(404, { message: resourcesResponse.failureMessage() });
+	}
+
+	const resources = responseToResourcesArray(resourcesResponse);
+
 
 	const planetResponse = await getPlanet(apiKey, params.planet);
 	if (planetResponse.error()) {
@@ -31,6 +47,7 @@ export async function load({ params, cookies }) {
 	const planet = new Planet(planetResponse.getDetails());
 
 	return {
+		resources: resources.map(r => r.toJson()),
 		planet: {
 			...planet
 		}
