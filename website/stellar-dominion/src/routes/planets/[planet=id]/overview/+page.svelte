@@ -2,8 +2,8 @@
 	import '$styles/app.css';
 	import { CenteredWrapper, Header, StyledText, StyledTitle } from '$lib/components';
 
-	import heroImage from '$lib/stores/heroImage';
-	import heroContainer from '$lib/stores/heroContainer';
+	import heroImage from '$lib/stores/ui/heroImage';
+	import heroContainer from '$lib/stores/ui/heroContainer';
 
 	/** @type {import('./$types').PageData} */
 	export let data;
