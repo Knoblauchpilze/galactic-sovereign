@@ -13,8 +13,8 @@ import (
 )
 
 type handlerFunc[Service any] func(echo.Context, Service) error
-type generateServiceMock[Service any] func(err error) Service
-type generateValidServiceMock[Service any] func() Service
+type generateServiceMock[Service any] func() Service
+type generateErrorServiceMock[Service any] func(err error) Service
 
 type badInputTestCase[Service any] struct {
 	req                *http.Request
@@ -46,9 +46,9 @@ type successTestCase[Service any] struct {
 }
 
 type returnTestCase[Service any] struct {
-	req                      *http.Request
-	idAsRouteParam           bool
-	generateValidServiceMock generateValidServiceMock[Service]
+	req                 *http.Request
+	idAsRouteParam      bool
+	generateServiceMock generateServiceMock[Service]
 
 	handler handlerFunc[Service]
 
@@ -68,9 +68,9 @@ type responseTestCase[Service any] struct {
 type verifyMockInteractions[Service any] func(Service, *require.Assertions)
 
 type serviceInteractionTestCase[Service any] struct {
-	req                      *http.Request
-	idAsRouteParam           bool
-	generateValidServiceMock generateValidServiceMock[Service]
+	req                 *http.Request
+	idAsRouteParam      bool
+	generateServiceMock generateServiceMock[Service]
 
 	handler handlerFunc[Service]
 
@@ -81,7 +81,7 @@ type ControllerTestSuite[Service any] struct {
 	suite.Suite
 
 	generateServiceMock      generateServiceMock[Service]
-	generateValidServiceMock generateValidServiceMock[Service]
+	generateErrorServiceMock generateErrorServiceMock[Service]
 
 	badInputTestCases map[string]badInputTestCase[Service]
 	noIdTestCases     map[string]noIdTestCase[Service]
@@ -103,7 +103,7 @@ func (s *ControllerTestSuite[Service]) TestWhenBadInputProvided_Expect400Status(
 				ctx.SetParamValues(defaultUuid.String())
 			}
 
-			m := s.generateServiceMock(nil)
+			m := s.generateServiceMock()
 			err := testCase.handler(ctx, m)
 
 			s.Require().Nil(err)
@@ -118,7 +118,7 @@ func (s *ControllerTestSuite[Service]) TestWhenNoIdProvided_Expect400Status() {
 		s.T().Run(name, func(t *testing.T) {
 			ctx, rw := generateTestEchoContextFromRequest(testCase.req)
 
-			m := s.generateServiceMock(nil)
+			m := s.generateServiceMock()
 			err := testCase.handler(ctx, m)
 
 			s.Require().Nil(err)
@@ -135,7 +135,7 @@ func (s *ControllerTestSuite[Service]) TestIdSyntaxIsWrong_Expect400Status() {
 			ctx.SetParamNames("id")
 			ctx.SetParamValues("not-a-uuid")
 
-			m := s.generateServiceMock(nil)
+			m := s.generateServiceMock()
 			err := testCase.handler(ctx, m)
 
 			s.Require().Nil(err)
@@ -154,7 +154,7 @@ func (s *ControllerTestSuite[Service]) TestWhenServiceFails_ExpectCorrectStatus(
 				ctx.SetParamValues(defaultUuid.String())
 			}
 
-			m := s.generateServiceMock(testCase.err)
+			m := s.generateErrorServiceMock(testCase.err)
 			err := testCase.handler(ctx, m)
 
 			s.Require().Nil(err)
@@ -172,7 +172,7 @@ func (s *ControllerTestSuite[Service]) TestWhenServiceSucceeds_ExpectCorrectStat
 				ctx.SetParamValues(defaultUuid.String())
 			}
 
-			m := s.generateServiceMock(nil)
+			m := s.generateServiceMock()
 			err := testCase.handler(ctx, m)
 
 			s.Require().Nil(err)
@@ -191,10 +191,10 @@ func (s *ControllerTestSuite[Service]) TestWhenServiceSucceeds_ReturnsExpectedVa
 			}
 
 			var m Service
-			if testCase.generateValidServiceMock != nil {
-				m = testCase.generateValidServiceMock()
+			if testCase.generateServiceMock != nil {
+				m = testCase.generateServiceMock()
 			} else {
-				m = s.generateValidServiceMock()
+				m = s.generateServiceMock()
 			}
 			err := testCase.handler(ctx, m)
 
@@ -217,7 +217,7 @@ func (s *ControllerTestSuite[Service]) TestWhenServiceSucceeds_ReturnsExpectedRe
 				ctx.SetParamValues(defaultUuid.String())
 			}
 
-			m := s.generateValidServiceMock()
+			m := s.generateServiceMock()
 			err := testCase.handler(ctx, m)
 
 			s.Require().Nil(err)
@@ -236,10 +236,10 @@ func (s *ControllerTestSuite[Service]) TestWhenServiceSucceeds_ExpectCorrectInte
 			}
 
 			var m Service
-			if testCase.generateValidServiceMock != nil {
-				m = testCase.generateValidServiceMock()
+			if testCase.generateServiceMock != nil {
+				m = testCase.generateServiceMock()
 			} else {
-				m = s.generateValidServiceMock()
+				m = s.generateServiceMock()
 			}
 			err := testCase.handler(ctx, m)
 

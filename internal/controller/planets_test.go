@@ -80,7 +80,7 @@ func TestPlanetEndpoints_GeneratesExpectedRoutes(t *testing.T) {
 func Test_PlanetController(t *testing.T) {
 	s := ControllerTestSuite[service.PlanetService]{
 		generateServiceMock:      generatePlanetServiceMock,
-		generateValidServiceMock: generateValidPlanetServiceMock,
+		generateErrorServiceMock: generateErrorPlanetServiceMock,
 
 		badInputTestCases: map[string]badInputTestCase[service.PlanetService]{
 			"createPlanet": {
@@ -203,7 +203,7 @@ func Test_PlanetController(t *testing.T) {
 			},
 			"listPlanets_noData": {
 				req: httptest.NewRequest(http.MethodGet, "/", nil),
-				generateValidServiceMock: func() service.PlanetService {
+				generateServiceMock: func() service.PlanetService {
 					return &mockPlanetService{
 						planets: nil,
 					}
@@ -277,15 +277,15 @@ func Test_PlanetController(t *testing.T) {
 	suite.Run(t, &s)
 }
 
-func generatePlanetServiceMock(err error) service.PlanetService {
+func generatePlanetServiceMock() service.PlanetService {
 	return &mockPlanetService{
-		err: err,
+		planets: []communication.FullPlanetDtoResponse{defaultFullPlanetDtoResponse},
 	}
 }
 
-func generateValidPlanetServiceMock() service.PlanetService {
+func generateErrorPlanetServiceMock(err error) service.PlanetService {
 	return &mockPlanetService{
-		planets: []communication.FullPlanetDtoResponse{defaultFullPlanetDtoResponse},
+		err: err,
 	}
 }
 

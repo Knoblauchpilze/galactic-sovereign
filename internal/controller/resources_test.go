@@ -43,7 +43,7 @@ func TestResourceEndpoints_GeneratesExpectedRoutes(t *testing.T) {
 func Test_ResourceController(t *testing.T) {
 	s := ControllerTestSuite[service.ResourceService]{
 		generateServiceMock:      generateResourceServiceMock,
-		generateValidServiceMock: generateValidResourceServiceMock,
+		generateErrorServiceMock: generateErrorResourceServiceMock,
 
 		errorTestCases: map[string]errorTestCase[service.ResourceService]{
 			"listResources": {
@@ -70,7 +70,7 @@ func Test_ResourceController(t *testing.T) {
 			},
 			"listResources_noData": {
 				req: httptest.NewRequest(http.MethodGet, "/", nil),
-				generateValidServiceMock: func() service.ResourceService {
+				generateServiceMock: func() service.ResourceService {
 					return &mockResourceService{
 						resources: nil,
 					}
@@ -98,15 +98,15 @@ func Test_ResourceController(t *testing.T) {
 	suite.Run(t, &s)
 }
 
-func generateResourceServiceMock(err error) service.ResourceService {
+func generateResourceServiceMock() service.ResourceService {
 	return &mockResourceService{
-		err: err,
+		resources: []communication.ResourceDtoResponse{defaultResourceDtoResponse},
 	}
 }
 
-func generateValidResourceServiceMock() service.ResourceService {
+func generateErrorResourceServiceMock(err error) service.ResourceService {
 	return &mockResourceService{
-		resources: []communication.ResourceDtoResponse{defaultResourceDtoResponse},
+		err: err,
 	}
 }
 

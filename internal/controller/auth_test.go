@@ -66,7 +66,7 @@ func TestAuthEndpoints_GeneratesExpectedRoutes(t *testing.T) {
 func Test_AuthController(t *testing.T) {
 	s := ControllerTestSuite[service.AuthService]{
 		generateServiceMock:      generateAuthServiceMock,
-		generateValidServiceMock: generateValidAuthServiceMock,
+		generateErrorServiceMock: generateErrorAuthServiceMock,
 
 		badInputTestCases: map[string]badInputTestCase[service.AuthService]{
 			"authUser": {
@@ -169,15 +169,15 @@ func Test_AuthController(t *testing.T) {
 	suite.Run(t, &s)
 }
 
-func generateAuthServiceMock(err error) service.AuthService {
+func generateAuthServiceMock() service.AuthService {
 	return &mockAuthService{
-		err: err,
+		authData: defaultAuthorizationResponseDto,
 	}
 }
 
-func generateValidAuthServiceMock() service.AuthService {
+func generateErrorAuthServiceMock(err error) service.AuthService {
 	return &mockAuthService{
-		authData: defaultAuthorizationResponseDto,
+		err: err,
 	}
 }
 

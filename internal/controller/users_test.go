@@ -79,7 +79,7 @@ func Test_UserController(t *testing.T) {
 
 	s := ControllerTestSuite[service.UserService]{
 		generateServiceMock:      generateUserServiceMock,
-		generateValidServiceMock: generateValidUserServiceMock,
+		generateErrorServiceMock: generateErrorUserServiceMock,
 
 		badInputTestCases: map[string]badInputTestCase[service.UserService]{
 			"createUser": {
@@ -331,7 +331,7 @@ func Test_UserController(t *testing.T) {
 			"updateUser": {
 				req:            generateTestRequestWithUserBody(http.MethodPatch, updatedUserDtoRequest),
 				idAsRouteParam: true,
-				generateValidServiceMock: func() service.UserService {
+				generateServiceMock: func() service.UserService {
 					return &mockUserService{
 						ids: []uuid.UUID{defaultUuid},
 						user: communication.UserDtoResponse{
@@ -402,7 +402,7 @@ func Test_UserController(t *testing.T) {
 			"updateUser": {
 				req:            generateTestRequestWithUserBody(http.MethodPatch, updatedUserDtoRequest),
 				idAsRouteParam: true,
-				generateValidServiceMock: func() service.UserService {
+				generateServiceMock: func() service.UserService {
 					return &mockUserService{
 						user: communication.UserDtoResponse{
 							Id:       defaultUserDtoResponse.Id,
@@ -476,17 +476,17 @@ func Test_UserController(t *testing.T) {
 	suite.Run(t, &s)
 }
 
-func generateUserServiceMock(err error) service.UserService {
-	return &mockUserService{
-		err: err,
-	}
-}
-
-func generateValidUserServiceMock() service.UserService {
+func generateUserServiceMock() service.UserService {
 	return &mockUserService{
 		ids:    []uuid.UUID{defaultUuid},
 		user:   defaultUserDtoResponse,
 		apiKey: defaultApiKeyDtoResponse,
+	}
+}
+
+func generateErrorUserServiceMock(err error) service.UserService {
+	return &mockUserService{
+		err: err,
 	}
 }
 
