@@ -1,5 +1,6 @@
 <script lang="ts">
 	export let text: string = 'Missing text';
+	export let textColor: string = 'text-secondary';
 </script>
 
-<p class="text-secondary">{text}</p>
+<p class="{textColor}">{text}</p>
