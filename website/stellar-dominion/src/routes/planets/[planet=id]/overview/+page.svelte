@@ -2,8 +2,9 @@
 	import '$styles/app.css';
 	import { CenteredWrapper, Header, StyledText, StyledTitle } from '$lib/components';
 
-	import heroImage from '$lib/stores/ui/heroImage';
-	import heroContainer from '$lib/stores/ui/heroContainer';
+	import heroImage, { GAME_HERO_IMAGE } from '$lib/stores/ui/heroImage';
+	import heroContainer, { GAME_HERO_CONTAINER_PROPS } from '$lib/stores/ui/heroContainer';
+	import resources from '$lib/stores/api/resources';
 
 	/** @type {import('./$types').PageData} */
 	export let data;
@@ -13,12 +14,9 @@
 	let name: string = data.planet.name;
 
 	// https://stackoverflow.com/questions/75616911/sveltekit-fetching-on-the-server-and-updating-the-writable-store
-	heroImage.set('bg-overview');
-	heroContainer.set({
-		width: 'w-full',
-		height: 'h-full',
-		color: 'bg-transparent'
-	});
+	heroImage.set(GAME_HERO_IMAGE);
+	heroContainer.set(GAME_HERO_CONTAINER_PROPS);
+	resources.set(data.resources);
 </script>
 
 <CenteredWrapper width="w-4/5" height="h-4/5" bgColor="bg-overlay">
