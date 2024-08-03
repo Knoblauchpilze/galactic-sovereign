@@ -30,7 +30,6 @@ export async function load({ params, cookies }) {
 
 	const resources = responseToResourcesArray(resourcesResponse);
 
-
 	const planetResponse = await getPlanet(apiKey, params.planet);
 	if (planetResponse.error()) {
 		const reason = planetResponse.failureReason();
@@ -47,7 +46,7 @@ export async function load({ params, cookies }) {
 	const planet = new Planet(planetResponse.getDetails());
 
 	return {
-		resources: resources.map(r => r.toJson()),
+		resources: resources.map((r) => r.toJson()),
 		planet: {
 			...planet
 		}

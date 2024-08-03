@@ -16,7 +16,6 @@
 	/** @type {import('./$types').ActionData} */
 	export let form: HTMLFormElement;
 
-	/** @type {import('./$types').PageData} */
 	export let data;
 
 	function resetFormError() {
