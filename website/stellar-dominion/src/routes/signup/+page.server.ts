@@ -1,12 +1,11 @@
 import { error, redirect } from '@sveltejs/kit';
+import { resetCookies } from '$lib/cookies';
 import { registerPlayer } from '$lib/players';
-import Universe, { getUniverses } from '$lib/universes';
+import { Universe, getUniverses } from '$lib/universes';
 
 /** @type {import('./$types').PageServerLoad} */
 export async function load({ cookies }) {
-	cookies.set('api-key', '', { path: '/' });
-	cookies.set('api-user', '', { path: '/' });
-	cookies.set('player-id', '', { path: '/' });
+	resetCookies(cookies);
 
 	const universesResponse = await getUniverses();
 
@@ -27,7 +26,7 @@ export async function load({ cookies }) {
 	}
 
 	return {
-		universes: universes.map(u => u.toJson())
+		universes: universes.map((u) => u.toJson())
 	};
 }
 
@@ -93,9 +92,7 @@ export const actions = {
 			};
 		}
 
-		cookies.set('api-user', '', { path: '/' });
-		cookies.set('api-key', '', { path: '/' });
-		cookies.set('player-id', '', { path: '/' });
+		resetCookies(cookies);
 
 		redirect(303, '/login');
 	}
