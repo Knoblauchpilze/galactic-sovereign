@@ -26,6 +26,14 @@ var defaultUniverse = persistence.Universe{
 	CreatedAt: testDate,
 	UpdatedAt: testDate,
 }
+var defaultResourceName = "my-resource"
+var defaultResource = persistence.Resource{
+	Id:   defaultResourceId,
+	Name: defaultResourceName,
+
+	CreatedAt: testDate,
+	UpdatedAt: testDate,
+}
 
 func Test_UniverseService(t *testing.T) {
 	s := ServiceTestSuite{

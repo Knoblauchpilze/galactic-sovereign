@@ -42,6 +42,12 @@ var defaultUniverseDtoResponse = communication.UniverseDtoResponse{
 
 	CreatedAt: time.Date(2024, 07, 12, 16, 40, 05, 651387232, time.UTC),
 }
+var defaultResourceDtoResponse = communication.ResourceDtoResponse{
+	Id:   defaultUuid,
+	Name: "my-resource",
+
+	CreatedAt: time.Date(2024, 8, 3, 14, 29, 31, 651387240, time.UTC),
+}
 var defaultFullUniverseDtoResponse = communication.FullUniverseDtoResponse{
 	UniverseDtoResponse: defaultUniverseDtoResponse,
 	Resources: []communication.ResourceDtoResponse{
