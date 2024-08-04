@@ -82,3 +82,28 @@ export function parseResources(data: object[]): PlanetResource[] {
 
 	return out;
 }
+
+export interface UiResource {
+	readonly name: string;
+	readonly amount: number;
+}
+
+export function mapPlanetResourcesToApiResources(
+	planetResources: PlanetResource[],
+	apiResources: ApiResource[]
+): UiResource[] {
+	return apiResources.map((apiResource) => {
+		const maybeResource = planetResources.find((r) => r.id === apiResource.id);
+		if (maybeResource === undefined) {
+			return {
+				name: apiResource.name,
+				amount: 0
+			};
+		} else {
+			return {
+				name: apiResource.name,
+				amount: maybeResource.amount
+			};
+		}
+	});
+}
