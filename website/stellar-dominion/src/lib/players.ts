@@ -1,7 +1,7 @@
 import { ResponseEnvelope } from '$lib/responseEnvelope';
 import { buildUrl, safeFetch } from '$lib/api';
 import { ApiKey, loginUser, logoutUser } from '$lib/sessions';
-import User, { createUser } from '$lib/users';
+import { User, createUser } from '$lib/users';
 
 export class Player {
 	readonly id: string = '00000000-0000-0000-0000-000000000000';
