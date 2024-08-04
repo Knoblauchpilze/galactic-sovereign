@@ -1,5 +1,5 @@
 import { error, redirect } from '@sveltejs/kit';
-import Planet, { getPlanet } from '$lib/planets';
+import { Planet, getPlanet } from '$lib/planets';
 import { getResources, responseToResourcesArray } from '$lib/resources';
 import { ApiFailureReason } from '$lib/responseEnvelope.js';
 import { logoutUser } from '$lib/sessions';

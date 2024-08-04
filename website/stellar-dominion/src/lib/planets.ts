@@ -1,8 +1,8 @@
-import ResponseEnvelope from '$lib/responseEnvelope';
+import { ResponseEnvelope } from '$lib/responseEnvelope';
 import { buildUrl, safeFetch } from '$lib/api';
 import { type PlanetResource, parseResources } from '$lib/resources';
 
-export default class Planet {
+export class Planet {
 	readonly id: string = '00000000-0000-0000-0000-000000000000';
 	readonly player: string = '00000000-0000-0000-0000-000000000000';
 	readonly name: string = '';

@@ -1,4 +1,4 @@
-import ResponseEnvelope from '$lib/responseEnvelope';
+import { ResponseEnvelope } from '$lib/responseEnvelope';
 import { buildUrl, safeFetch } from '$lib/api';
 import { Resource } from '$lib/resources';
 
@@ -7,10 +7,10 @@ export interface ApiUniverse {
 	readonly name: string;
 }
 
-export default class Universe {
+export class Universe {
 	readonly id: string = '00000000-0000-0000-0000-000000000000';
 	readonly name: string = '';
-	readonly resources : Resource[] = [];
+	readonly resources: Resource[] = [];
 
 	constructor(response: object) {
 		if ('id' in response && typeof response.id === 'string') {

@@ -1,6 +1,6 @@
 import { error, redirect } from '@sveltejs/kit';
 import { fetchPlayerFromApiUser, responseToPlayerArray } from '$lib/players';
-import ApiKey, { loginUser } from '$lib/sessions';
+import { ApiKey, loginUser } from '$lib/sessions';
 import { getUniverses, responseToUniverseArray } from '$lib/universes';
 import { fetchPlanetsFromPlayer, responseToPlanetArray } from '$lib/planets';
 
@@ -21,7 +21,7 @@ export async function load({ cookies }) {
 	console.log(JSON.stringify(universes));
 
 	return {
-		universes: universes.map((u) => u.toJson()),
+		universes: universes.map((u) => u.toJson())
 	};
 }
 

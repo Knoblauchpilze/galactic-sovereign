@@ -1,9 +1,9 @@
-import ResponseEnvelope from '$lib/responseEnvelope';
+import { ResponseEnvelope } from '$lib/responseEnvelope';
 import { buildUrl, safeFetch } from '$lib/api';
-import ApiKey, { loginUser, logoutUser } from '$lib/sessions';
+import { ApiKey, loginUser, logoutUser } from '$lib/sessions';
 import User, { createUser } from '$lib/users';
 
-export default class Player {
+export class Player {
 	readonly id: string = '00000000-0000-0000-0000-000000000000';
 	readonly apiUser: string = '';
 	readonly universe: string = '';
