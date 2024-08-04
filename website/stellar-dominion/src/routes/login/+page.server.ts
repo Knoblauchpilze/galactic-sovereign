@@ -17,8 +17,6 @@ export async function load({ cookies }) {
 
 	const universes = responseToUniverseArray(universesResponse);
 
-	console.log(JSON.stringify(universes));
-
 	return {
 		universes: universes.map((u) => u.toJson())
 	};
