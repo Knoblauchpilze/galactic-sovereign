@@ -1,4 +1,5 @@
 import { error, redirect } from '@sveltejs/kit';
+import { resetCookies, setCookies } from '$lib/cookies';
 import { fetchPlayerFromApiUser, responseToPlayerArray } from '$lib/players';
 import { ApiKey, loginUser } from '$lib/sessions';
 import { getUniverses, responseToUniverseArray } from '$lib/universes';
@@ -6,9 +7,7 @@ import { fetchPlanetsFromPlayer, responseToPlanetArray } from '$lib/planets';
 
 /** @type {import('./$types').PageServerLoad} */
 export async function load({ cookies }) {
-	cookies.set('api-key', '', { path: '/' });
-	cookies.set('api-user', '', { path: '/' });
-	cookies.set('player-id', '', { path: '/' });
+	resetCookies(cookies);
 
 	const universesResponse = await getUniverses();
 
@@ -136,12 +135,7 @@ export const actions = {
 			};
 		}
 
-		const opts = {
-			path: '/'
-		};
-		cookies.set('api-user', apiKey.user, opts);
-		cookies.set('api-key', apiKey.key, opts);
-		cookies.set('player-id', maybePlayer.id, opts);
+		setCookies(cookies, apiKey, maybePlayer);
 
 		redirect(303, '/planets/' + maybePlanet.id + '/overview');
 	}
