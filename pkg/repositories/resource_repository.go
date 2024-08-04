@@ -12,7 +12,7 @@ import (
 type ResourceRepository interface {
 	Create(ctx context.Context, resource persistence.Resource) (persistence.Resource, error)
 	Get(ctx context.Context, id uuid.UUID) (persistence.Resource, error)
-	List(ctx context.Context) ([]persistence.Resource, error)
+	List(ctx context.Context, tx db.Transaction) ([]persistence.Resource, error)
 	Delete(ctx context.Context, id uuid.UUID) error
 }
 
@@ -59,8 +59,8 @@ func (r *resourceRepositoryImpl) Get(ctx context.Context, id uuid.UUID) (persist
 
 const listResourceSqlTemplate = "SELECT id, name, created_at, updated_at FROM resource"
 
-func (r *resourceRepositoryImpl) List(ctx context.Context) ([]persistence.Resource, error) {
-	res := r.conn.Query(ctx, listResourceSqlTemplate)
+func (r *resourceRepositoryImpl) List(ctx context.Context, tx db.Transaction) ([]persistence.Resource, error) {
+	res := tx.Query(ctx, listResourceSqlTemplate)
 	if err := res.Err(); err != nil {
 		return []persistence.Resource{}, err
 	}

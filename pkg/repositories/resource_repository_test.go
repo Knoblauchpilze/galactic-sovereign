@@ -61,16 +61,6 @@ func Test_ResourceRepository(t *testing.T) {
 					},
 				},
 			},
-			"list": {
-				handler: func(ctx context.Context, pool db.ConnectionPool) error {
-					s := NewResourceRepository(pool)
-					_, err := s.List(ctx)
-					return err
-				},
-				expectedSqlQueries: []string{
-					`SELECT id, name, created_at, updated_at FROM resource`,
-				},
-			},
 			"delete": {
 				sqlMode: ExecBased,
 				generateMock: func() db.ConnectionPool {
@@ -102,26 +92,6 @@ func Test_ResourceRepository(t *testing.T) {
 				},
 				expectedGetSingleValueCalls: 1,
 				expectedScanCalls:           1,
-				expectedScannedProps: [][]interface{}{
-					{
-						&uuid.UUID{},
-						&dummyStr,
-						&time.Time{},
-						&time.Time{},
-					},
-				},
-			},
-		},
-
-		dbGetAllTestCases: map[string]dbPoolGetAllTestCase{
-			"list": {
-				handler: func(ctx context.Context, pool db.ConnectionPool) error {
-					repo := NewResourceRepository(pool)
-					_, err := repo.List(ctx)
-					return err
-				},
-				expectedGetAllCalls: 1,
-				expectedScanCalls:   1,
 				expectedScannedProps: [][]interface{}{
 					{
 						&uuid.UUID{},
@@ -186,6 +156,47 @@ func Test_ResourceRepository(t *testing.T) {
 				},
 				verifyError: func(err error, assert *require.Assertions) {
 					assert.True(errors.IsErrorWithCode(err, db.NoMatchingSqlRows))
+				},
+			},
+		},
+	}
+
+	suite.Run(t, &s)
+}
+
+func Test_ResourceRepository_Transaction(t *testing.T) {
+	dummyStr := ""
+
+	s := RepositoryTransactionTestSuite{
+		dbInteractionTestCases: map[string]dbTransactionInteractionTestCase{
+			"list": {
+				handler: func(ctx context.Context, tx db.Transaction) error {
+					s := NewResourceRepository(&mockConnectionPool{})
+					_, err := s.List(ctx, tx)
+					return err
+				},
+				expectedSqlQueries: []string{
+					`SELECT id, name, created_at, updated_at FROM resource`,
+				},
+			},
+		},
+
+		dbGetAllTestCases: map[string]dbTransactionGetAllTestCase{
+			"list": {
+				handler: func(ctx context.Context, tx db.Transaction) error {
+					repo := NewResourceRepository(&mockConnectionPool{})
+					_, err := repo.List(ctx, tx)
+					return err
+				},
+				expectedGetAllCalls: 1,
+				expectedScanCalls:   1,
+				expectedScannedProps: [][]interface{}{
+					{
+						&uuid.UUID{},
+						&dummyStr,
+						&time.Time{},
+						&time.Time{},
+					},
 				},
 			},
 		},

@@ -146,11 +146,21 @@ func Test_UniverseService(t *testing.T) {
 					return out
 				},
 
-				expectedContent: communication.UniverseDtoResponse{
-					Id:   defaultUniverse.Id,
-					Name: defaultUniverse.Name,
+				expectedContent: communication.FullUniverseDtoResponse{
+					UniverseDtoResponse: communication.UniverseDtoResponse{
+						Id:   defaultUniverse.Id,
+						Name: defaultUniverse.Name,
 
-					CreatedAt: defaultUniverse.CreatedAt,
+						CreatedAt: defaultUniverse.CreatedAt,
+					},
+					Resources: []communication.ResourceDtoResponse{
+						{
+							Id:   defaultResource.Id,
+							Name: defaultResource.Name,
+
+							CreatedAt: defaultResource.CreatedAt,
+						},
+					},
 				},
 			},
 			"list": {
@@ -193,6 +203,9 @@ func Test_UniverseService(t *testing.T) {
 
 func generateValidUniverseRepositoryMock() repositories.Repositories {
 	return repositories.Repositories{
+		Resource: &mockResourceRepository{
+			resource: defaultResource,
+		},
 		Universe: &mockUniverseRepository{
 			universe: defaultUniverse,
 		},
