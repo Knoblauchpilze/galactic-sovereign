@@ -34,8 +34,6 @@ export async function load({ params, cookies }) {
 
 	const universe = new Universe(universeResponse.getDetails());
 
-	console.log(JSON.stringify(universe));
-
 	return {
 		resources: universe.resources.map((r) => r.toJson()),
 		planet: {
