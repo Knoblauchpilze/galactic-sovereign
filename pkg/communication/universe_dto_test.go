@@ -10,6 +10,21 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+var defaultUniverseId = uuid.MustParse("06fedf46-80ed-4188-b94c-ed0a494ec7bd")
+var defaultUniverse = persistence.Universe{
+	Id:   defaultUniverseId,
+	Name: "my-universe",
+
+	CreatedAt: someTime,
+
+	Version: 9,
+}
+var defaultUniverseDtoResponse = UniverseDtoResponse{
+	Id:        defaultUniverseId,
+	Name:      "my-universe",
+	CreatedAt: someTime,
+}
+
 func TestUniverseDtoRequest_MarshalsToCamelCase(t *testing.T) {
 	assert := assert.New(t)
 
@@ -43,16 +58,9 @@ func TestFromUniverseDtoRequest(t *testing.T) {
 func TestToUniverseDtoResponse(t *testing.T) {
 	assert := assert.New(t)
 
-	entity := persistence.Universe{
-		Id:   defaultUuid,
-		Name: "my-universe",
+	actual := ToUniverseDtoResponse(defaultUniverse)
 
-		CreatedAt: someTime,
-	}
-
-	actual := ToUniverseDtoResponse(entity)
-
-	assert.Equal(defaultUuid, actual.Id)
+	assert.Equal(defaultUniverseId, actual.Id)
 	assert.Equal("my-universe", actual.Name)
 	assert.Equal(someTime, actual.CreatedAt)
 }
@@ -60,14 +68,8 @@ func TestToUniverseDtoResponse(t *testing.T) {
 func TestUniverseDtoResponse_MarshalsToCamelCase(t *testing.T) {
 	assert := assert.New(t)
 
-	dto := UniverseDtoResponse{
-		Id:        defaultUuid,
-		Name:      "my-universe",
-		CreatedAt: someTime,
-	}
-
-	out, err := json.Marshal(dto)
+	out, err := json.Marshal(defaultUniverseDtoResponse)
 
 	assert.Nil(err)
-	assert.Equal(`{"id":"08ce96a3-3430-48a8-a3b2-b1c987a207ca","name":"my-universe","createdAt":"2024-05-05T20:50:18.651387237Z"}`, string(out))
+	assert.Equal(`{"id":"06fedf46-80ed-4188-b94c-ed0a494ec7bd","name":"my-universe","createdAt":"2024-05-05T20:50:18.651387237Z"}`, string(out))
 }
