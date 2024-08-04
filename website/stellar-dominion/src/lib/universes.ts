@@ -34,6 +34,19 @@ export class Universe {
 	}
 }
 
+export async function getUniverse(id: string): Promise<ResponseEnvelope> {
+	const url = buildUrl('universes/' + id);
+
+	const params = {
+		method: 'GET',
+	};
+
+	const response = await safeFetch(url, params);
+	const jsonContent = await response.json();
+
+	return new ResponseEnvelope(jsonContent);
+}
+
 export async function getUniverses(): Promise<ResponseEnvelope> {
 	const url = buildUrl('universes');
 
