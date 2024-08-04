@@ -42,7 +42,13 @@ func (s *universeServiceImpl) Create(ctx context.Context, universeDto communicat
 }
 
 func (s *universeServiceImpl) Get(ctx context.Context, id uuid.UUID) (communication.UniverseDtoResponse, error) {
-	universe, err := s.universeRepo.Get(ctx, id)
+	tx, err := s.conn.StartTransaction(ctx)
+	if err != nil {
+		return communication.UniverseDtoResponse{}, err
+	}
+	defer tx.Close(ctx)
+
+	universe, err := s.universeRepo.Get(ctx, tx, id)
 	if err != nil {
 		return communication.UniverseDtoResponse{}, err
 	}
