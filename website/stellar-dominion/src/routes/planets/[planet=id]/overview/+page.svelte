@@ -5,6 +5,8 @@
 	import heroImage, { GAME_HERO_IMAGE } from '$lib/stores/ui/heroImage';
 	import heroContainer, { GAME_HERO_CONTAINER_PROPS } from '$lib/stores/ui/heroContainer';
 
+	import { mapPlanetResourcesToApiResources } from '$lib/resources';
+
 	// https://svelte.dev/blog/zero-config-type-safety
 	export let data;
 
@@ -16,20 +18,7 @@
 	heroImage.set(GAME_HERO_IMAGE);
 	heroContainer.set(GAME_HERO_CONTAINER_PROPS);
 
-	let resources = data.resources.map((apiResource) => {
-		const maybeResource = data.planet.resources.find((r) => r.id === apiResource.id);
-		if (maybeResource === undefined) {
-			return {
-				name: apiResource.name,
-				amount: 0
-			};
-		} else {
-			return {
-				name: apiResource.name,
-				amount: maybeResource.amount
-			};
-		}
-	});
+	const resources = mapPlanetResourcesToApiResources(data.planet.resources, data.resources);
 </script>
 
 <CenteredWrapper width="w-4/5" height="h-4/5" bgColor="bg-overlay">
