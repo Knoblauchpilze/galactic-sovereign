@@ -52,9 +52,9 @@ export function loadCookies(cookies: Cookies): [boolean, GameCookies] {
 
 	const out: GameCookies = {
 		apiUser: validOrEmptyString(maybeApiUser, validApiUser),
-		apiKey: validOrEmptyString(maybeApiUser, validApiKey),
-		playerId: validOrEmptyString(maybeApiUser, validPlayerId),
-		universeId: validOrEmptyString(maybeApiUser, validUniverseId)
+		apiKey: validOrEmptyString(maybeApiKey, validApiKey),
+		playerId: validOrEmptyString(maybePlayerId, validPlayerId),
+		universeId: validOrEmptyString(maybeUniverseId, validUniverseId)
 	};
 
 	return [valid, out];
