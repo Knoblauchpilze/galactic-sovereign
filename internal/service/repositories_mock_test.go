@@ -245,7 +245,7 @@ type mockResourceRepository struct {
 	listCalled int
 }
 
-func (m *mockResourceRepository) List(ctx context.Context) ([]persistence.Resource, error) {
+func (m *mockResourceRepository) List(ctx context.Context, tx db.Transaction) ([]persistence.Resource, error) {
 	m.listCalled++
 	return []persistence.Resource{m.resource}, m.err
 }

@@ -26,7 +26,13 @@ func NewResourceService(conn db.ConnectionPool, repos repositories.Repositories)
 }
 
 func (s *resourceServiceImpl) List(ctx context.Context) ([]communication.ResourceDtoResponse, error) {
-	resources, err := s.resourceRepo.List(ctx)
+	tx, err := s.conn.StartTransaction(ctx)
+	if err != nil {
+		return []communication.ResourceDtoResponse{}, err
+	}
+	defer tx.Close(ctx)
+
+	resources, err := s.resourceRepo.List(ctx, tx)
 	if err != nil {
 		return []communication.ResourceDtoResponse{}, err
 	}

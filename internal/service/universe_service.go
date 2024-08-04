@@ -11,7 +11,7 @@ import (
 
 type UniverseService interface {
 	Create(ctx context.Context, universeDto communication.UniverseDtoRequest) (communication.UniverseDtoResponse, error)
-	Get(ctx context.Context, id uuid.UUID) (communication.UniverseDtoResponse, error)
+	Get(ctx context.Context, id uuid.UUID) (communication.FullUniverseDtoResponse, error)
 	List(ctx context.Context) ([]communication.UniverseDtoResponse, error)
 	Delete(ctx context.Context, id uuid.UUID) error
 }
@@ -20,12 +20,14 @@ type universeServiceImpl struct {
 	conn db.ConnectionPool
 
 	universeRepo repositories.UniverseRepository
+	resourceRepo repositories.ResourceRepository
 }
 
 func NewUniverseService(conn db.ConnectionPool, repos repositories.Repositories) UniverseService {
 	return &universeServiceImpl{
 		conn:         conn,
 		universeRepo: repos.Universe,
+		resourceRepo: repos.Resource,
 	}
 }
 
@@ -41,19 +43,25 @@ func (s *universeServiceImpl) Create(ctx context.Context, universeDto communicat
 	return out, nil
 }
 
-func (s *universeServiceImpl) Get(ctx context.Context, id uuid.UUID) (communication.UniverseDtoResponse, error) {
+func (s *universeServiceImpl) Get(ctx context.Context, id uuid.UUID) (communication.FullUniverseDtoResponse, error) {
 	tx, err := s.conn.StartTransaction(ctx)
 	if err != nil {
-		return communication.UniverseDtoResponse{}, err
+		return communication.FullUniverseDtoResponse{}, err
 	}
 	defer tx.Close(ctx)
 
 	universe, err := s.universeRepo.Get(ctx, tx, id)
 	if err != nil {
-		return communication.UniverseDtoResponse{}, err
+		return communication.FullUniverseDtoResponse{}, err
 	}
 
-	out := communication.ToUniverseDtoResponse(universe)
+	resources, err := s.resourceRepo.List(ctx, tx)
+	if err != nil {
+		return communication.FullUniverseDtoResponse{}, err
+	}
+
+	out := communication.ToFullUniverseDtoResponse(universe, resources)
+
 	return out, nil
 }
 
