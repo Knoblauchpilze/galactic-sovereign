@@ -271,7 +271,7 @@ func (m *mockUniverseRepository) Create(ctx context.Context, universe persistenc
 	return m.universe, m.err
 }
 
-func (m *mockUniverseRepository) Get(ctx context.Context, id uuid.UUID) (persistence.Universe, error) {
+func (m *mockUniverseRepository) Get(ctx context.Context, tx db.Transaction, id uuid.UUID) (persistence.Universe, error) {
 	m.getCalled++
 	m.getId = id
 	return m.universe, m.err

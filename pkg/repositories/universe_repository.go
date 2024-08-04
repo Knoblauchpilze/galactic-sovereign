@@ -11,7 +11,7 @@ import (
 
 type UniverseRepository interface {
 	Create(ctx context.Context, universe persistence.Universe) (persistence.Universe, error)
-	Get(ctx context.Context, id uuid.UUID) (persistence.Universe, error)
+	Get(ctx context.Context, tx db.Transaction, id uuid.UUID) (persistence.Universe, error)
 	List(ctx context.Context) ([]persistence.Universe, error)
 	Delete(ctx context.Context, tx db.Transaction, id uuid.UUID) error
 }
@@ -39,8 +39,8 @@ func (r *universeRepositoryImpl) Create(ctx context.Context, universe persistenc
 
 const getUniverseSqlTemplate = "SELECT id, name, created_at, updated_at, version FROM universe WHERE id = $1"
 
-func (r *universeRepositoryImpl) Get(ctx context.Context, id uuid.UUID) (persistence.Universe, error) {
-	res := r.conn.Query(ctx, getUniverseSqlTemplate, id)
+func (r *universeRepositoryImpl) Get(ctx context.Context, tx db.Transaction, id uuid.UUID) (persistence.Universe, error) {
+	res := tx.Query(ctx, getUniverseSqlTemplate, id)
 	if err := res.Err(); err != nil {
 		return persistence.Universe{}, err
 	}

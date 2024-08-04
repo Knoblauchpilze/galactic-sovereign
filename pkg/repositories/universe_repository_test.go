@@ -48,21 +48,6 @@ func Test_UniverseRepository(t *testing.T) {
 					},
 				},
 			},
-			"get": {
-				handler: func(ctx context.Context, pool db.ConnectionPool) error {
-					s := NewUniverseRepository(pool)
-					_, err := s.Get(ctx, defaultUniverseId)
-					return err
-				},
-				expectedSqlQueries: []string{
-					`SELECT id, name, created_at, updated_at, version FROM universe WHERE id = $1`,
-				},
-				expectedArguments: [][]interface{}{
-					{
-						defaultUniverseId,
-					},
-				},
-			},
 			"list": {
 				handler: func(ctx context.Context, pool db.ConnectionPool) error {
 					s := NewUniverseRepository(pool)
@@ -75,26 +60,7 @@ func Test_UniverseRepository(t *testing.T) {
 			},
 		},
 
-		dbSingleValueTestCases: map[string]dbPoolSingleValueTestCase{
-			"get": {
-				handler: func(ctx context.Context, pool db.ConnectionPool) error {
-					repo := NewUniverseRepository(pool)
-					_, err := repo.Get(ctx, defaultUniverseId)
-					return err
-				},
-				expectedGetSingleValueCalls: 1,
-				expectedScanCalls:           1,
-				expectedScannedProps: [][]interface{}{
-					{
-						&uuid.UUID{},
-						&dummyStr,
-						&time.Time{},
-						&time.Time{},
-						&dummyInt,
-					},
-				},
-			},
-		},
+		dbSingleValueTestCases: map[string]dbPoolSingleValueTestCase{},
 
 		dbGetAllTestCases: map[string]dbPoolGetAllTestCase{
 			"list": {
@@ -151,8 +117,26 @@ func Test_UniverseRepository(t *testing.T) {
 }
 
 func Test_UniverseRepository_Transaction(t *testing.T) {
+	dummyStr := ""
+	dummyInt := 0
+
 	s := RepositoryTransactionTestSuite{
 		dbInteractionTestCases: map[string]dbTransactionInteractionTestCase{
+			"get": {
+				handler: func(ctx context.Context, tx db.Transaction) error {
+					s := NewUniverseRepository(&mockConnectionPool{})
+					_, err := s.Get(ctx, tx, defaultUniverseId)
+					return err
+				},
+				expectedSqlQueries: []string{
+					`SELECT id, name, created_at, updated_at, version FROM universe WHERE id = $1`,
+				},
+				expectedArguments: [][]interface{}{
+					{
+						defaultUniverseId,
+					},
+				},
+			},
 			"delete": {
 				sqlMode: ExecBased,
 				generateMock: func() db.Transaction {
@@ -170,6 +154,27 @@ func Test_UniverseRepository_Transaction(t *testing.T) {
 				expectedArguments: [][]interface{}{
 					{
 						defaultUniverseId,
+					},
+				},
+			},
+		},
+
+		dbSingleValueTestCases: map[string]dbTransactionSingleValueTestCase{
+			"get": {
+				handler: func(ctx context.Context, tx db.Transaction) error {
+					repo := NewUniverseRepository(&mockConnectionPool{})
+					_, err := repo.Get(ctx, tx, defaultUniverseId)
+					return err
+				},
+				expectedGetSingleValueCalls: 1,
+				expectedScanCalls:           1,
+				expectedScannedProps: [][]interface{}{
+					{
+						&uuid.UUID{},
+						&dummyStr,
+						&time.Time{},
+						&time.Time{},
+						&dummyInt,
 					},
 				},
 			},

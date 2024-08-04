@@ -172,6 +172,13 @@ func Test_UniverseService(t *testing.T) {
 		},
 
 		transactionTestCases: map[string]transactionTestCase{
+			"get": {
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewUniverseService(pool, repos)
+					_, err := s.Get(ctx, defaultUniverseId)
+					return err
+				},
+			},
 			"delete": {
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
 					s := NewUniverseService(pool, repos)
