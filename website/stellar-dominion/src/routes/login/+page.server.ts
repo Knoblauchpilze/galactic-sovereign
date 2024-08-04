@@ -1,7 +1,7 @@
 import { error, redirect } from '@sveltejs/kit';
 import { fetchPlayerFromApiUser, responseToPlayerArray } from '$lib/players';
 import ApiKey, { loginUser } from '$lib/sessions';
-import Universe, { getUniverses } from '$lib/universes';
+import { getUniverses, responseToUniverseArray } from '$lib/universes';
 import { fetchPlanetsFromPlayer, responseToPlanetArray } from '$lib/planets';
 
 /** @type {import('./$types').PageServerLoad} */
@@ -16,25 +16,12 @@ export async function load({ cookies }) {
 		error(404, { message: universesResponse.failureMessage() });
 	}
 
-	const universesJson = universesResponse.getDetails();
+	const universes = responseToUniverseArray(universesResponse);
 
-	if (!Array.isArray(universesJson)) {
-		error(404, { message: 'Failed to fetch universes' });
-	}
-
-	const universes = new Array<Universe>();
-	for (const maybeUniverse of universesJson) {
-		const universe = new Universe(maybeUniverse);
-		universes.push(universe);
-	}
-
-	const universesData = universes.map((u) => ({
-		id: u.id,
-		name: u.name
-	}));
+	console.log(JSON.stringify(universes));
 
 	return {
-		universes: universesData
+		universes: universes.map((u) => u.toJson()),
 	};
 }
 
