@@ -78,8 +78,24 @@ func Test_UniverseService(t *testing.T) {
 					assert.Equal(defaultUniverseId, m.getId)
 				},
 			},
-			"get_repositoryFails": {
+			"get_universeRepositoryFails": {
 				generateRepositoriesMock: generateErrorUniverseRepositoryMock,
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewUniverseService(pool, repos)
+					_, err := s.Get(ctx, defaultUniverseId)
+					return err
+				},
+				expectedError: errDefault,
+			},
+			"get_resourceRepositoryFails": {
+				generateRepositoriesMock: func() repositories.Repositories {
+					return repositories.Repositories{
+						Resource: &mockResourceRepository{
+							err: errDefault,
+						},
+						Universe: &mockUniverseRepository{},
+					}
+				},
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
 					s := NewUniverseService(pool, repos)
 					_, err := s.Get(ctx, defaultUniverseId)
