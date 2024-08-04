@@ -21,7 +21,7 @@ import (
 )
 
 type mockUniverseService struct {
-	universes []communication.UniverseDtoResponse
+	universes []communication.FullUniverseDtoResponse
 	err       error
 
 	createCalled int
@@ -41,6 +41,12 @@ var defaultUniverseDtoResponse = communication.UniverseDtoResponse{
 	Name: "my-universe",
 
 	CreatedAt: time.Date(2024, 07, 12, 16, 40, 05, 651387232, time.UTC),
+}
+var defaultFullUniverseDtoResponse = communication.FullUniverseDtoResponse{
+	UniverseDtoResponse: defaultUniverseDtoResponse,
+	Resources: []communication.ResourceDtoResponse{
+		defaultResourceDtoResponse,
+	},
 }
 
 func TestUniverseEndpoints_GeneratesExpectedRoutes(t *testing.T) {
@@ -176,7 +182,7 @@ func Test_UniverseController(t *testing.T) {
 				req:             httptest.NewRequest(http.MethodGet, "/", nil),
 				idAsRouteParam:  true,
 				handler:         getUniverse,
-				expectedContent: defaultUniverseDtoResponse,
+				expectedContent: defaultFullUniverseDtoResponse,
 			},
 			"listUniverses": {
 				req:             httptest.NewRequest(http.MethodGet, "/", nil),
@@ -250,7 +256,7 @@ func Test_UniverseController(t *testing.T) {
 
 func generateUniverseServiceMock() service.UniverseService {
 	return &mockUniverseService{
-		universes: []communication.UniverseDtoResponse{defaultUniverseDtoResponse},
+		universes: []communication.FullUniverseDtoResponse{defaultFullUniverseDtoResponse},
 	}
 }
 
@@ -285,18 +291,18 @@ func (m *mockUniverseService) Create(ctx context.Context, universe communication
 	m.createCalled++
 	m.inUniverse = universe
 
-	var out communication.UniverseDtoResponse
+	var out communication.FullUniverseDtoResponse
 	if m.universes != nil {
 		out = m.universes[0]
 	}
-	return out, m.err
+	return out.UniverseDtoResponse, m.err
 }
 
-func (m *mockUniverseService) Get(ctx context.Context, id uuid.UUID) (communication.UniverseDtoResponse, error) {
+func (m *mockUniverseService) Get(ctx context.Context, id uuid.UUID) (communication.FullUniverseDtoResponse, error) {
 	m.getCalled++
 	m.inId = id
 
-	var out communication.UniverseDtoResponse
+	var out communication.FullUniverseDtoResponse
 	if m.universes != nil {
 		out = m.universes[0]
 	}
@@ -305,7 +311,13 @@ func (m *mockUniverseService) Get(ctx context.Context, id uuid.UUID) (communicat
 
 func (m *mockUniverseService) List(ctx context.Context) ([]communication.UniverseDtoResponse, error) {
 	m.listCalled++
-	return m.universes, m.err
+
+	var out []communication.UniverseDtoResponse
+	for _, fullDto := range m.universes {
+		out = append(out, fullDto.UniverseDtoResponse)
+	}
+
+	return out, m.err
 }
 
 func (m *mockUniverseService) Delete(ctx context.Context, id uuid.UUID) error {
