@@ -1,7 +1,7 @@
-import ResponseEnvelope from '$lib/responseEnvelope';
+import { ResponseEnvelope } from '$lib/responseEnvelope';
 import { buildUserUrl, safeFetch } from '$lib/api';
 
-export default class User {
+export class User {
 	readonly id: string = '00000000-0000-0000-0000-000000000000';
 	readonly email: string = '';
 	readonly password: string = '';

@@ -1,8 +1,8 @@
-import ResponseEnvelope, { createEmptySuccessResponseEnvelope } from '$lib/responseEnvelope';
+import { ResponseEnvelope, createEmptySuccessResponseEnvelope } from '$lib/responseEnvelope';
 import { buildUserUrl, safeFetch } from '$lib/api';
 import HttpStatus from '$lib/httpStatuses';
 
-export default class ApiKey {
+export class ApiKey {
 	readonly user: string = '00000000-0000-0000-0000-000000000000';
 	readonly key: string = '00000000-0000-0000-0000-000000000000';
 	readonly validUntil: Date = new Date();
