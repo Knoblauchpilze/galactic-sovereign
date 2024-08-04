@@ -10,14 +10,12 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var defaultUniverse = uuid.MustParse("06fedf46-80ed-4188-b94c-ed0a494ec7bd")
-
 func TestPlayerDtoRequest_MarshalsToCamelCase(t *testing.T) {
 	assert := assert.New(t)
 
 	dto := PlayerDtoRequest{
 		ApiUser:  defaultUser,
-		Universe: defaultUniverse,
+		Universe: defaultUniverseId,
 		Name:     "my-player",
 	}
 
@@ -34,7 +32,7 @@ func TestFromPlayerDtoRequest(t *testing.T) {
 
 	dto := PlayerDtoRequest{
 		ApiUser:  defaultUser,
-		Universe: defaultUniverse,
+		Universe: defaultUniverseId,
 		Name:     "my-player",
 	}
 
@@ -42,7 +40,7 @@ func TestFromPlayerDtoRequest(t *testing.T) {
 
 	assert.Nil(uuid.Validate(actual.Id.String()))
 	assert.Equal(defaultUser, actual.ApiUser)
-	assert.Equal(defaultUniverse, actual.Universe)
+	assert.Equal(defaultUniverseId, actual.Universe)
 	assert.Equal("my-player", actual.Name)
 	assert.True(actual.CreatedAt.After(beforeConversion))
 	assert.Equal(actual.CreatedAt, actual.UpdatedAt)
@@ -54,7 +52,7 @@ func TestToPlayerDtoResponse(t *testing.T) {
 	entity := persistence.Player{
 		Id:       defaultUuid,
 		ApiUser:  defaultUser,
-		Universe: defaultUniverse,
+		Universe: defaultUniverseId,
 		Name:     "my-player",
 
 		CreatedAt: someTime,
@@ -64,7 +62,7 @@ func TestToPlayerDtoResponse(t *testing.T) {
 
 	assert.Equal(defaultUuid, actual.Id)
 	assert.Equal(defaultUser, actual.ApiUser)
-	assert.Equal(defaultUniverse, actual.Universe)
+	assert.Equal(defaultUniverseId, actual.Universe)
 	assert.Equal("my-player", actual.Name)
 	assert.Equal(someTime, actual.CreatedAt)
 }
@@ -75,7 +73,7 @@ func TestPlayerDtoResponse_MarshalsToCamelCase(t *testing.T) {
 	dto := PlayerDtoResponse{
 		Id:       defaultUuid,
 		ApiUser:  defaultUser,
-		Universe: defaultUniverse,
+		Universe: defaultUniverseId,
 		Name:     "my-player",
 
 		CreatedAt: someTime,

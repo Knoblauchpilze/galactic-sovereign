@@ -9,7 +9,7 @@ import (
 type FullPlanetDtoResponse struct {
 	PlanetDtoResponse
 
-	Resources []PlanetResourceDtoResponse `json:"resources"`
+	Resources []PlanetResourceDtoResponse
 }
 
 func ToFullPlanetDtoResponse(planet persistence.Planet, resources []persistence.PlanetResource) FullPlanetDtoResponse {
