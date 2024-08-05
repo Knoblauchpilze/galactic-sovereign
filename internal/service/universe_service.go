@@ -21,6 +21,7 @@ type universeServiceImpl struct {
 
 	universeRepo repositories.UniverseRepository
 	resourceRepo repositories.ResourceRepository
+	buildingRepo repositories.BuildingRepository
 }
 
 func NewUniverseService(conn db.ConnectionPool, repos repositories.Repositories) UniverseService {
@@ -28,6 +29,7 @@ func NewUniverseService(conn db.ConnectionPool, repos repositories.Repositories)
 		conn:         conn,
 		universeRepo: repos.Universe,
 		resourceRepo: repos.Resource,
+		buildingRepo: repos.Building,
 	}
 }
 
@@ -60,7 +62,12 @@ func (s *universeServiceImpl) Get(ctx context.Context, id uuid.UUID) (communicat
 		return communication.FullUniverseDtoResponse{}, err
 	}
 
-	out := communication.ToFullUniverseDtoResponse(universe, resources)
+	buildings, err := s.buildingRepo.List(ctx, tx)
+	if err != nil {
+		return communication.FullUniverseDtoResponse{}, err
+	}
+
+	out := communication.ToFullUniverseDtoResponse(universe, resources, buildings)
 
 	return out, nil
 }

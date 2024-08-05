@@ -95,6 +95,20 @@ func (m *mockApiKeyRepository) DeleteForUser(ctx context.Context, tx db.Transact
 	return m.deleteErr
 }
 
+type mockBuildingRepository struct {
+	repositories.BuildingRepository
+
+	building persistence.Building
+	err      error
+
+	listCalled int
+}
+
+func (m *mockBuildingRepository) List(ctx context.Context, tx db.Transaction) ([]persistence.Building, error) {
+	m.listCalled++
+	return []persistence.Building{m.building}, m.err
+}
+
 type mockPlanetRepository struct {
 	repositories.PlanetRepository
 
