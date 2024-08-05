@@ -15,7 +15,6 @@ import (
 
 var defaultUniverseId = uuid.MustParse("3e7fde5c-ac70-4e5d-bd09-73029725048d")
 var defaultUniverseName = "my-universe"
-
 var defaultUniverseDtoRequest = communication.UniverseDtoRequest{
 	Name: defaultUniverseName,
 }
@@ -34,6 +33,15 @@ var defaultResource = persistence.Resource{
 	CreatedAt: testDate,
 	UpdatedAt: testDate,
 }
+var defaultBuildingId = uuid.MustParse("5ec0f2cb-adc9-4f09-bb77-61d0ccdbcc52")
+var defaultBuildingName = "my-building"
+var defaultBuilding = persistence.Building{
+	Id:   defaultBuildingId,
+	Name: defaultBuildingName,
+
+	CreatedAt: testDate,
+	UpdatedAt: testDate,
+}
 
 func Test_UniverseService(t *testing.T) {
 	s := ServiceTestSuite{
@@ -47,7 +55,6 @@ func Test_UniverseService(t *testing.T) {
 					_, err := s.Create(ctx, defaultUniverseDtoRequest)
 					return err
 				},
-
 				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
 					m := assertUniverseRepoIsAMock(repos, assert)
 
@@ -70,7 +77,6 @@ func Test_UniverseService(t *testing.T) {
 					_, err := s.Get(ctx, defaultUniverseId)
 					return err
 				},
-
 				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
 					m := assertUniverseRepoIsAMock(repos, assert)
 
@@ -86,6 +92,18 @@ func Test_UniverseService(t *testing.T) {
 					return err
 				},
 				expectedError: errDefault,
+			},
+			"get_resourceRepository": {
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewUniverseService(pool, repos)
+					_, err := s.Get(ctx, defaultUniverseId)
+					return err
+				},
+				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
+					m := assertResourceRepoIsAMock(repos, assert)
+
+					assert.Equal(1, m.listCalled)
+				},
 			},
 			"get_resourceRepositoryFails": {
 				generateRepositoriesMock: func() repositories.Repositories {
@@ -103,13 +121,41 @@ func Test_UniverseService(t *testing.T) {
 				},
 				expectedError: errDefault,
 			},
+			"get_buildingRepository": {
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewUniverseService(pool, repos)
+					_, err := s.Get(ctx, defaultUniverseId)
+					return err
+				},
+				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
+					m := assertBuildingRepoIsAMock(repos, assert)
+
+					assert.Equal(1, m.listCalled)
+				},
+			},
+			"get_buildingRepositoryFails": {
+				generateRepositoriesMock: func() repositories.Repositories {
+					return repositories.Repositories{
+						Building: &mockBuildingRepository{
+							err: errDefault,
+						},
+						Resource: &mockResourceRepository{},
+						Universe: &mockUniverseRepository{},
+					}
+				},
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewUniverseService(pool, repos)
+					_, err := s.Get(ctx, defaultUniverseId)
+					return err
+				},
+				expectedError: errDefault,
+			},
 			"list": {
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
 					s := NewUniverseService(pool, repos)
 					_, err := s.List(ctx)
 					return err
 				},
-
 				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
 					m := assertUniverseRepoIsAMock(repos, assert)
 
@@ -130,7 +176,6 @@ func Test_UniverseService(t *testing.T) {
 					s := NewUniverseService(pool, repos)
 					return s.Delete(ctx, defaultUniverseId)
 				},
-
 				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
 					m := assertUniverseRepoIsAMock(repos, assert)
 
@@ -155,7 +200,6 @@ func Test_UniverseService(t *testing.T) {
 					out, _ := s.Create(ctx, defaultUniverseDtoRequest)
 					return out
 				},
-
 				expectedContent: communication.UniverseDtoResponse{
 					Id:   defaultUniverse.Id,
 					Name: defaultUniverse.Name,
@@ -169,7 +213,6 @@ func Test_UniverseService(t *testing.T) {
 					out, _ := s.Get(ctx, defaultUniverseId)
 					return out
 				},
-
 				expectedContent: communication.FullUniverseDtoResponse{
 					UniverseDtoResponse: communication.UniverseDtoResponse{
 						Id:   defaultUniverse.Id,
@@ -185,6 +228,14 @@ func Test_UniverseService(t *testing.T) {
 							CreatedAt: defaultResource.CreatedAt,
 						},
 					},
+					Buildings: []communication.BuildingDtoResponse{
+						{
+							Id:   defaultBuilding.Id,
+							Name: defaultBuilding.Name,
+
+							CreatedAt: defaultBuilding.CreatedAt,
+						},
+					},
 				},
 			},
 			"list": {
@@ -193,7 +244,6 @@ func Test_UniverseService(t *testing.T) {
 					out, _ := s.List(ctx)
 					return out
 				},
-
 				expectedContent: []communication.UniverseDtoResponse{
 					{
 						Id:   defaultUniverse.Id,
@@ -227,6 +277,9 @@ func Test_UniverseService(t *testing.T) {
 
 func generateValidUniverseRepositoryMock() repositories.Repositories {
 	return repositories.Repositories{
+		Building: &mockBuildingRepository{
+			building: defaultBuilding,
+		},
 		Resource: &mockResourceRepository{
 			resource: defaultResource,
 		},
@@ -248,6 +301,22 @@ func assertUniverseRepoIsAMock(repos repositories.Repositories, assert *require.
 	m, ok := repos.Universe.(*mockUniverseRepository)
 	if !ok {
 		assert.Fail("Provided universe repository is not a mock")
+	}
+	return m
+}
+
+func assertResourceRepoIsAMock(repos repositories.Repositories, assert *require.Assertions) *mockResourceRepository {
+	m, ok := repos.Resource.(*mockResourceRepository)
+	if !ok {
+		assert.Fail("Provided resource repository is not a mock")
+	}
+	return m
+}
+
+func assertBuildingRepoIsAMock(repos repositories.Repositories, assert *require.Assertions) *mockBuildingRepository {
+	m, ok := repos.Building.(*mockBuildingRepository)
+	if !ok {
+		assert.Fail("Provided building repository is not a mock")
 	}
 	return m
 }
