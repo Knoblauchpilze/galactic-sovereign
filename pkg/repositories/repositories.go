@@ -5,6 +5,7 @@ type Repositories struct {
 	ApiKey         ApiKeyRepository
 	Building       BuildingRepository
 	Planet         PlanetRepository
+	PlanetBuilding PlanetBuildingRepository
 	PlanetResource PlanetResourceRepository
 	Player         PlayerRepository
 	Resource       ResourceRepository
