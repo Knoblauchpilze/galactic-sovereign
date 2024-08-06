@@ -60,12 +60,27 @@ SELECT
 FROM
 	resource
 `,
+					`
+INSERT INTO
+	planet_building (planet, building, level, created_at)
+SELECT
+	$1,
+	id,
+	0,
+	$2
+FROM
+	building
+`,
 				},
 				expectedArguments: [][]interface{}{
 					{
 						defaultPlanet.Id,
 						defaultPlanet.Player,
 						defaultPlanet.Name,
+						defaultPlanet.CreatedAt,
+					},
+					{
+						defaultPlanet.Id,
 						defaultPlanet.CreatedAt,
 					},
 					{
@@ -95,6 +110,17 @@ SELECT
 FROM
 	resource
 `,
+					`
+INSERT INTO
+	planet_building (planet, building, level, created_at)
+SELECT
+	$1,
+	id,
+	0,
+	$2
+FROM
+	building
+`,
 				},
 				expectedArguments: [][]interface{}{
 					{
@@ -106,6 +132,10 @@ FROM
 					{
 						defaultPlanet.Player,
 						defaultPlanet.Id,
+					},
+					{
+						defaultPlanet.Id,
+						defaultPlanet.CreatedAt,
 					},
 					{
 						defaultPlanet.Id,
@@ -300,6 +330,25 @@ WHERE
 				generateMock: func() db.Transaction {
 					return &mockTransaction{
 						execErrs: []error{
+							nil,
+							errDefault,
+						},
+					}
+				},
+				handler: func(ctx context.Context, tx db.Transaction) error {
+					s := NewPlanetRepository(&mockConnectionPool{})
+					_, err := s.Create(ctx, tx, defaultPlanet)
+					return err
+				},
+				verifyError: func(err error, assert *require.Assertions) {
+					assert.Equal(errDefault, err)
+				},
+			},
+			"create_planetResourceFails": {
+				generateMock: func() db.Transaction {
+					return &mockTransaction{
+						execErrs: []error{
+							nil,
 							nil,
 							errDefault,
 						},

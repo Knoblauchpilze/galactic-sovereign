@@ -71,3 +71,15 @@ CREATE TABLE building_cost (
   FOREIGN KEY (resource) REFERENCES resource(id),
   UNIQUE (building, resource)
 );
+
+CREATE TABLE planet_building (
+  planet uuid NOT NULL,
+  building uuid NOT NULL,
+  level integer NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  version INTEGER DEFAULT 0,
+  FOREIGN KEY (planet) REFERENCES planet(id),
+  FOREIGN KEY (building) REFERENCES building(id),
+  UNIQUE (planet, building)
+);
