@@ -20,6 +20,7 @@ type PlanetService interface {
 type planetServiceImpl struct {
 	conn db.ConnectionPool
 
+	planetBuildingRepo repositories.PlanetBuildingRepository
 	planetRepo         repositories.PlanetRepository
 	planetResourceRepo repositories.PlanetResourceRepository
 }
@@ -27,6 +28,7 @@ type planetServiceImpl struct {
 func NewPlanetService(conn db.ConnectionPool, repos repositories.Repositories) PlanetService {
 	return &planetServiceImpl{
 		conn:               conn,
+		planetBuildingRepo: repos.PlanetBuilding,
 		planetRepo:         repos.Planet,
 		planetResourceRepo: repos.PlanetResource,
 	}
@@ -67,7 +69,12 @@ func (s *planetServiceImpl) Get(ctx context.Context, id uuid.UUID) (communicatio
 		return communication.FullPlanetDtoResponse{}, err
 	}
 
-	out := communication.ToFullPlanetDtoResponse(planet, resources)
+	buildings, err := s.planetBuildingRepo.ListForPlanet(ctx, tx, planet.Id)
+	if err != nil {
+		return communication.FullPlanetDtoResponse{}, err
+	}
+
+	out := communication.ToFullPlanetDtoResponse(planet, resources, buildings)
 
 	return out, nil
 }
@@ -91,7 +98,12 @@ func (s *planetServiceImpl) List(ctx context.Context) ([]communication.FullPlane
 			return []communication.FullPlanetDtoResponse{}, err
 		}
 
-		dto := communication.ToFullPlanetDtoResponse(planet, resources)
+		buildings, err := s.planetBuildingRepo.ListForPlanet(ctx, tx, planet.Id)
+		if err != nil {
+			return []communication.FullPlanetDtoResponse{}, err
+		}
+
+		dto := communication.ToFullPlanetDtoResponse(planet, resources, buildings)
 
 		out = append(out, dto)
 	}
@@ -118,7 +130,12 @@ func (s *planetServiceImpl) ListForPlayer(ctx context.Context, player uuid.UUID)
 			return []communication.FullPlanetDtoResponse{}, err
 		}
 
-		dto := communication.ToFullPlanetDtoResponse(planet, resources)
+		buildings, err := s.planetBuildingRepo.ListForPlanet(ctx, tx, planet.Id)
+		if err != nil {
+			return []communication.FullPlanetDtoResponse{}, err
+		}
+
+		dto := communication.ToFullPlanetDtoResponse(planet, resources, buildings)
 
 		out = append(out, dto)
 	}
