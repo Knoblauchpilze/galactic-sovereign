@@ -43,6 +43,18 @@ FROM
 	resource
 `
 
+const createPlanetBuildingsSqlTemplate = `
+INSERT INTO
+	planet_building (planet, building, level, created_at)
+SELECT
+	$1,
+	id,
+	0,
+	$2
+FROM
+	building
+`
+
 func (r *planetRepositoryImpl) Create(ctx context.Context, tx db.Transaction, planet persistence.Planet) (persistence.Planet, error) {
 	_, err := tx.Exec(ctx, createPlanetSqlTemplate, planet.Id, planet.Player, planet.Name, planet.CreatedAt)
 	if err != nil {
@@ -57,6 +69,11 @@ func (r *planetRepositoryImpl) Create(ctx context.Context, tx db.Transaction, pl
 	}
 
 	_, err = tx.Exec(ctx, createPlanetResourcesSqlTemplate, planet.Id, planet.CreatedAt)
+	if err != nil {
+		return planet, err
+	}
+
+	_, err = tx.Exec(ctx, createPlanetBuildingsSqlTemplate, planet.Id, planet.CreatedAt)
 
 	return planet, err
 }
