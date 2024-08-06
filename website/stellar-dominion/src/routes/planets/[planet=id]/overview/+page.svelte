@@ -10,9 +10,10 @@
 	// https://svelte.dev/blog/zero-config-type-safety
 	export let data;
 
-	let id: string = data.planet.id;
-	let player: string = data.planet.player;
-	let name: string = data.planet.name;
+	const id: string = data.planet.id;
+	const player: string = data.planet.player;
+	const planetName: string = data.planet.name;
+	const universeName : string = data.universe.name;
 
 	// https://stackoverflow.com/questions/75616911/sveltekit-fetching-on-the-server-and-updating-the-writable-store
 	heroImage.set(GAME_HERO_IMAGE);
@@ -23,6 +24,8 @@
 
 <CenteredWrapper width="w-4/5" height="h-4/5" bgColor="bg-overlay">
 	<Header>
+		<StyledText text={universeName} textColor="text-white"/>
+		<StyledText text={planetName} textColor="text-white"/>
 		<form method="POST" action="?/logout">
 			<button class="hover:underline">Logout</button>
 		</form>
@@ -36,7 +39,7 @@
 		</div>
 
 		<div class="flex-grow">
-			<StyledTitle text="Welcome to {name}!" />
+			<StyledTitle text="Welcome to {planetName}!" />
 			<StyledText text="Your id is {id}, and you are in the empire of {player}" />
 			<StyledText text="This page will soon contain more information!" />
 		</div>
