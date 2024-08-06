@@ -1,5 +1,4 @@
 import { ResponseEnvelope } from '$lib/responseEnvelope';
-import { buildUrl, safeFetch } from '$lib/api';
 
 export interface ApiResource {
 	readonly id: string;
@@ -27,22 +26,6 @@ export class Resource {
 			name: this.name
 		};
 	}
-}
-
-export async function getResources(apiKey: string): Promise<ResponseEnvelope> {
-	const url = buildUrl('resources');
-
-	const params = {
-		method: 'GET',
-		headers: {
-			'X-Api-Key': apiKey
-		}
-	};
-
-	const response = await safeFetch(url, params);
-	const jsonContent = await response.json();
-
-	return new ResponseEnvelope(jsonContent);
 }
 
 export function responseToResourcesArray(response: ResponseEnvelope): Resource[] {
