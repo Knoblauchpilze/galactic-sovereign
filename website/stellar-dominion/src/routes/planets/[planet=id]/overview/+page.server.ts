@@ -35,12 +35,16 @@ export async function load({ params, cookies }) {
 	const universe = new Universe(universeResponse.getDetails());
 	const universeApi: ApiUniverse = {
 		id: universe.id,
-		name: universe.name,
-	}
+		name: universe.name
+	};
+
+	console.log('universe: ', JSON.stringify(universeResponse));
+	console.log('universe API: ', JSON.stringify(universe));
 
 	return {
 		universe: universeApi,
 		resources: universe.resources.map((r) => r.toJson()),
+		buildings: universe.buildings.map((b) => b.toJson()),
 		planet: {
 			...planet
 		}

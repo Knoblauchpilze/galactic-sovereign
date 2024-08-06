@@ -1,6 +1,7 @@
 import { ResponseEnvelope } from '$lib/responseEnvelope';
 import { buildUrl, safeFetch } from '$lib/api';
-import { Resource } from '$lib/resources';
+import { Resource, parseResources } from '$lib/resources';
+import { Building, parseBuildings } from '$lib/buildings';
 
 export interface ApiUniverse {
 	readonly id: string;
@@ -10,7 +11,9 @@ export interface ApiUniverse {
 export class Universe {
 	readonly id: string = '00000000-0000-0000-0000-000000000000';
 	readonly name: string = '';
+
 	readonly resources: Resource[] = [];
+	readonly buildings: Building[] = [];
 
 	constructor(response: object) {
 		if ('id' in response && typeof response.id === 'string') {
@@ -22,7 +25,11 @@ export class Universe {
 		}
 
 		if ('resources' in response && Array.isArray(response.resources)) {
-			this.resources = response.resources.map((maybeResource) => new Resource(maybeResource));
+			this.resources = parseResources(response.resources);
+		}
+
+		if ('buildings' in response && Array.isArray(response.buildings)) {
+			this.buildings = parseBuildings(response.buildings);
 		}
 	}
 

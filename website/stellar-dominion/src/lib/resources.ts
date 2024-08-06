@@ -1,5 +1,3 @@
-import { ResponseEnvelope } from '$lib/responseEnvelope';
-
 export interface ApiResource {
 	readonly id: string;
 	readonly name: string;
@@ -28,17 +26,19 @@ export class Resource {
 	}
 }
 
-export function responseToResourcesArray(response: ResponseEnvelope): Resource[] {
-	if (response.error()) {
-		return [];
+export function parseResources(data: object[]): Resource[] {
+	const out: Resource[] = [];
+
+	for (const maybeResource of data) {
+		const hasResource = 'id' in maybeResource && typeof maybeResource.id === 'string';
+		const hasName = 'name' in maybeResource && typeof maybeResource.name === 'string';
+
+		if (hasResource && hasName) {
+			out.push(new Resource(maybeResource));
+		}
 	}
 
-	const details = response.getDetails();
-	if (!Array.isArray(details)) {
-		return [];
-	}
-
-	return details.map((maybeResource) => new Resource(maybeResource));
+	return out;
 }
 
 export interface PlanetResource {
@@ -46,7 +46,7 @@ export interface PlanetResource {
 	readonly amount: number;
 }
 
-export function parseResources(data: object[]): PlanetResource[] {
+export function parsePlanetResources(data: object[]): PlanetResource[] {
 	const out: PlanetResource[] = [];
 
 	for (const maybeResource of data) {
