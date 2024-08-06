@@ -1,6 +1,7 @@
 import { ResponseEnvelope } from '$lib/responseEnvelope';
 import { buildUrl, safeFetch } from '$lib/api';
 import { type PlanetResource, parseResources } from '$lib/resources';
+import { type PlanetBuilding, parseBuildings } from '$lib/buildings';
 
 export class Planet {
 	readonly id: string = '00000000-0000-0000-0000-000000000000';
@@ -8,6 +9,7 @@ export class Planet {
 	readonly name: string = '';
 
 	readonly resources: PlanetResource[] = [];
+	readonly buildings: PlanetBuilding[] = [];
 
 	constructor(response: object) {
 		if ('id' in response && typeof response.id === 'string') {
@@ -24,6 +26,10 @@ export class Planet {
 
 		if ('resources' in response && Array.isArray(response.resources)) {
 			this.resources = parseResources(response.resources);
+		}
+
+		if ('buildings' in response && Array.isArray(response.buildings)) {
+			this.buildings = parseBuildings(response.buildings);
 		}
 	}
 }
