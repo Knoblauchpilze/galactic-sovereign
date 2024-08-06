@@ -36,6 +36,13 @@ var defaultPlanetResource = persistence.PlanetResource{
 	CreatedAt: testDate,
 	UpdatedAt: testDate,
 }
+var defaultPlanetBuilding = persistence.PlanetBuilding{
+	Planet:    defaultPlanetId,
+	Building:  defaultBuildingId,
+	Level:     38,
+	CreatedAt: testDate,
+	UpdatedAt: testDate,
+}
 
 func Test_PlanetService(t *testing.T) {
 	s := ServiceTestSuite{
@@ -111,6 +118,37 @@ func Test_PlanetService(t *testing.T) {
 						PlanetResource: &mockPlanetResourceRepository{
 							err: errDefault,
 						},
+					}
+				},
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewPlanetService(pool, repos)
+					_, err := s.Get(ctx, defaultPlanetId)
+					return err
+				},
+				expectedError: errDefault,
+			},
+			"get_planetBuilding": {
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewPlanetService(pool, repos)
+					_, err := s.Get(ctx, defaultPlanetId)
+					return err
+				},
+
+				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
+					m := assertPlanetBuildingRepoIsAMock(repos, assert)
+
+					assert.Equal(1, m.listForPlanetCalled)
+					assert.Equal(defaultPlanetId, m.listForPlanetId)
+				},
+			},
+			"get_planetBuildingRepositoryFails": {
+				generateRepositoriesMock: func() repositories.Repositories {
+					return repositories.Repositories{
+						Planet: &mockPlanetRepository{},
+						PlanetBuilding: &mockPlanetBuildingRepository{
+							err: errDefault,
+						},
+						PlanetResource: &mockPlanetResourceRepository{},
 					}
 				},
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
@@ -288,6 +326,15 @@ func Test_PlanetService(t *testing.T) {
 							UpdatedAt: testDate,
 						},
 					},
+					Buildings: []communication.PlanetBuildingDtoResponse{
+						{
+							Planet:    defaultPlanet.Id,
+							Building:  defaultBuildingId,
+							Level:     38,
+							CreatedAt: testDate,
+							UpdatedAt: testDate,
+						},
+					},
 				},
 			},
 			"list": {
@@ -311,6 +358,15 @@ func Test_PlanetService(t *testing.T) {
 								Planet:    defaultPlanet.Id,
 								Resource:  defaultResourceId,
 								Amount:    321.0987,
+								CreatedAt: testDate,
+								UpdatedAt: testDate,
+							},
+						},
+						Buildings: []communication.PlanetBuildingDtoResponse{
+							{
+								Planet:    defaultPlanet.Id,
+								Building:  defaultBuildingId,
+								Level:     38,
 								CreatedAt: testDate,
 								UpdatedAt: testDate,
 							},
@@ -339,6 +395,15 @@ func Test_PlanetService(t *testing.T) {
 								Planet:    defaultPlanet.Id,
 								Resource:  defaultResourceId,
 								Amount:    321.0987,
+								CreatedAt: testDate,
+								UpdatedAt: testDate,
+							},
+						},
+						Buildings: []communication.PlanetBuildingDtoResponse{
+							{
+								Planet:    defaultPlanet.Id,
+								Building:  defaultBuildingId,
+								Level:     38,
 								CreatedAt: testDate,
 								UpdatedAt: testDate,
 							},
@@ -394,6 +459,9 @@ func generateValidPlanetRepositoryMock() repositories.Repositories {
 		Planet: &mockPlanetRepository{
 			planet: defaultPlanet,
 		},
+		PlanetBuilding: &mockPlanetBuildingRepository{
+			planetBuilding: defaultPlanetBuilding,
+		},
 		PlanetResource: &mockPlanetResourceRepository{
 			planetResource: defaultPlanetResource,
 		},
@@ -420,6 +488,14 @@ func assertPlanetResourceRepoIsAMock(repos repositories.Repositories, assert *re
 	m, ok := repos.PlanetResource.(*mockPlanetResourceRepository)
 	if !ok {
 		assert.Fail("Provided planet resource repository is not a mock")
+	}
+	return m
+}
+
+func assertPlanetBuildingRepoIsAMock(repos repositories.Repositories, assert *require.Assertions) *mockPlanetBuildingRepository {
+	m, ok := repos.PlanetBuilding.(*mockPlanetBuildingRepository)
+	if !ok {
+		assert.Fail("Provided planet building repository is not a mock")
 	}
 	return m
 }
