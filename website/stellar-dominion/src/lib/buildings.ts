@@ -1,5 +1,3 @@
-import { ResponseEnvelope } from '$lib/responseEnvelope';
-
 export interface ApiBuilding {
 	readonly id: string;
 	readonly name: string;
@@ -27,17 +25,19 @@ export class Building {
 	}
 }
 
-export function responseToBuildingsArray(response: ResponseEnvelope): Building[] {
-	if (response.error()) {
-		return [];
+export function parseBuildings(data: object[]): Building[] {
+	const out: Building[] = [];
+
+	for (const maybeBuilding of data) {
+		const hasBuilding = 'id' in maybeBuilding && typeof maybeBuilding.id === 'string';
+		const hasName = 'name' in maybeBuilding && typeof maybeBuilding.name === 'string';
+
+		if (hasBuilding && hasName) {
+			out.push(new Building(maybeBuilding));
+		}
 	}
 
-	const details = response.getDetails();
-	if (!Array.isArray(details)) {
-		return [];
-	}
-
-	return details.map((maybeBuilding) => new Building(maybeBuilding));
+	return out;
 }
 
 export interface PlanetBuilding {
@@ -45,7 +45,7 @@ export interface PlanetBuilding {
 	readonly level: number;
 }
 
-export function parseBuildings(data: object[]): PlanetBuilding[] {
+export function parsePlanetBuildings(data: object[]): PlanetBuilding[] {
 	const out: PlanetBuilding[] = [];
 
 	for (const maybeBuilding of data) {
