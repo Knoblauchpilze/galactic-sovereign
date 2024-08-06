@@ -1,6 +1,6 @@
 import { error, redirect } from '@sveltejs/kit';
 import { loadCookies } from '$lib/cookies';
-import { Universe, getUniverse } from '$lib/universes';
+import { Universe, type ApiUniverse, getUniverse } from '$lib/universes';
 import { Planet, getPlanet } from '$lib/planets';
 import { ApiFailureReason } from '$lib/responseEnvelope.js';
 import { logoutUser } from '$lib/sessions';
@@ -33,8 +33,13 @@ export async function load({ params, cookies }) {
 	}
 
 	const universe = new Universe(universeResponse.getDetails());
+	const universeApi: ApiUniverse = {
+		id: universe.id,
+		name: universe.name,
+	}
 
 	return {
+		universe: universeApi,
 		resources: universe.resources.map((r) => r.toJson()),
 		planet: {
 			...planet
