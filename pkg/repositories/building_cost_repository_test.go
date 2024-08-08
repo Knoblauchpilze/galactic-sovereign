@@ -5,17 +5,11 @@ import (
 	"testing"
 
 	"github.com/KnoblauchPilze/user-service/pkg/db"
-	"github.com/KnoblauchPilze/user-service/pkg/persistence"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/suite"
 )
 
 var defaultBuildingId = uuid.MustParse("9c5a9f5c-b53e-4f5c-af6f-cb04e47abd95")
-var defaultBuildingCost = persistence.BuildingCost{
-	Building: defaultBuildingId,
-	Resource: defaultResourceId,
-	Cost:     73,
-}
 
 func Test_BuildingCostRepository_Transaction(t *testing.T) {
 	var dummyInt int
