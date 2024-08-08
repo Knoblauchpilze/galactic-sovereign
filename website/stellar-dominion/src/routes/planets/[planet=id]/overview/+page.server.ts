@@ -38,9 +38,6 @@ export async function load({ params, cookies }) {
 		name: universe.name
 	};
 
-	console.log('universe: ', JSON.stringify(universeResponse));
-	console.log('universe API: ', JSON.stringify(universe));
-
 	return {
 		universe: universeApi,
 		resources: universe.resources.map((r) => r.toJson()),
