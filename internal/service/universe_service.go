@@ -5,6 +5,7 @@ import (
 
 	"github.com/KnoblauchPilze/user-service/pkg/communication"
 	"github.com/KnoblauchPilze/user-service/pkg/db"
+	"github.com/KnoblauchPilze/user-service/pkg/persistence"
 	"github.com/KnoblauchPilze/user-service/pkg/repositories"
 	"github.com/google/uuid"
 )
@@ -19,17 +20,19 @@ type UniverseService interface {
 type universeServiceImpl struct {
 	conn db.ConnectionPool
 
-	universeRepo repositories.UniverseRepository
-	resourceRepo repositories.ResourceRepository
-	buildingRepo repositories.BuildingRepository
+	universeRepo     repositories.UniverseRepository
+	resourceRepo     repositories.ResourceRepository
+	buildingRepo     repositories.BuildingRepository
+	buildingCostRepo repositories.BuildingCostRepository
 }
 
 func NewUniverseService(conn db.ConnectionPool, repos repositories.Repositories) UniverseService {
 	return &universeServiceImpl{
-		conn:         conn,
-		universeRepo: repos.Universe,
-		resourceRepo: repos.Resource,
-		buildingRepo: repos.Building,
+		conn:             conn,
+		universeRepo:     repos.Universe,
+		resourceRepo:     repos.Resource,
+		buildingRepo:     repos.Building,
+		buildingCostRepo: repos.BuildingCost,
 	}
 }
 
@@ -67,7 +70,17 @@ func (s *universeServiceImpl) Get(ctx context.Context, id uuid.UUID) (communicat
 		return communication.FullUniverseDtoResponse{}, err
 	}
 
-	out := communication.ToFullUniverseDtoResponse(universe, resources, buildings)
+	costs := make(map[uuid.UUID][]persistence.BuildingCost)
+	for _, building := range buildings {
+		buildingCosts, err := s.buildingCostRepo.ListForBuilding(ctx, tx, building.Id)
+		if err != nil {
+			return communication.FullUniverseDtoResponse{}, err
+		}
+
+		costs[building.Id] = buildingCosts
+	}
+
+	out := communication.ToFullUniverseDtoResponse(universe, resources, buildings, costs)
 
 	return out, nil
 }

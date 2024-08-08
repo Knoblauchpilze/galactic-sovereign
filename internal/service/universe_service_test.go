@@ -42,6 +42,11 @@ var defaultBuilding = persistence.Building{
 	CreatedAt: testDate,
 	UpdatedAt: testDate,
 }
+var defaultBuildingCost = persistence.BuildingCost{
+	Building: defaultBuildingId,
+	Resource: defaultResourceId,
+	Cost:     14,
+}
 
 func Test_UniverseService(t *testing.T) {
 	s := ServiceTestSuite{
@@ -150,6 +155,36 @@ func Test_UniverseService(t *testing.T) {
 				},
 				expectedError: errDefault,
 			},
+			"get_buildingCostRepository": {
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewUniverseService(pool, repos)
+					_, err := s.Get(ctx, defaultUniverseId)
+					return err
+				},
+				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
+					m := assertBuildingCostRepoIsAMock(repos, assert)
+
+					assert.Equal(1, m.listForBuildingCalled)
+				},
+			},
+			"get_buildingCostRepositoryFails": {
+				generateRepositoriesMock: func() repositories.Repositories {
+					return repositories.Repositories{
+						Building: &mockBuildingRepository{},
+						BuildingCost: &mockBuildingCostRepository{
+							err: errDefault,
+						},
+						Resource: &mockResourceRepository{},
+						Universe: &mockUniverseRepository{},
+					}
+				},
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewUniverseService(pool, repos)
+					_, err := s.Get(ctx, defaultUniverseId)
+					return err
+				},
+				expectedError: errDefault,
+			},
 			"list": {
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
 					s := NewUniverseService(pool, repos)
@@ -228,12 +263,21 @@ func Test_UniverseService(t *testing.T) {
 							CreatedAt: defaultResource.CreatedAt,
 						},
 					},
-					Buildings: []communication.BuildingDtoResponse{
+					Buildings: []communication.FullBuildingDtoResponse{
 						{
-							Id:   defaultBuilding.Id,
-							Name: defaultBuilding.Name,
+							BuildingDtoResponse: communication.BuildingDtoResponse{
+								Id:   defaultBuilding.Id,
+								Name: defaultBuilding.Name,
 
-							CreatedAt: defaultBuilding.CreatedAt,
+								CreatedAt: defaultBuilding.CreatedAt,
+							},
+							Costs: []communication.BuildingCostDtoResponse{
+								{
+									Building: defaultBuilding.Id,
+									Resource: defaultResource.Id,
+									Cost:     14,
+								},
+							},
 						},
 					},
 				},
@@ -280,6 +324,9 @@ func generateValidUniverseRepositoryMock() repositories.Repositories {
 		Building: &mockBuildingRepository{
 			building: defaultBuilding,
 		},
+		BuildingCost: &mockBuildingCostRepository{
+			buildingCost: defaultBuildingCost,
+		},
 		Resource: &mockResourceRepository{
 			resource: defaultResource,
 		},
@@ -317,6 +364,14 @@ func assertBuildingRepoIsAMock(repos repositories.Repositories, assert *require.
 	m, ok := repos.Building.(*mockBuildingRepository)
 	if !ok {
 		assert.Fail("Provided building repository is not a mock")
+	}
+	return m
+}
+
+func assertBuildingCostRepoIsAMock(repos repositories.Repositories, assert *require.Assertions) *mockBuildingCostRepository {
+	m, ok := repos.BuildingCost.(*mockBuildingCostRepository)
+	if !ok {
+		assert.Fail("Provided building cost repository is not a mock")
 	}
 	return m
 }

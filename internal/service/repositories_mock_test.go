@@ -109,6 +109,22 @@ func (m *mockBuildingRepository) List(ctx context.Context, tx db.Transaction) ([
 	return []persistence.Building{m.building}, m.err
 }
 
+type mockBuildingCostRepository struct {
+	repositories.BuildingCostRepository
+
+	buildingCost persistence.BuildingCost
+	err          error
+
+	listForBuildingId     uuid.UUID
+	listForBuildingCalled int
+}
+
+func (m *mockBuildingCostRepository) ListForBuilding(ctx context.Context, tx db.Transaction, building uuid.UUID) ([]persistence.BuildingCost, error) {
+	m.listForBuildingCalled++
+	m.listForBuildingId = building
+	return []persistence.BuildingCost{m.buildingCost}, m.err
+}
+
 type mockPlanetBuildingRepository struct {
 	repositories.PlanetBuildingRepository
 
