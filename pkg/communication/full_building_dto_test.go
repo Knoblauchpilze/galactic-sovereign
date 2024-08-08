@@ -11,7 +11,7 @@ import (
 func TestToFullBuildingDtoResponse(t *testing.T) {
 	assert := assert.New(t)
 
-	actual := ToFullBuildingDtoResponse(defaultBuilding, []persistence.BuildingCost{defaultBuildingCost}, []persistence.Building{defaultBuilding})
+	actual := ToFullBuildingDtoResponse(defaultBuilding, []persistence.BuildingCost{defaultBuildingCost})
 
 	assert.Equal(defaultBuildingId, actual.Id)
 	assert.Equal("my-building", actual.Name)

@@ -12,7 +12,7 @@ type FullBuildingDtoResponse struct {
 	Costs []BuildingCostDtoResponse
 }
 
-func ToFullBuildingDtoResponse(building persistence.Building, costs []persistence.BuildingCost, buildings []persistence.Building) FullBuildingDtoResponse {
+func ToFullBuildingDtoResponse(building persistence.Building, costs []persistence.BuildingCost) FullBuildingDtoResponse {
 	out := FullBuildingDtoResponse{
 		BuildingDtoResponse: ToBuildingDtoResponse(building),
 	}
