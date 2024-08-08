@@ -1,11 +1,18 @@
 export interface ApiBuilding {
 	readonly id: string;
 	readonly name: string;
+	readonly costs: ApiBuildingCost[];
+}
+
+export interface ApiBuildingCost {
+	readonly resource: string;
+	readonly cost: number;
 }
 
 export class Building {
 	readonly id: string = '00000000-0000-0000-0000-000000000000';
 	readonly name: string = '';
+	readonly costs: BuildingCost[] = [];
 
 	constructor(response: object) {
 		if ('id' in response && typeof response.id === 'string') {
@@ -15,12 +22,20 @@ export class Building {
 		if ('name' in response && typeof response.name === 'string') {
 			this.name = response.name;
 		}
+
+		if ('costs' in response && Array.isArray(response.costs)) {
+			this.costs = parseBuildingCosts(response.costs);
+		}
 	}
 
 	public toJson(): ApiBuilding {
 		return {
 			id: this.id,
-			name: this.name
+			name: this.name,
+			costs: this.costs.map((c) => ({
+				resource: c.resource,
+				cost: c.cost
+			}))
 		};
 	}
 }
@@ -34,6 +49,31 @@ export function parseBuildings(data: object[]): Building[] {
 
 		if (hasBuilding && hasName) {
 			out.push(new Building(maybeBuilding));
+		}
+	}
+
+	return out;
+}
+
+export interface BuildingCost {
+	readonly resource: string;
+	readonly cost: number;
+}
+
+export function parseBuildingCosts(data: object[]): BuildingCost[] {
+	const out: BuildingCost[] = [];
+
+	for (const maybeCost of data) {
+		const hasResource = 'resource' in maybeCost && typeof maybeCost.resource === 'string';
+		const hasCost = 'cost' in maybeCost && typeof maybeCost.cost === 'number';
+
+		if (hasResource && hasCost) {
+			const cost: BuildingCost = {
+				resource: maybeCost.resource as string,
+				cost: maybeCost.cost as number
+			};
+
+			out.push(cost);
 		}
 	}
 
