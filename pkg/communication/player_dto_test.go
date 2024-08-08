@@ -10,6 +10,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+var defaultPlayerId = uuid.MustParse("efc01287-830f-4b95-8b26-3deff7135f2d")
+
 func TestPlayerDtoRequest_MarshalsToCamelCase(t *testing.T) {
 	assert := assert.New(t)
 
@@ -50,7 +52,7 @@ func TestToPlayerDtoResponse(t *testing.T) {
 	assert := assert.New(t)
 
 	entity := persistence.Player{
-		Id:       defaultUuid,
+		Id:       defaultPlayerId,
 		ApiUser:  defaultUser,
 		Universe: defaultUniverseId,
 		Name:     "my-player",
@@ -60,7 +62,7 @@ func TestToPlayerDtoResponse(t *testing.T) {
 
 	actual := ToPlayerDtoResponse(entity)
 
-	assert.Equal(defaultUuid, actual.Id)
+	assert.Equal(defaultPlayerId, actual.Id)
 	assert.Equal(defaultUser, actual.ApiUser)
 	assert.Equal(defaultUniverseId, actual.Universe)
 	assert.Equal("my-player", actual.Name)
@@ -71,7 +73,7 @@ func TestPlayerDtoResponse_MarshalsToCamelCase(t *testing.T) {
 	assert := assert.New(t)
 
 	dto := PlayerDtoResponse{
-		Id:       defaultUuid,
+		Id:       defaultPlayerId,
 		ApiUser:  defaultUser,
 		Universe: defaultUniverseId,
 		Name:     "my-player",
@@ -82,5 +84,5 @@ func TestPlayerDtoResponse_MarshalsToCamelCase(t *testing.T) {
 	out, err := json.Marshal(dto)
 
 	assert.Nil(err)
-	assert.Equal(`{"id":"08ce96a3-3430-48a8-a3b2-b1c987a207ca","api_user":"c74a22da-8a05-43a9-a8b9-717e422b0af4","universe":"06fedf46-80ed-4188-b94c-ed0a494ec7bd","name":"my-player","createdAt":"2024-05-05T20:50:18.651387237Z"}`, string(out))
+	assert.Equal(`{"id":"efc01287-830f-4b95-8b26-3deff7135f2d","api_user":"c74a22da-8a05-43a9-a8b9-717e422b0af4","universe":"06fedf46-80ed-4188-b94c-ed0a494ec7bd","name":"my-player","createdAt":"2024-05-05T20:50:18.651387237Z"}`, string(out))
 }

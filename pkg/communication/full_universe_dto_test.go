@@ -40,7 +40,7 @@ func TestFullUniverseDtoResponse_MarshalsToCamelCase(t *testing.T) {
 	out, err := json.Marshal(dto)
 
 	assert.Nil(err)
-	assert.Equal(`{"id":"06fedf46-80ed-4188-b94c-ed0a494ec7bd","name":"my-universe","createdAt":"2024-05-05T20:50:18.651387237Z","resources":[{"id":"08ce96a3-3430-48a8-a3b2-b1c987a207ca","name":"my-resource","createdAt":"2024-05-05T20:50:18.651387237Z"}],"buildings":[{"id":"461ba465-86e6-4234-94b8-fc8fab03fa74","name":"my-building","createdAt":"2024-05-05T20:50:18.651387237Z"}]}`, string(out))
+	assert.Equal(`{"id":"06fedf46-80ed-4188-b94c-ed0a494ec7bd","name":"my-universe","createdAt":"2024-05-05T20:50:18.651387237Z","resources":[{"id":"97ddca58-8eee-41af-8bda-f37a3080f618","name":"my-resource","createdAt":"2024-05-05T20:50:18.651387237Z"}],"buildings":[{"id":"461ba465-86e6-4234-94b8-fc8fab03fa74","name":"my-building","createdAt":"2024-05-05T20:50:18.651387237Z"}]}`, string(out))
 }
 
 func TestFullUniverseDtoResponse_WhenResourcesAreEmpty_MarshalsToEmptyArray(t *testing.T) {
@@ -74,5 +74,5 @@ func TestFullUniverseDtoResponse_WhenBuildingsAreEmpty_MarshalsToEmptyArray(t *t
 	out, err := json.Marshal(dto)
 
 	assert.Nil(err)
-	assert.Equal(`{"id":"06fedf46-80ed-4188-b94c-ed0a494ec7bd","name":"my-universe","createdAt":"2024-05-05T20:50:18.651387237Z","resources":[{"id":"08ce96a3-3430-48a8-a3b2-b1c987a207ca","name":"my-resource","createdAt":"2024-05-05T20:50:18.651387237Z"}],"buildings":[]}`, string(out))
+	assert.Equal(`{"id":"06fedf46-80ed-4188-b94c-ed0a494ec7bd","name":"my-universe","createdAt":"2024-05-05T20:50:18.651387237Z","resources":[{"id":"97ddca58-8eee-41af-8bda-f37a3080f618","name":"my-resource","createdAt":"2024-05-05T20:50:18.651387237Z"}],"buildings":[]}`, string(out))
 }
