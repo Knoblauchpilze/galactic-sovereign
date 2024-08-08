@@ -15,7 +15,7 @@ import (
 
 var defaultPlanetResource = persistence.PlanetResource{
 	Planet:    defaultPlanetId,
-	Resource:  defaultPlayerId,
+	Resource:  defaultResourceId,
 	Amount:    1234.567,
 	CreatedAt: time.Date(2024, 7, 28, 10, 59, 41, 651387233, time.UTC),
 	UpdatedAt: time.Date(2024, 7, 28, 10, 59, 42, 651387233, time.UTC),
