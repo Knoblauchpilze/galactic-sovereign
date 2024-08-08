@@ -51,14 +51,26 @@ var defaultResourceDtoResponse = communication.ResourceDtoResponse{
 var defaultBuildingDtoResponse = communication.BuildingDtoResponse{
 	Id:   defaultUuid,
 	Name: "my-building",
+
+	CreatedAt: time.Date(2024, 8, 8, 21, 42, 03, 651387242, time.UTC),
+}
+var defaultBuildingCostDtoResponse = communication.BuildingCostDtoResponse{
+	Building: defaultUuid,
+	Resource: defaultUuid,
+	Cost:     58,
 }
 var defaultFullUniverseDtoResponse = communication.FullUniverseDtoResponse{
 	UniverseDtoResponse: defaultUniverseDtoResponse,
 	Resources: []communication.ResourceDtoResponse{
 		defaultResourceDtoResponse,
 	},
-	Buildings: []communication.BuildingDtoResponse{
-		defaultBuildingDtoResponse,
+	Buildings: []communication.FullBuildingDtoResponse{
+		{
+			BuildingDtoResponse: defaultBuildingDtoResponse,
+			Costs: []communication.BuildingCostDtoResponse{
+				defaultBuildingCostDtoResponse,
+			},
+		},
 	},
 }
 
