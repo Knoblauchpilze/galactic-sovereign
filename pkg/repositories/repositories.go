@@ -4,6 +4,7 @@ type Repositories struct {
 	Acl            AclRepository
 	ApiKey         ApiKeyRepository
 	Building       BuildingRepository
+	BuildingCost   BuildingCostRepository
 	Planet         PlanetRepository
 	PlanetBuilding PlanetBuildingRepository
 	PlanetResource PlanetResourceRepository

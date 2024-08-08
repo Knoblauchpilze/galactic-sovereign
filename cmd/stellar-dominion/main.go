@@ -49,6 +49,7 @@ func main() {
 
 	repos := repositories.Repositories{
 		Building:       repositories.NewBuildingRepository(),
+		BuildingCost:   repositories.NewBuildingCostRepository(),
 		Planet:         repositories.NewPlanetRepository(pool),
 		PlanetBuilding: repositories.NewPlanetBuildingRepository(),
 		PlanetResource: repositories.NewPlanetResourceRepository(),
