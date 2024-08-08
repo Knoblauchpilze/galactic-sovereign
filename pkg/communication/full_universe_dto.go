@@ -4,16 +4,17 @@ import (
 	"encoding/json"
 
 	"github.com/KnoblauchPilze/user-service/pkg/persistence"
+	"github.com/google/uuid"
 )
 
 type FullUniverseDtoResponse struct {
 	UniverseDtoResponse
 
 	Resources []ResourceDtoResponse
-	Buildings []BuildingDtoResponse
+	Buildings []FullBuildingDtoResponse
 }
 
-func ToFullUniverseDtoResponse(universe persistence.Universe, resources []persistence.Resource, buildings []persistence.Building) FullUniverseDtoResponse {
+func ToFullUniverseDtoResponse(universe persistence.Universe, resources []persistence.Resource, buildings []persistence.Building, buildingCosts map[uuid.UUID][]persistence.BuildingCost) FullUniverseDtoResponse {
 	out := FullUniverseDtoResponse{
 		UniverseDtoResponse: ToUniverseDtoResponse(universe),
 	}
@@ -24,7 +25,7 @@ func ToFullUniverseDtoResponse(universe persistence.Universe, resources []persis
 	}
 
 	for _, building := range buildings {
-		buildingDto := ToBuildingDtoResponse(building)
+		buildingDto := ToFullBuildingDtoResponse(building, buildingCosts[building.Id])
 		out.Buildings = append(out.Buildings, buildingDto)
 	}
 
@@ -34,8 +35,8 @@ func ToFullUniverseDtoResponse(universe persistence.Universe, resources []persis
 func (dto FullUniverseDtoResponse) MarshalJSON() ([]byte, error) {
 	out := struct {
 		UniverseDtoResponse
-		Resources []ResourceDtoResponse `json:"resources"`
-		Buildings []BuildingDtoResponse `json:"buildings"`
+		Resources []ResourceDtoResponse     `json:"resources"`
+		Buildings []FullBuildingDtoResponse `json:"buildings"`
 	}{
 		UniverseDtoResponse: dto.UniverseDtoResponse,
 		Resources:           dto.Resources,
@@ -46,7 +47,7 @@ func (dto FullUniverseDtoResponse) MarshalJSON() ([]byte, error) {
 		out.Resources = make([]ResourceDtoResponse, 0)
 	}
 	if out.Buildings == nil {
-		out.Buildings = make([]BuildingDtoResponse, 0)
+		out.Buildings = make([]FullBuildingDtoResponse, 0)
 	}
 
 	return json.Marshal(out)
