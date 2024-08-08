@@ -10,18 +10,18 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var defaultPlayer = uuid.MustParse("efc01287-830f-4b95-8b26-3deff7135f2d")
+var defaultPlanetId = uuid.MustParse("65801b9b-84e6-411d-805f-2eb89587c5a7")
 var defaultPlanet = persistence.Planet{
-	Id:        defaultUuid,
-	Player:    defaultPlayer,
+	Id:        defaultPlanetId,
+	Player:    defaultPlayerId,
 	Name:      "my-player",
 	Homeworld: true,
 
 	CreatedAt: someTime,
 }
 var defaultPlanetDtoResponse = PlanetDtoResponse{
-	Id:        defaultUuid,
-	Player:    defaultPlayer,
+	Id:        defaultPlanetId,
+	Player:    defaultPlayerId,
 	Name:      "my-planet",
 	Homeworld: true,
 	CreatedAt: someTime,
@@ -31,7 +31,7 @@ func TestPlanetDtoRequest_MarshalsToCamelCase(t *testing.T) {
 	assert := assert.New(t)
 
 	dto := PlanetDtoRequest{
-		Player: defaultPlayer,
+		Player: defaultPlayerId,
 		Name:   "my-planet",
 	}
 
@@ -47,14 +47,14 @@ func TestFromPlanetDtoRequest(t *testing.T) {
 	beforeConversion := time.Now()
 
 	dto := PlanetDtoRequest{
-		Player: defaultPlayer,
+		Player: defaultPlayerId,
 		Name:   "my-planet",
 	}
 
 	actual := FromPlanetDtoRequest(dto)
 
 	assert.Nil(uuid.Validate(actual.Id.String()))
-	assert.Equal(defaultPlayer, actual.Player)
+	assert.Equal(defaultPlayerId, actual.Player)
 	assert.Equal("my-planet", actual.Name)
 	assert.False(actual.Homeworld)
 	assert.True(actual.CreatedAt.After(beforeConversion))
@@ -66,8 +66,8 @@ func TestToPlanetDtoResponse(t *testing.T) {
 
 	actual := ToPlanetDtoResponse(defaultPlanet)
 
-	assert.Equal(defaultUuid, actual.Id)
-	assert.Equal(defaultPlayer, actual.Player)
+	assert.Equal(defaultPlanetId, actual.Id)
+	assert.Equal(defaultPlayerId, actual.Player)
 	assert.Equal("my-player", actual.Name)
 	assert.True(actual.Homeworld)
 	assert.Equal(someTime, actual.CreatedAt)
@@ -79,5 +79,5 @@ func TestPlanetDtoResponse_MarshalsToCamelCase(t *testing.T) {
 	out, err := json.Marshal(defaultPlanetDtoResponse)
 
 	assert.Nil(err)
-	assert.Equal(`{"id":"08ce96a3-3430-48a8-a3b2-b1c987a207ca","player":"efc01287-830f-4b95-8b26-3deff7135f2d","name":"my-planet","homeworld":true,"createdAt":"2024-05-05T20:50:18.651387237Z"}`, string(out))
+	assert.Equal(`{"id":"65801b9b-84e6-411d-805f-2eb89587c5a7","player":"efc01287-830f-4b95-8b26-3deff7135f2d","name":"my-planet","homeworld":true,"createdAt":"2024-05-05T20:50:18.651387237Z"}`, string(out))
 }
