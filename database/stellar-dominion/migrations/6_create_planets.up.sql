@@ -23,21 +23,6 @@ CREATE TABLE homeworld (
   FOREIGN KEY (planet) REFERENCES planet(id)
 );
 
-CREATE TABLE resource (
-  id uuid NOT NULL,
-  name text,
-  start_amount INTEGER NOT NULL,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (id),
-  UNIQUE (name)
-);
-
-CREATE TRIGGER trigger_resource_updated_at
-  BEFORE UPDATE OR INSERT ON resource
-  FOR EACH ROW
-  EXECUTE FUNCTION update_updated_at();
-
 CREATE TABLE planet_resource (
   planet uuid NOT NULL,
   resource uuid NOT NULL,
@@ -48,28 +33,6 @@ CREATE TABLE planet_resource (
   FOREIGN KEY (planet) REFERENCES planet(id),
   FOREIGN KEY (resource) REFERENCES resource(id),
   UNIQUE (planet, resource)
-);
-
-CREATE TABLE building (
-  id uuid NOT NULL,
-  name text NOT NULL,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (id)
-);
-
-CREATE TRIGGER trigger_building_updated_at
-  BEFORE UPDATE OR INSERT ON building
-  FOR EACH ROW
-  EXECUTE FUNCTION update_updated_at();
-
-CREATE TABLE building_cost (
-  building uuid NOT NULL,
-  resource uuid NOT NULL,
-  cost integer NOT NULL,
-  FOREIGN KEY (building) REFERENCES building(id),
-  FOREIGN KEY (resource) REFERENCES resource(id),
-  UNIQUE (building, resource)
 );
 
 CREATE TABLE planet_building (
