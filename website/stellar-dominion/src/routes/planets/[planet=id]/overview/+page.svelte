@@ -1,12 +1,12 @@
 <script lang="ts">
 	import '$styles/app.css';
-	import { CenteredWrapper, Header, StyledText, StyledTitle } from '$lib/components';
+	import { CenteredWrapper, Header, StyledText, StyledTitle, Building } from '$lib/components';
 
 	import heroImage, { GAME_HERO_IMAGE } from '$lib/stores/ui/heroImage';
 	import heroContainer, { GAME_HERO_CONTAINER_PROPS } from '$lib/stores/ui/heroContainer';
 
-	import { mapPlanetResourcesToApiResources } from '$lib/resources';
-	import { mapPlanetBuildingsToApiBuildings } from '$lib/buildings';
+	import { mapPlanetResourcesToUiResources } from '$lib/resources';
+	import { mapPlanetBuildingsToUiBuildings } from '$lib/buildings';
 
 	// https://svelte.dev/blog/zero-config-type-safety
 	export let data;
@@ -20,8 +20,12 @@
 	heroImage.set(GAME_HERO_IMAGE);
 	heroContainer.set(GAME_HERO_CONTAINER_PROPS);
 
-	const resources = mapPlanetResourcesToApiResources(data.planet.resources, data.resources);
-	const buildings = mapPlanetBuildingsToApiBuildings(data.planet.buildings, data.buildings);
+	const resources = mapPlanetResourcesToUiResources(data.planet.resources, data.resources);
+	const buildings = mapPlanetBuildingsToUiBuildings(
+		data.planet.buildings,
+		data.buildings,
+		data.resources
+	);
 </script>
 
 <CenteredWrapper width="w-4/5" height="h-4/5" bgColor="bg-overlay">
@@ -39,17 +43,14 @@
 				<StyledText text="{resource.name}: {resource.amount}" textColor="text-white" />
 			{/each}
 		</div>
-		<!-- TODO: Interpret this with a new component -->
-		<div class="flex justify-around bg-black">
-			{#each buildings as building}
-				<StyledText text="{building.name}: {building.level}" textColor="text-white" />
-			{/each}
-		</div>
 
-		<div class="flex-grow">
-			<StyledTitle text="Welcome to {planetName}!" />
-			<StyledText text="Your id is {id}, and you are in the empire of {player}" />
-			<StyledText text="This page will soon contain more information!" />
-		</div>
+		<CenteredWrapper>
+			<StyledTitle text="Buildings on {planetName}" />
+			<div class="w-full h-full flex flex-wrap items-start bg-transparent">
+				{#each buildings as building}
+					<Building {building} availableResources={resources} />
+				{/each}
+			</div>
+		</CenteredWrapper>
 	</div>
 </CenteredWrapper>

@@ -10,3 +10,5 @@ export { default as FormField } from '$lib/components/FormField.svelte';
 export { default as HeroContainer } from '$lib/components/HeroContainer.svelte';
 export { default as Header } from '$lib/components/Header.svelte';
 export { default as Footer } from '$lib/components/Footer.svelte';
+
+export { default as Building } from '$lib/components/Building.svelte';

@@ -71,7 +71,7 @@ export interface UiResource {
 	readonly amount: number;
 }
 
-export function mapPlanetResourcesToApiResources(
+export function mapPlanetResourcesToUiResources(
 	planetResources: PlanetResource[],
 	apiResources: ApiResource[]
 ): UiResource[] {

@@ -1,3 +1,5 @@
+import { type ApiResource } from '$lib/resources';
+
 export interface ApiBuilding {
 	readonly id: string;
 	readonly name: string;
@@ -105,26 +107,55 @@ export function parsePlanetBuildings(data: object[]): PlanetBuilding[] {
 	return out;
 }
 
+export interface UiBuildingCost {
+	readonly resource: string;
+	readonly cost: number;
+}
+
 export interface UiBuilding {
 	readonly name: string;
 	readonly level: number;
+	readonly costs: UiBuildingCost[];
 }
 
-export function mapPlanetBuildingsToApiBuildings(
+function mapBuildingCostsToUiBuildingCosts(
+	buildingCosts: BuildingCost[],
+	apiResources: ApiResource[]
+): UiBuildingCost[] {
+	return buildingCosts.map((cost) => {
+		const maybeResource = apiResources.find((r) => r.id === cost.resource);
+		if (maybeResource === undefined) {
+			return {
+				resource: "Unknown resource",
+				cost: cost.cost,
+			};
+		} else {
+			return {
+				resource: maybeResource.name,
+				cost: cost.cost,
+			};
+		}
+	});
+}
+
+export function mapPlanetBuildingsToUiBuildings(
 	planetBuildings: PlanetBuilding[],
-	apiBuildings: ApiBuilding[]
+	apiBuildings: ApiBuilding[],
+	apiResources: ApiResource[]
 ): UiBuilding[] {
 	return apiBuildings.map((apiBuilding) => {
 		const maybeBuilding = planetBuildings.find((r) => r.id === apiBuilding.id);
 		if (maybeBuilding === undefined) {
 			return {
 				name: apiBuilding.name,
-				level: 0
+				level: 0,
+				costs: mapBuildingCostsToUiBuildingCosts(apiBuilding.costs, apiResources)
 			};
 		} else {
 			return {
 				name: apiBuilding.name,
-				level: maybeBuilding.level
+				level: maybeBuilding.level,
+				costs: mapBuildingCostsToUiBuildingCosts(apiBuilding.costs, apiResources)
 			};
 		}
 	});
