@@ -11,8 +11,6 @@
 	// https://svelte.dev/blog/zero-config-type-safety
 	export let data;
 
-	const id: string = data.planet.id;
-	const player: string = data.planet.player;
 	const planetName: string = data.planet.name;
 	const universeName: string = data.universe.name;
 
@@ -46,6 +44,7 @@
 
 		<CenteredWrapper>
 			<StyledTitle text="Buildings on {planetName}" />
+			<!-- https://tailwindcss.com/docs/align-items -->
 			<div class="w-full h-full flex flex-wrap items-start bg-transparent">
 				{#each buildings as building}
 					<Building {building} availableResources={resources} />
