@@ -4,6 +4,7 @@
 
 	import heroImage, { GAME_HERO_IMAGE } from '$lib/stores/ui/heroImage';
 	import heroContainer, { GAME_HERO_CONTAINER_PROPS } from '$lib/stores/ui/heroContainer';
+	import pageTitle, { HOMEPAGE_TITLE } from '$lib/stores/ui/pageTitle';
 
 	import { mapPlanetResourcesToUiResources } from '$lib/resources';
 	import { mapPlanetBuildingsToUiBuildings } from '$lib/buildings';
@@ -17,6 +18,8 @@
 	// https://stackoverflow.com/questions/75616911/sveltekit-fetching-on-the-server-and-updating-the-writable-store
 	heroImage.set(GAME_HERO_IMAGE);
 	heroContainer.set(GAME_HERO_CONTAINER_PROPS);
+	const title = HOMEPAGE_TITLE + " - " + data.planet.name;
+	pageTitle.set(title);
 
 	const resources = mapPlanetResourcesToUiResources(data.planet.resources, data.resources);
 	const buildings = mapPlanetBuildingsToUiBuildings(
