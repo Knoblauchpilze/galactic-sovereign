@@ -35,5 +35,11 @@ func TestBuildingCostDtoResponse_MarshalsToCamelCase(t *testing.T) {
 	out, err := json.Marshal(defaultBuildingCostDtoResponse)
 
 	assert.Nil(err)
-	assert.Equal(`{"building":"461ba465-86e6-4234-94b8-fc8fab03fa74","resource":"97ddca58-8eee-41af-8bda-f37a3080f618","cost":54}`, string(out))
+	expectedJson := `
+	{
+		"building": "461ba465-86e6-4234-94b8-fc8fab03fa74",
+		"resource": "97ddca58-8eee-41af-8bda-f37a3080f618",
+		"cost": 54
+	}`
+	assert.JSONEq(expectedJson, string(out))
 }

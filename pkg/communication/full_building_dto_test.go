@@ -34,7 +34,20 @@ func TestFullBuildingDtoResponse_MarshalsToCamelCase(t *testing.T) {
 	out, err := json.Marshal(dto)
 
 	assert.Nil(err)
-	assert.Equal(`{"id":"461ba465-86e6-4234-94b8-fc8fab03fa74","name":"my-building","createdAt":"2024-05-05T20:50:18.651387237Z","costs":[{"building":"461ba465-86e6-4234-94b8-fc8fab03fa74","resource":"97ddca58-8eee-41af-8bda-f37a3080f618","cost":54}]}`, string(out))
+	expectedJson := `
+	{
+		"id": "461ba465-86e6-4234-94b8-fc8fab03fa74",
+		"name": "my-building",
+		"createdAt": "2024-05-05T20:50:18.651387237Z",
+		"costs": [
+			{
+				"building": "461ba465-86e6-4234-94b8-fc8fab03fa74",
+				"resource": "97ddca58-8eee-41af-8bda-f37a3080f618",
+				"cost": 54
+			}
+		]
+	}`
+	assert.JSONEq(expectedJson, string(out))
 }
 
 func TestFullBuildingDtoResponse_WhenCostsAreEmpty_MarshalsToEmptyArray(t *testing.T) {
@@ -48,5 +61,12 @@ func TestFullBuildingDtoResponse_WhenCostsAreEmpty_MarshalsToEmptyArray(t *testi
 	out, err := json.Marshal(dto)
 
 	assert.Nil(err)
-	assert.Equal(`{"id":"461ba465-86e6-4234-94b8-fc8fab03fa74","name":"my-building","createdAt":"2024-05-05T20:50:18.651387237Z","costs":[]}`, string(out))
+	expectedJson := `
+	{
+		"id": "461ba465-86e6-4234-94b8-fc8fab03fa74",
+		"name": "my-building",
+		"createdAt": "2024-05-05T20:50:18.651387237Z",
+		"costs": []
+	}`
+	assert.JSONEq(expectedJson, string(out))
 }

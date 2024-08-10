@@ -44,5 +44,13 @@ func TestPlanetResourceDtoResponse_MarshalsToCamelCase(t *testing.T) {
 	out, err := json.Marshal(defaultPlanetResourceDtoResponse)
 
 	assert.Nil(err)
-	assert.Equal(`{"planet":"65801b9b-84e6-411d-805f-2eb89587c5a7","resource":"97ddca58-8eee-41af-8bda-f37a3080f618","amount":1234.567,"createdAt":"2024-05-05T20:50:18.651387237Z","updatedAt":"2024-07-28T10:30:02.651387236Z"}`, string(out))
+	expectedJson := `
+	{
+		"planet": "65801b9b-84e6-411d-805f-2eb89587c5a7",
+		"resource": "97ddca58-8eee-41af-8bda-f37a3080f618",
+		"amount": 1234.567,
+		"createdAt": "2024-05-05T20:50:18.651387237Z",
+		"updatedAt": "2024-07-28T10:30:02.651387236Z"
+	}`
+	assert.JSONEq(expectedJson, string(out))
 }

@@ -24,7 +24,12 @@ func TestUserDtoRequest_MarshalsToCamelCase(t *testing.T) {
 	out, err := json.Marshal(dto)
 
 	assert.Nil(err)
-	assert.Equal(`{"email":"some@e.mail","password":"secret"}`, string(out))
+	expectedJson := `
+	{
+		"email": "some@e.mail",
+		"password": "secret"
+	}`
+	assert.JSONEq(expectedJson, string(out))
 }
 
 func TestFromUserDtoRequest(t *testing.T) {
@@ -78,5 +83,12 @@ func TestUserDtoResponse_MarshalsToCamelCase(t *testing.T) {
 	out, err := json.Marshal(dto)
 
 	assert.Nil(err)
-	assert.Equal(`{"id":"08ce96a3-3430-48a8-a3b2-b1c987a207ca","email":"some@e.mail","password":"secret","createdAt":"2024-05-05T20:50:18.651387237Z"}`, string(out))
+	expectedJson := `
+	{
+		"id": "08ce96a3-3430-48a8-a3b2-b1c987a207ca",
+		"email": "some@e.mail",
+		"password": "secret",
+		"createdAt": "2024-05-05T20:50:18.651387237Z"
+	}`
+	assert.JSONEq(expectedJson, string(out))
 }

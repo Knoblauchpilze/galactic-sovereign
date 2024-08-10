@@ -42,7 +42,33 @@ func TestFullPlanetDtoResponse_MarshalsToCamelCase(t *testing.T) {
 	out, err := json.Marshal(dto)
 
 	assert.Nil(err)
-	assert.Equal(`{"id":"65801b9b-84e6-411d-805f-2eb89587c5a7","player":"efc01287-830f-4b95-8b26-3deff7135f2d","name":"my-planet","homeworld":true,"createdAt":"2024-05-05T20:50:18.651387237Z","resources":[{"planet":"65801b9b-84e6-411d-805f-2eb89587c5a7","resource":"97ddca58-8eee-41af-8bda-f37a3080f618","amount":1234.567,"createdAt":"2024-05-05T20:50:18.651387237Z","updatedAt":"2024-07-28T10:30:02.651387236Z"}],"buildings":[{"planet":"65801b9b-84e6-411d-805f-2eb89587c5a7","building":"461ba465-86e6-4234-94b8-fc8fab03fa74","level":37,"createdAt":"2024-05-05T20:50:18.651387237Z","updatedAt":"2024-07-28T10:30:02.651387236Z"}]}`, string(out))
+	expectedJson := `
+	{
+		"id": "65801b9b-84e6-411d-805f-2eb89587c5a7",
+		"player": "efc01287-830f-4b95-8b26-3deff7135f2d",
+		"name": "my-planet",
+		"homeworld": true,
+		"createdAt": "2024-05-05T20:50:18.651387237Z",
+		"resources": [
+			{
+				"planet": "65801b9b-84e6-411d-805f-2eb89587c5a7",
+				"resource": "97ddca58-8eee-41af-8bda-f37a3080f618",
+				"amount": 1234.567,
+				"createdAt": "2024-05-05T20:50:18.651387237Z",
+				"updatedAt": "2024-07-28T10:30:02.651387236Z"
+			}
+		],
+		"buildings": [
+			{
+				"planet": "65801b9b-84e6-411d-805f-2eb89587c5a7",
+				"building": "461ba465-86e6-4234-94b8-fc8fab03fa74",
+				"level": 37,
+				"createdAt": "2024-05-05T20:50:18.651387237Z",
+				"updatedAt": "2024-07-28T10:30:02.651387236Z"
+			}
+		]
+	}`
+	assert.JSONEq(expectedJson, string(out))
 }
 
 func TestFullPlanetDtoResponse_WhenResourcesAreEmpty_MarshalsToEmptyArray(t *testing.T) {
@@ -59,7 +85,25 @@ func TestFullPlanetDtoResponse_WhenResourcesAreEmpty_MarshalsToEmptyArray(t *tes
 	out, err := json.Marshal(dto)
 
 	assert.Nil(err)
-	assert.Equal(`{"id":"65801b9b-84e6-411d-805f-2eb89587c5a7","player":"efc01287-830f-4b95-8b26-3deff7135f2d","name":"my-planet","homeworld":true,"createdAt":"2024-05-05T20:50:18.651387237Z","resources":[],"buildings":[{"planet":"65801b9b-84e6-411d-805f-2eb89587c5a7","building":"461ba465-86e6-4234-94b8-fc8fab03fa74","level":37,"createdAt":"2024-05-05T20:50:18.651387237Z","updatedAt":"2024-07-28T10:30:02.651387236Z"}]}`, string(out))
+	expectedJson := `
+	{
+		"id": "65801b9b-84e6-411d-805f-2eb89587c5a7",
+		"player": "efc01287-830f-4b95-8b26-3deff7135f2d",
+		"name": "my-planet",
+		"homeworld": true,
+		"createdAt": "2024-05-05T20:50:18.651387237Z",
+		"resources": [],
+		"buildings": [
+			{
+				"planet": "65801b9b-84e6-411d-805f-2eb89587c5a7",
+				"building": "461ba465-86e6-4234-94b8-fc8fab03fa74",
+				"level": 37,
+				"createdAt": "2024-05-05T20:50:18.651387237Z",
+				"updatedAt": "2024-07-28T10:30:02.651387236Z"
+			}
+		]
+	}`
+	assert.JSONEq(expectedJson, string(out))
 }
 
 func TestFullPlanetDtoResponse_WhenBuildingsAreEmpty_MarshalsToEmptyArray(t *testing.T) {
@@ -76,5 +120,23 @@ func TestFullPlanetDtoResponse_WhenBuildingsAreEmpty_MarshalsToEmptyArray(t *tes
 	out, err := json.Marshal(dto)
 
 	assert.Nil(err)
-	assert.Equal(`{"id":"65801b9b-84e6-411d-805f-2eb89587c5a7","player":"efc01287-830f-4b95-8b26-3deff7135f2d","name":"my-planet","homeworld":true,"createdAt":"2024-05-05T20:50:18.651387237Z","resources":[{"planet":"65801b9b-84e6-411d-805f-2eb89587c5a7","resource":"97ddca58-8eee-41af-8bda-f37a3080f618","amount":1234.567,"createdAt":"2024-05-05T20:50:18.651387237Z","updatedAt":"2024-07-28T10:30:02.651387236Z"}],"buildings":[]}`, string(out))
+	expectedJson := `
+	{
+		"id": "65801b9b-84e6-411d-805f-2eb89587c5a7",
+		"player": "efc01287-830f-4b95-8b26-3deff7135f2d",
+		"name": "my-planet",
+		"homeworld": true,
+		"createdAt": "2024-05-05T20:50:18.651387237Z",
+		"resources": [
+			{
+				"planet": "65801b9b-84e6-411d-805f-2eb89587c5a7",
+				"resource": "97ddca58-8eee-41af-8bda-f37a3080f618",
+				"amount": 1234.567,
+				"createdAt": "2024-05-05T20:50:18.651387237Z",
+				"updatedAt": "2024-07-28T10:30:02.651387236Z"
+			}
+		],
+		"buildings": []
+	}`
+	assert.JSONEq(expectedJson, string(out))
 }

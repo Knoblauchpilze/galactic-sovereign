@@ -35,7 +35,11 @@ func TestUniverseDtoRequest_MarshalsToCamelCase(t *testing.T) {
 	out, err := json.Marshal(dto)
 
 	assert.Nil(err)
-	assert.Equal(`{"name":"my-universe"}`, string(out))
+	expectedJson := `
+	{
+		"name": "my-universe"
+	}`
+	assert.JSONEq(expectedJson, string(out))
 }
 
 func TestFromUniverseDtoRequest(t *testing.T) {
@@ -71,5 +75,11 @@ func TestUniverseDtoResponse_MarshalsToCamelCase(t *testing.T) {
 	out, err := json.Marshal(defaultUniverseDtoResponse)
 
 	assert.Nil(err)
-	assert.Equal(`{"id":"06fedf46-80ed-4188-b94c-ed0a494ec7bd","name":"my-universe","createdAt":"2024-05-05T20:50:18.651387237Z"}`, string(out))
+	expectedJson := `
+	{
+		"id": "06fedf46-80ed-4188-b94c-ed0a494ec7bd",
+		"name": "my-universe",
+		"createdAt": "2024-05-05T20:50:18.651387237Z"
+	}`
+	assert.JSONEq(expectedJson, string(out))
 }

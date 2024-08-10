@@ -38,7 +38,12 @@ func TestPlanetDtoRequest_MarshalsToCamelCase(t *testing.T) {
 	out, err := json.Marshal(dto)
 
 	assert.Nil(err)
-	assert.Equal(`{"player":"efc01287-830f-4b95-8b26-3deff7135f2d","name":"my-planet"}`, string(out))
+	expectedJson := `
+	{
+		"player": "efc01287-830f-4b95-8b26-3deff7135f2d",
+		"name": "my-planet"
+	}`
+	assert.JSONEq(expectedJson, string(out))
 }
 
 func TestFromPlanetDtoRequest(t *testing.T) {
@@ -79,5 +84,13 @@ func TestPlanetDtoResponse_MarshalsToCamelCase(t *testing.T) {
 	out, err := json.Marshal(defaultPlanetDtoResponse)
 
 	assert.Nil(err)
-	assert.Equal(`{"id":"65801b9b-84e6-411d-805f-2eb89587c5a7","player":"efc01287-830f-4b95-8b26-3deff7135f2d","name":"my-planet","homeworld":true,"createdAt":"2024-05-05T20:50:18.651387237Z"}`, string(out))
+	expectedJson := `
+	{
+		"id": "65801b9b-84e6-411d-805f-2eb89587c5a7",
+		"player": "efc01287-830f-4b95-8b26-3deff7135f2d",
+		"name": "my-planet",
+		"homeworld": true,
+		"createdAt": "2024-05-05T20:50:18.651387237Z"
+	}`
+	assert.JSONEq(expectedJson, string(out))
 }
