@@ -24,7 +24,14 @@ func TestPlayerDtoRequest_MarshalsToCamelCase(t *testing.T) {
 	out, err := json.Marshal(dto)
 
 	assert.Nil(err)
-	assert.Equal(`{"api_user":"c74a22da-8a05-43a9-a8b9-717e422b0af4","universe":"06fedf46-80ed-4188-b94c-ed0a494ec7bd","name":"my-player"}`, string(out))
+	expectedJson := `
+	{
+		"api_user": "c74a22da-8a05-43a9-a8b9-717e422b0af4",
+		"universe": "06fedf46-80ed-4188-b94c-ed0a494ec7bd",
+		"name": "my-player"
+	}`
+
+	assert.JSONEq(expectedJson, string(out))
 }
 
 func TestFromPlayerDtoRequest(t *testing.T) {
@@ -84,5 +91,13 @@ func TestPlayerDtoResponse_MarshalsToCamelCase(t *testing.T) {
 	out, err := json.Marshal(dto)
 
 	assert.Nil(err)
-	assert.Equal(`{"id":"efc01287-830f-4b95-8b26-3deff7135f2d","api_user":"c74a22da-8a05-43a9-a8b9-717e422b0af4","universe":"06fedf46-80ed-4188-b94c-ed0a494ec7bd","name":"my-player","createdAt":"2024-05-05T20:50:18.651387237Z"}`, string(out))
+	expectedJson := `
+	{
+		"id": "efc01287-830f-4b95-8b26-3deff7135f2d",
+		"api_user": "c74a22da-8a05-43a9-a8b9-717e422b0af4",
+		"universe": "06fedf46-80ed-4188-b94c-ed0a494ec7bd",
+		"name": "my-player",
+		"createdAt": "2024-05-05T20:50:18.651387237Z"
+	}`
+	assert.JSONEq(expectedJson, string(out))
 }

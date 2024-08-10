@@ -38,5 +38,11 @@ func TestResourceDtoResponse_MarshalsToCamelCase(t *testing.T) {
 	out, err := json.Marshal(defaultResourceDtoResponse)
 
 	assert.Nil(err)
-	assert.Equal(`{"id":"97ddca58-8eee-41af-8bda-f37a3080f618","name":"my-resource","createdAt":"2024-05-05T20:50:18.651387237Z"}`, string(out))
+	expectedJson := `
+	{
+		"id": "97ddca58-8eee-41af-8bda-f37a3080f618",
+		"name": "my-resource",
+		"createdAt": "2024-05-05T20:50:18.651387237Z"
+	}`
+	assert.JSONEq(expectedJson, string(out))
 }

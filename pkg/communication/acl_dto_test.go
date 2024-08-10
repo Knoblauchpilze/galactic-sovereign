@@ -26,7 +26,17 @@ func TestAclDtoRequest_MarshalsToCamelCase(t *testing.T) {
 	out, err := json.Marshal(dto)
 
 	assert.Nil(err)
-	assert.Equal(`{"user":"c74a22da-8a05-43a9-a8b9-717e422b0af4","resource":"my-resource","permissions":["permission-1","permission-2"]}`, string(out))
+	// https://stackoverflow.com/questions/32408890/how-to-compare-two-json-requests
+	expectedJson := `
+	{
+		"user": "c74a22da-8a05-43a9-a8b9-717e422b0af4",
+		"resource": "my-resource",
+		"permissions": [
+			"permission-1",
+			"permission-2"
+		]
+	}`
+	assert.JSONEq(expectedJson, string(out))
 }
 
 func TestFromAclDtoRequest(t *testing.T) {
@@ -101,5 +111,16 @@ func TestAclDtoResponse_MarshalsToCamelCase(t *testing.T) {
 	out, err := json.Marshal(dto)
 
 	assert.Nil(err)
-	assert.Equal(`{"id":"08ce96a3-3430-48a8-a3b2-b1c987a207ca","user":"c74a22da-8a05-43a9-a8b9-717e422b0af4","resource":"some-resource","permissions":["my-permission","another-permission"],"createdAt":"2024-05-05T20:50:18.651387237Z"}`, string(out))
+	expectedJson := `
+	{
+		"id": "08ce96a3-3430-48a8-a3b2-b1c987a207ca",
+		"user": "c74a22da-8a05-43a9-a8b9-717e422b0af4",
+		"resource": "some-resource",
+		"permissions": [
+			"my-permission",
+			"another-permission"
+		],
+		"createdAt": "2024-05-05T20:50:18.651387237Z"
+	}`
+	assert.JSONEq(expectedJson, string(out))
 }

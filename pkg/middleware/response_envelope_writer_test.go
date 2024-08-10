@@ -25,7 +25,15 @@ func TestResponseEnvelope_MarshalsToCamelCase(t *testing.T) {
 	out, err := json.Marshal(r)
 
 	assert.Nil(err)
-	assert.Equal(`{"requestId":"08ce96a3-3430-48a8-a3b2-b1c987a207ca","status":"SUCCESS","details":{"Field":32}}`, string(out))
+	expectedJson := `
+	{
+		"requestId": "08ce96a3-3430-48a8-a3b2-b1c987a207ca",
+		"status": "SUCCESS",
+		"details": {
+			"Field": 32
+		}
+	}`
+	assert.JSONEq(expectedJson, string(out))
 }
 
 func TestEnvelopeResponseWriter_UsesProvidedWriter(t *testing.T) {
@@ -44,7 +52,15 @@ func TestEnvelopeResponseWriter_AutomaticallySetsSuccessStatusWhenNoStatusIsUsed
 	erw := new(m, defaultUuid, nil)
 	erw.Write(sampleJsonData)
 
-	assert.Equal(`{"requestId":"08ce96a3-3430-48a8-a3b2-b1c987a207ca","status":"SUCCESS","details":{"value":12}}`, string(m.data))
+	expectedJson := `
+	{
+		"requestId": "08ce96a3-3430-48a8-a3b2-b1c987a207ca",
+		"status": "SUCCESS",
+		"details": {
+			"value": 12
+		}
+	}`
+	assert.JSONEq(expectedJson, string(m.data))
 }
 
 func TestEnvelopeResponseWriter_UsesProvidedRequestId(t *testing.T) {
@@ -54,7 +70,15 @@ func TestEnvelopeResponseWriter_UsesProvidedRequestId(t *testing.T) {
 	erw := new(m, defaultUuid, nil)
 	erw.Write(sampleJsonData)
 
-	assert.Equal(`{"requestId":"08ce96a3-3430-48a8-a3b2-b1c987a207ca","status":"SUCCESS","details":{"value":12}}`, string(m.data))
+	expectedJson := `
+	{
+		"requestId": "08ce96a3-3430-48a8-a3b2-b1c987a207ca",
+		"status": "SUCCESS",
+		"details": {
+			"value": 12
+		}
+	}`
+	assert.JSONEq(expectedJson, string(m.data))
 }
 
 func TestEnvelopeResponseWriter_ForwardsProvidedWriterHeaders(t *testing.T) {

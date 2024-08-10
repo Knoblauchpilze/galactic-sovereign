@@ -21,7 +21,12 @@ func TestLimitDtoRequest_MarshalsToCamelCase(t *testing.T) {
 	out, err := json.Marshal(dto)
 
 	assert.Nil(err)
-	assert.Equal(`{"name":"my-name","value":"my-value"}`, string(out))
+	expectedJson := `
+	{
+		"name": "my-name",
+		"value": "my-value"
+	}`
+	assert.JSONEq(expectedJson, string(out))
 }
 
 func TestFromLimitDtoRequest(t *testing.T) {
@@ -72,7 +77,12 @@ func TestLimitDtoResponse_MarshalsToCamelCase(t *testing.T) {
 	out, err := json.Marshal(dto)
 
 	assert.Nil(err)
-	assert.Equal(`{"name":"my-name","value":"my-value"}`, string(out))
+	expectedJson := `
+	{
+		"name": "my-name",
+		"value": "my-value"
+	}`
+	assert.JSONEq(expectedJson, string(out))
 }
 
 func TestUserLimitDtoRequest_MarshalsToCamelCase(t *testing.T) {
@@ -92,7 +102,18 @@ func TestUserLimitDtoRequest_MarshalsToCamelCase(t *testing.T) {
 	out, err := json.Marshal(dto)
 
 	assert.Nil(err)
-	assert.Equal(`{"name":"my-name","user":"7aaa145a-5ad8-4d63-be87-177d6abcf1b5","limits":[{"name":"limit","value":"test"}]}`, string(out))
+	expectedJson := `
+	{
+		"name": "my-name",
+		"user": "7aaa145a-5ad8-4d63-be87-177d6abcf1b5",
+		"limits": [
+			{
+				"name": "limit",
+				"value": "test"
+			}
+		]
+	}`
+	assert.JSONEq(expectedJson, string(out))
 }
 
 func TestFromUserLimitDtoRequest(t *testing.T) {
@@ -179,5 +200,18 @@ func TestUserLimitDtoResponse_MarshalsToCamelCase(t *testing.T) {
 	out, err := json.Marshal(dto)
 
 	assert.Nil(err)
-	assert.Equal(`{"id":"2f3b7c63-5b4a-422a-bd9d-7da0f78b6294","name":"my-limit","user":"3657b088-ba88-497a-a158-9d6c7faae94f","limits":[{"name":"limit-1","value":"my-value"}],"createdAt":"2024-05-05T20:50:18.651387237Z"}`, string(out))
+	expectedJson := `
+	{
+		"id": "2f3b7c63-5b4a-422a-bd9d-7da0f78b6294",
+		"name": "my-limit",
+		"user": "3657b088-ba88-497a-a158-9d6c7faae94f",
+		"limits": [
+			{
+				"name": "limit-1",
+				"value": "my-value"
+			}
+		],
+		"createdAt": "2024-05-05T20:50:18.651387237Z"
+	}`
+	assert.JSONEq(expectedJson, string(out))
 }

@@ -38,5 +38,11 @@ func TestBuildingDtoResponse_MarshalsToCamelCase(t *testing.T) {
 	out, err := json.Marshal(defaultBuildingDtoResponse)
 
 	assert.Nil(err)
-	assert.Equal(`{"id":"461ba465-86e6-4234-94b8-fc8fab03fa74","name":"my-building","createdAt":"2024-05-05T20:50:18.651387237Z"}`, string(out))
+	expectedJson := `
+	{
+		"id": "461ba465-86e6-4234-94b8-fc8fab03fa74",
+		"name": "my-building",
+		"createdAt": "2024-05-05T20:50:18.651387237Z"
+	}`
+	assert.JSONEq(expectedJson, string(out))
 }

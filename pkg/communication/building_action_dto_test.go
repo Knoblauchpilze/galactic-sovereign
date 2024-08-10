@@ -42,7 +42,13 @@ func TestBuildingActionDtoRequest_MarshalsToCamelCase(t *testing.T) {
 	out, err := json.Marshal(dto)
 
 	assert.Nil(err)
-	assert.Equal(`{"planet":"65801b9b-84e6-411d-805f-2eb89587c5a7","building":"461ba465-86e6-4234-94b8-fc8fab03fa74","currentLevel":35}`, string(out))
+	expectedJson := `
+	{
+		"planet": "65801b9b-84e6-411d-805f-2eb89587c5a7",
+		"building": "461ba465-86e6-4234-94b8-fc8fab03fa74",
+		"currentLevel": 35
+	}`
+	assert.JSONEq(expectedJson, string(out))
 }
 
 func TestFromBuildingActionDtoRequest(t *testing.T) {
@@ -87,5 +93,15 @@ func TestBuildingActionDtoResponse_MarshalsToCamelCase(t *testing.T) {
 	out, err := json.Marshal(defaultBuildingActionDtoResponse)
 
 	assert.Nil(err)
-	assert.Equal(`{"id":"91336067-9884-4280-bb37-411124561e73","planet":"65801b9b-84e6-411d-805f-2eb89587c5a7","building":"461ba465-86e6-4234-94b8-fc8fab03fa74","currentLevel":37,"desiredLevel":38,"createdAt":"2024-05-05T20:50:18.651387237Z","completedAt":"2024-07-28T10:30:02.651387236Z"}`, string(out))
+	expectedJson := `
+	{
+		"id": "91336067-9884-4280-bb37-411124561e73",
+		"planet": "65801b9b-84e6-411d-805f-2eb89587c5a7",
+		"building": "461ba465-86e6-4234-94b8-fc8fab03fa74",
+		"currentLevel": 37,
+		"desiredLevel": 38,
+		"createdAt": "2024-05-05T20:50:18.651387237Z",
+		"completedAt": "2024-07-28T10:30:02.651387236Z"
+	}`
+	assert.JSONEq(expectedJson, string(out))
 }
