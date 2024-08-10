@@ -1,10 +1,10 @@
 
--- test-user@provider.com
+-- user1
 INSERT INTO user_service_schema.api_user ("id", "email", "password")
   VALUES (
     '0463ed3d-bfc9-4c10-b6ee-c223bbca0fab',
-    'test-user@provider.com',
-    'strong-password'
+    'user1',
+    'pwd1'
   );
 
 -- https://www.postgresql.org/docs/current/functions-datetime.html#FUNCTIONS-DATETIME-CURRENT
