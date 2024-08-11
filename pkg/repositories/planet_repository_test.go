@@ -233,7 +233,7 @@ WHERE
 				sqlMode: ExecBased,
 				generateMock: func() db.Transaction {
 					return &mockTransaction{
-						affectedRows: 1,
+						affectedRows: []int{1, 1},
 					}
 				},
 				handler: func(ctx context.Context, tx db.Transaction) error {
@@ -241,9 +241,13 @@ WHERE
 					return s.Delete(ctx, tx, defaultPlanetId)
 				},
 				expectedSqlQueries: []string{
+					`DELETE FROM homeworld WHERE planet = $1`,
 					`DELETE FROM planet WHERE id = $1`,
 				},
 				expectedArguments: [][]interface{}{
+					{
+						defaultPlanetId,
+					},
 					{
 						defaultPlanetId,
 					},
@@ -363,10 +367,38 @@ WHERE
 					assert.Equal(errDefault, err)
 				},
 			},
+			"delete_homeworldNoRowsAffected": {
+				generateMock: func() db.Transaction {
+					return &mockTransaction{
+						affectedRows: []int{0},
+					}
+				},
+				handler: func(ctx context.Context, tx db.Transaction) error {
+					s := NewPlanetRepository(&mockConnectionPool{})
+					return s.Delete(ctx, tx, defaultPlanetId)
+				},
+				verifyError: func(err error, assert *require.Assertions) {
+					assert.True(errors.IsErrorWithCode(err, db.NoMatchingSqlRows))
+				},
+			},
+			"delete_homeworldMoreThanOneRowAffected": {
+				generateMock: func() db.Transaction {
+					return &mockTransaction{
+						affectedRows: []int{2},
+					}
+				},
+				handler: func(ctx context.Context, tx db.Transaction) error {
+					s := NewPlanetRepository(&mockConnectionPool{})
+					return s.Delete(ctx, tx, defaultPlanetId)
+				},
+				verifyError: func(err error, assert *require.Assertions) {
+					assert.True(errors.IsErrorWithCode(err, db.MoreThanOneMatchingSqlRows))
+				},
+			},
 			"delete_noRowsAffected": {
 				generateMock: func() db.Transaction {
 					return &mockTransaction{
-						affectedRows: 0,
+						affectedRows: []int{1, 0},
 					}
 				},
 				handler: func(ctx context.Context, tx db.Transaction) error {
@@ -380,7 +412,7 @@ WHERE
 			"delete_moreThanOneRowAffected": {
 				generateMock: func() db.Transaction {
 					return &mockTransaction{
-						affectedRows: 2,
+						affectedRows: []int{1, 2},
 					}
 				},
 				handler: func(ctx context.Context, tx db.Transaction) error {

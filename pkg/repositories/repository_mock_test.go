@@ -123,7 +123,7 @@ type mockTransaction struct {
 	execCalled  int
 
 	rows         mockRows
-	affectedRows int
+	affectedRows []int
 	execErrs     []error
 }
 
@@ -158,12 +158,22 @@ func (m *mockTransaction) Exec(ctx context.Context, sql string, arguments ...int
 	m.sqlQueries = append(m.sqlQueries, sql)
 
 	err := getValueToReturn(m.execCalled, m.execErrs)
+	affectedRows := getValueToReturnOr(m.execCalled, m.affectedRows, 0)
 	m.execCalled++
 
 	if err == nil {
-		return m.affectedRows, nil
+		return *affectedRows, nil
 	}
-	return m.affectedRows, *err
+	return *affectedRows, *err
+}
+
+func getValueToReturnOr[T any](count int, values []T, value T) *T {
+	out := getValueToReturn(count, values)
+	if out == nil {
+		return &value
+	}
+
+	return out
 }
 
 func getValueToReturn[T any](count int, values []T) *T {

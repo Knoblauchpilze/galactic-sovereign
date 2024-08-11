@@ -179,7 +179,7 @@ func Test_ApiKeyRepository_Transaction(t *testing.T) {
 				sqlMode: ExecBased,
 				generateMock: func() db.Transaction {
 					return &mockTransaction{
-						affectedRows: 1,
+						affectedRows: []int{1},
 					}
 				},
 				handler: func(ctx context.Context, tx db.Transaction) error {

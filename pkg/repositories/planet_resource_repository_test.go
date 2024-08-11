@@ -86,7 +86,7 @@ WHERE
 				sqlMode: ExecBased,
 				generateMock: func() db.Transaction {
 					return &mockTransaction{
-						affectedRows: 1,
+						affectedRows: []int{1},
 					}
 				},
 				handler: func(ctx context.Context, tx db.Transaction) error {
@@ -123,7 +123,7 @@ WHERE
 				sqlMode: ExecBased,
 				generateMock: func() db.Transaction {
 					return &mockTransaction{
-						affectedRows: 1,
+						affectedRows: []int{1},
 					}
 				},
 				handler: func(ctx context.Context, tx db.Transaction) error {
@@ -186,7 +186,7 @@ WHERE
 			"update_optimisticLockException": {
 				generateMock: func() db.Transaction {
 					return &mockTransaction{
-						affectedRows: 0,
+						affectedRows: []int{0},
 					}
 				},
 				handler: func(ctx context.Context, tx db.Transaction) error {
@@ -201,7 +201,7 @@ WHERE
 			"update_moreThanOneRowAffected": {
 				generateMock: func() db.Transaction {
 					return &mockTransaction{
-						affectedRows: 2,
+						affectedRows: []int{2},
 					}
 				},
 				handler: func(ctx context.Context, tx db.Transaction) error {

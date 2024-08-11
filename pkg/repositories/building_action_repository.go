@@ -10,6 +10,7 @@ import (
 
 type BuildingActionRepository interface {
 	ListForPlanet(ctx context.Context, tx db.Transaction, planet uuid.UUID) ([]persistence.BuildingAction, error)
+	DeleteForPlanet(ctx context.Context, tx db.Transaction, planet uuid.UUID) error
 }
 
 type buildingActionRepositoryImpl struct{}
@@ -55,4 +56,11 @@ func (r *buildingActionRepositoryImpl) ListForPlanet(ctx context.Context, tx db.
 	}
 
 	return out, nil
+}
+
+const deleteBuildingActionSqlTemplate = "DELETE FROM building_action WHERE planet = $1"
+
+func (r *buildingActionRepositoryImpl) DeleteForPlanet(ctx context.Context, tx db.Transaction, planet uuid.UUID) error {
+	_, err := tx.Exec(ctx, deleteBuildingActionSqlTemplate, planet)
+	return err
 }

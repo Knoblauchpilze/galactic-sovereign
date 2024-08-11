@@ -115,14 +115,22 @@ type mockBuildingActionRepository struct {
 	action persistence.BuildingAction
 	err    error
 
-	listForPlanetId     uuid.UUID
-	listForPlanetCalled int
+	listForPlanetId       uuid.UUID
+	listForPlanetCalled   int
+	deleteForPlanetCalled int
+	deleteForPlanetId     uuid.UUID
 }
 
 func (m *mockBuildingActionRepository) ListForPlanet(ctx context.Context, tx db.Transaction, planet uuid.UUID) ([]persistence.BuildingAction, error) {
 	m.listForPlanetCalled++
 	m.listForPlanetId = planet
 	return []persistence.BuildingAction{m.action}, m.err
+}
+
+func (m *mockBuildingActionRepository) DeleteForPlanet(ctx context.Context, tx db.Transaction, planet uuid.UUID) error {
+	m.deleteForPlanetCalled++
+	m.deleteForPlanetId = planet
+	return m.err
 }
 
 type mockBuildingCostRepository struct {
