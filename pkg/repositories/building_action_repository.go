@@ -4,19 +4,40 @@ import (
 	"context"
 
 	"github.com/KnoblauchPilze/user-service/pkg/db"
+	"github.com/KnoblauchPilze/user-service/pkg/errors"
 	"github.com/KnoblauchPilze/user-service/pkg/persistence"
 	"github.com/google/uuid"
 )
 
 type BuildingActionRepository interface {
+	Create(ctx context.Context, action persistence.BuildingAction) (persistence.BuildingAction, error)
 	ListForPlanet(ctx context.Context, tx db.Transaction, planet uuid.UUID) ([]persistence.BuildingAction, error)
 	DeleteForPlanet(ctx context.Context, tx db.Transaction, planet uuid.UUID) error
 }
 
-type buildingActionRepositoryImpl struct{}
+type buildingActionRepositoryImpl struct {
+	conn db.ConnectionPool
+}
 
-func NewBuildingActionRepository() BuildingActionRepository {
-	return &buildingActionRepositoryImpl{}
+func NewBuildingActionRepository(conn db.ConnectionPool) BuildingActionRepository {
+	return &buildingActionRepositoryImpl{
+		conn: conn,
+	}
+}
+
+const createBuildingActionSqlTemplate = `
+INSERT INTO
+	building_action (id, planet, building, current_level, desired_level, created_at, completed_at)
+	VALUES($1, $2, $3, $4, $5, $6, $7)
+`
+
+func (r *buildingActionRepositoryImpl) Create(ctx context.Context, action persistence.BuildingAction) (persistence.BuildingAction, error) {
+	_, err := r.conn.Exec(ctx, createBuildingActionSqlTemplate, action.Id, action.Planet, action.Building, action.CurrentLevel, action.DesiredLevel, action.CreatedAt, action.CompletedAt)
+	if err != nil && duplicatedKeySqlErrorRegexp.MatchString(err.Error()) {
+		return action, errors.NewCode(db.DuplicatedKeySqlKey)
+	}
+
+	return action, err
 }
 
 const listBuildingActionForPlanetSqlTemplate = `

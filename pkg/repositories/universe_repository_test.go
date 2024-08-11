@@ -60,8 +60,6 @@ func Test_UniverseRepository(t *testing.T) {
 			},
 		},
 
-		dbSingleValueTestCases: map[string]dbPoolSingleValueTestCase{},
-
 		dbGetAllTestCases: map[string]dbPoolGetAllTestCase{
 			"list": {
 				handler: func(ctx context.Context, pool db.ConnectionPool) error {
