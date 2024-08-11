@@ -74,7 +74,7 @@ func listPlanets(c echo.Context, s service.PlanetService) error {
 		return c.JSON(http.StatusBadRequest, "Invalid id syntax")
 	}
 
-	var planets []communication.FullPlanetDtoResponse
+	var planets []communication.PlanetDtoResponse
 
 	if exists {
 		planets, err = s.ListForPlayer(c.Request().Context(), playerId)

@@ -38,6 +38,7 @@ type mockPlanetService struct {
 var defaultPlanetId = uuid.MustParse("080f5a2b-800a-458d-9806-7660bde4db00")
 var defaultResourceId = uuid.MustParse("84e01480-5433-4ebe-a078-7e1cd18c86c4")
 var defaultBuildingId = uuid.MustParse("ba846861-b015-4726-b9a8-3fe1cf2621e7")
+var defaultBuildingActionId = uuid.MustParse("694a47ab-cd58-431e-9298-e0e788bfc01e")
 var defaultPlanetDtoRequest = communication.PlanetDtoRequest{
 	Player: defaultPlayerId,
 	Name:   "my-planet",
@@ -65,6 +66,15 @@ var defaultPlanetBuildingDtoResponse = communication.PlanetBuildingDtoResponse{
 	CreatedAt: time.Date(2024, 8, 6, 21, 45, 30, 651387241, time.UTC),
 	UpdatedAt: time.Date(2024, 8, 6, 21, 45, 33, 651387241, time.UTC),
 }
+var defaultBuildingActionDtoResponse = communication.BuildingActionDtoResponse{
+	Id:           defaultBuildingActionId,
+	Planet:       defaultPlanetId,
+	Building:     defaultBuildingId,
+	CurrentLevel: 14,
+	DesiredLevel: 78,
+	CreatedAt:    time.Date(2024, 8, 11, 14, 12, 31, 651387243, time.UTC),
+	CompletedAt:  time.Date(2024, 8, 11, 14, 12, 36, 651387243, time.UTC),
+}
 var defaultFullPlanetDtoResponse = communication.FullPlanetDtoResponse{
 	PlanetDtoResponse: defaultPlanetDtoResponse,
 	Resources: []communication.PlanetResourceDtoResponse{
@@ -72,6 +82,9 @@ var defaultFullPlanetDtoResponse = communication.FullPlanetDtoResponse{
 	},
 	Buildings: []communication.PlanetBuildingDtoResponse{
 		defaultPlanetBuildingDtoResponse,
+	},
+	BuildingActions: []communication.BuildingActionDtoResponse{
+		defaultBuildingActionDtoResponse,
 	},
 }
 
@@ -211,7 +224,7 @@ func Test_PlanetController(t *testing.T) {
 			"listPlanets": {
 				req:             httptest.NewRequest(http.MethodGet, "/", nil),
 				handler:         listPlanets,
-				expectedContent: []communication.FullPlanetDtoResponse{defaultFullPlanetDtoResponse},
+				expectedContent: []communication.PlanetDtoResponse{defaultPlanetDtoResponse},
 			},
 			"listPlanets_noData": {
 				req: httptest.NewRequest(http.MethodGet, "/", nil),
@@ -220,9 +233,8 @@ func Test_PlanetController(t *testing.T) {
 						planets: nil,
 					}
 				},
-
 				handler:         listPlanets,
-				expectedContent: []communication.FullPlanetDtoResponse{},
+				expectedContent: []communication.PlanetDtoResponse{},
 			},
 		},
 
@@ -352,15 +364,23 @@ func (m *mockPlanetService) Get(ctx context.Context, id uuid.UUID) (communicatio
 	return out, m.err
 }
 
-func (m *mockPlanetService) List(ctx context.Context) ([]communication.FullPlanetDtoResponse, error) {
+func (m *mockPlanetService) List(ctx context.Context) ([]communication.PlanetDtoResponse, error) {
 	m.listCalled++
-	return m.planets, m.err
+	var out []communication.PlanetDtoResponse
+	for _, planet := range m.planets {
+		out = append(out, planet.PlanetDtoResponse)
+	}
+	return out, m.err
 }
 
-func (m *mockPlanetService) ListForPlayer(ctx context.Context, player uuid.UUID) ([]communication.FullPlanetDtoResponse, error) {
+func (m *mockPlanetService) ListForPlayer(ctx context.Context, player uuid.UUID) ([]communication.PlanetDtoResponse, error) {
 	m.listForPlayerCalled++
 	m.inPlayerId = player
-	return m.planets, m.err
+	var out []communication.PlanetDtoResponse
+	for _, planet := range m.planets {
+		out = append(out, planet.PlanetDtoResponse)
+	}
+	return out, m.err
 }
 
 func (m *mockPlanetService) Delete(ctx context.Context, id uuid.UUID) error {
