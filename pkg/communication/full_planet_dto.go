@@ -11,9 +11,11 @@ type FullPlanetDtoResponse struct {
 
 	Resources []PlanetResourceDtoResponse
 	Buildings []PlanetBuildingDtoResponse
+
+	BuildingActions []BuildingActionDtoResponse
 }
 
-func ToFullPlanetDtoResponse(planet persistence.Planet, resources []persistence.PlanetResource, buildings []persistence.PlanetBuilding) FullPlanetDtoResponse {
+func ToFullPlanetDtoResponse(planet persistence.Planet, resources []persistence.PlanetResource, buildings []persistence.PlanetBuilding, buildingActions []persistence.BuildingAction) FullPlanetDtoResponse {
 	out := FullPlanetDtoResponse{
 		PlanetDtoResponse: ToPlanetDtoResponse(planet),
 	}
@@ -28,6 +30,11 @@ func ToFullPlanetDtoResponse(planet persistence.Planet, resources []persistence.
 		out.Buildings = append(out.Buildings, buildingDto)
 	}
 
+	for _, action := range buildingActions {
+		actionDto := ToBuildingActionDtoResponse(action)
+		out.BuildingActions = append(out.BuildingActions, actionDto)
+	}
+
 	return out
 }
 
@@ -36,16 +43,23 @@ func (dto FullPlanetDtoResponse) MarshalJSON() ([]byte, error) {
 		PlanetDtoResponse
 		Resources []PlanetResourceDtoResponse `json:"resources"`
 		Buildings []PlanetBuildingDtoResponse `json:"buildings"`
+
+		BuildingActions []BuildingActionDtoResponse `json:"building_actions"`
 	}{
 		PlanetDtoResponse: dto.PlanetDtoResponse,
 		Resources:         dto.Resources,
 		Buildings:         dto.Buildings,
+
+		BuildingActions: dto.BuildingActions,
 	}
 	if out.Resources == nil {
 		out.Resources = make([]PlanetResourceDtoResponse, 0)
 	}
 	if out.Buildings == nil {
 		out.Buildings = make([]PlanetBuildingDtoResponse, 0)
+	}
+	if out.BuildingActions == nil {
+		out.BuildingActions = make([]BuildingActionDtoResponse, 0)
 	}
 
 	return json.Marshal(out)

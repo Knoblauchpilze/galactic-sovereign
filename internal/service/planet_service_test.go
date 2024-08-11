@@ -16,6 +16,7 @@ import (
 var defaultPlanetId = uuid.MustParse("5b0efd85-8817-4454-b8f3-7af5d93253a1")
 var defaultPlanetName = "my-planet"
 var defaultResourceId = uuid.MustParse("3e0aaf91-8b81-403f-b967-8bdba748594d")
+var defaultBuildingActionId = uuid.MustParse("38a739bd-79db-453e-ab03-44f9f300c3c8")
 
 var defaultPlanetDtoRequest = communication.PlanetDtoRequest{
 	Player: defaultPlayerId,
@@ -42,6 +43,15 @@ var defaultPlanetBuilding = persistence.PlanetBuilding{
 	Level:     38,
 	CreatedAt: testDate,
 	UpdatedAt: testDate,
+}
+var defaultBuildingAction = persistence.BuildingAction{
+	Id:           defaultBuildingActionId,
+	Planet:       defaultPlanetId,
+	Building:     defaultBuildingId,
+	CurrentLevel: 27,
+	DesiredLevel: 33,
+	CreatedAt:    testDate,
+	CompletedAt:  testDate,
 }
 
 func Test_PlanetService(t *testing.T) {
@@ -158,7 +168,39 @@ func Test_PlanetService(t *testing.T) {
 				},
 				expectedError: errDefault,
 			},
-			"list_planet": {
+			"get_buildingAction": {
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewPlanetService(pool, repos)
+					_, err := s.Get(ctx, defaultPlanetId)
+					return err
+				},
+
+				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
+					m := assertBuildingActionRepoIsAMock(repos, assert)
+
+					assert.Equal(1, m.listForPlanetCalled)
+					assert.Equal(defaultPlanetId, m.listForPlanetId)
+				},
+			},
+			"get_buildingActionRepositoryFails": {
+				generateRepositoriesMock: func() repositories.Repositories {
+					return repositories.Repositories{
+						BuildingAction: &mockBuildingActionRepository{
+							err: errDefault,
+						},
+						Planet:         &mockPlanetRepository{},
+						PlanetBuilding: &mockPlanetBuildingRepository{},
+						PlanetResource: &mockPlanetResourceRepository{},
+					}
+				},
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewPlanetService(pool, repos)
+					_, err := s.Get(ctx, defaultPlanetId)
+					return err
+				},
+				expectedError: errDefault,
+			},
+			"list": {
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
 					s := NewPlanetService(pool, repos)
 					_, err := s.List(ctx)
@@ -180,37 +222,7 @@ func Test_PlanetService(t *testing.T) {
 				},
 				expectedError: errDefault,
 			},
-			"list_planetResource": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewPlanetService(pool, repos)
-					_, err := s.List(ctx)
-					return err
-				},
-
-				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
-					m := assertPlanetResourceRepoIsAMock(repos, assert)
-
-					assert.Equal(1, m.listForPlanetCalled)
-					assert.Equal(defaultPlanetId, m.listForPlanetId)
-				},
-			},
-			"list_planetResourceRepositoryFails": {
-				generateRepositoriesMock: func() repositories.Repositories {
-					return repositories.Repositories{
-						Planet: &mockPlanetRepository{},
-						PlanetResource: &mockPlanetResourceRepository{
-							err: errDefault,
-						},
-					}
-				},
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewPlanetService(pool, repos)
-					_, err := s.List(ctx)
-					return err
-				},
-				expectedError: errDefault,
-			},
-			"listForPlayer_planet": {
+			"listForPlayer": {
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
 					s := NewPlanetService(pool, repos)
 					_, err := s.ListForPlayer(ctx, defaultPlayerId)
@@ -226,36 +238,6 @@ func Test_PlanetService(t *testing.T) {
 			},
 			"listForPlayer_planetRepositoryFails": {
 				generateRepositoriesMock: generateErrorPlanetRepositoryMock,
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewPlanetService(pool, repos)
-					_, err := s.ListForPlayer(ctx, defaultPlayerId)
-					return err
-				},
-				expectedError: errDefault,
-			},
-			"listForPlayer_planetResource": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewPlanetService(pool, repos)
-					_, err := s.ListForPlayer(ctx, defaultPlayerId)
-					return err
-				},
-
-				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
-					m := assertPlanetResourceRepoIsAMock(repos, assert)
-
-					assert.Equal(1, m.listForPlanetCalled)
-					assert.Equal(defaultPlanetId, m.listForPlanetId)
-				},
-			},
-			"listForPlayer_planetResourceRepositoryFails": {
-				generateRepositoriesMock: func() repositories.Repositories {
-					return repositories.Repositories{
-						Planet: &mockPlanetRepository{},
-						PlanetResource: &mockPlanetResourceRepository{
-							err: errDefault,
-						},
-					}
-				},
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
 					s := NewPlanetService(pool, repos)
 					_, err := s.ListForPlayer(ctx, defaultPlayerId)
@@ -335,6 +317,17 @@ func Test_PlanetService(t *testing.T) {
 							UpdatedAt: testDate,
 						},
 					},
+					BuildingActions: []communication.BuildingActionDtoResponse{
+						{
+							Id:           defaultBuildingAction.Id,
+							Planet:       defaultBuildingAction.Planet,
+							Building:     defaultBuildingAction.Building,
+							CurrentLevel: 27,
+							DesiredLevel: 33,
+							CreatedAt:    testDate,
+							CompletedAt:  testDate,
+						},
+					},
 				},
 			},
 			"list": {
@@ -344,33 +337,13 @@ func Test_PlanetService(t *testing.T) {
 					return out
 				},
 
-				expectedContent: []communication.FullPlanetDtoResponse{
+				expectedContent: []communication.PlanetDtoResponse{
 					{
-						PlanetDtoResponse: communication.PlanetDtoResponse{
-							Id:     defaultPlanet.Id,
-							Player: defaultPlanet.Player,
-							Name:   defaultPlanet.Name,
+						Id:     defaultPlanet.Id,
+						Player: defaultPlanet.Player,
+						Name:   defaultPlanet.Name,
 
-							CreatedAt: defaultPlanet.CreatedAt,
-						},
-						Resources: []communication.PlanetResourceDtoResponse{
-							{
-								Planet:    defaultPlanet.Id,
-								Resource:  defaultResourceId,
-								Amount:    321.0987,
-								CreatedAt: testDate,
-								UpdatedAt: testDate,
-							},
-						},
-						Buildings: []communication.PlanetBuildingDtoResponse{
-							{
-								Planet:    defaultPlanet.Id,
-								Building:  defaultBuildingId,
-								Level:     38,
-								CreatedAt: testDate,
-								UpdatedAt: testDate,
-							},
-						},
+						CreatedAt: defaultPlanet.CreatedAt,
 					},
 				},
 			},
@@ -381,33 +354,13 @@ func Test_PlanetService(t *testing.T) {
 					return out
 				},
 
-				expectedContent: []communication.FullPlanetDtoResponse{
+				expectedContent: []communication.PlanetDtoResponse{
 					{
-						PlanetDtoResponse: communication.PlanetDtoResponse{
-							Id:     defaultPlanet.Id,
-							Player: defaultPlanet.Player,
-							Name:   defaultPlanet.Name,
+						Id:     defaultPlanet.Id,
+						Player: defaultPlanet.Player,
+						Name:   defaultPlanet.Name,
 
-							CreatedAt: defaultPlanet.CreatedAt,
-						},
-						Resources: []communication.PlanetResourceDtoResponse{
-							{
-								Planet:    defaultPlanet.Id,
-								Resource:  defaultResourceId,
-								Amount:    321.0987,
-								CreatedAt: testDate,
-								UpdatedAt: testDate,
-							},
-						},
-						Buildings: []communication.PlanetBuildingDtoResponse{
-							{
-								Planet:    defaultPlanet.Id,
-								Building:  defaultBuildingId,
-								Level:     38,
-								CreatedAt: testDate,
-								UpdatedAt: testDate,
-							},
-						},
+						CreatedAt: defaultPlanet.CreatedAt,
 					},
 				},
 			},
@@ -456,6 +409,9 @@ func Test_PlanetService(t *testing.T) {
 
 func generateValidPlanetRepositoryMock() repositories.Repositories {
 	return repositories.Repositories{
+		BuildingAction: &mockBuildingActionRepository{
+			action: defaultBuildingAction,
+		},
 		Planet: &mockPlanetRepository{
 			planet: defaultPlanet,
 		},
@@ -496,6 +452,14 @@ func assertPlanetBuildingRepoIsAMock(repos repositories.Repositories, assert *re
 	m, ok := repos.PlanetBuilding.(*mockPlanetBuildingRepository)
 	if !ok {
 		assert.Fail("Provided planet building repository is not a mock")
+	}
+	return m
+}
+
+func assertBuildingActionRepoIsAMock(repos repositories.Repositories, assert *require.Assertions) *mockBuildingActionRepository {
+	m, ok := repos.BuildingAction.(*mockBuildingActionRepository)
+	if !ok {
+		assert.Fail("Provided building action repository is not a mock")
 	}
 	return m
 }
