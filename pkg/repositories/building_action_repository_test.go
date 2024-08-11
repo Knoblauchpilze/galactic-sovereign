@@ -42,6 +42,26 @@ WHERE
 					},
 				},
 			},
+			"deleteForPlanet": {
+				sqlMode: ExecBased,
+				generateMock: func() db.Transaction {
+					return &mockTransaction{
+						affectedRows: []int{1},
+					}
+				},
+				handler: func(ctx context.Context, tx db.Transaction) error {
+					s := NewBuildingActionRepository()
+					return s.DeleteForPlanet(ctx, tx, defaultPlanetId)
+				},
+				expectedSqlQueries: []string{
+					`DELETE FROM building_action WHERE planet = $1`,
+				},
+				expectedArguments: [][]interface{}{
+					{
+						defaultPlanetId,
+					},
+				},
+			},
 		},
 
 		dbGetAllTestCases: map[string]dbTransactionGetAllTestCase{

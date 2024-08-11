@@ -169,7 +169,7 @@ func Test_PlayerRepository_Transaction(t *testing.T) {
 				sqlMode: ExecBased,
 				generateMock: func() db.Transaction {
 					return &mockTransaction{
-						affectedRows: 1,
+						affectedRows: []int{1},
 					}
 				},
 				handler: func(ctx context.Context, tx db.Transaction) error {
@@ -219,7 +219,7 @@ func Test_PlayerRepository_Transaction(t *testing.T) {
 			"delete_noRowsAffected": {
 				generateMock: func() db.Transaction {
 					return &mockTransaction{
-						affectedRows: 0,
+						affectedRows: []int{0},
 					}
 				},
 				handler: func(ctx context.Context, tx db.Transaction) error {
@@ -233,7 +233,7 @@ func Test_PlayerRepository_Transaction(t *testing.T) {
 			"delete_moreThanOneRowAffected": {
 				generateMock: func() db.Transaction {
 					return &mockTransaction{
-						affectedRows: 2,
+						affectedRows: []int{2},
 					}
 				},
 				handler: func(ctx context.Context, tx db.Transaction) error {

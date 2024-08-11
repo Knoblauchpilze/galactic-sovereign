@@ -199,9 +199,18 @@ func (r *planetRepositoryImpl) ListForPlayer(ctx context.Context, tx db.Transact
 }
 
 const deletePlanetSqlTemplate = "DELETE FROM planet WHERE id = $1"
+const deletePlanetHomeworldSqlTemplate = "DELETE FROM homeworld WHERE planet = $1"
 
 func (r *planetRepositoryImpl) Delete(ctx context.Context, tx db.Transaction, id uuid.UUID) error {
-	affected, err := tx.Exec(ctx, deletePlanetSqlTemplate, id)
+	affected, err := tx.Exec(ctx, deletePlanetHomeworldSqlTemplate, id)
+	if err != nil {
+		return err
+	}
+	if affected != 0 && affected != 1 {
+		return errors.NewCode(db.MoreThanOneMatchingSqlRows)
+	}
+
+	affected, err = tx.Exec(ctx, deletePlanetSqlTemplate, id)
 	if err != nil {
 		return err
 	}
