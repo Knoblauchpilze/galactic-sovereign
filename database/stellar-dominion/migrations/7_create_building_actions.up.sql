@@ -12,3 +12,5 @@ CREATE TABLE building_action (
   FOREIGN KEY (building) REFERENCES building(id),
   UNIQUE (planet)
 );
+
+CREATE INDEX building_action_planet_index ON building_action (planet);
