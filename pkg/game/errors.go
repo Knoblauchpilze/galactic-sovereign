@@ -3,6 +3,7 @@ package game
 import "github.com/KnoblauchPilze/user-service/pkg/errors"
 
 const (
-	InvalidBuildingLevel errors.ErrorCode = 270
-	NotEnoughResources   errors.ErrorCode = 271
+	InvalidActionData    errors.ErrorCode = 270
+	InvalidBuildingLevel errors.ErrorCode = 271
+	NotEnoughResources   errors.ErrorCode = 272
 )
