@@ -10,19 +10,15 @@ import (
 )
 
 type BuildingActionRepository interface {
-	Create(ctx context.Context, action persistence.BuildingAction) (persistence.BuildingAction, error)
+	Create(ctx context.Context, tx db.Transaction, action persistence.BuildingAction) (persistence.BuildingAction, error)
 	ListForPlanet(ctx context.Context, tx db.Transaction, planet uuid.UUID) ([]persistence.BuildingAction, error)
 	DeleteForPlanet(ctx context.Context, tx db.Transaction, planet uuid.UUID) error
 }
 
-type buildingActionRepositoryImpl struct {
-	conn db.ConnectionPool
-}
+type buildingActionRepositoryImpl struct{}
 
-func NewBuildingActionRepository(conn db.ConnectionPool) BuildingActionRepository {
-	return &buildingActionRepositoryImpl{
-		conn: conn,
-	}
+func NewBuildingActionRepository() BuildingActionRepository {
+	return &buildingActionRepositoryImpl{}
 }
 
 const createBuildingActionSqlTemplate = `
@@ -31,8 +27,8 @@ INSERT INTO
 	VALUES($1, $2, $3, $4, $5, $6, $7)
 `
 
-func (r *buildingActionRepositoryImpl) Create(ctx context.Context, action persistence.BuildingAction) (persistence.BuildingAction, error) {
-	_, err := r.conn.Exec(ctx, createBuildingActionSqlTemplate, action.Id, action.Planet, action.Building, action.CurrentLevel, action.DesiredLevel, action.CreatedAt, action.CompletedAt)
+func (r *buildingActionRepositoryImpl) Create(ctx context.Context, tx db.Transaction, action persistence.BuildingAction) (persistence.BuildingAction, error) {
+	_, err := tx.Exec(ctx, createBuildingActionSqlTemplate, action.Id, action.Planet, action.Building, action.CurrentLevel, action.DesiredLevel, action.CreatedAt, action.CompletedAt)
 	if err != nil && duplicatedKeySqlErrorRegexp.MatchString(err.Error()) {
 		return action, errors.NewCode(db.DuplicatedKeySqlKey)
 	}

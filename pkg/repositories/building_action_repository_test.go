@@ -26,13 +26,23 @@ var defaultBuildingAction = persistence.BuildingAction{
 }
 
 func Test_BuildingActionRepository(t *testing.T) {
-	s := RepositoryPoolTestSuite{
-		dbInteractionTestCases: map[string]dbPoolInteractionTestCase{
+	s := RepositoryTransactionTestSuite{
+		dbInteractionTestCases: map[string]dbTransactionInteractionTestCase{},
+	}
+
+	suite.Run(t, &s)
+}
+
+func Test_BuildingActionRepository_Transaction(t *testing.T) {
+	var dummyInt int
+
+	s := RepositoryTransactionTestSuite{
+		dbInteractionTestCases: map[string]dbTransactionInteractionTestCase{
 			"create": {
 				sqlMode: ExecBased,
-				handler: func(ctx context.Context, pool db.ConnectionPool) error {
-					s := NewBuildingActionRepository(pool)
-					_, err := s.Create(ctx, defaultBuildingAction)
+				handler: func(ctx context.Context, tx db.Transaction) error {
+					s := NewBuildingActionRepository()
+					_, err := s.Create(ctx, tx, defaultBuildingAction)
 					return err
 				},
 				expectedSqlQueries: []string{
@@ -54,49 +64,9 @@ INSERT INTO
 					},
 				},
 			},
-		},
-
-		dbReturnTestCases: map[string]dbPoolReturnTestCase{
-			"create": {
-				handler: func(ctx context.Context, pool db.ConnectionPool) interface{} {
-					s := NewBuildingActionRepository(pool)
-					out, _ := s.Create(ctx, defaultBuildingAction)
-					return out
-				},
-				expectedContent: defaultBuildingAction,
-			},
-		},
-
-		dbErrorTestCases: map[string]dbPoolErrorTestCase{
-			"create_duplicatedKey": {
-				generateMock: func() db.ConnectionPool {
-					return &mockConnectionPool{
-						execErr: fmt.Errorf(`duplicate key value violates unique constraint "universe_name_key" (SQLSTATE 23505)`),
-					}
-				},
-				handler: func(ctx context.Context, pool db.ConnectionPool) error {
-					s := NewBuildingActionRepository(pool)
-					_, err := s.Create(ctx, defaultBuildingAction)
-					return err
-				},
-				verifyError: func(err error, assert *require.Assertions) {
-					assert.True(errors.IsErrorWithCode(err, db.DuplicatedKeySqlKey))
-				},
-			},
-		},
-	}
-
-	suite.Run(t, &s)
-}
-
-func Test_BuildingActionRepository_Transaction(t *testing.T) {
-	var dummyInt int
-
-	s := RepositoryTransactionTestSuite{
-		dbInteractionTestCases: map[string]dbTransactionInteractionTestCase{
 			"listForPlanet": {
 				handler: func(ctx context.Context, tx db.Transaction) error {
-					s := NewBuildingActionRepository(&mockConnectionPool{})
+					s := NewBuildingActionRepository()
 					_, err := s.ListForPlanet(ctx, tx, defaultPlanetId)
 					return err
 				},
@@ -129,7 +99,7 @@ WHERE
 					}
 				},
 				handler: func(ctx context.Context, tx db.Transaction) error {
-					s := NewBuildingActionRepository(&mockConnectionPool{})
+					s := NewBuildingActionRepository()
 					return s.DeleteForPlanet(ctx, tx, defaultPlanetId)
 				},
 				expectedSqlQueries: []string{
@@ -146,7 +116,7 @@ WHERE
 		dbGetAllTestCases: map[string]dbTransactionGetAllTestCase{
 			"listForPlanet": {
 				handler: func(ctx context.Context, tx db.Transaction) error {
-					repo := NewBuildingActionRepository(&mockConnectionPool{})
+					repo := NewBuildingActionRepository()
 					_, err := repo.ListForPlanet(ctx, tx, defaultPlanetId)
 					return err
 				},
@@ -162,6 +132,37 @@ WHERE
 						&time.Time{},
 						&time.Time{},
 					},
+				},
+			},
+		},
+
+		dbReturnTestCases: map[string]dbTransactionReturnTestCase{
+			"create": {
+				handler: func(ctx context.Context, tx db.Transaction) interface{} {
+					s := NewBuildingActionRepository()
+					out, _ := s.Create(ctx, tx, defaultBuildingAction)
+					return out
+				},
+				expectedContent: defaultBuildingAction,
+			},
+		},
+
+		dbErrorTestCases: map[string]dbTransactionErrorTestCase{
+			"create_duplicatedKey": {
+				generateMock: func() db.Transaction {
+					return &mockTransaction{
+						execErrs: []error{
+							fmt.Errorf(`duplicate key value violates unique constraint "universe_name_key" (SQLSTATE 23505)`),
+						},
+					}
+				},
+				handler: func(ctx context.Context, tx db.Transaction) error {
+					s := NewBuildingActionRepository()
+					_, err := s.Create(ctx, tx, defaultBuildingAction)
+					return err
+				},
+				verifyError: func(err error, assert *require.Assertions) {
+					assert.True(errors.IsErrorWithCode(err, db.DuplicatedKeySqlKey))
 				},
 			},
 		},
