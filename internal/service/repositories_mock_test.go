@@ -115,10 +115,18 @@ type mockBuildingActionRepository struct {
 	action persistence.BuildingAction
 	err    error
 
+	createCalled          int
+	createdBuildingAction persistence.BuildingAction
 	listForPlanetId       uuid.UUID
 	listForPlanetCalled   int
 	deleteForPlanetCalled int
 	deleteForPlanetId     uuid.UUID
+}
+
+func (m *mockBuildingActionRepository) Create(ctx context.Context, tx db.Transaction, action persistence.BuildingAction) (persistence.BuildingAction, error) {
+	m.createCalled++
+	m.createdBuildingAction = action
+	return m.action, m.err
 }
 
 func (m *mockBuildingActionRepository) ListForPlanet(ctx context.Context, tx db.Transaction, planet uuid.UUID) ([]persistence.BuildingAction, error) {
