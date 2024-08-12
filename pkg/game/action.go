@@ -24,19 +24,23 @@ func ValidateBuildingAction(action persistence.BuildingAction, resources []persi
 
 func validateActionLevel(action persistence.BuildingAction) error {
 	if action.CurrentLevel+1 != action.DesiredLevel {
-		return errors.NewCode(InvalidBuildingLevel)
+		return errors.NewCode(InvalidActionData)
 	}
 	return nil
 }
 
 func validateActionBuilding(action persistence.BuildingAction, buildings []persistence.PlanetBuilding) error {
 	for _, building := range buildings {
-		if building.Building == action.Building && building.Level != action.CurrentLevel {
-			return errors.NewCode(InvalidBuildingLevel)
+		if building.Building == action.Building {
+			if building.Level != action.CurrentLevel {
+				return errors.NewCode(InvalidBuildingLevel)
+			} else {
+				return nil
+			}
 		}
 	}
 
-	return nil
+	return errors.NewCode(InvalidBuildingLevel)
 }
 
 func validateActionCost(resources []persistence.PlanetResource, costs []persistence.BuildingCost) error {
