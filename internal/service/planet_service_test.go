@@ -44,15 +44,6 @@ var defaultPlanetBuilding = persistence.PlanetBuilding{
 	CreatedAt: testDate,
 	UpdatedAt: testDate,
 }
-var defaultBuildingAction = persistence.BuildingAction{
-	Id:           defaultBuildingActionId,
-	Planet:       defaultPlanetId,
-	Building:     defaultBuildingId,
-	CurrentLevel: 27,
-	DesiredLevel: 33,
-	CreatedAt:    testDate,
-	CompletedAt:  testDate,
-}
 
 func Test_PlanetService(t *testing.T) {
 	s := ServiceTestSuite{
