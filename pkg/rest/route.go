@@ -1,6 +1,10 @@
 package rest
 
-import "github.com/labstack/echo/v4"
+import (
+	"strings"
+
+	"github.com/labstack/echo/v4"
+)
 
 type Route interface {
 	Method() string
@@ -10,6 +14,8 @@ type Route interface {
 }
 
 type Routes []Route
+
+const RouteIdPlaceholder = ":id"
 
 type routeImpl struct {
 	method      string
@@ -53,8 +59,8 @@ func (r *routeImpl) Handler() echo.HandlerFunc {
 
 func (r *routeImpl) Path() string {
 	path := r.path
-	if r.addIdInPath {
-		path = concatenateEndpoints(path, ":id")
+	if r.addIdInPath && !strings.Contains(path, RouteIdPlaceholder) {
+		path = concatenateEndpoints(path, RouteIdPlaceholder)
 	}
 
 	return path

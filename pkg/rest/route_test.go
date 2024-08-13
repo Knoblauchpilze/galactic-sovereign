@@ -120,6 +120,16 @@ func TestRoute_WithResource_GeneratePath(t *testing.T) {
 	}
 }
 
+func TestRoute_WithResource_WhenIdPlaceHolderAlreadyExists_DoNotGeneratePath(t *testing.T) {
+	assert := assert.New(t)
+
+	path := "/path/:id/addendum"
+
+	r := NewResourceRoute(http.MethodGet, false, path, defaultHandler)
+
+	assert.Equal(path, r.Path())
+}
+
 func dummyEchoContext() echo.Context {
 	e := echo.New()
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
