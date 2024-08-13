@@ -66,7 +66,7 @@ func Test_BuildingActionController(t *testing.T) {
 				req:                httptest.NewRequest(http.MethodPost, "/", strings.NewReader("not-a-dto-request")),
 				idAsRouteParam:     true,
 				handler:            createBuildingAction,
-				expectedBodyString: "\"Invalid building action syntax\"\n",
+				expectedBodyString: "\"Invalid action syntax\"\n",
 			},
 		},
 
