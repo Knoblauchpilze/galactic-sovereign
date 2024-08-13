@@ -35,7 +35,7 @@ func createBuildingAction(c echo.Context, s service.BuildingActionService) error
 	var actionDtoRequest communication.BuildingActionDtoRequest
 	err = c.Bind(&actionDtoRequest)
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, "Invalid building action syntax")
+		return c.JSON(http.StatusBadRequest, "Invalid action syntax")
 	}
 
 	actionDtoRequest.Planet = id
