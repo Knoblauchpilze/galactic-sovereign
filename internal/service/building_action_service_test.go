@@ -180,6 +180,30 @@ func Test_BuildingActionService(t *testing.T) {
 				},
 				expectedError: errDefault,
 			},
+			"create_repositoryFails": {
+				generateRepositoriesMock: func() repositories.Repositories {
+					return repositories.Repositories{
+						PlanetResource: &mockPlanetResourceRepository{
+							planetResource: defaultPlanetResource,
+						},
+						PlanetBuilding: &mockPlanetBuildingRepository{
+							planetBuilding: defaultPlanetBuilding,
+						},
+						BuildingCost: &mockBuildingCostRepository{
+							buildingCost: defaultBuildingCost,
+						},
+						BuildingAction: &mockBuildingActionRepository{
+							err: errDefault,
+						},
+					}
+				},
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewBuildingActionService(pool, repos)
+					_, err := s.Create(ctx, defaultBuildingActionDtoRequest)
+					return err
+				},
+				expectedError: errDefault,
+			},
 		},
 
 		returnTestCases: map[string]returnTestCase{
