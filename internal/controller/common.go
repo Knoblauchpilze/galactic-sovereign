@@ -14,6 +14,14 @@ func fromAuthServiceAwareHttpHandler(handler authServiceAwareHttpHandler, servic
 	}
 }
 
+type buildingActionServiceAwareHttpHandler func(echo.Context, service.BuildingActionService) error
+
+func fromBuildingActionServiceAwareHttpHandler(handler buildingActionServiceAwareHttpHandler, service service.BuildingActionService) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		return handler(c, service)
+	}
+}
+
 type dbAwareHttpHandler func(echo.Context, db.ConnectionPool) error
 
 func fromDbAwareHttpHandler(handler dbAwareHttpHandler, pool db.ConnectionPool) echo.HandlerFunc {

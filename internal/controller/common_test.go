@@ -62,6 +62,16 @@ func TestFromAuthServiceAwareHttpHandler(t *testing.T) {
 	suite.Run(t, &s)
 }
 
+func TestFromBuildingActionServiceAwareHttpHandler(t *testing.T) {
+	s := HandlerTestSuite[service.BuildingActionService]{
+		generateTestFunc: func(in func(echo.Context, service.BuildingActionService) error) echo.HandlerFunc {
+			return fromBuildingActionServiceAwareHttpHandler(in, &mockBuildingActionService{})
+		},
+	}
+
+	suite.Run(t, &s)
+}
+
 func TestFromDbAwareHttpHandler(t *testing.T) {
 	s := HandlerTestSuite[db.ConnectionPool]{
 		generateTestFunc: func(in func(echo.Context, db.ConnectionPool) error) echo.HandlerFunc {
