@@ -14,12 +14,14 @@ type BuildingActionService interface {
 	Create(ctx context.Context, actionDto communication.BuildingActionDtoRequest) (communication.BuildingActionDtoResponse, error)
 }
 
-type buildingActionValidator func(action persistence.BuildingAction, resources []persistence.PlanetResource, costs []persistence.BuildingCost, buildings []persistence.PlanetBuilding) error
+type buildingActionValidator func(action persistence.BuildingAction, resources []persistence.PlanetResource, buildings []persistence.PlanetBuilding, costs []persistence.BuildingCost) error
+type buildingActionConsolidator func(action persistence.BuildingAction, buildings []persistence.PlanetBuilding) persistence.BuildingAction
 
 type buildingActionServiceImpl struct {
 	conn db.ConnectionPool
 
-	validator buildingActionValidator
+	validator    buildingActionValidator
+	consolidator buildingActionConsolidator
 
 	planetResourceRepo repositories.PlanetResourceRepository
 	planetBuildingRepo repositories.PlanetBuildingRepository
@@ -28,13 +30,16 @@ type buildingActionServiceImpl struct {
 }
 
 func NewBuildingActionService(conn db.ConnectionPool, repos repositories.Repositories) BuildingActionService {
-	return newBuildingActionService(conn, repos, game.ValidateBuildingAction)
+	return newBuildingActionService(conn, repos, game.ValidateBuildingAction, game.ConsolidateBuildingAction)
 }
 
-func newBuildingActionService(conn db.ConnectionPool, repos repositories.Repositories, validator buildingActionValidator) BuildingActionService {
+func newBuildingActionService(conn db.ConnectionPool, repos repositories.Repositories, validator buildingActionValidator, consolidator buildingActionConsolidator) BuildingActionService {
 	return &buildingActionServiceImpl{
-		conn:               conn,
-		validator:          validator,
+		conn: conn,
+
+		validator:    validator,
+		consolidator: consolidator,
+
 		planetResourceRepo: repos.PlanetResource,
 		planetBuildingRepo: repos.PlanetBuilding,
 		buildingCostRepo:   repos.BuildingCost,
@@ -66,7 +71,9 @@ func (s *buildingActionServiceImpl) Create(ctx context.Context, actionDto commun
 		return communication.BuildingActionDtoResponse{}, err
 	}
 
-	err = s.validator(action, resources, costs, buildings)
+	action = s.consolidator(action, buildings)
+
+	err = s.validator(action, resources, buildings, costs)
 	if err != nil {
 		return communication.BuildingActionDtoResponse{}, err
 	}

@@ -15,9 +15,8 @@ import (
 )
 
 var defaultBuildingActionDtoRequest = communication.BuildingActionDtoRequest{
-	Planet:       defaultPlanetId,
-	Building:     defaultBuildingId,
-	CurrentLevel: defaultPlanetBuilding.Level,
+	Planet:   defaultPlanetId,
+	Building: defaultBuildingId,
 }
 var defaultBuildingAction = persistence.BuildingAction{
 	Id:           defaultBuildingActionId,
@@ -52,8 +51,8 @@ func Test_BuildingActionService(t *testing.T) {
 					assert.Nil(uuid.Validate(actual.Id.String()))
 					assert.Equal(defaultPlanetId, actual.Planet)
 					assert.Equal(defaultBuildingId, actual.Building)
-					assert.Equal(defaultBuildingAction.CurrentLevel, actual.CurrentLevel)
-					assert.Equal(defaultBuildingAction.DesiredLevel, actual.DesiredLevel)
+					assert.Equal(defaultPlanetBuilding.Level, actual.CurrentLevel)
+					assert.Equal(defaultPlanetBuilding.Level+1, actual.DesiredLevel)
 					assert.True(beforeTestSuite.Before(actual.CreatedAt))
 					// TODO: Improve this.
 					// assert.False(actual.CompletedAt.IsZero())
@@ -169,10 +168,13 @@ func Test_BuildingActionService(t *testing.T) {
 			},
 			"create_validationFails": {
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					validator := func(_ persistence.BuildingAction, _ []persistence.PlanetResource, _ []persistence.BuildingCost, _ []persistence.PlanetBuilding) error {
+					validator := func(_ persistence.BuildingAction, _ []persistence.PlanetResource, _ []persistence.PlanetBuilding, _ []persistence.BuildingCost) error {
 						return errDefault
 					}
-					s := newBuildingActionService(pool, repos, validator)
+					consolidator := func(action persistence.BuildingAction, _ []persistence.PlanetBuilding) persistence.BuildingAction {
+						return action
+					}
+					s := newBuildingActionService(pool, repos, validator, consolidator)
 					_, err := s.Create(ctx, defaultBuildingActionDtoRequest)
 					return err
 				},
