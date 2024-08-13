@@ -38,7 +38,6 @@ type mockPlanetService struct {
 var defaultPlanetId = uuid.MustParse("080f5a2b-800a-458d-9806-7660bde4db00")
 var defaultResourceId = uuid.MustParse("84e01480-5433-4ebe-a078-7e1cd18c86c4")
 var defaultBuildingId = uuid.MustParse("ba846861-b015-4726-b9a8-3fe1cf2621e7")
-var defaultBuildingActionId = uuid.MustParse("694a47ab-cd58-431e-9298-e0e788bfc01e")
 var defaultPlanetDtoRequest = communication.PlanetDtoRequest{
 	Player: defaultPlayerId,
 	Name:   "my-planet",
@@ -65,15 +64,6 @@ var defaultPlanetBuildingDtoResponse = communication.PlanetBuildingDtoResponse{
 
 	CreatedAt: time.Date(2024, 8, 6, 21, 45, 30, 651387241, time.UTC),
 	UpdatedAt: time.Date(2024, 8, 6, 21, 45, 33, 651387241, time.UTC),
-}
-var defaultBuildingActionDtoResponse = communication.BuildingActionDtoResponse{
-	Id:           defaultBuildingActionId,
-	Planet:       defaultPlanetId,
-	Building:     defaultBuildingId,
-	CurrentLevel: 14,
-	DesiredLevel: 78,
-	CreatedAt:    time.Date(2024, 8, 11, 14, 12, 31, 651387243, time.UTC),
-	CompletedAt:  time.Date(2024, 8, 11, 14, 12, 36, 651387243, time.UTC),
 }
 var defaultFullPlanetDtoResponse = communication.FullPlanetDtoResponse{
 	PlanetDtoResponse: defaultPlanetDtoResponse,
