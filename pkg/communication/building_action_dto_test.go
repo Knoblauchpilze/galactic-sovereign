@@ -34,9 +34,8 @@ func TestBuildingActionDtoRequest_MarshalsToCamelCase(t *testing.T) {
 	assert := assert.New(t)
 
 	dto := BuildingActionDtoRequest{
-		Planet:       defaultPlanetId,
-		Building:     defaultBuildingId,
-		CurrentLevel: 35,
+		Planet:   defaultPlanetId,
+		Building: defaultBuildingId,
 	}
 
 	out, err := json.Marshal(dto)
@@ -45,8 +44,7 @@ func TestBuildingActionDtoRequest_MarshalsToCamelCase(t *testing.T) {
 	expectedJson := `
 	{
 		"planet": "65801b9b-84e6-411d-805f-2eb89587c5a7",
-		"building": "461ba465-86e6-4234-94b8-fc8fab03fa74",
-		"currentLevel": 35
+		"building": "461ba465-86e6-4234-94b8-fc8fab03fa74"
 	}`
 	assert.JSONEq(expectedJson, string(out))
 }
@@ -57,9 +55,8 @@ func TestFromBuildingActionDtoRequest(t *testing.T) {
 	beforeConversion := time.Now()
 
 	dto := BuildingActionDtoRequest{
-		Planet:       defaultPlanetId,
-		Building:     defaultBuildingId,
-		CurrentLevel: 35,
+		Planet:   defaultPlanetId,
+		Building: defaultBuildingId,
 	}
 
 	actual := FromBuildingActionDtoRequest(dto)
@@ -67,8 +64,8 @@ func TestFromBuildingActionDtoRequest(t *testing.T) {
 	assert.Nil(uuid.Validate(actual.Id.String()))
 	assert.Equal(defaultPlanetId, actual.Planet)
 	assert.Equal(defaultBuildingId, actual.Building)
-	assert.Equal(35, actual.CurrentLevel)
-	assert.Equal(36, actual.DesiredLevel)
+	assert.Equal(0, actual.CurrentLevel)
+	assert.Equal(0, actual.DesiredLevel)
 	assert.True(actual.CreatedAt.After(beforeConversion))
 	assert.True(actual.CompletedAt.IsZero())
 }

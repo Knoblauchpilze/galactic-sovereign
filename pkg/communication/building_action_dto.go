@@ -8,9 +8,8 @@ import (
 )
 
 type BuildingActionDtoRequest struct {
-	Planet       uuid.UUID `json:"planet"`
-	Building     uuid.UUID `json:"building"`
-	CurrentLevel int       `json:"currentLevel"`
+	Planet   uuid.UUID `json:"planet"`
+	Building uuid.UUID `json:"building"`
 }
 
 type BuildingActionDtoResponse struct {
@@ -26,12 +25,10 @@ type BuildingActionDtoResponse struct {
 func FromBuildingActionDtoRequest(action BuildingActionDtoRequest) persistence.BuildingAction {
 	t := time.Now()
 	return persistence.BuildingAction{
-		Id:           uuid.New(),
-		Planet:       action.Planet,
-		Building:     action.Building,
-		CurrentLevel: action.CurrentLevel,
-		DesiredLevel: action.CurrentLevel + 1,
-		CreatedAt:    t,
+		Id:        uuid.New(),
+		Planet:    action.Planet,
+		Building:  action.Building,
+		CreatedAt: t,
 	}
 }
 
