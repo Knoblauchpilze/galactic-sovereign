@@ -6,41 +6,35 @@ import (
 	"github.com/google/uuid"
 )
 
-func ValidateBuildingAction(action persistence.BuildingAction, resources []persistence.PlanetResource, costs []persistence.BuildingCost, buildings []persistence.PlanetBuilding) error {
-	if err := validateActionLevel(action); err != nil {
-		return err
+func ConsolidateBuildingAction(action persistence.BuildingAction, buildings []persistence.PlanetBuilding) persistence.BuildingAction {
+	for _, building := range buildings {
+		if building.Building == action.Building {
+			action.CurrentLevel = building.Level
+			break
+		}
 	}
 
+	action.DesiredLevel = action.CurrentLevel + 1
+
+	return action
+}
+
+func ValidateBuildingAction(action persistence.BuildingAction, resources []persistence.PlanetResource, buildings []persistence.PlanetBuilding, costs []persistence.BuildingCost) error {
 	if err := validateActionBuilding(action, buildings); err != nil {
 		return err
 	}
 
-	if err := validateActionCost(resources, costs); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func validateActionLevel(action persistence.BuildingAction) error {
-	if action.CurrentLevel+1 != action.DesiredLevel {
-		return errors.NewCode(InvalidActionData)
-	}
-	return nil
+	return validateActionCost(resources, costs)
 }
 
 func validateActionBuilding(action persistence.BuildingAction, buildings []persistence.PlanetBuilding) error {
 	for _, building := range buildings {
-		if building.Building == action.Building {
-			if building.Level != action.CurrentLevel {
-				return errors.NewCode(InvalidBuildingLevel)
-			} else {
-				return nil
-			}
+		if action.Building == building.Building {
+			return nil
 		}
 	}
 
-	return errors.NewCode(InvalidBuildingLevel)
+	return errors.NewCode(NoSuchBuilding)
 }
 
 func validateActionCost(resources []persistence.PlanetResource, costs []persistence.BuildingCost) error {

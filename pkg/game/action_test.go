@@ -11,48 +11,37 @@ import (
 
 var defaultId = uuid.MustParse("60043fb4-d4bc-4bf0-95fd-dcdaf09a6acc")
 
-func TestValidateActionLevel_DesiredLevelIsTheSameAsCurrentLevel(t *testing.T) {
+func TestConsolidateBuildingAction_WhenNoBuilding_SetsDefault(t *testing.T) {
 	assert := assert.New(t)
 
 	action := persistence.BuildingAction{
-		CurrentLevel: 0,
-		DesiredLevel: 0,
+		Building: defaultId,
 	}
-	err := validateActionLevel(action)
-	assert.True(errors.IsErrorWithCode(err, InvalidActionData))
+	buildings := []persistence.PlanetBuilding{}
+
+	actual := ConsolidateBuildingAction(action, buildings)
+
+	assert.Equal(0, actual.CurrentLevel)
+	assert.Equal(1, actual.DesiredLevel)
 }
 
-func TestValidateActionLevel_DesiredLevelIsSmallerAsCurrentLevel(t *testing.T) {
+func TestConsolidateBuildingAction(t *testing.T) {
 	assert := assert.New(t)
 
 	action := persistence.BuildingAction{
-		CurrentLevel: 1,
-		DesiredLevel: 0,
+		Building: defaultId,
 	}
-	err := validateActionLevel(action)
-	assert.True(errors.IsErrorWithCode(err, InvalidActionData))
-}
-
-func TestValidateActionLevel_DesiredLevelIsTooBigComparedToCurrentLevel(t *testing.T) {
-	assert := assert.New(t)
-
-	action := persistence.BuildingAction{
-		CurrentLevel: 1,
-		DesiredLevel: 3,
+	buildings := []persistence.PlanetBuilding{
+		{
+			Building: defaultId,
+			Level:    26,
+		},
 	}
-	err := validateActionLevel(action)
-	assert.True(errors.IsErrorWithCode(err, InvalidActionData))
-}
 
-func TestValidateActionLevel(t *testing.T) {
-	assert := assert.New(t)
+	actual := ConsolidateBuildingAction(action, buildings)
 
-	action := persistence.BuildingAction{
-		CurrentLevel: 1,
-		DesiredLevel: 2,
-	}
-	err := validateActionLevel(action)
-	assert.Nil(err)
+	assert.Equal(26, actual.CurrentLevel)
+	assert.Equal(27, actual.DesiredLevel)
 }
 
 func TestValidateActionBuilding_NoSuchBuilding(t *testing.T) {
@@ -62,41 +51,26 @@ func TestValidateActionBuilding_NoSuchBuilding(t *testing.T) {
 		Building: defaultId,
 	}
 	buildings := []persistence.PlanetBuilding{}
-	err := validateActionBuilding(action, buildings)
-	assert.True(errors.IsErrorWithCode(err, InvalidBuildingLevel))
-}
 
-func TestValidateActionBuilding_BuildingExistsButWithADifferentLevel(t *testing.T) {
-	assert := assert.New(t)
-
-	action := persistence.BuildingAction{
-		Building:     defaultId,
-		CurrentLevel: 1,
-	}
-	buildings := []persistence.PlanetBuilding{
-		{
-			Building: defaultId,
-			Level:    2,
-		},
-	}
 	err := validateActionBuilding(action, buildings)
-	assert.True(errors.IsErrorWithCode(err, InvalidBuildingLevel))
+
+	assert.True(errors.IsErrorWithCode(err, NoSuchBuilding))
 }
 
 func TestValidateActionBuilding(t *testing.T) {
 	assert := assert.New(t)
 
 	action := persistence.BuildingAction{
-		Building:     defaultId,
-		CurrentLevel: 1,
+		Building: defaultId,
 	}
 	buildings := []persistence.PlanetBuilding{
 		{
 			Building: defaultId,
-			Level:    1,
 		},
 	}
+
 	err := validateActionBuilding(action, buildings)
+
 	assert.Nil(err)
 }
 
@@ -110,7 +84,9 @@ func TestValidateActionCost_NoSuchResource(t *testing.T) {
 			Cost:     1,
 		},
 	}
+
 	err := validateActionCost(resources, costs)
+
 	assert.True(errors.IsErrorWithCode(err, NotEnoughResources))
 }
 
@@ -129,7 +105,9 @@ func TestValidateActionCost_TooLittleResource(t *testing.T) {
 			Cost:     2,
 		},
 	}
+
 	err := validateActionCost(resources, costs)
+
 	assert.True(errors.IsErrorWithCode(err, NotEnoughResources))
 }
 
@@ -148,7 +126,9 @@ func TestValidateActionCost_ExactlyEnoughResource(t *testing.T) {
 			Cost:     2,
 		},
 	}
+
 	err := validateActionCost(resources, costs)
+
 	assert.Nil(err)
 }
 
@@ -167,17 +147,17 @@ func TestValidateActionCost_MoreThanEnoughResource(t *testing.T) {
 			Cost:     2,
 		},
 	}
+
 	err := validateActionCost(resources, costs)
+
 	assert.Nil(err)
 }
 
-func TestValidateBuildingAction_LevelFails(t *testing.T) {
+func TestValidateBuildingAction_BuildingUnknown(t *testing.T) {
 	assert := assert.New(t)
 
 	action := persistence.BuildingAction{
-		Building:     defaultId,
-		CurrentLevel: 1,
-		DesiredLevel: 3,
+		Building: defaultId,
 	}
 	resources := []persistence.PlanetResource{
 		{
@@ -185,64 +165,34 @@ func TestValidateBuildingAction_LevelFails(t *testing.T) {
 			Amount:   2,
 		},
 	}
+	buildings := []persistence.PlanetBuilding{}
 	costs := []persistence.BuildingCost{
 		{
 			Resource: defaultId,
-			Cost:     1,
+			Cost:     4,
 		},
 	}
-	buildings := []persistence.PlanetBuilding{
-		{
-			Building: defaultId,
-			Level:    1,
-		},
-	}
-	err := ValidateBuildingAction(action, resources, costs, buildings)
-	assert.True(errors.IsErrorWithCode(err, InvalidActionData))
-}
 
-func TestValidateBuildingAction_BuildingFails(t *testing.T) {
-	assert := assert.New(t)
+	err := ValidateBuildingAction(action, resources, buildings, costs)
 
-	action := persistence.BuildingAction{
-		Building:     defaultId,
-		CurrentLevel: 1,
-		DesiredLevel: 2,
-	}
-	resources := []persistence.PlanetResource{
-		{
-			Resource: defaultId,
-			Amount:   2,
-		},
-	}
-	costs := []persistence.BuildingCost{
-		{
-			Resource: defaultId,
-			Cost:     1,
-		},
-	}
-	buildings := []persistence.PlanetBuilding{
-		{
-			Building: defaultId,
-			Level:    3,
-		},
-	}
-	err := ValidateBuildingAction(action, resources, costs, buildings)
-	assert.True(errors.IsErrorWithCode(err, InvalidBuildingLevel))
+	assert.True(errors.IsErrorWithCode(err, NoSuchBuilding))
 }
 
 func TestValidateBuildingAction_CostFails(t *testing.T) {
 	assert := assert.New(t)
 
 	action := persistence.BuildingAction{
-		Building:     defaultId,
-		CurrentLevel: 1,
-		DesiredLevel: 2,
+		Building: defaultId,
 	}
 	resources := []persistence.PlanetResource{
 		{
 			Resource: defaultId,
 			Amount:   2,
+		},
+	}
+	buildings := []persistence.PlanetBuilding{
+		{
+			Building: defaultId,
 		},
 	}
 	costs := []persistence.BuildingCost{
@@ -251,13 +201,9 @@ func TestValidateBuildingAction_CostFails(t *testing.T) {
 			Cost:     4,
 		},
 	}
-	buildings := []persistence.PlanetBuilding{
-		{
-			Building: defaultId,
-			Level:    1,
-		},
-	}
-	err := ValidateBuildingAction(action, resources, costs, buildings)
+
+	err := ValidateBuildingAction(action, resources, buildings, costs)
+
 	assert.True(errors.IsErrorWithCode(err, NotEnoughResources))
 }
 
@@ -265,14 +211,17 @@ func TestValidateBuildingAction(t *testing.T) {
 	assert := assert.New(t)
 
 	action := persistence.BuildingAction{
-		Building:     defaultId,
-		CurrentLevel: 1,
-		DesiredLevel: 2,
+		Building: defaultId,
 	}
 	resources := []persistence.PlanetResource{
 		{
 			Resource: defaultId,
 			Amount:   2,
+		},
+	}
+	buildings := []persistence.PlanetBuilding{
+		{
+			Building: defaultId,
 		},
 	}
 	costs := []persistence.BuildingCost{
@@ -281,12 +230,8 @@ func TestValidateBuildingAction(t *testing.T) {
 			Cost:     1,
 		},
 	}
-	buildings := []persistence.PlanetBuilding{
-		{
-			Building: defaultId,
-			Level:    1,
-		},
-	}
-	err := ValidateBuildingAction(action, resources, costs, buildings)
+
+	err := ValidateBuildingAction(action, resources, buildings, costs)
+
 	assert.Nil(err)
 }
