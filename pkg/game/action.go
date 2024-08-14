@@ -6,7 +6,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func ConsolidateBuildingAction(action persistence.BuildingAction, buildings []persistence.PlanetBuilding) persistence.BuildingAction {
+func ConsolidateBuildingAction(action persistence.BuildingAction, buildings []persistence.PlanetBuilding, resources []persistence.Resource, costs []persistence.BuildingCost) (persistence.BuildingAction, error) {
 	for _, building := range buildings {
 		if building.Building == action.Building {
 			action.CurrentLevel = building.Level
@@ -16,7 +16,10 @@ func ConsolidateBuildingAction(action persistence.BuildingAction, buildings []pe
 
 	action.DesiredLevel = action.CurrentLevel + 1
 
-	return action
+	completionTime, err := buildingCompletionTimeFromCost(resources, costs)
+	action.CompletedAt = action.CreatedAt.Add(completionTime)
+
+	return action, err
 }
 
 func ValidateBuildingAction(action persistence.BuildingAction, resources []persistence.PlanetResource, buildings []persistence.PlanetBuilding, costs []persistence.BuildingCost) error {
