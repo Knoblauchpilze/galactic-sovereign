@@ -13,6 +13,17 @@ import (
 var defaultMetalId = uuid.MustParse("24c2a21a-3de8-42dd-bee4-8652e8368a5c")
 var defaultCrystalId = uuid.MustParse("4e8a8ee5-668e-42c4-a4a5-938e5a68741c")
 
+var defaultResources = []persistence.Resource{
+	{
+		Id:   defaultMetalId,
+		Name: "metal",
+	},
+	{
+		Id:   defaultCrystalId,
+		Name: "crystal",
+	},
+}
+
 func TestBuildingCompletionTimeFromCost_whenMetalNotFound_expectError(t *testing.T) {
 	assert := assert.New(t)
 
@@ -43,16 +54,6 @@ func TestBuildingCompletionTimeFromCost_whenCrystalNotFound_expectError(t *testi
 func TestBuildingCompletionTimeFromCost_onlyMetalCost(t *testing.T) {
 	assert := assert.New(t)
 
-	resources := []persistence.Resource{
-		{
-			Id:   defaultMetalId,
-			Name: "metal",
-		},
-		{
-			Id:   defaultCrystalId,
-			Name: "crystal",
-		},
-	}
 	costs := []persistence.BuildingCost{
 		{
 			Resource: defaultMetalId,
@@ -60,7 +61,7 @@ func TestBuildingCompletionTimeFromCost_onlyMetalCost(t *testing.T) {
 		},
 	}
 
-	duration, err := buildingCompletionTimeFromCost(resources, costs)
+	duration, err := buildingCompletionTimeFromCost(defaultResources, costs)
 
 	assert.Nil(err)
 	assert.Equal(30*time.Minute, duration)
@@ -69,16 +70,6 @@ func TestBuildingCompletionTimeFromCost_onlyMetalCost(t *testing.T) {
 func TestBuildingCompletionTimeFromCost_onlyCrystalCost(t *testing.T) {
 	assert := assert.New(t)
 
-	resources := []persistence.Resource{
-		{
-			Id:   defaultMetalId,
-			Name: "metal",
-		},
-		{
-			Id:   defaultCrystalId,
-			Name: "crystal",
-		},
-	}
 	costs := []persistence.BuildingCost{
 		{
 			Resource: defaultCrystalId,
@@ -86,7 +77,7 @@ func TestBuildingCompletionTimeFromCost_onlyCrystalCost(t *testing.T) {
 		},
 	}
 
-	duration, err := buildingCompletionTimeFromCost(resources, costs)
+	duration, err := buildingCompletionTimeFromCost(defaultResources, costs)
 
 	assert.Nil(err)
 	expectedDuration, err2 := time.ParseDuration("1h12m")
@@ -97,16 +88,6 @@ func TestBuildingCompletionTimeFromCost_onlyCrystalCost(t *testing.T) {
 func TestBuildingCompletionTimeFromCost_metalAndCrystal(t *testing.T) {
 	assert := assert.New(t)
 
-	resources := []persistence.Resource{
-		{
-			Id:   defaultMetalId,
-			Name: "metal",
-		},
-		{
-			Id:   defaultCrystalId,
-			Name: "crystal",
-		},
-	}
 	costs := []persistence.BuildingCost{
 		{
 			Resource: defaultMetalId,
@@ -118,7 +99,7 @@ func TestBuildingCompletionTimeFromCost_metalAndCrystal(t *testing.T) {
 		},
 	}
 
-	duration, err := buildingCompletionTimeFromCost(resources, costs)
+	duration, err := buildingCompletionTimeFromCost(defaultResources, costs)
 
 	assert.Nil(err)
 	expectedDuration, err2 := time.ParseDuration("14.4s")
