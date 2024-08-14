@@ -27,7 +27,7 @@ var defaultUniverse = persistence.Universe{
 }
 var defaultResourceName = "my-resource"
 var defaultResource = persistence.Resource{
-	Id:   defaultResourceId,
+	Id:   metalResourceId,
 	Name: defaultResourceName,
 
 	CreatedAt: testDate,
@@ -44,8 +44,8 @@ var defaultBuilding = persistence.Building{
 }
 var defaultBuildingCost = persistence.BuildingCost{
 	Building: defaultBuildingId,
-	Resource: defaultResourceId,
-	Cost:     14,
+	Resource: metalResourceId,
+	Cost:     250,
 }
 
 func Test_UniverseService(t *testing.T) {
@@ -274,8 +274,8 @@ func Test_UniverseService(t *testing.T) {
 							Costs: []communication.BuildingCostDtoResponse{
 								{
 									Building: defaultBuilding.Id,
-									Resource: defaultResource.Id,
-									Cost:     14,
+									Resource: metalResourceId,
+									Cost:     250,
 								},
 							},
 						},
@@ -328,7 +328,7 @@ func generateValidUniverseRepositoryMock() repositories.Repositories {
 			buildingCost: defaultBuildingCost,
 		},
 		Resource: &mockResourceRepository{
-			resource: defaultResource,
+			resources: []persistence.Resource{defaultResource},
 		},
 		Universe: &mockUniverseRepository{
 			universe: defaultUniverse,

@@ -15,7 +15,7 @@ type BuildingActionService interface {
 }
 
 type buildingActionValidator func(action persistence.BuildingAction, resources []persistence.PlanetResource, buildings []persistence.PlanetBuilding, costs []persistence.BuildingCost) error
-type buildingActionConsolidator func(action persistence.BuildingAction, buildings []persistence.PlanetBuilding) persistence.BuildingAction
+type buildingActionConsolidator func(action persistence.BuildingAction, buildings []persistence.PlanetBuilding, resources []persistence.Resource, costs []persistence.BuildingCost) (persistence.BuildingAction, error)
 
 type buildingActionServiceImpl struct {
 	conn db.ConnectionPool
@@ -23,6 +23,7 @@ type buildingActionServiceImpl struct {
 	validator    buildingActionValidator
 	consolidator buildingActionConsolidator
 
+	resourceRepo       repositories.ResourceRepository
 	planetResourceRepo repositories.PlanetResourceRepository
 	planetBuildingRepo repositories.PlanetBuildingRepository
 	buildingCostRepo   repositories.BuildingCostRepository
@@ -40,6 +41,7 @@ func newBuildingActionService(conn db.ConnectionPool, repos repositories.Reposit
 		validator:    validator,
 		consolidator: consolidator,
 
+		resourceRepo:       repos.Resource,
 		planetResourceRepo: repos.PlanetResource,
 		planetBuildingRepo: repos.PlanetBuilding,
 		buildingCostRepo:   repos.BuildingCost,
@@ -56,7 +58,12 @@ func (s *buildingActionServiceImpl) Create(ctx context.Context, actionDto commun
 	}
 	defer tx.Close(ctx)
 
-	resources, err := s.planetResourceRepo.ListForPlanet(ctx, tx, action.Planet)
+	resources, err := s.resourceRepo.List(ctx, tx)
+	if err != nil {
+		return communication.BuildingActionDtoResponse{}, err
+	}
+
+	planetResources, err := s.planetResourceRepo.ListForPlanet(ctx, tx, action.Planet)
 	if err != nil {
 		return communication.BuildingActionDtoResponse{}, err
 	}
@@ -71,9 +78,12 @@ func (s *buildingActionServiceImpl) Create(ctx context.Context, actionDto commun
 		return communication.BuildingActionDtoResponse{}, err
 	}
 
-	action = s.consolidator(action, buildings)
+	action, err = s.consolidator(action, buildings, resources, costs)
+	if err != nil {
+		return communication.BuildingActionDtoResponse{}, err
+	}
 
-	err = s.validator(action, resources, buildings, costs)
+	err = s.validator(action, planetResources, buildings, costs)
 	if err != nil {
 		return communication.BuildingActionDtoResponse{}, err
 	}
