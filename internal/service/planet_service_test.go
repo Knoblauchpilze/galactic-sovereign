@@ -15,7 +15,6 @@ import (
 
 var defaultPlanetId = uuid.MustParse("5b0efd85-8817-4454-b8f3-7af5d93253a1")
 var defaultPlanetName = "my-planet"
-var defaultResourceId = uuid.MustParse("3e0aaf91-8b81-403f-b967-8bdba748594d")
 var defaultBuildingActionId = uuid.MustParse("38a739bd-79db-453e-ab03-44f9f300c3c8")
 
 var defaultPlanetDtoRequest = communication.PlanetDtoRequest{
@@ -32,7 +31,7 @@ var defaultPlanet = persistence.Planet{
 }
 var defaultPlanetResource = persistence.PlanetResource{
 	Planet:    defaultPlanetId,
-	Resource:  defaultResourceId,
+	Resource:  metalResourceId,
 	Amount:    321.0987,
 	CreatedAt: testDate,
 	UpdatedAt: testDate,
@@ -392,7 +391,7 @@ func Test_PlanetService(t *testing.T) {
 					Resources: []communication.PlanetResourceDtoResponse{
 						{
 							Planet:    defaultPlanet.Id,
-							Resource:  defaultResourceId,
+							Resource:  metalResourceId,
 							Amount:    321.0987,
 							CreatedAt: testDate,
 							UpdatedAt: testDate,
