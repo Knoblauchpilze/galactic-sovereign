@@ -2,6 +2,7 @@ package game
 
 import (
 	"testing"
+	"time"
 
 	"github.com/KnoblauchPilze/user-service/pkg/errors"
 	"github.com/KnoblauchPilze/user-service/pkg/persistence"
@@ -18,11 +19,38 @@ func TestConsolidateBuildingAction_WhenNoBuilding_SetsDefault(t *testing.T) {
 		Building: defaultId,
 	}
 	buildings := []persistence.PlanetBuilding{}
+	costs := []persistence.BuildingCost{}
 
-	actual := ConsolidateBuildingAction(action, buildings)
+	actual, err := ConsolidateBuildingAction(action, buildings, defaultResources, costs)
 
+	assert.Nil(err)
 	assert.Equal(0, actual.CurrentLevel)
 	assert.Equal(1, actual.DesiredLevel)
+}
+
+func TestConsolidateBuildingAction_SetsCompletionTime(t *testing.T) {
+	assert := assert.New(t)
+
+	action := persistence.BuildingAction{
+		Building: defaultId,
+	}
+	buildings := []persistence.PlanetBuilding{}
+	costs := []persistence.BuildingCost{
+		{
+			Resource: defaultMetalId,
+			Cost:     1250,
+		},
+		{
+			Resource: defaultCrystalId,
+			Cost:     3750,
+		},
+	}
+
+	actual, err := ConsolidateBuildingAction(action, buildings, defaultResources, costs)
+
+	assert.Nil(err)
+	expectedCompletionTime := actual.CreatedAt.Add(2 * time.Hour)
+	assert.Equal(expectedCompletionTime, actual.CompletedAt)
 }
 
 func TestConsolidateBuildingAction(t *testing.T) {
@@ -37,9 +65,11 @@ func TestConsolidateBuildingAction(t *testing.T) {
 			Level:    26,
 		},
 	}
+	costs := []persistence.BuildingCost{}
 
-	actual := ConsolidateBuildingAction(action, buildings)
+	actual, err := ConsolidateBuildingAction(action, buildings, defaultResources, costs)
 
+	assert.Nil(err)
 	assert.Equal(26, actual.CurrentLevel)
 	assert.Equal(27, actual.DesiredLevel)
 }
