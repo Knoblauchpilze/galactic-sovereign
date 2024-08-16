@@ -46,3 +46,8 @@ CREATE TABLE planet_building (
   FOREIGN KEY (building) REFERENCES building(id),
   UNIQUE (planet, building)
 );
+
+CREATE TRIGGER trigger_planet_building_updated_at
+  BEFORE UPDATE OR INSERT ON planet_building
+  FOR EACH ROW
+  EXECUTE FUNCTION update_updated_at();

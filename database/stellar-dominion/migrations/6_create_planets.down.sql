@@ -1,4 +1,5 @@
 
+DROP TRIGGER trigger_planet_building_updated_at ON planet_building;
 DROP TRIGGER trigger_planet_updated_at ON planet;
 
 DROP TABLE planet_building;

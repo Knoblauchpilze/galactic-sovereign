@@ -4,12 +4,14 @@ import (
 	"context"
 
 	"github.com/KnoblauchPilze/user-service/pkg/db"
+	"github.com/KnoblauchPilze/user-service/pkg/errors"
 	"github.com/KnoblauchPilze/user-service/pkg/persistence"
 	"github.com/google/uuid"
 )
 
 type PlanetBuildingRepository interface {
 	ListForPlanet(ctx context.Context, tx db.Transaction, planet uuid.UUID) ([]persistence.PlanetBuilding, error)
+	Update(ctx context.Context, tx db.Transaction, building persistence.PlanetBuilding) (persistence.PlanetBuilding, error)
 	DeleteForPlanet(ctx context.Context, tx db.Transaction, planet uuid.UUID) error
 }
 
@@ -56,6 +58,35 @@ func (r *planetBuildingRepositoryImpl) ListForPlanet(ctx context.Context, tx db.
 	}
 
 	return out, nil
+}
+
+const updatePlanetBuildingSqlTemplate = `
+UPDATE
+	planet_building
+SET
+	level = $1,
+	version = $2
+WHERE
+	planet = $3
+	AND building = $4
+	AND version = $5
+`
+
+func (r *planetBuildingRepositoryImpl) Update(ctx context.Context, tx db.Transaction, building persistence.PlanetBuilding) (persistence.PlanetBuilding, error) {
+	version := building.Version + 1
+	affected, err := tx.Exec(ctx, updatePlanetBuildingSqlTemplate, building.Level, version, building.Planet, building.Building, building.Version)
+	if err != nil {
+		return building, err
+	}
+	if affected == 0 {
+		return building, errors.NewCode(db.OptimisticLockException)
+	} else if affected != 1 {
+		return building, errors.NewCode(db.MoreThanOneMatchingSqlRows)
+	}
+
+	building.Version = version
+
+	return building, nil
 }
 
 const deletePlanetBuildingSqlTemplate = "DELETE FROM planet_building WHERE planet = $1"
