@@ -1,23 +1,19 @@
-name: Build and push stellar-dominion-service docker image
+name: stellar-dominion-service
 
 on:
+  workflow_call:
+    secrets:
+      dockerhub-username:
+        required: true
+      dockerhub-token:
+        required: true
   push:
     paths:
-      - "cmd/stellar-dominion/**"
-      - "pkg/**"
-      - "internal/**"
       - "build/stellar-dominion-service/Dockerfile"
-      - ".github/workflows/stellar-dominion*.yml"
-      - ".github/workflows/go-tests.yml"
-      - ".github/workflows/services*.yml"
 
 jobs:
-  tests:
-    if: ${{ github.actor != 'github-actions[bot]' && github.event_name != 'push' || github.event.pusher.name != 'github-actions[bot]' }}
-    uses: ./.github/workflows/go-tests.yml
   extract-service-tag:
     if: ${{ github.actor != 'github-actions[bot]' && github.event_name != 'push' || github.event.pusher.name != 'github-actions[bot]' }}
-    needs: [tests]
     uses: ./.github/workflows/services-extract-tag.yml
   build-and-push-docker-image:
     runs-on: ubuntu-latest
@@ -28,8 +24,8 @@ jobs:
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          username: ${{ secrets.dockerhub-username }}
+          password: ${{ secrets.dockerhub-token }}
       - name: Build and push
         uses: docker/build-push-action@v5
         with:

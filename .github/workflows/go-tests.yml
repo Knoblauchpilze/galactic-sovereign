@@ -1,17 +1,47 @@
-name: Tests
+name: Build services
 
 on:
-  workflow_call:
+  push:
+    paths:
+      - "cmd/users/**"
+      - "cmd/stellar-dominion/**"
+      - "pkg/**"
+      - "internal/**"
+      - ".github/workflows/go-tests.yml"
+      - ".github/workflows/services*.yml"
+      - ".github/workflows/user-service*.yml"
+      - ".github/workflows/stellar-dominion-service*.yml"
 
 jobs:
   tests:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
           go-version: "1.22.x"
-      - name: Run tests
-        run: go test ./...
+      - name: Run tests with coverage
+        run: go test ./... -coverpkg=./... -race -covermode=atomic -coverprofile=coverage.out
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          fail_ci_if_error: true
+          file: ./coverage.out
+          token: ${{ secrets.CODECOV_TOKEN }}
+  build-user-service:
+    needs: [tests]
+    permissions:
+      contents: write
+    uses: ./.github/workflows/user-service-build-and-push.yml
+    secrets:
+      dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
+      dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
+  build-stellar-dominion-service:
+    needs: [tests]
+    permissions:
+      contents: write
+    uses: ./.github/workflows/stellar-dominion-service-build-and-push.yml
+    secrets:
+      dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
+      dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
