@@ -12,6 +12,10 @@ jobs:
   extract-service-tag:
     if: ${{ github.actor != 'github-actions[bot]' && github.event_name != 'push' || github.event.pusher.name != 'github-actions[bot]' }}
     uses: ./.github/workflows/services-extract-tag.yml
+  debug:
+    runs-on: ubuntu-latest
+    steps:
+      run: echo "github.ref"
   build-and-push-docker-image:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/master' && (${{ github.actor != 'github-actions[bot]' && github.event_name != 'push' || github.event.pusher.name != 'github-actions[bot]' }})
