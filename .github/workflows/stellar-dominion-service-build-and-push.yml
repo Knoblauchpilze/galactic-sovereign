@@ -15,8 +15,6 @@ jobs:
   tests:
     if: ${{ github.actor != 'github-actions[bot]' && github.event_name != 'push' || github.event.pusher.name != 'github-actions[bot]' }}
     uses: ./.github/workflows/go-tests.yml
-    secrets:
-      codecov-token: ${{ secrets.CODECOV_TOKEN }}
   extract-service-tag:
     if: ${{ github.actor != 'github-actions[bot]' && github.event_name != 'push' || github.event.pusher.name != 'github-actions[bot]' }}
     needs: [tests]
