@@ -1,27 +1,23 @@
-name: Build and push user-service docker image
+name: user-service
 
 on:
+  workflow_call:
+    secrets:
+      dockerhub-username:
+        required: true
+      dockerhub-token:
+        required: true
   push:
     # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#example-including-paths
     paths:
-      - "cmd/users/**"
-      - "pkg/**"
-      - "internal/**"
       - "build/user-service/Dockerfile"
-      - ".github/workflows/user-service*.yml"
-      - ".github/workflows/go-tests.yml"
-      - ".github/workflows/services*.yml"
 
 jobs:
   # https://docs.github.com/en/actions/using-workflows/reusing-workflows#calling-a-reusable-workflow
-  tests:
+  extract-service-tag:
     # https://github.com/orgs/community/discussions/74772
     # https://stackoverflow.com/questions/58139406/only-run-job-on-specific-branch-with-github-actions
     if: ${{ github.actor != 'github-actions[bot]' && github.event_name != 'push' || github.event.pusher.name != 'github-actions[bot]' }}
-    uses: ./.github/workflows/go-tests.yml
-  extract-service-tag:
-    if: ${{ github.actor != 'github-actions[bot]' && github.event_name != 'push' || github.event.pusher.name != 'github-actions[bot]' }}
-    needs: [tests]
     uses: ./.github/workflows/services-extract-tag.yml
   build-and-push-docker-image:
     runs-on: ubuntu-latest
@@ -32,8 +28,8 @@ jobs:
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          username: ${{ secrets.dockerhub-username }}
+          password: ${{ secrets.dockerhub-token }}
       # https://docs.github.com/en/actions/publishing-packages/publishing-docker-images#publishing-images-to-docker-hub
       - name: Build and push
         uses: docker/build-push-action@v5

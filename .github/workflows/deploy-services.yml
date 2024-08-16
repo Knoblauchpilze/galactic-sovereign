@@ -15,10 +15,10 @@ on:
   workflow_run:
     workflows:
       [
-        "Build and push user-service docker image",
+        "user-service",
         "Build and push user-dashboard docker image",
         "Build and push stellar-dominion docker image",
-        "Build and push stellar-dominion-service docker image",
+        "stellar-dominion-service",
       ]
     types:
       - completed
