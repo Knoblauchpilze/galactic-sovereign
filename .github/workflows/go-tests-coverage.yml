@@ -6,6 +6,7 @@ on:
       - "cmd/users/**"
       - "pkg/**"
       - "internal/**"
+      - ".github/workflows/go-tests-coverage.yml"
 
 jobs:
   tests:
