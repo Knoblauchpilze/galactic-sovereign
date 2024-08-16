@@ -6,9 +6,19 @@ import (
 	"time"
 
 	"github.com/KnoblauchPilze/user-service/pkg/db"
+	"github.com/KnoblauchPilze/user-service/pkg/persistence"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/suite"
 )
+
+var defaultUpdatedPlanetBuilding = persistence.PlanetBuilding{
+	Planet:    defaultPlanetId,
+	Building:  defaultBuildingId,
+	Level:     36,
+	CreatedAt: time.Date(2024, 8, 16, 14, 9, 21, 651387245, time.UTC),
+	UpdatedAt: time.Date(2024, 8, 16, 14, 9, 22, 651387245, time.UTC),
+	Version:   4,
+}
 
 func Test_PlanetBuildingRepository_Transaction(t *testing.T) {
 	var dummyInt int
@@ -39,6 +49,41 @@ WHERE
 				expectedArguments: [][]interface{}{
 					{
 						defaultPlanetId,
+					},
+				},
+			},
+			"update": {
+				sqlMode: ExecBased,
+				generateMock: func() db.Transaction {
+					return &mockTransaction{
+						affectedRows: []int{1},
+					}
+				},
+				handler: func(ctx context.Context, tx db.Transaction) error {
+					s := NewPlanetBuildingRepository()
+					_, err := s.Update(ctx, tx, defaultUpdatedPlanetBuilding)
+					return err
+				},
+				expectedSqlQueries: []string{
+					`
+UPDATE
+	planet_building
+SET
+	level = $1,
+	version = $2
+WHERE
+	planet = $3
+	AND building = $4
+	AND version = $5
+`,
+				},
+				expectedArguments: [][]interface{}{
+					{
+						defaultUpdatedPlanetBuilding.Level,
+						defaultUpdatedPlanetBuilding.Version + 1,
+						defaultUpdatedPlanetBuilding.Planet,
+						defaultUpdatedPlanetBuilding.Building,
+						defaultUpdatedPlanetBuilding.Version,
 					},
 				},
 			},
