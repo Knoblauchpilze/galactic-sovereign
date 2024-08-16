@@ -8,6 +8,7 @@ on:
       - ".github/workflows/user-service*.yml"
       - ".github/workflows/go-tests.yml"
       - ".github/workflows/services*.yml"
+    workflow_call:
 
 jobs:
   # https://docs.github.com/en/actions/using-workflows/reusing-workflows#calling-a-reusable-workflow
