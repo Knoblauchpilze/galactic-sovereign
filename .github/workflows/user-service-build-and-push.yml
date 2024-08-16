@@ -1,12 +1,9 @@
-name: Build and push user-service docker image
+name: user-service
 
 on:
   push:
     # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#example-including-paths
     paths:
-      - "cmd/users/**"
-      - "pkg/**"
-      - "internal/**"
       - "build/user-service/Dockerfile"
       - ".github/workflows/user-service*.yml"
       - ".github/workflows/go-tests.yml"
@@ -14,12 +11,9 @@ on:
 
 jobs:
   # https://docs.github.com/en/actions/using-workflows/reusing-workflows#calling-a-reusable-workflow
-  tests:
+  extract-service-tag:
     # https://github.com/orgs/community/discussions/74772
     # https://stackoverflow.com/questions/58139406/only-run-job-on-specific-branch-with-github-actions
-    if: ${{ github.actor != 'github-actions[bot]' && github.event_name != 'push' || github.event.pusher.name != 'github-actions[bot]' }}
-    uses: ./.github/workflows/go-tests.yml
-  extract-service-tag:
     if: ${{ github.actor != 'github-actions[bot]' && github.event_name != 'push' || github.event.pusher.name != 'github-actions[bot]' }}
     needs: [tests]
     uses: ./.github/workflows/services-extract-tag.yml

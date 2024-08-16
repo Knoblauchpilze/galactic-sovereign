@@ -1,20 +1,15 @@
-name: Build and push stellar-dominion-service docker image
+name: stellar-dominion-service
 
 on:
   push:
     paths:
-      - "cmd/stellar-dominion/**"
-      - "pkg/**"
-      - "internal/**"
       - "build/stellar-dominion-service/Dockerfile"
       - ".github/workflows/stellar-dominion*.yml"
       - ".github/workflows/go-tests.yml"
       - ".github/workflows/services*.yml"
+  workflow_call:
 
 jobs:
-  tests:
-    if: ${{ github.actor != 'github-actions[bot]' && github.event_name != 'push' || github.event.pusher.name != 'github-actions[bot]' }}
-    uses: ./.github/workflows/go-tests.yml
   extract-service-tag:
     if: ${{ github.actor != 'github-actions[bot]' && github.event_name != 'push' || github.event.pusher.name != 'github-actions[bot]' }}
     needs: [tests]
