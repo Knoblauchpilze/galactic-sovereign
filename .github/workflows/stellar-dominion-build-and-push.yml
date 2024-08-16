@@ -1,4 +1,4 @@
-name: Build and push stellar-dominion docker image
+name: stellar-dominion
 
 on:
   push:

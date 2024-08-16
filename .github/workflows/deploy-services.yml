@@ -16,8 +16,8 @@ on:
     workflows:
       [
         "user-service",
-        "Build and push user-dashboard docker image",
-        "Build and push stellar-dominion docker image",
+        "user-dashboard",
+        "stellar-dominion",
         "stellar-dominion-service",
       ]
     types:
