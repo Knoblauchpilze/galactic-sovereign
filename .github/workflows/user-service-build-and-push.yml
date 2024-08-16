@@ -16,11 +16,6 @@ jobs:
   # https://docs.github.com/en/actions/using-workflows/reusing-workflows#calling-a-reusable-workflow
   extract-service-tag:
     uses: ./.github/workflows/services-extract-tag.yml
-  debug:
-    runs-on: ubuntu-latest
-    steps:
-      - name: "debug"
-        run: echo "${{ github.ref }}"
   build-and-push-docker-image:
     runs-on: ubuntu-latest
     needs: [extract-service-tag]
