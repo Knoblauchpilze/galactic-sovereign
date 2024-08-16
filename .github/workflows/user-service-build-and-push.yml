@@ -1,8 +1,8 @@
 name: user-service
 
 on:
+  workflow_call:
   push:
-    workflow_call:
     # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#example-including-paths
     paths:
       - "build/user-service/Dockerfile"
