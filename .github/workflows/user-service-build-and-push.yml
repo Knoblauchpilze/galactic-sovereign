@@ -23,7 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: "debug"
-        run: echo "github.ref"
+        run: echo "${{ github.ref }}"
   build-and-push-docker-image:
     runs-on: ubuntu-latest
     if: ${{ github.actor != 'github-actions[bot]' && github.event_name != 'push' || github.event.pusher.name != 'github-actions[bot]' }}
