@@ -15,9 +15,6 @@ on:
 jobs:
   # https://docs.github.com/en/actions/using-workflows/reusing-workflows#calling-a-reusable-workflow
   extract-service-tag:
-    # https://github.com/orgs/community/discussions/74772
-    # https://stackoverflow.com/questions/58139406/only-run-job-on-specific-branch-with-github-actions
-    if: ${{ github.actor != 'github-actions[bot]' && github.event_name != 'push' || github.event.pusher.name != 'github-actions[bot]' }}
     uses: ./.github/workflows/services-extract-tag.yml
   debug:
     runs-on: ubuntu-latest
@@ -26,7 +23,6 @@ jobs:
         run: echo "${{ github.ref }}"
   build-and-push-docker-image:
     runs-on: ubuntu-latest
-    if: ${{ github.actor != 'github-actions[bot]' && github.event_name != 'push' || github.event.pusher.name != 'github-actions[bot]' }}
     needs: [extract-service-tag]
     steps:
       - uses: actions/checkout@v4
@@ -45,7 +41,8 @@ jobs:
           push: true
           tags: totocorpsoftwareinc/user-service:${{ needs.extract-service-tag.outputs.version }}
   persist-service-tag:
-    if: ${{ github.actor != 'github-actions[bot]' && github.event_name != 'push' || github.event.pusher.name != 'github-actions[bot]' }}
+    # https://stackoverflow.com/questions/58139406/only-run-job-on-specific-branch-with-github-actions
+    if: ${{ github.ref == 'refs/heads/master' }}
     # https://docs.github.com/en/actions/learn-github-actions/contexts#needs-context
     needs: [build-and-push-docker-image, extract-service-tag]
     # https://docs.github.com/en/actions/using-workflows/reusing-workflows#access-and-permissions

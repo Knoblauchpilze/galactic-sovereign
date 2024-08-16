@@ -12,11 +12,9 @@ on:
 
 jobs:
   extract-service-tag:
-    if: ${{ github.actor != 'github-actions[bot]' && github.event_name != 'push' || github.event.pusher.name != 'github-actions[bot]' }}
     uses: ./.github/workflows/services-extract-tag.yml
   build-and-push-docker-image:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/master' && (${{ github.actor != 'github-actions[bot]' && github.event_name != 'push' || github.event.pusher.name != 'github-actions[bot]' }})
     needs: [extract-service-tag]
     steps:
       - uses: actions/checkout@v4
@@ -37,7 +35,7 @@ jobs:
           push: true
           tags: totocorpsoftwareinc/stellar-dominion:${{ needs.extract-service-tag.outputs.version }}
   persist-service-tag:
-    if: ${{ github.actor != 'github-actions[bot]' && github.event_name != 'push' || github.event.pusher.name != 'github-actions[bot]' }}
+    if: ${{ github.ref == 'refs/heads/master' }}
     needs: [build-and-push-docker-image, extract-service-tag]
     permissions:
       contents: write
