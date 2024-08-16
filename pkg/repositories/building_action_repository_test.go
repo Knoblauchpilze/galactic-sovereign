@@ -91,6 +91,26 @@ WHERE
 					},
 				},
 			},
+			"delete": {
+				sqlMode: ExecBased,
+				generateMock: func() db.Transaction {
+					return &mockTransaction{
+						affectedRows: []int{1, 1},
+					}
+				},
+				handler: func(ctx context.Context, tx db.Transaction) error {
+					s := NewBuildingActionRepository()
+					return s.Delete(ctx, tx, defaultBuildinActionId)
+				},
+				expectedSqlQueries: []string{
+					`DELETE FROM building_action WHERE id = $1`,
+				},
+				expectedArguments: [][]interface{}{
+					{
+						defaultBuildinActionId,
+					},
+				},
+			},
 			"deleteForPlanet": {
 				sqlMode: ExecBased,
 				generateMock: func() db.Transaction {
@@ -163,6 +183,34 @@ WHERE
 				},
 				verifyError: func(err error, assert *require.Assertions) {
 					assert.True(errors.IsErrorWithCode(err, db.DuplicatedKeySqlKey))
+				},
+			},
+			"delete_noRowsAffected": {
+				generateMock: func() db.Transaction {
+					return &mockTransaction{
+						affectedRows: []int{0},
+					}
+				},
+				handler: func(ctx context.Context, tx db.Transaction) error {
+					s := NewBuildingActionRepository()
+					return s.Delete(ctx, tx, defaultBuildinActionId)
+				},
+				verifyError: func(err error, assert *require.Assertions) {
+					assert.True(errors.IsErrorWithCode(err, db.NoMatchingSqlRows))
+				},
+			},
+			"delete_moreThanOneRowAffected": {
+				generateMock: func() db.Transaction {
+					return &mockTransaction{
+						affectedRows: []int{2},
+					}
+				},
+				handler: func(ctx context.Context, tx db.Transaction) error {
+					s := NewBuildingActionRepository()
+					return s.Delete(ctx, tx, defaultBuildinActionId)
+				},
+				verifyError: func(err error, assert *require.Assertions) {
+					assert.True(errors.IsErrorWithCode(err, db.NoMatchingSqlRows))
 				},
 			},
 		},

@@ -12,6 +12,7 @@ import (
 type BuildingActionRepository interface {
 	Create(ctx context.Context, tx db.Transaction, action persistence.BuildingAction) (persistence.BuildingAction, error)
 	ListForPlanet(ctx context.Context, tx db.Transaction, planet uuid.UUID) ([]persistence.BuildingAction, error)
+	Delete(ctx context.Context, tx db.Transaction, action uuid.UUID) error
 	DeleteForPlanet(ctx context.Context, tx db.Transaction, planet uuid.UUID) error
 }
 
@@ -75,9 +76,23 @@ func (r *buildingActionRepositoryImpl) ListForPlanet(ctx context.Context, tx db.
 	return out, nil
 }
 
-const deleteBuildingActionSqlTemplate = "DELETE FROM building_action WHERE planet = $1"
+const deleteBuildingActionSqlTemplate = "DELETE FROM building_action WHERE id = $1"
+
+func (r *buildingActionRepositoryImpl) Delete(ctx context.Context, tx db.Transaction, action uuid.UUID) error {
+	affected, err := tx.Exec(ctx, deleteBuildingActionSqlTemplate, action)
+	if err != nil {
+		return err
+	}
+	if affected != 1 {
+		return errors.NewCode(db.NoMatchingSqlRows)
+	}
+
+	return err
+}
+
+const deleteBuildingActionForPlanetSqlTemplate = "DELETE FROM building_action WHERE planet = $1"
 
 func (r *buildingActionRepositoryImpl) DeleteForPlanet(ctx context.Context, tx db.Transaction, planet uuid.UUID) error {
-	_, err := tx.Exec(ctx, deleteBuildingActionSqlTemplate, planet)
+	_, err := tx.Exec(ctx, deleteBuildingActionForPlanetSqlTemplate, planet)
 	return err
 }
