@@ -24,10 +24,12 @@ jobs:
       - name: Run tests
         run: go test ./...
   build-user-service:
+    needs: [tests]
     permissions:
       contents: write
     uses: ./.github/workflows/user-service-build-and-push.yml
   build-stellar-dominion-service:
+    needs: [tests]
     permissions:
       contents: write
     uses: ./.github/workflows/stellar-dominion-service-build-and-push.yml
