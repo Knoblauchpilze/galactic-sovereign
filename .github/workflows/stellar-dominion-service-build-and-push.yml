@@ -1,13 +1,10 @@
 name: stellar-dominion-service
 
 on:
+  workflow_call:
   push:
     paths:
       - "build/stellar-dominion-service/Dockerfile"
-      - ".github/workflows/stellar-dominion*.yml"
-      - ".github/workflows/go-tests.yml"
-      - ".github/workflows/services*.yml"
-  workflow_call:
 
 jobs:
   extract-service-tag:

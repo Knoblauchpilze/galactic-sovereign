@@ -2,13 +2,10 @@ name: user-service
 
 on:
   push:
+    workflow_call:
     # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#example-including-paths
     paths:
       - "build/user-service/Dockerfile"
-      - ".github/workflows/user-service*.yml"
-      - ".github/workflows/go-tests.yml"
-      - ".github/workflows/services*.yml"
-    workflow_call:
 
 jobs:
   # https://docs.github.com/en/actions/using-workflows/reusing-workflows#calling-a-reusable-workflow

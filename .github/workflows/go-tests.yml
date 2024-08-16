@@ -7,6 +7,10 @@ on:
       - "cmd/stellar-dominion/**"
       - "pkg/**"
       - "internal/**"
+      - ".github/workflows/go-tests.yml"
+      - ".github/workflows/services*.yml"
+      - ".github/workflows/user-service*.yml"
+      - ".github/workflows/stellar-dominion-service*.yml"
 
 jobs:
   tests:
