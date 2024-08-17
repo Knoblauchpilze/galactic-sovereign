@@ -10,6 +10,7 @@ import (
 )
 
 type PlanetBuildingRepository interface {
+	GetForPlanetAndBuilding(ctx context.Context, tx db.Transaction, planet uuid.UUID, building uuid.UUID) (persistence.PlanetBuilding, error)
 	ListForPlanet(ctx context.Context, tx db.Transaction, planet uuid.UUID) ([]persistence.PlanetBuilding, error)
 	Update(ctx context.Context, tx db.Transaction, building persistence.PlanetBuilding) (persistence.PlanetBuilding, error)
 	DeleteForPlanet(ctx context.Context, tx db.Transaction, planet uuid.UUID) error
@@ -19,6 +20,38 @@ type planetBuildingRepositoryImpl struct{}
 
 func NewPlanetBuildingRepository() PlanetBuildingRepository {
 	return &planetBuildingRepositoryImpl{}
+}
+
+const getPlanetBuildingForPlanetAndBuildingSqlTemplate = `
+SELECT
+	planet,
+	building,
+	level,
+	created_at,
+	updated_at,
+	version
+FROM
+	planet_building
+WHERE
+	planet = $1
+	AND building = $2`
+
+func (r *planetBuildingRepositoryImpl) GetForPlanetAndBuilding(ctx context.Context, tx db.Transaction, planet uuid.UUID, building uuid.UUID) (persistence.PlanetBuilding, error) {
+	res := tx.Query(ctx, getPlanetBuildingForPlanetAndBuildingSqlTemplate, planet, building)
+	if err := res.Err(); err != nil {
+		return persistence.PlanetBuilding{}, err
+	}
+
+	var out persistence.PlanetBuilding
+	parser := func(rows db.Scannable) error {
+		return rows.Scan(&out.Planet, &out.Building, &out.Level, &out.CreatedAt, &out.UpdatedAt, &out.Version)
+	}
+
+	if err := res.GetSingleValue(parser); err != nil {
+		return persistence.PlanetBuilding{}, err
+	}
+
+	return out, nil
 }
 
 const listPlanetBuildingForPlanetSqlTemplate = `
