@@ -15,3 +15,16 @@ type BuildingAction struct {
 	CreatedAt    time.Time
 	CompletedAt  time.Time
 }
+
+func ToPlanetBuilding(action BuildingAction, building PlanetBuilding) PlanetBuilding {
+	return PlanetBuilding{
+		Planet:   action.Planet,
+		Building: action.Building,
+		Level:    action.DesiredLevel,
+
+		CreatedAt: building.CreatedAt,
+		UpdatedAt: action.CompletedAt,
+
+		Version: building.Version,
+	}
+}
