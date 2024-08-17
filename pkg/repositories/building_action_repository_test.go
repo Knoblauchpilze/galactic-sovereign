@@ -24,6 +24,7 @@ var defaultBuildingAction = persistence.BuildingAction{
 	CreatedAt:    time.Date(2024, 8, 11, 21, 40, 51, 651387244, time.UTC),
 	CompletedAt:  time.Date(2024, 7, 11, 21, 40, 54, 651387244, time.UTC),
 }
+var someTime = time.Date(2024, 8, 17, 13, 35, 52, 651387244, time.UTC)
 
 func Test_BuildingActionRepository(t *testing.T) {
 	s := RepositoryTransactionTestSuite{
@@ -91,6 +92,33 @@ WHERE
 					},
 				},
 			},
+			"listBeforeCompletionTime": {
+				handler: func(ctx context.Context, tx db.Transaction) error {
+					s := NewBuildingActionRepository()
+					_, err := s.ListBeforeCompletionTime(ctx, tx, someTime)
+					return err
+				},
+				expectedSqlQueries: []string{
+					`
+SELECT
+	id,
+	planet,
+	building,
+	current_level,
+	desired_level,
+	created_at,
+	completed_at
+FROM
+	building_action
+WHERE
+	completed_at <= $1`,
+				},
+				expectedArguments: [][]interface{}{
+					{
+						someTime,
+					},
+				},
+			},
 			"delete": {
 				sqlMode: ExecBased,
 				generateMock: func() db.Transaction {
@@ -138,6 +166,26 @@ WHERE
 				handler: func(ctx context.Context, tx db.Transaction) error {
 					repo := NewBuildingActionRepository()
 					_, err := repo.ListForPlanet(ctx, tx, defaultPlanetId)
+					return err
+				},
+				expectedGetAllCalls: 1,
+				expectedScanCalls:   1,
+				expectedScannedProps: [][]interface{}{
+					{
+						&uuid.UUID{},
+						&uuid.UUID{},
+						&uuid.UUID{},
+						&dummyInt,
+						&dummyInt,
+						&time.Time{},
+						&time.Time{},
+					},
+				},
+			},
+			"listBeforeCompletionTime": {
+				handler: func(ctx context.Context, tx db.Transaction) error {
+					repo := NewBuildingActionRepository()
+					_, err := repo.ListBeforeCompletionTime(ctx, tx, someTime)
 					return err
 				},
 				expectedGetAllCalls: 1,
