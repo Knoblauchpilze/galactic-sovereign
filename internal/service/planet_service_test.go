@@ -176,7 +176,7 @@ func Test_PlanetService(t *testing.T) {
 				generateRepositoriesMock: func() repositories.Repositories {
 					return repositories.Repositories{
 						BuildingAction: &mockBuildingActionRepository{
-							err: errDefault,
+							errs: []error{errDefault},
 						},
 						Planet:         &mockPlanetRepository{},
 						PlanetBuilding: &mockPlanetBuildingRepository{},
@@ -342,7 +342,7 @@ func Test_PlanetService(t *testing.T) {
 				generateRepositoriesMock: func() repositories.Repositories {
 					return repositories.Repositories{
 						BuildingAction: &mockBuildingActionRepository{
-							err: errDefault,
+							errs: []error{errDefault},
 						},
 						Planet:         &mockPlanetRepository{},
 						PlanetBuilding: &mockPlanetBuildingRepository{},

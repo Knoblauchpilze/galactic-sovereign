@@ -264,7 +264,7 @@ func Test_BuildingActionService(t *testing.T) {
 							buildingCost: defaultBuildingCost,
 						},
 						BuildingAction: &mockBuildingActionRepository{
-							err: errDefault,
+							errs: []error{errDefault},
 						},
 					}
 				},

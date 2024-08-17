@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"time"
 
 	"github.com/KnoblauchPilze/user-service/pkg/db"
 	"github.com/KnoblauchPilze/user-service/pkg/persistence"
@@ -113,32 +114,69 @@ type mockBuildingActionRepository struct {
 	repositories.BuildingActionRepository
 
 	action persistence.BuildingAction
-	err    error
+	errs   []error
+	calls  int
 
-	createCalled          int
-	createdBuildingAction persistence.BuildingAction
-	listForPlanetId       uuid.UUID
-	listForPlanetCalled   int
-	deleteForPlanetCalled int
-	deleteForPlanetId     uuid.UUID
+	createCalled                   int
+	createdBuildingAction          persistence.BuildingAction
+	listForPlanetId                uuid.UUID
+	listForPlanetCalled            int
+	listBeforeCompletionTimeCalled int
+	listBeforeCompletionTime       time.Time
+	deleteCalled                   int
+	deleteId                       uuid.UUID
+	deleteForPlanetCalled          int
+	deleteForPlanetId              uuid.UUID
 }
 
 func (m *mockBuildingActionRepository) Create(ctx context.Context, tx db.Transaction, action persistence.BuildingAction) (persistence.BuildingAction, error) {
 	m.createCalled++
 	m.createdBuildingAction = action
-	return m.action, m.err
+
+	err := getValueToReturnOr(m.calls, m.errs, nil)
+	m.calls++
+
+	return m.action, *err
 }
 
 func (m *mockBuildingActionRepository) ListForPlanet(ctx context.Context, tx db.Transaction, planet uuid.UUID) ([]persistence.BuildingAction, error) {
 	m.listForPlanetCalled++
 	m.listForPlanetId = planet
-	return []persistence.BuildingAction{m.action}, m.err
+
+	err := getValueToReturnOr(m.calls, m.errs, nil)
+	m.calls++
+
+	return []persistence.BuildingAction{m.action}, *err
+}
+
+func (m *mockBuildingActionRepository) ListBeforeCompletionTime(ctx context.Context, tx db.Transaction, until time.Time) ([]persistence.BuildingAction, error) {
+	m.listBeforeCompletionTimeCalled++
+	m.listBeforeCompletionTime = until
+
+	err := getValueToReturnOr(m.calls, m.errs, nil)
+	m.calls++
+
+	return []persistence.BuildingAction{m.action}, *err
+}
+
+func (m *mockBuildingActionRepository) Delete(ctx context.Context, tx db.Transaction, action uuid.UUID) error {
+	m.deleteCalled++
+	m.deleteId = action
+
+	err := getValueToReturnOr(m.calls, m.errs, nil)
+	m.calls++
+
+	return *err
 }
 
 func (m *mockBuildingActionRepository) DeleteForPlanet(ctx context.Context, tx db.Transaction, planet uuid.UUID) error {
 	m.deleteForPlanetCalled++
 	m.deleteForPlanetId = planet
-	return m.err
+
+	err := getValueToReturnOr(m.calls, m.errs, nil)
+	m.calls++
+
+	return *err
 }
 
 type mockBuildingCostRepository struct {
@@ -162,17 +200,36 @@ type mockPlanetBuildingRepository struct {
 
 	planetBuilding persistence.PlanetBuilding
 	err            error
+	updateErr      error
 
-	listForPlanetId       uuid.UUID
-	listForPlanetCalled   int
-	deleteForPlanetCalled int
-	deleteForPlanetId     uuid.UUID
+	getForPlanetAndBuildingCalled   int
+	getForPlanetAndBuildingPlanet   uuid.UUID
+	getForPlanetAndBuildingBuilding uuid.UUID
+	listForPlanetCalled             int
+	listForPlanetId                 uuid.UUID
+	updateCalled                    int
+	updateBuilding                  persistence.PlanetBuilding
+	deleteForPlanetCalled           int
+	deleteForPlanetId               uuid.UUID
+}
+
+func (m *mockPlanetBuildingRepository) GetForPlanetAndBuilding(ctx context.Context, tx db.Transaction, planet uuid.UUID, building uuid.UUID) (persistence.PlanetBuilding, error) {
+	m.getForPlanetAndBuildingCalled++
+	m.getForPlanetAndBuildingPlanet = planet
+	m.getForPlanetAndBuildingBuilding = building
+	return m.planetBuilding, m.err
 }
 
 func (m *mockPlanetBuildingRepository) ListForPlanet(ctx context.Context, tx db.Transaction, planet uuid.UUID) ([]persistence.PlanetBuilding, error) {
 	m.listForPlanetCalled++
 	m.listForPlanetId = planet
 	return []persistence.PlanetBuilding{m.planetBuilding}, m.err
+}
+
+func (m *mockPlanetBuildingRepository) Update(ctx context.Context, tx db.Transaction, building persistence.PlanetBuilding) (persistence.PlanetBuilding, error) {
+	m.updateCalled++
+	m.updateBuilding = building
+	return m.updateBuilding, m.updateErr
 }
 
 func (m *mockPlanetBuildingRepository) DeleteForPlanet(ctx context.Context, tx db.Transaction, planet uuid.UUID) error {
@@ -455,4 +512,25 @@ func (m *mockUserLimitRepository) DeleteForUser(ctx context.Context, tx db.Trans
 	m.deleteCalled++
 	m.inUserId = user
 	return m.deleteErr
+}
+
+func getValueToReturnOr[T any](count int, values []T, value T) *T {
+	out := getValueToReturn(count, values)
+	if out == nil {
+		return &value
+	}
+
+	return out
+}
+
+func getValueToReturn[T any](count int, values []T) *T {
+	var out *T
+	if count > len(values) {
+		count = 0
+	}
+	if count < len(values) {
+		out = &values[count]
+	}
+
+	return out
 }
