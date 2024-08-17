@@ -25,6 +25,34 @@ func Test_PlanetBuildingRepository_Transaction(t *testing.T) {
 
 	s := RepositoryTransactionTestSuite{
 		dbInteractionTestCases: map[string]dbTransactionInteractionTestCase{
+			"getForPlanetAndBuilding": {
+				handler: func(ctx context.Context, tx db.Transaction) error {
+					s := NewPlanetBuildingRepository()
+					_, err := s.GetForPlanetAndBuilding(ctx, tx, defaultPlanetId, defaultBuildingId)
+					return err
+				},
+				expectedSqlQueries: []string{
+					`
+SELECT
+	planet,
+	building,
+	level,
+	created_at,
+	updated_at,
+	version
+FROM
+	planet_building
+WHERE
+	planet = $1
+	AND building = $2`,
+				},
+				expectedArguments: [][]interface{}{
+					{
+						defaultPlanetId,
+						defaultBuildingId,
+					},
+				},
+			},
 			"listForPlanet": {
 				handler: func(ctx context.Context, tx db.Transaction) error {
 					s := NewPlanetBuildingRepository()
@@ -104,6 +132,28 @@ WHERE
 				expectedArguments: [][]interface{}{
 					{
 						defaultPlanetId,
+					},
+				},
+			},
+		},
+
+		dbSingleValueTestCases: map[string]dbTransactionSingleValueTestCase{
+			"getForPlanetAndBuilding": {
+				handler: func(ctx context.Context, tx db.Transaction) error {
+					repo := NewPlanetBuildingRepository()
+					_, err := repo.GetForPlanetAndBuilding(ctx, tx, defaultPlanetId, defaultBuildingId)
+					return err
+				},
+				expectedGetSingleValueCalls: 1,
+				expectedScanCalls:           1,
+				expectedScannedProps: [][]interface{}{
+					{
+						&uuid.UUID{},
+						&uuid.UUID{},
+						&dummyInt,
+						&time.Time{},
+						&time.Time{},
+						&dummyInt,
 					},
 				},
 			},
