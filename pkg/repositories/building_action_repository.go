@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"context"
+	"time"
 
 	"github.com/KnoblauchPilze/user-service/pkg/db"
 	"github.com/KnoblauchPilze/user-service/pkg/errors"
@@ -12,6 +13,7 @@ import (
 type BuildingActionRepository interface {
 	Create(ctx context.Context, tx db.Transaction, action persistence.BuildingAction) (persistence.BuildingAction, error)
 	ListForPlanet(ctx context.Context, tx db.Transaction, planet uuid.UUID) ([]persistence.BuildingAction, error)
+	ListBeforeCompletionTime(ctx context.Context, tx db.Transaction, until time.Time) ([]persistence.BuildingAction, error)
 	Delete(ctx context.Context, tx db.Transaction, action uuid.UUID) error
 	DeleteForPlanet(ctx context.Context, tx db.Transaction, planet uuid.UUID) error
 }
@@ -53,6 +55,45 @@ WHERE
 
 func (r *buildingActionRepositoryImpl) ListForPlanet(ctx context.Context, tx db.Transaction, planet uuid.UUID) ([]persistence.BuildingAction, error) {
 	res := tx.Query(ctx, listBuildingActionForPlanetSqlTemplate, planet)
+	if err := res.Err(); err != nil {
+		return []persistence.BuildingAction{}, err
+	}
+
+	var out []persistence.BuildingAction
+	parser := func(rows db.Scannable) error {
+		var action persistence.BuildingAction
+		err := rows.Scan(&action.Id, &action.Planet, &action.Building, &action.CurrentLevel, &action.DesiredLevel, &action.CreatedAt, &action.CompletedAt)
+		if err != nil {
+			return err
+		}
+
+		out = append(out, action)
+		return nil
+	}
+
+	if err := res.GetAll(parser); err != nil {
+		return []persistence.BuildingAction{}, err
+	}
+
+	return out, nil
+}
+
+const listBuildingActionBeforeCompletionTimeSqlTemplate = `
+SELECT
+	id,
+	planet,
+	building,
+	current_level,
+	desired_level,
+	created_at,
+	completed_at
+FROM
+	building_action
+WHERE
+	completed_at <= $1`
+
+func (r *buildingActionRepositoryImpl) ListBeforeCompletionTime(ctx context.Context, tx db.Transaction, until time.Time) ([]persistence.BuildingAction, error) {
+	res := tx.Query(ctx, listBuildingActionBeforeCompletionTimeSqlTemplate, until)
 	if err := res.Err(); err != nil {
 		return []persistence.BuildingAction{}, err
 	}
