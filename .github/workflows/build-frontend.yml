@@ -24,6 +24,7 @@ jobs:
       - uses: dorny/paths-filter@v3
         id: filter
         with:
+          base: ${{ github.ref_name }}
           # https://github.com/dorny/paths-filter?tab=readme-ov-file#conditional-execution
           filters: |
             user-dashboard:
