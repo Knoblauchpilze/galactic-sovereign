@@ -18,7 +18,7 @@
 	// https://stackoverflow.com/questions/75616911/sveltekit-fetching-on-the-server-and-updating-the-writable-store
 	heroImage.set(GAME_HERO_IMAGE);
 	heroContainer.set(GAME_HERO_CONTAINER_PROPS);
-	const title = HOMEPAGE_TITLE + " - " + data.planet.name;
+	const title = HOMEPAGE_TITLE + ' - ' + data.planet.name;
 	pageTitle.set(title);
 
 	const resources = mapPlanetResourcesToUiResources(data.planet.resources, data.resources);
@@ -46,7 +46,7 @@
 		</div>
 
 		<CenteredWrapper>
-			<StyledTitle text="Buildings on {planetName}" />
+			<StyledTitle text="Buildings ond {planetName}" />
 			<!-- https://tailwindcss.com/docs/align-items -->
 			<div class="w-full h-full flex flex-wrap items-start bg-transparent">
 				{#each buildings as building}
