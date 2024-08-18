@@ -15,15 +15,17 @@ on:
 jobs:
   # https://github.com/dorny/paths-filter
   analyze-changes:
-    uses: dorny/paths-filter@v3
-    id: changes
-    with:
-      # https://github.com/dorny/paths-filter?tab=readme-ov-file#conditional-execution
-      filters: |
-        user-dashboard:
-          - 'website/user-dashboard/**'
-        stellar-dominion:
-          - 'website/stellar-dominion/**'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: changes
+        with:
+          # https://github.com/dorny/paths-filter?tab=readme-ov-file#conditional-execution
+          filters: |
+            user-dashboard:
+              - 'website/user-dashboard/**'
+            stellar-dominion:
+              - 'website/stellar-dominion/**'
   build-user-dashboard:
     if: steps.analyze-changes.outputs.user-dashboard == 'true'
     uses: ./.github/workflows/user-dashboard-build-and-push.yml
