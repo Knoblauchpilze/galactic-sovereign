@@ -1,0 +1,44 @@
+name: Build frontend
+
+on:
+  push:
+    paths:
+      - "website/user-dashboard/**"
+      - "website/stellar-dominion/**"
+      - ".github/workflows/build-frontend.yml"
+      - ".github/workflows/services*.yml"
+      - ".github/workflows/user-dashboard*.yml"
+      - ".github/workflows/stellar-dominion*.yml"
+      # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#example-including-and-excluding-paths
+      - "!.github/workflows/stellar-dominion-service*.yml"
+
+jobs:
+  build-user-dashboard:
+    uses: ./.github/workflows/user-dashboard-build-and-push.yml
+    secrets:
+      dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
+      dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
+  build-stellar-dominion:
+    uses: ./.github/workflows/stellar-dominion-build-and-push.yml
+    secrets:
+      dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
+      dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
+  persist-service-tags:
+    runs-on: ubuntu-latest
+    if: ${{ github.ref == 'refs/heads/master' }}
+    needs: [build-user-dashboard, build-stellar-dominion]
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Save user-dashboard tag
+        run: echo "${{ needs.build-user-dashboard.outputs.service-tag }}" > ./build/user-dashboard/version.txt
+      - name: Save stellar-dominion tag
+        run: echo "${{ needs.build-stellar-dominion.outputs.service-tag }}" > ./build/stellar-dominion/version.txt
+      - name: Commit changes
+        run: |
+          git pull
+          git config --global user.name 'totocorpbot'
+          git config --global user.email 'totocorpbot@users.noreply.github.com'
+          git commit -am "infra: Bumped frontend versions to latest revision"
+          git push
