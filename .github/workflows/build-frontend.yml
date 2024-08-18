@@ -32,18 +32,20 @@ jobs:
               - 'website/stellar-dominion/**'
   build-user-dashboard:
     needs: [analyze-changes]
-    if: ${{ needs.analyze-changes.outputs.user-dashboard == 'true' }}
-    uses: ./.github/workflows/user-dashboard-build-and-push.yml
-    secrets:
-      dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
-      dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
+    steps:
+      - uses: ./.github/workflows/user-dashboard-build-and-push.yml
+        if: ${{ needs.analyze-changes.outputs.user-dashboard == 'true' }}
+        secrets:
+          dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
+          dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
   build-stellar-dominion:
     needs: [analyze-changes]
-    if: ${{ needs.analyze-changes.outputs.stellar-dominion == 'true' }}
-    uses: ./.github/workflows/stellar-dominion-build-and-push.yml
-    secrets:
-      dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
-      dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
+    steps:
+      - uses: ./.github/workflows/stellar-dominion-build-and-push.yml
+        if: ${{ needs.analyze-changes.outputs.stellar-dominion == 'true' }}
+        secrets:
+          dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
+          dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
   persist-service-tags:
     runs-on: ubuntu-latest
     # if: ${{ github.ref == 'refs/heads/master' }}
