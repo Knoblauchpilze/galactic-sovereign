@@ -5,9 +5,10 @@ on:
     paths:
       - "website/user-dashboard/**"
       - "website/stellar-dominion/**"
+      - ".github/workflows/build-frontend.yml"
+      - ".github/workflows/services*.yml"
       - ".github/workflows/user-dashboard*.yml"
       - ".github/workflows/stellar-dominion*.yml"
-      - ".github/workflows/services*.yml"
       # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#example-including-and-excluding-paths
       - "!.github/workflows/stellar-dominion-service*.yml"
 
