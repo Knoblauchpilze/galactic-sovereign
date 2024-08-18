@@ -43,15 +43,17 @@ jobs:
       dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
   persist-service-tags:
     runs-on: ubuntu-latest
-    if: ${{ github.ref == 'refs/heads/master' }}
+    # if: ${{ github.ref == 'refs/heads/master' }}
     needs: [build-user-dashboard, build-stellar-dominion]
     permissions:
       contents: write
     steps:
       - uses: actions/checkout@v4
       - name: Save user-dashboard tag
+        if: ${{ needs.analyze-changes.outputs.user-dashboard == 'true' }}
         run: echo "${{ needs.build-user-dashboard.outputs.service-tag }}" > ./build/user-dashboard/version.txt
       - name: Save stellar-dominion tag
+        if: ${{ needs.analyze-changes.outputs.stellar-dominion == 'true' }}
         run: echo "${{ needs.build-stellar-dominion.outputs.service-tag }}" > ./build/stellar-dominion/version.txt
       - name: Commit changes
         run: |
