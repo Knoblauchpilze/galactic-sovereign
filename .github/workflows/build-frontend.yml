@@ -28,13 +28,15 @@ jobs:
             stellar-dominion:
               - 'website/stellar-dominion/**'
   build-user-dashboard:
-    if: steps.analyze-changes.outputs.user-dashboard == 'true'
+    needs: [analyze-changes]
+    if: ${{ needs.analyze-changes.outputs.user-dashboard == 'true' }}
     uses: ./.github/workflows/user-dashboard-build-and-push.yml
     secrets:
       dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
       dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
   build-stellar-dominion:
-    if: steps.analyze-changes.outputs.stellar-dominion == 'true'
+    needs: [analyze-changes]
+    if: ${{ needs.analyze-changes.outputs.stellar-dominion == 'true' }}
     uses: ./.github/workflows/stellar-dominion-build-and-push.yml
     secrets:
       dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
