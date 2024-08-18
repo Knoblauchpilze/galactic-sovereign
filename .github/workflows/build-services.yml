@@ -31,8 +31,6 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
   build-user-service:
     needs: [tests]
-    permissions:
-      contents: write
     uses: ./.github/workflows/user-service-build-and-push.yml
     secrets:
       dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
@@ -45,3 +43,16 @@ jobs:
     secrets:
       dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
       dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
+  debug:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "${{ needs.build-user-service.outputs.service-tag }}"
+  persist-service-tag:
+    if: ${{ github.ref == 'refs/heads/master' }}
+    needs: [build-user-service, build-stellar-dominion-service]
+    permissions:
+      contents: write
+    uses: ./.github/workflows/services-persist-tag.yml
+    with:
+      service-name: stellar-dominion-service
+      service-tag: ${{ needs.build-user-service.outputs.service-tag }}
