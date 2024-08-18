@@ -46,7 +46,7 @@
 		</div>
 
 		<CenteredWrapper>
-			<StyledTitle text="Buildings on {planetName}" />
+			<StyledTitle text="Buildings ond {planetName}" />
 			<!-- https://tailwindcss.com/docs/align-items -->
 			<div class="w-full h-full flex flex-wrap items-start bg-transparent">
 				{#each buildings as building}
