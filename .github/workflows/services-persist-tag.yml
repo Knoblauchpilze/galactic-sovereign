@@ -15,7 +15,6 @@ on:
 jobs:
   persist-service-tag:
     runs-on: ubuntu-latest
-    # https://stackoverflow.com/questions/72851548/permission-denied-to-github-actionsbot
     permissions:
       contents: write
     steps:
