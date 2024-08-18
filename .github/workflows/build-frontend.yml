@@ -30,14 +30,6 @@ jobs:
               - 'website/user-dashboard/**'
             stellar-dominion:
               - 'website/stellar-dominion/**'
-  debug:
-    runs-on: ubuntu-latest
-    needs: [analyze-changes]
-    steps:
-      - name: debug
-        run: |
-          echo "$ {{ needs.analyze-changes.outputs.user-dashboard }}"
-          echo "$ {{ needs.analyze-changes.outputs.stellar-dominion }}"
   build-user-dashboard:
     needs: [analyze-changes]
     if: ${{ needs.analyze-changes.outputs.user-dashboard == 'true' }}
@@ -54,7 +46,7 @@ jobs:
       dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
   persist-service-tags:
     runs-on: ubuntu-latest
-    if: ${{ github.ref == 'refs/heads/master' }}
+    # if: ${{ github.ref == 'refs/heads/master' }}
     needs: [build-user-dashboard, build-stellar-dominion]
     permissions:
       contents: write
