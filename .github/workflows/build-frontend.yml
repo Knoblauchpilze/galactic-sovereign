@@ -51,7 +51,7 @@ jobs:
     if: |
       always() &&
       !contains(needs.*.result, 'failure') &&
-      !contains(needs.*.result, 'cancelled')
+      !contains(needs.*.result, 'cancelled') &&
     permissions:
       contents: write
     steps:
@@ -63,6 +63,7 @@ jobs:
         if: ${{ needs.analyze-changes.outputs.stellar-dominion == 'true' }}
         run: echo "${{ needs.build-stellar-dominion.outputs.service-tag }}" > ./build/stellar-dominion/version.txt
       - name: Commit changes
+        if: ${{ needs.analyze-changes.outputs.* == 'true' }}
         run: |
           git pull
           git config --global user.name 'totocorpbot'
