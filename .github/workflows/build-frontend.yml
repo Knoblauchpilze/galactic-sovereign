@@ -32,9 +32,9 @@ jobs:
     needs: [analyze-changes]
     steps:
       - name: debug
-      - run: |
-        echo "$ {{ needs.analyze-changes.outputs.user-dashboard }}"
-        echo "$ {{ needs.analyze-changes.outputs.stellar-dominion }}"
+        run: |
+          echo "$ {{ needs.analyze-changes.outputs.user-dashboard }}"
+          echo "$ {{ needs.analyze-changes.outputs.stellar-dominion }}"
   build-user-dashboard:
     needs: [analyze-changes]
     if: ${{ needs.analyze-changes.outputs.user-dashboard == 'true' }}
