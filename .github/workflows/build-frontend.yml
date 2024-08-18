@@ -46,7 +46,7 @@ jobs:
       dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
   persist-service-tags:
     runs-on: ubuntu-latest
-    needs: [build-user-dashboard, build-stellar-dominion]
+    needs: [analyze-changes, build-user-dashboard, build-stellar-dominion]
     # https://github.com/actions/runner/issues/491
     if: |
       always() &&
