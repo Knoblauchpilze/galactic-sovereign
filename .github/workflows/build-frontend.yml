@@ -13,12 +13,25 @@ on:
       - "!.github/workflows/stellar-dominion-service*.yml"
 
 jobs:
+  # https://github.com/dorny/paths-filter
+  analyze-changes:
+    uses: dorny/paths-filter@v3
+    id: changes
+    with:
+      # https://github.com/dorny/paths-filter?tab=readme-ov-file#conditional-execution
+      filters: |
+        user-dashboard:
+          - 'website/user-dashboard/**'
+        stellar-dominion:
+          - 'website/stellar-dominion/**'
   build-user-dashboard:
+    if: steps.analyze-changes.outputs.user-dashboard == 'true'
     uses: ./.github/workflows/user-dashboard-build-and-push.yml
     secrets:
       dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
       dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
   build-stellar-dominion:
+    if: steps.analyze-changes.outputs.stellar-dominion == 'true'
     uses: ./.github/workflows/stellar-dominion-build-and-push.yml
     secrets:
       dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
