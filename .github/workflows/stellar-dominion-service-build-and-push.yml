@@ -7,6 +7,10 @@ on:
         required: true
       dockerhub-token:
         required: true
+    outputs:
+      service-tag:
+        description: "Tag of the generated service docker image"
+        value: ${{ jobs.extract-service-tag.outputs.version }}
   push:
     paths:
       - "build/stellar-dominion-service/Dockerfile"
@@ -32,12 +36,3 @@ jobs:
           build-args: GIT_COMMIT_HASH=${{ needs.extract-service-tag.outputs.version }}
           push: true
           tags: totocorpsoftwareinc/stellar-dominion-service:${{ needs.extract-service-tag.outputs.version }}
-  persist-service-tag:
-    if: ${{ github.ref == 'refs/heads/master' }}
-    needs: [build-and-push-docker-image, extract-service-tag]
-    permissions:
-      contents: write
-    uses: ./.github/workflows/services-persist-tag.yml
-    with:
-      service-name: stellar-dominion-service
-      service-tag: ${{ needs.extract-service-tag.outputs.version }}

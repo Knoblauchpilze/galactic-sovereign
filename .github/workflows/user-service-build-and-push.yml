@@ -7,6 +7,11 @@ on:
         required: true
       dockerhub-token:
         required: true
+    # https://docs.github.com/en/actions/sharing-automations/reusing-workflows#using-outputs-from-a-reusable-workflow
+    outputs:
+      service-tag:
+        description: "Tag of the generated service docker image"
+        value: ${{ jobs.extract-service-tag.outputs.version }}
   push:
     # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#example-including-paths
     paths:
@@ -35,15 +40,3 @@ jobs:
           build-args: GIT_COMMIT_HASH=${{ needs.extract-service-tag.outputs.version }}
           push: true
           tags: totocorpsoftwareinc/user-service:${{ needs.extract-service-tag.outputs.version }}
-  persist-service-tag:
-    # https://stackoverflow.com/questions/58139406/only-run-job-on-specific-branch-with-github-actions
-    if: ${{ github.ref == 'refs/heads/master' }}
-    # https://docs.github.com/en/actions/learn-github-actions/contexts#needs-context
-    needs: [build-and-push-docker-image, extract-service-tag]
-    # https://docs.github.com/en/actions/using-workflows/reusing-workflows#access-and-permissions
-    permissions:
-      contents: write
-    uses: ./.github/workflows/services-persist-tag.yml
-    with:
-      service-name: user-service
-      service-tag: ${{ needs.extract-service-tag.outputs.version }}

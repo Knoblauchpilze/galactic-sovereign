@@ -31,8 +31,6 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
   build-user-service:
     needs: [tests]
-    permissions:
-      contents: write
     uses: ./.github/workflows/user-service-build-and-push.yml
     secrets:
       dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
@@ -45,3 +43,23 @@ jobs:
     secrets:
       dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
       dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
+  persist-service-tags:
+    runs-on: ubuntu-latest
+    if: ${{ github.ref == 'refs/heads/master' }}
+    needs: [build-user-service, build-stellar-dominion-service]
+    # https://stackoverflow.com/questions/72851548/permission-denied-to-github-actionsbot
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Save user-service tag
+        run: echo "${{ needs.build-user-service.outputs.service-tag }}" > ./build/user-service/version.txt
+      - name: Save stellar-dominion-service tag
+        run: echo "${{ needs.build-stellar-dominion-service.outputs.service-tag }}" > ./build/stellar-dominion-service/version.txt
+      - name: Commit changes
+        run: |
+          git pull
+          git config --global user.name 'totocorpbot'
+          git config --global user.email 'totocorpbot@users.noreply.github.com'
+          git commit -am "infra: Bumped services versions to latest revision"
+          git push
