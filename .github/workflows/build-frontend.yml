@@ -21,8 +21,8 @@ jobs:
       stellar-dominion: ${{ steps.filter.outputs.stellar-dominion }}
     steps:
       - name: Analyze code changes
-      - uses: dorny/paths-filter@v3
         id: filter
+      - uses: dorny/paths-filter@v3
         with:
           # https://github.com/dorny/paths-filter?tab=readme-ov-file#conditional-execution
           filters: |
