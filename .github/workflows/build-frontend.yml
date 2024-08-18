@@ -43,7 +43,7 @@ jobs:
       dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
   persist-service-tags:
     runs-on: ubuntu-latest
-    # if: ${{ github.ref == 'refs/heads/master' }}
+    if: ${{ github.ref == 'refs/heads/master' }}
     needs: [build-user-dashboard, build-stellar-dominion]
     permissions:
       contents: write
