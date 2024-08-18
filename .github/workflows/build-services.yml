@@ -37,8 +37,6 @@ jobs:
       dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
   build-stellar-dominion-service:
     needs: [tests]
-    permissions:
-      contents: write
     uses: ./.github/workflows/stellar-dominion-service-build-and-push.yml
     secrets:
       dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
