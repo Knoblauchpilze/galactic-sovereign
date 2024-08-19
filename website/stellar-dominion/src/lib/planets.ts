@@ -2,6 +2,17 @@ import { ResponseEnvelope } from '$lib/responseEnvelope';
 import { buildUrl, safeFetch } from '$lib/api';
 import { type PlanetResource, parsePlanetResources } from '$lib/resources';
 import { type PlanetBuilding, parsePlanetBuildings } from '$lib/buildings';
+import { type BuildingAction, type ApiBuildingAction, parseBuildingActions } from '$lib/actions';
+
+export interface ApiPlanet {
+	readonly id: string;
+	readonly player: string;
+	readonly name: string;
+
+	readonly resources: PlanetResource[];
+	readonly buildings: PlanetBuilding[];
+	readonly buildingActions: ApiBuildingAction[];
+}
 
 export class Planet {
 	readonly id: string = '00000000-0000-0000-0000-000000000000';
@@ -10,6 +21,7 @@ export class Planet {
 
 	readonly resources: PlanetResource[] = [];
 	readonly buildings: PlanetBuilding[] = [];
+	readonly buildingActions: BuildingAction[] = [];
 
 	constructor(response: object) {
 		if ('id' in response && typeof response.id === 'string') {
@@ -31,6 +43,22 @@ export class Planet {
 		if ('buildings' in response && Array.isArray(response.buildings)) {
 			this.buildings = parsePlanetBuildings(response.buildings);
 		}
+
+		if ('buildingActions' in response && Array.isArray(response.buildingActions)) {
+			this.buildingActions = parseBuildingActions(response.buildingActions);
+		}
+	}
+
+	public toJson(): ApiPlanet {
+		return {
+			id: this.id,
+			player: this.player,
+			name: this.name,
+
+			resources: this.resources,
+			buildings: this.buildings,
+			buildingActions: this.buildingActions.map((a) => a.toJson())
+		};
 	}
 }
 
