@@ -71,7 +71,6 @@ jobs:
     # https://github.com/actions/runner/issues/491
     if: |
       always() &&
-      ${{ github.ref == 'refs/heads/master' }} &&
       !contains(needs.*.result, 'failure') &&
       !contains(needs.*.result, 'cancelled')
     permissions:
@@ -85,7 +84,7 @@ jobs:
         if: ${{ needs.analyze-code-changes.outputs.stellar-dominion == 'true' }}
         run: echo "${{ needs.build-stellar-dominion.outputs.service-tag }}" > ./build/stellar-dominion/version.txt
       - name: Commit changes
-        if: ${{ needs.analyze-code-changes.outputs.persist-tags == 'true' }}
+        if: ${{ github.ref == 'refs/heads/master' && needs.analyze-code-changes.outputs.persist-tags == 'true' }}
         run: |
           git pull
           git config --global user.name 'totocorpbot'
