@@ -18,7 +18,7 @@
 	// https://stackoverflow.com/questions/75616911/sveltekit-fetching-on-the-server-and-updating-the-writable-store
 	heroImage.set(GAME_HERO_IMAGE);
 	heroContainer.set(GAME_HERO_CONTAINER_PROPS);
-	const title = HOMEPAGE_TITLE + " - " + data.planet.name;
+	const title = HOMEPAGE_TITLE + ' - ' + data.planet.name;
 	pageTitle.set(title);
 
 	const resources = mapPlanetResourcesToUiResources(data.planet.resources, data.resources);
