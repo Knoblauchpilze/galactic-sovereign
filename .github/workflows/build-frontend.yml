@@ -43,10 +43,10 @@ jobs:
     steps:
       - name: user-dashboard rebuild status
         id: user-dashboard
-        run: echo 'rebuild=${{ needs.analyze-code-changes.outputs.user-dashboard == 'true' }} || ${{ needs.detect-code-changes.outputs.ci == 'true' }}' >> $GITHUB_OUTPUT
+        run: echo 'rebuild=${{ needs.analyze-code-changes.outputs.user-dashboard == 'true' || needs.detect-code-changes.outputs.ci == 'true' }}' >> $GITHUB_OUTPUT
       - name: stellar-dominion rebuild status
         id: stellar-dominion
-        run: echo 'rebuild=${{ needs.analyze-code-changes.outputs.stellar-dominion == 'true' }} || ${{ needs.detect-code-changes.outputs.ci == 'true' }}' >> $GITHUB_OUTPUT
+        run: echo 'rebuild=${{ needs.analyze-code-changes.outputs.stellar-dominion == 'true' || needs.detect-code-changes.outputs.ci == 'true' }}' >> $GITHUB_OUTPUT
   build-user-dashboard:
     needs: [analyze-code-changes]
     if: ${{ needs.analyze-code-changes.outputs.user-dashboard == 'true' }}
