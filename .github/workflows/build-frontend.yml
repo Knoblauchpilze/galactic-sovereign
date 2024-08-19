@@ -40,6 +40,7 @@ jobs:
     outputs:
       user-dashboard: ${{ steps.user-dashboard.outputs.rebuild }}
       stellar-dominion: ${{ steps.stellar-dominion.outputs.rebuild }}
+      persist-tags: ${{ steps.persist-tags.outputs.status }}
     steps:
       - name: user-dashboard rebuild status
         id: user-dashboard
@@ -47,6 +48,9 @@ jobs:
       - name: stellar-dominion rebuild status
         id: stellar-dominion
         run: echo 'rebuild=${{ needs.detect-code-changes.outputs.stellar-dominion == 'true' || needs.detect-code-changes.outputs.ci == 'true' }}' >> $GITHUB_OUTPUT
+      - name: stellar-dominion rebuild status
+        id: persist-tags
+        run: echo 'status=${{ needs.detect-code-changes.outputs.user-dashboard == 'true' || needs.detect-code-changes.outputs.stellar-dominion == 'true' || needs.detect-code-changes.outputs.ci == 'true' }}' >> $GITHUB_OUTPUT
   build-user-dashboard:
     needs: [analyze-code-changes]
     if: ${{ needs.analyze-code-changes.outputs.user-dashboard == 'true' }}
@@ -80,7 +84,7 @@ jobs:
         if: ${{ needs.analyze-code-changes.outputs.stellar-dominion == 'true' }}
         run: echo "${{ needs.build-stellar-dominion.outputs.service-tag }}" > ./build/stellar-dominion/version.txt
       - name: Commit changes
-        if: ${{ needs.analyze-code-changes.outputs.* == 'true' }}
+        if: ${{ needs.analyze-code-changes.outputs.persist-tags == 'true' }}
         run: |
           git pull
           git config --global user.name 'totocorpbot'
