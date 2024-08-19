@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { type UiBuilding, type UiBuildingCost } from '$lib/buildings';
 	import { type UiResource } from '$lib/resources';
-	import { StyledText } from '$lib/components';
+	import { StyledActionButton, StyledText } from '$lib/components';
 
 	export let building: UiBuilding;
 	export let availableResources: UiResource[];
@@ -19,14 +19,19 @@
 		return 'text-disabled';
 	}
 
+	// https://stackoverflow.com/questions/49296458/capitalize-first-letter-of-a-string-using-angular-or-typescript
+	const title = building.name[0].toUpperCase() + building.name.slice(1);
+
 	const costs = building.costs.map((c) => ({
 		resource: c.resource,
 		cost: c.cost,
 		color: textColor(c, availableResources)
 	}));
 
-	// https://stackoverflow.com/questions/49296458/capitalize-first-letter-of-a-string-using-angular-or-typescript
-	const title = building.name[0].toUpperCase() + building.name.slice(1);
+	const isAffordable = building.costs.reduce(
+		(currentlyAffordable, cost) => currentlyAffordable && canAfford(cost, availableResources),
+		true
+	);
 </script>
 
 <div class="p-4 m-2 bg-overlay">
@@ -40,4 +45,7 @@
 			</tr>
 		{/each}
 	</table>
+	<form method="POST" action="?/upgrade">
+		<StyledActionButton text="Upgrade" enabled={isAffordable} />
+	</form>
 </div>
