@@ -9,7 +9,8 @@ on:
       - "build/stellar-dominion-service/version.txt"
       - "deployments/**"
       - ".github/workflows/deploy-services.yml"
-    branches: [master]
+    branches:
+      - master
   # https://stackoverflow.com/questions/62750603/github-actions-trigger-another-action-after-one-action-is-completed
   # https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#workflow_run
   workflow_run:
@@ -22,7 +23,8 @@ on:
       ]
     types:
       - completed
-    branches: [master]
+    branches:
+      - master
 
 # https://docs.github.com/en/actions/using-jobs/using-concurrency#example-concurrency-groups
 concurrency:
