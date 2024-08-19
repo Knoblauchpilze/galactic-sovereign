@@ -14,7 +14,7 @@ on:
 
 jobs:
   # https://github.com/dorny/paths-filter
-  analyze-changes:
+  detect-code-changes:
     runs-on: ubuntu-latest
     outputs:
       user-dashboard: ${{ steps.filter.outputs.user-dashboard }}
@@ -31,23 +31,38 @@ jobs:
               - 'website/user-dashboard/**'
             stellar-dominion:
               - 'website/stellar-dominion/**'
+            ci:
+              - '.github/workflows/**'
+  analyze-code-changes:
+    runs-on: ubuntu-latest
+    needs: [detect-code-changes]
+    outputs:
+      user-dashboard: ${{ steps.user-dashboard.outputs.rebuild }}
+      stellar-dominion: ${{ steps.stellar-dominion.outputs.rebuild }}
+    steps:
+      - name: user-dashboard rebuild status
+        id: user-dashboard
+        run: echo 'rebuild=${{ needs.detect-code.outputs.user-dashboard == 'true' }} || ${{ needs.detect-code-changes.outputs.ci == 'true' }}' >> $GITHUB_OUTPUT
+      - name: stellar-dominion rebuild status
+        id: stellar-dominion
+        run: echo 'rebuild=${{ needs.detect-code.outputs.stellar-dominion == 'true' }} || ${{ needs.detect-code-changes.outputs.ci == 'true' }}' >> $GITHUB_OUTPUT
   build-user-dashboard:
-    needs: [analyze-changes]
-    if: ${{ needs.analyze-changes.outputs.user-dashboard == 'true' }}
+    needs: [detect-code-changes]
+    if: ${{ needs.detect-code-changes.outputs.user-dashboard == 'true' }}
     uses: ./.github/workflows/user-dashboard-build-and-push.yml
     secrets:
       dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
       dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
   build-stellar-dominion:
-    needs: [analyze-changes]
-    if: ${{ needs.analyze-changes.outputs.stellar-dominion == 'true' }}
+    needs: [detect-code-changes]
+    if: ${{ needs.detect-code-changes.outputs.stellar-dominion == 'true' }}
     uses: ./.github/workflows/stellar-dominion-build-and-push.yml
     secrets:
       dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
       dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
   persist-service-tags:
     runs-on: ubuntu-latest
-    needs: [analyze-changes, build-user-dashboard, build-stellar-dominion]
+    needs: [detect-code-changes, build-user-dashboard, build-stellar-dominion]
     # https://github.com/actions/runner/issues/491
     if: |
       always() &&
@@ -58,13 +73,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Save user-dashboard tag
-        if: ${{ needs.analyze-changes.outputs.user-dashboard == 'true' }}
+        if: ${{ needs.detect-code-changes.outputs.user-dashboard == 'true' }}
         run: echo "${{ needs.build-user-dashboard.outputs.service-tag }}" > ./build/user-dashboard/version.txt
       - name: Save stellar-dominion tag
-        if: ${{ needs.analyze-changes.outputs.stellar-dominion == 'true' }}
+        if: ${{ needs.detect-code-changes.outputs.stellar-dominion == 'true' }}
         run: echo "${{ needs.build-stellar-dominion.outputs.service-tag }}" > ./build/stellar-dominion/version.txt
       - name: Commit changes
-        if: ${{ needs.analyze-changes.outputs.* == 'true' }}
+        if: ${{ needs.detect-code-changes.outputs.* == 'true' }}
         run: |
           git pull
           git config --global user.name 'totocorpbot'
