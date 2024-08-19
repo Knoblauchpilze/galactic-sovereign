@@ -42,9 +42,7 @@ export async function load({ params, cookies }) {
 		universe: universeApi,
 		resources: universe.resources.map((r) => r.toJson()),
 		buildings: universe.buildings.map((b) => b.toJson()),
-		planet: {
-			...planet
-		}
+		planet: planet.toJson()
 	};
 }
 

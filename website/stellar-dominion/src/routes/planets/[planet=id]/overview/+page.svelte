@@ -54,5 +54,9 @@
 				{/each}
 			</div>
 		</CenteredWrapper>
+
+		<CenteredWrapper>
+			<StyledTitle text="Actions running on {planetName}" />
+		</CenteredWrapper>
 	</div>
 </CenteredWrapper>
