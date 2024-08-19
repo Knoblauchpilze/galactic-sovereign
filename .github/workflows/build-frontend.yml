@@ -63,7 +63,7 @@ jobs:
     if: ${{ needs.analyze-code-changes.outputs.stellar-dominion == 'true' }}
     uses: ./.github/workflows/stellar-dominion-build-and-push.yml
     secrets:
-      dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
+      dockerhub-username: hello
       dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
   persist-service-tags:
     runs-on: ubuntu-latest
