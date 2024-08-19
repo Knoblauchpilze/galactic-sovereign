@@ -71,6 +71,7 @@ jobs:
     # https://github.com/actions/runner/issues/491
     if: |
       always() &&
+      ${{ github.ref == 'refs/heads/master' }} &&
       !contains(needs.*.result, 'failure') &&
       !contains(needs.*.result, 'cancelled')
     permissions:
