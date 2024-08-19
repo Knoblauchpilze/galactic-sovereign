@@ -19,6 +19,7 @@ jobs:
     outputs:
       user-dashboard: ${{ steps.filter.outputs.user-dashboard }}
       stellar-dominion: ${{ steps.filter.outputs.stellar-dominion }}
+      ci: ${{ steps.filter.outputs.ci }}
     steps:
       - uses: actions/checkout@v4
       - uses: dorny/paths-filter@v3
