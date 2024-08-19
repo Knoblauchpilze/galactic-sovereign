@@ -44,7 +44,7 @@ func (dto FullPlanetDtoResponse) MarshalJSON() ([]byte, error) {
 		Resources []PlanetResourceDtoResponse `json:"resources"`
 		Buildings []PlanetBuildingDtoResponse `json:"buildings"`
 
-		BuildingActions []BuildingActionDtoResponse `json:"building_actions"`
+		BuildingActions []BuildingActionDtoResponse `json:"buildingActions"`
 	}{
 		PlanetDtoResponse: dto.PlanetDtoResponse,
 		Resources:         dto.Resources,
