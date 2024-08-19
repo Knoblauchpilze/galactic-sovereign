@@ -73,7 +73,7 @@ func TestFullPlanetDtoResponse_MarshalsToCamelCase(t *testing.T) {
 				"updatedAt": "2024-07-28T10:30:02.651387236Z"
 			}
 		],
-		"building_actions": [
+		"buildingActions": [
 			{
 			"id": "91336067-9884-4280-bb37-411124561e73",
 			"planet": "65801b9b-84e6-411d-805f-2eb89587c5a7",
@@ -122,7 +122,7 @@ func TestFullPlanetDtoResponse_WhenResourcesAreEmpty_MarshalsToEmptyArray(t *tes
 				"updatedAt": "2024-07-28T10:30:02.651387236Z"
 			}
 		],
-		"building_actions": [
+		"buildingActions": [
 			{
 				"id": "91336067-9884-4280-bb37-411124561e73",
 				"planet": "65801b9b-84e6-411d-805f-2eb89587c5a7",
@@ -171,7 +171,7 @@ func TestFullPlanetDtoResponse_WhenBuildingsAreEmpty_MarshalsToEmptyArray(t *tes
 			}
 		],
 		"buildings": [],
-		"building_actions": [
+		"buildingActions": [
 			{
 				"id": "91336067-9884-4280-bb37-411124561e73",
 				"planet": "65801b9b-84e6-411d-805f-2eb89587c5a7",
@@ -228,7 +228,7 @@ func TestFullPlanetDtoResponse_WhenBuildingActionsAreEmpty_MarshalsToEmptyArray(
 				"updatedAt": "2024-07-28T10:30:02.651387236Z"
 			}
 		],
-		"building_actions": []
+		"buildingActions": []
 	}`
 	assert.JSONEq(expectedJson, string(out))
 }
