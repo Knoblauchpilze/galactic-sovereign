@@ -15,7 +15,7 @@
 		Don't have an account yet? Click <a href="/dashboard/signup">here</a> to sign-up!
 	</div>
 
-	<h1>User dashboard</h1>
+	<h1>Admin dashboard</h1>
 	<h2>Login</h2>
 
 	<form method="POST" action="?/login" class="form">

@@ -11,7 +11,7 @@
 </script>
 
 <div class="wrapper">
-	<h1>User dashboard</h1>
+	<h1>Admin dashboard</h1>
 	<h2>Sign up</h2>
 
 	<form method="POST" action="?/signup" class="form">
