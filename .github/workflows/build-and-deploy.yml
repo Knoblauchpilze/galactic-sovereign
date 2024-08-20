@@ -148,7 +148,7 @@ jobs:
       dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
       dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
 
-  backup-deployment-config:
+  collect-services-versions:
     runs-on: ubuntu-latest
     # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idneeds
     needs:
@@ -160,6 +160,48 @@ jobs:
         build-stellar-dominion,
       ]
     if: ${{ needs.analyze-deploy-status.outputs.deploy-services == 'true' }}
+    outputs:
+      user-service-tag: ${{ steps.user-service.outputs.tag }}
+      stellar-dominion-service-tag: ${{ steps.stellar-dominion-service.outputs.tag }}
+      user-dashboard-tag: ${{ steps.user-dashboard.outputs.tag }}
+      stellar-dominion-tag: ${{ steps.stellar-dominion.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Extract user-service tag
+        id: user-service
+        if: ${{ needs.analyze-code-changes.outputs.user-service == 'true' }}
+        run: |
+          echo "tag=${{ needs.build-user-service.outputs.service-tag }}" >> $GITHUB_OUTPUT
+        if: ${{ needs.analyze-code-changes.outputs.user-service == 'false' }}
+        run: |
+          echo "tag=$(cat ./build/user-service/version.txt)" >> $GITHUB_OUTPUT
+      - name: Extract stellar-dominion-service tag
+        id: stellar-dominion-service
+        if: ${{ needs.analyze-code-changes.outputs.stellar-dominion-service == 'true' }}
+        run: |
+          echo "tag=${{ needs.build-stellar-dominion-service.outputs.service-tag }}" >> $GITHUB_OUTPUT
+        if: ${{ needs.analyze-code-changes.outputs.stellar-dominion-service == 'false' }}
+        run: |
+          echo "tag=$(cat ./build/stellar-dominion-service/version.txt)" >> $GITHUB_OUTPUT
+      - name: Extract user-dashboard tag
+        id: user-dashboard
+        if: ${{ needs.analyze-code-changes.outputs.user-dashboard == 'true' }}
+        run: |
+          echo "tag=${{ needs.build-user-dashboard.outputs.service-tag }}" >> $GITHUB_OUTPUT
+        if: ${{ needs.analyze-code-changes.outputs.user-dashboard == 'false' }}
+        run: |
+          echo "tag=$(cat ./build/user-dashboard/version.txt)" >> $GITHUB_OUTPUT
+      - name: Extract stellar-dominion tag
+        id: stellar-dominion
+        if: ${{ needs.analyze-code-changes.outputs.stellar-dominion == 'true' }}
+        run: |
+          echo "tag=${{ needs.build-stellar-dominion.outputs.service-tag }}" >> $GITHUB_OUTPUT
+        if: ${{ needs.analyze-code-changes.outputs.stellar-dominion == 'false' }}
+        run: |
+          echo "tag=$(cat ./build/stellar-dominion/version.txt)" >> $GITHUB_OUTPUT
+  backup-deployment-config:
+    runs-on: ubuntu-latest
+    needs: [collect-services-versions]
     steps:
       - name: Back-up deployment config
         uses: appleboy/ssh-action@v1.0.3
@@ -169,7 +211,8 @@ jobs:
           key: ${{ secrets.EC2_DEPLOY_SSH_KEY }}
           script: |
             rm -rf ~/deployments.bak
-            cp -r ~/deployments ~/deployments.bak
+            mv ~/deployments ~/deployments.bak
+            mkdir ~/deployments
   sync-deployment-configuration:
     runs-on: ubuntu-latest
     needs: [backup-deployment-config]
