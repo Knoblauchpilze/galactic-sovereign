@@ -98,7 +98,7 @@ jobs:
       deploy-services: ${{ steps.deploy-services.outputs.deploy }}
     steps:
       - name: Detect if services should be deployed
-        id: deploy
+        id: deploy-services
         run: |
           echo 'deploy=${{ (github.ref == 'refs/heads/master') && (needs.analyze-persist-tags-status.outputs.persist == 'true' || needs.detect-code-changes.outputs.deployment == 'true') }}' >> $GITHUB_OUTPUT
 
