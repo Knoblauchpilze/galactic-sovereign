@@ -90,10 +90,7 @@ jobs:
       - name: Detect if service tags should be persisted
         id: persist-tags
         run: |
-          echo 'rebuild=${{ needs.analyze-code-changes.outputs.user-service == 'true' || \
-                            needs.analyze-code-changes.outputs.stellar-dominion-service == 'true' || \
-                            needs.analyze-code-changes.outputs.user-dashboard == 'true' || \
-                            needs.analyze-code-changes.outputs.stellar-dominion == 'true' }}' >> $GITHUB_OUTPUT
+          echo 'rebuild=${{ needs.analyze-code-changes.outputs.user-service == 'true' || needs.analyze-code-changes.outputs.stellar-dominion-service == 'true' || needs.analyze-code-changes.outputs.user-dashboard == 'true' || needs.analyze-code-changes.outputs.stellar-dominion == 'true' }}' >> $GITHUB_OUTPUT
   analyze-deploy-status:
     runs-on: ubuntu-latest
     needs: [detect-code-changes, analyze-persist-tags-status]
@@ -103,9 +100,7 @@ jobs:
       - name: Detect if services should be deployed
         id: deploy
         run: |
-          echo 'rebuild=${{ (github.ref == 'refs/heads/master') && \
-                            (needs.analyze-persist-tags-status.outputs.persist-tags == 'true' || \
-                            needs.detect-code-changes.outputs.deployment == 'true') }}' >> $GITHUB_OUTPUT
+          echo 'rebuild=${{ (github.ref == 'refs/heads/master') && (needs.analyze-persist-tags-status.outputs.persist-tags == 'true' || needs.detect-code-changes.outputs.deployment == 'true') }}' >> $GITHUB_OUTPUT
 
   tests:
     runs-on: ubuntu-latest
