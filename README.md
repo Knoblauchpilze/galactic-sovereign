@@ -16,15 +16,7 @@ Below are the required badges to indicate the code coverage and whether the CI a
 
 [![codecov](https://codecov.io/gh/Knoblauchpilze/user-service/branch/master/badge.svg?token=WNLIZF0FBL)](https://codecov.io/gh/Knoblauchpilze/user-service)
 
-[![user-service](https://github.com/Knoblauchpilze/user-service/actions/workflows/user-service-build-and-push.yml/badge.svg)](https://github.com/Knoblauchpilze/user-service/actions/workflows/user-service-build-and-push.yml)
-
-[![user-dashboard](https://github.com/Knoblauchpilze/user-service/actions/workflows/user-dashboard-build-and-push.yml/badge.svg)](https://github.com/Knoblauchpilze/user-service/actions/workflows/user-dashboard-build-and-push.yml)
-
-[![stellar-dominion](https://github.com/Knoblauchpilze/user-service/actions/workflows/stellar-dominion-build-and-push.yml/badge.svg)](https://github.com/Knoblauchpilze/user-service/actions/workflows/stellar-dominion-build-and-push.yml)
-
-[![stellar-dominion-service](https://github.com/Knoblauchpilze/user-service/actions/workflows/stellar-dominion-service-build-and-push.yml/badge.svg)](https://github.com/Knoblauchpilze/user-service/actions/workflows/stellar-dominion-service-build-and-push.yml)
-
-[![deployment](https://github.com/Knoblauchpilze/user-service/actions/workflows/deploy-services.yml/badge.svg)](https://github.com/Knoblauchpilze/user-service/actions/workflows/deploy-services.yml)
+[![Build and deploy services](https://github.com/Knoblauchpilze/user-service/actions/workflows/build-and-deploy.yml/badge.svg)](https://github.com/Knoblauchpilze/user-service/actions/workflows/build-and-deploy.yml)
 
 ## A note on the name
 
