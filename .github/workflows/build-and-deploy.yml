@@ -167,11 +167,13 @@ jobs:
       stellar-dominion-tag: ${{ steps.stellar-dominion.outputs.tag }}
     steps:
       - uses: actions/checkout@v4
-      - name: Extract user-service tag
+      - name: Extract user-service tag from workflow output
         id: user-service
         if: ${{ needs.analyze-code-changes.outputs.user-service == 'true' }}
         run: |
           echo "tag=${{ needs.build-user-service.outputs.service-tag }}" >> $GITHUB_OUTPUT
+      - name: Extract user-service tag from workflow output
+        id: user-service
         if: ${{ needs.analyze-code-changes.outputs.user-service == 'false' }}
         run: |
           echo "tag=$(cat ./build/user-service/version.txt)" >> $GITHUB_OUTPUT
