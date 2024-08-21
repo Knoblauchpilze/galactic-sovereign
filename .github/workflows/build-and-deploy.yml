@@ -171,9 +171,7 @@ jobs:
       ]
     if: |
       always() &&
-      ${{ !contains(needs.*.result, 'failure') }} &&
-      ${{ !contains(needs.*.result, 'cancelled') }} &&
-      ${{ needs.analyze-deploy-status.outputs.deploy-services == 'true' }}
+      needs.analyze-deploy-status.outputs.deploy-services == 'true'
     steps:
       - name: Back-up deployment config
         uses: appleboy/ssh-action@v1.0.3
@@ -335,6 +333,7 @@ jobs:
         build-stellar-dominion-service,
         build-user-dashboard,
         build-stellar-dominion,
+        persist-service-tags,
       ]
     # https://github.com/actions/runner/issues/491
     if: |
