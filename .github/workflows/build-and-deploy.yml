@@ -174,11 +174,13 @@ jobs:
     steps:
       - name: Print debug
         run: |
-          echo "${{ needs.analyze-deploy-status.result }}"
-          echo "${{ needs.build-user-service.result }}"
-          echo "${{ needs.build-stellar-dominion-service.result }}"
-          echo "${{ needs.build-user-dashboard.result }}"
-          echo "${{ needs.build-stellar-dominion.result }}"
+          echo "deploy ${{ needs.analyze-deploy-status.result }}"
+          echo "us ${{ needs.build-user-service.result }}"
+          echo "sds ${{ needs.build-stellar-dominion-service.result }}"
+          echo "ud ${{ needs.build-user-dashboard.result }}"
+          echo "sd ${{ needs.build-stellar-dominion.result }}"
+          echo "failure: ${{ !contains(needs.*.result, 'failure') }}"
+          echo "cancelled: ${{ !contains(needs.*.result, 'cancelled') }}"
 
   backup-deployment-config:
     runs-on: ubuntu-latest
@@ -191,6 +193,8 @@ jobs:
         build-user-dashboard,
         build-stellar-dominion,
       ]
+    # https://github.com/actions/runner/issues/491
+    # https://github.com/actions/runner/issues/2205#issuecomment-1400087739
     if: |
       always() &&
       ${{ !contains(needs.*.result, 'failure') }} &&
@@ -359,7 +363,6 @@ jobs:
         build-stellar-dominion,
         persist-service-tags,
       ]
-    # https://github.com/actions/runner/issues/491
     if: |
       always() &&
       ${{ !contains(needs.*.result, 'failure') }} &&
