@@ -222,6 +222,10 @@ jobs:
         build-user-dashboard,
         build-stellar-dominion,
       ]
+    if: |
+      always() &&
+      !contains(needs.*.result, 'failure') &&
+      !contains(needs.*.result, 'cancelled') &&
     steps:
       - uses: actions/checkout@v4
       - name: Substitute acme email
@@ -282,6 +286,10 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     needs: [sync-deployment-configuration]
+    if: |
+      always() &&
+      !contains(needs.*.result, 'failure') &&
+      !contains(needs.*.result, 'cancelled') &&
     steps:
       - name: Deploy latest services version
         uses: appleboy/ssh-action@v1.0.3
@@ -294,6 +302,10 @@ jobs:
   clean-deployment-config-backup:
     runs-on: ubuntu-latest
     needs: [deploy]
+    if: |
+      always() &&
+      !contains(needs.*.result, 'failure') &&
+      !contains(needs.*.result, 'cancelled') &&
     steps:
       - name: Clean back-up of deployment config
         uses: appleboy/ssh-action@v1.0.3
@@ -319,8 +331,8 @@ jobs:
     # https://github.com/actions/runner/issues/491
     if: |
       always() &&
-      ${{ !contains(needs.*.result, 'failure') }} &&
-      ${{ !contains(needs.*.result, 'cancelled') }} &&
+      !contains(needs.*.result, 'failure') &&
+      !contains(needs.*.result, 'cancelled') &&
       github.ref == 'refs/heads/master' && 
       needs.analyze-persist-tags-status.outputs.persist == 'true'
     permissions:
@@ -365,8 +377,8 @@ jobs:
       ]
     if: |
       always() &&
-      ${{ !contains(needs.*.result, 'failure') }} &&
-      ${{ !contains(needs.*.result, 'cancelled') }}
+      !contains(needs.*.result, 'failure') &&
+      !contains(needs.*.result, 'cancelled')
     steps:
       - uses: actions/checkout@v4
       - name: user-service tag
