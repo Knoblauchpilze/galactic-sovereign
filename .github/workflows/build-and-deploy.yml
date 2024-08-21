@@ -197,8 +197,8 @@ jobs:
     # https://github.com/actions/runner/issues/2205#issuecomment-1400087739
     if: |
       always() &&
-      ${{ !contains(needs.*.result, 'failure') }} &&
-      ${{ !contains(needs.*.result, 'cancelled') }} &&
+      !contains(needs.*.result, 'failure') &&
+      !contains(needs.*.result, 'cancelled') &&
       needs.analyze-deploy-status.outputs.deploy-services == 'true'
     steps:
       - name: Back-up deployment config
