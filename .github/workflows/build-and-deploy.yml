@@ -158,6 +158,28 @@ jobs:
       dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
       dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
 
+  debug:
+    runs-on: ubuntu-latest
+    # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idneeds
+    needs:
+      [
+        analyze-deploy-status,
+        build-user-service,
+        build-stellar-dominion-service,
+        build-user-dashboard,
+        build-stellar-dominion,
+      ]
+    if: |
+      always()
+    steps:
+      - name: Print debug
+        run: |
+          echo "${{ needs.analyze-deploy-status.result }}"
+          echo "${{ needs.build-user-service.result }}"
+          echo "${{ needs.build-stellar-dominion-service.result }}"
+          echo "${{ needs.build-user-dashboard.result }}"
+          echo "${{ needs.build-stellar-dominion.result }}"
+
   backup-deployment-config:
     runs-on: ubuntu-latest
     # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idneeds
