@@ -171,6 +171,8 @@ jobs:
       ]
     if: |
       always() &&
+      ${{ !contains(needs.*.result, 'failure') }} &&
+      ${{ !contains(needs.*.result, 'cancelled') }} &&
       needs.analyze-deploy-status.outputs.deploy-services == 'true'
     steps:
       - name: Back-up deployment config
