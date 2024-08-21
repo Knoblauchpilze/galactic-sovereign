@@ -310,3 +310,26 @@ jobs:
           git config --global user.email 'totocorpbot@users.noreply.github.com'
           git commit -am "infra: Bumped services versions to latest revision"
           git push
+
+  finish:
+    runs-on: ubuntu-latest
+    needs:
+      [
+        analyze-code-changes,
+        analyze-persist-tags-status,
+        build-user-service,
+        build-stellar-dominion-service,
+        build-user-dashboard,
+        build-stellar-dominion,
+        persist-service-tags,
+      ]
+    # https://github.com/actions/runner/issues/491
+    if: |
+      always() &&
+      ${{ !contains(needs.*.result, 'failure') }} &&
+      ${{ !contains(needs.*.result, 'cancelled') }}
+    steps:
+      - uses: actions/checkout@v4
+      - if: ${{ needs.analyze-code-changes.outputs.user-service == 'true' }}
+        run: |
+          echo "Updated user-service tag to $(cat ./build/user-service/version.txt)"
