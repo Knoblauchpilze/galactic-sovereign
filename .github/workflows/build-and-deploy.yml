@@ -374,7 +374,7 @@ jobs:
         run: |
           echo "Tag is now $(cat ./build/user-dashboard/version.txt)"
       - name: stellar-dominion tag
-        if: ${{ needs.analyze-code-changes.outputs.stelar-dominion == 'true' }}
+        if: ${{ needs.analyze-code-changes.outputs.stellar-dominion == 'true' }}
         run: |
           echo "Tag is now $(cat ./build/stellar-dominion/version.txt)"
       - name: deployed
