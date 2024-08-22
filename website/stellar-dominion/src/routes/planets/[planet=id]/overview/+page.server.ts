@@ -1,7 +1,7 @@
 import { error, redirect } from '@sveltejs/kit';
 import { loadCookies } from '$lib/cookies';
 import { Universe, type ApiUniverse, getUniverse } from '$lib/universes';
-import { Planet, getPlanet } from '$lib/planets';
+import { Planet, getPlanet, createBuildingAction } from '$lib/planets';
 import { ApiFailureReason } from '$lib/responseEnvelope.js';
 import { logoutUser } from '$lib/sessions';
 
@@ -69,5 +69,38 @@ export const actions = {
 		}
 
 		redirect(303, '/login');
+	},
+
+	createBuildingAction: async ({ cookies, params, request }) => {
+		const apiKey = cookies.get('api-key');
+		if (!apiKey) {
+			redirect(303, '/login');
+		}
+
+		const apiUser = cookies.get('api-user');
+		if (!apiUser) {
+			redirect(303, '/login');
+		}
+
+		const data = await request.formData();
+
+		const buildingId = data.get('building');
+		if (!buildingId) {
+			return {
+				success: false,
+				missing: true,
+				message: 'Please select a building',
+
+				buildingId
+			};
+		}
+
+		const actionResponse = await createBuildingAction(apiKey, params.planet, buildingId as string);
+		if (actionResponse.error()) {
+			return {
+				success: false,
+				message: actionResponse.failureMessage()
+			};
+		}
 	}
 };

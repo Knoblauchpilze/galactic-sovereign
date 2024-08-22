@@ -23,11 +23,14 @@
 
 	const resources = mapPlanetResourcesToUiResources(data.planet.resources, data.resources);
 	const buildings = mapPlanetBuildingsToUiBuildings(
+		data.planet.id,
 		data.planet.buildings,
 		data.planet.buildingActions,
 		data.buildings,
 		data.resources
 	);
+
+	const anyBuildingActionRunning = data.planet.buildingActions.length !== 0;
 </script>
 
 <CenteredWrapper width="w-4/5" height="h-4/5" bgColor="bg-overlay">
@@ -51,7 +54,11 @@
 			<!-- https://tailwindcss.com/docs/align-items -->
 			<div class="w-full h-full flex flex-wrap items-start bg-transparent">
 				{#each buildings as building}
-					<Building {building} availableResources={resources} />
+					<Building
+						{building}
+						availableResources={resources}
+						buildingActionAlreadyRunning={anyBuildingActionRunning}
+					/>
 				{/each}
 			</div>
 		</CenteredWrapper>
