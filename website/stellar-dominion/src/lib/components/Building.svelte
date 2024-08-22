@@ -46,6 +46,6 @@
 		{/each}
 	</table>
 	<form method="POST" action="?/upgrade">
-		<StyledActionButton text="Upgrade" enabled={isAffordable} />
+		<StyledActionButton text="Upgrade" enabled={isAffordable && !building.hasAction} />
 	</form>
 </div>

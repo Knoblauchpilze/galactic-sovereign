@@ -24,6 +24,7 @@
 	const resources = mapPlanetResourcesToUiResources(data.planet.resources, data.resources);
 	const buildings = mapPlanetBuildingsToUiBuildings(
 		data.planet.buildings,
+		data.planet.buildingActions,
 		data.buildings,
 		data.resources
 	);

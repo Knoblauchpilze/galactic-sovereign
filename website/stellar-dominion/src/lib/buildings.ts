@@ -1,4 +1,5 @@
 import { type ApiResource } from '$lib/resources';
+import { type ApiBuildingAction } from './actions';
 
 export interface ApiBuilding {
 	readonly id: string;
@@ -112,10 +113,17 @@ export interface UiBuildingCost {
 	readonly cost: number;
 }
 
-export interface UiBuilding {
-	readonly name: string;
-	readonly level: number;
-	readonly costs: UiBuildingCost[];
+export class UiBuilding {
+	readonly name: string = '';
+
+	readonly level: number = 0;
+
+	readonly hasAction: boolean = false;
+	readonly action?: string = '';
+	readonly nextLevel?: number = 1;
+	readonly completedAt?: Date = new Date();
+
+	readonly costs: UiBuildingCost[] = [];
 }
 
 function mapBuildingCostsToUiBuildingCosts(
@@ -126,13 +134,13 @@ function mapBuildingCostsToUiBuildingCosts(
 		const maybeResource = apiResources.find((r) => r.id === cost.resource);
 		if (maybeResource === undefined) {
 			return {
-				resource: "Unknown resource",
-				cost: cost.cost,
+				resource: 'Unknown resource',
+				cost: cost.cost
 			};
 		} else {
 			return {
 				resource: maybeResource.name,
-				cost: cost.cost,
+				cost: cost.cost
 			};
 		}
 	});
@@ -140,6 +148,7 @@ function mapBuildingCostsToUiBuildingCosts(
 
 export function mapPlanetBuildingsToUiBuildings(
 	planetBuildings: PlanetBuilding[],
+	planetActions: ApiBuildingAction[],
 	apiBuildings: ApiBuilding[],
 	apiResources: ApiResource[]
 ): UiBuilding[] {
@@ -149,12 +158,27 @@ export function mapPlanetBuildingsToUiBuildings(
 			return {
 				name: apiBuilding.name,
 				level: 0,
+				hasAction: false,
 				costs: mapBuildingCostsToUiBuildingCosts(apiBuilding.costs, apiResources)
 			};
 		} else {
+			const maybeAction = planetActions.find((a) => a.building === maybeBuilding.id);
+			if (maybeAction === undefined) {
+				return {
+					name: apiBuilding.name,
+					level: maybeBuilding.level,
+					hasAction: false,
+					costs: mapBuildingCostsToUiBuildingCosts(apiBuilding.costs, apiResources)
+				};
+			}
+
 			return {
 				name: apiBuilding.name,
 				level: maybeBuilding.level,
+				hasAction: true,
+				action: maybeAction.id,
+				nextLevel: maybeAction.desiredLevel,
+				completedAt: maybeAction.completedAt,
 				costs: mapBuildingCostsToUiBuildingCosts(apiBuilding.costs, apiResources)
 			};
 		}
