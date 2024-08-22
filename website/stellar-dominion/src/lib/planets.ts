@@ -102,6 +102,29 @@ export async function fetchPlanetsFromPlayer(
 	return new ResponseEnvelope(jsonContent);
 }
 
+export async function createBuildingAction(
+	apiKey: string,
+	planet: string,
+	building: string
+): Promise<ResponseEnvelope> {
+	const url = buildUrl('planets/' + planet + '/buildings');
+	const body = JSON.stringify({ planet: planet, building: building });
+
+	const params = {
+		method: 'POST',
+		body: body,
+		headers: {
+			'content-type': 'application/json',
+			'X-Api-Key': apiKey
+		}
+	};
+
+	const response = await safeFetch(url, params);
+	const jsonContent = await response.json();
+
+	return new ResponseEnvelope(jsonContent);
+}
+
 export function responseToPlanetArray(response: ResponseEnvelope): Planet[] {
 	if (response.error()) {
 		return [];

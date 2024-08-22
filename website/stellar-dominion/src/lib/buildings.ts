@@ -114,9 +114,11 @@ export interface UiBuildingCost {
 }
 
 export class UiBuilding {
+	readonly id: string = '';
 	readonly name: string = '';
-
 	readonly level: number = 0;
+
+	readonly planet: string = '';
 
 	readonly hasAction: boolean = false;
 	readonly action?: string = '';
@@ -147,6 +149,7 @@ function mapBuildingCostsToUiBuildingCosts(
 }
 
 export function mapPlanetBuildingsToUiBuildings(
+	planet: string,
 	planetBuildings: PlanetBuilding[],
 	planetActions: ApiBuildingAction[],
 	apiBuildings: ApiBuilding[],
@@ -156,8 +159,10 @@ export function mapPlanetBuildingsToUiBuildings(
 		const maybeBuilding = planetBuildings.find((r) => r.id === apiBuilding.id);
 		if (maybeBuilding === undefined) {
 			return {
+				id: apiBuilding.id,
 				name: apiBuilding.name,
 				level: 0,
+				planet: planet,
 				hasAction: false,
 				costs: mapBuildingCostsToUiBuildingCosts(apiBuilding.costs, apiResources)
 			};
@@ -165,16 +170,20 @@ export function mapPlanetBuildingsToUiBuildings(
 			const maybeAction = planetActions.find((a) => a.building === maybeBuilding.id);
 			if (maybeAction === undefined) {
 				return {
+					id: apiBuilding.id,
 					name: apiBuilding.name,
 					level: maybeBuilding.level,
+					planet: planet,
 					hasAction: false,
 					costs: mapBuildingCostsToUiBuildingCosts(apiBuilding.costs, apiResources)
 				};
 			}
 
 			return {
+				id: apiBuilding.id,
 				name: apiBuilding.name,
 				level: maybeBuilding.level,
+				planet: planet,
 				hasAction: true,
 				action: maybeAction.id,
 				nextLevel: maybeAction.desiredLevel,

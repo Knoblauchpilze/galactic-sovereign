@@ -5,6 +5,7 @@
 
 	export let building: UiBuilding;
 	export let availableResources: UiResource[];
+	export let buildingActionAlreadyRunning: boolean;
 
 	function canAfford(cost: UiBuildingCost, availableResources: UiResource[]): boolean {
 		const maybeResource = availableResources.find((r) => r.name === cost.resource);
@@ -45,7 +46,9 @@
 			</tr>
 		{/each}
 	</table>
-	<form method="POST" action="?/upgrade">
-		<StyledActionButton text="Upgrade" enabled={isAffordable && !building.hasAction} />
+	<!-- https://kit.svelte.dev/docs/form-actions#default-actions -->
+	<form method="POST" action="/planets/{building.planet}/overview?/createBuildingAction">
+		<input class="hidden" id="building" name="building" value={building.id} />
+		<StyledActionButton text="Upgrade" enabled={isAffordable && !buildingActionAlreadyRunning} />
 	</form>
 </div>
