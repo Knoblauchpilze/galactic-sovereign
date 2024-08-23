@@ -8,10 +8,12 @@ import (
 	"github.com/KnoblauchPilze/user-service/pkg/game"
 	"github.com/KnoblauchPilze/user-service/pkg/persistence"
 	"github.com/KnoblauchPilze/user-service/pkg/repositories"
+	"github.com/google/uuid"
 )
 
 type BuildingActionService interface {
 	Create(ctx context.Context, actionDto communication.BuildingActionDtoRequest) (communication.BuildingActionDtoResponse, error)
+	Delete(ctx context.Context, id uuid.UUID) error
 }
 
 type buildingActionValidator func(action persistence.BuildingAction, resources []persistence.PlanetResource, buildings []persistence.PlanetBuilding, costs []persistence.BuildingCost) error
@@ -95,4 +97,14 @@ func (s *buildingActionServiceImpl) Create(ctx context.Context, actionDto commun
 
 	out := communication.ToBuildingActionDtoResponse(action)
 	return out, nil
+}
+
+func (s *buildingActionServiceImpl) Delete(ctx context.Context, id uuid.UUID) error {
+	tx, err := s.conn.StartTransaction(ctx)
+	if err != nil {
+		return err
+	}
+	defer tx.Close(ctx)
+
+	return s.buildingActionRepo.Delete(ctx, tx, id)
 }

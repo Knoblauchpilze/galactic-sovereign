@@ -26,8 +26,10 @@ type mockBuildingActionService struct {
 	err    error
 
 	createCalled int
+	inAction     communication.BuildingActionDtoRequest
 
-	inAction communication.BuildingActionDtoRequest
+	deleteCalled int
+	deleteId     uuid.UUID
 }
 
 var defaultBuildingActionId = uuid.MustParse("694a47ab-cd58-431e-9298-e0e788bfc01e")
@@ -181,4 +183,11 @@ func (m *mockBuildingActionService) Create(ctx context.Context, actionDto commun
 	m.inAction = actionDto
 
 	return m.action, m.err
+}
+
+func (m *mockBuildingActionService) Delete(ctx context.Context, id uuid.UUID) error {
+	m.deleteCalled++
+	m.deleteId = id
+
+	return m.err
 }
