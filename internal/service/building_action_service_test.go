@@ -275,6 +275,18 @@ func Test_BuildingActionService(t *testing.T) {
 				},
 				expectedError: errDefault,
 			},
+			"delete": {
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewBuildingActionService(pool, repos)
+					return s.Delete(ctx, defaultBuildingActionId)
+				},
+				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
+					m := assertBuildingActionRepoIsAMock(repos, assert)
+
+					assert.Equal(1, m.deleteCalled)
+					assert.Equal(defaultBuildingActionId, m.deleteId)
+				},
+			},
 		},
 
 		returnTestCases: map[string]returnTestCase{
@@ -302,6 +314,12 @@ func Test_BuildingActionService(t *testing.T) {
 					s := NewBuildingActionService(pool, repos)
 					_, err := s.Create(ctx, defaultBuildingActionDtoRequest)
 					return err
+				},
+			},
+			"delete": {
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewBuildingActionService(pool, repos)
+					return s.Delete(ctx, defaultBuildingActionId)
 				},
 			},
 		},
