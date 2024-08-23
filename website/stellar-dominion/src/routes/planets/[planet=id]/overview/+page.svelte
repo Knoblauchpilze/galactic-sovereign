@@ -1,6 +1,13 @@
 <script lang="ts">
 	import '$styles/app.css';
-	import { CenteredWrapper, Header, StyledText, StyledTitle, Building } from '$lib/components';
+	import {
+		CenteredWrapper,
+		Header,
+		StyledText,
+		StyledTitle,
+		Building,
+		BuildingAction
+	} from '$lib/components';
 
 	import heroImage, { GAME_HERO_IMAGE } from '$lib/stores/ui/heroImage';
 	import heroContainer, { GAME_HERO_CONTAINER_PROPS } from '$lib/stores/ui/heroContainer';
@@ -8,6 +15,7 @@
 
 	import { mapPlanetResourcesToUiResources } from '$lib/resources';
 	import { mapPlanetBuildingsToUiBuildings } from '$lib/buildings';
+	import { mapBuildingActionsToUiActions } from '$lib/actions.js';
 
 	// https://svelte.dev/blog/zero-config-type-safety
 	export let data;
@@ -29,6 +37,7 @@
 		data.buildings,
 		data.resources
 	);
+	const actions = mapBuildingActionsToUiActions(data.planet.buildingActions, data.buildings);
 
 	const anyBuildingActionRunning = data.planet.buildingActions.length !== 0;
 </script>
@@ -65,6 +74,11 @@
 
 		<CenteredWrapper>
 			<StyledTitle text="Actions running on {planetName}" />
+			<div class="w-full h-full flex flex-wrap items-start bg-transparent">
+				{#each actions as action}
+					<BuildingAction {action} />
+				{/each}
+			</div>
 		</CenteredWrapper>
 	</div>
 </CenteredWrapper>

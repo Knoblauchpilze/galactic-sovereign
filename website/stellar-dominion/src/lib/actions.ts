@@ -1,3 +1,5 @@
+import { type ApiBuilding } from '$lib/buildings';
+
 export interface ApiBuildingAction {
 	readonly id: string;
 	readonly building: string;
@@ -56,4 +58,35 @@ export function parseBuildingActions(data: object[]): BuildingAction[] {
 	}
 
 	return out;
+}
+
+export class UiBuildingAction {
+	readonly id: string = '';
+	readonly name: string = '';
+	readonly nextLevel: number = 1;
+	readonly completedAt: Date = new Date();
+}
+
+export function mapBuildingActionsToUiActions(
+	planetActions: ApiBuildingAction[],
+	apiBuildings: ApiBuilding[]
+): UiBuildingAction[] {
+	return planetActions.map((action) => {
+		const maybeBuilding = apiBuildings.find((b) => b.id === action.building);
+		if (maybeBuilding === undefined) {
+			return {
+				id: action.id,
+				name: 'Unknown building',
+				nextLevel: action.desiredLevel,
+				completedAt: action.completedAt
+			};
+		} else {
+			return {
+				id: action.id,
+				name: maybeBuilding.name,
+				nextLevel: action.desiredLevel,
+				completedAt: action.completedAt
+			};
+		}
+	});
 }
