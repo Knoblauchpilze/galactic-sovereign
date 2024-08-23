@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { type UiBuildingAction } from '$lib/actions';
-	import { StyledText } from '$lib/components';
 	import { msToTimeStringOrFinished } from '$lib/time';
+	import { StyledActionButton, StyledText } from '$lib/components';
 
 	export let action: UiBuildingAction;
 
@@ -22,4 +22,8 @@
 	<StyledText text={title} styling="font-bold" />
 	<StyledText text="Upgrade to level {action.nextLevel}" textColor="text-white" />
 	<StyledText text={remaining} {textColor} />
+	<form method="POST" action="/planets/{action.planet}/overview?/deleteBuildingAction">
+		<input class="hidden" id="action" name="action" value={action.id} />
+		<StyledActionButton text="Cancel" enabled={remainingMs > 0} negativeConfirmation />
+	</form>
 </div>

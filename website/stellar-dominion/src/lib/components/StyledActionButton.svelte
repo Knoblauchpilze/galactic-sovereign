@@ -1,10 +1,22 @@
 <script lang="ts">
 	export let text: string = 'Click me';
 	export let enabled: boolean = false;
+	export let negativeConfirmation: boolean = false;
 
-	const bgColor = enabled ? 'bg-enabled' : 'bg-disabled';
-	const bgColorHover = enabled ? 'hover:bg-enabled-hover' : 'hover:bg-disabled';
-	const state = enabled ? '' : 'disabled';
+	let bgColor: string;
+	let bgColorHover: string;
+
+	if (negativeConfirmation) {
+		bgColor = enabled ? 'bg-disabled' : 'bg-enabled';
+		bgColorHover = enabled ? 'hover:bg-disabled-hover' : 'hover:bg-enabled-hover';
+	} else {
+		bgColor = enabled ? 'bg-enabled' : 'bg-disabled';
+		bgColorHover = enabled ? 'hover:bg-enabled-hover' : 'hover:bg-disabled-hover';
+	}
+
+	if (!enabled) {
+		bgColorHover = bgColor;
+	}
 </script>
 
 {#if enabled}

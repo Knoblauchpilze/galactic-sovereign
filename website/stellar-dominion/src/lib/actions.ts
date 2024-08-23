@@ -2,6 +2,7 @@ import { type ApiBuilding } from '$lib/buildings';
 
 export interface ApiBuildingAction {
 	readonly id: string;
+	readonly planet: string;
 	readonly building: string;
 	readonly desiredLevel: number;
 	readonly completedAt: Date;
@@ -10,12 +11,17 @@ export interface ApiBuildingAction {
 export class BuildingAction {
 	readonly id: string = '00000000-0000-0000-0000-000000000000';
 	readonly building: string = '00000000-0000-0000-0000-000000000000';
+	readonly planet: string = '00000000-0000-0000-0000-000000000000';
 	readonly desiredLevel: number = 0;
 	readonly completedAt: Date = new Date();
 
 	constructor(response: object) {
 		if ('id' in response && typeof response.id === 'string') {
 			this.id = response.id;
+		}
+
+		if ('planet' in response && typeof response.planet === 'string') {
+			this.planet = response.planet;
 		}
 
 		if ('building' in response && typeof response.building === 'string') {
@@ -34,6 +40,7 @@ export class BuildingAction {
 	public toJson(): ApiBuildingAction {
 		return {
 			id: this.id,
+			planet: this.planet,
 			building: this.building,
 			desiredLevel: this.desiredLevel,
 			completedAt: this.completedAt
@@ -63,6 +70,7 @@ export function parseBuildingActions(data: object[]): BuildingAction[] {
 export class UiBuildingAction {
 	readonly id: string = '';
 	readonly name: string = '';
+	readonly planet: string = '';
 	readonly nextLevel: number = 1;
 	readonly completedAt: Date = new Date();
 }
@@ -77,6 +85,7 @@ export function mapBuildingActionsToUiActions(
 			return {
 				id: action.id,
 				name: 'Unknown building',
+				planet: action.planet,
 				nextLevel: action.desiredLevel,
 				completedAt: action.completedAt
 			};
@@ -84,6 +93,7 @@ export function mapBuildingActionsToUiActions(
 			return {
 				id: action.id,
 				name: maybeBuilding.name,
+				planet: action.planet,
 				nextLevel: action.desiredLevel,
 				completedAt: action.completedAt
 			};
