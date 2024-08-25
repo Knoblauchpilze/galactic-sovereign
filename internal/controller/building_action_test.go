@@ -54,8 +54,9 @@ func TestBuildingActionEndpoints_GeneratesExpectedRoutes(t *testing.T) {
 		actualRoutes[r.Method()]++
 	}
 
-	assert.Equal(1, len(actualRoutes))
+	assert.Equal(2, len(actualRoutes))
 	assert.Equal(1, actualRoutes[http.MethodPost])
+	assert.Equal(1, actualRoutes[http.MethodDelete])
 }
 
 func Test_BuildingActionController(t *testing.T) {
@@ -77,12 +78,20 @@ func Test_BuildingActionController(t *testing.T) {
 				req:     httptest.NewRequest(http.MethodPost, "/", nil),
 				handler: createBuildingAction,
 			},
+			"deleteBuildingAction": {
+				req:     httptest.NewRequest(http.MethodDelete, "/", nil),
+				handler: deleteBuildingAction,
+			},
 		},
 
 		badIdTestCases: map[string]badIdTestCase[service.BuildingActionService]{
 			"createBuildingAction": {
 				req:     httptest.NewRequest(http.MethodPost, "/", nil),
 				handler: createBuildingAction,
+			},
+			"deleteBuildingAction": {
+				req:     httptest.NewRequest(http.MethodDelete, "/", nil),
+				handler: deleteBuildingAction,
 			},
 		},
 
@@ -108,6 +117,20 @@ func Test_BuildingActionController(t *testing.T) {
 				err:                errors.NewCode(db.DuplicatedKeySqlKey),
 				expectedHttpStatus: http.StatusConflict,
 			},
+			"deleteBuildingAction": {
+				req:                httptest.NewRequest(http.MethodDelete, "/", nil),
+				idAsRouteParam:     true,
+				handler:            deleteBuildingAction,
+				err:                errDefault,
+				expectedHttpStatus: http.StatusInternalServerError,
+			},
+			"deleteBuildingAction_notFound": {
+				req:                httptest.NewRequest(http.MethodDelete, "/", nil),
+				idAsRouteParam:     true,
+				handler:            deleteBuildingAction,
+				err:                errors.NewCode(db.NoMatchingSqlRows),
+				expectedHttpStatus: http.StatusNotFound,
+			},
 		},
 
 		successTestCases: map[string]successTestCase[service.BuildingActionService]{
@@ -116,6 +139,12 @@ func Test_BuildingActionController(t *testing.T) {
 				idAsRouteParam:     true,
 				handler:            createBuildingAction,
 				expectedHttpStatus: http.StatusCreated,
+			},
+			"deleteBuildingAction": {
+				req:                httptest.NewRequest(http.MethodDelete, "/", nil),
+				idAsRouteParam:     true,
+				handler:            deleteBuildingAction,
+				expectedHttpStatus: http.StatusNoContent,
 			},
 		},
 
@@ -141,6 +170,18 @@ func Test_BuildingActionController(t *testing.T) {
 					actual := m.inAction
 					assert.Equal(defaultUuid, actual.Planet)
 					assert.Equal(defaultBuildingId, actual.Building)
+				},
+			},
+			"deleteBuildingAction": {
+				req:            httptest.NewRequest(http.MethodDelete, "/", nil),
+				idAsRouteParam: true,
+				handler:        deleteBuildingAction,
+
+				verifyInteractions: func(s service.BuildingActionService, assert *require.Assertions) {
+					m := assertBuildingActionServiceIsAMock(s, assert)
+
+					assert.Equal(1, m.deleteCalled)
+					assert.Equal(defaultUuid, m.deleteId)
 				},
 			},
 		},

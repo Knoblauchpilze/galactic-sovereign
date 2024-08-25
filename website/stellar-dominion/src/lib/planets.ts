@@ -107,7 +107,7 @@ export async function createBuildingAction(
 	planet: string,
 	building: string
 ): Promise<ResponseEnvelope> {
-	const url = buildUrl('planets/' + planet + '/buildings');
+	const url = buildUrl('planets/' + planet + '/actions');
 	const body = JSON.stringify({ planet: planet, building: building });
 
 	const params = {
