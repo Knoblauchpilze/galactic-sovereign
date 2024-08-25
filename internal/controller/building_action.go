@@ -22,7 +22,7 @@ func BuildingActionEndpoints(service service.BuildingActionService) rest.Routes 
 	post := rest.NewResourceRoute(http.MethodPost, false, path, postHandler)
 	out = append(out, post)
 
-	deleteHandler := fromBuildingActionServiceAwareHttpHandler(createBuildingAction, service)
+	deleteHandler := fromBuildingActionServiceAwareHttpHandler(deleteBuildingAction, service)
 	delete := rest.NewResourceRoute(http.MethodDelete, false, "/actions", deleteHandler)
 	out = append(out, delete)
 
