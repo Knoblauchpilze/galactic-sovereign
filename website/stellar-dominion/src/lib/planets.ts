@@ -1,8 +1,9 @@
-import { ResponseEnvelope } from '$lib/responseEnvelope';
+import { ResponseEnvelope, createEmptySuccessResponseEnvelope } from '$lib/responseEnvelope';
 import { buildUrl, safeFetch } from '$lib/api';
 import { type PlanetResource, parsePlanetResources } from '$lib/resources';
 import { type PlanetBuilding, parsePlanetBuildings } from '$lib/buildings';
 import { type BuildingAction, type ApiBuildingAction, parseBuildingActions } from '$lib/actions';
+import HttpStatus from '$lib/httpStatuses';
 
 export interface ApiPlanet {
 	readonly id: string;
@@ -120,6 +121,30 @@ export async function createBuildingAction(
 	};
 
 	const response = await safeFetch(url, params);
+	const jsonContent = await response.json();
+
+	return new ResponseEnvelope(jsonContent);
+}
+
+export async function deleteBuildingAction(
+	apiKey: string,
+	action: string
+): Promise<ResponseEnvelope> {
+	const url = buildUrl('actions/' + action);
+
+	const params = {
+		method: 'DELETE',
+		headers: {
+			'X-Api-Key': apiKey
+		}
+	};
+
+	const response = await safeFetch(url, params);
+
+	if (response.status == HttpStatus.NO_CONTENT) {
+		return createEmptySuccessResponseEnvelope();
+	}
+
 	const jsonContent = await response.json();
 
 	return new ResponseEnvelope(jsonContent);
