@@ -212,7 +212,7 @@ WHERE
 				generateMock: func() db.Transaction {
 					return &mockTransaction{
 						execErrs: []error{
-							fmt.Errorf(`duplicate key value violates unique constraint "universe_name_key" (SQLSTATE 23505)`),
+							fmt.Errorf(`duplicate key value violates unique constraint "building_action_planet_key" (SQLSTATE 23505)`),
 						},
 					}
 				},
