@@ -39,7 +39,7 @@ CREATE TABLE user_limit (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
   FOREIGN KEY (api_user) REFERENCES api_user(id),
-  UNIQUE(name, api_user)
+  UNIQUE (name, api_user)
 );
 
 CREATE TRIGGER trigger_user_limit_updated_at
