@@ -19,7 +19,7 @@ CREATE TABLE building_action_cost (
   action uuid NOT NULL,
   resource uuid NOT NULL,
   amount integer NOT NULL,
-  PRIMARY KEY (action, resource),
   FOREIGN KEY (action) REFERENCES building_action(id),
-  FOREIGN KEY (resource) REFERENCES resource(id)
+  FOREIGN KEY (resource) REFERENCES resource(id),
+  UNIQUE (action, resource)
 );
