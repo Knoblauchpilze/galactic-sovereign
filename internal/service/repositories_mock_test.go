@@ -187,6 +187,8 @@ type mockBuildingActionCostRepository struct {
 
 	createCalled              int
 	createdBuildingActionCost persistence.BuildingActionCost
+	deleteForActionCalled     int
+	deleteForActionId         uuid.UUID
 }
 
 func (m *mockBuildingActionCostRepository) Create(ctx context.Context, tx db.Transaction, cost persistence.BuildingActionCost) (persistence.BuildingActionCost, error) {
@@ -194,6 +196,13 @@ func (m *mockBuildingActionCostRepository) Create(ctx context.Context, tx db.Tra
 	m.createdBuildingActionCost = cost
 
 	return m.actionCost, m.err
+}
+
+func (m *mockBuildingActionCostRepository) DeleteForAction(ctx context.Context, tx db.Transaction, action uuid.UUID) error {
+	m.deleteForActionCalled++
+	m.deleteForActionId = action
+
+	return m.err
 }
 
 type mockBuildingCostRepository struct {
