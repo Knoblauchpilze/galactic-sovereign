@@ -27,6 +27,11 @@ var defaultBuildingAction = persistence.BuildingAction{
 	CreatedAt:    testDate,
 	CompletedAt:  testDate,
 }
+var defaultBuildingActionCost = persistence.BuildingActionCost{
+	Action:   defaultBuildingActionId,
+	Resource: metalResourceId,
+	Amount:   36,
+}
 
 var metalResourceId = uuid.MustParse("8ed8d1f2-f39a-404b-96e1-9805ae6cd175")
 var crystalResourceId = uuid.MustParse("5caf0c30-3417-49d3-94ac-8476aaf460c2")
@@ -220,13 +225,73 @@ func Test_BuildingActionService(t *testing.T) {
 					assert.Equal(1, m.listForBuildingCalled)
 				},
 			},
+			"create_buildingActionCost": {
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					validator := func(_ persistence.BuildingAction, _ []persistence.PlanetResource, _ []persistence.PlanetBuilding, _ []persistence.BuildingCost) error {
+						return nil
+					}
+					consolidator := func(action persistence.BuildingAction, _ []persistence.PlanetBuilding, _ []persistence.Resource, _ []persistence.BuildingCost) (persistence.BuildingAction, []persistence.BuildingActionCost, error) {
+						return action, []persistence.BuildingActionCost{defaultBuildingActionCost}, nil
+					}
+					s := newBuildingActionService(pool, repos, validator, consolidator)
+					_, err := s.Create(ctx, defaultBuildingActionDtoRequest)
+					return err
+				},
+				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
+					m := assertBuildingActionCostRepoIsAMock(repos, assert)
+
+					assert.Equal(1, m.createCalled)
+					assert.Equal(defaultBuildingActionCost, m.createdBuildingActionCost)
+				},
+			},
+			"create_buildingActionCostFails": {
+				generateRepositoriesMock: func() repositories.Repositories {
+					return repositories.Repositories{
+						Resource: &mockResourceRepository{
+							resources: defaultResources,
+						},
+						PlanetResource: &mockPlanetResourceRepository{
+							planetResource: defaultPlanetResource,
+						},
+						PlanetBuilding: &mockPlanetBuildingRepository{
+							planetBuilding: defaultPlanetBuilding,
+						},
+						BuildingCost: &mockBuildingCostRepository{
+							buildingCost: defaultBuildingCost,
+						},
+						BuildingAction: &mockBuildingActionRepository{
+							action: defaultBuildingAction,
+						},
+						BuildingActionCost: &mockBuildingActionCostRepository{
+							err: errDefault,
+						},
+					}
+				},
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					validator := func(_ persistence.BuildingAction, _ []persistence.PlanetResource, _ []persistence.PlanetBuilding, _ []persistence.BuildingCost) error {
+						return nil
+					}
+					consolidator := func(action persistence.BuildingAction, _ []persistence.PlanetBuilding, _ []persistence.Resource, _ []persistence.BuildingCost) (persistence.BuildingAction, []persistence.BuildingActionCost, error) {
+						return action, []persistence.BuildingActionCost{defaultBuildingActionCost}, nil
+					}
+					s := newBuildingActionService(pool, repos, validator, consolidator)
+					_, err := s.Create(ctx, defaultBuildingActionDtoRequest)
+					return err
+				},
+				expectedError: errDefault,
+				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
+					m := assertBuildingActionCostRepoIsAMock(repos, assert)
+
+					assert.Equal(1, m.createCalled)
+				},
+			},
 			"create_validationFails": {
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
 					validator := func(_ persistence.BuildingAction, _ []persistence.PlanetResource, _ []persistence.PlanetBuilding, _ []persistence.BuildingCost) error {
 						return errDefault
 					}
-					consolidator := func(action persistence.BuildingAction, _ []persistence.PlanetBuilding, _ []persistence.Resource, _ []persistence.BuildingCost) (persistence.BuildingAction, error) {
-						return action, nil
+					consolidator := func(action persistence.BuildingAction, _ []persistence.PlanetBuilding, _ []persistence.Resource, _ []persistence.BuildingCost) (persistence.BuildingAction, []persistence.BuildingActionCost, error) {
+						return action, []persistence.BuildingActionCost{}, nil
 					}
 					s := newBuildingActionService(pool, repos, validator, consolidator)
 					_, err := s.Create(ctx, defaultBuildingActionDtoRequest)
@@ -239,8 +304,8 @@ func Test_BuildingActionService(t *testing.T) {
 					validator := func(_ persistence.BuildingAction, _ []persistence.PlanetResource, _ []persistence.PlanetBuilding, _ []persistence.BuildingCost) error {
 						return nil
 					}
-					consolidator := func(action persistence.BuildingAction, _ []persistence.PlanetBuilding, _ []persistence.Resource, _ []persistence.BuildingCost) (persistence.BuildingAction, error) {
-						return action, errDefault
+					consolidator := func(action persistence.BuildingAction, _ []persistence.PlanetBuilding, _ []persistence.Resource, _ []persistence.BuildingCost) (persistence.BuildingAction, []persistence.BuildingActionCost, error) {
+						return action, []persistence.BuildingActionCost{}, errDefault
 					}
 					s := newBuildingActionService(pool, repos, validator, consolidator)
 					_, err := s.Create(ctx, defaultBuildingActionDtoRequest)
@@ -345,6 +410,9 @@ func generateValidBuildingActionRepositoryMock() repositories.Repositories {
 		BuildingAction: &mockBuildingActionRepository{
 			action: defaultBuildingAction,
 		},
+		BuildingActionCost: &mockBuildingActionCostRepository{
+			actionCost: defaultBuildingActionCost,
+		},
 	}
 }
 
@@ -354,4 +422,12 @@ func generateErrorBuildingActionRepositoryMock() repositories.Repositories {
 			err: errDefault,
 		},
 	}
+}
+
+func assertBuildingActionCostRepoIsAMock(repos repositories.Repositories, assert *require.Assertions) *mockBuildingActionCostRepository {
+	m, ok := repos.BuildingActionCost.(*mockBuildingActionCostRepository)
+	if !ok {
+		assert.Fail("Provided building action cost repository is not a mock")
+	}
+	return m
 }
