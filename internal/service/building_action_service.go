@@ -115,5 +115,10 @@ func (s *buildingActionServiceImpl) Delete(ctx context.Context, id uuid.UUID) er
 	}
 	defer tx.Close(ctx)
 
+	err = s.buildingActionCostRepo.DeleteForAction(ctx, tx, id)
+	if err != nil {
+		return err
+	}
+
 	return s.buildingActionRepo.Delete(ctx, tx, id)
 }

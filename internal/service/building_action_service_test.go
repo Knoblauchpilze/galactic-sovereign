@@ -340,7 +340,7 @@ func Test_BuildingActionService(t *testing.T) {
 				},
 				expectedError: errDefault,
 			},
-			"delete": {
+			"delete_buildingAction": {
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
 					s := NewBuildingActionService(pool, repos)
 					return s.Delete(ctx, defaultBuildingActionId)
@@ -350,6 +350,57 @@ func Test_BuildingActionService(t *testing.T) {
 
 					assert.Equal(1, m.deleteCalled)
 					assert.Equal(defaultBuildingActionId, m.deleteId)
+				},
+			},
+			"delete_buildingActionFails": {
+				generateRepositoriesMock: func() repositories.Repositories {
+					return repositories.Repositories{
+						BuildingAction: &mockBuildingActionRepository{
+							errs: []error{errDefault},
+						},
+						BuildingActionCost: &mockBuildingActionCostRepository{},
+					}
+				},
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewBuildingActionService(pool, repos)
+					return s.Delete(ctx, defaultBuildingActionId)
+				},
+				expectedError: errDefault,
+				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
+					m := assertBuildingActionRepoIsAMock(repos, assert)
+
+					assert.Equal(1, m.deleteCalled)
+				},
+			},
+			"delete_buildingActionCost": {
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewBuildingActionService(pool, repos)
+					return s.Delete(ctx, defaultBuildingActionId)
+				},
+				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
+					m := assertBuildingActionCostRepoIsAMock(repos, assert)
+
+					assert.Equal(1, m.deleteForActionCalled)
+					assert.Equal(defaultBuildingActionId, m.deleteForActionId)
+				},
+			},
+			"delete_buildingActionCostFails": {
+				generateRepositoriesMock: func() repositories.Repositories {
+					return repositories.Repositories{
+						BuildingActionCost: &mockBuildingActionCostRepository{
+							err: errDefault,
+						},
+					}
+				},
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewBuildingActionService(pool, repos)
+					return s.Delete(ctx, defaultBuildingActionId)
+				},
+				expectedError: errDefault,
+				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
+					m := assertBuildingActionCostRepoIsAMock(repos, assert)
+
+					assert.Equal(1, m.deleteForActionCalled)
 				},
 			},
 		},
