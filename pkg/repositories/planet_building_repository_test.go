@@ -6,8 +6,10 @@ import (
 	"time"
 
 	"github.com/KnoblauchPilze/user-service/pkg/db"
+	"github.com/KnoblauchPilze/user-service/pkg/errors"
 	"github.com/KnoblauchPilze/user-service/pkg/persistence"
 	"github.com/google/uuid"
+	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -177,6 +179,39 @@ WHERE
 						&time.Time{},
 						&dummyInt,
 					},
+				},
+			},
+		},
+
+		dbErrorTestCases: map[string]dbTransactionErrorTestCase{
+			"update_noRowsAffected": {
+				generateMock: func() db.Transaction {
+					return &mockTransaction{
+						affectedRows: []int{0},
+					}
+				},
+				handler: func(ctx context.Context, tx db.Transaction) error {
+					s := NewPlanetBuildingRepository()
+					_, err := s.Update(ctx, tx, defaultUpdatedPlanetBuilding)
+					return err
+				},
+				verifyError: func(err error, assert *require.Assertions) {
+					assert.True(errors.IsErrorWithCode(err, db.OptimisticLockException))
+				},
+			},
+			"update_moreThanOneRowAffected": {
+				generateMock: func() db.Transaction {
+					return &mockTransaction{
+						affectedRows: []int{2},
+					}
+				},
+				handler: func(ctx context.Context, tx db.Transaction) error {
+					s := NewPlanetBuildingRepository()
+					_, err := s.Update(ctx, tx, defaultUpdatedPlanetBuilding)
+					return err
+				},
+				verifyError: func(err error, assert *require.Assertions) {
+					assert.True(errors.IsErrorWithCode(err, db.MoreThanOneMatchingSqlRows))
 				},
 			},
 		},
