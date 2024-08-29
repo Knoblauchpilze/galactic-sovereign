@@ -179,6 +179,23 @@ func (m *mockBuildingActionRepository) DeleteForPlanet(ctx context.Context, tx d
 	return *err
 }
 
+type mockBuildingActionCostRepository struct {
+	repositories.BuildingActionCostRepository
+
+	actionCost persistence.BuildingActionCost
+	err        error
+
+	createCalled              int
+	createdBuildingActionCost persistence.BuildingActionCost
+}
+
+func (m *mockBuildingActionCostRepository) Create(ctx context.Context, tx db.Transaction, cost persistence.BuildingActionCost) (persistence.BuildingActionCost, error) {
+	m.createCalled++
+	m.createdBuildingActionCost = cost
+
+	return m.actionCost, m.err
+}
+
 type mockBuildingCostRepository struct {
 	repositories.BuildingCostRepository
 

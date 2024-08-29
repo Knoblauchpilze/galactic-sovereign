@@ -17,7 +17,7 @@ type BuildingActionService interface {
 }
 
 type buildingActionValidator func(action persistence.BuildingAction, resources []persistence.PlanetResource, buildings []persistence.PlanetBuilding, costs []persistence.BuildingCost) error
-type buildingActionConsolidator func(action persistence.BuildingAction, buildings []persistence.PlanetBuilding, resources []persistence.Resource, costs []persistence.BuildingCost) (persistence.BuildingAction, error)
+type buildingActionConsolidator func(action persistence.BuildingAction, buildings []persistence.PlanetBuilding, resources []persistence.Resource, costs []persistence.BuildingCost) (persistence.BuildingAction, []persistence.BuildingActionCost, error)
 
 type buildingActionServiceImpl struct {
 	conn db.ConnectionPool
@@ -25,11 +25,12 @@ type buildingActionServiceImpl struct {
 	validator    buildingActionValidator
 	consolidator buildingActionConsolidator
 
-	resourceRepo       repositories.ResourceRepository
-	planetResourceRepo repositories.PlanetResourceRepository
-	planetBuildingRepo repositories.PlanetBuildingRepository
-	buildingCostRepo   repositories.BuildingCostRepository
-	buildingActionRepo repositories.BuildingActionRepository
+	resourceRepo           repositories.ResourceRepository
+	planetResourceRepo     repositories.PlanetResourceRepository
+	planetBuildingRepo     repositories.PlanetBuildingRepository
+	buildingCostRepo       repositories.BuildingCostRepository
+	buildingActionRepo     repositories.BuildingActionRepository
+	buildingActionCostRepo repositories.BuildingActionCostRepository
 }
 
 func NewBuildingActionService(conn db.ConnectionPool, repos repositories.Repositories) BuildingActionService {
@@ -43,11 +44,12 @@ func newBuildingActionService(conn db.ConnectionPool, repos repositories.Reposit
 		validator:    validator,
 		consolidator: consolidator,
 
-		resourceRepo:       repos.Resource,
-		planetResourceRepo: repos.PlanetResource,
-		planetBuildingRepo: repos.PlanetBuilding,
-		buildingCostRepo:   repos.BuildingCost,
-		buildingActionRepo: repos.BuildingAction,
+		resourceRepo:           repos.Resource,
+		planetResourceRepo:     repos.PlanetResource,
+		planetBuildingRepo:     repos.PlanetBuilding,
+		buildingCostRepo:       repos.BuildingCost,
+		buildingActionRepo:     repos.BuildingAction,
+		buildingActionCostRepo: repos.BuildingActionCost,
 	}
 }
 
@@ -80,7 +82,7 @@ func (s *buildingActionServiceImpl) Create(ctx context.Context, actionDto commun
 		return communication.BuildingActionDtoResponse{}, err
 	}
 
-	action, err = s.consolidator(action, buildings, resources, costs)
+	action, actionCosts, err := s.consolidator(action, buildings, resources, costs)
 	if err != nil {
 		return communication.BuildingActionDtoResponse{}, err
 	}
@@ -93,6 +95,13 @@ func (s *buildingActionServiceImpl) Create(ctx context.Context, actionDto commun
 	action, err = s.buildingActionRepo.Create(ctx, tx, action)
 	if err != nil {
 		return communication.BuildingActionDtoResponse{}, err
+	}
+
+	for _, actionCost := range actionCosts {
+		_, err = s.buildingActionCostRepo.Create(ctx, tx, actionCost)
+		if err != nil {
+			return communication.BuildingActionDtoResponse{}, err
+		}
 	}
 
 	out := communication.ToBuildingActionDtoResponse(action)
