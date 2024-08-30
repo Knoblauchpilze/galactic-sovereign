@@ -5,6 +5,10 @@ import (
 )
 
 const (
+	noSuchResource            errors.ErrorCode = 240
+	FailedToCreateAction      errors.ErrorCode = 241
+	ConflictingStateForAction errors.ErrorCode = 242
+
 	InvalidCredentials errors.ErrorCode = 250
 
 	UserNotAuthenticated  errors.ErrorCode = 251

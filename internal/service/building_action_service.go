@@ -5,6 +5,7 @@ import (
 
 	"github.com/KnoblauchPilze/user-service/pkg/communication"
 	"github.com/KnoblauchPilze/user-service/pkg/db"
+	"github.com/KnoblauchPilze/user-service/pkg/errors"
 	"github.com/KnoblauchPilze/user-service/pkg/game"
 	"github.com/KnoblauchPilze/user-service/pkg/persistence"
 	"github.com/KnoblauchPilze/user-service/pkg/repositories"
@@ -62,21 +63,19 @@ func (s *buildingActionServiceImpl) Create(ctx context.Context, actionDto commun
 	}
 	defer tx.Close(ctx)
 
-	action, costs, err := s.consolidateAction(ctx, tx, action)
+	planetResources, err := s.planetResourceRepo.ListForPlanet(ctx, tx, action.Planet)
 	if err != nil {
 		return communication.BuildingActionDtoResponse{}, err
 	}
 
-	action, err = s.buildingActionRepo.Create(ctx, tx, action)
+	action, costs, err := s.consolidateAction(ctx, tx, action, planetResources)
 	if err != nil {
 		return communication.BuildingActionDtoResponse{}, err
 	}
 
-	for _, cost := range costs {
-		_, err = s.buildingActionCostRepo.Create(ctx, tx, cost)
-		if err != nil {
-			return communication.BuildingActionDtoResponse{}, err
-		}
+	action, err = s.createAction(ctx, tx, action, costs, planetResources)
+	if err != nil {
+		return communication.BuildingActionDtoResponse{}, err
 	}
 
 	out := communication.ToBuildingActionDtoResponse(action)
@@ -98,15 +97,10 @@ func (s *buildingActionServiceImpl) Delete(ctx context.Context, id uuid.UUID) er
 	return s.buildingActionRepo.Delete(ctx, tx, id)
 }
 
-func (s *buildingActionServiceImpl) consolidateAction(ctx context.Context, tx db.Transaction, action persistence.BuildingAction) (persistence.BuildingAction, []persistence.BuildingActionCost, error) {
+func (s *buildingActionServiceImpl) consolidateAction(ctx context.Context, tx db.Transaction, action persistence.BuildingAction, planetResources []persistence.PlanetResource) (persistence.BuildingAction, []persistence.BuildingActionCost, error) {
 	var costs []persistence.BuildingActionCost
 
 	resources, err := s.resourceRepo.List(ctx, tx)
-	if err != nil {
-		return action, costs, err
-	}
-
-	planetResources, err := s.planetResourceRepo.ListForPlanet(ctx, tx, action.Planet)
 	if err != nil {
 		return action, costs, err
 	}
@@ -131,4 +125,53 @@ func (s *buildingActionServiceImpl) consolidateAction(ctx context.Context, tx db
 	err = s.validator(action, planetResources, buildings, costs)
 
 	return action, costs, err
+}
+
+func findResourceForCost(resources []persistence.PlanetResource, cost persistence.BuildingActionCost) (persistence.PlanetResource, error) {
+	for _, resource := range resources {
+		if resource.Resource == cost.Resource {
+			return resource, nil
+		}
+	}
+
+	return persistence.PlanetResource{}, errors.NewCode(noSuchResource)
+}
+
+func (s *buildingActionServiceImpl) createAction(ctx context.Context, tx db.Transaction, action persistence.BuildingAction, costs []persistence.BuildingActionCost, planetResources []persistence.PlanetResource) (persistence.BuildingAction, error) {
+	action, err := s.buildingActionRepo.Create(ctx, tx, action)
+	if err != nil {
+		return action, err
+	}
+
+	for _, cost := range costs {
+		resource, err := findResourceForCost(planetResources, cost)
+		if err != nil {
+			if errors.IsErrorWithCode(err, noSuchResource) {
+				return action, errors.NewCode(FailedToCreateAction)
+			}
+
+			return action, err
+		}
+
+		planetResource := resource
+		planetResource.Amount -= float64(cost.Amount)
+
+		_, err = s.planetResourceRepo.Update(ctx, tx, planetResource)
+		if err != nil {
+			if errors.IsErrorWithCode(err, db.OptimisticLockException) {
+				return action, errors.NewCode(ConflictingStateForAction)
+			}
+
+			return action, err
+		}
+	}
+
+	for _, cost := range costs {
+		_, err = s.buildingActionCostRepo.Create(ctx, tx, cost)
+		if err != nil {
+			return action, err
+		}
+	}
+
+	return action, nil
 }
