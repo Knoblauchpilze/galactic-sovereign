@@ -12,10 +12,6 @@
 
 	let remaining = msToTimeStringOrFinished(remainingMs);
 	let textColor = remainingMs <= 0 ? 'text-enabled' : 'text-white';
-
-	console.log('completed at: ', action.completedAt.toString());
-	console.log('remaining ms: ', remainingMs);
-	console.log('remaining: ', remaining);
 </script>
 
 <div class="p-4 m-2 bg-overlay">
