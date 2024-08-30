@@ -20,7 +20,7 @@ func findResourceByName(name string, resources []persistence.Resource) *persiste
 	return nil
 }
 
-func findResourceRequirementByName(name string, resources []persistence.Resource, costs []persistence.BuildingCost) (float64, error) {
+func findResourceRequirementByName(name string, resources []persistence.Resource, costs []persistence.BuildingActionCost) (float64, error) {
 	resource := findResourceByName(name, resources)
 	if resource == nil {
 		return 0.0, errors.NewCode(NoSuchResource)
@@ -28,14 +28,14 @@ func findResourceRequirementByName(name string, resources []persistence.Resource
 
 	for _, cost := range costs {
 		if cost.Resource == resource.Id {
-			return float64(cost.Cost), nil
+			return float64(cost.Amount), nil
 		}
 	}
 
 	return 0.0, nil
 }
 
-func buildingCompletionTimeFromCost(resources []persistence.Resource, costs []persistence.BuildingCost) (time.Duration, error) {
+func buildingCompletionTimeFromCost(resources []persistence.Resource, costs []persistence.BuildingActionCost) (time.Duration, error) {
 	// https://ogame.fandom.com/wiki/Buildings
 	metal, err := findResourceRequirementByName("metal", resources, costs)
 	if err != nil {

@@ -16,14 +16,14 @@ type BuildingActionService interface {
 	Delete(ctx context.Context, id uuid.UUID) error
 }
 
-type buildingActionValidator func(action persistence.BuildingAction, resources []persistence.PlanetResource, buildings []persistence.PlanetBuilding, costs []persistence.BuildingCost) error
-type buildingActionConsolidator func(action persistence.BuildingAction, buildings []persistence.PlanetBuilding, resources []persistence.Resource, costs []persistence.BuildingCost) (persistence.BuildingAction, []persistence.BuildingActionCost, error)
+type buildingActionConsolidator func(action persistence.BuildingAction, buildings []persistence.PlanetBuilding, resources []persistence.Resource, costs []persistence.BuildingActionCost) (persistence.BuildingAction, error)
+type buildingActionValidator func(action persistence.BuildingAction, resources []persistence.PlanetResource, buildings []persistence.PlanetBuilding, costs []persistence.BuildingActionCost) error
 
 type buildingActionServiceImpl struct {
 	conn db.ConnectionPool
 
-	validator    buildingActionValidator
 	consolidator buildingActionConsolidator
+	validator    buildingActionValidator
 
 	resourceRepo           repositories.ResourceRepository
 	planetResourceRepo     repositories.PlanetResourceRepository
@@ -34,15 +34,15 @@ type buildingActionServiceImpl struct {
 }
 
 func NewBuildingActionService(conn db.ConnectionPool, repos repositories.Repositories) BuildingActionService {
-	return newBuildingActionService(conn, repos, game.ValidateBuildingAction, game.ConsolidateBuildingAction)
+	return newBuildingActionService(conn, repos, game.ConsolidateBuildingAction, game.ValidateBuildingAction)
 }
 
-func newBuildingActionService(conn db.ConnectionPool, repos repositories.Repositories, validator buildingActionValidator, consolidator buildingActionConsolidator) BuildingActionService {
+func newBuildingActionService(conn db.ConnectionPool, repos repositories.Repositories, consolidator buildingActionConsolidator, validator buildingActionValidator) BuildingActionService {
 	return &buildingActionServiceImpl{
 		conn: conn,
 
-		validator:    validator,
 		consolidator: consolidator,
+		validator:    validator,
 
 		resourceRepo:           repos.Resource,
 		planetResourceRepo:     repos.PlanetResource,
@@ -121,12 +121,14 @@ func (s *buildingActionServiceImpl) consolidateAction(ctx context.Context, tx db
 		return action, costs, err
 	}
 
-	action, costs, err = s.consolidator(action, buildings, resources, baseCosts)
+	costs = game.DetermineBuildingActionCost(action, baseCosts)
+
+	action, err = s.consolidator(action, buildings, resources, costs)
 	if err != nil {
 		return action, costs, err
 	}
 
-	err = s.validator(action, planetResources, buildings, baseCosts)
+	err = s.validator(action, planetResources, buildings, costs)
 
 	return action, costs, err
 }
