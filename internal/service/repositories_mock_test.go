@@ -119,6 +119,8 @@ type mockBuildingActionRepository struct {
 
 	createCalled                   int
 	createdBuildingAction          persistence.BuildingAction
+	getCalled                      int
+	getId                          uuid.UUID
 	listForPlanetId                uuid.UUID
 	listForPlanetCalled            int
 	listBeforeCompletionTimeCalled int
@@ -132,6 +134,16 @@ type mockBuildingActionRepository struct {
 func (m *mockBuildingActionRepository) Create(ctx context.Context, tx db.Transaction, action persistence.BuildingAction) (persistence.BuildingAction, error) {
 	m.createCalled++
 	m.createdBuildingAction = action
+
+	err := getValueToReturnOr(m.calls, m.errs, nil)
+	m.calls++
+
+	return m.action, *err
+}
+
+func (m *mockBuildingActionRepository) Get(ctx context.Context, tx db.Transaction, id uuid.UUID) (persistence.BuildingAction, error) {
+	m.getCalled++
+	m.getId = id
 
 	err := getValueToReturnOr(m.calls, m.errs, nil)
 	m.calls++
@@ -187,6 +199,8 @@ type mockBuildingActionCostRepository struct {
 
 	createCalled              int
 	createdBuildingActionCost persistence.BuildingActionCost
+	listForActionCalled       int
+	listForActionId           uuid.UUID
 	deleteForActionCalled     int
 	deleteForActionId         uuid.UUID
 }
@@ -196,6 +210,12 @@ func (m *mockBuildingActionCostRepository) Create(ctx context.Context, tx db.Tra
 	m.createdBuildingActionCost = cost
 
 	return m.actionCost, m.err
+}
+
+func (m *mockBuildingActionCostRepository) ListForAction(ctx context.Context, tx db.Transaction, action uuid.UUID) ([]persistence.BuildingActionCost, error) {
+	m.listForActionCalled++
+	m.listForActionId = action
+	return []persistence.BuildingActionCost{m.actionCost}, m.err
 }
 
 func (m *mockBuildingActionCostRepository) DeleteForAction(ctx context.Context, tx db.Transaction, action uuid.UUID) error {
