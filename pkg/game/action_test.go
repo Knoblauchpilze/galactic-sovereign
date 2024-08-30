@@ -12,6 +12,42 @@ import (
 
 var defaultId = uuid.MustParse("60043fb4-d4bc-4bf0-95fd-dcdaf09a6acc")
 
+func TestDetermineBuildingActionCost(t *testing.T) {
+	assert := assert.New(t)
+
+	action := persistence.BuildingAction{
+		Id: uuid.MustParse("7f548f48-2bac-46f0-b655-56487472b5db"),
+	}
+	baseCosts := []persistence.BuildingCost{
+		{
+			Building: defaultId,
+			Resource: defaultMetalId,
+			Cost:     3,
+		},
+		{
+			Building: defaultId,
+			Resource: defaultCrystalId,
+			Cost:     6,
+		},
+	}
+
+	costs := DetermineBuildingActionCost(action, baseCosts)
+
+	assert.Equal(2, len(costs))
+	expectedCost := persistence.BuildingActionCost{
+		Action:   action.Id,
+		Resource: defaultMetalId,
+		Amount:   3,
+	}
+	assert.Equal(expectedCost, costs[0])
+	expectedCost = persistence.BuildingActionCost{
+		Action:   action.Id,
+		Resource: defaultCrystalId,
+		Amount:   6,
+	}
+	assert.Equal(expectedCost, costs[1])
+}
+
 func TestConsolidateBuildingAction_WhenNoBuilding_SetsDefault(t *testing.T) {
 	assert := assert.New(t)
 
@@ -19,9 +55,9 @@ func TestConsolidateBuildingAction_WhenNoBuilding_SetsDefault(t *testing.T) {
 		Building: defaultId,
 	}
 	buildings := []persistence.PlanetBuilding{}
-	costs := []persistence.BuildingCost{}
+	costs := []persistence.BuildingActionCost{}
 
-	actual, _, err := ConsolidateBuildingAction(action, buildings, defaultResources, costs)
+	actual, err := ConsolidateBuildingAction(action, buildings, defaultResources, costs)
 
 	assert.Nil(err)
 	assert.Equal(0, actual.CurrentLevel)
@@ -35,25 +71,25 @@ func TestConsolidateBuildingAction_SetsCompletionTime(t *testing.T) {
 		Building: defaultId,
 	}
 	buildings := []persistence.PlanetBuilding{}
-	costs := []persistence.BuildingCost{
+	costs := []persistence.BuildingActionCost{
 		{
 			Resource: defaultMetalId,
-			Cost:     1250,
+			Amount:   1250,
 		},
 		{
 			Resource: defaultCrystalId,
-			Cost:     3750,
+			Amount:   3750,
 		},
 	}
 
-	actual, _, err := ConsolidateBuildingAction(action, buildings, defaultResources, costs)
+	actual, err := ConsolidateBuildingAction(action, buildings, defaultResources, costs)
 
 	assert.Nil(err)
 	expectedCompletionTime := actual.CreatedAt.Add(2 * time.Hour)
 	assert.Equal(expectedCompletionTime, actual.CompletedAt)
 }
 
-func TestConsolidateBuildingAction_WhenBuildingExists_SetCorrectLevel(t *testing.T) {
+func TestConsolidateBuildingAction_WhenBuildingExists_SetsCorrectLevel(t *testing.T) {
 	assert := assert.New(t)
 
 	action := persistence.BuildingAction{
@@ -65,57 +101,13 @@ func TestConsolidateBuildingAction_WhenBuildingExists_SetCorrectLevel(t *testing
 			Level:    26,
 		},
 	}
-	costs := []persistence.BuildingCost{}
+	costs := []persistence.BuildingActionCost{}
 
-	actual, _, err := ConsolidateBuildingAction(action, buildings, defaultResources, costs)
+	actual, err := ConsolidateBuildingAction(action, buildings, defaultResources, costs)
 
 	assert.Nil(err)
 	assert.Equal(26, actual.CurrentLevel)
 	assert.Equal(27, actual.DesiredLevel)
-}
-
-func TestConsolidateBuildingAction_ReturnsExpectedCosts(t *testing.T) {
-	assert := assert.New(t)
-
-	action := persistence.BuildingAction{
-		Id:       uuid.MustParse("7f548f48-2bac-46f0-b655-56487472b5db"),
-		Building: defaultId,
-	}
-	buildings := []persistence.PlanetBuilding{
-		{
-			Building: defaultId,
-			Level:    26,
-		},
-	}
-	costs := []persistence.BuildingCost{
-		{
-			Building: defaultId,
-			Resource: defaultMetalId,
-			Cost:     3,
-		},
-		{
-			Building: defaultId,
-			Resource: defaultCrystalId,
-			Cost:     6,
-		},
-	}
-
-	_, actionCosts, err := ConsolidateBuildingAction(action, buildings, defaultResources, costs)
-
-	assert.Nil(err)
-	assert.Equal(2, len(actionCosts))
-	expectedCost := persistence.BuildingActionCost{
-		Action:   action.Id,
-		Resource: defaultMetalId,
-		Amount:   3,
-	}
-	assert.Equal(expectedCost, actionCosts[0])
-	expectedCost = persistence.BuildingActionCost{
-		Action:   action.Id,
-		Resource: defaultCrystalId,
-		Amount:   6,
-	}
-	assert.Equal(expectedCost, actionCosts[1])
 }
 
 func TestValidateActionBuilding_NoSuchBuilding(t *testing.T) {
@@ -152,10 +144,10 @@ func TestValidateActionCost_NoSuchResource(t *testing.T) {
 	assert := assert.New(t)
 
 	resources := []persistence.PlanetResource{}
-	costs := []persistence.BuildingCost{
+	costs := []persistence.BuildingActionCost{
 		{
 			Resource: defaultId,
-			Cost:     1,
+			Amount:   1,
 		},
 	}
 
@@ -173,10 +165,10 @@ func TestValidateActionCost_TooLittleResource(t *testing.T) {
 			Amount:   1,
 		},
 	}
-	costs := []persistence.BuildingCost{
+	costs := []persistence.BuildingActionCost{
 		{
 			Resource: defaultId,
-			Cost:     2,
+			Amount:   2,
 		},
 	}
 
@@ -194,10 +186,10 @@ func TestValidateActionCost_ExactlyEnoughResource(t *testing.T) {
 			Amount:   2,
 		},
 	}
-	costs := []persistence.BuildingCost{
+	costs := []persistence.BuildingActionCost{
 		{
 			Resource: defaultId,
-			Cost:     2,
+			Amount:   2,
 		},
 	}
 
@@ -215,10 +207,10 @@ func TestValidateActionCost_MoreThanEnoughResource(t *testing.T) {
 			Amount:   2.5,
 		},
 	}
-	costs := []persistence.BuildingCost{
+	costs := []persistence.BuildingActionCost{
 		{
 			Resource: defaultId,
-			Cost:     2,
+			Amount:   2,
 		},
 	}
 
@@ -240,10 +232,10 @@ func TestValidateBuildingAction_BuildingUnknown(t *testing.T) {
 		},
 	}
 	buildings := []persistence.PlanetBuilding{}
-	costs := []persistence.BuildingCost{
+	costs := []persistence.BuildingActionCost{
 		{
 			Resource: defaultId,
-			Cost:     4,
+			Amount:   4,
 		},
 	}
 
@@ -269,10 +261,10 @@ func TestValidateBuildingAction_CostFails(t *testing.T) {
 			Building: defaultId,
 		},
 	}
-	costs := []persistence.BuildingCost{
+	costs := []persistence.BuildingActionCost{
 		{
 			Resource: defaultId,
-			Cost:     4,
+			Amount:   4,
 		},
 	}
 
@@ -298,10 +290,10 @@ func TestValidateBuildingAction(t *testing.T) {
 			Building: defaultId,
 		},
 	}
-	costs := []persistence.BuildingCost{
+	costs := []persistence.BuildingActionCost{
 		{
 			Resource: defaultId,
-			Cost:     1,
+			Amount:   1,
 		},
 	}
 

@@ -6,7 +6,21 @@ import (
 	"github.com/google/uuid"
 )
 
-func ConsolidateBuildingAction(action persistence.BuildingAction, buildings []persistence.PlanetBuilding, resources []persistence.Resource, costs []persistence.BuildingCost) (persistence.BuildingAction, []persistence.BuildingActionCost, error) {
+func DetermineBuildingActionCost(action persistence.BuildingAction, baseCosts []persistence.BuildingCost) []persistence.BuildingActionCost {
+	var costs []persistence.BuildingActionCost
+	for _, baseCost := range baseCosts {
+		cost := persistence.BuildingActionCost{
+			Action:   action.Id,
+			Resource: baseCost.Resource,
+			Amount:   baseCost.Cost,
+		}
+		costs = append(costs, cost)
+	}
+
+	return costs
+}
+
+func ConsolidateBuildingAction(action persistence.BuildingAction, buildings []persistence.PlanetBuilding, resources []persistence.Resource, costs []persistence.BuildingActionCost) (persistence.BuildingAction, error) {
 	for _, building := range buildings {
 		if building.Building == action.Building {
 			action.CurrentLevel = building.Level
@@ -19,20 +33,10 @@ func ConsolidateBuildingAction(action persistence.BuildingAction, buildings []pe
 	completionTime, err := buildingCompletionTimeFromCost(resources, costs)
 	action.CompletedAt = action.CreatedAt.Add(completionTime)
 
-	var actionCosts []persistence.BuildingActionCost
-	for _, cost := range costs {
-		actionCost := persistence.BuildingActionCost{
-			Action:   action.Id,
-			Resource: cost.Resource,
-			Amount:   cost.Cost,
-		}
-		actionCosts = append(actionCosts, actionCost)
-	}
-
-	return action, actionCosts, err
+	return action, err
 }
 
-func ValidateBuildingAction(action persistence.BuildingAction, resources []persistence.PlanetResource, buildings []persistence.PlanetBuilding, costs []persistence.BuildingCost) error {
+func ValidateBuildingAction(action persistence.BuildingAction, resources []persistence.PlanetResource, buildings []persistence.PlanetBuilding, costs []persistence.BuildingActionCost) error {
 	if err := validateActionBuilding(action, buildings); err != nil {
 		return err
 	}
@@ -50,7 +54,7 @@ func validateActionBuilding(action persistence.BuildingAction, buildings []persi
 	return errors.NewCode(NoSuchBuilding)
 }
 
-func validateActionCost(resources []persistence.PlanetResource, costs []persistence.BuildingCost) error {
+func validateActionCost(resources []persistence.PlanetResource, costs []persistence.BuildingActionCost) error {
 	temp := make(map[uuid.UUID]persistence.PlanetResource)
 	for _, resource := range resources {
 		temp[resource.Resource] = resource
@@ -58,7 +62,7 @@ func validateActionCost(resources []persistence.PlanetResource, costs []persiste
 
 	for _, cost := range costs {
 		actual, ok := temp[cost.Resource]
-		if !ok || actual.Amount < float64(cost.Cost) {
+		if !ok || actual.Amount < float64(cost.Amount) {
 			return errors.NewCode(NotEnoughResources)
 		}
 	}

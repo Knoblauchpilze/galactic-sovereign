@@ -28,7 +28,7 @@ func TestBuildingCompletionTimeFromCost_whenMetalNotFound_expectError(t *testing
 	assert := assert.New(t)
 
 	resources := []persistence.Resource{}
-	costs := []persistence.BuildingCost{}
+	costs := []persistence.BuildingActionCost{}
 
 	_, err := buildingCompletionTimeFromCost(resources, costs)
 
@@ -44,7 +44,7 @@ func TestBuildingCompletionTimeFromCost_whenCrystalNotFound_expectError(t *testi
 			Name: "metal",
 		},
 	}
-	costs := []persistence.BuildingCost{}
+	costs := []persistence.BuildingActionCost{}
 
 	_, err := buildingCompletionTimeFromCost(resources, costs)
 
@@ -54,10 +54,10 @@ func TestBuildingCompletionTimeFromCost_whenCrystalNotFound_expectError(t *testi
 func TestBuildingCompletionTimeFromCost_onlyMetalCost(t *testing.T) {
 	assert := assert.New(t)
 
-	costs := []persistence.BuildingCost{
+	costs := []persistence.BuildingActionCost{
 		{
 			Resource: defaultMetalId,
-			Cost:     1250,
+			Amount:   1250,
 		},
 	}
 
@@ -70,10 +70,10 @@ func TestBuildingCompletionTimeFromCost_onlyMetalCost(t *testing.T) {
 func TestBuildingCompletionTimeFromCost_onlyCrystalCost(t *testing.T) {
 	assert := assert.New(t)
 
-	costs := []persistence.BuildingCost{
+	costs := []persistence.BuildingActionCost{
 		{
 			Resource: defaultCrystalId,
-			Cost:     3000,
+			Amount:   3000,
 		},
 	}
 
@@ -88,14 +88,14 @@ func TestBuildingCompletionTimeFromCost_onlyCrystalCost(t *testing.T) {
 func TestBuildingCompletionTimeFromCost_metalAndCrystal(t *testing.T) {
 	assert := assert.New(t)
 
-	costs := []persistence.BuildingCost{
+	costs := []persistence.BuildingActionCost{
 		{
 			Resource: defaultMetalId,
-			Cost:     5,
+			Amount:   5,
 		},
 		{
 			Resource: defaultCrystalId,
-			Cost:     5,
+			Amount:   5,
 		},
 	}
 
