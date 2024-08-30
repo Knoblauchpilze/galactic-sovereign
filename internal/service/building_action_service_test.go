@@ -28,6 +28,11 @@ var defaultBuildingAction = persistence.BuildingAction{
 	CreatedAt:    testDate,
 	CompletedAt:  testDate,
 }
+var defaultBuildingActionCost = persistence.BuildingActionCost{
+	Action:   defaultBuildingActionId,
+	Resource: metalResourceId,
+	Amount:   250,
+}
 
 var metalResourceId = uuid.MustParse("8ed8d1f2-f39a-404b-96e1-9805ae6cd175")
 var crystalResourceId = uuid.MustParse("5caf0c30-3417-49d3-94ac-8476aaf460c2")
@@ -263,7 +268,7 @@ func Test_BuildingActionService(t *testing.T) {
 							action: defaultBuildingAction,
 						},
 						BuildingActionCost: &mockBuildingActionCostRepository{
-							err: errDefault,
+							errs: []error{errDefault},
 						},
 					}
 				},
@@ -418,12 +423,14 @@ func Test_BuildingActionService(t *testing.T) {
 			},
 			"delete_buildingActionFails": {
 				generateRepositoriesMock: func() repositories.Repositories {
-					return repositories.Repositories{
-						BuildingAction: &mockBuildingActionRepository{
-							errs: []error{errDefault},
+					repos := generateValidBuildingActionRepositoryMock()
+					repos.BuildingAction = &mockBuildingActionRepository{
+						errs: []error{
+							nil,
+							errDefault,
 						},
-						BuildingActionCost: &mockBuildingActionCostRepository{},
 					}
+					return repos
 				},
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
 					s := NewBuildingActionService(pool, repos)
@@ -451,8 +458,18 @@ func Test_BuildingActionService(t *testing.T) {
 			"delete_buildingActionCostFails": {
 				generateRepositoriesMock: func() repositories.Repositories {
 					return repositories.Repositories{
+						BuildingAction: &mockBuildingActionRepository{
+							action: defaultBuildingAction,
+						},
 						BuildingActionCost: &mockBuildingActionCostRepository{
-							err: errDefault,
+							errs: []error{
+								nil,
+								errDefault,
+							},
+							actionCost: defaultBuildingActionCost,
+						},
+						PlanetResource: &mockPlanetResourceRepository{
+							planetResource: defaultPlanetResource,
 						},
 					}
 				},
@@ -526,11 +543,7 @@ func generateValidBuildingActionRepositoryMock() repositories.Repositories {
 			action: defaultBuildingAction,
 		},
 		BuildingActionCost: &mockBuildingActionCostRepository{
-			actionCost: persistence.BuildingActionCost{
-				Action:   defaultBuildingActionId,
-				Resource: metalResourceId,
-				Amount:   250,
-			},
+			actionCost: defaultBuildingActionCost,
 		},
 	}
 }

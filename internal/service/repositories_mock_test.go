@@ -195,7 +195,8 @@ type mockBuildingActionCostRepository struct {
 	repositories.BuildingActionCostRepository
 
 	actionCost persistence.BuildingActionCost
-	err        error
+	errs       []error
+	calls      int
 
 	createCalled              int
 	createdBuildingActionCost persistence.BuildingActionCost
@@ -209,20 +210,30 @@ func (m *mockBuildingActionCostRepository) Create(ctx context.Context, tx db.Tra
 	m.createCalled++
 	m.createdBuildingActionCost = cost
 
-	return m.actionCost, m.err
+	err := getValueToReturnOr(m.calls, m.errs, nil)
+	m.calls++
+
+	return m.actionCost, *err
 }
 
 func (m *mockBuildingActionCostRepository) ListForAction(ctx context.Context, tx db.Transaction, action uuid.UUID) ([]persistence.BuildingActionCost, error) {
 	m.listForActionCalled++
 	m.listForActionId = action
-	return []persistence.BuildingActionCost{m.actionCost}, m.err
+
+	err := getValueToReturnOr(m.calls, m.errs, nil)
+	m.calls++
+
+	return []persistence.BuildingActionCost{m.actionCost}, *err
 }
 
 func (m *mockBuildingActionCostRepository) DeleteForAction(ctx context.Context, tx db.Transaction, action uuid.UUID) error {
 	m.deleteForActionCalled++
 	m.deleteForActionId = action
 
-	return m.err
+	err := getValueToReturnOr(m.calls, m.errs, nil)
+	m.calls++
+
+	return *err
 }
 
 type mockBuildingCostRepository struct {
