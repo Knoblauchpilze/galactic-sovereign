@@ -8,6 +8,7 @@ import (
 	"github.com/KnoblauchPilze/user-service/pkg/db"
 	"github.com/KnoblauchPilze/user-service/pkg/errors"
 	"github.com/KnoblauchPilze/user-service/pkg/persistence"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 )
@@ -19,6 +20,8 @@ var defaultBuildingActionCost = persistence.BuildingActionCost{
 }
 
 func Test_BuildingActionCostRepository_Transaction(t *testing.T) {
+	dummyInt := 0
+
 	s := RepositoryTransactionTestSuite{
 		dbInteractionTestCases: map[string]dbTransactionInteractionTestCase{
 			"create": {
@@ -32,14 +35,36 @@ func Test_BuildingActionCostRepository_Transaction(t *testing.T) {
 					`
 INSERT INTO
 	building_action_cost (action, resource, amount)
-	VALUES($1, $2, $3)
-`,
+	VALUES($1, $2, $3)`,
 				},
 				expectedArguments: [][]interface{}{
 					{
 						defaultBuildingActionCost.Action,
 						defaultBuildingActionCost.Resource,
 						defaultBuildingActionCost.Amount,
+					},
+				},
+			},
+			"listForAction": {
+				handler: func(ctx context.Context, tx db.Transaction) error {
+					s := NewBuildingActionCostRepository()
+					_, err := s.ListForAction(ctx, tx, defaultBuildinActionId)
+					return err
+				},
+				expectedSqlQueries: []string{
+					`
+SELECT
+	action,
+	resource,
+	amount
+FROM
+	building_action_cost
+WHERE
+	action = $1`,
+				},
+				expectedArguments: [][]interface{}{
+					{
+						defaultBuildinActionId,
 					},
 				},
 			},
@@ -60,6 +85,25 @@ INSERT INTO
 				expectedArguments: [][]interface{}{
 					{
 						defaultBuildinActionId,
+					},
+				},
+			},
+		},
+
+		dbGetAllTestCases: map[string]dbTransactionGetAllTestCase{
+			"listForAction": {
+				handler: func(ctx context.Context, tx db.Transaction) error {
+					repo := NewBuildingActionCostRepository()
+					_, err := repo.ListForAction(ctx, tx, defaultBuildinActionId)
+					return err
+				},
+				expectedGetAllCalls: 1,
+				expectedScanCalls:   1,
+				expectedScannedProps: [][]interface{}{
+					{
+						&uuid.UUID{},
+						&uuid.UUID{},
+						&dummyInt,
 					},
 				},
 			},
