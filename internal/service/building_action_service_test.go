@@ -7,6 +7,7 @@ import (
 
 	"github.com/KnoblauchPilze/user-service/pkg/communication"
 	"github.com/KnoblauchPilze/user-service/pkg/db"
+	"github.com/KnoblauchPilze/user-service/pkg/errors"
 	"github.com/KnoblauchPilze/user-service/pkg/persistence"
 	"github.com/KnoblauchPilze/user-service/pkg/repositories"
 	"github.com/google/uuid"
@@ -86,6 +87,9 @@ func Test_BuildingActionService(t *testing.T) {
 			"create_resourceFails": {
 				generateRepositoriesMock: func() repositories.Repositories {
 					return repositories.Repositories{
+						PlanetResource: &mockPlanetResourceRepository{
+							planetResource: defaultPlanetResource,
+						},
 						Resource: &mockResourceRepository{
 							err: errDefault,
 						},
@@ -336,6 +340,70 @@ func Test_BuildingActionService(t *testing.T) {
 				},
 				expectedError: errDefault,
 			},
+			"create_noResourceFoundToUpdate": {
+				generateRepositoriesMock: func() repositories.Repositories {
+					repos := generateValidBuildingActionRepositoryMock()
+					repos.PlanetResource = &mockPlanetResourceRepository{}
+					return repos
+				},
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					consolidator := func(action persistence.BuildingAction, _ []persistence.PlanetBuilding, _ []persistence.Resource, _ []persistence.BuildingActionCost) (persistence.BuildingAction, error) {
+						return action, nil
+					}
+					validator := func(_ persistence.BuildingAction, _ []persistence.PlanetResource, _ []persistence.PlanetBuilding, _ []persistence.BuildingActionCost) error {
+						return nil
+					}
+					s := newBuildingActionService(pool, repos, consolidator, validator)
+					_, err := s.Create(ctx, defaultBuildingActionDtoRequest)
+					return err
+				},
+				verifyError: func(err error, assert *require.Assertions) {
+					assert.True(errors.IsErrorWithCode(err, FailedToCreateAction))
+				},
+			},
+			"create_updateResourcesFails": {
+				generateRepositoriesMock: func() repositories.Repositories {
+					repos := generateValidBuildingActionRepositoryMock()
+					repos.PlanetResource = &mockPlanetResourceRepository{
+						planetResource: defaultPlanetResource,
+						updateErr:      errDefault,
+					}
+					return repos
+				},
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewBuildingActionService(pool, repos)
+					_, err := s.Create(ctx, defaultBuildingActionDtoRequest)
+					return err
+				},
+				expectedError: errDefault,
+				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
+					m := assertPlanetResourceRepoIsAMock(repos, assert)
+
+					assert.Equal(1, m.updateCalled)
+				},
+			},
+			"create_updateResourcesFailsWithOptimisticLockException": {
+				generateRepositoriesMock: func() repositories.Repositories {
+					repos := generateValidBuildingActionRepositoryMock()
+					repos.PlanetResource = &mockPlanetResourceRepository{
+						planetResource: defaultPlanetResource,
+						updateErr:      errors.NewCode(db.OptimisticLockException),
+					}
+					return repos
+				},
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewBuildingActionService(pool, repos)
+					_, err := s.Create(ctx, defaultBuildingActionDtoRequest)
+					return err
+				},
+				verifyError: func(err error, assert *require.Assertions) {
+					assert.True(errors.IsErrorWithCode(err, ConflictingStateForAction))
+				},
+				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
+					m := assertPlanetResourceRepoIsAMock(repos, assert)
+
+					assert.Equal(1, m.updateCalled)
+				}},
 			"delete_buildingAction": {
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
 					s := NewBuildingActionService(pool, repos)
@@ -442,11 +510,11 @@ func Test_BuildingActionService(t *testing.T) {
 
 func generateValidBuildingActionRepositoryMock() repositories.Repositories {
 	return repositories.Repositories{
-		Resource: &mockResourceRepository{
-			resources: defaultResources,
-		},
 		PlanetResource: &mockPlanetResourceRepository{
 			planetResource: defaultPlanetResource,
+		},
+		Resource: &mockResourceRepository{
+			resources: defaultResources,
 		},
 		PlanetBuilding: &mockPlanetBuildingRepository{
 			planetBuilding: defaultPlanetBuilding,
