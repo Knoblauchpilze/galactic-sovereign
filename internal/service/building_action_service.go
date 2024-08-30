@@ -62,32 +62,7 @@ func (s *buildingActionServiceImpl) Create(ctx context.Context, actionDto commun
 	}
 	defer tx.Close(ctx)
 
-	resources, err := s.resourceRepo.List(ctx, tx)
-	if err != nil {
-		return communication.BuildingActionDtoResponse{}, err
-	}
-
-	planetResources, err := s.planetResourceRepo.ListForPlanet(ctx, tx, action.Planet)
-	if err != nil {
-		return communication.BuildingActionDtoResponse{}, err
-	}
-
-	buildings, err := s.planetBuildingRepo.ListForPlanet(ctx, tx, action.Planet)
-	if err != nil {
-		return communication.BuildingActionDtoResponse{}, err
-	}
-
-	costs, err := s.buildingCostRepo.ListForBuilding(ctx, tx, action.Building)
-	if err != nil {
-		return communication.BuildingActionDtoResponse{}, err
-	}
-
-	action, actionCosts, err := s.consolidator(action, buildings, resources, costs)
-	if err != nil {
-		return communication.BuildingActionDtoResponse{}, err
-	}
-
-	err = s.validator(action, planetResources, buildings, costs)
+	action, costs, err := s.consolidateAction(ctx, tx, action)
 	if err != nil {
 		return communication.BuildingActionDtoResponse{}, err
 	}
@@ -97,8 +72,8 @@ func (s *buildingActionServiceImpl) Create(ctx context.Context, actionDto commun
 		return communication.BuildingActionDtoResponse{}, err
 	}
 
-	for _, actionCost := range actionCosts {
-		_, err = s.buildingActionCostRepo.Create(ctx, tx, actionCost)
+	for _, cost := range costs {
+		_, err = s.buildingActionCostRepo.Create(ctx, tx, cost)
 		if err != nil {
 			return communication.BuildingActionDtoResponse{}, err
 		}
@@ -121,4 +96,37 @@ func (s *buildingActionServiceImpl) Delete(ctx context.Context, id uuid.UUID) er
 	}
 
 	return s.buildingActionRepo.Delete(ctx, tx, id)
+}
+
+func (s *buildingActionServiceImpl) consolidateAction(ctx context.Context, tx db.Transaction, action persistence.BuildingAction) (persistence.BuildingAction, []persistence.BuildingActionCost, error) {
+	var costs []persistence.BuildingActionCost
+
+	resources, err := s.resourceRepo.List(ctx, tx)
+	if err != nil {
+		return action, costs, err
+	}
+
+	planetResources, err := s.planetResourceRepo.ListForPlanet(ctx, tx, action.Planet)
+	if err != nil {
+		return action, costs, err
+	}
+
+	buildings, err := s.planetBuildingRepo.ListForPlanet(ctx, tx, action.Planet)
+	if err != nil {
+		return action, costs, err
+	}
+
+	baseCosts, err := s.buildingCostRepo.ListForBuilding(ctx, tx, action.Building)
+	if err != nil {
+		return action, costs, err
+	}
+
+	action, costs, err = s.consolidator(action, buildings, resources, baseCosts)
+	if err != nil {
+		return action, costs, err
+	}
+
+	err = s.validator(action, planetResources, buildings, baseCosts)
+
+	return action, costs, err
 }
