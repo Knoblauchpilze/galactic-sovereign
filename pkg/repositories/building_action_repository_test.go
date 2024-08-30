@@ -57,6 +57,33 @@ INSERT INTO
 					},
 				},
 			},
+			"get": {
+				handler: func(ctx context.Context, tx db.Transaction) error {
+					s := NewBuildingActionRepository()
+					_, err := s.Get(ctx, tx, defaultBuildinActionId)
+					return err
+				},
+				expectedSqlQueries: []string{
+					`
+SELECT
+	id,
+	planet,
+	building,
+	current_level,
+	desired_level,
+	created_at,
+	completed_at
+FROM
+	building_action
+WHERE
+	id = $1`,
+				},
+				expectedArguments: [][]interface{}{
+					{
+						defaultBuildinActionId,
+					},
+				},
+			},
 			"listForPlanet": {
 				handler: func(ctx context.Context, tx db.Transaction) error {
 					s := NewBuildingActionRepository()
@@ -148,6 +175,29 @@ WHERE
 				expectedArguments: [][]interface{}{
 					{
 						defaultPlanetId,
+					},
+				},
+			},
+		},
+
+		dbSingleValueTestCases: map[string]dbTransactionSingleValueTestCase{
+			"get": {
+				handler: func(ctx context.Context, tx db.Transaction) error {
+					repo := NewBuildingActionRepository()
+					_, err := repo.Get(ctx, tx, defaultBuildinActionId)
+					return err
+				},
+				expectedGetSingleValueCalls: 1,
+				expectedScanCalls:           1,
+				expectedScannedProps: [][]interface{}{
+					{
+						&uuid.UUID{},
+						&uuid.UUID{},
+						&uuid.UUID{},
+						&dummyInt,
+						&dummyInt,
+						&time.Time{},
+						&time.Time{},
 					},
 				},
 			},
