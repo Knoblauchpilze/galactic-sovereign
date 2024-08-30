@@ -12,6 +12,7 @@ import (
 
 type BuildingActionRepository interface {
 	Create(ctx context.Context, tx db.Transaction, action persistence.BuildingAction) (persistence.BuildingAction, error)
+	Get(ctx context.Context, tx db.Transaction, id uuid.UUID) (persistence.BuildingAction, error)
 	ListForPlanet(ctx context.Context, tx db.Transaction, planet uuid.UUID) ([]persistence.BuildingAction, error)
 	ListBeforeCompletionTime(ctx context.Context, tx db.Transaction, until time.Time) ([]persistence.BuildingAction, error)
 	Delete(ctx context.Context, tx db.Transaction, action uuid.UUID) error
@@ -37,6 +38,38 @@ func (r *buildingActionRepositoryImpl) Create(ctx context.Context, tx db.Transac
 	}
 
 	return action, err
+}
+
+const getBuildingActionSqlTemplate = `
+SELECT
+	id,
+	planet,
+	building,
+	current_level,
+	desired_level,
+	created_at,
+	completed_at
+FROM
+	building_action
+WHERE
+	id = $1`
+
+func (r *buildingActionRepositoryImpl) Get(ctx context.Context, tx db.Transaction, id uuid.UUID) (persistence.BuildingAction, error) {
+	res := tx.Query(ctx, getBuildingActionSqlTemplate, id)
+	if err := res.Err(); err != nil {
+		return persistence.BuildingAction{}, err
+	}
+
+	var out persistence.BuildingAction
+	parser := func(rows db.Scannable) error {
+		return rows.Scan(&out.Id, &out.Planet, &out.Building, &out.CurrentLevel, &out.DesiredLevel, &out.CreatedAt, &out.CompletedAt)
+	}
+
+	if err := res.GetSingleValue(parser); err != nil {
+		return persistence.BuildingAction{}, err
+	}
+
+	return out, nil
 }
 
 const listBuildingActionForPlanetSqlTemplate = `
