@@ -5,7 +5,6 @@ import (
 
 	"github.com/KnoblauchPilze/user-service/pkg/communication"
 	"github.com/KnoblauchPilze/user-service/pkg/db"
-	"github.com/KnoblauchPilze/user-service/pkg/errors"
 	"github.com/KnoblauchPilze/user-service/pkg/game"
 	"github.com/KnoblauchPilze/user-service/pkg/persistence"
 	"github.com/KnoblauchPilze/user-service/pkg/repositories"
@@ -89,6 +88,26 @@ func (s *buildingActionServiceImpl) Delete(ctx context.Context, id uuid.UUID) er
 	}
 	defer tx.Close(ctx)
 
+	action, err := s.buildingActionRepo.Get(ctx, tx, id)
+	if err != nil {
+		return err
+	}
+
+	costs, err := s.buildingActionCostRepo.ListForAction(ctx, tx, action.Id)
+	if err != nil {
+		return err
+	}
+
+	planetResources, err := s.planetResourceRepo.ListForPlanet(ctx, tx, action.Planet)
+	if err != nil {
+		return err
+	}
+
+	err = updatePlanetResourceWithCosts(ctx, tx, s.planetResourceRepo, planetResources, costs, addResource)
+	if err != nil {
+		return err
+	}
+
 	err = s.buildingActionCostRepo.DeleteForAction(ctx, tx, id)
 	if err != nil {
 		return err
@@ -127,43 +146,15 @@ func (s *buildingActionServiceImpl) consolidateAction(ctx context.Context, tx db
 	return action, costs, err
 }
 
-func findResourceForCost(resources []persistence.PlanetResource, cost persistence.BuildingActionCost) (persistence.PlanetResource, error) {
-	for _, resource := range resources {
-		if resource.Resource == cost.Resource {
-			return resource, nil
-		}
-	}
-
-	return persistence.PlanetResource{}, errors.NewCode(noSuchResource)
-}
-
 func (s *buildingActionServiceImpl) createAction(ctx context.Context, tx db.Transaction, action persistence.BuildingAction, costs []persistence.BuildingActionCost, planetResources []persistence.PlanetResource) (persistence.BuildingAction, error) {
 	action, err := s.buildingActionRepo.Create(ctx, tx, action)
 	if err != nil {
 		return action, err
 	}
 
-	for _, cost := range costs {
-		resource, err := findResourceForCost(planetResources, cost)
-		if err != nil {
-			if errors.IsErrorWithCode(err, noSuchResource) {
-				return action, errors.NewCode(FailedToCreateAction)
-			}
-
-			return action, err
-		}
-
-		planetResource := resource
-		planetResource.Amount -= float64(cost.Amount)
-
-		_, err = s.planetResourceRepo.Update(ctx, tx, planetResource)
-		if err != nil {
-			if errors.IsErrorWithCode(err, db.OptimisticLockException) {
-				return action, errors.NewCode(ConflictingStateForAction)
-			}
-
-			return action, err
-		}
+	err = updatePlanetResourceWithCosts(ctx, tx, s.planetResourceRepo, planetResources, costs, subtractResource)
+	if err != nil {
+		return action, err
 	}
 
 	for _, cost := range costs {
