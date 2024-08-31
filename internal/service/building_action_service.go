@@ -159,10 +159,5 @@ func (s *buildingActionServiceImpl) createAction(ctx context.Context, tx db.Tran
 		}
 	}
 
-	action, err = s.buildingActionRepo.Create(ctx, tx, action)
-	if err != nil {
-		return action, err
-	}
-
-	return action, nil
+	return s.buildingActionRepo.Create(ctx, tx, action)
 }
