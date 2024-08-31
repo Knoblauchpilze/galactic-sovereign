@@ -146,7 +146,70 @@ func Test_BuildingActionService(t *testing.T) {
 					assert.Equal(expectedCompletionTime, actual.CompletedAt)
 				},
 			},
-			"create_consolidationFails": {
+			"create_failure_listResourcesOnPlanet": {
+				generateRepositoriesMock: func() repositories.Repositories {
+					repos := generateValidBuildingActionRepositoryMock()
+					repos.PlanetResource = &mockPlanetResourceRepository{
+						err: errDefault,
+					}
+
+					return repos
+				},
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewBuildingActionService(pool, repos)
+					_, err := s.Create(ctx, defaultBuildingActionDtoRequest)
+					return err
+				},
+				expectedError: errDefault,
+				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
+					m := assertPlanetResourceRepoIsAMock(repos, assert)
+
+					assert.Equal(1, m.listForPlanetCalled)
+				},
+			},
+			"create_failure_listBuildingsOnPlanet": {
+				generateRepositoriesMock: func() repositories.Repositories {
+					repos := generateValidBuildingActionRepositoryMock()
+					repos.PlanetBuilding = &mockPlanetBuildingRepository{
+						err: errDefault,
+					}
+
+					return repos
+				},
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewBuildingActionService(pool, repos)
+					_, err := s.Create(ctx, defaultBuildingActionDtoRequest)
+					return err
+				},
+				expectedError: errDefault,
+				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
+					m := assertPlanetBuildingRepoIsAMock(repos, assert)
+
+					assert.Equal(1, m.listForPlanetCalled)
+				},
+			},
+			"create_failure_listCostsForBuilding": {
+				generateRepositoriesMock: func() repositories.Repositories {
+					repos := generateValidBuildingActionRepositoryMock()
+					repos.BuildingCost = &mockBuildingCostRepository{
+						err: errDefault,
+					}
+
+					return repos
+				},
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewBuildingActionService(pool, repos)
+					_, err := s.Create(ctx, defaultBuildingActionDtoRequest)
+					return err
+				},
+				expectedError: errDefault,
+				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
+					m := assertBuildingCostRepoIsAMock(repos, assert)
+
+					assert.Equal(1, m.listForBuildingCalled)
+				},
+			},
+			"create_failure_consolidation": {
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
 					consolidator := func(action persistence.BuildingAction, _ []persistence.PlanetBuilding, _ []persistence.Resource, _ []persistence.BuildingActionCost) (persistence.BuildingAction, error) {
 						return action, errDefault
@@ -160,7 +223,7 @@ func Test_BuildingActionService(t *testing.T) {
 				},
 				expectedError: errDefault,
 			},
-			"create_validationFails": {
+			"create_failure_validation": {
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
 					consolidator := func(action persistence.BuildingAction, _ []persistence.PlanetBuilding, _ []persistence.Resource, _ []persistence.BuildingActionCost) (persistence.BuildingAction, error) {
 						return action, nil
@@ -173,6 +236,70 @@ func Test_BuildingActionService(t *testing.T) {
 					return err
 				},
 				expectedError: errDefault,
+			},
+			"create_failure_updateResourcesOnPlanet": {
+				generateRepositoriesMock: func() repositories.Repositories {
+					repos := generateValidBuildingActionRepositoryMock()
+					repos.PlanetResource = &mockPlanetResourceRepository{
+						planetResource: defaultPlanetResource,
+						updateErr:      errDefault,
+					}
+
+					return repos
+				},
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewBuildingActionService(pool, repos)
+					_, err := s.Create(ctx, defaultBuildingActionDtoRequest)
+					return err
+				},
+				expectedError: errDefault,
+				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
+					m := assertPlanetResourceRepoIsAMock(repos, assert)
+
+					assert.Equal(1, m.updateCalled)
+				},
+			},
+			"create_failure_registerActionCosts": {
+				generateRepositoriesMock: func() repositories.Repositories {
+					repos := generateValidBuildingActionRepositoryMock()
+					repos.BuildingActionCost = &mockBuildingActionCostRepository{
+						errs: []error{errDefault},
+					}
+
+					return repos
+				},
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewBuildingActionService(pool, repos)
+					_, err := s.Create(ctx, defaultBuildingActionDtoRequest)
+					return err
+				},
+				expectedError: errDefault,
+				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
+					m := assertBuildingActionCostRepoIsAMock(repos, assert)
+
+					assert.Equal(1, m.createCalled)
+				},
+			},
+			"create_failure_createsAction": {
+				generateRepositoriesMock: func() repositories.Repositories {
+					repos := generateValidBuildingActionRepositoryMock()
+					repos.BuildingAction = &mockBuildingActionRepository{
+						errs: []error{errDefault},
+					}
+
+					return repos
+				},
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewBuildingActionService(pool, repos)
+					_, err := s.Create(ctx, defaultBuildingActionDtoRequest)
+					return err
+				},
+				expectedError: errDefault,
+				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
+					m := assertBuildingActionRepoIsAMock(repos, assert)
+
+					assert.Equal(1, m.createCalled)
+				},
 			},
 		},
 
