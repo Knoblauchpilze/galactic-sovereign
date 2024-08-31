@@ -235,40 +235,14 @@ func Test_PlanetService(t *testing.T) {
 				},
 				expectedError: errDefault,
 			},
-			"delete_planet": {
+			"delete_buildingActionCost": {
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
 					s := NewPlanetService(pool, repos)
 					return s.Delete(ctx, defaultPlanetId)
 				},
 
 				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
-					m := assertPlanetRepoIsAMock(repos, assert)
-
-					assert.Equal(1, m.deleteCalled)
-					assert.Equal(defaultPlanetId, m.deleteId)
-				},
-			},
-			"delete_planetResource": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewPlanetService(pool, repos)
-					return s.Delete(ctx, defaultPlanetId)
-				},
-
-				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
-					m := assertPlanetResourceRepoIsAMock(repos, assert)
-
-					assert.Equal(1, m.deleteForPlanetCalled)
-					assert.Equal(defaultPlanetId, m.deleteForPlanetId)
-				},
-			},
-			"delete_planetBuilding": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewPlanetService(pool, repos)
-					return s.Delete(ctx, defaultPlanetId)
-				},
-
-				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
-					m := assertPlanetBuildingRepoIsAMock(repos, assert)
+					m := assertBuildingActionCostRepoIsAMock(repos, assert)
 
 					assert.Equal(1, m.deleteForPlanetCalled)
 					assert.Equal(defaultPlanetId, m.deleteForPlanetId)
@@ -287,73 +261,144 @@ func Test_PlanetService(t *testing.T) {
 					assert.Equal(defaultPlanetId, m.deleteForPlanetId)
 				},
 			},
-			"delete_planetRepositoryFails": {
-				generateRepositoriesMock: func() repositories.Repositories {
-					return repositories.Repositories{
-						BuildingAction: &mockBuildingActionRepository{},
-						Planet: &mockPlanetRepository{
-							err: errDefault,
-						},
-						PlanetBuilding: &mockPlanetBuildingRepository{},
-						PlanetResource: &mockPlanetResourceRepository{},
-					}
-				},
+			"delete_planetBuilding": {
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
 					s := NewPlanetService(pool, repos)
 					return s.Delete(ctx, defaultPlanetId)
 				},
-				expectedError: errDefault,
+
+				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
+					m := assertPlanetBuildingRepoIsAMock(repos, assert)
+
+					assert.Equal(1, m.deleteForPlanetCalled)
+					assert.Equal(defaultPlanetId, m.deleteForPlanetId)
+				},
 			},
-			"delete_planetResourceRepositoryFails": {
-				generateRepositoriesMock: func() repositories.Repositories {
-					return repositories.Repositories{
-						BuildingAction: &mockBuildingActionRepository{},
-						Planet:         &mockPlanetRepository{},
-						PlanetBuilding: &mockPlanetBuildingRepository{},
-						PlanetResource: &mockPlanetResourceRepository{
-							err: errDefault,
-						},
-					}
-				},
+			"delete_planetResource": {
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
 					s := NewPlanetService(pool, repos)
 					return s.Delete(ctx, defaultPlanetId)
 				},
-				expectedError: errDefault,
+
+				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
+					m := assertPlanetResourceRepoIsAMock(repos, assert)
+
+					assert.Equal(1, m.deleteForPlanetCalled)
+					assert.Equal(defaultPlanetId, m.deleteForPlanetId)
+				},
 			},
-			"delete_planetBuildingRepositoryFails": {
+			"delete_planet": {
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewPlanetService(pool, repos)
+					return s.Delete(ctx, defaultPlanetId)
+				},
+
+				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
+					m := assertPlanetRepoIsAMock(repos, assert)
+
+					assert.Equal(1, m.deleteCalled)
+					assert.Equal(defaultPlanetId, m.deleteId)
+				},
+			},
+			"delete_buildingActionCostRepositoryFails": {
 				generateRepositoriesMock: func() repositories.Repositories {
-					return repositories.Repositories{
-						BuildingAction: &mockBuildingActionRepository{},
-						Planet:         &mockPlanetRepository{},
-						PlanetBuilding: &mockPlanetBuildingRepository{
-							err: errDefault,
-						},
-						PlanetResource: &mockPlanetResourceRepository{},
+					repos := generateValidPlanetRepositoryMock()
+					repos.BuildingActionCost = &mockBuildingActionCostRepository{
+						errs: []error{errDefault},
 					}
+
+					return repos
 				},
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
 					s := NewPlanetService(pool, repos)
 					return s.Delete(ctx, defaultPlanetId)
 				},
 				expectedError: errDefault,
+				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
+					m := assertBuildingActionCostRepoIsAMock(repos, assert)
+
+					assert.Equal(1, m.deleteForPlanetCalled)
+				},
 			},
 			"delete_buildingActionRepositoryFails": {
 				generateRepositoriesMock: func() repositories.Repositories {
-					return repositories.Repositories{
-						BuildingAction: &mockBuildingActionRepository{
-							errs: []error{errDefault},
-						},
-						Planet:         &mockPlanetRepository{},
-						PlanetBuilding: &mockPlanetBuildingRepository{},
-						PlanetResource: &mockPlanetResourceRepository{},
+					repos := generateValidPlanetRepositoryMock()
+					repos.BuildingAction = &mockBuildingActionRepository{
+						errs: []error{errDefault},
 					}
+
+					return repos
 				},
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
 					s := NewPlanetService(pool, repos)
 					return s.Delete(ctx, defaultPlanetId)
 				},
 				expectedError: errDefault,
+				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
+					m := assertBuildingActionRepoIsAMock(repos, assert)
+
+					assert.Equal(1, m.deleteForPlanetCalled)
+				},
+			},
+			"delete_planetBuildingRepositoryFails": {
+				generateRepositoriesMock: func() repositories.Repositories {
+					repos := generateValidPlanetRepositoryMock()
+					repos.PlanetBuilding = &mockPlanetBuildingRepository{
+						err: errDefault,
+					}
+
+					return repos
+				},
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewPlanetService(pool, repos)
+					return s.Delete(ctx, defaultPlanetId)
+				},
+				expectedError: errDefault,
+				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
+					m := assertPlanetBuildingRepoIsAMock(repos, assert)
+
+					assert.Equal(1, m.deleteForPlanetCalled)
+				},
+			},
+			"delete_planetResourceRepositoryFails": {
+				generateRepositoriesMock: func() repositories.Repositories {
+					repos := generateValidPlanetRepositoryMock()
+					repos.PlanetResource = &mockPlanetResourceRepository{
+						err: errDefault,
+					}
+
+					return repos
+				},
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewPlanetService(pool, repos)
+					return s.Delete(ctx, defaultPlanetId)
+				},
+				expectedError: errDefault,
+				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
+					m := assertPlanetResourceRepoIsAMock(repos, assert)
+
+					assert.Equal(1, m.deleteForPlanetCalled)
+				},
+			},
+			"delete_planetRepositoryFails": {
+				generateRepositoriesMock: func() repositories.Repositories {
+					repos := generateValidPlanetRepositoryMock()
+					repos.Planet = &mockPlanetRepository{
+						err: errDefault,
+					}
+
+					return repos
+				},
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewPlanetService(pool, repos)
+					return s.Delete(ctx, defaultPlanetId)
+				},
+				expectedError: errDefault,
+				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
+					m := assertPlanetRepoIsAMock(repos, assert)
+
+					assert.Equal(1, m.deleteCalled)
+				},
 			},
 		},
 
@@ -500,6 +545,9 @@ func generateValidPlanetRepositoryMock() repositories.Repositories {
 	return repositories.Repositories{
 		BuildingAction: &mockBuildingActionRepository{
 			action: defaultBuildingAction,
+		},
+		BuildingActionCost: &mockBuildingActionCostRepository{
+			actionCost: defaultBuildingActionCost,
 		},
 		Planet: &mockPlanetRepository{
 			planet: defaultPlanet,
