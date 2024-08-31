@@ -152,6 +152,11 @@ func (s *buildingActionServiceImpl) createAction(ctx context.Context, tx db.Tran
 		return action, err
 	}
 
+	action, err = s.buildingActionRepo.Create(ctx, tx, action)
+	if err != nil {
+		return action, err
+	}
+
 	for _, cost := range costs {
 		_, err = s.buildingActionCostRepo.Create(ctx, tx, cost)
 		if err != nil {
@@ -159,5 +164,5 @@ func (s *buildingActionServiceImpl) createAction(ctx context.Context, tx db.Tran
 		}
 	}
 
-	return s.buildingActionRepo.Create(ctx, tx, action)
+	return action, nil
 }
