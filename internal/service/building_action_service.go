@@ -147,12 +147,7 @@ func (s *buildingActionServiceImpl) consolidateAction(ctx context.Context, tx db
 }
 
 func (s *buildingActionServiceImpl) createAction(ctx context.Context, tx db.Transaction, action persistence.BuildingAction, costs []persistence.BuildingActionCost, planetResources []persistence.PlanetResource) (persistence.BuildingAction, error) {
-	action, err := s.buildingActionRepo.Create(ctx, tx, action)
-	if err != nil {
-		return action, err
-	}
-
-	err = updatePlanetResourceWithCosts(ctx, tx, s.planetResourceRepo, planetResources, costs, subtractResource)
+	err := updatePlanetResourceWithCosts(ctx, tx, s.planetResourceRepo, planetResources, costs, subtractResource)
 	if err != nil {
 		return action, err
 	}
@@ -162,6 +157,11 @@ func (s *buildingActionServiceImpl) createAction(ctx context.Context, tx db.Tran
 		if err != nil {
 			return action, err
 		}
+	}
+
+	action, err = s.buildingActionRepo.Create(ctx, tx, action)
+	if err != nil {
+		return action, err
 	}
 
 	return action, nil
