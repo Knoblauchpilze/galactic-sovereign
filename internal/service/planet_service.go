@@ -20,19 +20,21 @@ type PlanetService interface {
 type planetServiceImpl struct {
 	conn db.ConnectionPool
 
-	planetBuildingRepo repositories.PlanetBuildingRepository
-	planetRepo         repositories.PlanetRepository
-	planetResourceRepo repositories.PlanetResourceRepository
-	buildingActionRepo repositories.BuildingActionRepository
+	planetBuildingRepo     repositories.PlanetBuildingRepository
+	planetRepo             repositories.PlanetRepository
+	planetResourceRepo     repositories.PlanetResourceRepository
+	buildingActionRepo     repositories.BuildingActionRepository
+	buildingActionCostRepo repositories.BuildingActionCostRepository
 }
 
 func NewPlanetService(conn db.ConnectionPool, repos repositories.Repositories) PlanetService {
 	return &planetServiceImpl{
-		conn:               conn,
-		planetBuildingRepo: repos.PlanetBuilding,
-		planetRepo:         repos.Planet,
-		planetResourceRepo: repos.PlanetResource,
-		buildingActionRepo: repos.BuildingAction,
+		conn:                   conn,
+		planetBuildingRepo:     repos.PlanetBuilding,
+		planetRepo:             repos.Planet,
+		planetResourceRepo:     repos.PlanetResource,
+		buildingActionRepo:     repos.BuildingAction,
+		buildingActionCostRepo: repos.BuildingActionCost,
 	}
 }
 
@@ -134,6 +136,11 @@ func (s *planetServiceImpl) Delete(ctx context.Context, id uuid.UUID) error {
 		return err
 	}
 	defer tx.Close(ctx)
+
+	err = s.buildingActionCostRepo.DeleteForPlanet(ctx, tx, id)
+	if err != nil {
+		return err
+	}
 
 	err = s.buildingActionRepo.DeleteForPlanet(ctx, tx, id)
 	if err != nil {
