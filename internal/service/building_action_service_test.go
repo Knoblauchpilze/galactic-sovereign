@@ -370,7 +370,23 @@ func Test_BuildingActionService(t *testing.T) {
 					assert.Equal(defaultBuildingAction.Planet, m.listForPlanetId)
 				},
 			},
-			// TODO: Update
+			"delete_updatesResourcesOnPlanet": {
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewBuildingActionService(pool, repos)
+					return s.Delete(ctx, defaultBuildingAction.Id)
+				},
+				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
+					m := assertPlanetResourceRepoIsAMock(repos, assert)
+
+					assert.Equal(1, m.updateCalled)
+					assert.Equal(defaultBuildingActionDtoRequest.Planet, m.updatedPlanetResource.Planet)
+					assert.Equal(defaultPlanetResource.Resource, m.updatedPlanetResource.Resource)
+					expectedAmount := defaultPlanetResource.Amount + float64(defaultBuildingActionCost.Amount)
+					assert.Equal(expectedAmount, m.updatedPlanetResource.Amount)
+					assert.Equal(defaultPlanetResource.Version, m.updatedPlanetResource.Version)
+
+				},
+			},
 			"delete_deletesCostsForAction": {
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
 					s := NewBuildingActionService(pool, repos)
