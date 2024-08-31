@@ -88,6 +88,34 @@ WHERE
 					},
 				},
 			},
+			"deleteForPlanet": {
+				sqlMode: ExecBased,
+				generateMock: func() db.Transaction {
+					return &mockTransaction{
+						affectedRows: []int{1},
+					}
+				},
+				handler: func(ctx context.Context, tx db.Transaction) error {
+					s := NewBuildingActionCostRepository()
+					return s.DeleteForPlanet(ctx, tx, defaultPlanetId)
+				},
+				expectedSqlQueries: []string{
+					`
+DELETE FROM
+	building_action_cost
+USING
+	building_action_cost AS bac
+	LEFT JOIN building_action AS ba ON ba.id = bac.action
+WHERE
+	building_action_cost.action = bac.action
+	AND ba.planet = $1`,
+				},
+				expectedArguments: [][]interface{}{
+					{
+						defaultPlanetId,
+					},
+				},
+			},
 		},
 
 		dbGetAllTestCases: map[string]dbTransactionGetAllTestCase{
