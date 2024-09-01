@@ -6,11 +6,14 @@ import { ApiFailureReason } from '$lib/responseEnvelope.js';
 import { logoutUser } from '$lib/sessions';
 
 /** @type {import('./$types').PageLoad} */
-export async function load({ params, cookies }) {
+export async function load({ params, cookies, depends }) {
 	const [valid, gameCookies] = loadCookies(cookies);
 	if (!valid) {
 		redirect(303, '/login');
 	}
+
+	// https://learn.svelte.dev/tutorial/custom-dependencies
+	depends('data:planet');
 
 	const planetResponse = await getPlanet(gameCookies.apiKey, params.planet);
 	if (planetResponse.error()) {
