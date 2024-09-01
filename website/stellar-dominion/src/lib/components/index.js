@@ -14,3 +14,4 @@ export { default as Footer } from '$lib/components/Footer.svelte';
 
 export { default as Building } from '$lib/components/Building.svelte';
 export { default as BuildingAction } from '$lib/components/BuildingAction.svelte';
+export { default as Timer } from '$lib/components/Timer.svelte';

@@ -63,7 +63,7 @@ export function msToTimeString(timeInMs: number): string {
 }
 
 export function msToTimeStringOrFinished(timeInMs: number): string {
-	if (timeInMs < 0) {
+	if (timeInMs <= 0) {
 		return 'Finished';
 	}
 
