@@ -16,6 +16,7 @@
 	import { mapPlanetResourcesToUiResources } from '$lib/resources';
 	import { mapPlanetBuildingsToUiBuildings } from '$lib/buildings';
 	import { mapBuildingActionsToUiActions } from '$lib/actions.js';
+	import { invalidate } from '$app/navigation';
 
 	// https://svelte.dev/blog/zero-config-type-safety
 	export let data;
@@ -40,6 +41,10 @@
 	const actions = mapBuildingActionsToUiActions(data.planet.buildingActions, data.buildings);
 
 	const anyBuildingActionRunning = data.planet.buildingActions.length !== 0;
+
+	function onActionCompleted() {
+		invalidate('data:planet');
+	}
 </script>
 
 <CenteredWrapper width="w-4/5" height="h-4/5" bgColor="bg-overlay">
@@ -76,7 +81,7 @@
 			<StyledTitle text="Actions running on {planetName}" />
 			<div class="w-full h-full flex flex-wrap items-start bg-transparent">
 				{#each actions as action}
-					<BuildingAction {action} />
+					<BuildingAction {action} onCompleted={onActionCompleted} />
 				{/each}
 			</div>
 		</CenteredWrapper>

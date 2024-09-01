@@ -3,6 +3,7 @@
 	import { StyledActionButton, StyledText, Timer } from '$lib/components';
 
 	export let action: UiBuildingAction;
+	export let onCompleted: () => void;
 
 	const title = action.name[0].toUpperCase() + action.name.slice(1);
 
@@ -15,6 +16,8 @@
 	function onActionCompleted() {
 		cancelButtonClass = 'hidden';
 		actionCompleted = true;
+
+		onCompleted();
 	}
 </script>
 
