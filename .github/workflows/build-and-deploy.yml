@@ -326,7 +326,7 @@ jobs:
       - name: Save stellar-dominion-service tag
         if: ${{ needs.analyze-code-changes.outputs.stellar-dominion-service == 'true' }}
         run: |
-          echo "${{ needs.build-stellar-dominion.outputs.service-tag }}" > ./build/stellar-dominion-service/version.txt
+          echo "${{ needs.build-stellar-dominion-service.outputs.service-tag }}" > ./build/stellar-dominion-service/version.txt
       - name: Save user-dashboard tag
         if: ${{ needs.analyze-code-changes.outputs.user-dashboard == 'true' }}
         run: |
