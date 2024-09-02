@@ -33,14 +33,12 @@ func Test_ActionService(t *testing.T) {
 			},
 			"processActionsUntil_listActionsFails": {
 				generateRepositoriesMock: func() repositories.Repositories {
-					return repositories.Repositories{
-						BuildingAction: &mockBuildingActionRepository{
-							errs: []error{errDefault},
-						},
-						PlanetBuilding: &mockPlanetBuildingRepository{
-							planetBuilding: defaultPlanetBuilding,
-						},
+					repos := generateValidActionServiceMocks()
+					repos.BuildingAction = &mockBuildingActionRepository{
+						errs: []error{errDefault},
 					}
+
+					return repos
 				},
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
 					s := NewActionService(pool, repos)
@@ -68,14 +66,12 @@ func Test_ActionService(t *testing.T) {
 			},
 			"processActionsUntil_getBuildingFails": {
 				generateRepositoriesMock: func() repositories.Repositories {
-					return repositories.Repositories{
-						BuildingAction: &mockBuildingActionRepository{
-							action: defaultBuildingAction,
-						},
-						PlanetBuilding: &mockPlanetBuildingRepository{
-							err: errDefault,
-						},
+					repos := generateValidActionServiceMocks()
+					repos.PlanetBuilding = &mockPlanetBuildingRepository{
+						err: errDefault,
 					}
+
+					return repos
 				},
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
 					s := NewActionService(pool, repos)
@@ -109,15 +105,13 @@ func Test_ActionService(t *testing.T) {
 			},
 			"processActionsUntil_updateBuildingFails": {
 				generateRepositoriesMock: func() repositories.Repositories {
-					return repositories.Repositories{
-						BuildingAction: &mockBuildingActionRepository{
-							action: defaultBuildingAction,
-						},
-						PlanetBuilding: &mockPlanetBuildingRepository{
-							planetBuilding: defaultPlanetBuilding,
-							updateErr:      errDefault,
-						},
+					repos := generateValidActionServiceMocks()
+					repos.PlanetBuilding = &mockPlanetBuildingRepository{
+						planetBuilding: defaultPlanetBuilding,
+						updateErr:      errDefault,
 					}
+
+					return repos
 				},
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
 					s := NewActionService(pool, repos)
@@ -127,6 +121,41 @@ func Test_ActionService(t *testing.T) {
 					m := assertPlanetBuildingRepoIsAMock(repos, assert)
 
 					assert.Equal(1, m.updateCalled)
+				},
+				expectedError: errDefault,
+			},
+			"processActionsUntil_deleteActionCost": {
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewActionService(pool, repos)
+					return s.ProcessActionsUntil(ctx, someTime)
+				},
+				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
+					m := assertBuildingActionCostRepoIsAMock(repos, assert)
+
+					assert.Equal(1, m.deleteForActionCalled)
+					assert.Equal(defaultBuildingAction.Id, m.deleteForActionId)
+				},
+			},
+			"processActionsUntil_deleteActionCostFails": {
+				generateRepositoriesMock: func() repositories.Repositories {
+					repos := generateValidActionServiceMocks()
+					repos.BuildingActionCost = &mockBuildingActionCostRepository{
+						actionCost: defaultBuildingActionCost,
+						errs: []error{
+							errDefault,
+						},
+					}
+
+					return repos
+				},
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewActionService(pool, repos)
+					return s.ProcessActionsUntil(ctx, someTime)
+				},
+				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
+					m := assertBuildingActionCostRepoIsAMock(repos, assert)
+
+					assert.Equal(1, m.deleteForActionCalled)
 				},
 				expectedError: errDefault,
 			},
@@ -144,18 +173,16 @@ func Test_ActionService(t *testing.T) {
 			},
 			"processActionsUntil_deleteActionFails": {
 				generateRepositoriesMock: func() repositories.Repositories {
-					return repositories.Repositories{
-						BuildingAction: &mockBuildingActionRepository{
-							action: defaultBuildingAction,
-							errs: []error{
-								nil,
-								errDefault,
-							},
-						},
-						PlanetBuilding: &mockPlanetBuildingRepository{
-							planetBuilding: defaultPlanetBuilding,
+					repos := generateValidActionServiceMocks()
+					repos.BuildingAction = &mockBuildingActionRepository{
+						action: defaultBuildingAction,
+						errs: []error{
+							nil,
+							errDefault,
 						},
 					}
+
+					return repos
 				},
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
 					s := NewActionService(pool, repos)
@@ -187,6 +214,9 @@ func generateValidActionServiceMocks() repositories.Repositories {
 	return repositories.Repositories{
 		BuildingAction: &mockBuildingActionRepository{
 			action: defaultBuildingAction,
+		},
+		BuildingActionCost: &mockBuildingActionCostRepository{
+			actionCost: defaultBuildingActionCost,
 		},
 		PlanetBuilding: &mockPlanetBuildingRepository{
 			planetBuilding: defaultPlanetBuilding,

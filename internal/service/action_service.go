@@ -5,27 +5,26 @@ import (
 	"time"
 
 	"github.com/KnoblauchPilze/user-service/pkg/db"
+	"github.com/KnoblauchPilze/user-service/pkg/game"
 	"github.com/KnoblauchPilze/user-service/pkg/persistence"
 	"github.com/KnoblauchPilze/user-service/pkg/repositories"
 )
 
-type ActionService interface {
-	ProcessActionsUntil(ctx context.Context, until time.Time) error
-}
-
 type actionServiceImpl struct {
 	conn db.ConnectionPool
 
-	buildingActionRepo repositories.BuildingActionRepository
-	planetBuildingRepo repositories.PlanetBuildingRepository
+	buildingActionRepo     repositories.BuildingActionRepository
+	buildingActionCostRepo repositories.BuildingActionCostRepository
+	planetBuildingRepo     repositories.PlanetBuildingRepository
 }
 
-func NewActionService(conn db.ConnectionPool, repos repositories.Repositories) ActionService {
+func NewActionService(conn db.ConnectionPool, repos repositories.Repositories) game.ActionService {
 	return &actionServiceImpl{
 		conn: conn,
 
-		buildingActionRepo: repos.BuildingAction,
-		planetBuildingRepo: repos.PlanetBuilding,
+		buildingActionRepo:     repos.BuildingAction,
+		buildingActionCostRepo: repos.BuildingActionCost,
+		planetBuildingRepo:     repos.PlanetBuilding,
 	}
 }
 
@@ -50,6 +49,11 @@ func (s *actionServiceImpl) ProcessActionsUntil(ctx context.Context, until time.
 		updatedBuilding := persistence.ToPlanetBuilding(action, building)
 
 		_, err = s.planetBuildingRepo.Update(ctx, tx, updatedBuilding)
+		if err != nil {
+			return err
+		}
+
+		err = s.buildingActionCostRepo.DeleteForAction(ctx, tx, action.Id)
 		if err != nil {
 			return err
 		}
