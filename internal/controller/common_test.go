@@ -1,19 +1,37 @@
 package controller
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/KnoblauchPilze/user-service/internal/service"
 	"github.com/KnoblauchPilze/user-service/pkg/db"
+	"github.com/KnoblauchPilze/user-service/pkg/game"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
 
 var errDefault = fmt.Errorf("some error")
+
+type mockActionService struct {
+	game.ActionService
+
+	err error
+
+	processActionsCalled int
+	until                time.Time
+}
+
+func (m *mockActionService) ProcessActionsUntil(ctx context.Context, until time.Time) error {
+	m.processActionsCalled++
+	m.until = until
+	return m.err
+}
 
 type HandlerTestSuite[Service any] struct {
 	suite.Suite
@@ -52,6 +70,85 @@ func (s *HandlerTestSuite[any]) TestPropagatesError() {
 	assert.Equal(errDefault, err)
 }
 
+type HandlerWithActionTestSuite[Service any] struct {
+	suite.Suite
+
+	generateTestFunc func(func(echo.Context, Service) error, game.ActionService) echo.HandlerFunc
+}
+
+func (s *HandlerWithActionTestSuite[any]) TestCallsHandler() {
+	assert := assert.New(s.T())
+
+	handlerCalled := false
+	in := func(_ echo.Context, _ any) error {
+		handlerCalled = true
+		return nil
+	}
+
+	h := s.generateTestFunc(in, &mockActionService{})
+
+	err := h(dummyEchoContext())
+
+	assert.Nil(err)
+	assert.True(handlerCalled)
+}
+
+func (s *HandlerWithActionTestSuite[any]) TestCallsActionsService() {
+	assert := assert.New(s.T())
+
+	in := func(_ echo.Context, _ any) error {
+		return nil
+	}
+
+	m := &mockActionService{}
+
+	h := s.generateTestFunc(in, m)
+
+	err := h(dummyEchoContext())
+
+	assert.Nil(err)
+	assert.Equal(1, m.processActionsCalled)
+}
+
+func (s *HandlerWithActionTestSuite[any]) TestPropagatesError() {
+	assert := assert.New(s.T())
+
+	handlerCalled := false
+	in := func(_ echo.Context, _ any) error {
+		handlerCalled = true
+		return errDefault
+	}
+
+	h := s.generateTestFunc(in, &mockActionService{})
+
+	err := h(dummyEchoContext())
+
+	assert.Equal(errDefault, err)
+	assert.True(handlerCalled)
+}
+
+func (s *HandlerWithActionTestSuite[any]) TestDoesNotCallNextOnActionServiceError() {
+	assert := assert.New(s.T())
+
+	handlerCalled := false
+	in := func(_ echo.Context, _ any) error {
+		handlerCalled = true
+		return nil
+	}
+
+	m := &mockActionService{
+		err: errDefault,
+	}
+
+	h := s.generateTestFunc(in, m)
+
+	err := h(dummyEchoContext())
+
+	assert.Nil(err)
+	assert.Equal(1, m.processActionsCalled)
+	assert.False(handlerCalled)
+}
+
 func TestFromAuthServiceAwareHttpHandler(t *testing.T) {
 	s := HandlerTestSuite[service.AuthService]{
 		generateTestFunc: func(in func(echo.Context, service.AuthService) error) echo.HandlerFunc {
@@ -83,9 +180,9 @@ func TestFromDbAwareHttpHandler(t *testing.T) {
 }
 
 func TestFromPlanetServiceAwareHttpHandler(t *testing.T) {
-	s := HandlerTestSuite[service.PlanetService]{
-		generateTestFunc: func(in func(echo.Context, service.PlanetService) error) echo.HandlerFunc {
-			return fromPlanetServiceAwareHttpHandler(in, &mockPlanetService{})
+	s := HandlerWithActionTestSuite[service.PlanetService]{
+		generateTestFunc: func(in func(echo.Context, service.PlanetService) error, m game.ActionService) echo.HandlerFunc {
+			return fromPlanetServiceAwareHttpHandler(in, &mockPlanetService{}, m)
 		},
 	}
 

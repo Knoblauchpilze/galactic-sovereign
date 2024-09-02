@@ -82,7 +82,7 @@ func TestPlanetEndpoints_GeneratesExpectedRoutes(t *testing.T) {
 	assert := assert.New(t)
 
 	actualRoutes := make(map[string]int)
-	for _, r := range PlanetEndpoints(&mockPlanetService{}) {
+	for _, r := range PlanetEndpoints(&mockPlanetService{}, &mockActionService{}) {
 		actualRoutes[r.Method()]++
 	}
 

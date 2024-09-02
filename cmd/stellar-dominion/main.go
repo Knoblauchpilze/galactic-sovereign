@@ -65,9 +65,11 @@ func main() {
 	universeService := service.NewUniverseService(pool, repos)
 	buildingActionService := service.NewBuildingActionService(pool, repos)
 
+	actionService := service.NewActionService(pool, repos)
+
 	s := rest.NewServer(conf.Server)
 
-	for _, route := range controller.PlanetEndpoints(planetService) {
+	for _, route := range controller.PlanetEndpoints(planetService, actionService) {
 		if err := s.Register(route); err != nil {
 			logger.Errorf("Failed to register route: %v", err)
 			os.Exit(1)
