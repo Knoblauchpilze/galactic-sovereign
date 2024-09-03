@@ -1,37 +1,19 @@
 package controller
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"time"
 
 	"github.com/KnoblauchPilze/user-service/internal/service"
 	"github.com/KnoblauchPilze/user-service/pkg/db"
-	"github.com/KnoblauchPilze/user-service/pkg/game"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
 
 var errDefault = fmt.Errorf("some error")
-
-type mockActionService struct {
-	game.ActionService
-
-	err error
-
-	processActionsCalled int
-	until                time.Time
-}
-
-func (m *mockActionService) ProcessActionsUntil(ctx context.Context, until time.Time) error {
-	m.processActionsCalled++
-	m.until = until
-	return m.err
-}
 
 type HandlerTestSuite[Service any] struct {
 	suite.Suite

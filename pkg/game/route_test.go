@@ -121,7 +121,7 @@ func TestRoute_WhenServiceFails_SetsStatusToInternalError(t *testing.T) {
 
 	assert.Nil(err)
 	assert.Equal(http.StatusInternalServerError, rw.Code)
-	assert.Equal("\"Failed to process action\"\n", rw.Body.String())
+	assert.Equal("\"Failed to process actions\"\n", rw.Body.String())
 }
 
 type testCase struct {

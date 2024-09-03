@@ -68,7 +68,7 @@ func TestActionWatcher_WhenServiceFails_SetsStatusToInternalServerError(t *testi
 
 	assert.Nil(err)
 	assert.Equal(http.StatusInternalServerError, rw.Code)
-	assert.Equal("\"Failed to process action\"\n", rw.Body.String())
+	assert.Equal("\"Failed to process actions\"\n", rw.Body.String())
 }
 
 func TestActionWatcher_WhenServiceFails_DoesNotCallHandler(t *testing.T) {
