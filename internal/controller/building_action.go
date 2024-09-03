@@ -14,16 +14,16 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func BuildingActionEndpoints(service service.BuildingActionService) rest.Routes {
+func BuildingActionEndpoints(service service.BuildingActionService, actions game.ActionService) rest.Routes {
 	var out rest.Routes
 
 	path := fmt.Sprintf("/planets/%s/actions", rest.RouteIdPlaceholder)
 	postHandler := fromBuildingActionServiceAwareHttpHandler(createBuildingAction, service)
-	post := rest.NewResourceRoute(http.MethodPost, false, path, postHandler)
+	post := game.NewResourceRoute(http.MethodPost, path, postHandler, actions)
 	out = append(out, post)
 
 	deleteHandler := fromBuildingActionServiceAwareHttpHandler(deleteBuildingAction, service)
-	delete := rest.NewResourceRoute(http.MethodDelete, false, "/actions", deleteHandler)
+	delete := game.NewResourceRoute(http.MethodDelete, "/actions", deleteHandler, actions)
 	out = append(out, delete)
 
 	return out
