@@ -7,28 +7,29 @@ import (
 	"github.com/KnoblauchPilze/user-service/pkg/communication"
 	"github.com/KnoblauchPilze/user-service/pkg/db"
 	"github.com/KnoblauchPilze/user-service/pkg/errors"
+	"github.com/KnoblauchPilze/user-service/pkg/game"
 	"github.com/KnoblauchPilze/user-service/pkg/rest"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
-func PlanetEndpoints(service service.PlanetService) rest.Routes {
+func PlanetEndpoints(service service.PlanetService, actions game.ActionService) rest.Routes {
 	var out rest.Routes
 
 	postHandler := fromPlanetServiceAwareHttpHandler(createPlanet, service)
-	post := rest.NewRoute(http.MethodPost, false, "/planets", postHandler)
+	post := game.NewRoute(http.MethodPost, "/planets", postHandler, actions)
 	out = append(out, post)
 
 	getHandler := fromPlanetServiceAwareHttpHandler(getPlanet, service)
-	get := rest.NewResourceRoute(http.MethodGet, false, "/planets", getHandler)
+	get := game.NewResourceRoute(http.MethodGet, "/planets", getHandler, actions)
 	out = append(out, get)
 
 	listHandler := fromPlanetServiceAwareHttpHandler(listPlanets, service)
-	list := rest.NewRoute(http.MethodGet, false, "/planets", listHandler)
+	list := game.NewRoute(http.MethodGet, "/planets", listHandler, actions)
 	out = append(out, list)
 
 	deleteHandler := fromPlanetServiceAwareHttpHandler(deletePlanet, service)
-	delete := rest.NewResourceRoute(http.MethodDelete, false, "/planets", deleteHandler)
+	delete := game.NewResourceRoute(http.MethodDelete, "/planets", deleteHandler, actions)
 	out = append(out, delete)
 
 	return out

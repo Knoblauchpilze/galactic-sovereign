@@ -50,13 +50,32 @@ func TestBuildingActionEndpoints_GeneratesExpectedRoutes(t *testing.T) {
 	assert := assert.New(t)
 
 	actualRoutes := make(map[string]int)
-	for _, r := range BuildingActionEndpoints(&mockBuildingActionService{}) {
+	for _, r := range BuildingActionEndpoints(&mockBuildingActionService{}, &mockActionService{}) {
 		actualRoutes[r.Method()]++
 	}
 
 	assert.Equal(2, len(actualRoutes))
 	assert.Equal(1, actualRoutes[http.MethodPost])
 	assert.Equal(1, actualRoutes[http.MethodDelete])
+}
+
+func TestBuildingActionEndpoints_WhenServiceFails_SetsReturnStatusInternalError(t *testing.T) {
+	assert := assert.New(t)
+
+	m := &mockActionService{
+		err: errDefault,
+	}
+
+	for _, route := range BuildingActionEndpoints(&mockBuildingActionService{}, m) {
+		ctx, rw := generateTestEchoContextWithMethod(http.MethodGet)
+
+		handler := route.Handler()
+		err := handler(ctx)
+
+		assert.Nil(err)
+		assert.Equal(http.StatusInternalServerError, rw.Code)
+		assert.Equal("\"Failed to process actions\"\n", rw.Body.String())
+	}
 }
 
 func Test_BuildingActionController(t *testing.T) {
