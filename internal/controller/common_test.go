@@ -180,9 +180,9 @@ func TestFromDbAwareHttpHandler(t *testing.T) {
 }
 
 func TestFromPlanetServiceAwareHttpHandler(t *testing.T) {
-	s := HandlerWithActionTestSuite[service.PlanetService]{
-		generateTestFunc: func(in func(echo.Context, service.PlanetService) error, m game.ActionService) echo.HandlerFunc {
-			return fromPlanetServiceAwareHttpHandler(in, &mockPlanetService{}, m)
+	s := HandlerTestSuite[service.PlanetService]{
+		generateTestFunc: func(in func(echo.Context, service.PlanetService) error) echo.HandlerFunc {
+			return fromPlanetServiceAwareHttpHandler(in, &mockPlanetService{})
 		},
 	}
 

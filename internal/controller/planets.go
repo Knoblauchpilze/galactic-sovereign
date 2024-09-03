@@ -16,20 +16,20 @@ import (
 func PlanetEndpoints(service service.PlanetService, actions game.ActionService) rest.Routes {
 	var out rest.Routes
 
-	postHandler := fromPlanetServiceAwareHttpHandler(createPlanet, service, actions)
-	post := rest.NewRoute(http.MethodPost, false, "/planets", postHandler)
+	postHandler := fromPlanetServiceAwareHttpHandler(createPlanet, service)
+	post := game.NewRoute(http.MethodPost, "/planets", postHandler, actions)
 	out = append(out, post)
 
-	getHandler := fromPlanetServiceAwareHttpHandler(getPlanet, service, actions)
-	get := rest.NewResourceRoute(http.MethodGet, false, "/planets", getHandler)
+	getHandler := fromPlanetServiceAwareHttpHandler(getPlanet, service)
+	get := game.NewResourceRoute(http.MethodGet, "/planets", getHandler, actions)
 	out = append(out, get)
 
-	listHandler := fromPlanetServiceAwareHttpHandler(listPlanets, service, actions)
-	list := rest.NewRoute(http.MethodGet, false, "/planets", listHandler)
+	listHandler := fromPlanetServiceAwareHttpHandler(listPlanets, service)
+	list := game.NewRoute(http.MethodGet, "/planets", listHandler, actions)
 	out = append(out, list)
 
-	deleteHandler := fromPlanetServiceAwareHttpHandler(deletePlanet, service, actions)
-	delete := rest.NewResourceRoute(http.MethodDelete, false, "/planets", deleteHandler)
+	deleteHandler := fromPlanetServiceAwareHttpHandler(deletePlanet, service)
+	delete := game.NewResourceRoute(http.MethodDelete, "/planets", deleteHandler, actions)
 	out = append(out, delete)
 
 	return out
