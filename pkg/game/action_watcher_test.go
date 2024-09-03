@@ -1,8 +1,6 @@
 package game
 
 import (
-	"context"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -11,27 +9,6 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 )
-
-var errDefault = fmt.Errorf("some error")
-
-var defaultHandler = func(c echo.Context) error {
-	return nil
-}
-
-type mockActionService struct {
-	ActionService
-
-	err error
-
-	processActionsCalled int
-	until                time.Time
-}
-
-func (m *mockActionService) ProcessActionsUntil(ctx context.Context, until time.Time) error {
-	m.processActionsCalled++
-	m.until = until
-	return m.err
-}
 
 func TestActionWatcher_CallsNextMiddleware(t *testing.T) {
 	assert := assert.New(t)
