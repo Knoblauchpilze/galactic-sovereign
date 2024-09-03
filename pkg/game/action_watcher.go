@@ -27,7 +27,7 @@ func ActionWatcher(service ActionService, next echo.HandlerFunc) echo.HandlerFun
 		err := data.schedulePendingActions(c.Request().Context())
 		if err != nil {
 			c.Logger().Errorf("Failed to scheduled pending actions %v", err)
-			return c.JSON(http.StatusInternalServerError, "Failed to process action")
+			return c.JSON(http.StatusInternalServerError, "Failed to process actions")
 		}
 
 		return next(c)

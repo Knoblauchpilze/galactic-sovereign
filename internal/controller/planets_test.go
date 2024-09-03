@@ -14,6 +14,7 @@ import (
 	"github.com/KnoblauchPilze/user-service/pkg/communication"
 	"github.com/KnoblauchPilze/user-service/pkg/db"
 	"github.com/KnoblauchPilze/user-service/pkg/errors"
+	"github.com/KnoblauchPilze/user-service/pkg/game"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -33,6 +34,15 @@ type mockPlanetService struct {
 	inPlanet   communication.PlanetDtoRequest
 	inId       uuid.UUID
 	inPlayerId uuid.UUID
+}
+
+type mockActionService struct {
+	game.ActionService
+
+	err error
+
+	processActionsCalled int
+	until                time.Time
 }
 
 var defaultPlanetId = uuid.MustParse("080f5a2b-800a-458d-9806-7660bde4db00")
@@ -82,7 +92,7 @@ func TestPlanetEndpoints_GeneratesExpectedRoutes(t *testing.T) {
 	assert := assert.New(t)
 
 	actualRoutes := make(map[string]int)
-	for _, r := range PlanetEndpoints(&mockPlanetService{}) {
+	for _, r := range PlanetEndpoints(&mockPlanetService{}, &mockActionService{}) {
 		actualRoutes[r.Method()]++
 	}
 
@@ -90,6 +100,25 @@ func TestPlanetEndpoints_GeneratesExpectedRoutes(t *testing.T) {
 	assert.Equal(1, actualRoutes[http.MethodPost])
 	assert.Equal(2, actualRoutes[http.MethodGet])
 	assert.Equal(1, actualRoutes[http.MethodDelete])
+}
+
+func TestPlanetEndpoints_WhenServiceFails_SetsReturnStatusInternalError(t *testing.T) {
+	assert := assert.New(t)
+
+	m := &mockActionService{
+		err: errDefault,
+	}
+
+	for _, route := range PlanetEndpoints(&mockPlanetService{}, m) {
+		ctx, rw := generateTestEchoContextWithMethod(http.MethodGet)
+
+		handler := route.Handler()
+		err := handler(ctx)
+
+		assert.Nil(err)
+		assert.Equal(http.StatusInternalServerError, rw.Code)
+		assert.Equal("\"Failed to process actions\"\n", rw.Body.String())
+	}
 }
 
 func Test_PlanetController(t *testing.T) {
@@ -376,5 +405,11 @@ func (m *mockPlanetService) ListForPlayer(ctx context.Context, player uuid.UUID)
 func (m *mockPlanetService) Delete(ctx context.Context, id uuid.UUID) error {
 	m.deleteCalled++
 	m.inId = id
+	return m.err
+}
+
+func (m *mockActionService) ProcessActionsUntil(ctx context.Context, until time.Time) error {
+	m.processActionsCalled++
+	m.until = until
 	return m.err
 }
