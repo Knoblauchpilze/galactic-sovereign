@@ -90,7 +90,7 @@ func main() {
 		}
 	}
 
-	for _, route := range controller.BuildingActionEndpoints(buildingActionService) {
+	for _, route := range controller.BuildingActionEndpoints(buildingActionService, actionService) {
 		if err := s.Register(route); err != nil {
 			logger.Errorf("Failed to register route: %v", err)
 			os.Exit(1)
