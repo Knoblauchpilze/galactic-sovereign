@@ -6,7 +6,7 @@
 	let bgColor: string;
 	let bgColorHover: string;
 
-	if (negativeConfirmation) {
+	$: if (negativeConfirmation) {
 		bgColor = enabled ? 'bg-disabled' : 'bg-enabled';
 		bgColorHover = enabled ? 'hover:bg-disabled-hover' : 'hover:bg-enabled-hover';
 	} else {
@@ -14,7 +14,7 @@
 		bgColorHover = enabled ? 'hover:bg-enabled-hover' : 'hover:bg-disabled-hover';
 	}
 
-	if (!enabled) {
+	$: if (!enabled) {
 		bgColorHover = bgColor;
 	}
 </script>
