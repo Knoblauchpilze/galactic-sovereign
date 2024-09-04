@@ -21,8 +21,9 @@
 	// https://svelte.dev/blog/zero-config-type-safety
 	export let data;
 
-	const planetName: string = data.planet.name;
-	const universeName: string = data.universe.name;
+	// https://stackoverflow.com/questions/77047087/why-is-page-svelte-not-reloading-after-page-server-ts-executes-load-function
+	const planetName = data.planet.name;
+	const universeName = data.universe.name;
 
 	// https://stackoverflow.com/questions/75616911/sveltekit-fetching-on-the-server-and-updating-the-writable-store
 	heroImage.set(GAME_HERO_IMAGE);
@@ -30,17 +31,17 @@
 	const title = HOMEPAGE_TITLE + ' - ' + data.planet.name;
 	pageTitle.set(title);
 
-	const resources = mapPlanetResourcesToUiResources(data.planet.resources, data.resources);
-	const buildings = mapPlanetBuildingsToUiBuildings(
+	$: resources = mapPlanetResourcesToUiResources(data.planet.resources, data.resources);
+	$: buildings = mapPlanetBuildingsToUiBuildings(
 		data.planet.id,
 		data.planet.buildings,
 		data.planet.buildingActions,
 		data.buildings,
 		data.resources
 	);
-	const actions = mapBuildingActionsToUiActions(data.planet.buildingActions, data.buildings);
+	$: actions = mapBuildingActionsToUiActions(data.planet.buildingActions, data.buildings);
 
-	const anyBuildingActionRunning = data.planet.buildingActions.length !== 0;
+	$: anyBuildingActionRunning = data.planet.buildingActions.length !== 0;
 
 	function onActionCompleted() {
 		invalidate('data:planet');
