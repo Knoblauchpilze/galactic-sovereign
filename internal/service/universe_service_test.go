@@ -277,6 +277,7 @@ func Test_UniverseService(t *testing.T) {
 									Building: defaultBuilding.Id,
 									Resource: metalResourceId,
 									Cost:     250,
+									Progress: 1.5,
 								},
 							},
 						},
