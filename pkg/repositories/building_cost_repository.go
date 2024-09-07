@@ -22,7 +22,8 @@ const listBuildingCostForBuildingSqlTemplate = `
 SELECT
 	building,
 	resource,
-	cost
+	cost,
+	progress
 FROM
 	building_cost
 WHERE
@@ -38,7 +39,7 @@ func (r *buildingCostRepositoryImpl) ListForBuilding(ctx context.Context, tx db.
 	var out []persistence.BuildingCost
 	parser := func(rows db.Scannable) error {
 		var cost persistence.BuildingCost
-		err := rows.Scan(&cost.Building, &cost.Resource, &cost.Cost)
+		err := rows.Scan(&cost.Building, &cost.Resource, &cost.Cost, &cost.Progress)
 		if err != nil {
 			return err
 		}

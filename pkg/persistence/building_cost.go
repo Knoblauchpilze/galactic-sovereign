@@ -8,4 +8,5 @@ type BuildingCost struct {
 	Building uuid.UUID
 	Resource uuid.UUID
 	Cost     int
+	Progress float64
 }

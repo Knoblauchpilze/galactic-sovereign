@@ -13,6 +13,7 @@ var defaultBuildingId = uuid.MustParse("9c5a9f5c-b53e-4f5c-af6f-cb04e47abd95")
 
 func Test_BuildingCostRepository_Transaction(t *testing.T) {
 	var dummyInt int
+	var dummyFloat64 float64
 
 	s := RepositoryTransactionTestSuite{
 		dbInteractionTestCases: map[string]dbTransactionInteractionTestCase{
@@ -27,7 +28,8 @@ func Test_BuildingCostRepository_Transaction(t *testing.T) {
 SELECT
 	building,
 	resource,
-	cost
+	cost,
+	progress
 FROM
 	building_cost
 WHERE
@@ -56,6 +58,7 @@ WHERE
 						&uuid.UUID{},
 						&uuid.UUID{},
 						&dummyInt,
+						&dummyFloat64,
 					},
 				},
 			},
