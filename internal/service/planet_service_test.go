@@ -32,14 +32,14 @@ var defaultPlanet = persistence.Planet{
 var defaultPlanetResource = persistence.PlanetResource{
 	Planet:    defaultPlanetId,
 	Resource:  metalResourceId,
-	Amount:    321.0987,
+	Amount:    784.0987,
 	CreatedAt: testDate,
 	UpdatedAt: testDate,
 }
 var defaultPlanetBuilding = persistence.PlanetBuilding{
 	Planet:    defaultPlanetId,
 	Building:  defaultBuildingId,
-	Level:     38,
+	Level:     2,
 	CreatedAt: testDate,
 	UpdatedAt: testDate,
 }
@@ -437,7 +437,7 @@ func Test_PlanetService(t *testing.T) {
 						{
 							Planet:    defaultPlanet.Id,
 							Resource:  metalResourceId,
-							Amount:    321.0987,
+							Amount:    784.0987,
 							CreatedAt: testDate,
 							UpdatedAt: testDate,
 						},

@@ -16,14 +16,14 @@ type BuildingActionService interface {
 	Delete(ctx context.Context, id uuid.UUID) error
 }
 
-type buildingActionConsolidator func(action persistence.BuildingAction, buildings []persistence.PlanetBuilding, resources []persistence.Resource, costs []persistence.BuildingActionCost) (persistence.BuildingAction, error)
+type buildingActionCompletionTimeConsolidator func(action persistence.BuildingAction, resources []persistence.Resource, costs []persistence.BuildingActionCost) (persistence.BuildingAction, error)
 type buildingActionValidator func(action persistence.BuildingAction, resources []persistence.PlanetResource, buildings []persistence.PlanetBuilding, costs []persistence.BuildingActionCost) error
 
 type buildingActionServiceImpl struct {
 	conn db.ConnectionPool
 
-	consolidator buildingActionConsolidator
-	validator    buildingActionValidator
+	completionTimeConsolidator buildingActionCompletionTimeConsolidator
+	validator                  buildingActionValidator
 
 	resourceRepo           repositories.ResourceRepository
 	planetResourceRepo     repositories.PlanetResourceRepository
@@ -34,15 +34,15 @@ type buildingActionServiceImpl struct {
 }
 
 func NewBuildingActionService(conn db.ConnectionPool, repos repositories.Repositories) BuildingActionService {
-	return newBuildingActionService(conn, repos, game.ConsolidateBuildingAction, game.ValidateBuildingAction)
+	return newBuildingActionService(conn, repos, game.ConsolidateBuildingActionCompletionTime, game.ValidateBuildingAction)
 }
 
-func newBuildingActionService(conn db.ConnectionPool, repos repositories.Repositories, consolidator buildingActionConsolidator, validator buildingActionValidator) BuildingActionService {
+func newBuildingActionService(conn db.ConnectionPool, repos repositories.Repositories, completionTimeConsolidator buildingActionCompletionTimeConsolidator, validator buildingActionValidator) BuildingActionService {
 	return &buildingActionServiceImpl{
 		conn: conn,
 
-		consolidator: consolidator,
-		validator:    validator,
+		completionTimeConsolidator: completionTimeConsolidator,
+		validator:                  validator,
 
 		resourceRepo:           repos.Resource,
 		planetResourceRepo:     repos.PlanetResource,
@@ -134,9 +134,10 @@ func (s *buildingActionServiceImpl) consolidateAction(ctx context.Context, tx db
 		return action, costs, err
 	}
 
+	action = game.ConsolidateBuildingActionLevel(action, buildings)
 	costs = game.DetermineBuildingActionCost(action, baseCosts)
 
-	action, err = s.consolidator(action, buildings, resources, costs)
+	action, err = s.completionTimeConsolidator(action, resources, costs)
 	if err != nil {
 		return action, costs, err
 	}

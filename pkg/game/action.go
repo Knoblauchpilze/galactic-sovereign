@@ -1,6 +1,8 @@
 package game
 
 import (
+	"math"
+
 	"github.com/KnoblauchPilze/user-service/pkg/errors"
 	"github.com/KnoblauchPilze/user-service/pkg/persistence"
 	"github.com/google/uuid"
@@ -9,10 +11,12 @@ import (
 func DetermineBuildingActionCost(action persistence.BuildingAction, baseCosts []persistence.BuildingCost) []persistence.BuildingActionCost {
 	var costs []persistence.BuildingActionCost
 	for _, baseCost := range baseCosts {
+		resourceCost := math.Floor(float64(baseCost.Cost) * math.Pow(baseCost.Progress, float64(action.DesiredLevel-1)))
+
 		cost := persistence.BuildingActionCost{
 			Action:   action.Id,
 			Resource: baseCost.Resource,
-			Amount:   baseCost.Cost,
+			Amount:   int(resourceCost),
 		}
 		costs = append(costs, cost)
 	}
@@ -20,7 +24,7 @@ func DetermineBuildingActionCost(action persistence.BuildingAction, baseCosts []
 	return costs
 }
 
-func ConsolidateBuildingAction(action persistence.BuildingAction, buildings []persistence.PlanetBuilding, resources []persistence.Resource, costs []persistence.BuildingActionCost) (persistence.BuildingAction, error) {
+func ConsolidateBuildingActionLevel(action persistence.BuildingAction, buildings []persistence.PlanetBuilding) persistence.BuildingAction {
 	for _, building := range buildings {
 		if building.Building == action.Building {
 			action.CurrentLevel = building.Level
@@ -30,6 +34,10 @@ func ConsolidateBuildingAction(action persistence.BuildingAction, buildings []pe
 
 	action.DesiredLevel = action.CurrentLevel + 1
 
+	return action
+}
+
+func ConsolidateBuildingActionCompletionTime(action persistence.BuildingAction, resources []persistence.Resource, costs []persistence.BuildingActionCost) (persistence.BuildingAction, error) {
 	completionTime, err := buildingCompletionTimeFromCost(resources, costs)
 	action.CompletedAt = action.CreatedAt.Add(completionTime)
 

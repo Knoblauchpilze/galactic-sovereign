@@ -117,7 +117,8 @@ func Test_BuildingActionService(t *testing.T) {
 					assert.Equal(1, m.updateCalled)
 					assert.Equal(defaultBuildingActionDtoRequest.Planet, m.updatedPlanetResource.Planet)
 					assert.Equal(defaultPlanetResource.Resource, m.updatedPlanetResource.Resource)
-					expectedAmount := defaultPlanetResource.Amount - float64(defaultBuildingActionCost.Amount)
+					expectedCost := 562.0
+					expectedAmount := defaultPlanetResource.Amount - expectedCost
 					assert.Equal(expectedAmount, m.updatedPlanetResource.Amount)
 					assert.Equal(defaultPlanetResource.Version, m.updatedPlanetResource.Version)
 				},
@@ -133,7 +134,7 @@ func Test_BuildingActionService(t *testing.T) {
 
 					assert.Equal(1, m.createCalled)
 					assert.Equal(defaultBuildingCost.Resource, m.createdBuildingActionCost.Resource)
-					assert.Equal(250, m.createdBuildingActionCost.Amount)
+					assert.Equal(562, m.createdBuildingActionCost.Amount)
 				},
 			},
 			"create_createsAction": {
@@ -154,7 +155,9 @@ func Test_BuildingActionService(t *testing.T) {
 					assert.Equal(defaultPlanetBuilding.Level, actual.CurrentLevel)
 					assert.Equal(defaultPlanetBuilding.Level+1, actual.DesiredLevel)
 					assert.True(beforeTestSuite.Before(actual.CreatedAt))
-					expectedCompletionTime := actual.CreatedAt.Add(6 * time.Minute)
+					expectedDuration, err := time.ParseDuration("13m29s280ms")
+					assert.Nil(err)
+					expectedCompletionTime := actual.CreatedAt.Add(expectedDuration)
 					assert.Equal(expectedCompletionTime, actual.CompletedAt)
 				},
 			},
@@ -244,7 +247,7 @@ func Test_BuildingActionService(t *testing.T) {
 			},
 			"create_failure_consolidation": {
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					consolidator := func(action persistence.BuildingAction, _ []persistence.PlanetBuilding, _ []persistence.Resource, _ []persistence.BuildingActionCost) (persistence.BuildingAction, error) {
+					consolidator := func(action persistence.BuildingAction, _ []persistence.Resource, _ []persistence.BuildingActionCost) (persistence.BuildingAction, error) {
 						return action, errDefault
 					}
 					validator := func(_ persistence.BuildingAction, _ []persistence.PlanetResource, _ []persistence.PlanetBuilding, _ []persistence.BuildingActionCost) error {
@@ -258,7 +261,7 @@ func Test_BuildingActionService(t *testing.T) {
 			},
 			"create_failure_validation": {
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					consolidator := func(action persistence.BuildingAction, _ []persistence.PlanetBuilding, _ []persistence.Resource, _ []persistence.BuildingActionCost) (persistence.BuildingAction, error) {
+					consolidator := func(action persistence.BuildingAction, _ []persistence.Resource, _ []persistence.BuildingActionCost) (persistence.BuildingAction, error) {
 						return action, nil
 					}
 					validator := func(_ persistence.BuildingAction, _ []persistence.PlanetResource, _ []persistence.PlanetBuilding, _ []persistence.BuildingActionCost) error {
