@@ -10,6 +10,7 @@ export interface ApiBuilding {
 export interface ApiBuildingCost {
 	readonly resource: string;
 	readonly cost: number;
+	readonly progress: number;
 }
 
 export class Building {
@@ -37,7 +38,8 @@ export class Building {
 			name: this.name,
 			costs: this.costs.map((c) => ({
 				resource: c.resource,
-				cost: c.cost
+				cost: c.cost,
+				progress: c.progress
 			}))
 		};
 	}
@@ -61,6 +63,7 @@ export function parseBuildings(data: object[]): Building[] {
 export interface BuildingCost {
 	readonly resource: string;
 	readonly cost: number;
+	readonly progress: number;
 }
 
 export function parseBuildingCosts(data: object[]): BuildingCost[] {
@@ -69,11 +72,13 @@ export function parseBuildingCosts(data: object[]): BuildingCost[] {
 	for (const maybeCost of data) {
 		const hasResource = 'resource' in maybeCost && typeof maybeCost.resource === 'string';
 		const hasCost = 'cost' in maybeCost && typeof maybeCost.cost === 'number';
+		const hasProgress = 'progress' in maybeCost && typeof maybeCost.progress === 'number';
 
-		if (hasResource && hasCost) {
+		if (hasResource && hasCost && hasProgress) {
 			const cost: BuildingCost = {
 				resource: maybeCost.resource as string,
-				cost: maybeCost.cost as number
+				cost: maybeCost.cost as number,
+				progress: maybeCost.progress as number
 			};
 
 			out.push(cost);
