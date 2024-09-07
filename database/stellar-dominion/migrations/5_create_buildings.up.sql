@@ -16,6 +16,7 @@ CREATE TABLE building_cost (
   building uuid NOT NULL,
   resource uuid NOT NULL,
   cost integer NOT NULL,
+  progress numeric(15, 5) NOT NULL,
   FOREIGN KEY (building) REFERENCES building(id),
   FOREIGN KEY (resource) REFERENCES resource(id),
   UNIQUE (building, resource)
