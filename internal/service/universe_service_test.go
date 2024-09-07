@@ -46,6 +46,7 @@ var defaultBuildingCost = persistence.BuildingCost{
 	Building: defaultBuildingId,
 	Resource: metalResourceId,
 	Cost:     250,
+	Progress: 1.5,
 }
 
 func Test_UniverseService(t *testing.T) {
