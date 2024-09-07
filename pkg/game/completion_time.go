@@ -48,7 +48,7 @@ func buildingCompletionTimeFromCost(resources []persistence.Resource, costs []pe
 
 	buildTimeHour := (metal + crystal) / resourceUnitsPerHour
 
-	hours := math.Ceil(buildTimeHour * float64(time.Hour.Nanoseconds()))
+	nanoSeconds := math.Ceil(buildTimeHour * float64(time.Hour.Nanoseconds()))
 
-	return time.Duration(hours), nil
+	return time.Duration(nanoSeconds), nil
 }
