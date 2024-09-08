@@ -23,7 +23,7 @@
 	// https://stackoverflow.com/questions/49296458/capitalize-first-letter-of-a-string-using-angular-or-typescript
 	const title = building.name[0].toUpperCase() + building.name.slice(1);
 
-	const costs = building.costs.map((c) => ({
+	$: costs = building.costs.map((c) => ({
 		resource: c.resource,
 		cost: c.cost,
 		color: textColor(c, availableResources)
