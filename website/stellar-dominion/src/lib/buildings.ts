@@ -133,21 +133,26 @@ export class UiBuilding {
 	readonly costs: UiBuildingCost[] = [];
 }
 
+function computeCostForLevel(cost: number, progress: number, level: number): number {
+	return Math.floor(cost * Math.pow(progress, level - 1));
+}
+
 function mapBuildingCostsToUiBuildingCosts(
 	buildingCosts: BuildingCost[],
-	apiResources: ApiResource[]
+	apiResources: ApiResource[],
+	level: number
 ): UiBuildingCost[] {
 	return buildingCosts.map((cost) => {
 		const maybeResource = apiResources.find((r) => r.id === cost.resource);
 		if (maybeResource === undefined) {
 			return {
 				resource: 'Unknown resource',
-				cost: cost.cost
+				cost: computeCostForLevel(cost.cost, cost.progress, level + 1)
 			};
 		} else {
 			return {
 				resource: maybeResource.name,
-				cost: cost.cost
+				cost: computeCostForLevel(cost.cost, cost.progress, level + 1)
 			};
 		}
 	});
@@ -169,7 +174,7 @@ export function mapPlanetBuildingsToUiBuildings(
 				level: 0,
 				planet: planet,
 				hasAction: false,
-				costs: mapBuildingCostsToUiBuildingCosts(apiBuilding.costs, apiResources)
+				costs: mapBuildingCostsToUiBuildingCosts(apiBuilding.costs, apiResources, 0)
 			};
 		} else {
 			const maybeAction = planetActions.find((a) => a.building === maybeBuilding.id);
@@ -180,7 +185,7 @@ export function mapPlanetBuildingsToUiBuildings(
 					level: maybeBuilding.level,
 					planet: planet,
 					hasAction: false,
-					costs: mapBuildingCostsToUiBuildingCosts(apiBuilding.costs, apiResources)
+					costs: mapBuildingCostsToUiBuildingCosts(apiBuilding.costs, apiResources, maybeBuilding.level)
 				};
 			}
 
@@ -193,7 +198,7 @@ export function mapPlanetBuildingsToUiBuildings(
 				action: maybeAction.id,
 				nextLevel: maybeAction.desiredLevel,
 				completedAt: maybeAction.completedAt,
-				costs: mapBuildingCostsToUiBuildingCosts(apiBuilding.costs, apiResources)
+				costs: mapBuildingCostsToUiBuildingCosts(apiBuilding.costs, apiResources, maybeBuilding.level)
 			};
 		}
 	});
