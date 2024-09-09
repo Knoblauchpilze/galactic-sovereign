@@ -21,3 +21,13 @@ CREATE TABLE building_cost (
   FOREIGN KEY (resource) REFERENCES resource(id),
   UNIQUE (building, resource)
 );
+
+CREATE TABLE building_resource_production (
+  building uuid NOT NULL,
+  resource uuid NOT NULL,
+  base integer NOT NULL,
+  progress numeric(15, 5) NOT NULL,
+  FOREIGN KEY (building) REFERENCES building(id),
+  FOREIGN KEY (resource) REFERENCES resource(id),
+  UNIQUE (building, resource)
+);

@@ -24,13 +24,20 @@ INSERT INTO stellar_dominion_schema.building_cost ("building", "resource", "cost
     60,
     1.5
   );
-
 INSERT INTO stellar_dominion_schema.building_cost ("building", "resource", "cost", "progress")
   VALUES (
     'd176e82d-f2ca-4611-996b-c4804096caef',
     'cd2ac9aa-9968-4ff5-b746-88f1f810fbb3',
     15,
     1.5
+  );
+
+INSERT INTO stellar_dominion_schema.building_resource_production ("building", "resource", "base", "progress")
+  VALUES (
+    'd176e82d-f2ca-4611-996b-c4804096caef',
+    'b4419b6b-b3bf-4576-aa92-055283addbc8',
+    30,
+    1.1
   );
 
 
@@ -44,11 +51,18 @@ INSERT INTO stellar_dominion_schema.building_cost ("building", "resource", "cost
     48,
     1.6
   );
-
 INSERT INTO stellar_dominion_schema.building_cost ("building", "resource", "cost", "progress")
   VALUES (
     '3904d34d-9a7e-47d4-a332-091700e2c5c3',
     'cd2ac9aa-9968-4ff5-b746-88f1f810fbb3',
     24,
     1.6
+  );
+
+INSERT INTO stellar_dominion_schema.building_resource_production ("building", "resource", "base", "progress")
+  VALUES (
+    '3904d34d-9a7e-47d4-a332-091700e2c5c3',
+    'cd2ac9aa-9968-4ff5-b746-88f1f810fbb3',
+    20,
+    1.1
   );
