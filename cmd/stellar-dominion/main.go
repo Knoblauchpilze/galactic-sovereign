@@ -48,16 +48,17 @@ func main() {
 	}
 
 	repos := repositories.Repositories{
-		Building:           repositories.NewBuildingRepository(),
-		BuildingAction:     repositories.NewBuildingActionRepository(),
-		BuildingActionCost: repositories.NewBuildingActionCostRepository(),
-		BuildingCost:       repositories.NewBuildingCostRepository(),
-		Planet:             repositories.NewPlanetRepository(pool),
-		PlanetBuilding:     repositories.NewPlanetBuildingRepository(),
-		PlanetResource:     repositories.NewPlanetResourceRepository(),
-		Player:             repositories.NewPlayerRepository(pool),
-		Resource:           repositories.NewResourceRepository(pool),
-		Universe:           repositories.NewUniverseRepository(pool),
+		Building:                   repositories.NewBuildingRepository(),
+		BuildingAction:             repositories.NewBuildingActionRepository(),
+		BuildingActionCost:         repositories.NewBuildingActionCostRepository(),
+		BuildingCost:               repositories.NewBuildingCostRepository(),
+		BuildingResourceProduction: repositories.NewBuildingResourceProductionRepository(),
+		Planet:                     repositories.NewPlanetRepository(pool),
+		PlanetBuilding:             repositories.NewPlanetBuildingRepository(),
+		PlanetResource:             repositories.NewPlanetResourceRepository(),
+		Player:                     repositories.NewPlayerRepository(pool),
+		Resource:                   repositories.NewResourceRepository(pool),
+		Universe:                   repositories.NewUniverseRepository(pool),
 	}
 
 	planetService := service.NewPlanetService(pool, repos)
