@@ -11,7 +11,7 @@ import (
 func TestToFullBuildingDtoResponse(t *testing.T) {
 	assert := assert.New(t)
 
-	actual := ToFullBuildingDtoResponse(defaultBuilding, []persistence.BuildingCost{defaultBuildingCost})
+	actual := ToFullBuildingDtoResponse(defaultBuilding, []persistence.BuildingCost{defaultBuildingCost}, []persistence.BuildingResourceProduction{defaultBuildingResourceProduction})
 
 	assert.Equal(defaultBuildingId, actual.Id)
 	assert.Equal("my-building", actual.Name)
@@ -19,6 +19,9 @@ func TestToFullBuildingDtoResponse(t *testing.T) {
 
 	assert.Equal(1, len(actual.Costs))
 	assert.Equal(defaultBuildingCostDtoResponse, actual.Costs[0])
+
+	assert.Equal(1, len(actual.Productions))
+	assert.Equal(defaultBuildingResourceProductionDtoResponse, actual.Productions[0])
 }
 
 func TestFullBuildingDtoResponse_MarshalsToCamelCase(t *testing.T) {
@@ -28,6 +31,9 @@ func TestFullBuildingDtoResponse_MarshalsToCamelCase(t *testing.T) {
 		BuildingDtoResponse: defaultBuildingDtoResponse,
 		Costs: []BuildingCostDtoResponse{
 			defaultBuildingCostDtoResponse,
+		},
+		Productions: []BuildingResourceProductionDtoResponse{
+			defaultBuildingResourceProductionDtoResponse,
 		},
 	}
 
@@ -46,6 +52,14 @@ func TestFullBuildingDtoResponse_MarshalsToCamelCase(t *testing.T) {
 				"cost": 54,
 				"progress": 1.3
 			}
+		],
+		"productions": [
+			{
+				"building": "461ba465-86e6-4234-94b8-fc8fab03fa74",
+				"resource": "97ddca58-8eee-41af-8bda-f37a3080f618",
+				"base": 54,
+				"progress": 1.3
+			}
 		]
 	}`
 	assert.JSONEq(expectedJson, string(out))
@@ -57,6 +71,9 @@ func TestFullBuildingDtoResponse_WhenCostsAreEmpty_MarshalsToEmptyArray(t *testi
 	dto := FullBuildingDtoResponse{
 		BuildingDtoResponse: defaultBuildingDtoResponse,
 		Costs:               nil,
+		Productions: []BuildingResourceProductionDtoResponse{
+			defaultBuildingResourceProductionDtoResponse,
+		},
 	}
 
 	out, err := json.Marshal(dto)
@@ -67,7 +84,47 @@ func TestFullBuildingDtoResponse_WhenCostsAreEmpty_MarshalsToEmptyArray(t *testi
 		"id": "461ba465-86e6-4234-94b8-fc8fab03fa74",
 		"name": "my-building",
 		"createdAt": "2024-05-05T20:50:18.651387237Z",
-		"costs": []
+		"costs": [],
+		"productions": [
+			{
+				"building": "461ba465-86e6-4234-94b8-fc8fab03fa74",
+				"resource": "97ddca58-8eee-41af-8bda-f37a3080f618",
+				"base": 54,
+				"progress": 1.3
+			}
+		]
+	}`
+	assert.JSONEq(expectedJson, string(out))
+}
+
+func TestFullBuildingDtoResponse_WhenProductionsAreEmpty_MarshalsToEmptyArray(t *testing.T) {
+	assert := assert.New(t)
+
+	dto := FullBuildingDtoResponse{
+		BuildingDtoResponse: defaultBuildingDtoResponse,
+		Costs: []BuildingCostDtoResponse{
+			defaultBuildingCostDtoResponse,
+		},
+		Productions: nil,
+	}
+
+	out, err := json.Marshal(dto)
+
+	assert.Nil(err)
+	expectedJson := `
+	{
+		"id": "461ba465-86e6-4234-94b8-fc8fab03fa74",
+		"name": "my-building",
+		"createdAt": "2024-05-05T20:50:18.651387237Z",
+		"costs": [
+			{
+				"building": "461ba465-86e6-4234-94b8-fc8fab03fa74",
+				"resource": "97ddca58-8eee-41af-8bda-f37a3080f618",
+				"cost": 54,
+				"progress": 1.3
+			}
+		],
+		"productions": []
 	}`
 	assert.JSONEq(expectedJson, string(out))
 }

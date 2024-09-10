@@ -14,7 +14,11 @@ type FullUniverseDtoResponse struct {
 	Buildings []FullBuildingDtoResponse
 }
 
-func ToFullUniverseDtoResponse(universe persistence.Universe, resources []persistence.Resource, buildings []persistence.Building, buildingCosts map[uuid.UUID][]persistence.BuildingCost) FullUniverseDtoResponse {
+func ToFullUniverseDtoResponse(universe persistence.Universe,
+	resources []persistence.Resource,
+	buildings []persistence.Building,
+	buildingCosts map[uuid.UUID][]persistence.BuildingCost,
+	buildingProductions map[uuid.UUID][]persistence.BuildingResourceProduction) FullUniverseDtoResponse {
 	out := FullUniverseDtoResponse{
 		UniverseDtoResponse: ToUniverseDtoResponse(universe),
 	}
@@ -25,7 +29,7 @@ func ToFullUniverseDtoResponse(universe persistence.Universe, resources []persis
 	}
 
 	for _, building := range buildings {
-		buildingDto := ToFullBuildingDtoResponse(building, buildingCosts[building.Id])
+		buildingDto := ToFullBuildingDtoResponse(building, buildingCosts[building.Id], buildingProductions[building.Id])
 		out.Buildings = append(out.Buildings, buildingDto)
 	}
 

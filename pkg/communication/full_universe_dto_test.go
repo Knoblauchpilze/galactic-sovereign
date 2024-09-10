@@ -14,12 +14,19 @@ var defaultFullBuildingDtoResponse = FullBuildingDtoResponse{
 	Costs: []BuildingCostDtoResponse{
 		defaultBuildingCostDtoResponse,
 	},
+	Productions: []BuildingResourceProductionDtoResponse{
+		defaultBuildingResourceProductionDtoResponse,
+	},
 }
 
 func TestToFullUniverseDtoResponse(t *testing.T) {
 	assert := assert.New(t)
 
-	actual := ToFullUniverseDtoResponse(defaultUniverse, []persistence.Resource{defaultResource}, []persistence.Building{defaultBuilding}, map[uuid.UUID][]persistence.BuildingCost{defaultBuilding.Id: {defaultBuildingCost}})
+	actual := ToFullUniverseDtoResponse(defaultUniverse,
+		[]persistence.Resource{defaultResource},
+		[]persistence.Building{defaultBuilding},
+		map[uuid.UUID][]persistence.BuildingCost{defaultBuilding.Id: {defaultBuildingCost}},
+		map[uuid.UUID][]persistence.BuildingResourceProduction{defaultBuilding.Id: {defaultBuildingResourceProduction}})
 
 	assert.Equal(defaultUniverseId, actual.Id)
 	assert.Equal("my-universe", actual.Name)
@@ -72,6 +79,14 @@ func TestFullUniverseDtoResponse_MarshalsToCamelCase(t *testing.T) {
 						"cost": 54,
 						"progress": 1.3
 					}
+				],
+				"productions": [
+					{
+						"building": "461ba465-86e6-4234-94b8-fc8fab03fa74",
+						"resource": "97ddca58-8eee-41af-8bda-f37a3080f618",
+						"base": 54,
+						"progress": 1.3
+					}
 				]
 			}
 		]
@@ -109,6 +124,14 @@ func TestFullUniverseDtoResponse_WhenResourcesAreEmpty_MarshalsToEmptyArray(t *t
 						"building": "461ba465-86e6-4234-94b8-fc8fab03fa74",
 						"resource": "97ddca58-8eee-41af-8bda-f37a3080f618",
 						"cost": 54,
+						"progress": 1.3
+					}
+				],
+				"productions": [
+					{
+						"building": "461ba465-86e6-4234-94b8-fc8fab03fa74",
+						"resource": "97ddca58-8eee-41af-8bda-f37a3080f618",
+						"base": 54,
 						"progress": 1.3
 					}
 				]
