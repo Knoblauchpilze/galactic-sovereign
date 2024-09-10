@@ -48,6 +48,12 @@ var defaultBuildingCost = persistence.BuildingCost{
 	Cost:     250,
 	Progress: 1.5,
 }
+var defaultBuildingResourceProduction = persistence.BuildingResourceProduction{
+	Building: defaultBuildingId,
+	Resource: metalResourceId,
+	Base:     30,
+	Progress: 1.1,
+}
 
 func Test_UniverseService(t *testing.T) {
 	s := ServiceTestSuite{
@@ -113,12 +119,12 @@ func Test_UniverseService(t *testing.T) {
 			},
 			"get_resourceRepositoryFails": {
 				generateRepositoriesMock: func() repositories.Repositories {
-					return repositories.Repositories{
-						Resource: &mockResourceRepository{
-							err: errDefault,
-						},
-						Universe: &mockUniverseRepository{},
+					repos := generateValidUniverseRepositoryMock()
+					repos.Resource = &mockResourceRepository{
+						err: errDefault,
 					}
+
+					return repos
 				},
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
 					s := NewUniverseService(pool, repos)
@@ -141,13 +147,12 @@ func Test_UniverseService(t *testing.T) {
 			},
 			"get_buildingRepositoryFails": {
 				generateRepositoriesMock: func() repositories.Repositories {
-					return repositories.Repositories{
-						Building: &mockBuildingRepository{
-							err: errDefault,
-						},
-						Resource: &mockResourceRepository{},
-						Universe: &mockUniverseRepository{},
+					repos := generateValidUniverseRepositoryMock()
+					repos.Building = &mockBuildingRepository{
+						err: errDefault,
 					}
+
+					return repos
 				},
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
 					s := NewUniverseService(pool, repos)
@@ -170,14 +175,40 @@ func Test_UniverseService(t *testing.T) {
 			},
 			"get_buildingCostRepositoryFails": {
 				generateRepositoriesMock: func() repositories.Repositories {
-					return repositories.Repositories{
-						Building: &mockBuildingRepository{},
-						BuildingCost: &mockBuildingCostRepository{
-							err: errDefault,
-						},
-						Resource: &mockResourceRepository{},
-						Universe: &mockUniverseRepository{},
+					repos := generateValidUniverseRepositoryMock()
+					repos.BuildingCost = &mockBuildingCostRepository{
+						err: errDefault,
 					}
+
+					return repos
+				},
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewUniverseService(pool, repos)
+					_, err := s.Get(ctx, defaultUniverseId)
+					return err
+				},
+				expectedError: errDefault,
+			},
+			"get_buildingResourceProductionRepository": {
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewUniverseService(pool, repos)
+					_, err := s.Get(ctx, defaultUniverseId)
+					return err
+				},
+				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
+					m := assertBuildingResourceProductionRepoIsAMock(repos, assert)
+
+					assert.Equal(1, m.listForBuildingCalled)
+				},
+			},
+			"get_buildingResourceProductionRepositoryFails": {
+				generateRepositoriesMock: func() repositories.Repositories {
+					repos := generateValidUniverseRepositoryMock()
+					repos.BuildingResourceProduction = &mockBuildingResourceProductionRepository{
+						err: errDefault,
+					}
+
+					return repos
 				},
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
 					s := NewUniverseService(pool, repos)
@@ -280,6 +311,14 @@ func Test_UniverseService(t *testing.T) {
 									Progress: 1.5,
 								},
 							},
+							Productions: []communication.BuildingResourceProductionDtoResponse{
+								{
+									Building: defaultBuilding.Id,
+									Resource: metalResourceId,
+									Base:     30,
+									Progress: 1.1,
+								},
+							},
 						},
 					},
 				},
@@ -329,6 +368,9 @@ func generateValidUniverseRepositoryMock() repositories.Repositories {
 		BuildingCost: &mockBuildingCostRepository{
 			buildingCost: defaultBuildingCost,
 		},
+		BuildingResourceProduction: &mockBuildingResourceProductionRepository{
+			buildingResourceProduction: defaultBuildingResourceProduction,
+		},
 		Resource: &mockResourceRepository{
 			resources: []persistence.Resource{defaultResource},
 		},
@@ -374,6 +416,14 @@ func assertBuildingCostRepoIsAMock(repos repositories.Repositories, assert *requ
 	m, ok := repos.BuildingCost.(*mockBuildingCostRepository)
 	if !ok {
 		assert.Fail("Provided building cost repository is not a mock")
+	}
+	return m
+}
+
+func assertBuildingResourceProductionRepoIsAMock(repos repositories.Repositories, assert *require.Assertions) *mockBuildingResourceProductionRepository {
+	m, ok := repos.BuildingResourceProduction.(*mockBuildingResourceProductionRepository)
+	if !ok {
+		assert.Fail("Provided building resiyrce production repository is not a mock")
 	}
 	return m
 }

@@ -20,19 +20,21 @@ type UniverseService interface {
 type universeServiceImpl struct {
 	conn db.ConnectionPool
 
-	universeRepo     repositories.UniverseRepository
-	resourceRepo     repositories.ResourceRepository
-	buildingRepo     repositories.BuildingRepository
-	buildingCostRepo repositories.BuildingCostRepository
+	universeRepo                   repositories.UniverseRepository
+	resourceRepo                   repositories.ResourceRepository
+	buildingRepo                   repositories.BuildingRepository
+	buildingCostRepo               repositories.BuildingCostRepository
+	buildingResourceProductionRepo repositories.BuildingResourceProductionRepository
 }
 
 func NewUniverseService(conn db.ConnectionPool, repos repositories.Repositories) UniverseService {
 	return &universeServiceImpl{
-		conn:             conn,
-		universeRepo:     repos.Universe,
-		resourceRepo:     repos.Resource,
-		buildingRepo:     repos.Building,
-		buildingCostRepo: repos.BuildingCost,
+		conn:                           conn,
+		universeRepo:                   repos.Universe,
+		resourceRepo:                   repos.Resource,
+		buildingRepo:                   repos.Building,
+		buildingCostRepo:               repos.BuildingCost,
+		buildingResourceProductionRepo: repos.BuildingResourceProduction,
 	}
 }
 
@@ -80,7 +82,17 @@ func (s *universeServiceImpl) Get(ctx context.Context, id uuid.UUID) (communicat
 		costs[building.Id] = buildingCosts
 	}
 
-	out := communication.ToFullUniverseDtoResponse(universe, resources, buildings, costs)
+	productions := make(map[uuid.UUID][]persistence.BuildingResourceProduction)
+	for _, building := range buildings {
+		buildingProductions, err := s.buildingResourceProductionRepo.ListForBuilding(ctx, tx, building.Id)
+		if err != nil {
+			return communication.FullUniverseDtoResponse{}, err
+		}
+
+		productions[building.Id] = buildingProductions
+	}
+
+	out := communication.ToFullUniverseDtoResponse(universe, resources, buildings, costs, productions)
 
 	return out, nil
 }
