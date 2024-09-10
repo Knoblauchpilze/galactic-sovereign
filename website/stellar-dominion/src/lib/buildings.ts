@@ -5,6 +5,7 @@ export interface ApiBuilding {
 	readonly id: string;
 	readonly name: string;
 	readonly costs: ApiBuildingCost[];
+	readonly resourceProductions: ApiBuildingResourceProduction[];
 }
 
 export interface ApiBuildingCost {
@@ -13,10 +14,17 @@ export interface ApiBuildingCost {
 	readonly progress: number;
 }
 
+export interface ApiBuildingResourceProduction {
+	readonly resource: string;
+	readonly base: number;
+	readonly progress: number;
+}
+
 export class Building {
 	readonly id: string = '00000000-0000-0000-0000-000000000000';
 	readonly name: string = '';
 	readonly costs: BuildingCost[] = [];
+	readonly resourceProductions: BuildingResourceProduction[] = [];
 
 	constructor(response: object) {
 		if ('id' in response && typeof response.id === 'string') {
@@ -30,6 +38,10 @@ export class Building {
 		if ('costs' in response && Array.isArray(response.costs)) {
 			this.costs = parseBuildingCosts(response.costs);
 		}
+
+		if ('productions' in response && Array.isArray(response.productions)) {
+			this.resourceProductions = parseBuildingResourceProductions(response.productions);
+		}
 	}
 
 	public toJson(): ApiBuilding {
@@ -40,6 +52,11 @@ export class Building {
 				resource: c.resource,
 				cost: c.cost,
 				progress: c.progress
+			})),
+			resourceProductions: this.resourceProductions.map((p) => ({
+				resource: p.resource,
+				base: p.base,
+				progress: p.progress
 			}))
 		};
 	}
@@ -82,6 +99,34 @@ export function parseBuildingCosts(data: object[]): BuildingCost[] {
 			};
 
 			out.push(cost);
+		}
+	}
+
+	return out;
+}
+
+export interface BuildingResourceProduction {
+	readonly resource: string;
+	readonly base: number;
+	readonly progress: number;
+}
+
+export function parseBuildingResourceProductions(data: object[]): BuildingResourceProduction[] {
+	const out: BuildingResourceProduction[] = [];
+
+	for (const maybeCost of data) {
+		const hasResource = 'resource' in maybeCost && typeof maybeCost.resource === 'string';
+		const hasBase = 'base' in maybeCost && typeof maybeCost.base === 'number';
+		const hasProgress = 'progress' in maybeCost && typeof maybeCost.progress === 'number';
+
+		if (hasResource && hasBase && hasProgress) {
+			const resourceProduction: BuildingResourceProduction = {
+				resource: maybeCost.resource as string,
+				base: maybeCost.base as number,
+				progress: maybeCost.progress as number
+			};
+
+			out.push(resourceProduction);
 		}
 	}
 
@@ -185,7 +230,11 @@ export function mapPlanetBuildingsToUiBuildings(
 					level: maybeBuilding.level,
 					planet: planet,
 					hasAction: false,
-					costs: mapBuildingCostsToUiBuildingCosts(apiBuilding.costs, apiResources, maybeBuilding.level)
+					costs: mapBuildingCostsToUiBuildingCosts(
+						apiBuilding.costs,
+						apiResources,
+						maybeBuilding.level
+					)
 				};
 			}
 
@@ -198,7 +247,11 @@ export function mapPlanetBuildingsToUiBuildings(
 				action: maybeAction.id,
 				nextLevel: maybeAction.desiredLevel,
 				completedAt: maybeAction.completedAt,
-				costs: mapBuildingCostsToUiBuildingCosts(apiBuilding.costs, apiResources, maybeBuilding.level)
+				costs: mapBuildingCostsToUiBuildingCosts(
+					apiBuilding.costs,
+					apiResources,
+					maybeBuilding.level
+				)
 			};
 		}
 	});
