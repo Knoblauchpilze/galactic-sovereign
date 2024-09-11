@@ -33,11 +33,12 @@ const createPlanetHomeworldSqlTemplate = "INSERT INTO homeworld (player, planet)
 // https://stackoverflow.com/questions/4141370/sql-insert-with-select-and-hard-coded-values
 const createPlanetResourcesSqlTemplate = `
 INSERT INTO
-	planet_resource (planet, resource, amount, created_at)
+	planet_resource (planet, resource, amount, production, created_at)
 SELECT
 	$1,
 	id,
 	start_amount,
+	start_production,
 	$2
 FROM
 	resource
