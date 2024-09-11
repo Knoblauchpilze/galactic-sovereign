@@ -60,9 +60,10 @@ var defaultPlanetDtoResponse = communication.PlanetDtoResponse{
 	CreatedAt: time.Date(2024, 07, 13, 10, 53, 10, 651387238, time.UTC),
 }
 var defaultPlanetResourceDtoResponse = communication.PlanetResourceDtoResponse{
-	Planet:   defaultPlanetId,
-	Resource: defaultResourceId,
-	Amount:   654.321,
+	Planet:     defaultPlanetId,
+	Resource:   defaultResourceId,
+	Amount:     654.321,
+	Production: 27,
 
 	CreatedAt: time.Date(2024, 07, 31, 18, 10, 30, 651387238, time.UTC),
 	UpdatedAt: time.Date(2024, 07, 31, 18, 10, 59, 651387238, time.UTC),
