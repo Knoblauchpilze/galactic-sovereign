@@ -22,10 +22,10 @@ func NewPlanetResourceRepository() PlanetResourceRepository {
 	return &planetResourceRepositoryImpl{}
 }
 
-const createPlanetResourceSqlTemplate = "INSERT INTO planet_resource (planet, resource, amount, created_at) VALUES($1, $2, $3, $4)"
+const createPlanetResourceSqlTemplate = "INSERT INTO planet_resource (planet, resource, amount, production, created_at) VALUES($1, $2, $3, $4, $5)"
 
 func (r *planetResourceRepositoryImpl) Create(ctx context.Context, tx db.Transaction, resource persistence.PlanetResource) (persistence.PlanetResource, error) {
-	_, err := tx.Exec(ctx, createPlanetResourceSqlTemplate, resource.Planet, resource.Resource, resource.Amount, resource.CreatedAt)
+	_, err := tx.Exec(ctx, createPlanetResourceSqlTemplate, resource.Planet, resource.Resource, resource.Amount, resource.Production, resource.CreatedAt)
 	return resource, err
 }
 
@@ -34,6 +34,7 @@ SELECT
 	planet,
 	resource,
 	amount,
+	production,
 	created_at,
 	updated_at,
 	version
@@ -52,7 +53,7 @@ func (r *planetResourceRepositoryImpl) ListForPlanet(ctx context.Context, tx db.
 	var out []persistence.PlanetResource
 	parser := func(rows db.Scannable) error {
 		var resource persistence.PlanetResource
-		err := rows.Scan(&resource.Planet, &resource.Resource, &resource.Amount, &resource.CreatedAt, &resource.UpdatedAt, &resource.Version)
+		err := rows.Scan(&resource.Planet, &resource.Resource, &resource.Amount, &resource.Production, &resource.CreatedAt, &resource.UpdatedAt, &resource.Version)
 		if err != nil {
 			return err
 		}
@@ -73,17 +74,18 @@ UPDATE
 	planet_resource
 SET
 	amount = $1,
-	updated_at = $2,
-	version = $3
+	production = $2,
+	updated_at = $3,
+	version = $4
 WHERE
-	planet = $4
-	AND resource = $5
-	AND version = $6
+	planet = $5
+	AND resource = $6
+	AND version = $7
 `
 
 func (r *planetResourceRepositoryImpl) Update(ctx context.Context, tx db.Transaction, resource persistence.PlanetResource) (persistence.PlanetResource, error) {
 	version := resource.Version + 1
-	affected, err := tx.Exec(ctx, updatePlanetResourceSqlTemplate, resource.Amount, resource.UpdatedAt, version, resource.Planet, resource.Resource, resource.Version)
+	affected, err := tx.Exec(ctx, updatePlanetResourceSqlTemplate, resource.Amount, resource.Production, resource.UpdatedAt, version, resource.Planet, resource.Resource, resource.Version)
 	if err != nil {
 		return resource, err
 	}

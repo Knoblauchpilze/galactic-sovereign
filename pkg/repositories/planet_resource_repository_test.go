@@ -14,12 +14,13 @@ import (
 )
 
 var defaultPlanetResource = persistence.PlanetResource{
-	Planet:    defaultPlanetId,
-	Resource:  defaultResourceId,
-	Amount:    1234.567,
-	CreatedAt: time.Date(2024, 7, 28, 10, 59, 41, 651387233, time.UTC),
-	UpdatedAt: time.Date(2024, 7, 28, 10, 59, 42, 651387233, time.UTC),
-	Version:   5,
+	Planet:     defaultPlanetId,
+	Resource:   defaultResourceId,
+	Amount:     1234.567,
+	Production: 36,
+	CreatedAt:  time.Date(2024, 7, 28, 10, 59, 41, 651387233, time.UTC),
+	UpdatedAt:  time.Date(2024, 7, 28, 10, 59, 42, 651387233, time.UTC),
+	Version:    5,
 }
 var defaultUpdatedPlanetResource = persistence.PlanetResource{
 	Planet:    defaultPlanetId,
@@ -44,13 +45,14 @@ func Test_PlanetResourceRepository_Transaction(t *testing.T) {
 					return err
 				},
 				expectedSqlQueries: []string{
-					`INSERT INTO planet_resource (planet, resource, amount, created_at) VALUES($1, $2, $3, $4)`,
+					`INSERT INTO planet_resource (planet, resource, amount, production, created_at) VALUES($1, $2, $3, $4, $5)`,
 				},
 				expectedArguments: [][]interface{}{
 					{
 						defaultPlanetResource.Planet,
 						defaultPlanetResource.Resource,
 						defaultPlanetResource.Amount,
+						defaultPlanetResource.Production,
 						defaultPlanetResource.CreatedAt,
 					},
 				},
@@ -67,6 +69,7 @@ SELECT
 	planet,
 	resource,
 	amount,
+	production,
 	created_at,
 	updated_at,
 	version
@@ -100,17 +103,19 @@ UPDATE
 	planet_resource
 SET
 	amount = $1,
-	updated_at = $2,
-	version = $3
+	production = $2,
+	updated_at = $3,
+	version = $4
 WHERE
-	planet = $4
-	AND resource = $5
-	AND version = $6
+	planet = $5
+	AND resource = $6
+	AND version = $7
 `,
 				},
 				expectedArguments: [][]interface{}{
 					{
 						defaultUpdatedPlanetResource.Amount,
+						defaultUpdatedPlanetResource.Production,
 						defaultUpdatedPlanetResource.UpdatedAt,
 						defaultUpdatedPlanetResource.Version + 1,
 						defaultUpdatedPlanetResource.Planet,
@@ -155,6 +160,7 @@ WHERE
 						&uuid.UUID{},
 						&uuid.UUID{},
 						&dummyFloat64,
+						&dummyInt,
 						&time.Time{},
 						&time.Time{},
 						&dummyInt,
