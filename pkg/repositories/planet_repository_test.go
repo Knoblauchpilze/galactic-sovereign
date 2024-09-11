@@ -51,11 +51,12 @@ func Test_PlanetRepository_Transaction(t *testing.T) {
 					`INSERT INTO planet (id, player, name, created_at) VALUES($1, $2, $3, $4)`,
 					`
 INSERT INTO
-	planet_resource (planet, resource, amount, created_at)
+	planet_resource (planet, resource, amount, production, created_at)
 SELECT
 	$1,
 	id,
 	start_amount,
+	start_production,
 	$2
 FROM
 	resource
@@ -101,11 +102,12 @@ FROM
 					`INSERT INTO homeworld (player, planet) VALUES($1, $2)`,
 					`
 INSERT INTO
-	planet_resource (planet, resource, amount, created_at)
+	planet_resource (planet, resource, amount, production, created_at)
 SELECT
 	$1,
 	id,
 	start_amount,
+	start_production,
 	$2
 FROM
 	resource
