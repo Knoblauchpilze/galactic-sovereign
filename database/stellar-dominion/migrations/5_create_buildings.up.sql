@@ -15,7 +15,7 @@ CREATE TRIGGER trigger_building_updated_at
 CREATE TABLE building_cost (
   building uuid NOT NULL,
   resource uuid NOT NULL,
-  cost integer NOT NULL,
+  cost INTEGER NOT NULL,
   progress numeric(15, 5) NOT NULL,
   FOREIGN KEY (building) REFERENCES building(id),
   FOREIGN KEY (resource) REFERENCES resource(id),
@@ -25,7 +25,7 @@ CREATE TABLE building_cost (
 CREATE TABLE building_resource_production (
   building uuid NOT NULL,
   resource uuid NOT NULL,
-  base integer NOT NULL,
+  base INTEGER NOT NULL,
   progress numeric(15, 5) NOT NULL,
   FOREIGN KEY (building) REFERENCES building(id),
   FOREIGN KEY (resource) REFERENCES resource(id),

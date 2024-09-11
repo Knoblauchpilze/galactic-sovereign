@@ -38,7 +38,7 @@ CREATE TABLE planet_resource (
 CREATE TABLE planet_building (
   planet uuid NOT NULL,
   building uuid NOT NULL,
-  level integer NOT NULL,
+  level INTEGER NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
   version INTEGER DEFAULT 0,
