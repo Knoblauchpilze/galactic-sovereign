@@ -27,6 +27,7 @@ CREATE TABLE planet_resource (
   planet uuid NOT NULL,
   resource uuid NOT NULL,
   amount numeric(15, 5) NOT NULL,
+  production INTEGER NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
   version INTEGER DEFAULT 0,
