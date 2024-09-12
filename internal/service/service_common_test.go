@@ -126,7 +126,7 @@ func (s *ServiceTestSuite) TestWhenCreatingTransactionFails_ExpectErrorIsPropaga
 			}
 
 			m := &mockConnectionPool{
-				err: errDefault,
+				errs: []error{errDefault},
 			}
 			err := testCase.handler(context.Background(), m, repos)
 

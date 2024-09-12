@@ -9,14 +9,20 @@ import (
 type mockConnectionPool struct {
 	db.ConnectionPool
 
-	txs []*mockTransaction
-	err error
+	txs  []*mockTransaction
+	errs []error
 }
 
 func (m *mockConnectionPool) StartTransaction(ctx context.Context) (db.Transaction, error) {
 	m.txs = append(m.txs, &mockTransaction{})
 
-	return m.txs[len(m.txs)-1], m.err
+	var err error
+	maybeErrorId := len(m.txs) - 1
+	if maybeErrorId < len(m.errs) {
+		err = m.errs[maybeErrorId]
+	}
+
+	return m.txs[len(m.txs)-1], err
 }
 
 type mockTransaction struct {
