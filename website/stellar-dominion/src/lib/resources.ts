@@ -1,9 +1,3 @@
-import {
-	type ApiBuilding,
-	type ApiBuildingResourceProduction,
-	type PlanetBuilding
-} from '$lib/buildings';
-
 export interface ApiResource {
 	readonly id: string;
 	readonly name: string;
@@ -50,6 +44,7 @@ export function parseResources(data: object[]): Resource[] {
 export interface PlanetResource {
 	readonly id: string;
 	readonly amount: number;
+	readonly production: number;
 }
 
 export function parsePlanetResources(data: object[]): PlanetResource[] {
@@ -58,11 +53,14 @@ export function parsePlanetResources(data: object[]): PlanetResource[] {
 	for (const maybeResource of data) {
 		const hasResource = 'resource' in maybeResource && typeof maybeResource.resource === 'string';
 		const hasAmount = 'amount' in maybeResource && typeof maybeResource.amount === 'number';
+		const hasProduction =
+			'production' in maybeResource && typeof maybeResource.production === 'number';
 
-		if (hasResource && hasAmount) {
+		if (hasResource && hasAmount && hasProduction) {
 			const res: PlanetResource = {
 				id: maybeResource.resource as string,
-				amount: maybeResource.amount as number
+				amount: maybeResource.amount as number,
+				production: maybeResource.production as number
 			};
 
 			out.push(res);
@@ -72,79 +70,30 @@ export function parsePlanetResources(data: object[]): PlanetResource[] {
 	return out;
 }
 
-function computeProductionForLevel(
-	production: ApiBuildingResourceProduction,
-	level: number
-): number {
-	return Math.floor(production.base * Math.pow(production.progress, level));
-}
-
 export interface UiResource {
 	readonly name: string;
 	readonly amount: number;
 	readonly production: number;
 }
 
-interface ResourceProduction {
-	readonly production: ApiBuildingResourceProduction;
-	readonly level: number;
-}
-
-function mapApiBuildingToBuildingProduction(
-	apiBuilding: ApiBuilding,
-	planetBuildings: PlanetBuilding[]
-): ResourceProduction[] {
-	const maybePlanetBuilding = planetBuildings.find((pb) => pb.id === apiBuilding.id);
-	const level = maybePlanetBuilding === undefined ? 0 : maybePlanetBuilding.level;
-
-	return apiBuilding.resourceProductions.map((rp) => {
-		return {
-			production: rp,
-			level: level
-		};
-	});
-}
-
-function mapApiBuildingsToBuildingProductions(
-	apiBuildings: ApiBuilding[],
-	planetBuildings: PlanetBuilding[]
-): ResourceProduction[] {
-	return apiBuildings
-		.map((b) => mapApiBuildingToBuildingProduction(b, planetBuildings))
-		.reduce((productions, currentProduction) => productions.concat(currentProduction), []);
-}
-
-export function mapPlanetResourcesAndBuildingsToUiResources(
+export function mapPlanetResourcesToUiResources(
 	planetResources: PlanetResource[],
-	apiResources: ApiResource[],
-	apiBuildings: ApiBuilding[],
-	planetBuildings: PlanetBuilding[]
+	apiResources: ApiResource[]
 ): UiResource[] {
-	const resourceProductions = mapApiBuildingsToBuildingProductions(apiBuildings, planetBuildings);
-
 	return apiResources.map((apiResource) => {
 		const maybeResource = planetResources.find((r) => r.id === apiResource.id);
-
-		const production = resourceProductions
-			.filter((p) => p.production.resource === apiResource.id)
-			.reduce(
-				(production, currentProduction) =>
-					production +
-					computeProductionForLevel(currentProduction.production, currentProduction.level),
-				0
-			);
 
 		if (maybeResource === undefined) {
 			return {
 				name: apiResource.name,
 				amount: 0,
-				production: production
+				production: 0
 			};
 		} else {
 			return {
 				name: apiResource.name,
 				amount: maybeResource.amount,
-				production: production
+				production: maybeResource.production
 			};
 		}
 	});

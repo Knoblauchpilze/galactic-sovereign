@@ -13,7 +13,7 @@
 	import heroContainer, { GAME_HERO_CONTAINER_PROPS } from '$lib/stores/ui/heroContainer';
 	import pageTitle, { HOMEPAGE_TITLE } from '$lib/stores/ui/pageTitle';
 
-	import { mapPlanetResourcesAndBuildingsToUiResources } from '$lib/resources';
+	import { mapPlanetResourcesToUiResources } from '$lib/resources';
 	import { mapPlanetBuildingsToUiBuildings } from '$lib/buildings';
 	import { mapBuildingActionsToUiActions } from '$lib/actions.js';
 	import { invalidate } from '$app/navigation';
@@ -31,6 +31,7 @@
 	const title = HOMEPAGE_TITLE + ' - ' + data.planet.name;
 	pageTitle.set(title);
 
+	$: resources = mapPlanetResourcesToUiResources(data.planet.resources, data.resources);
 	$: buildings = mapPlanetBuildingsToUiBuildings(
 		data.planet.id,
 		data.planet.buildings,
@@ -38,12 +39,12 @@
 		data.buildings,
 		data.resources
 	);
-	$: resources = mapPlanetResourcesAndBuildingsToUiResources(
-		data.planet.resources,
-		data.resources,
-		data.buildings,
-		data.planet.buildings
-	);
+	// $: resources = mapPlanetResourcesAndBuildingsToUiResources(
+	// 	data.planet.resources,
+	// 	data.resources,
+	// 	data.buildings,
+	// 	data.planet.buildings
+	// );
 	$: actions = mapBuildingActionsToUiActions(data.planet.buildingActions, data.buildings);
 
 	$: anyBuildingActionRunning = data.planet.buildingActions.length !== 0;
