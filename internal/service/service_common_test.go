@@ -108,7 +108,9 @@ func (s *ServiceTestSuite) TestWhenUsingTransaction_ExpectCallsClose() {
 			m := &mockConnectionPool{}
 			testCase.handler(context.Background(), m, repos)
 
-			s.Require().Equal(1, m.tx.closeCalled)
+			for _, tx := range m.txs {
+				s.Require().Equal(1, tx.closeCalled)
+			}
 		})
 	}
 }
