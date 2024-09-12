@@ -17,6 +17,9 @@ type generateRepositoriesMock func() repositories.Repositories
 type verifyError func(error, *require.Assertions)
 type verifyMockInteractions func(repositories.Repositories, *require.Assertions)
 
+type generateConnectionPoolMock func() db.ConnectionPool
+type verifyTransactionInteractions func(db.ConnectionPool, *require.Assertions)
+
 type repositoryInteractionTestCase struct {
 	generateRepositoriesMock generateRepositoriesMock
 	handler                  testFunc
@@ -39,15 +42,24 @@ type transactionTestCase struct {
 	handler                  testFunc
 }
 
+type transactionInteractionTestCase struct {
+	generateConnectionPoolMock generateConnectionPoolMock
+	generateRepositoriesMock   generateRepositoriesMock
+	handler                    testFunc
+	expectedError              error
+	verifyInteractions         verifyTransactionInteractions
+}
+
 type ServiceTestSuite struct {
 	suite.Suite
 
 	generateRepositoriesMock      generateRepositoriesMock
 	generateErrorRepositoriesMock generateRepositoriesMock
 
-	repositoryInteractionTestCases map[string]repositoryInteractionTestCase
-	returnTestCases                map[string]returnTestCase
-	transactionTestCases           map[string]transactionTestCase
+	repositoryInteractionTestCases  map[string]repositoryInteractionTestCase
+	returnTestCases                 map[string]returnTestCase
+	transactionTestCases            map[string]transactionTestCase
+	transactionInteractionTestCases map[string]transactionInteractionTestCase
 }
 
 func (s *ServiceTestSuite) TestWhenCallingHandler_ExpectCorrectInteraction() {
@@ -131,6 +143,30 @@ func (s *ServiceTestSuite) TestWhenCreatingTransactionFails_ExpectErrorIsPropaga
 			err := testCase.handler(context.Background(), m, repos)
 
 			s.Require().Equal(errDefault, err)
+		})
+	}
+}
+
+func (s *ServiceTestSuite) TestWhenUsingTransaction_ExpectCorrectInteraction() {
+	for name, testCase := range s.transactionInteractionTestCases {
+		s.T().Run(name, func(t *testing.T) {
+			var repos repositories.Repositories
+			if testCase.generateRepositoriesMock != nil {
+				repos = testCase.generateRepositoriesMock()
+			} else {
+				repos = s.generateRepositoriesMock()
+			}
+
+			var m db.ConnectionPool
+			if testCase.generateConnectionPoolMock != nil {
+				m = testCase.generateConnectionPoolMock()
+			} else {
+				m = &mockConnectionPool{}
+			}
+			err := testCase.handler(context.Background(), m, repos)
+
+			s.Require().Equal(testCase.expectedError, err)
+			testCase.verifyInteractions(m, s.Require())
 		})
 	}
 }

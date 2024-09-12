@@ -197,11 +197,58 @@ func Test_ActionService(t *testing.T) {
 			},
 		},
 
-		transactionTestCases: map[string]transactionTestCase{
-			"processActionsUntil": {
+		transactionInteractionTestCases: map[string]transactionInteractionTestCase{
+			"processActionsUntil_createsTwoTransactionAndClosesThem": {
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
 					s := NewActionService(pool, repos)
 					return s.ProcessActionsUntil(ctx, someTime)
+				},
+				verifyInteractions: func(pool db.ConnectionPool, assert *require.Assertions) {
+					m := assertConnectionPoolIsAMock(pool, assert)
+
+					assert.Equal(2, len(m.txs))
+					for _, tx := range m.txs {
+						assert.Equal(1, tx.closeCalled)
+					}
+				},
+			},
+			"processActionsUntil_whenFirstTransactionFails_returnsError": {
+				generateConnectionPoolMock: func() db.ConnectionPool {
+					return &mockConnectionPool{
+						errs: []error{
+							errDefault,
+						},
+					}
+				},
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewActionService(pool, repos)
+					return s.ProcessActionsUntil(ctx, someTime)
+				},
+				expectedError: errDefault,
+				verifyInteractions: func(pool db.ConnectionPool, assert *require.Assertions) {
+					m := assertConnectionPoolIsAMock(pool, assert)
+
+					assert.Equal(1, len(m.txs))
+				},
+			},
+			"processActionsUntil_whenFetchingActionsFail_expectSingleTransactionToBCreated": {
+				generateRepositoriesMock: func() repositories.Repositories {
+					repos := generateValidActionServiceMocks()
+					repos.BuildingAction = &mockBuildingActionRepository{
+						errs: []error{errDefault},
+					}
+
+					return repos
+				},
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewActionService(pool, repos)
+					return s.ProcessActionsUntil(ctx, someTime)
+				},
+				expectedError: errDefault,
+				verifyInteractions: func(pool db.ConnectionPool, assert *require.Assertions) {
+					m := assertConnectionPoolIsAMock(pool, assert)
+
+					assert.Equal(1, len(m.txs))
 				},
 			},
 		},
@@ -222,4 +269,12 @@ func generateValidActionServiceMocks() repositories.Repositories {
 			planetBuilding: defaultPlanetBuilding,
 		},
 	}
+}
+
+func assertConnectionPoolIsAMock(pool db.ConnectionPool, assert *require.Assertions) *mockConnectionPool {
+	m, ok := pool.(*mockConnectionPool)
+	if !ok {
+		assert.Fail("Provided connection pool is not a mock")
+	}
+	return m
 }
