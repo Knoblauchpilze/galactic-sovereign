@@ -39,12 +39,6 @@
 		data.buildings,
 		data.resources
 	);
-	// $: resources = mapPlanetResourcesAndBuildingsToUiResources(
-	// 	data.planet.resources,
-	// 	data.resources,
-	// 	data.buildings,
-	// 	data.planet.buildings
-	// );
 	$: actions = mapBuildingActionsToUiActions(data.planet.buildingActions, data.buildings);
 
 	$: anyBuildingActionRunning = data.planet.buildingActions.length !== 0;
