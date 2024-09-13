@@ -163,6 +163,11 @@ export interface UiBuildingCost {
 	readonly cost: number;
 }
 
+export interface UiBuildingGain {
+	readonly resource: string;
+	readonly gain: number;
+}
+
 export class UiBuilding {
 	readonly id: string = '';
 	readonly name: string = '';
@@ -176,6 +181,7 @@ export class UiBuilding {
 	readonly completedAt?: Date = new Date();
 
 	readonly costs: UiBuildingCost[] = [];
+	readonly resourcesProduction: UiBuildingGain[] = [];
 }
 
 function computeCostForLevel(cost: number, progress: number, level: number): number {
@@ -203,6 +209,37 @@ function mapBuildingCostsToUiBuildingCosts(
 	});
 }
 
+function computeProductionForLevel(production: number, progress: number, level: number): number {
+	return Math.floor(production * Math.pow(progress, level));
+}
+
+function mapBuildingResourceProductionsToUiBuildingCosts(
+	resourceProductions: ApiBuildingResourceProduction[],
+	apiResources: ApiResource[],
+	level: number
+): UiBuildingGain[] {
+	return resourceProductions.map((production) => {
+		const nextProduction = computeProductionForLevel(
+			production.base,
+			production.progress,
+			level + 1
+		);
+
+		const maybeResource = apiResources.find((r) => r.id === production.resource);
+		if (maybeResource === undefined) {
+			return {
+				resource: 'Unknown resource',
+				gain: nextProduction
+			};
+		} else {
+			return {
+				resource: maybeResource.name,
+				gain: nextProduction
+			};
+		}
+	});
+}
+
 export function mapPlanetBuildingsToUiBuildings(
 	planet: string,
 	planetBuildings: PlanetBuilding[],
@@ -219,7 +256,12 @@ export function mapPlanetBuildingsToUiBuildings(
 				level: 0,
 				planet: planet,
 				hasAction: false,
-				costs: mapBuildingCostsToUiBuildingCosts(apiBuilding.costs, apiResources, 0)
+				costs: mapBuildingCostsToUiBuildingCosts(apiBuilding.costs, apiResources, 0),
+				resourcesProduction: mapBuildingResourceProductionsToUiBuildingCosts(
+					apiBuilding.resourceProductions,
+					apiResources,
+					0
+				)
 			};
 		} else {
 			const maybeAction = planetActions.find((a) => a.building === maybeBuilding.id);
@@ -232,6 +274,11 @@ export function mapPlanetBuildingsToUiBuildings(
 					hasAction: false,
 					costs: mapBuildingCostsToUiBuildingCosts(
 						apiBuilding.costs,
+						apiResources,
+						maybeBuilding.level
+					),
+					resourcesProduction: mapBuildingResourceProductionsToUiBuildingCosts(
+						apiBuilding.resourceProductions,
 						apiResources,
 						maybeBuilding.level
 					)
@@ -249,6 +296,11 @@ export function mapPlanetBuildingsToUiBuildings(
 				completedAt: maybeAction.completedAt,
 				costs: mapBuildingCostsToUiBuildingCosts(
 					apiBuilding.costs,
+					apiResources,
+					maybeBuilding.level
+				),
+				resourcesProduction: mapBuildingResourceProductionsToUiBuildingCosts(
+					apiBuilding.resourceProductions,
 					apiResources,
 					maybeBuilding.level
 				)
