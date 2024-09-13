@@ -48,6 +48,7 @@ type transactionInteractionTestCase struct {
 	handler                    testFunc
 	expectedError              error
 	verifyInteractions         verifyTransactionInteractions
+	verifyMockInteractions     verifyMockInteractions
 }
 
 type ServiceTestSuite struct {
@@ -166,7 +167,12 @@ func (s *ServiceTestSuite) TestWhenUsingTransaction_ExpectCorrectInteraction() {
 			err := testCase.handler(context.Background(), m, repos)
 
 			s.Require().Equal(testCase.expectedError, err)
-			testCase.verifyInteractions(m, s.Require())
+			if testCase.verifyInteractions != nil {
+				testCase.verifyInteractions(m, s.Require())
+			}
+			if testCase.verifyMockInteractions != nil {
+				testCase.verifyMockInteractions(repos, s.Require())
+			}
 		})
 	}
 }
