@@ -1,5 +1,5 @@
 
--- user1 -> the-great-test-user-overlord / oberon
+-- user1 -> haha / oberon
 INSERT INTO stellar_dominion_schema.player ("id", "api_user", "universe", "name")
   VALUES (
     '92a686c0-9a0a-4bc3-aa1b-9a57ed7f09d5',
@@ -85,7 +85,7 @@ INSERT INTO stellar_dominion_schema.planet_building ("planet", "building", "leve
     0
   );
 
--- test-user@provider.com -> throwaway-account / aquarius
+-- user1 -> throwaway-account / aquarius
 INSERT INTO stellar_dominion_schema.player ("id", "api_user", "universe", "name")
   VALUES (
     '04a7477c-a66b-4c47-9c17-ac209183c7a4',
