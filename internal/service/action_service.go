@@ -8,6 +8,7 @@ import (
 	"github.com/KnoblauchPilze/user-service/pkg/game"
 	"github.com/KnoblauchPilze/user-service/pkg/persistence"
 	"github.com/KnoblauchPilze/user-service/pkg/repositories"
+	"github.com/google/uuid"
 )
 
 type actionServiceImpl struct {
@@ -16,6 +17,7 @@ type actionServiceImpl struct {
 	buildingActionRepo     repositories.BuildingActionRepository
 	buildingActionCostRepo repositories.BuildingActionCostRepository
 	planetBuildingRepo     repositories.PlanetBuildingRepository
+	planetResourceRepo     repositories.PlanetResourceRepository
 }
 
 func NewActionService(conn db.ConnectionPool, repos repositories.Repositories) game.ActionService {
@@ -25,6 +27,7 @@ func NewActionService(conn db.ConnectionPool, repos repositories.Repositories) g
 		buildingActionRepo:     repos.BuildingAction,
 		buildingActionCostRepo: repos.BuildingActionCost,
 		planetBuildingRepo:     repos.PlanetBuilding,
+		planetResourceRepo:     repos.PlanetResource,
 	}
 }
 
@@ -61,6 +64,11 @@ func (s *actionServiceImpl) processAction(ctx context.Context, action persistenc
 	}
 	defer tx.Close(ctx)
 
+	err = s.updateResourcesForPlanet(ctx, tx, action.Planet)
+	if err != nil {
+		return err
+	}
+
 	building, err := s.planetBuildingRepo.GetForPlanetAndBuilding(ctx, tx, action.Planet, action.Building)
 	if err != nil {
 		return err
@@ -79,4 +87,22 @@ func (s *actionServiceImpl) processAction(ctx context.Context, action persistenc
 	}
 
 	return s.buildingActionRepo.Delete(ctx, tx, action.Id)
+}
+
+func (s *actionServiceImpl) updateResourcesForPlanet(ctx context.Context, tx db.Transaction, planet uuid.UUID) error {
+	resources, err := s.planetResourceRepo.ListForPlanet(ctx, tx, planet)
+	if err != nil {
+		return err
+	}
+
+	for _, resource := range resources {
+		resource := game.UpdatePlanetResourceAmountToTime(resource, tx.TimeStamp())
+
+		_, err = s.planetResourceRepo.Update(ctx, tx, resource)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
