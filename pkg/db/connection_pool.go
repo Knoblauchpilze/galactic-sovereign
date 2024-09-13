@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"sync"
+	"time"
 
 	"github.com/KnoblauchPilze/user-service/pkg/errors"
 	"github.com/KnoblauchPilze/user-service/pkg/logger"
@@ -77,7 +78,8 @@ func (c *connectionPoolImpl) StartTransaction(ctx context.Context) (Transaction,
 	}
 
 	tx := transactionImpl{
-		tx: pgxTx,
+		timeStamp: time.Now(),
+		tx:        pgxTx,
 	}
 	return &tx, nil
 }
