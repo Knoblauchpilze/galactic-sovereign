@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"time"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
@@ -38,6 +39,8 @@ type ConnectionPool interface {
 // This is agnostic to pgx.
 type Transaction interface {
 	Close(ctx context.Context)
+
+	TimeStamp() time.Time
 
 	Query(ctx context.Context, sql string, arguments ...any) Rows
 	Exec(ctx context.Context, sql string, arguments ...any) (int, error)
