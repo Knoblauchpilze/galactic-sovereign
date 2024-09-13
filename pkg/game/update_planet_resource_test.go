@@ -30,18 +30,18 @@ func generatePlanetResource() persistence.PlanetResource {
 	return resource
 }
 
-func TestUpdateAmountToTime_whenTimeInThePast_expectNoUpdate(t *testing.T) {
+func TestUpdatePlanetResourceAmountToTime_whenTimeInThePast_expectNoUpdate(t *testing.T) {
 	assert := assert.New(t)
 
 	resource := generatePlanetResource()
 
 	inThePast := resource.UpdatedAt.Add(-1 * time.Hour)
-	updated := UpdateAmountToTime(resource, inThePast)
+	updated := UpdatePlanetResourceAmountToTime(resource, inThePast)
 
 	assert.Equal(resource.Amount, updated.Amount)
 }
 
-func TestUpdateAmountToTime_updatesAmount(t *testing.T) {
+func TestUpdatePlanetResourceAmountToTime_updatesAmount(t *testing.T) {
 	assert := assert.New(t)
 
 	resource := generatePlanetResource()
@@ -81,29 +81,20 @@ func TestUpdateAmountToTime_updatesAmount(t *testing.T) {
 	for name, testCase := range testCases {
 		t.Run(name, func(t *testing.T) {
 			oneHourFromNow := resource.UpdatedAt.Add(testCase.duration)
-			updated := UpdateAmountToTime(resource, oneHourFromNow)
+			updated := UpdatePlanetResourceAmountToTime(resource, oneHourFromNow)
 
 			assert.InDelta(testCase.expectedAmount, updated.Amount, thresholdForResourceEquality)
 		})
 	}
 }
 
-func TestUpdateAmountToTime_updatesUpdatedAt(t *testing.T) {
+func TestUpdatePlanetResourceAmountToTime_updatesUpdatedAt(t *testing.T) {
 	assert := assert.New(t)
 
 	resource := generatePlanetResource()
 
 	oneHourFromNow := resource.UpdatedAt.Add(1 * time.Hour)
-	updated := UpdateAmountToTime(resource, oneHourFromNow)
+	updated := UpdatePlanetResourceAmountToTime(resource, oneHourFromNow)
 
 	assert.Equal(oneHourFromNow, updated.UpdatedAt)
 }
-
-// func UpdateAmountToTime(resource PlanetResource, moment time.Time) PlanetResource {
-// 	elapsed := moment.Sub(resource.UpdatedAt)
-// 	if elapsed < 0 {
-// 		return resource
-// 	}
-
-// 	productionPerHout
-// }
