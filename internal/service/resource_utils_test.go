@@ -89,9 +89,10 @@ func TestUpdatePlanetResourceWithCosts_AddResource(t *testing.T) {
 	err := updatePlanetResourceWithCosts(context.Background(), nil, m, defaultPlanetResources, defaultActionCosts, addResource)
 
 	assert.Nil(err)
-	assert.Equal(defaultPlanetResources[0].Resource, m.updatedPlanetResource.Resource)
+	assert.Equal(1, len(m.updatedPlanetResources))
+	assert.Equal(defaultPlanetResources[0].Resource, m.updatedPlanetResources[0].Resource)
 	expectedAmount := defaultPlanetResources[0].Amount + float64(defaultActionCosts[0].Amount)
-	assert.Equal(expectedAmount, m.updatedPlanetResource.Amount)
+	assert.Equal(expectedAmount, m.updatedPlanetResources[0].Amount)
 }
 
 func TestUpdatePlanetResourceWithCosts_SubtractResource(t *testing.T) {
@@ -102,9 +103,10 @@ func TestUpdatePlanetResourceWithCosts_SubtractResource(t *testing.T) {
 	err := updatePlanetResourceWithCosts(context.Background(), nil, m, defaultPlanetResources, defaultActionCosts, subtractResource)
 
 	assert.Nil(err)
-	assert.Equal(defaultPlanetResources[0].Resource, m.updatedPlanetResource.Resource)
+	assert.Equal(1, len(m.updatedPlanetResources))
+	assert.Equal(defaultPlanetResources[0].Resource, m.updatedPlanetResources[0].Resource)
 	expectedAmount := defaultPlanetResources[0].Amount - float64(defaultActionCosts[0].Amount)
-	assert.Equal(expectedAmount, m.updatedPlanetResource.Amount)
+	assert.Equal(expectedAmount, m.updatedPlanetResources[0].Amount)
 }
 
 func TestUpdatePlanetResourceWithCosts_Update_Fails(t *testing.T) {

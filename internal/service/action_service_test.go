@@ -59,8 +59,9 @@ func Test_ActionService(t *testing.T) {
 				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
 					m := assertPlanetResourceRepoIsAMock(repos, assert)
 
-					assert.Equal(1, m.listForPlanetCalled)
-					assert.Equal(defaultBuildingAction.Planet, m.listForPlanetId)
+					assert.Equal(2, m.listForPlanetCalled)
+					assert.Equal(defaultBuildingAction.Planet, m.listForPlanetIds[0])
+					assert.Equal(defaultBuildingAction.Planet, m.listForPlanetIds[1])
 				},
 			},
 			"processActionsUntil_listPlanetResourcesFails": {
@@ -103,18 +104,30 @@ func Test_ActionService(t *testing.T) {
 				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
 					m := assertPlanetResourceRepoIsAMock(repos, assert)
 
-					assert.Equal(1, m.updateCalled)
+					assert.Equal(2, m.updateCalled)
+					assert.Equal(2, len(m.updatedPlanetResources))
 
-					actual := m.updatedPlanetResource
-					expected := defaultPlanetResource
+					actual := m.updatedPlanetResources[0]
 
-					assert.Equal(expected.Planet, actual.Planet)
-					assert.Equal(expected.Resource, actual.Resource)
+					assert.Equal(defaultPlanetResource.Planet, actual.Planet)
+					assert.Equal(defaultPlanetResource.Resource, actual.Resource)
 					// Not asserting amount because it does not get updated in the mock
-					assert.Equal(expected.Production, actual.Production)
-					assert.Equal(expected.CreatedAt, actual.CreatedAt)
-					assert.True(actual.UpdatedAt.After(expected.UpdatedAt))
-					assert.Equal(expected.Version, actual.Version)
+					assert.Equal(defaultPlanetResource.Production, actual.Production)
+					assert.Equal(defaultPlanetResource.CreatedAt, actual.CreatedAt)
+					// TODO: Improve this logic by allowing to specify the pool creation
+					assert.True(actual.UpdatedAt.After(defaultPlanetResource.UpdatedAt))
+					assert.Equal(defaultPlanetResource.Version, actual.Version)
+
+					actual = m.updatedPlanetResources[1]
+					assert.Equal(defaultPlanetResource.Planet, actual.Planet)
+					assert.Equal(defaultPlanetResource.Resource, actual.Resource)
+					// Not asserting amount because it does not get updated in the mock
+					// The production gets updated the value defined in the action
+					assert.Equal(defaultBuildingActionResourceProduction.Production, actual.Production)
+					assert.Equal(defaultPlanetResource.CreatedAt, actual.CreatedAt)
+					// TODO: Improve the assertion logic for UpdatedAt
+					assert.Equal(defaultPlanetResource.Version, actual.Version)
+
 				},
 			},
 			"processActionsUntil_updatePlanetResourcesFails": {
@@ -370,6 +383,9 @@ func generateValidActionServiceMocks() repositories.Repositories {
 		},
 		BuildingActionCost: &mockBuildingActionCostRepository{
 			actionCost: defaultBuildingActionCost,
+		},
+		BuildingActionResourceProduction: &mockBuildingActionResourceProductionRepository{
+			actionResourceProduction: defaultBuildingActionResourceProduction,
 		},
 		PlanetBuilding: &mockPlanetBuildingRepository{
 			planetBuilding: defaultPlanetBuilding,

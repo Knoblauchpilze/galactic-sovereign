@@ -69,7 +69,7 @@ func Test_BuildingActionService(t *testing.T) {
 					m := assertPlanetResourceRepoIsAMock(repos, assert)
 
 					assert.Equal(1, m.listForPlanetCalled)
-					assert.Equal(defaultPlanetId, m.listForPlanetId)
+					assert.Equal([]uuid.UUID{defaultPlanetId}, m.listForPlanetIds)
 				},
 			},
 			"create_listsResource": {
@@ -120,12 +120,14 @@ func Test_BuildingActionService(t *testing.T) {
 					m := assertPlanetResourceRepoIsAMock(repos, assert)
 
 					assert.Equal(1, m.updateCalled)
-					assert.Equal(defaultBuildingActionDtoRequest.Planet, m.updatedPlanetResource.Planet)
-					assert.Equal(defaultPlanetResource.Resource, m.updatedPlanetResource.Resource)
+					assert.Equal(1, len(m.updatedPlanetResources))
+					actual := m.updatedPlanetResources[0]
+					assert.Equal(defaultBuildingActionDtoRequest.Planet, actual.Planet)
+					assert.Equal(defaultPlanetResource.Resource, actual.Resource)
 					expectedCost := 562.0
 					expectedAmount := defaultPlanetResource.Amount - expectedCost
-					assert.Equal(expectedAmount, m.updatedPlanetResource.Amount)
-					assert.Equal(defaultPlanetResource.Version, m.updatedPlanetResource.Version)
+					assert.Equal(expectedAmount, actual.Amount)
+					assert.Equal(defaultPlanetResource.Version, actual.Version)
 				},
 			},
 			"create_registersActionCosts": {
@@ -375,7 +377,7 @@ func Test_BuildingActionService(t *testing.T) {
 					m := assertPlanetResourceRepoIsAMock(repos, assert)
 
 					assert.Equal(1, m.listForPlanetCalled)
-					assert.Equal(defaultBuildingAction.Planet, m.listForPlanetId)
+					assert.Equal([]uuid.UUID{defaultBuildingAction.Planet}, m.listForPlanetIds)
 				},
 			},
 			"delete_updatesResourcesOnPlanet": {
@@ -387,11 +389,13 @@ func Test_BuildingActionService(t *testing.T) {
 					m := assertPlanetResourceRepoIsAMock(repos, assert)
 
 					assert.Equal(1, m.updateCalled)
-					assert.Equal(defaultBuildingActionDtoRequest.Planet, m.updatedPlanetResource.Planet)
-					assert.Equal(defaultPlanetResource.Resource, m.updatedPlanetResource.Resource)
+					assert.Equal(1, len(m.updatedPlanetResources))
+					actual := m.updatedPlanetResources[0]
+					assert.Equal(defaultBuildingActionDtoRequest.Planet, actual.Planet)
+					assert.Equal(defaultPlanetResource.Resource, actual.Resource)
 					expectedAmount := defaultPlanetResource.Amount + float64(defaultBuildingActionCost.Amount)
-					assert.Equal(expectedAmount, m.updatedPlanetResource.Amount)
-					assert.Equal(defaultPlanetResource.Version, m.updatedPlanetResource.Version)
+					assert.Equal(expectedAmount, actual.Amount)
+					assert.Equal(defaultPlanetResource.Version, actual.Version)
 
 				},
 			},
