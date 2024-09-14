@@ -9,3 +9,9 @@ type BuildingActionResourceProduction struct {
 	Resource   uuid.UUID
 	Production int
 }
+
+func ToPlanetResource(production BuildingActionResourceProduction, resource PlanetResource) PlanetResource {
+	out := resource
+	out.Production = production.Production
+	return out
+}
