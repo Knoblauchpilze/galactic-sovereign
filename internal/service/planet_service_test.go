@@ -109,7 +109,7 @@ func Test_PlanetService(t *testing.T) {
 					m := assertPlanetResourceRepoIsAMock(repos, assert)
 
 					assert.Equal(1, m.listForPlanetCalled)
-					assert.Equal(defaultPlanetId, m.listForPlanetId)
+					assert.Equal([]uuid.UUID{defaultPlanetId}, m.listForPlanetIds)
 				},
 			},
 			"get_planetResourceRepositoryFails": {

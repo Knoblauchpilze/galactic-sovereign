@@ -14,20 +14,22 @@ import (
 type actionServiceImpl struct {
 	conn db.ConnectionPool
 
-	buildingActionRepo     repositories.BuildingActionRepository
-	buildingActionCostRepo repositories.BuildingActionCostRepository
-	planetBuildingRepo     repositories.PlanetBuildingRepository
-	planetResourceRepo     repositories.PlanetResourceRepository
+	buildingActionRepo                   repositories.BuildingActionRepository
+	buildingActionCostRepo               repositories.BuildingActionCostRepository
+	buildingActionResourceProductionRepo repositories.BuildingActionResourceProductionRepository
+	planetBuildingRepo                   repositories.PlanetBuildingRepository
+	planetResourceRepo                   repositories.PlanetResourceRepository
 }
 
 func NewActionService(conn db.ConnectionPool, repos repositories.Repositories) game.ActionService {
 	return &actionServiceImpl{
 		conn: conn,
 
-		buildingActionRepo:     repos.BuildingAction,
-		buildingActionCostRepo: repos.BuildingActionCost,
-		planetBuildingRepo:     repos.PlanetBuilding,
-		planetResourceRepo:     repos.PlanetResource,
+		buildingActionRepo:                   repos.BuildingAction,
+		buildingActionCostRepo:               repos.BuildingActionCost,
+		buildingActionResourceProductionRepo: repos.BuildingActionResourceProduction,
+		planetBuildingRepo:                   repos.PlanetBuilding,
+		planetResourceRepo:                   repos.PlanetResource,
 	}
 }
 
@@ -81,6 +83,11 @@ func (s *actionServiceImpl) processAction(ctx context.Context, action persistenc
 		return err
 	}
 
+	err = s.updateResourcesProductionForPlanet(ctx, tx, action)
+	if err != nil {
+		return err
+	}
+
 	err = s.buildingActionCostRepo.DeleteForAction(ctx, tx, action.Id)
 	if err != nil {
 		return err
@@ -99,6 +106,45 @@ func (s *actionServiceImpl) updateResourcesForPlanet(ctx context.Context, tx db.
 		resource := game.UpdatePlanetResourceAmountToTime(resource, tx.TimeStamp())
 
 		_, err = s.planetResourceRepo.Update(ctx, tx, resource)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func toResourceProductionMap(in []persistence.BuildingActionResourceProduction) map[uuid.UUID]persistence.BuildingActionResourceProduction {
+	out := make(map[uuid.UUID]persistence.BuildingActionResourceProduction)
+
+	for _, resourceProduction := range in {
+		out[resourceProduction.Resource] = resourceProduction
+	}
+
+	return out
+}
+
+func (s *actionServiceImpl) updateResourcesProductionForPlanet(ctx context.Context, tx db.Transaction, action persistence.BuildingAction) error {
+	resources, err := s.planetResourceRepo.ListForPlanet(ctx, tx, action.Planet)
+	if err != nil {
+		return err
+	}
+
+	newProductions, err := s.buildingActionResourceProductionRepo.ListForAction(ctx, tx, action.Id)
+	if err != nil {
+		return err
+	}
+
+	newProductionsMap := toResourceProductionMap(newProductions)
+
+	for _, resource := range resources {
+		newProduction, ok := newProductionsMap[resource.Resource]
+		if !ok {
+			continue
+		}
+
+		updatedResource := persistence.ToPlanetResource(newProduction, resource)
+		_, err = s.planetResourceRepo.Update(ctx, tx, updatedResource)
 		if err != nil {
 			return err
 		}

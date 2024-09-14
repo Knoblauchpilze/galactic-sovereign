@@ -433,14 +433,14 @@ type mockPlanetResourceRepository struct {
 	err            error
 	updateErr      error
 
-	createCalled          int
-	createdPlanetResource persistence.PlanetResource
-	listForPlanetId       uuid.UUID
-	listForPlanetCalled   int
-	updateCalled          int
-	updatedPlanetResource persistence.PlanetResource
-	deleteForPlanetCalled int
-	deleteForPlanetId     uuid.UUID
+	createCalled           int
+	createdPlanetResource  persistence.PlanetResource
+	listForPlanetIds       []uuid.UUID
+	listForPlanetCalled    int
+	updateCalled           int
+	updatedPlanetResources []persistence.PlanetResource
+	deleteForPlanetCalled  int
+	deleteForPlanetId      uuid.UUID
 }
 
 func (m *mockPlanetResourceRepository) Create(ctx context.Context, tx db.Transaction, resource persistence.PlanetResource) (persistence.PlanetResource, error) {
@@ -451,14 +451,14 @@ func (m *mockPlanetResourceRepository) Create(ctx context.Context, tx db.Transac
 
 func (m *mockPlanetResourceRepository) ListForPlanet(ctx context.Context, tx db.Transaction, planet uuid.UUID) ([]persistence.PlanetResource, error) {
 	m.listForPlanetCalled++
-	m.listForPlanetId = planet
+	m.listForPlanetIds = append(m.listForPlanetIds, planet)
 	return []persistence.PlanetResource{m.planetResource}, m.err
 }
 
 func (m *mockPlanetResourceRepository) Update(ctx context.Context, tx db.Transaction, resource persistence.PlanetResource) (persistence.PlanetResource, error) {
 	m.updateCalled++
-	m.updatedPlanetResource = resource
-	return m.updatedPlanetResource, m.updateErr
+	m.updatedPlanetResources = append(m.updatedPlanetResources, resource)
+	return resource, m.updateErr
 }
 
 func (m *mockPlanetResourceRepository) DeleteForPlanet(ctx context.Context, tx db.Transaction, planet uuid.UUID) error {
