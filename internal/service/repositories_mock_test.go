@@ -248,6 +248,63 @@ func (m *mockBuildingActionCostRepository) DeleteForPlanet(ctx context.Context, 
 	return *err
 }
 
+type mockBuildingActionResourceProductionRepository struct {
+	repositories.BuildingActionResourceProductionRepository
+
+	actionResourceProduction persistence.BuildingActionResourceProduction
+	errs                     []error
+	calls                    int
+
+	createCalled                            int
+	createdBuildingActionResourceProduction persistence.BuildingActionResourceProduction
+	listForActionCalled                     int
+	listForActionId                         uuid.UUID
+	deleteForActionCalled                   int
+	deleteForActionId                       uuid.UUID
+	deleteForPlanetCalled                   int
+	deleteForPlanetId                       uuid.UUID
+}
+
+func (m *mockBuildingActionResourceProductionRepository) Create(ctx context.Context, tx db.Transaction, production persistence.BuildingActionResourceProduction) (persistence.BuildingActionResourceProduction, error) {
+	m.createCalled++
+	m.createdBuildingActionResourceProduction = production
+
+	err := getValueToReturnOr(m.calls, m.errs, nil)
+	m.calls++
+
+	return m.actionResourceProduction, *err
+}
+
+func (m *mockBuildingActionResourceProductionRepository) ListForAction(ctx context.Context, tx db.Transaction, action uuid.UUID) ([]persistence.BuildingActionResourceProduction, error) {
+	m.listForActionCalled++
+	m.listForActionId = action
+
+	err := getValueToReturnOr(m.calls, m.errs, nil)
+	m.calls++
+
+	return []persistence.BuildingActionResourceProduction{m.actionResourceProduction}, *err
+}
+
+func (m *mockBuildingActionResourceProductionRepository) DeleteForAction(ctx context.Context, tx db.Transaction, action uuid.UUID) error {
+	m.deleteForActionCalled++
+	m.deleteForActionId = action
+
+	err := getValueToReturnOr(m.calls, m.errs, nil)
+	m.calls++
+
+	return *err
+}
+
+func (m *mockBuildingActionResourceProductionRepository) DeleteForPlanet(ctx context.Context, tx db.Transaction, planet uuid.UUID) error {
+	m.deleteForPlanetCalled++
+	m.deleteForPlanetId = planet
+
+	err := getValueToReturnOr(m.calls, m.errs, nil)
+	m.calls++
+
+	return *err
+}
+
 type mockBuildingCostRepository struct {
 	repositories.BuildingCostRepository
 

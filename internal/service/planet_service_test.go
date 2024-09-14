@@ -236,6 +236,19 @@ func Test_PlanetService(t *testing.T) {
 				},
 				expectedError: errDefault,
 			},
+			"delete_buildingActionResourceProduction": {
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewPlanetService(pool, repos)
+					return s.Delete(ctx, defaultPlanetId)
+				},
+
+				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
+					m := assertBuildingActionResourceProductionRepoIsAMock(repos, assert)
+
+					assert.Equal(1, m.deleteForPlanetCalled)
+					assert.Equal(defaultPlanetId, m.deleteForPlanetId)
+				},
+			},
 			"delete_buildingActionCost": {
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
 					s := NewPlanetService(pool, repos)
@@ -299,6 +312,26 @@ func Test_PlanetService(t *testing.T) {
 
 					assert.Equal(1, m.deleteCalled)
 					assert.Equal(defaultPlanetId, m.deleteId)
+				},
+			},
+			"delete_buildingActionResourceProductionRepositoryFails": {
+				generateRepositoriesMock: func() repositories.Repositories {
+					repos := generateValidPlanetRepositoryMock()
+					repos.BuildingActionResourceProduction = &mockBuildingActionResourceProductionRepository{
+						errs: []error{errDefault},
+					}
+
+					return repos
+				},
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewPlanetService(pool, repos)
+					return s.Delete(ctx, defaultPlanetId)
+				},
+				expectedError: errDefault,
+				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
+					m := assertBuildingActionResourceProductionRepoIsAMock(repos, assert)
+
+					assert.Equal(1, m.deleteForPlanetCalled)
 				},
 			},
 			"delete_buildingActionCostRepositoryFails": {
@@ -550,6 +583,9 @@ func generateValidPlanetRepositoryMock() repositories.Repositories {
 		},
 		BuildingActionCost: &mockBuildingActionCostRepository{
 			actionCost: defaultBuildingActionCost,
+		},
+		BuildingActionResourceProduction: &mockBuildingActionResourceProductionRepository{
+			actionResourceProduction: defaultBuildingActionResourceProduction,
 		},
 		Planet: &mockPlanetRepository{
 			planet: defaultPlanet,
