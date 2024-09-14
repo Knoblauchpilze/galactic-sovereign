@@ -88,6 +88,11 @@ func (s *actionServiceImpl) processAction(ctx context.Context, action persistenc
 		return err
 	}
 
+	err = s.buildingActionResourceProductionRepo.DeleteForAction(ctx, tx, action.Id)
+	if err != nil {
+		return err
+	}
+
 	err = s.buildingActionCostRepo.DeleteForAction(ctx, tx, action.Id)
 	if err != nil {
 		return err

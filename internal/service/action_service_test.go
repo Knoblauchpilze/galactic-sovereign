@@ -44,12 +44,12 @@ func Test_ActionService(t *testing.T) {
 					s := NewActionService(pool, repos)
 					return s.ProcessActionsUntil(ctx, someTime)
 				},
+				expectedError: errDefault,
 				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
 					m := assertBuildingActionRepoIsAMock(repos, assert)
 
 					assert.Equal(1, m.listBeforeCompletionTimeCalled)
 				},
-				expectedError: errDefault,
 			},
 			"processActionsUntil_listPlanetResources": {
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
@@ -216,12 +216,48 @@ func Test_ActionService(t *testing.T) {
 					s := NewActionService(pool, repos)
 					return s.ProcessActionsUntil(ctx, someTime)
 				},
+				expectedError: errDefault,
 				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
 					m := assertPlanetBuildingRepoIsAMock(repos, assert)
 
 					assert.Equal(1, m.updateCalled)
 				},
+			},
+			"processActionsUntil_deleteActionResourceProduction": {
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewActionService(pool, repos)
+					return s.ProcessActionsUntil(ctx, someTime)
+				},
+				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
+					m := assertBuildingActionResourceProductionRepoIsAMock(repos, assert)
+
+					assert.Equal(1, m.deleteForActionCalled)
+					assert.Equal(defaultBuildingAction.Id, m.deleteForActionId)
+				},
+			},
+			"processActionsUntil_deleteActionResourceProductionFails": {
+				generateRepositoriesMock: func() repositories.Repositories {
+					repos := generateValidActionServiceMocks()
+					repos.BuildingActionResourceProduction = &mockBuildingActionResourceProductionRepository{
+						actionResourceProduction: defaultBuildingActionResourceProduction,
+						errs: []error{
+							nil,
+							errDefault,
+						},
+					}
+
+					return repos
+				},
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewActionService(pool, repos)
+					return s.ProcessActionsUntil(ctx, someTime)
+				},
 				expectedError: errDefault,
+				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
+					m := assertBuildingActionResourceProductionRepoIsAMock(repos, assert)
+
+					assert.Equal(1, m.deleteForActionCalled)
+				},
 			},
 			"processActionsUntil_deleteActionCost": {
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
@@ -251,12 +287,12 @@ func Test_ActionService(t *testing.T) {
 					s := NewActionService(pool, repos)
 					return s.ProcessActionsUntil(ctx, someTime)
 				},
+				expectedError: errDefault,
 				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
 					m := assertBuildingActionCostRepoIsAMock(repos, assert)
 
 					assert.Equal(1, m.deleteForActionCalled)
 				},
-				expectedError: errDefault,
 			},
 			"processActionsUntil_deleteAction": {
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
@@ -287,12 +323,12 @@ func Test_ActionService(t *testing.T) {
 					s := NewActionService(pool, repos)
 					return s.ProcessActionsUntil(ctx, someTime)
 				},
+				expectedError: errDefault,
 				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
 					m := assertBuildingActionRepoIsAMock(repos, assert)
 
 					assert.Equal(1, m.deleteCalled)
 				},
-				expectedError: errDefault,
 			},
 		},
 
