@@ -32,6 +32,11 @@ var defaultBuildingActionCost = persistence.BuildingActionCost{
 	Resource: metalResourceId,
 	Amount:   250,
 }
+var defaultBuildingActionResourceProduction = persistence.BuildingActionResourceProduction{
+	Action:     defaultBuildingActionId,
+	Resource:   metalResourceId,
+	Production: 380,
+}
 
 var metalResourceId = uuid.MustParse("8ed8d1f2-f39a-404b-96e1-9805ae6cd175")
 var crystalResourceId = uuid.MustParse("5caf0c30-3417-49d3-94ac-8476aaf460c2")
@@ -619,6 +624,14 @@ func assertBuildingActionCostRepoIsAMock(repos repositories.Repositories, assert
 	m, ok := repos.BuildingActionCost.(*mockBuildingActionCostRepository)
 	if !ok {
 		assert.Fail("Provided building action cost repository is not a mock")
+	}
+	return m
+}
+
+func assertBuildingActionResourceProductionRepoIsAMock(repos repositories.Repositories, assert *require.Assertions) *mockBuildingActionResourceProductionRepository {
+	m, ok := repos.BuildingActionResourceProduction.(*mockBuildingActionResourceProductionRepository)
+	if !ok {
+		assert.Fail("Provided building action resource production repository is not a mock")
 	}
 	return m
 }
