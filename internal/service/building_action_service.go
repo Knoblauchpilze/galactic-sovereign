@@ -25,12 +25,13 @@ type buildingActionServiceImpl struct {
 	completionTimeConsolidator buildingActionCompletionTimeConsolidator
 	validator                  buildingActionValidator
 
-	resourceRepo           repositories.ResourceRepository
-	planetResourceRepo     repositories.PlanetResourceRepository
-	planetBuildingRepo     repositories.PlanetBuildingRepository
-	buildingCostRepo       repositories.BuildingCostRepository
-	buildingActionRepo     repositories.BuildingActionRepository
-	buildingActionCostRepo repositories.BuildingActionCostRepository
+	resourceRepo                         repositories.ResourceRepository
+	planetResourceRepo                   repositories.PlanetResourceRepository
+	planetBuildingRepo                   repositories.PlanetBuildingRepository
+	buildingCostRepo                     repositories.BuildingCostRepository
+	buildingActionRepo                   repositories.BuildingActionRepository
+	buildingActionCostRepo               repositories.BuildingActionCostRepository
+	buildingActionResourceProductionRepo repositories.BuildingActionResourceProductionRepository
 }
 
 func NewBuildingActionService(conn db.ConnectionPool, repos repositories.Repositories) BuildingActionService {
@@ -44,12 +45,13 @@ func newBuildingActionService(conn db.ConnectionPool, repos repositories.Reposit
 		completionTimeConsolidator: completionTimeConsolidator,
 		validator:                  validator,
 
-		resourceRepo:           repos.Resource,
-		planetResourceRepo:     repos.PlanetResource,
-		planetBuildingRepo:     repos.PlanetBuilding,
-		buildingCostRepo:       repos.BuildingCost,
-		buildingActionRepo:     repos.BuildingAction,
-		buildingActionCostRepo: repos.BuildingActionCost,
+		resourceRepo:                         repos.Resource,
+		planetResourceRepo:                   repos.PlanetResource,
+		planetBuildingRepo:                   repos.PlanetBuilding,
+		buildingCostRepo:                     repos.BuildingCost,
+		buildingActionRepo:                   repos.BuildingAction,
+		buildingActionCostRepo:               repos.BuildingActionCost,
+		buildingActionResourceProductionRepo: repos.BuildingActionResourceProduction,
 	}
 }
 
@@ -104,6 +106,11 @@ func (s *buildingActionServiceImpl) Delete(ctx context.Context, id uuid.UUID) er
 	}
 
 	err = updatePlanetResourceWithCosts(ctx, tx, s.planetResourceRepo, planetResources, costs, addResource)
+	if err != nil {
+		return err
+	}
+
+	err = s.buildingActionResourceProductionRepo.DeleteForAction(ctx, tx, id)
 	if err != nil {
 		return err
 	}
