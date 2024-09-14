@@ -15,7 +15,8 @@
 
 	import { mapPlanetResourcesToUiResources } from '$lib/resources';
 	import { mapPlanetBuildingsToUiBuildings } from '$lib/buildings';
-	import { mapBuildingActionsToUiActions } from '$lib/actions.js';
+	import { mapBuildingActionsToUiActions } from '$lib/actions';
+	import { roundToInteger } from '$lib/displayUtils';
 	import { invalidate } from '$app/navigation';
 
 	// https://svelte.dev/blog/zero-config-type-safety
@@ -62,11 +63,11 @@
 			{#each resources as resource}
 				<div class="flex space-between">
 					<StyledText
-						text="{resource.name}: {resource.amount}"
+						text="{resource.name}: {roundToInteger(resource.amount)}"
 						textColor="text-white"
 						styling="px-1"
 					/>
-					<StyledText text="(+{resource.production}/h)" textColor="text-enabled" />
+					<StyledText text="(+{roundToInteger(resource.production)}/h)" textColor="text-enabled" />
 				</div>
 			{/each}
 		</div>
