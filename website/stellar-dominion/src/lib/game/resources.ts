@@ -44,7 +44,6 @@ export function parseResources(data: object[]): Resource[] {
 export interface PlanetResource {
 	readonly id: string;
 	readonly amount: number;
-	readonly production: number;
 }
 
 export function parsePlanetResources(data: object[]): PlanetResource[] {
@@ -53,14 +52,11 @@ export function parsePlanetResources(data: object[]): PlanetResource[] {
 	for (const maybeResource of data) {
 		const hasResource = 'resource' in maybeResource && typeof maybeResource.resource === 'string';
 		const hasAmount = 'amount' in maybeResource && typeof maybeResource.amount === 'number';
-		const hasProduction =
-			'production' in maybeResource && typeof maybeResource.production === 'number';
 
-		if (hasResource && hasAmount && hasProduction) {
+		if (hasResource && hasAmount) {
 			const res: PlanetResource = {
 				id: maybeResource.resource as string,
 				amount: maybeResource.amount as number,
-				production: maybeResource.production as number
 			};
 
 			out.push(res);
@@ -93,7 +89,8 @@ export function mapPlanetResourcesToUiResources(
 			return {
 				name: apiResource.name,
 				amount: maybeResource.amount,
-				production: maybeResource.production
+				// TODO: Interpret from the resources production
+				production: 0
 			};
 		}
 	});
