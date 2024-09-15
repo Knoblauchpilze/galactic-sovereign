@@ -471,11 +471,15 @@ type mockPlanetResourceProductionRepository struct {
 	repositories.PlanetResourceProductionRepository
 
 	planetResourceProduction persistence.PlanetResourceProduction
-	err                      error
+	errs                     []error
+	calls                    int
 	updateErr                error
 
 	createCalled                     int
 	createdPlanetResourceProduction  persistence.PlanetResourceProduction
+	getForPlanetAndBuildingCalled    int
+	getForPlanetAndBuildingPlanet    uuid.UUID
+	getForPlanetAndBuildingBuilding  *uuid.UUID
 	listForPlanetIds                 []uuid.UUID
 	listForPlanetCalled              int
 	updateCalled                     int
@@ -487,13 +491,32 @@ type mockPlanetResourceProductionRepository struct {
 func (m *mockPlanetResourceProductionRepository) Create(ctx context.Context, tx db.Transaction, production persistence.PlanetResourceProduction) (persistence.PlanetResourceProduction, error) {
 	m.createCalled++
 	m.createdPlanetResourceProduction = production
-	return m.planetResourceProduction, m.err
+
+	err := getValueToReturnOr(m.calls, m.errs, nil)
+	m.calls++
+
+	return m.planetResourceProduction, *err
+}
+
+func (m *mockPlanetResourceProductionRepository) GetForPlanetAndBuilding(ctx context.Context, tx db.Transaction, planet uuid.UUID, building *uuid.UUID) (persistence.PlanetResourceProduction, error) {
+	m.getForPlanetAndBuildingCalled++
+	m.getForPlanetAndBuildingPlanet = planet
+	m.getForPlanetAndBuildingBuilding = building
+
+	err := getValueToReturnOr(m.calls, m.errs, nil)
+	m.calls++
+
+	return m.planetResourceProduction, *err
 }
 
 func (m *mockPlanetResourceProductionRepository) ListForPlanet(ctx context.Context, tx db.Transaction, planet uuid.UUID) ([]persistence.PlanetResourceProduction, error) {
 	m.listForPlanetCalled++
 	m.listForPlanetIds = append(m.listForPlanetIds, planet)
-	return []persistence.PlanetResourceProduction{m.planetResourceProduction}, m.err
+
+	err := getValueToReturnOr(m.calls, m.errs, nil)
+	m.calls++
+
+	return []persistence.PlanetResourceProduction{m.planetResourceProduction}, *err
 }
 
 func (m *mockPlanetResourceProductionRepository) Update(ctx context.Context, tx db.Transaction, production persistence.PlanetResourceProduction) (persistence.PlanetResourceProduction, error) {
@@ -505,7 +528,11 @@ func (m *mockPlanetResourceProductionRepository) Update(ctx context.Context, tx 
 func (m *mockPlanetResourceProductionRepository) DeleteForPlanet(ctx context.Context, tx db.Transaction, planet uuid.UUID) error {
 	m.deleteForPlanetCalled++
 	m.deleteForPlanetId = planet
-	return m.err
+
+	err := getValueToReturnOr(m.calls, m.errs, nil)
+	m.calls++
+
+	return *err
 }
 
 type mockPlayerRepository struct {

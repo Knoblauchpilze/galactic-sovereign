@@ -418,7 +418,7 @@ func Test_PlanetService(t *testing.T) {
 				generateRepositoriesMock: func() repositories.Repositories {
 					repos := generateValidPlanetRepositoryMock()
 					repos.PlanetResourceProduction = &mockPlanetResourceProductionRepository{
-						err: errDefault,
+						errs: []error{errDefault},
 					}
 
 					return repos
