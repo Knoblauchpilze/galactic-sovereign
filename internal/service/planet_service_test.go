@@ -30,12 +30,11 @@ var defaultPlanet = persistence.Planet{
 	UpdatedAt: testDate,
 }
 var defaultPlanetResource = persistence.PlanetResource{
-	Planet:     defaultPlanetId,
-	Resource:   metalResourceId,
-	Amount:     784.0987,
-	Production: 14,
-	CreatedAt:  testDate,
-	UpdatedAt:  testDate,
+	Planet:    defaultPlanetId,
+	Resource:  metalResourceId,
+	Amount:    784.0987,
+	CreatedAt: testDate,
+	UpdatedAt: testDate,
 }
 var defaultPlanetResourceProduction = persistence.PlanetResourceProduction{
 	Planet:     defaultPlanetId,
@@ -510,12 +509,11 @@ func Test_PlanetService(t *testing.T) {
 					},
 					Resources: []communication.PlanetResourceDtoResponse{
 						{
-							Planet:     defaultPlanet.Id,
-							Resource:   metalResourceId,
-							Amount:     784.0987,
-							Production: 14,
-							CreatedAt:  testDate,
-							UpdatedAt:  testDate,
+							Planet:    defaultPlanet.Id,
+							Resource:  metalResourceId,
+							Amount:    784.0987,
+							CreatedAt: testDate,
+							UpdatedAt: testDate,
 						},
 					},
 					Buildings: []communication.PlanetBuildingDtoResponse{
