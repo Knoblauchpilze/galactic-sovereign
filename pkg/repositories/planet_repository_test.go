@@ -397,6 +397,26 @@ WHERE
 					assert.Equal(errDefault, err)
 				},
 			},
+			"create_planetResourceProductionFails": {
+				generateMock: func() db.Transaction {
+					return &mockTransaction{
+						execErrs: []error{
+							nil,
+							nil,
+							nil,
+							errDefault,
+						},
+					}
+				},
+				handler: func(ctx context.Context, tx db.Transaction) error {
+					s := NewPlanetRepository(&mockConnectionPool{})
+					_, err := s.Create(ctx, tx, defaultPlanet)
+					return err
+				},
+				verifyError: func(err error, assert *require.Assertions) {
+					assert.Equal(errDefault, err)
+				},
+			},
 			"delete_homeworldFails": {
 				generateMock: func() db.Transaction {
 					return &mockTransaction{
