@@ -57,6 +57,7 @@ func main() {
 		Planet:                           repositories.NewPlanetRepository(pool),
 		PlanetBuilding:                   repositories.NewPlanetBuildingRepository(),
 		PlanetResource:                   repositories.NewPlanetResourceRepository(),
+		PlanetResourceProduction:         repositories.NewPlanetResourceProductionRepository(),
 		Player:                           repositories.NewPlayerRepository(pool),
 		Resource:                         repositories.NewResourceRepository(pool),
 		Universe:                         repositories.NewUniverseRepository(pool),
