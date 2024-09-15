@@ -1,9 +1,9 @@
 import { error, redirect } from '@sveltejs/kit';
 import { resetCookies, setCookies } from '$lib/cookies';
-import { fetchPlayerFromApiUser, responseToPlayerArray } from '$lib/players';
+import { fetchPlayerFromApiUser, responseToPlayerArray } from '$lib/game/players';
 import { ApiKey, loginUser } from '$lib/sessions';
-import { getUniverses, responseToUniverseArray } from '$lib/universes';
-import { fetchPlanetsFromPlayer, responseToPlanetArray } from '$lib/planets';
+import { getUniverses, responseToUniverseArray } from '$lib/game/universes';
+import { fetchPlanetsFromPlayer, responseToPlanetArray } from '$lib/game/planets';
 
 /** @type {import('./$types').PageServerLoad} */
 export async function load({ cookies }) {

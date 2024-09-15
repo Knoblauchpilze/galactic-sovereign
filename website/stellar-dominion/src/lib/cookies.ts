@@ -1,6 +1,6 @@
 import { type Cookies } from '@sveltejs/kit';
 import { ApiKey } from '$lib/sessions';
-import { Player } from '$lib/players';
+import { Player } from '$lib/game/players';
 
 const DEFAULT_COOKIES_OPT = {
 	path: '/'

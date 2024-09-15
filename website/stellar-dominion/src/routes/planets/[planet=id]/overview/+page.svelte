@@ -13,9 +13,9 @@
 	import heroContainer, { GAME_HERO_CONTAINER_PROPS } from '$lib/stores/ui/heroContainer';
 	import pageTitle, { HOMEPAGE_TITLE } from '$lib/stores/ui/pageTitle';
 
-	import { mapPlanetResourcesToUiResources } from '$lib/resources';
-	import { mapPlanetBuildingsToUiBuildings } from '$lib/buildings';
-	import { mapBuildingActionsToUiActions } from '$lib/actions';
+	import { mapPlanetResourcesToUiResources } from '$lib/game/resources';
+	import { mapPlanetBuildingsToUiBuildings } from '$lib/game/buildings';
+	import { mapBuildingActionsToUiActions } from '$lib/game/actions.js';
 	import { roundToInteger } from '$lib/displayUtils';
 	import { invalidate } from '$app/navigation';
 
@@ -43,6 +43,9 @@
 	$: actions = mapBuildingActionsToUiActions(data.planet.buildingActions, data.buildings);
 
 	$: anyBuildingActionRunning = data.planet.buildingActions.length !== 0;
+
+
+	$: console.log("data: ", JSON.stringify(data));
 
 	function onActionCompleted() {
 		invalidate('data:planet');

@@ -1,7 +1,7 @@
 import { ResponseEnvelope } from '$lib/responseEnvelope';
 import { buildUrl, safeFetch } from '$lib/api';
-import { Resource, parseResources } from '$lib/resources';
-import { Building, parseBuildings } from '$lib/buildings';
+import { Resource, parseResources } from '$lib/game/resources';
+import { Building, parseBuildings } from '$lib/game/buildings';
 
 export interface ApiUniverse {
 	readonly id: string;

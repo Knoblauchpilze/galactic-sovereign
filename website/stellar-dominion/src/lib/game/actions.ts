@@ -1,4 +1,4 @@
-import { type ApiBuilding } from '$lib/buildings';
+import { type ApiBuilding } from '$lib/game/buildings';
 
 export interface ApiBuildingAction {
 	readonly id: string;
