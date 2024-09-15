@@ -36,6 +36,8 @@ CREATE TABLE planet_resource (
   UNIQUE (planet, resource)
 );
 
+CREATE INDEX planet_resource_planet_index ON planet_resource (planet);
+
 CREATE TABLE planet_building (
   planet uuid NOT NULL,
   building uuid NOT NULL,
@@ -47,6 +49,8 @@ CREATE TABLE planet_building (
   FOREIGN KEY (building) REFERENCES building(id),
   UNIQUE (planet, building)
 );
+
+CREATE INDEX planet_building_planet_index ON planet_building (planet);
 
 CREATE TRIGGER trigger_planet_building_updated_at
   BEFORE UPDATE OR INSERT ON planet_building
