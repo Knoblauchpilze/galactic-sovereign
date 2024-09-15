@@ -60,7 +60,6 @@ func TestFullPlanetDtoResponse_MarshalsToCamelCase(t *testing.T) {
 				"planet": "65801b9b-84e6-411d-805f-2eb89587c5a7",
 				"resource": "97ddca58-8eee-41af-8bda-f37a3080f618",
 				"amount": 1234.567,
-				"production": 57,
 				"createdAt": "2024-05-05T20:50:18.651387237Z",
 				"updatedAt": "2024-07-28T10:30:02.651387236Z"
 			}
@@ -167,7 +166,6 @@ func TestFullPlanetDtoResponse_WhenBuildingsAreEmpty_MarshalsToEmptyArray(t *tes
 				"planet": "65801b9b-84e6-411d-805f-2eb89587c5a7",
 				"resource": "97ddca58-8eee-41af-8bda-f37a3080f618",
 				"amount": 1234.567,
-				"production": 57,
 				"createdAt": "2024-05-05T20:50:18.651387237Z",
 				"updatedAt": "2024-07-28T10:30:02.651387236Z"
 			}
@@ -217,7 +215,6 @@ func TestFullPlanetDtoResponse_WhenBuildingActionsAreEmpty_MarshalsToEmptyArray(
 				"planet": "65801b9b-84e6-411d-805f-2eb89587c5a7",
 				"resource": "97ddca58-8eee-41af-8bda-f37a3080f618",
 				"amount": 1234.567,
-				"production": 57,
 				"createdAt": "2024-05-05T20:50:18.651387237Z",
 				"updatedAt": "2024-07-28T10:30:02.651387236Z"
 			}
