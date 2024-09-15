@@ -10,8 +10,8 @@ type BuildingActionResourceProduction struct {
 	Production int
 }
 
-func ToPlanetResource(production BuildingActionResourceProduction, resource PlanetResource) PlanetResource {
-	out := resource
-	out.Production = production.Production
+func ToPlanetResourceProduction(actionProduction BuildingActionResourceProduction, planetProduction PlanetResourceProduction) PlanetResourceProduction {
+	out := planetProduction
+	out.Production = actionProduction.Production
 	return out
 }
