@@ -21,18 +21,31 @@ INSERT INTO stellar_dominion_schema.homeworld ("player", "planet")
     '167bd268-6ae7-4cf4-a359-9534beabfeff'
   );
 
-INSERT INTO stellar_dominion_schema.planet_resource ("planet", "resource", "amount", "production")
+INSERT INTO stellar_dominion_schema.planet_resource ("planet", "resource", "amount")
   VALUES (
     '167bd268-6ae7-4cf4-a359-9534beabfeff',
     'b4419b6b-b3bf-4576-aa92-055283addbc8',
-    514,
-    30
+    514
   );
-INSERT INTO stellar_dominion_schema.planet_resource ("planet", "resource", "amount", "production")
+INSERT INTO stellar_dominion_schema.planet_resource ("planet", "resource", "amount")
   VALUES (
     '167bd268-6ae7-4cf4-a359-9534beabfeff',
     'cd2ac9aa-9968-4ff5-b746-88f1f810fbb3',
-    17,
+    17
+  );
+
+INSERT INTO stellar_dominion_schema.planet_resource_production ("planet", "building", "resource", "production")
+  VALUES (
+    '167bd268-6ae7-4cf4-a359-9534beabfeff',
+    NULL,
+    'b4419b6b-b3bf-4576-aa92-055283addbc8',
+    30
+  );
+INSERT INTO stellar_dominion_schema.planet_resource_production ("planet", "building", "resource", "production")
+  VALUES (
+    '167bd268-6ae7-4cf4-a359-9534beabfeff',
+    NULL,
+    'cd2ac9aa-9968-4ff5-b746-88f1f810fbb3',
     15
   );
 
@@ -57,18 +70,31 @@ INSERT INTO stellar_dominion_schema.planet ("id", "player", "name")
     'colony'
   );
 
-INSERT INTO stellar_dominion_schema.planet_resource ("planet", "resource", "amount", "production")
+INSERT INTO stellar_dominion_schema.planet_resource ("planet", "resource", "amount")
   VALUES (
     '110cdf6f-2103-4e34-924f-fd57eb87ea3e',
     'b4419b6b-b3bf-4576-aa92-055283addbc8',
-    500,
-    30
+    500
   );
-INSERT INTO stellar_dominion_schema.planet_resource ("planet", "resource", "amount", "production")
+INSERT INTO stellar_dominion_schema.planet_resource ("planet", "resource", "amount")
   VALUES (
     '110cdf6f-2103-4e34-924f-fd57eb87ea3e',
     'cd2ac9aa-9968-4ff5-b746-88f1f810fbb3',
-    500,
+    500
+  );
+
+INSERT INTO stellar_dominion_schema.planet_resource_production ("planet", "building", "resource", "production")
+  VALUES (
+    '110cdf6f-2103-4e34-924f-fd57eb87ea3e',
+    NULL,
+    'b4419b6b-b3bf-4576-aa92-055283addbc8',
+    30
+  );
+INSERT INTO stellar_dominion_schema.planet_resource_production ("planet", "building", "resource", "production")
+  VALUES (
+    '110cdf6f-2103-4e34-924f-fd57eb87ea3e',
+    NULL,
+    'cd2ac9aa-9968-4ff5-b746-88f1f810fbb3',
     15
   );
 
@@ -120,18 +146,31 @@ INSERT INTO stellar_dominion_schema.planet_building ("planet", "building", "leve
     1
   );
 
-INSERT INTO stellar_dominion_schema.planet_resource ("planet", "resource", "amount", "production")
+INSERT INTO stellar_dominion_schema.planet_resource ("planet", "resource", "amount")
   VALUES (
     'fafd18e9-2db6-439a-aaf3-010771d694c9',
     'b4419b6b-b3bf-4576-aa92-055283addbc8',
-    50,
-    30
+    50
   );
-INSERT INTO stellar_dominion_schema.planet_resource ("planet", "resource", "amount", "production")
+INSERT INTO stellar_dominion_schema.planet_resource ("planet", "resource", "amount")
   VALUES (
     'fafd18e9-2db6-439a-aaf3-010771d694c9',
     'cd2ac9aa-9968-4ff5-b746-88f1f810fbb3',
-    603,
+    603
+  );
+
+INSERT INTO stellar_dominion_schema.planet_resource_production ("planet", "building", "resource", "production")
+  VALUES (
+    'fafd18e9-2db6-439a-aaf3-010771d694c9',
+    NULL,
+    'b4419b6b-b3bf-4576-aa92-055283addbc8',
+    30
+  );
+INSERT INTO stellar_dominion_schema.planet_resource_production ("planet", "building", "resource", "production")
+  VALUES (
+    'fafd18e9-2db6-439a-aaf3-010771d694c9',
+    NULL,
+    'cd2ac9aa-9968-4ff5-b746-88f1f810fbb3',
     15
   );
 
@@ -157,18 +196,31 @@ INSERT INTO stellar_dominion_schema.homeworld ("player", "planet")
     '00058def-e81d-43bb-aacf-a8402115449d'
   );
 
-INSERT INTO stellar_dominion_schema.planet_resource ("planet", "resource", "amount", "production")
+INSERT INTO stellar_dominion_schema.planet_resource ("planet", "resource", "amount")
   VALUES (
     '00058def-e81d-43bb-aacf-a8402115449d',
     'b4419b6b-b3bf-4576-aa92-055283addbc8',
-    887,
-    30
+    887
   );
-INSERT INTO stellar_dominion_schema.planet_resource ("planet", "resource", "amount", "production")
+INSERT INTO stellar_dominion_schema.planet_resource ("planet", "resource", "amount")
   VALUES (
     '00058def-e81d-43bb-aacf-a8402115449d',
     'cd2ac9aa-9968-4ff5-b746-88f1f810fbb3',
-    332,
+    332
+  );
+
+INSERT INTO stellar_dominion_schema.planet_resource_production ("planet", "building", "resource", "production")
+  VALUES (
+    '00058def-e81d-43bb-aacf-a8402115449d',
+    NULL,
+    'b4419b6b-b3bf-4576-aa92-055283addbc8',
+    30
+  );
+INSERT INTO stellar_dominion_schema.planet_resource_production ("planet", "building", "resource", "production")
+  VALUES (
+    '00058def-e81d-43bb-aacf-a8402115449d',
+    NULL,
+    'cd2ac9aa-9968-4ff5-b746-88f1f810fbb3',
     15
   );
 
@@ -207,18 +259,31 @@ INSERT INTO stellar_dominion_schema.homeworld ("player", "planet")
     '717ffa52-89bd-42eb-b34d-0f994a032e35'
   );
 
-INSERT INTO stellar_dominion_schema.planet_resource ("planet", "resource", "amount", "production")
+INSERT INTO stellar_dominion_schema.planet_resource ("planet", "resource", "amount")
   VALUES (
     '717ffa52-89bd-42eb-b34d-0f994a032e35',
     'b4419b6b-b3bf-4576-aa92-055283addbc8',
-    500,
-    30
+    500
   );
-INSERT INTO stellar_dominion_schema.planet_resource ("planet", "resource", "amount", "production")
+INSERT INTO stellar_dominion_schema.planet_resource ("planet", "resource", "amount")
   VALUES (
     '717ffa52-89bd-42eb-b34d-0f994a032e35',
     'cd2ac9aa-9968-4ff5-b746-88f1f810fbb3',
-    499,
+    499
+  );
+
+INSERT INTO stellar_dominion_schema.planet_resource_production ("planet", "building", "resource", "production")
+  VALUES (
+    '717ffa52-89bd-42eb-b34d-0f994a032e35',
+    NULL,
+    'b4419b6b-b3bf-4576-aa92-055283addbc8',
+    30
+  );
+INSERT INTO stellar_dominion_schema.planet_resource_production ("planet", "building", "resource", "production")
+  VALUES (
+    '717ffa52-89bd-42eb-b34d-0f994a032e35',
+    NULL,
+    'cd2ac9aa-9968-4ff5-b746-88f1f810fbb3',
     15
   );
 
