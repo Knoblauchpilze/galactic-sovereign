@@ -154,7 +154,7 @@ func toActionResourceProductionMap(in []persistence.BuildingActionResourceProduc
 }
 
 func (s *actionServiceImpl) updateResourcesProductionForPlanet(ctx context.Context, tx db.Transaction, action persistence.BuildingAction) error {
-	productions, err := s.planetResourceProductionRepo.ListForPlanet(ctx, tx, action.Planet)
+	production, err := s.planetResourceProductionRepo.GetForPlanetAndBuilding(ctx, tx, action.Planet, &action.Building)
 	if err != nil {
 		return err
 	}
@@ -166,19 +166,14 @@ func (s *actionServiceImpl) updateResourcesProductionForPlanet(ctx context.Conte
 
 	newProductionsMap := toActionResourceProductionMap(newProductions)
 
-	for _, production := range productions {
-		newProduction, ok := newProductionsMap[production.Resource]
-		if !ok {
-			continue
-		}
-
-		updatedProduction := persistence.ToPlanetResourceProduction(newProduction, production)
-		updatedProduction.UpdatedAt = action.CompletedAt
-		_, err = s.planetResourceProductionRepo.Update(ctx, tx, updatedProduction)
-		if err != nil {
-			return err
-		}
+	newProduction, ok := newProductionsMap[production.Resource]
+	if !ok {
+		return nil
 	}
 
-	return nil
+	updatedProduction := persistence.ToPlanetResourceProduction(newProduction, production)
+	updatedProduction.UpdatedAt = action.CompletedAt
+	_, err = s.planetResourceProductionRepo.Update(ctx, tx, updatedProduction)
+
+	return err
 }
