@@ -12,6 +12,7 @@ type Repositories struct {
 	Planet                           PlanetRepository
 	PlanetBuilding                   PlanetBuildingRepository
 	PlanetResource                   PlanetResourceRepository
+	PlanetResourceProduction         PlanetResourceProductionRepository
 	Player                           PlayerRepository
 	Resource                         ResourceRepository
 	UserLimit                        UserLimitRepository
