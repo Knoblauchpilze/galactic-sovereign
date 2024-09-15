@@ -1,7 +1,7 @@
 import { error, redirect } from '@sveltejs/kit';
 import { loadCookies } from '$lib/cookies';
-import { Universe, type ApiUniverse, getUniverse } from '$lib/universes';
-import { Planet, getPlanet, createBuildingAction, deleteBuildingAction } from '$lib/planets';
+import { Universe, type ApiUniverse, getUniverse } from '$lib/game/universes';
+import { Planet, getPlanet, createBuildingAction, deleteBuildingAction } from '$lib/game/planets';
 import { ApiFailureReason } from '$lib/responseEnvelope.js';
 import { logoutUser } from '$lib/sessions';
 

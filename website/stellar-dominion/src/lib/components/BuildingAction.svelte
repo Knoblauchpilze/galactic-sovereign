@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { type UiBuildingAction } from '$lib/actions';
+	import { type UiBuildingAction } from '$lib/game/actions';
 	import { StyledActionButton, StyledText, Timer } from '$lib/components';
 
 	export let action: UiBuildingAction;

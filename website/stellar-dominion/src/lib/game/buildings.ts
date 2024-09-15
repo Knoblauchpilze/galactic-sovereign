@@ -1,4 +1,4 @@
-import { type ApiResource } from '$lib/resources';
+import { type ApiResource } from '$lib/game/resources';
 import { type ApiBuildingAction } from './actions';
 
 export interface ApiBuilding {

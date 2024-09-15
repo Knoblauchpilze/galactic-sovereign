@@ -1,8 +1,8 @@
 import { ResponseEnvelope, createEmptySuccessResponseEnvelope } from '$lib/responseEnvelope';
 import { buildUrl, safeFetch } from '$lib/api';
-import { type PlanetResource, parsePlanetResources } from '$lib/resources';
-import { type PlanetBuilding, parsePlanetBuildings } from '$lib/buildings';
-import { type BuildingAction, type ApiBuildingAction, parseBuildingActions } from '$lib/actions';
+import { type PlanetResource, parsePlanetResources } from '$lib/game/resources';
+import { type PlanetBuilding, parsePlanetBuildings } from '$lib/game/buildings';
+import { type BuildingAction, type ApiBuildingAction, parseBuildingActions } from '$lib/game/actions';
 import HttpStatus from '$lib/httpStatuses';
 
 export interface ApiPlanet {
