@@ -58,6 +58,66 @@ func Test_PlanetResourceProductionRepository_Transaction(t *testing.T) {
 					},
 				},
 			},
+			"getForPlanetAndBuilding": {
+				handler: func(ctx context.Context, tx db.Transaction) error {
+					s := NewPlanetResourceProductionRepository()
+					_, err := s.GetForPlanetAndBuilding(ctx, tx, defaultPlanetId, &defaultBuildingId)
+					return err
+				},
+				expectedSqlQueries: []string{
+					`
+SELECT
+	planet,
+	building,
+	resource,
+	production,
+	created_at,
+	updated_at,
+	version
+FROM
+	planet_resource_production
+WHERE
+	planet = $1
+	AND building = $2
+`,
+				},
+				expectedArguments: [][]interface{}{
+					{
+						defaultPlanetId,
+						&defaultBuildingId,
+					},
+				},
+			},
+			"getForPlanetAndBuilding_buildingIsNil": {
+				handler: func(ctx context.Context, tx db.Transaction) error {
+					s := NewPlanetResourceProductionRepository()
+					_, err := s.GetForPlanetAndBuilding(ctx, tx, defaultPlanetId, nil)
+					return err
+				},
+				expectedSqlQueries: []string{
+					`
+SELECT
+	planet,
+	building,
+	resource,
+	production,
+	created_at,
+	updated_at,
+	version
+FROM
+	planet_resource_production
+WHERE
+	planet = $1
+	AND building = $2
+`,
+				},
+				expectedArguments: [][]interface{}{
+					{
+						defaultPlanetId,
+						dummyUuid,
+					},
+				},
+			},
 			"listForPlanet": {
 				handler: func(ctx context.Context, tx db.Transaction) error {
 					s := NewPlanetResourceProductionRepository()
@@ -142,6 +202,49 @@ WHERE
 				expectedArguments: [][]interface{}{
 					{
 						defaultPlanetId,
+					},
+				},
+			},
+		},
+
+		dbSingleValueTestCases: map[string]dbTransactionSingleValueTestCase{
+			"getForPlanetAndBuilding": {
+				handler: func(ctx context.Context, tx db.Transaction) error {
+					repo := NewPlanetResourceProductionRepository()
+					_, err := repo.GetForPlanetAndBuilding(ctx, tx, defaultPlanetId, &defaultBuildingId)
+					return err
+				},
+				expectedGetSingleValueCalls: 1,
+				expectedScanCalls:           1,
+				expectedScannedProps: [][]interface{}{
+					{
+						&uuid.UUID{},
+						&dummyUuid,
+						&uuid.UUID{},
+						&dummyInt,
+						&time.Time{},
+						&time.Time{},
+						&dummyInt,
+					},
+				},
+			},
+			"getForPlanetAndBuilding_buildingIsNil": {
+				handler: func(ctx context.Context, tx db.Transaction) error {
+					repo := NewPlanetResourceProductionRepository()
+					_, err := repo.GetForPlanetAndBuilding(ctx, tx, defaultPlanetId, nil)
+					return err
+				},
+				expectedGetSingleValueCalls: 1,
+				expectedScanCalls:           1,
+				expectedScannedProps: [][]interface{}{
+					{
+						&uuid.UUID{},
+						&dummyUuid,
+						&uuid.UUID{},
+						&dummyInt,
+						&time.Time{},
+						&time.Time{},
+						&dummyInt,
 					},
 				},
 			},
