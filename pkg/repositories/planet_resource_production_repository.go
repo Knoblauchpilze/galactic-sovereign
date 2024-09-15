@@ -11,6 +11,7 @@ import (
 
 type PlanetResourceProductionRepository interface {
 	Create(ctx context.Context, tx db.Transaction, production persistence.PlanetResourceProduction) (persistence.PlanetResourceProduction, error)
+	GetForPlanetAndBuilding(ctx context.Context, tx db.Transaction, planet uuid.UUID, building *uuid.UUID) (persistence.PlanetResourceProduction, error)
 	ListForPlanet(ctx context.Context, tx db.Transaction, planet uuid.UUID) ([]persistence.PlanetResourceProduction, error)
 	Update(ctx context.Context, tx db.Transaction, production persistence.PlanetResourceProduction) (persistence.PlanetResourceProduction, error)
 	DeleteForPlanet(ctx context.Context, tx db.Transaction, planet uuid.UUID) error
@@ -27,6 +28,40 @@ const createPlanetResourceProductionSqlTemplate = "INSERT INTO planet_resource_p
 func (r *planetResourceProductionRepositoryImpl) Create(ctx context.Context, tx db.Transaction, production persistence.PlanetResourceProduction) (persistence.PlanetResourceProduction, error) {
 	_, err := tx.Exec(ctx, createPlanetResourceProductionSqlTemplate, production.Planet, production.Building, production.Resource, production.Production, production.CreatedAt)
 	return production, err
+}
+
+const listPlanetResourceProductionForPlanetAndBuildingSqlTemplate = `
+SELECT
+	planet,
+	building,
+	resource,
+	production,
+	created_at,
+	updated_at,
+	version
+FROM
+	planet_resource_production
+WHERE
+	planet = $1
+	AND building = $2
+`
+
+func (r *planetResourceProductionRepositoryImpl) GetForPlanetAndBuilding(ctx context.Context, tx db.Transaction, planet uuid.UUID, building *uuid.UUID) (persistence.PlanetResourceProduction, error) {
+	res := tx.Query(ctx, listPlanetResourceProductionForPlanetAndBuildingSqlTemplate, planet, building)
+	if err := res.Err(); err != nil {
+		return persistence.PlanetResourceProduction{}, err
+	}
+
+	var out persistence.PlanetResourceProduction
+	parser := func(rows db.Scannable) error {
+		return rows.Scan(&out.Planet, &out.Building, &out.Resource, &out.Production, &out.CreatedAt, &out.UpdatedAt, &out.Version)
+	}
+
+	if err := res.GetSingleValue(parser); err != nil {
+		return persistence.PlanetResourceProduction{}, err
+	}
+
+	return out, nil
 }
 
 const listPlanetResourceProductionForPlanetSqlTemplate = `
