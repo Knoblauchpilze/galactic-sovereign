@@ -7,10 +7,9 @@ import (
 )
 
 type PlanetResource struct {
-	Planet     uuid.UUID
-	Resource   uuid.UUID
-	Amount     float64
-	Production int
+	Planet   uuid.UUID
+	Resource uuid.UUID
+	Amount   float64
 
 	CreatedAt time.Time
 	UpdatedAt time.Time

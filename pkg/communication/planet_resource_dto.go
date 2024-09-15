@@ -8,10 +8,9 @@ import (
 )
 
 type PlanetResourceDtoResponse struct {
-	Planet     uuid.UUID `json:"planet"`
-	Resource   uuid.UUID `json:"resource"`
-	Amount     float64   `json:"amount"`
-	Production int       `json:"production"`
+	Planet   uuid.UUID `json:"planet"`
+	Resource uuid.UUID `json:"resource"`
+	Amount   float64   `json:"amount"`
 
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
@@ -19,10 +18,9 @@ type PlanetResourceDtoResponse struct {
 
 func ToPlanetResourceDtoResponse(resource persistence.PlanetResource) PlanetResourceDtoResponse {
 	return PlanetResourceDtoResponse{
-		Planet:     resource.Planet,
-		Resource:   resource.Resource,
-		Amount:     resource.Amount,
-		Production: resource.Production,
+		Planet:   resource.Planet,
+		Resource: resource.Resource,
+		Amount:   resource.Amount,
 
 		CreatedAt: resource.CreatedAt,
 		UpdatedAt: resource.UpdatedAt,
