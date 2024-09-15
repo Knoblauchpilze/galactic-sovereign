@@ -33,11 +33,22 @@ const createPlanetHomeworldSqlTemplate = "INSERT INTO homeworld (player, planet)
 // https://stackoverflow.com/questions/4141370/sql-insert-with-select-and-hard-coded-values
 const createPlanetResourcesSqlTemplate = `
 INSERT INTO
-	planet_resource (planet, resource, amount, production, created_at)
+	planet_resource (planet, resource, amount, created_at)
 SELECT
 	$1,
 	id,
 	start_amount,
+	$2
+FROM
+	resource
+`
+
+const createPlanetResourceProductionsSqlTemplate = `
+INSERT INTO
+	planet_resource_production (planet, resource, production, created_at)
+SELECT
+	$1,
+	id,
 	start_production,
 	$2
 FROM
@@ -70,6 +81,11 @@ func (r *planetRepositoryImpl) Create(ctx context.Context, tx db.Transaction, pl
 	}
 
 	_, err = tx.Exec(ctx, createPlanetResourcesSqlTemplate, planet.Id, planet.CreatedAt)
+	if err != nil {
+		return planet, err
+	}
+
+	_, err = tx.Exec(ctx, createPlanetResourceProductionsSqlTemplate, planet.Id, planet.CreatedAt)
 	if err != nil {
 		return planet, err
 	}

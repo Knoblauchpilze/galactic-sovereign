@@ -51,11 +51,21 @@ func Test_PlanetRepository_Transaction(t *testing.T) {
 					`INSERT INTO planet (id, player, name, created_at) VALUES($1, $2, $3, $4)`,
 					`
 INSERT INTO
-	planet_resource (planet, resource, amount, production, created_at)
+	planet_resource (planet, resource, amount, created_at)
 SELECT
 	$1,
 	id,
 	start_amount,
+	$2
+FROM
+	resource
+`,
+					`
+INSERT INTO
+	planet_resource_production (planet, resource, production, created_at)
+SELECT
+	$1,
+	id,
 	start_production,
 	$2
 FROM
@@ -78,6 +88,10 @@ FROM
 						defaultPlanet.Id,
 						defaultPlanet.Player,
 						defaultPlanet.Name,
+						defaultPlanet.CreatedAt,
+					},
+					{
+						defaultPlanet.Id,
 						defaultPlanet.CreatedAt,
 					},
 					{
@@ -102,11 +116,21 @@ FROM
 					`INSERT INTO homeworld (player, planet) VALUES($1, $2)`,
 					`
 INSERT INTO
-	planet_resource (planet, resource, amount, production, created_at)
+	planet_resource (planet, resource, amount, created_at)
 SELECT
 	$1,
 	id,
 	start_amount,
+	$2
+FROM
+	resource
+`,
+					`
+INSERT INTO
+	planet_resource_production (planet, resource, production, created_at)
+SELECT
+	$1,
+	id,
 	start_production,
 	$2
 FROM
@@ -134,6 +158,10 @@ FROM
 					{
 						defaultPlanet.Player,
 						defaultPlanet.Id,
+					},
+					{
+						defaultPlanet.Id,
+						defaultPlanet.CreatedAt,
 					},
 					{
 						defaultPlanet.Id,
