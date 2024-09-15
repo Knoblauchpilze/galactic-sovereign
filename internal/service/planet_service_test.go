@@ -39,7 +39,7 @@ var defaultPlanetResource = persistence.PlanetResource{
 var defaultPlanetResourceProduction = persistence.PlanetResourceProduction{
 	Planet:     defaultPlanetId,
 	Building:   &defaultBuildingId,
-	Resource:   defaultResourceId,
+	Resource:   metalResourceId,
 	Production: 31,
 	CreatedAt:  testDate,
 	UpdatedAt:  testDate,

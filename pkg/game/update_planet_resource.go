@@ -6,14 +6,14 @@ import (
 	"github.com/KnoblauchPilze/user-service/pkg/persistence"
 )
 
-func UpdatePlanetResourceAmountToTime(resource persistence.PlanetResource, moment time.Time) persistence.PlanetResource {
+func UpdatePlanetResourceAmountToTime(resource persistence.PlanetResource, production float64, moment time.Time) persistence.PlanetResource {
 	elapsed := moment.Sub(resource.UpdatedAt)
 	if elapsed < 0 {
 		return resource
 	}
 
 	hours := elapsed.Hours()
-	resource.Amount += hours * float64(resource.Production)
+	resource.Amount += hours * production
 	resource.UpdatedAt = moment
 
 	return resource

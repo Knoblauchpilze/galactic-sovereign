@@ -10,15 +10,15 @@ import (
 )
 
 var defaultPlanetResource = persistence.PlanetResource{
-	Planet:     uuid.MustParse("ab6806b1-722b-4438-afa4-2b23a389d773"),
-	Resource:   uuid.MustParse("c55df64d-5df1-4acf-bcca-f0a5e5749d87"),
-	Amount:     60.0,
-	Production: 5,
+	Planet:   uuid.MustParse("ab6806b1-722b-4438-afa4-2b23a389d773"),
+	Resource: uuid.MustParse("c55df64d-5df1-4acf-bcca-f0a5e5749d87"),
+	Amount:   60.0,
 
 	UpdatedAt: time.Date(2024, 9, 13, 14, 51, 55, 651387248, time.UTC),
 
 	Version: 10,
 }
+var resourceProductionPerHour = 5.0
 
 var thresholdForResourceEquality = 1e-6
 
@@ -36,7 +36,7 @@ func TestUpdatePlanetResourceAmountToTime_whenTimeInThePast_expectNoUpdate(t *te
 	resource := generatePlanetResource()
 
 	inThePast := resource.UpdatedAt.Add(-1 * time.Hour)
-	updated := UpdatePlanetResourceAmountToTime(resource, inThePast)
+	updated := UpdatePlanetResourceAmountToTime(resource, resourceProductionPerHour, inThePast)
 
 	assert.Equal(resource.Amount, updated.Amount)
 }
@@ -81,7 +81,7 @@ func TestUpdatePlanetResourceAmountToTime_updatesAmount(t *testing.T) {
 	for name, testCase := range testCases {
 		t.Run(name, func(t *testing.T) {
 			oneHourFromNow := resource.UpdatedAt.Add(testCase.duration)
-			updated := UpdatePlanetResourceAmountToTime(resource, oneHourFromNow)
+			updated := UpdatePlanetResourceAmountToTime(resource, resourceProductionPerHour, oneHourFromNow)
 
 			assert.InDelta(testCase.expectedAmount, updated.Amount, thresholdForResourceEquality)
 		})
@@ -94,7 +94,7 @@ func TestUpdatePlanetResourceAmountToTime_updatesUpdatedAt(t *testing.T) {
 	resource := generatePlanetResource()
 
 	oneHourFromNow := resource.UpdatedAt.Add(1 * time.Hour)
-	updated := UpdatePlanetResourceAmountToTime(resource, oneHourFromNow)
+	updated := UpdatePlanetResourceAmountToTime(resource, resourceProductionPerHour, oneHourFromNow)
 
 	assert.Equal(oneHourFromNow, updated.UpdatedAt)
 }
