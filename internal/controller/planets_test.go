@@ -67,6 +67,11 @@ var defaultPlanetResourceDtoResponse = communication.PlanetResourceDtoResponse{
 	CreatedAt: time.Date(2024, 07, 31, 18, 10, 30, 651387238, time.UTC),
 	UpdatedAt: time.Date(2024, 07, 31, 18, 10, 59, 651387238, time.UTC),
 }
+var defaultPlanetResourceProductionDtoResponse = communication.PlanetResourceProductionDtoResponse{
+	Planet:     defaultPlanetId,
+	Resource:   defaultResourceId,
+	Production: 78,
+}
 var defaultPlanetBuildingDtoResponse = communication.PlanetBuildingDtoResponse{
 	Planet:   defaultPlanetId,
 	Building: defaultBuildingId,
@@ -79,6 +84,9 @@ var defaultFullPlanetDtoResponse = communication.FullPlanetDtoResponse{
 	PlanetDtoResponse: defaultPlanetDtoResponse,
 	Resources: []communication.PlanetResourceDtoResponse{
 		defaultPlanetResourceDtoResponse,
+	},
+	Productions: []communication.PlanetResourceProductionDtoResponse{
+		defaultPlanetResourceProductionDtoResponse,
 	},
 	Buildings: []communication.PlanetBuildingDtoResponse{
 		defaultPlanetBuildingDtoResponse,
