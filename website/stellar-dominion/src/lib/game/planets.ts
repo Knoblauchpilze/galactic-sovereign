@@ -1,8 +1,17 @@
 import { ResponseEnvelope, createEmptySuccessResponseEnvelope } from '$lib/responseEnvelope';
 import { buildUrl, safeFetch } from '$lib/api';
-import { type PlanetResource, parsePlanetResources } from '$lib/game/resources';
+import {
+	type PlanetResource,
+	type PlanetResourceProduction,
+	parsePlanetResources,
+	parsePlanetResourceProductions
+} from '$lib/game/resources';
 import { type PlanetBuilding, parsePlanetBuildings } from '$lib/game/buildings';
-import { type BuildingAction, type ApiBuildingAction, parseBuildingActions } from '$lib/game/actions';
+import {
+	type BuildingAction,
+	type ApiBuildingAction,
+	parseBuildingActions
+} from '$lib/game/actions';
 import HttpStatus from '$lib/httpStatuses';
 
 export interface ApiPlanet {
@@ -11,6 +20,7 @@ export interface ApiPlanet {
 	readonly name: string;
 
 	readonly resources: PlanetResource[];
+	readonly productions: PlanetResourceProduction[];
 	readonly buildings: PlanetBuilding[];
 	readonly buildingActions: ApiBuildingAction[];
 }
@@ -21,6 +31,7 @@ export class Planet {
 	readonly name: string = '';
 
 	readonly resources: PlanetResource[] = [];
+	readonly productions: PlanetResourceProduction[] = [];
 	readonly buildings: PlanetBuilding[] = [];
 	readonly buildingActions: BuildingAction[] = [];
 
@@ -41,6 +52,10 @@ export class Planet {
 			this.resources = parsePlanetResources(response.resources);
 		}
 
+		if ('productions' in response && Array.isArray(response.productions)) {
+			this.productions = parsePlanetResourceProductions(response.productions);
+		}
+
 		if ('buildings' in response && Array.isArray(response.buildings)) {
 			this.buildings = parsePlanetBuildings(response.buildings);
 		}
@@ -57,6 +72,7 @@ export class Planet {
 			name: this.name,
 
 			resources: this.resources,
+			productions: this.productions,
 			buildings: this.buildings,
 			buildingActions: this.buildingActions.map((a) => a.toJson())
 		};

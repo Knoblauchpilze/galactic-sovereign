@@ -32,7 +32,11 @@
 	const title = HOMEPAGE_TITLE + ' - ' + data.planet.name;
 	pageTitle.set(title);
 
-	$: resources = mapPlanetResourcesToUiResources(data.planet.resources, data.resources);
+	$: resources = mapPlanetResourcesToUiResources(
+		data.planet.resources,
+		data.planet.productions,
+		data.resources
+	);
 	$: buildings = mapPlanetBuildingsToUiBuildings(
 		data.planet.id,
 		data.planet.buildings,
@@ -43,9 +47,6 @@
 	$: actions = mapBuildingActionsToUiActions(data.planet.buildingActions, data.buildings);
 
 	$: anyBuildingActionRunning = data.planet.buildingActions.length !== 0;
-
-
-	$: console.log("data: ", JSON.stringify(data));
 
 	function onActionCompleted() {
 		invalidate('data:planet');
