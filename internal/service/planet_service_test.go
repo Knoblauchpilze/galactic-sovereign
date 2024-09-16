@@ -64,7 +64,6 @@ func Test_PlanetService(t *testing.T) {
 					_, err := s.Create(ctx, defaultPlanetDtoRequest)
 					return err
 				},
-
 				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
 					m := assertPlanetRepoIsAMock(repos, assert)
 
@@ -88,7 +87,6 @@ func Test_PlanetService(t *testing.T) {
 					_, err := s.Get(ctx, defaultPlanetId)
 					return err
 				},
-
 				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
 					m := assertPlanetRepoIsAMock(repos, assert)
 
@@ -111,7 +109,6 @@ func Test_PlanetService(t *testing.T) {
 					_, err := s.Get(ctx, defaultPlanetId)
 					return err
 				},
-
 				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
 					m := assertPlanetResourceRepoIsAMock(repos, assert)
 
@@ -121,12 +118,41 @@ func Test_PlanetService(t *testing.T) {
 			},
 			"get_planetResourceRepositoryFails": {
 				generateRepositoriesMock: func() repositories.Repositories {
-					return repositories.Repositories{
-						Planet: &mockPlanetRepository{},
-						PlanetResource: &mockPlanetResourceRepository{
-							err: errDefault,
-						},
+					repos := generateValidPlanetRepositoryMock()
+					repos.PlanetResource = &mockPlanetResourceRepository{
+						err: errDefault,
 					}
+
+					return repos
+				},
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewPlanetService(pool, repos)
+					_, err := s.Get(ctx, defaultPlanetId)
+					return err
+				},
+				expectedError: errDefault,
+			},
+			"get_planetResourceProduction": {
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewPlanetService(pool, repos)
+					_, err := s.Get(ctx, defaultPlanetId)
+					return err
+				},
+				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
+					m := assertPlanetResourceProductionRepoIsAMock(repos, assert)
+
+					assert.Equal(1, m.listForPlanetCalled)
+					assert.Equal([]uuid.UUID{defaultPlanetId}, m.listForPlanetIds)
+				},
+			},
+			"get_planetResourceProductionRepositoryFails": {
+				generateRepositoriesMock: func() repositories.Repositories {
+					repos := generateValidPlanetRepositoryMock()
+					repos.PlanetResourceProduction = &mockPlanetResourceProductionRepository{
+						errs: []error{errDefault},
+					}
+
+					return repos
 				},
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
 					s := NewPlanetService(pool, repos)
@@ -141,7 +167,6 @@ func Test_PlanetService(t *testing.T) {
 					_, err := s.Get(ctx, defaultPlanetId)
 					return err
 				},
-
 				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
 					m := assertPlanetBuildingRepoIsAMock(repos, assert)
 
@@ -151,13 +176,12 @@ func Test_PlanetService(t *testing.T) {
 			},
 			"get_planetBuildingRepositoryFails": {
 				generateRepositoriesMock: func() repositories.Repositories {
-					return repositories.Repositories{
-						Planet: &mockPlanetRepository{},
-						PlanetBuilding: &mockPlanetBuildingRepository{
-							err: errDefault,
-						},
-						PlanetResource: &mockPlanetResourceRepository{},
+					repos := generateValidPlanetRepositoryMock()
+					repos.PlanetBuilding = &mockPlanetBuildingRepository{
+						err: errDefault,
 					}
+
+					return repos
 				},
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
 					s := NewPlanetService(pool, repos)
@@ -172,7 +196,6 @@ func Test_PlanetService(t *testing.T) {
 					_, err := s.Get(ctx, defaultPlanetId)
 					return err
 				},
-
 				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
 					m := assertBuildingActionRepoIsAMock(repos, assert)
 
@@ -182,14 +205,12 @@ func Test_PlanetService(t *testing.T) {
 			},
 			"get_buildingActionRepositoryFails": {
 				generateRepositoriesMock: func() repositories.Repositories {
-					return repositories.Repositories{
-						BuildingAction: &mockBuildingActionRepository{
-							errs: []error{errDefault},
-						},
-						Planet:         &mockPlanetRepository{},
-						PlanetBuilding: &mockPlanetBuildingRepository{},
-						PlanetResource: &mockPlanetResourceRepository{},
+					repos := generateValidPlanetRepositoryMock()
+					repos.BuildingAction = &mockBuildingActionRepository{
+						errs: []error{errDefault},
 					}
+
+					return repos
 				},
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
 					s := NewPlanetService(pool, repos)
@@ -204,7 +225,6 @@ func Test_PlanetService(t *testing.T) {
 					_, err := s.List(ctx)
 					return err
 				},
-
 				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
 					m := assertPlanetRepoIsAMock(repos, assert)
 
@@ -226,7 +246,6 @@ func Test_PlanetService(t *testing.T) {
 					_, err := s.ListForPlayer(ctx, defaultPlayerId)
 					return err
 				},
-
 				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
 					m := assertPlanetRepoIsAMock(repos, assert)
 
@@ -248,7 +267,6 @@ func Test_PlanetService(t *testing.T) {
 					s := NewPlanetService(pool, repos)
 					return s.Delete(ctx, defaultPlanetId)
 				},
-
 				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
 					m := assertBuildingActionResourceProductionRepoIsAMock(repos, assert)
 
@@ -261,7 +279,6 @@ func Test_PlanetService(t *testing.T) {
 					s := NewPlanetService(pool, repos)
 					return s.Delete(ctx, defaultPlanetId)
 				},
-
 				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
 					m := assertBuildingActionCostRepoIsAMock(repos, assert)
 
@@ -274,7 +291,6 @@ func Test_PlanetService(t *testing.T) {
 					s := NewPlanetService(pool, repos)
 					return s.Delete(ctx, defaultPlanetId)
 				},
-
 				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
 					m := assertBuildingActionRepoIsAMock(repos, assert)
 
@@ -287,7 +303,6 @@ func Test_PlanetService(t *testing.T) {
 					s := NewPlanetService(pool, repos)
 					return s.Delete(ctx, defaultPlanetId)
 				},
-
 				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
 					m := assertPlanetBuildingRepoIsAMock(repos, assert)
 
@@ -300,7 +315,6 @@ func Test_PlanetService(t *testing.T) {
 					s := NewPlanetService(pool, repos)
 					return s.Delete(ctx, defaultPlanetId)
 				},
-
 				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
 					m := assertPlanetResourceProductionRepoIsAMock(repos, assert)
 
@@ -313,7 +327,6 @@ func Test_PlanetService(t *testing.T) {
 					s := NewPlanetService(pool, repos)
 					return s.Delete(ctx, defaultPlanetId)
 				},
-
 				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
 					m := assertPlanetResourceRepoIsAMock(repos, assert)
 
@@ -326,7 +339,6 @@ func Test_PlanetService(t *testing.T) {
 					s := NewPlanetService(pool, repos)
 					return s.Delete(ctx, defaultPlanetId)
 				},
-
 				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
 					m := assertPlanetRepoIsAMock(repos, assert)
 
@@ -483,7 +495,6 @@ func Test_PlanetService(t *testing.T) {
 					out, _ := s.Create(ctx, defaultPlanetDtoRequest)
 					return out
 				},
-
 				expectedContent: communication.PlanetDtoResponse{
 					Id:     defaultPlanet.Id,
 					Player: defaultPlanet.Player,
@@ -498,7 +509,6 @@ func Test_PlanetService(t *testing.T) {
 					out, _ := s.Get(ctx, defaultPlanetId)
 					return out
 				},
-
 				expectedContent: communication.FullPlanetDtoResponse{
 					PlanetDtoResponse: communication.PlanetDtoResponse{
 						Id:     defaultPlanet.Id,
@@ -514,6 +524,14 @@ func Test_PlanetService(t *testing.T) {
 							Amount:    784.0987,
 							CreatedAt: testDate,
 							UpdatedAt: testDate,
+						},
+					},
+					Productions: []communication.PlanetResourceProductionDtoResponse{
+						{
+							Planet:     defaultPlanet.Id,
+							Building:   &defaultBuilding.Id,
+							Resource:   metalResourceId,
+							Production: 31,
 						},
 					},
 					Buildings: []communication.PlanetBuildingDtoResponse{
@@ -544,7 +562,6 @@ func Test_PlanetService(t *testing.T) {
 					out, _ := s.List(ctx)
 					return out
 				},
-
 				expectedContent: []communication.PlanetDtoResponse{
 					{
 						Id:     defaultPlanet.Id,
@@ -561,7 +578,6 @@ func Test_PlanetService(t *testing.T) {
 					out, _ := s.ListForPlayer(ctx, defaultPlayerId)
 					return out
 				},
-
 				expectedContent: []communication.PlanetDtoResponse{
 					{
 						Id:     defaultPlanet.Id,
