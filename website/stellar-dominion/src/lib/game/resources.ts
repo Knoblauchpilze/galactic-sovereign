@@ -56,7 +56,38 @@ export function parsePlanetResources(data: object[]): PlanetResource[] {
 		if (hasResource && hasAmount) {
 			const res: PlanetResource = {
 				id: maybeResource.resource as string,
-				amount: maybeResource.amount as number,
+				amount: maybeResource.amount as number
+			};
+
+			out.push(res);
+		}
+	}
+
+	return out;
+}
+
+export interface PlanetResourceProduction {
+	readonly resource: string;
+	readonly building: string;
+	readonly production: number;
+}
+
+export function parsePlanetResourceProductions(data: object[]): PlanetResourceProduction[] {
+	const out: PlanetResourceProduction[] = [];
+
+	for (const maybeProduction of data) {
+		const hasResource =
+			'resource' in maybeProduction && typeof maybeProduction.resource === 'string';
+		const hasBuilding =
+			'building' in maybeProduction && typeof maybeProduction.building === 'string';
+		const hasProduction =
+			'production' in maybeProduction && typeof maybeProduction.production === 'number';
+
+		if (hasResource && hasProduction) {
+			const res: PlanetResourceProduction = {
+				resource: maybeProduction.resource as string,
+				building: hasBuilding ? (maybeProduction.building as string) : '',
+				production: maybeProduction.production as number
 			};
 
 			out.push(res);
@@ -74,23 +105,30 @@ export interface UiResource {
 
 export function mapPlanetResourcesToUiResources(
 	planetResources: PlanetResource[],
+	planetProductions: PlanetResourceProduction[],
 	apiResources: ApiResource[]
 ): UiResource[] {
 	return apiResources.map((apiResource) => {
 		const maybeResource = planetResources.find((r) => r.id === apiResource.id);
 
+		const production = planetProductions.reduce((currentProduction, resource) => {
+			if (resource.resource === apiResource.id) {
+				return currentProduction + resource.production;
+			}
+			return currentProduction;
+		}, 0);
+
 		if (maybeResource === undefined) {
 			return {
 				name: apiResource.name,
 				amount: 0,
-				production: 0
+				production: production
 			};
 		} else {
 			return {
 				name: apiResource.name,
 				amount: maybeResource.amount,
-				// TODO: Interpret from the resources production
-				production: 0
+				production: production
 			};
 		}
 	});
