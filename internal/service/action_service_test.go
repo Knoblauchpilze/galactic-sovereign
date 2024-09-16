@@ -116,11 +116,16 @@ func Test_ActionService(t *testing.T) {
 				},
 			},
 			"processActionsUntil_updatePlanetResources": {
+				generateConnectionPoolMock: func() db.ConnectionPool {
+					return &mockConnectionPool{
+						timeStamp: defaultBuildingAction.CompletedAt.Add(-1 * time.Minute),
+					}
+				},
 				generateRepositoriesMock: func() repositories.Repositories {
 					repos := generateValidActionServiceMocks()
 
 					resource := defaultPlanetResource
-					resource.UpdatedAt = time.Now().Add(-1 * time.Minute)
+					resource.UpdatedAt = defaultBuildingAction.CompletedAt.Add(-2 * time.Minute)
 
 					repos.PlanetResource = &mockPlanetResourceRepository{
 						planetResource: resource,
@@ -142,10 +147,13 @@ func Test_ActionService(t *testing.T) {
 
 					assert.Equal(defaultPlanetResource.Planet, actual.Planet)
 					assert.Equal(defaultPlanetResource.Resource, actual.Resource)
-					// Not asserting amount because it does not get updated in the mock
+					// TODO: Should be 2 minutes for the UpdatedAt value
+					expectedAmount := defaultPlanetResource.Amount + 1.0/60.0*float64(defaultPlanetResourceProduction.Production)
+					assert.Equal(expectedAmount, actual.Amount)
 					assert.Equal(defaultPlanetResource.CreatedAt, actual.CreatedAt)
-					// TODO: Improve this logic by allowing to specify the pool creation
-					assert.True(actual.UpdatedAt.After(defaultPlanetResource.UpdatedAt))
+					// TODO: Should be the completion time of the action
+					expectedUpdatedAt := defaultBuildingAction.CompletedAt.Add(-1 * time.Minute)
+					assert.Equal(expectedUpdatedAt, actual.UpdatedAt)
 					assert.Equal(defaultPlanetResource.Version, actual.Version)
 				},
 			},

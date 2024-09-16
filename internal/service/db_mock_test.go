@@ -10,12 +10,17 @@ import (
 type mockConnectionPool struct {
 	db.ConnectionPool
 
+	timeStamp time.Time
+
 	txs  []*mockTransaction
 	errs []error
 }
 
 func (m *mockConnectionPool) StartTransaction(ctx context.Context) (db.Transaction, error) {
-	m.txs = append(m.txs, &mockTransaction{})
+	mt := &mockTransaction{
+		timeStamp: m.timeStamp,
+	}
+	m.txs = append(m.txs, mt)
 
 	var err error
 	maybeErrorId := len(m.txs) - 1

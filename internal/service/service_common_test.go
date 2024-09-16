@@ -21,11 +21,12 @@ type generateConnectionPoolMock func() db.ConnectionPool
 type verifyTransactionInteractions func(db.ConnectionPool, *require.Assertions)
 
 type repositoryInteractionTestCase struct {
-	generateRepositoriesMock generateRepositoriesMock
-	handler                  testFunc
-	expectedError            error
-	verifyError              verifyError
-	verifyInteractions       verifyMockInteractions
+	generateConnectionPoolMock generateConnectionPoolMock
+	generateRepositoriesMock   generateRepositoriesMock
+	handler                    testFunc
+	expectedError              error
+	verifyError                verifyError
+	verifyInteractions         verifyMockInteractions
 }
 
 type verifyContent func(interface{}, repositories.Repositories, *require.Assertions)
@@ -73,7 +74,14 @@ func (s *ServiceTestSuite) TestWhenCallingHandler_ExpectCorrectInteraction() {
 				repos = s.generateRepositoriesMock()
 			}
 
-			err := testCase.handler(context.Background(), &mockConnectionPool{}, repos)
+			var pool db.ConnectionPool
+			if testCase.generateConnectionPoolMock != nil {
+				pool = testCase.generateConnectionPoolMock()
+			} else {
+				pool = &mockConnectionPool{}
+			}
+
+			err := testCase.handler(context.Background(), pool, repos)
 
 			if testCase.verifyError != nil {
 				testCase.verifyError(err, s.Require())

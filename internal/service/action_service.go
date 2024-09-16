@@ -132,6 +132,7 @@ func (s *actionServiceImpl) updateResourcesForPlanet(ctx context.Context, tx db.
 			continue
 		}
 
+		// TODO: Should update until the completion time of the action
 		resource := game.UpdatePlanetResourceAmountToTime(resource, float64(production.Production), tx.TimeStamp())
 
 		_, err = s.planetResourceRepo.Update(ctx, tx, resource)
