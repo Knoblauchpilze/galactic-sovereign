@@ -116,6 +116,8 @@ func Test_ActionService(t *testing.T) {
 				},
 			},
 			"processActionsUntil_updatePlanetResources": {
+				// TODO: This could probably be removed when we fix the use of the action
+				// CompletedAt instead of the transaction time.
 				generateConnectionPoolMock: func() db.ConnectionPool {
 					return &mockConnectionPool{
 						timeStamp: defaultBuildingAction.CompletedAt.Add(-1 * time.Minute),
@@ -372,7 +374,6 @@ func Test_ActionService(t *testing.T) {
 					assert.Equal(defaultPlanetResourceProduction.Resource, actual.Resource)
 					assert.Equal(defaultBuildingActionResourceProduction.Production, actual.Production)
 					assert.Equal(defaultPlanetResourceProduction.CreatedAt, actual.CreatedAt)
-					// TODO: Improve this logic by allowing to specify the pool creation
 					assert.Equal(defaultBuildingAction.CompletedAt, actual.UpdatedAt)
 					assert.Equal(defaultPlanetResourceProduction.Version, actual.Version)
 				},
