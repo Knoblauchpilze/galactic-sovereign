@@ -110,6 +110,19 @@ func Test_BuildingActionService(t *testing.T) {
 					assert.Equal(defaultBuildingActionDtoRequest.Building, m.listForBuildingId)
 				},
 			},
+			"create_listsProductionsForBuilding": {
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewBuildingActionService(pool, repos)
+					_, err := s.Create(ctx, defaultBuildingActionDtoRequest)
+					return err
+				},
+				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
+					m := assertBuildingResourceProductionRepoIsAMock(repos, assert)
+
+					assert.Equal(1, m.listForBuildingCalled)
+					assert.Equal(defaultBuildingActionDtoRequest.Building, m.listForBuildingId)
+				},
+			},
 			"create_updatesResourcesOnPlanet": {
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
 					s := NewBuildingActionService(pool, repos)
@@ -142,6 +155,20 @@ func Test_BuildingActionService(t *testing.T) {
 					assert.Equal(1, m.createCalled)
 					assert.Equal(defaultBuildingCost.Resource, m.createdBuildingActionCost.Resource)
 					assert.Equal(562, m.createdBuildingActionCost.Amount)
+				},
+			},
+			"create_registersActionProductions": {
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewBuildingActionService(pool, repos)
+					_, err := s.Create(ctx, defaultBuildingActionDtoRequest)
+					return err
+				},
+				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
+					m := assertBuildingActionResourceProductionRepoIsAMock(repos, assert)
+
+					assert.Equal(1, m.createCalled)
+					assert.Equal(defaultBuildingActionResourceProduction.Resource, m.createdBuildingActionResourceProduction.Resource)
+					assert.Equal(36, m.createdBuildingActionResourceProduction.Production)
 				},
 			},
 			"create_createsAction": {
@@ -252,6 +279,27 @@ func Test_BuildingActionService(t *testing.T) {
 					assert.Equal(1, m.listForBuildingCalled)
 				},
 			},
+			"create_failure_listProductionsForBuilding": {
+				generateRepositoriesMock: func() repositories.Repositories {
+					repos := generateValidBuildingActionRepositoryMock()
+					repos.BuildingResourceProduction = &mockBuildingResourceProductionRepository{
+						err: errDefault,
+					}
+
+					return repos
+				},
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewBuildingActionService(pool, repos)
+					_, err := s.Create(ctx, defaultBuildingActionDtoRequest)
+					return err
+				},
+				expectedError: errDefault,
+				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
+					m := assertBuildingResourceProductionRepoIsAMock(repos, assert)
+
+					assert.Equal(1, m.listForBuildingCalled)
+				},
+			},
 			"create_failure_consolidation": {
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
 					consolidator := func(action persistence.BuildingAction, _ []persistence.Resource, _ []persistence.BuildingActionCost) (persistence.BuildingAction, error) {
@@ -319,6 +367,27 @@ func Test_BuildingActionService(t *testing.T) {
 				expectedError: errDefault,
 				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
 					m := assertBuildingActionCostRepoIsAMock(repos, assert)
+
+					assert.Equal(1, m.createCalled)
+				},
+			},
+			"create_failure_registerActionProductions": {
+				generateRepositoriesMock: func() repositories.Repositories {
+					repos := generateValidBuildingActionRepositoryMock()
+					repos.BuildingActionResourceProduction = &mockBuildingActionResourceProductionRepository{
+						errs: []error{errDefault},
+					}
+
+					return repos
+				},
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewBuildingActionService(pool, repos)
+					_, err := s.Create(ctx, defaultBuildingActionDtoRequest)
+					return err
+				},
+				expectedError: errDefault,
+				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
+					m := assertBuildingActionResourceProductionRepoIsAMock(repos, assert)
 
 					assert.Equal(1, m.createCalled)
 				},
@@ -638,6 +707,9 @@ func generateValidBuildingActionRepositoryMock() repositories.Repositories {
 		},
 		BuildingCost: &mockBuildingCostRepository{
 			buildingCost: defaultBuildingCost,
+		},
+		BuildingResourceProduction: &mockBuildingResourceProductionRepository{
+			buildingResourceProduction: defaultBuildingResourceProduction,
 		},
 		BuildingAction: &mockBuildingActionRepository{
 			action: defaultBuildingAction,
