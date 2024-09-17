@@ -136,13 +136,12 @@ func (s *buildingActionServiceImpl) consolidateAction(ctx context.Context, tx db
 		return action, costs, err
 	}
 
-	baseCosts, err := s.buildingCostRepo.ListForBuilding(ctx, tx, action.Building)
+	action = game.ConsolidateBuildingActionLevel(action, buildings)
+
+	costs, err = s.determineBuildingActionCosts(ctx, tx, action)
 	if err != nil {
 		return action, costs, err
 	}
-
-	action = game.ConsolidateBuildingActionLevel(action, buildings)
-	costs = game.DetermineBuildingActionCost(action, baseCosts)
 
 	action, err = s.completionTimeConsolidator(action, resources, costs)
 	if err != nil {
@@ -152,6 +151,19 @@ func (s *buildingActionServiceImpl) consolidateAction(ctx context.Context, tx db
 	err = s.validator(action, planetResources, buildings, costs)
 
 	return action, costs, err
+}
+
+func (s *buildingActionServiceImpl) determineBuildingActionCosts(ctx context.Context, tx db.Transaction, action persistence.BuildingAction) ([]persistence.BuildingActionCost, error) {
+	var costs []persistence.BuildingActionCost
+
+	baseCosts, err := s.buildingCostRepo.ListForBuilding(ctx, tx, action.Building)
+	if err != nil {
+		return costs, err
+	}
+
+	costs = game.DetermineBuildingActionCost(action, baseCosts)
+
+	return costs, nil
 }
 
 func (s *buildingActionServiceImpl) createAction(ctx context.Context, tx db.Transaction, action persistence.BuildingAction, costs []persistence.BuildingActionCost, planetResources []persistence.PlanetResource) (persistence.BuildingAction, error) {
