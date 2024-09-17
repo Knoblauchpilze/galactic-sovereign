@@ -29,6 +29,7 @@ type buildingActionServiceImpl struct {
 	planetResourceRepo                   repositories.PlanetResourceRepository
 	planetBuildingRepo                   repositories.PlanetBuildingRepository
 	buildingCostRepo                     repositories.BuildingCostRepository
+	buildingResourceProduction           repositories.BuildingResourceProductionRepository
 	buildingActionRepo                   repositories.BuildingActionRepository
 	buildingActionCostRepo               repositories.BuildingActionCostRepository
 	buildingActionResourceProductionRepo repositories.BuildingActionResourceProductionRepository
@@ -49,6 +50,7 @@ func newBuildingActionService(conn db.ConnectionPool, repos repositories.Reposit
 		planetResourceRepo:                   repos.PlanetResource,
 		planetBuildingRepo:                   repos.PlanetBuilding,
 		buildingCostRepo:                     repos.BuildingCost,
+		buildingResourceProduction:           repos.BuildingResourceProduction,
 		buildingActionRepo:                   repos.BuildingAction,
 		buildingActionCostRepo:               repos.BuildingActionCost,
 		buildingActionResourceProductionRepo: repos.BuildingActionResourceProduction,
@@ -74,7 +76,12 @@ func (s *buildingActionServiceImpl) Create(ctx context.Context, actionDto commun
 		return communication.BuildingActionDtoResponse{}, err
 	}
 
-	action, err = s.createAction(ctx, tx, action, costs, planetResources)
+	productions, err := s.determineBuildingActionResourceProductions(ctx, tx, action)
+	if err != nil {
+		return communication.BuildingActionDtoResponse{}, err
+	}
+
+	action, err = s.createAction(ctx, tx, action, costs, productions, planetResources)
 	if err != nil {
 		return communication.BuildingActionDtoResponse{}, err
 	}
@@ -166,7 +173,25 @@ func (s *buildingActionServiceImpl) determineBuildingActionCosts(ctx context.Con
 	return costs, nil
 }
 
-func (s *buildingActionServiceImpl) createAction(ctx context.Context, tx db.Transaction, action persistence.BuildingAction, costs []persistence.BuildingActionCost, planetResources []persistence.PlanetResource) (persistence.BuildingAction, error) {
+func (s *buildingActionServiceImpl) determineBuildingActionResourceProductions(ctx context.Context, tx db.Transaction, action persistence.BuildingAction) ([]persistence.BuildingActionResourceProduction, error) {
+	var productions []persistence.BuildingActionResourceProduction
+
+	baseProductions, err := s.buildingResourceProduction.ListForBuilding(ctx, tx, action.Building)
+	if err != nil {
+		return productions, err
+	}
+
+	productions = game.DetermineBuildingActionResourceProduction(action, baseProductions)
+
+	return productions, nil
+}
+
+func (s *buildingActionServiceImpl) createAction(ctx context.Context,
+	tx db.Transaction,
+	action persistence.BuildingAction,
+	costs []persistence.BuildingActionCost,
+	productions []persistence.BuildingActionResourceProduction,
+	planetResources []persistence.PlanetResource) (persistence.BuildingAction, error) {
 	err := updatePlanetResourceWithCosts(ctx, tx, s.planetResourceRepo, planetResources, costs, subtractResource)
 	if err != nil {
 		return action, err
@@ -179,6 +204,13 @@ func (s *buildingActionServiceImpl) createAction(ctx context.Context, tx db.Tran
 
 	for _, cost := range costs {
 		_, err = s.buildingActionCostRepo.Create(ctx, tx, cost)
+		if err != nil {
+			return action, err
+		}
+	}
+
+	for _, production := range productions {
+		_, err = s.buildingActionResourceProductionRepo.Create(ctx, tx, production)
 		if err != nil {
 			return action, err
 		}
