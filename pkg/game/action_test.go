@@ -51,6 +51,45 @@ func TestDetermineBuildingActionCost(t *testing.T) {
 	assert.Equal(expectedCost, costs[1])
 }
 
+func TestDetermineBuildingActionResourceProduction(t *testing.T) {
+	assert := assert.New(t)
+
+	action := persistence.BuildingAction{
+		Id:           uuid.MustParse("7f548f48-2bac-46f0-b655-56487472b5db"),
+		DesiredLevel: 5,
+	}
+	baseProductions := []persistence.BuildingResourceProduction{
+		{
+			Building: defaultId,
+			Resource: defaultMetalId,
+			Base:     21,
+			Progress: 1.2,
+		},
+		{
+			Building: defaultId,
+			Resource: defaultCrystalId,
+			Base:     27,
+			Progress: 1.3,
+		},
+	}
+
+	productions := DetermineBuildingActionResourceProduction(action, baseProductions)
+
+	assert.Equal(2, len(productions))
+	expectedResourceProduction := persistence.BuildingActionResourceProduction{
+		Action:     action.Id,
+		Resource:   defaultMetalId,
+		Production: 43,
+	}
+	assert.Equal(expectedResourceProduction, productions[0])
+	expectedResourceProduction = persistence.BuildingActionResourceProduction{
+		Action:     action.Id,
+		Resource:   defaultCrystalId,
+		Production: 77,
+	}
+	assert.Equal(expectedResourceProduction, productions[1])
+}
+
 func TestConsolidateBuildingActionLevel_WhenNoBuilding_SetsDefault(t *testing.T) {
 	assert := assert.New(t)
 

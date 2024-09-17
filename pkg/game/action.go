@@ -24,6 +24,22 @@ func DetermineBuildingActionCost(action persistence.BuildingAction, baseCosts []
 	return costs
 }
 
+func DetermineBuildingActionResourceProduction(action persistence.BuildingAction, baseProductions []persistence.BuildingResourceProduction) []persistence.BuildingActionResourceProduction {
+	var productions []persistence.BuildingActionResourceProduction
+	for _, baseProduction := range baseProductions {
+		resourceProduction := math.Floor(float64(baseProduction.Base) * math.Pow(baseProduction.Progress, float64(action.DesiredLevel-1)))
+
+		production := persistence.BuildingActionResourceProduction{
+			Action:     action.Id,
+			Resource:   baseProduction.Resource,
+			Production: int(resourceProduction),
+		}
+		productions = append(productions, production)
+	}
+
+	return productions
+}
+
 func ConsolidateBuildingActionLevel(action persistence.BuildingAction, buildings []persistence.PlanetBuilding) persistence.BuildingAction {
 	for _, building := range buildings {
 		if building.Building == action.Building {
