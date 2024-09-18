@@ -10,7 +10,7 @@ import (
 
 var resourceId = uuid.MustParse("e0e56162-b462-4c05-9bda-828a373037a7")
 
-func TestToPlanetResourceProduction(t *testing.T) {
+func TestMergeWithPlanetResourceProduction(t *testing.T) {
 	assert := assert.New(t)
 
 	actionProduction := BuildingActionResourceProduction{
@@ -30,7 +30,7 @@ func TestToPlanetResourceProduction(t *testing.T) {
 		Version: 1,
 	}
 
-	actual := ToPlanetResourceProduction(actionProduction, planetProduction)
+	actual := MergeWithPlanetResourceProduction(actionProduction, planetProduction)
 
 	assert.Equal(planetId, actual.Planet)
 	assert.Equal(&buildingId, actual.Building)
@@ -39,4 +39,34 @@ func TestToPlanetResourceProduction(t *testing.T) {
 	assert.Equal(planetProduction.CreatedAt, actual.CreatedAt)
 	assert.Equal(planetProduction.UpdatedAt, actual.UpdatedAt)
 	assert.Equal(planetProduction.Version, actual.Version)
+}
+
+func TestToPlanetResourceProduction(t *testing.T) {
+	assert := assert.New(t)
+
+	actionProduction := BuildingActionResourceProduction{
+		Action:     actionId,
+		Resource:   resourceId,
+		Production: 54,
+	}
+	action := BuildingAction{
+		Id:           actionId,
+		Planet:       planetId,
+		Building:     buildingId,
+		CurrentLevel: 1,
+		DesiredLevel: 2,
+
+		CreatedAt:   time.Date(2024, 9, 18, 17, 30, 05, 651387251, time.UTC),
+		CompletedAt: time.Date(2024, 9, 18, 17, 30, 06, 651387251, time.UTC),
+	}
+
+	actual := ToPlanetResourceProduction(actionProduction, action)
+
+	assert.Equal(action.Planet, actual.Planet)
+	assert.Equal(&action.Building, actual.Building)
+	assert.Equal(actionProduction.Resource, actual.Resource)
+	assert.Equal(actionProduction.Production, actual.Production)
+	assert.Equal(action.CompletedAt, actual.CreatedAt)
+	assert.Equal(action.CompletedAt, actual.UpdatedAt)
+	assert.Equal(0, actual.Version)
 }
