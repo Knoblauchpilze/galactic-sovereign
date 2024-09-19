@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/KnoblauchPilze/user-service/pkg/db"
+	"github.com/KnoblauchPilze/user-service/pkg/errors"
 	"github.com/KnoblauchPilze/user-service/pkg/game"
 	"github.com/KnoblauchPilze/user-service/pkg/persistence"
 	"github.com/KnoblauchPilze/user-service/pkg/repositories"
@@ -144,37 +145,51 @@ func (s *actionServiceImpl) updateResourcesForPlanet(ctx context.Context, tx db.
 	return nil
 }
 
-func toActionResourceProductionMap(in []persistence.BuildingActionResourceProduction) map[uuid.UUID]persistence.BuildingActionResourceProduction {
-	out := make(map[uuid.UUID]persistence.BuildingActionResourceProduction)
-
-	for _, production := range in {
-		out[production.Resource] = production
-	}
-
-	return out
-}
-
 func (s *actionServiceImpl) updateResourcesProductionForPlanet(ctx context.Context, tx db.Transaction, action persistence.BuildingAction) error {
-	production, err := s.planetResourceProductionRepo.GetForPlanetAndBuilding(ctx, tx, action.Planet, &action.Building)
-	if err != nil {
-		return err
-	}
-
 	newProductions, err := s.buildingActionResourceProductionRepo.ListForAction(ctx, tx, action.Id)
 	if err != nil {
 		return err
 	}
 
-	newProductionsMap := toActionResourceProductionMap(newProductions)
-
-	newProduction, ok := newProductionsMap[production.Resource]
-	if !ok {
-		return nil
+	for _, newProduction := range newProductions {
+		err = s.updatePlanetProductionForResource(
+			ctx, tx, action, newProduction)
+		if err != nil {
+			return err
+		}
 	}
 
-	updatedProduction := persistence.ToPlanetResourceProduction(newProduction, production)
+	return nil
+}
+
+func (s *actionServiceImpl) updatePlanetProductionForResource(
+	ctx context.Context,
+	tx db.Transaction,
+	action persistence.BuildingAction,
+	newProduction persistence.BuildingActionResourceProduction) error {
+	production, err := s.planetResourceProductionRepo.GetForPlanetAndBuilding(ctx, tx, action.Planet, &action.Building)
+	if err != nil {
+		if errors.IsErrorWithCode(err, db.NoMatchingSqlRows) {
+			return s.createPlanetProductionForResourceAndBuilding(ctx, tx, action, newProduction)
+		}
+
+		return err
+	}
+
+	updatedProduction := persistence.MergeWithPlanetResourceProduction(newProduction, production)
 	updatedProduction.UpdatedAt = action.CompletedAt
 	_, err = s.planetResourceProductionRepo.Update(ctx, tx, updatedProduction)
+
+	return err
+}
+
+func (s *actionServiceImpl) createPlanetProductionForResourceAndBuilding(ctx context.Context,
+	tx db.Transaction,
+	action persistence.BuildingAction,
+	newProduction persistence.BuildingActionResourceProduction) error {
+	planetProduction := persistence.ToPlanetResourceProduction(newProduction, action)
+
+	_, err := s.planetResourceProductionRepo.Create(ctx, tx, planetProduction)
 
 	return err
 }
