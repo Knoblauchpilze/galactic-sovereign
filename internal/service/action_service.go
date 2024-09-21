@@ -69,7 +69,7 @@ func (s *actionServiceImpl) processAction(ctx context.Context, action persistenc
 	}
 	defer tx.Close(ctx)
 
-	err = s.updateResourcesForPlanet(ctx, tx, action.Planet)
+	err = s.updateResourcesForPlanetUntilActionCompletes(ctx, tx, action)
 	if err != nil {
 		return err
 	}
@@ -114,13 +114,13 @@ func toPlanetResourceProductionMap(in []persistence.PlanetResourceProduction) ma
 	return out
 }
 
-func (s *actionServiceImpl) updateResourcesForPlanet(ctx context.Context, tx db.Transaction, planet uuid.UUID) error {
-	resources, err := s.planetResourceRepo.ListForPlanet(ctx, tx, planet)
+func (s *actionServiceImpl) updateResourcesForPlanetUntilActionCompletes(ctx context.Context, tx db.Transaction, action persistence.BuildingAction) error {
+	resources, err := s.planetResourceRepo.ListForPlanet(ctx, tx, action.Planet)
 	if err != nil {
 		return err
 	}
 
-	productions, err := s.planetResourceProductionRepo.ListForPlanet(ctx, tx, planet)
+	productions, err := s.planetResourceProductionRepo.ListForPlanet(ctx, tx, action.Planet)
 	if err != nil {
 		return err
 	}
@@ -133,8 +133,7 @@ func (s *actionServiceImpl) updateResourcesForPlanet(ctx context.Context, tx db.
 			continue
 		}
 
-		// TODO: Should update until the completion time of the action
-		resource := game.UpdatePlanetResourceAmountToTime(resource, float64(production.Production), tx.TimeStamp())
+		resource := game.UpdatePlanetResourceAmountToTime(resource, float64(production.Production), action.CompletedAt)
 
 		_, err = s.planetResourceRepo.Update(ctx, tx, resource)
 		if err != nil {
