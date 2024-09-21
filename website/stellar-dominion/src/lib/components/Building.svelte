@@ -31,7 +31,8 @@
 
 	$: gains = building.resourcesProduction.map((rp) => ({
 		resource: rp.resource,
-		amount: rp.gain,
+		nextProduction: rp.nextProduction,
+		gain: rp.gain
 	}));
 	$: needsGainsSection = gains.length > 0;
 
@@ -53,15 +54,15 @@
 		{/each}
 	</table>
 	{#if needsGainsSection}
-	<StyledText text="Production gains:" textColor="text-white" />
-	<table>
-		{#each gains as gain}
-			<tr>
-				<td class="text-white capitalize">{gain.resource}:</td>
-				<td class="text-enabled">{gain.amount}</td>
-			</tr>
-		{/each}
-	</table>
+		<StyledText text="Production:" textColor="text-white" />
+		<table>
+			{#each gains as gain}
+				<tr>
+					<td class="text-white capitalize">{gain.resource}:</td>
+					<td class="text-enabled">{gain.nextProduction}(+{gain.gain})</td>
+				</tr>
+			{/each}
+		</table>
 	{/if}
 	<!-- https://kit.svelte.dev/docs/form-actions#default-actions -->
 	<form method="POST" action="/planets/{building.planet}/overview?/createBuildingAction">
