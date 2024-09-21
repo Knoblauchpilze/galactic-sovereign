@@ -165,6 +165,7 @@ export interface UiBuildingCost {
 
 export interface UiBuildingGain {
 	readonly resource: string;
+	readonly nextProduction: number;
 	readonly gain: number;
 }
 
@@ -213,28 +214,36 @@ function computeProductionForLevel(production: number, progress: number, level: 
 	return Math.floor(production * Math.pow(progress, level));
 }
 
-function mapBuildingResourceProductionsToUiBuildingCosts(
+function mapBuildingResourceProductionsToUiBuildingGains(
 	resourceProductions: ApiBuildingResourceProduction[],
 	apiResources: ApiResource[],
 	level: number
 ): UiBuildingGain[] {
 	return resourceProductions.map((production) => {
+		const currentProduction = computeProductionForLevel(
+			production.base,
+			production.progress,
+			level
+		);
 		const nextProduction = computeProductionForLevel(
 			production.base,
 			production.progress,
 			level + 1
 		);
+		const gain = nextProduction - currentProduction;
 
 		const maybeResource = apiResources.find((r) => r.id === production.resource);
 		if (maybeResource === undefined) {
 			return {
 				resource: 'Unknown resource',
-				gain: nextProduction
+				nextProduction: nextProduction,
+				gain: gain
 			};
 		} else {
 			return {
 				resource: maybeResource.name,
-				gain: nextProduction
+				nextProduction: nextProduction,
+				gain: gain
 			};
 		}
 	});
@@ -257,7 +266,7 @@ export function mapPlanetBuildingsToUiBuildings(
 				planet: planet,
 				hasAction: false,
 				costs: mapBuildingCostsToUiBuildingCosts(apiBuilding.costs, apiResources, 0),
-				resourcesProduction: mapBuildingResourceProductionsToUiBuildingCosts(
+				resourcesProduction: mapBuildingResourceProductionsToUiBuildingGains(
 					apiBuilding.resourceProductions,
 					apiResources,
 					0
@@ -277,7 +286,7 @@ export function mapPlanetBuildingsToUiBuildings(
 						apiResources,
 						maybeBuilding.level
 					),
-					resourcesProduction: mapBuildingResourceProductionsToUiBuildingCosts(
+					resourcesProduction: mapBuildingResourceProductionsToUiBuildingGains(
 						apiBuilding.resourceProductions,
 						apiResources,
 						maybeBuilding.level
@@ -299,7 +308,7 @@ export function mapPlanetBuildingsToUiBuildings(
 					apiResources,
 					maybeBuilding.level
 				),
-				resourcesProduction: mapBuildingResourceProductionsToUiBuildingCosts(
+				resourcesProduction: mapBuildingResourceProductionsToUiBuildingGains(
 					apiBuilding.resourceProductions,
 					apiResources,
 					maybeBuilding.level
