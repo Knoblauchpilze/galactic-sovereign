@@ -117,13 +117,6 @@ func Test_ActionService(t *testing.T) {
 				},
 			},
 			"processActionsUntil_updatePlanetResources": {
-				// TODO: This could probably be removed when we fix the use of the action
-				// CompletedAt instead of the transaction time.
-				generateConnectionPoolMock: func() db.ConnectionPool {
-					return &mockConnectionPool{
-						timeStamp: defaultBuildingAction.CompletedAt.Add(-1 * time.Minute),
-					}
-				},
 				generateRepositoriesMock: func() repositories.Repositories {
 					repos := generateValidActionServiceMocks()
 
@@ -150,13 +143,10 @@ func Test_ActionService(t *testing.T) {
 
 					assert.Equal(defaultPlanetResource.Planet, actual.Planet)
 					assert.Equal(defaultPlanetResource.Resource, actual.Resource)
-					// TODO: Should be 2 minutes for the UpdatedAt value
-					expectedAmount := defaultPlanetResource.Amount + 1.0/60.0*float64(defaultPlanetResourceProduction.Production)
+					expectedAmount := defaultPlanetResource.Amount + 2.0/60.0*float64(defaultPlanetResourceProduction.Production)
 					assert.Equal(expectedAmount, actual.Amount)
 					assert.Equal(defaultPlanetResource.CreatedAt, actual.CreatedAt)
-					// TODO: Should be the completion time of the action
-					expectedUpdatedAt := defaultBuildingAction.CompletedAt.Add(-1 * time.Minute)
-					assert.Equal(expectedUpdatedAt, actual.UpdatedAt)
+					assert.Equal(defaultBuildingAction.CompletedAt, actual.UpdatedAt)
 					assert.Equal(defaultPlanetResource.Version, actual.Version)
 				},
 			},
