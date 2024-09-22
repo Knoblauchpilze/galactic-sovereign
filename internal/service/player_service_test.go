@@ -33,7 +33,7 @@ var defaultPlayer = persistence.Player{
 
 func Test_PlayerService(t *testing.T) {
 	s := ServicePoolTestSuite{
-		generateRepositoriesMock:      generateValidPlayerRepositoryMock,
+		generateRepositoriesMock:      generateValidPlayerServiceMocks,
 		generateErrorRepositoriesMock: generateErrorPlayerRepositoryMock,
 
 		repositoryInteractionTestCases: map[string]repositoryInteractionTestCase{
@@ -275,7 +275,7 @@ func Test_PlayerService(t *testing.T) {
 	suite.Run(t, &s)
 }
 
-func generateValidPlayerRepositoryMock() repositories.Repositories {
+func generateValidPlayerServiceMocks() repositories.Repositories {
 	return repositories.Repositories{
 		Planet: &mockPlanetRepository{
 			planet: defaultPlanet,
