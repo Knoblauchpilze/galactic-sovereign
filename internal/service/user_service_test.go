@@ -40,7 +40,7 @@ var defaultUser = persistence.User{
 
 func Test_UserService(t *testing.T) {
 	s := ServicePoolTestSuite{
-		generateRepositoriesMock:      generateValidUserRepositoryMock,
+		generateRepositoriesMock:      generateValidUserServiceMocks,
 		generateErrorRepositoriesMock: generateErrorUserRepositoryMock,
 
 		repositoryInteractionTestCases: map[string]repositoryInteractionTestCase{
@@ -631,7 +631,7 @@ func Test_UserService(t *testing.T) {
 	suite.Run(t, &s)
 }
 
-func generateValidUserRepositoryMock() repositories.Repositories {
+func generateValidUserServiceMocks() repositories.Repositories {
 	return repositories.Repositories{
 		Acl:    &mockAclRepository{},
 		ApiKey: &mockApiKeyRepository{},
