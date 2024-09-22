@@ -18,7 +18,7 @@ type verifyError func(error, *require.Assertions)
 type verifyMockInteractions func(repositories.Repositories, *require.Assertions)
 
 type generateConnectionPoolMock func() db.ConnectionPool
-type verifyTransactionInteractions func(db.ConnectionPool, *require.Assertions)
+type verifyPoolInteractions func(db.ConnectionPool, *require.Assertions)
 
 type repositoryInteractionTestCase struct {
 	generateConnectionPoolMock generateConnectionPoolMock
@@ -48,7 +48,7 @@ type transactionInteractionTestCase struct {
 	generateRepositoriesMock   generateRepositoriesMock
 	handler                    testFunc
 	expectedError              error
-	verifyInteractions         verifyTransactionInteractions
+	verifyInteractions         verifyPoolInteractions
 	verifyMockInteractions     verifyMockInteractions
 }
 
