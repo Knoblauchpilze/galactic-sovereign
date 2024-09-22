@@ -9,7 +9,6 @@ import (
 	"github.com/KnoblauchPilze/user-service/pkg/game"
 	"github.com/KnoblauchPilze/user-service/pkg/persistence"
 	"github.com/KnoblauchPilze/user-service/pkg/repositories"
-	"github.com/google/uuid"
 )
 
 type actionServiceImpl struct {
@@ -104,16 +103,6 @@ func (s *actionServiceImpl) processAction(ctx context.Context, action persistenc
 	return s.buildingActionRepo.Delete(ctx, tx, action.Id)
 }
 
-func toPlanetResourceProductionMap(in []persistence.PlanetResourceProduction) map[uuid.UUID]persistence.PlanetResourceProduction {
-	out := make(map[uuid.UUID]persistence.PlanetResourceProduction)
-
-	for _, production := range in {
-		out[production.Resource] = production
-	}
-
-	return out
-}
-
 func (s *actionServiceImpl) updateResourcesForPlanetUntilActionCompletes(ctx context.Context, tx db.Transaction, action persistence.BuildingAction) error {
 	resources, err := s.planetResourceRepo.ListForPlanet(ctx, tx, action.Planet)
 	if err != nil {
@@ -125,7 +114,7 @@ func (s *actionServiceImpl) updateResourcesForPlanetUntilActionCompletes(ctx con
 		return err
 	}
 
-	productionsMap := toPlanetResourceProductionMap(productions)
+	productionsMap := persistence.ToPlanetResourceProductionMap(productions)
 
 	for _, resource := range resources {
 		production, ok := productionsMap[resource.Resource]
