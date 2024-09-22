@@ -16,7 +16,7 @@ import (
 var someTime = time.Date(2024, 8, 17, 14, 31, 13, 651387247, time.UTC)
 
 func Test_ActionService(t *testing.T) {
-	s := ServiceTestSuite{
+	s := ServicePoolTestSuite{
 		generateRepositoriesMock: generateValidActionServiceMocks,
 
 		repositoryInteractionTestCases: map[string]repositoryInteractionTestCase{

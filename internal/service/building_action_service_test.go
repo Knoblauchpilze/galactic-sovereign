@@ -54,7 +54,7 @@ var defaultResources = []persistence.Resource{
 func Test_BuildingActionService(t *testing.T) {
 	beforeTestSuite := time.Now()
 
-	s := ServiceTestSuite{
+	s := ServicePoolTestSuite{
 		generateRepositoriesMock:      generateValidBuildingActionRepositoryMock,
 		generateErrorRepositoriesMock: generateErrorBuildingActionRepositoryMock,
 

@@ -56,7 +56,7 @@ var defaultBuildingResourceProduction = persistence.BuildingResourceProduction{
 }
 
 func Test_UniverseService(t *testing.T) {
-	s := ServiceTestSuite{
+	s := ServicePoolTestSuite{
 		generateRepositoriesMock:      generateValidUniverseRepositoryMock,
 		generateErrorRepositoriesMock: generateErrorUniverseRepositoryMock,
 
