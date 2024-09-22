@@ -62,7 +62,7 @@ var defaultUserLimit = persistence.UserLimit{
 }
 
 func Test_AuthService(t *testing.T) {
-	s := ServiceTestSuite{
+	s := ServicePoolTestSuite{
 		generateRepositoriesMock: generateValidAuthRepositoryMocks,
 
 		repositoryInteractionTestCases: map[string]repositoryInteractionTestCase{

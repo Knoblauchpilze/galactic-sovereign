@@ -52,7 +52,7 @@ type transactionInteractionTestCase struct {
 	verifyMockInteractions     verifyMockInteractions
 }
 
-type ServiceTestSuite struct {
+type ServicePoolTestSuite struct {
 	suite.Suite
 
 	generateRepositoriesMock      generateRepositoriesMock
@@ -64,7 +64,7 @@ type ServiceTestSuite struct {
 	transactionInteractionTestCases map[string]transactionInteractionTestCase
 }
 
-func (s *ServiceTestSuite) TestWhenCallingHandler_ExpectCorrectInteraction() {
+func (s *ServicePoolTestSuite) TestWhenCallingHandler_ExpectCorrectInteraction() {
 	for name, testCase := range s.repositoryInteractionTestCases {
 		s.T().Run(name, func(t *testing.T) {
 			var repos repositories.Repositories
@@ -95,7 +95,7 @@ func (s *ServiceTestSuite) TestWhenCallingHandler_ExpectCorrectInteraction() {
 	}
 }
 
-func (s *ServiceTestSuite) TestWhenRepositorySucceeds_ReturnsExpectedValue() {
+func (s *ServicePoolTestSuite) TestWhenRepositorySucceeds_ReturnsExpectedValue() {
 	for name, testCase := range s.returnTestCases {
 		s.T().Run(name, func(t *testing.T) {
 			var repos repositories.Repositories
@@ -116,7 +116,7 @@ func (s *ServiceTestSuite) TestWhenRepositorySucceeds_ReturnsExpectedValue() {
 	}
 }
 
-func (s *ServiceTestSuite) TestWhenUsingTransaction_ExpectCallsClose() {
+func (s *ServicePoolTestSuite) TestWhenUsingTransaction_ExpectCallsClose() {
 	for name, testCase := range s.transactionTestCases {
 		s.T().Run(name, func(t *testing.T) {
 			var repos repositories.Repositories
@@ -136,7 +136,7 @@ func (s *ServiceTestSuite) TestWhenUsingTransaction_ExpectCallsClose() {
 	}
 }
 
-func (s *ServiceTestSuite) TestWhenCreatingTransactionFails_ExpectErrorIsPropagated() {
+func (s *ServicePoolTestSuite) TestWhenCreatingTransactionFails_ExpectErrorIsPropagated() {
 	for name, testCase := range s.transactionTestCases {
 		s.T().Run(name, func(t *testing.T) {
 			var repos repositories.Repositories
@@ -156,7 +156,7 @@ func (s *ServiceTestSuite) TestWhenCreatingTransactionFails_ExpectErrorIsPropaga
 	}
 }
 
-func (s *ServiceTestSuite) TestWhenUsingTransaction_ExpectCorrectInteraction() {
+func (s *ServicePoolTestSuite) TestWhenUsingTransaction_ExpectCorrectInteraction() {
 	for name, testCase := range s.transactionInteractionTestCases {
 		s.T().Run(name, func(t *testing.T) {
 			var repos repositories.Repositories

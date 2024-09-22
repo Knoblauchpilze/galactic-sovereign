@@ -32,7 +32,7 @@ var defaultPlayer = persistence.Player{
 }
 
 func Test_PlayerService(t *testing.T) {
-	s := ServiceTestSuite{
+	s := ServicePoolTestSuite{
 		generateRepositoriesMock:      generateValidPlayerRepositoryMock,
 		generateErrorRepositoriesMock: generateErrorPlayerRepositoryMock,
 

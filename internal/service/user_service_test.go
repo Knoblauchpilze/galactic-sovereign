@@ -39,7 +39,7 @@ var defaultUser = persistence.User{
 }
 
 func Test_UserService(t *testing.T) {
-	s := ServiceTestSuite{
+	s := ServicePoolTestSuite{
 		generateRepositoriesMock:      generateValidUserRepositoryMock,
 		generateErrorRepositoriesMock: generateErrorUserRepositoryMock,
 
