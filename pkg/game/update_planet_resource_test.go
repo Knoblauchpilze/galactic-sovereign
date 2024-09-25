@@ -25,7 +25,7 @@ var defaultPlanetResource = persistence.PlanetResource{
 	Version: 10,
 }
 
-var defaultPlanetResourceProduction = persistence.PlanetResourceProduction{
+var metalProduction = persistence.PlanetResourceProduction{
 	Planet:     planetId,
 	Building:   &buildingId,
 	Resource:   defaultMetalId,
@@ -36,6 +36,55 @@ var defaultPlanetResourceProduction = persistence.PlanetResourceProduction{
 var resourceProductionPerHour = 5.0
 
 var thresholdForResourceEquality = 1e-6
+
+var crystalProduction = persistence.PlanetResourceProduction{
+	Planet:     planetId,
+	Resource:   uuid.MustParse("500de111-ef71-4e15-91e3-34b87bbad396"),
+	Building:   &buildingId,
+	Production: 26,
+
+	CreatedAt: someTime,
+	UpdatedAt: someTime,
+
+	Version: 7,
+}
+
+func TestToPlanetResourceProductionMap(t *testing.T) {
+	assert := assert.New(t)
+
+	in := []persistence.PlanetResourceProduction{metalProduction, crystalProduction}
+
+	actual := toPlanetResourceProductionMap(in)
+
+	assert.Equal(2, len(actual))
+
+	metal, ok := actual[metalProduction.Resource]
+	assert.True(ok)
+	assert.Equal(metalProduction.Production, metal)
+
+	crystal, ok := actual[crystalProduction.Resource]
+	assert.True(ok)
+	assert.Equal(crystalProduction.Production, crystal)
+}
+
+func TestToPlanetResourceProductionMap_whenMultipleProductionsForResource_expectThemToBeAdded(t *testing.T) {
+	assert := assert.New(t)
+
+	metalProduction1 := metalProduction
+	metalProduction2 := metalProduction
+	metalProduction2.Production = 58
+
+	in := []persistence.PlanetResourceProduction{metalProduction1, metalProduction2}
+
+	actual := toPlanetResourceProductionMap(in)
+
+	assert.Equal(1, len(actual))
+
+	metal, ok := actual[metalProduction.Resource]
+	assert.True(ok)
+	expectedProduction := metalProduction1.Production + metalProduction2.Production
+	assert.Equal(expectedProduction, metal)
+}
 
 func TestUpdatePlanetResourceAmountToTime_whenTimeInThePast_expectNoUpdate(t *testing.T) {
 	assert := assert.New(t)
@@ -177,7 +226,7 @@ func Test_PlanetResourceService(t *testing.T) {
 				actual := m.updatedPlanetResources[0]
 				assert.Equal(planetId, actual.Planet)
 				assert.Equal(defaultMetalId, actual.Resource)
-				expectedAmount := defaultPlanetResource.Amount + 2.0/60.0*float64(defaultPlanetResourceProduction.Production)
+				expectedAmount := defaultPlanetResource.Amount + 2.0/60.0*float64(metalProduction.Production)
 				assert.Equal(expectedAmount, actual.Amount)
 				assert.Equal(defaultPlanetResource.CreatedAt, actual.CreatedAt)
 				expectedUpdatedAt := defaultPlanetResource.UpdatedAt.Add(2 * time.Minute)
@@ -269,7 +318,7 @@ func generateDefaultRepositoriesMocks() repositories.Repositories {
 			planetResource: defaultPlanetResource,
 		},
 		PlanetResourceProduction: &mockPlanetResourceProductionRepository{
-			planetResourceProduction: defaultPlanetResourceProduction,
+			planetResourceProduction: metalProduction,
 		},
 	}
 }

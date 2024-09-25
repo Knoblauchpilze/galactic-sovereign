@@ -28,7 +28,7 @@ func UpdatePlanetResourcesToTime(ctx context.Context, tx db.Transaction, data Pl
 		return err
 	}
 
-	productionsMap := persistence.ToPlanetResourceProductionMap(productions)
+	productionsMap := toPlanetResourceProductionMap(productions)
 
 	for _, resource := range resources {
 		production, ok := productionsMap[resource.Resource]
@@ -36,7 +36,7 @@ func UpdatePlanetResourcesToTime(ctx context.Context, tx db.Transaction, data Pl
 			continue
 		}
 
-		resource := updatePlanetResourceAmountToTime(resource, float64(production.Production), data.Until)
+		resource := updatePlanetResourceAmountToTime(resource, float64(production), data.Until)
 
 		_, err = data.PlanetResourceRepo.Update(ctx, tx, resource)
 		if err != nil {
@@ -45,6 +45,20 @@ func UpdatePlanetResourcesToTime(ctx context.Context, tx db.Transaction, data Pl
 	}
 
 	return nil
+}
+
+func toPlanetResourceProductionMap(in []persistence.PlanetResourceProduction) map[uuid.UUID]int {
+	out := make(map[uuid.UUID]int)
+
+	for _, production := range in {
+		if _, ok := out[production.Resource]; !ok {
+			out[production.Resource] = production.Production
+		} else {
+			out[production.Resource] += production.Production
+		}
+	}
+
+	return out
 }
 
 func updatePlanetResourceAmountToTime(resource persistence.PlanetResource, production float64, moment time.Time) persistence.PlanetResource {
