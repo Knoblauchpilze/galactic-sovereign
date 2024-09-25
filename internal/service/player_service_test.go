@@ -33,8 +33,8 @@ var defaultPlayer = persistence.Player{
 
 func Test_PlayerService(t *testing.T) {
 	s := ServicePoolTestSuite{
-		generateRepositoriesMocks:      generateValidPlayerServiceMocks,
-		generateErrorRepositoriesMocks: generateErrorPlayerRepositoryMock,
+		generateRepositoriesMocks:      generatePlayerServiceMocks,
+		generateErrorRepositoriesMocks: generateErrorPlayerServiceMocks,
 
 		repositoryInteractionTestCases: map[string]repositoryInteractionTestCase{
 			"create": {
@@ -69,7 +69,7 @@ func Test_PlayerService(t *testing.T) {
 				},
 			},
 			"create_playerRepositoryFails": {
-				generateRepositoriesMocks: generateErrorPlayerRepositoryMock,
+				generateRepositoriesMocks: generateErrorPlayerServiceMocks,
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
 					s := NewPlayerService(pool, repos)
 					_, err := s.Create(ctx, defaultPlayerDtoRequest)
@@ -108,7 +108,7 @@ func Test_PlayerService(t *testing.T) {
 				},
 			},
 			"get_repositoryFails": {
-				generateRepositoriesMocks: generateErrorPlayerRepositoryMock,
+				generateRepositoriesMocks: generateErrorPlayerServiceMocks,
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
 					s := NewPlayerService(pool, repos)
 					_, err := s.Get(ctx, defaultPlayerId)
@@ -130,7 +130,7 @@ func Test_PlayerService(t *testing.T) {
 				},
 			},
 			"list_repositoryFails": {
-				generateRepositoriesMocks: generateErrorPlayerRepositoryMock,
+				generateRepositoriesMocks: generateErrorPlayerServiceMocks,
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
 					s := NewPlayerService(pool, repos)
 					_, err := s.List(ctx)
@@ -153,7 +153,7 @@ func Test_PlayerService(t *testing.T) {
 				},
 			},
 			"listForApiUser_repositoryFails": {
-				generateRepositoriesMocks: generateErrorPlayerRepositoryMock,
+				generateRepositoriesMocks: generateErrorPlayerServiceMocks,
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
 					s := NewPlayerService(pool, repos)
 					_, err := s.ListForApiUser(ctx, defaultUserId)
@@ -175,7 +175,7 @@ func Test_PlayerService(t *testing.T) {
 				},
 			},
 			"delete_repositoryFails": {
-				generateRepositoriesMocks: generateErrorPlayerRepositoryMock,
+				generateRepositoriesMocks: generateErrorPlayerServiceMocks,
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
 					s := NewPlayerService(pool, repos)
 					return s.Delete(ctx, defaultPlayerId)
@@ -275,7 +275,7 @@ func Test_PlayerService(t *testing.T) {
 	suite.Run(t, &s)
 }
 
-func generateValidPlayerServiceMocks() repositories.Repositories {
+func generatePlayerServiceMocks() repositories.Repositories {
 	return repositories.Repositories{
 		Planet: &mockPlanetRepository{
 			planet: defaultPlanet,
@@ -286,7 +286,7 @@ func generateValidPlayerServiceMocks() repositories.Repositories {
 	}
 }
 
-func generateErrorPlayerRepositoryMock() repositories.Repositories {
+func generateErrorPlayerServiceMocks() repositories.Repositories {
 	return repositories.Repositories{
 		Player: &mockPlayerRepository{
 			err: errDefault,

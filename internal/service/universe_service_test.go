@@ -57,8 +57,8 @@ var defaultBuildingResourceProduction = persistence.BuildingResourceProduction{
 
 func Test_UniverseService(t *testing.T) {
 	s := ServicePoolTestSuite{
-		generateRepositoriesMocks:      generateValidUniverseServiceMocks,
-		generateErrorRepositoriesMocks: generateErrorUniverseRepositoryMock,
+		generateRepositoriesMocks:      generateUniverseServiceMocks,
+		generateErrorRepositoriesMocks: generateErrorUniverseServiceMocks,
 
 		repositoryInteractionTestCases: map[string]repositoryInteractionTestCase{
 			"create": {
@@ -75,7 +75,7 @@ func Test_UniverseService(t *testing.T) {
 				},
 			},
 			"create_repositoryFails": {
-				generateRepositoriesMocks: generateErrorUniverseRepositoryMock,
+				generateRepositoriesMocks: generateErrorUniverseServiceMocks,
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
 					s := NewUniverseService(pool, repos)
 					_, err := s.Create(ctx, defaultUniverseDtoRequest)
@@ -97,7 +97,7 @@ func Test_UniverseService(t *testing.T) {
 				},
 			},
 			"get_universeRepositoryFails": {
-				generateRepositoriesMocks: generateErrorUniverseRepositoryMock,
+				generateRepositoriesMocks: generateErrorUniverseServiceMocks,
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
 					s := NewUniverseService(pool, repos)
 					_, err := s.Get(ctx, defaultUniverseId)
@@ -119,7 +119,7 @@ func Test_UniverseService(t *testing.T) {
 			},
 			"get_resourceRepositoryFails": {
 				generateRepositoriesMocks: func() repositories.Repositories {
-					repos := generateValidUniverseServiceMocks()
+					repos := generateUniverseServiceMocks()
 					repos.Resource = &mockResourceRepository{
 						err: errDefault,
 					}
@@ -147,7 +147,7 @@ func Test_UniverseService(t *testing.T) {
 			},
 			"get_buildingRepositoryFails": {
 				generateRepositoriesMocks: func() repositories.Repositories {
-					repos := generateValidUniverseServiceMocks()
+					repos := generateUniverseServiceMocks()
 					repos.Building = &mockBuildingRepository{
 						err: errDefault,
 					}
@@ -175,7 +175,7 @@ func Test_UniverseService(t *testing.T) {
 			},
 			"get_buildingCostRepositoryFails": {
 				generateRepositoriesMocks: func() repositories.Repositories {
-					repos := generateValidUniverseServiceMocks()
+					repos := generateUniverseServiceMocks()
 					repos.BuildingCost = &mockBuildingCostRepository{
 						err: errDefault,
 					}
@@ -203,7 +203,7 @@ func Test_UniverseService(t *testing.T) {
 			},
 			"get_buildingResourceProductionRepositoryFails": {
 				generateRepositoriesMocks: func() repositories.Repositories {
-					repos := generateValidUniverseServiceMocks()
+					repos := generateUniverseServiceMocks()
 					repos.BuildingResourceProduction = &mockBuildingResourceProductionRepository{
 						err: errDefault,
 					}
@@ -230,7 +230,7 @@ func Test_UniverseService(t *testing.T) {
 				},
 			},
 			"list_repositoryFails": {
-				generateRepositoriesMocks: generateErrorUniverseRepositoryMock,
+				generateRepositoriesMocks: generateErrorUniverseServiceMocks,
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
 					s := NewUniverseService(pool, repos)
 					_, err := s.List(ctx)
@@ -251,7 +251,7 @@ func Test_UniverseService(t *testing.T) {
 				},
 			},
 			"delete_repositoryFails": {
-				generateRepositoriesMocks: generateErrorUniverseRepositoryMock,
+				generateRepositoriesMocks: generateErrorUniverseServiceMocks,
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
 					s := NewUniverseService(pool, repos)
 					return s.Delete(ctx, defaultUniverseId)
@@ -360,7 +360,7 @@ func Test_UniverseService(t *testing.T) {
 	suite.Run(t, &s)
 }
 
-func generateValidUniverseServiceMocks() repositories.Repositories {
+func generateUniverseServiceMocks() repositories.Repositories {
 	return repositories.Repositories{
 		Building: &mockBuildingRepository{
 			building: defaultBuilding,
@@ -380,7 +380,7 @@ func generateValidUniverseServiceMocks() repositories.Repositories {
 	}
 }
 
-func generateErrorUniverseRepositoryMock() repositories.Repositories {
+func generateErrorUniverseServiceMocks() repositories.Repositories {
 	return repositories.Repositories{
 		Universe: &mockUniverseRepository{
 			err: errDefault,

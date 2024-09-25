@@ -63,7 +63,7 @@ var defaultUserLimit = persistence.UserLimit{
 
 func Test_AuthService(t *testing.T) {
 	s := ServicePoolTestSuite{
-		generateRepositoriesMocks: generateValidAuthServiceMocks,
+		generateRepositoriesMocks: generateAuthServiceMocks,
 
 		repositoryInteractionTestCases: map[string]repositoryInteractionTestCase{
 			"authenticate_apiKey": {
@@ -395,7 +395,7 @@ func Test_AuthService(t *testing.T) {
 	suite.Run(t, &s)
 }
 
-func generateValidAuthServiceMocks() repositories.Repositories {
+func generateAuthServiceMocks() repositories.Repositories {
 	return repositories.Repositories{
 		Acl: &mockAclRepository{
 			aclIds: defaultAclIds,
