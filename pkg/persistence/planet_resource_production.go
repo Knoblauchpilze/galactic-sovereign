@@ -17,13 +17,3 @@ type PlanetResourceProduction struct {
 
 	Version int
 }
-
-func ToPlanetResourceProductionMap(in []PlanetResourceProduction) map[uuid.UUID]PlanetResourceProduction {
-	out := make(map[uuid.UUID]PlanetResourceProduction)
-
-	for _, production := range in {
-		out[production.Resource] = production
-	}
-
-	return out
-}
