@@ -12,7 +12,7 @@ import (
 
 type testFunc func(context.Context, db.ConnectionPool, repositories.Repositories) error
 type returnTestFunc func(context.Context, db.ConnectionPool, repositories.Repositories) interface{}
-type generateRepositoriesMock func() repositories.Repositories
+type generateRepositoriesMocks func() repositories.Repositories
 
 type verifyError func(error, *require.Assertions)
 type verifyMockInteractions func(repositories.Repositories, *require.Assertions)
@@ -22,7 +22,7 @@ type verifyPoolInteractions func(db.ConnectionPool, *require.Assertions)
 
 type repositoryInteractionTestCase struct {
 	generateConnectionPoolMock generateConnectionPoolMock
-	generateRepositoriesMock   generateRepositoriesMock
+	generateRepositoriesMocks  generateRepositoriesMocks
 	handler                    testFunc
 	expectedError              error
 	verifyError                verifyError
@@ -32,20 +32,20 @@ type repositoryInteractionTestCase struct {
 type verifyContent func(interface{}, repositories.Repositories, *require.Assertions)
 
 type returnTestCase struct {
-	generateRepositoriesMock generateRepositoriesMock
-	handler                  returnTestFunc
-	expectedContent          interface{}
-	verifyContent            verifyContent
+	generateRepositoriesMocks generateRepositoriesMocks
+	handler                   returnTestFunc
+	expectedContent           interface{}
+	verifyContent             verifyContent
 }
 
 type transactionTestCase struct {
-	generateRepositoriesMock generateRepositoriesMock
-	handler                  testFunc
+	generateRepositoriesMocks generateRepositoriesMocks
+	handler                   testFunc
 }
 
 type transactionInteractionTestCase struct {
 	generateConnectionPoolMock generateConnectionPoolMock
-	generateRepositoriesMock   generateRepositoriesMock
+	generateRepositoriesMocks  generateRepositoriesMocks
 	handler                    testFunc
 	expectedError              error
 	verifyInteractions         verifyPoolInteractions
@@ -55,8 +55,8 @@ type transactionInteractionTestCase struct {
 type ServicePoolTestSuite struct {
 	suite.Suite
 
-	generateRepositoriesMock      generateRepositoriesMock
-	generateErrorRepositoriesMock generateRepositoriesMock
+	generateRepositoriesMocks      generateRepositoriesMocks
+	generateErrorRepositoriesMocks generateRepositoriesMocks
 
 	repositoryInteractionTestCases  map[string]repositoryInteractionTestCase
 	returnTestCases                 map[string]returnTestCase
@@ -68,10 +68,10 @@ func (s *ServicePoolTestSuite) TestWhenCallingHandler_ExpectCorrectInteraction()
 	for name, testCase := range s.repositoryInteractionTestCases {
 		s.T().Run(name, func(t *testing.T) {
 			var repos repositories.Repositories
-			if testCase.generateRepositoriesMock != nil {
-				repos = testCase.generateRepositoriesMock()
+			if testCase.generateRepositoriesMocks != nil {
+				repos = testCase.generateRepositoriesMocks()
 			} else {
-				repos = s.generateRepositoriesMock()
+				repos = s.generateRepositoriesMocks()
 			}
 
 			var pool db.ConnectionPool
@@ -99,10 +99,10 @@ func (s *ServicePoolTestSuite) TestWhenRepositorySucceeds_ReturnsExpectedValue()
 	for name, testCase := range s.returnTestCases {
 		s.T().Run(name, func(t *testing.T) {
 			var repos repositories.Repositories
-			if testCase.generateRepositoriesMock != nil {
-				repos = testCase.generateRepositoriesMock()
+			if testCase.generateRepositoriesMocks != nil {
+				repos = testCase.generateRepositoriesMocks()
 			} else {
-				repos = s.generateRepositoriesMock()
+				repos = s.generateRepositoriesMocks()
 			}
 
 			actual := testCase.handler(context.Background(), &mockConnectionPool{}, repos)
@@ -120,10 +120,10 @@ func (s *ServicePoolTestSuite) TestWhenUsingTransaction_ExpectCallsClose() {
 	for name, testCase := range s.transactionTestCases {
 		s.T().Run(name, func(t *testing.T) {
 			var repos repositories.Repositories
-			if testCase.generateRepositoriesMock != nil {
-				repos = testCase.generateRepositoriesMock()
+			if testCase.generateRepositoriesMocks != nil {
+				repos = testCase.generateRepositoriesMocks()
 			} else {
-				repos = s.generateRepositoriesMock()
+				repos = s.generateRepositoriesMocks()
 			}
 
 			m := &mockConnectionPool{}
@@ -140,10 +140,10 @@ func (s *ServicePoolTestSuite) TestWhenCreatingTransactionFails_ExpectErrorIsPro
 	for name, testCase := range s.transactionTestCases {
 		s.T().Run(name, func(t *testing.T) {
 			var repos repositories.Repositories
-			if testCase.generateRepositoriesMock != nil {
-				repos = testCase.generateRepositoriesMock()
+			if testCase.generateRepositoriesMocks != nil {
+				repos = testCase.generateRepositoriesMocks()
 			} else {
-				repos = s.generateRepositoriesMock()
+				repos = s.generateRepositoriesMocks()
 			}
 
 			m := &mockConnectionPool{
@@ -160,10 +160,10 @@ func (s *ServicePoolTestSuite) TestWhenUsingTransaction_ExpectCorrectInteraction
 	for name, testCase := range s.transactionInteractionTestCases {
 		s.T().Run(name, func(t *testing.T) {
 			var repos repositories.Repositories
-			if testCase.generateRepositoriesMock != nil {
-				repos = testCase.generateRepositoriesMock()
+			if testCase.generateRepositoriesMocks != nil {
+				repos = testCase.generateRepositoriesMocks()
 			} else {
-				repos = s.generateRepositoriesMock()
+				repos = s.generateRepositoriesMocks()
 			}
 
 			var m db.ConnectionPool

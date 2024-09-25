@@ -54,8 +54,8 @@ var defaultPlanetBuilding = persistence.PlanetBuilding{
 
 func Test_PlanetService(t *testing.T) {
 	s := ServicePoolTestSuite{
-		generateRepositoriesMock:      generateValidPlanetServiceMocks,
-		generateErrorRepositoriesMock: generateErrorPlanetRepositoryMock,
+		generateRepositoriesMocks:      generateValidPlanetServiceMocks,
+		generateErrorRepositoriesMocks: generateErrorPlanetRepositoryMock,
 
 		repositoryInteractionTestCases: map[string]repositoryInteractionTestCase{
 			"create": {
@@ -73,7 +73,7 @@ func Test_PlanetService(t *testing.T) {
 				},
 			},
 			"create_repositoryFails": {
-				generateRepositoriesMock: generateErrorPlanetRepositoryMock,
+				generateRepositoriesMocks: generateErrorPlanetRepositoryMock,
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
 					s := NewPlanetService(pool, repos)
 					_, err := s.Create(ctx, defaultPlanetDtoRequest)
@@ -95,7 +95,7 @@ func Test_PlanetService(t *testing.T) {
 				},
 			},
 			"get_planetRepositoryFails": {
-				generateRepositoriesMock: generateErrorPlanetRepositoryMock,
+				generateRepositoriesMocks: generateErrorPlanetRepositoryMock,
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
 					s := NewPlanetService(pool, repos)
 					_, err := s.Get(ctx, defaultPlanetId)
@@ -117,7 +117,7 @@ func Test_PlanetService(t *testing.T) {
 				},
 			},
 			"get_planetResourceRepositoryFails": {
-				generateRepositoriesMock: func() repositories.Repositories {
+				generateRepositoriesMocks: func() repositories.Repositories {
 					repos := generateValidPlanetServiceMocks()
 					repos.PlanetResource = &mockPlanetResourceRepository{
 						err: errDefault,
@@ -146,7 +146,7 @@ func Test_PlanetService(t *testing.T) {
 				},
 			},
 			"get_planetResourceProductionRepositoryFails": {
-				generateRepositoriesMock: func() repositories.Repositories {
+				generateRepositoriesMocks: func() repositories.Repositories {
 					repos := generateValidPlanetServiceMocks()
 					repos.PlanetResourceProduction = &mockPlanetResourceProductionRepository{
 						errs: []error{errDefault},
@@ -175,7 +175,7 @@ func Test_PlanetService(t *testing.T) {
 				},
 			},
 			"get_planetBuildingRepositoryFails": {
-				generateRepositoriesMock: func() repositories.Repositories {
+				generateRepositoriesMocks: func() repositories.Repositories {
 					repos := generateValidPlanetServiceMocks()
 					repos.PlanetBuilding = &mockPlanetBuildingRepository{
 						err: errDefault,
@@ -204,7 +204,7 @@ func Test_PlanetService(t *testing.T) {
 				},
 			},
 			"get_buildingActionRepositoryFails": {
-				generateRepositoriesMock: func() repositories.Repositories {
+				generateRepositoriesMocks: func() repositories.Repositories {
 					repos := generateValidPlanetServiceMocks()
 					repos.BuildingAction = &mockBuildingActionRepository{
 						errs: []error{errDefault},
@@ -232,7 +232,7 @@ func Test_PlanetService(t *testing.T) {
 				},
 			},
 			"list_planetRepositoryFails": {
-				generateRepositoriesMock: generateErrorPlanetRepositoryMock,
+				generateRepositoriesMocks: generateErrorPlanetRepositoryMock,
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
 					s := NewPlanetService(pool, repos)
 					_, err := s.List(ctx)
@@ -254,7 +254,7 @@ func Test_PlanetService(t *testing.T) {
 				},
 			},
 			"listForPlayer_planetRepositoryFails": {
-				generateRepositoriesMock: generateErrorPlanetRepositoryMock,
+				generateRepositoriesMocks: generateErrorPlanetRepositoryMock,
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
 					s := NewPlanetService(pool, repos)
 					_, err := s.ListForPlayer(ctx, defaultPlayerId)
@@ -347,7 +347,7 @@ func Test_PlanetService(t *testing.T) {
 				},
 			},
 			"delete_buildingActionResourceProductionRepositoryFails": {
-				generateRepositoriesMock: func() repositories.Repositories {
+				generateRepositoriesMocks: func() repositories.Repositories {
 					repos := generateValidPlanetServiceMocks()
 					repos.BuildingActionResourceProduction = &mockBuildingActionResourceProductionRepository{
 						errs: []error{errDefault},
@@ -367,7 +367,7 @@ func Test_PlanetService(t *testing.T) {
 				},
 			},
 			"delete_buildingActionCostRepositoryFails": {
-				generateRepositoriesMock: func() repositories.Repositories {
+				generateRepositoriesMocks: func() repositories.Repositories {
 					repos := generateValidPlanetServiceMocks()
 					repos.BuildingActionCost = &mockBuildingActionCostRepository{
 						errs: []error{errDefault},
@@ -387,7 +387,7 @@ func Test_PlanetService(t *testing.T) {
 				},
 			},
 			"delete_buildingActionRepositoryFails": {
-				generateRepositoriesMock: func() repositories.Repositories {
+				generateRepositoriesMocks: func() repositories.Repositories {
 					repos := generateValidPlanetServiceMocks()
 					repos.BuildingAction = &mockBuildingActionRepository{
 						errs: []error{errDefault},
@@ -407,7 +407,7 @@ func Test_PlanetService(t *testing.T) {
 				},
 			},
 			"delete_planetBuildingRepositoryFails": {
-				generateRepositoriesMock: func() repositories.Repositories {
+				generateRepositoriesMocks: func() repositories.Repositories {
 					repos := generateValidPlanetServiceMocks()
 					repos.PlanetBuilding = &mockPlanetBuildingRepository{
 						err: errDefault,
@@ -427,7 +427,7 @@ func Test_PlanetService(t *testing.T) {
 				},
 			},
 			"delete_planetResourceProductionRepositoryFails": {
-				generateRepositoriesMock: func() repositories.Repositories {
+				generateRepositoriesMocks: func() repositories.Repositories {
 					repos := generateValidPlanetServiceMocks()
 					repos.PlanetResourceProduction = &mockPlanetResourceProductionRepository{
 						errs: []error{errDefault},
@@ -447,7 +447,7 @@ func Test_PlanetService(t *testing.T) {
 				},
 			},
 			"delete_planetResourceRepositoryFails": {
-				generateRepositoriesMock: func() repositories.Repositories {
+				generateRepositoriesMocks: func() repositories.Repositories {
 					repos := generateValidPlanetServiceMocks()
 					repos.PlanetResource = &mockPlanetResourceRepository{
 						err: errDefault,
@@ -467,7 +467,7 @@ func Test_PlanetService(t *testing.T) {
 				},
 			},
 			"delete_planetRepositoryFails": {
-				generateRepositoriesMock: func() repositories.Repositories {
+				generateRepositoriesMocks: func() repositories.Repositories {
 					repos := generateValidPlanetServiceMocks()
 					repos.Planet = &mockPlanetRepository{
 						err: errDefault,

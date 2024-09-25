@@ -63,7 +63,7 @@ var defaultUserLimit = persistence.UserLimit{
 
 func Test_AuthService(t *testing.T) {
 	s := ServicePoolTestSuite{
-		generateRepositoriesMock: generateValidAuthServiceMocks,
+		generateRepositoriesMocks: generateValidAuthServiceMocks,
 
 		repositoryInteractionTestCases: map[string]repositoryInteractionTestCase{
 			"authenticate_apiKey": {
@@ -81,7 +81,7 @@ func Test_AuthService(t *testing.T) {
 				},
 			},
 			"authenticate_getApiKeyFails": {
-				generateRepositoriesMock: func() repositories.Repositories {
+				generateRepositoriesMocks: func() repositories.Repositories {
 					return repositories.Repositories{
 						ApiKey: &mockApiKeyRepository{
 							getErr: errDefault,
@@ -96,7 +96,7 @@ func Test_AuthService(t *testing.T) {
 				expectedError: errDefault,
 			},
 			"authenticate_apiKeyDoesNotExist": {
-				generateRepositoriesMock: func() repositories.Repositories {
+				generateRepositoriesMocks: func() repositories.Repositories {
 					return repositories.Repositories{
 						ApiKey: &mockApiKeyRepository{
 							getErr: errors.NewCode(db.NoMatchingSqlRows),
@@ -113,7 +113,7 @@ func Test_AuthService(t *testing.T) {
 				},
 			},
 			"authenticate_apiKeyExpired": {
-				generateRepositoriesMock: func() repositories.Repositories {
+				generateRepositoriesMocks: func() repositories.Repositories {
 					return repositories.Repositories{
 						ApiKey: &mockApiKeyRepository{
 							apiKey: persistence.ApiKey{
@@ -146,7 +146,7 @@ func Test_AuthService(t *testing.T) {
 				},
 			},
 			"authenticate_aclForUserFails": {
-				generateRepositoriesMock: func() repositories.Repositories {
+				generateRepositoriesMocks: func() repositories.Repositories {
 					return repositories.Repositories{
 						Acl: &mockAclRepository{
 							getForUserErr: errDefault,
@@ -182,7 +182,7 @@ func Test_AuthService(t *testing.T) {
 				},
 			},
 			"authenticate_aclFails": {
-				generateRepositoriesMock: func() repositories.Repositories {
+				generateRepositoriesMocks: func() repositories.Repositories {
 					return repositories.Repositories{
 						Acl: &mockAclRepository{
 							aclIds: defaultAclIds,
@@ -219,7 +219,7 @@ func Test_AuthService(t *testing.T) {
 				},
 			},
 			"authenticate_userLimitForUserFails": {
-				generateRepositoriesMock: func() repositories.Repositories {
+				generateRepositoriesMocks: func() repositories.Repositories {
 					return repositories.Repositories{
 						Acl:    &mockAclRepository{},
 						ApiKey: generateApiKeyRepositoryWithValidApiKey(),
@@ -256,7 +256,7 @@ func Test_AuthService(t *testing.T) {
 				},
 			},
 			"authenticate_userLimitFails": {
-				generateRepositoriesMock: func() repositories.Repositories {
+				generateRepositoriesMocks: func() repositories.Repositories {
 					return repositories.Repositories{
 						Acl:    &mockAclRepository{},
 						ApiKey: generateApiKeyRepositoryWithValidApiKey(),
@@ -283,7 +283,7 @@ func Test_AuthService(t *testing.T) {
 
 		returnTestCases: map[string]returnTestCase{
 			"authenticate_acls": {
-				generateRepositoriesMock: func() repositories.Repositories {
+				generateRepositoriesMocks: func() repositories.Repositories {
 					return repositories.Repositories{
 						Acl: &mockAclRepository{
 							aclIds: defaultAclIds[:1],
@@ -312,7 +312,7 @@ func Test_AuthService(t *testing.T) {
 				},
 			},
 			"authenticate_noAclsReturnsNotNilSlice": {
-				generateRepositoriesMock: func() repositories.Repositories {
+				generateRepositoriesMocks: func() repositories.Repositories {
 					return repositories.Repositories{
 						Acl: &mockAclRepository{
 							aclIds: nil,
@@ -332,7 +332,7 @@ func Test_AuthService(t *testing.T) {
 				},
 			},
 			"authenticate_userLimits": {
-				generateRepositoriesMock: func() repositories.Repositories {
+				generateRepositoriesMocks: func() repositories.Repositories {
 					return repositories.Repositories{
 						Acl:    &mockAclRepository{},
 						ApiKey: generateApiKeyRepositoryWithValidApiKey(),
@@ -359,7 +359,7 @@ func Test_AuthService(t *testing.T) {
 				},
 			},
 			"authenticate_noUserLimitsReturnsNotNilSlice": {
-				generateRepositoriesMock: func() repositories.Repositories {
+				generateRepositoriesMocks: func() repositories.Repositories {
 					return repositories.Repositories{
 						Acl:    &mockAclRepository{},
 						ApiKey: generateApiKeyRepositoryWithValidApiKey(),
