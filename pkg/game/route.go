@@ -6,11 +6,11 @@ import (
 )
 
 func NewRoute(method string, path string, handler echo.HandlerFunc, actions ActionService) rest.Route {
-	wrapped := ActionWatcher(actions, handler)
+	wrapped := GameUpdateWatcher(actions, handler)
 	return rest.NewRoute(method, false, path, wrapped)
 }
 
 func NewResourceRoute(method string, path string, handler echo.HandlerFunc, actions ActionService) rest.Route {
-	wrapped := ActionWatcher(actions, handler)
+	wrapped := GameUpdateWatcher(actions, handler)
 	return rest.NewResourceRoute(method, false, path, wrapped)
 }
