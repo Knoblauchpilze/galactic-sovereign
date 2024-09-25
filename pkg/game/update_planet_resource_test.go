@@ -156,13 +156,13 @@ func TestUpdatePlanetResourceAmountToTime_updatesUpdatedAt(t *testing.T) {
 }
 
 type verifyMockInteractions func(repositories.Repositories, *assert.Assertions)
-type generateRepositoriesMock func() repositories.Repositories
+type generateRepositoriesMocks func() repositories.Repositories
 
 type planetResourceUpdateTestCase struct {
-	until                    time.Time
-	generateRepositoriesMock generateRepositoriesMock
-	expectedError            error
-	verifyMockInteractions   verifyMockInteractions
+	until                     time.Time
+	generateRepositoriesMocks generateRepositoriesMocks
+	expectedError             error
+	verifyMockInteractions    verifyMockInteractions
 }
 
 func Test_PlanetResourceService(t *testing.T) {
@@ -176,7 +176,7 @@ func Test_PlanetResourceService(t *testing.T) {
 			},
 		},
 		"whenUpdatingPlanetUntilTime_whenListResourcesForPlanetFails_expectError": {
-			generateRepositoriesMock: func() repositories.Repositories {
+			generateRepositoriesMocks: func() repositories.Repositories {
 				repos := generateDefaultRepositoriesMocks()
 				repos.PlanetResource = &mockPlanetResourceRepository{
 					err: errDefault,
@@ -200,7 +200,7 @@ func Test_PlanetResourceService(t *testing.T) {
 			},
 		},
 		"whenUpdatingPlanetUntilTime_whenListResourceProductionsForPlanetFails_expectError": {
-			generateRepositoriesMock: func() repositories.Repositories {
+			generateRepositoriesMocks: func() repositories.Repositories {
 				repos := generateDefaultRepositoriesMocks()
 				repos.PlanetResourceProduction = &mockPlanetResourceProductionRepository{
 					errs: []error{errDefault},
@@ -235,7 +235,7 @@ func Test_PlanetResourceService(t *testing.T) {
 			},
 		},
 		"whenUpdatingPlanetUntilTime_whenUpdateOfResourceFails_expectError": {
-			generateRepositoriesMock: func() repositories.Repositories {
+			generateRepositoriesMocks: func() repositories.Repositories {
 				repos := generateDefaultRepositoriesMocks()
 				repos.PlanetResource = &mockPlanetResourceRepository{
 					planetResource: defaultPlanetResource,
@@ -252,7 +252,7 @@ func Test_PlanetResourceService(t *testing.T) {
 			},
 		},
 		"whenUpdatingPlanetUntilTime_whenResourceIsNotProduced_expectNoUpdate": {
-			generateRepositoriesMock: func() repositories.Repositories {
+			generateRepositoriesMocks: func() repositories.Repositories {
 				repos := generateDefaultRepositoriesMocks()
 
 				planetResource := defaultPlanetResource
@@ -279,8 +279,8 @@ func Test_PlanetResourceService(t *testing.T) {
 			tx := &mockTransaction{}
 
 			var repos repositories.Repositories
-			if testCase.generateRepositoriesMock != nil {
-				repos = testCase.generateRepositoriesMock()
+			if testCase.generateRepositoriesMocks != nil {
+				repos = testCase.generateRepositoriesMocks()
 			} else {
 				repos = generateDefaultRepositoriesMocks()
 			}

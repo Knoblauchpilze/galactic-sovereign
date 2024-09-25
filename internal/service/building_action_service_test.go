@@ -55,8 +55,8 @@ func Test_BuildingActionService(t *testing.T) {
 	beforeTestSuite := time.Now()
 
 	s := ServicePoolTestSuite{
-		generateRepositoriesMock:      generateValidBuildingActionServiceMocks,
-		generateErrorRepositoriesMock: generateErrorBuildingActionRepositoryMock,
+		generateRepositoriesMocks:      generateValidBuildingActionServiceMocks,
+		generateErrorRepositoriesMocks: generateErrorBuildingActionRepositoryMock,
 
 		repositoryInteractionTestCases: map[string]repositoryInteractionTestCase{
 			"create_listsResourcesOnPlanet": {
@@ -196,7 +196,7 @@ func Test_BuildingActionService(t *testing.T) {
 				},
 			},
 			"create_failure_listResourcesOnPlanet": {
-				generateRepositoriesMock: func() repositories.Repositories {
+				generateRepositoriesMocks: func() repositories.Repositories {
 					repos := generateValidBuildingActionServiceMocks()
 					repos.PlanetResource = &mockPlanetResourceRepository{
 						err: errDefault,
@@ -217,7 +217,7 @@ func Test_BuildingActionService(t *testing.T) {
 				},
 			},
 			"create_failure_listResource": {
-				generateRepositoriesMock: func() repositories.Repositories {
+				generateRepositoriesMocks: func() repositories.Repositories {
 					repos := generateValidBuildingActionServiceMocks()
 					repos.Resource = &mockResourceRepository{
 						err: errDefault,
@@ -238,7 +238,7 @@ func Test_BuildingActionService(t *testing.T) {
 				},
 			},
 			"create_failure_listBuildingsOnPlanet": {
-				generateRepositoriesMock: func() repositories.Repositories {
+				generateRepositoriesMocks: func() repositories.Repositories {
 					repos := generateValidBuildingActionServiceMocks()
 					repos.PlanetBuilding = &mockPlanetBuildingRepository{
 						err: errDefault,
@@ -259,7 +259,7 @@ func Test_BuildingActionService(t *testing.T) {
 				},
 			},
 			"create_failure_listCostsForBuilding": {
-				generateRepositoriesMock: func() repositories.Repositories {
+				generateRepositoriesMocks: func() repositories.Repositories {
 					repos := generateValidBuildingActionServiceMocks()
 					repos.BuildingCost = &mockBuildingCostRepository{
 						err: errDefault,
@@ -280,7 +280,7 @@ func Test_BuildingActionService(t *testing.T) {
 				},
 			},
 			"create_failure_listProductionsForBuilding": {
-				generateRepositoriesMock: func() repositories.Repositories {
+				generateRepositoriesMocks: func() repositories.Repositories {
 					repos := generateValidBuildingActionServiceMocks()
 					repos.BuildingResourceProduction = &mockBuildingResourceProductionRepository{
 						err: errDefault,
@@ -329,7 +329,7 @@ func Test_BuildingActionService(t *testing.T) {
 				expectedError: errDefault,
 			},
 			"create_failure_updateResourcesOnPlanet": {
-				generateRepositoriesMock: func() repositories.Repositories {
+				generateRepositoriesMocks: func() repositories.Repositories {
 					repos := generateValidBuildingActionServiceMocks()
 					repos.PlanetResource = &mockPlanetResourceRepository{
 						planetResource: defaultPlanetResource,
@@ -351,7 +351,7 @@ func Test_BuildingActionService(t *testing.T) {
 				},
 			},
 			"create_failure_registerActionCosts": {
-				generateRepositoriesMock: func() repositories.Repositories {
+				generateRepositoriesMocks: func() repositories.Repositories {
 					repos := generateValidBuildingActionServiceMocks()
 					repos.BuildingActionCost = &mockBuildingActionCostRepository{
 						errs: []error{errDefault},
@@ -372,7 +372,7 @@ func Test_BuildingActionService(t *testing.T) {
 				},
 			},
 			"create_failure_registerActionProductions": {
-				generateRepositoriesMock: func() repositories.Repositories {
+				generateRepositoriesMocks: func() repositories.Repositories {
 					repos := generateValidBuildingActionServiceMocks()
 					repos.BuildingActionResourceProduction = &mockBuildingActionResourceProductionRepository{
 						errs: []error{errDefault},
@@ -393,7 +393,7 @@ func Test_BuildingActionService(t *testing.T) {
 				},
 			},
 			"create_failure_createsAction": {
-				generateRepositoriesMock: func() repositories.Repositories {
+				generateRepositoriesMocks: func() repositories.Repositories {
 					repos := generateValidBuildingActionServiceMocks()
 					repos.BuildingAction = &mockBuildingActionRepository{
 						errs: []error{errDefault},
@@ -505,7 +505,7 @@ func Test_BuildingActionService(t *testing.T) {
 				},
 			},
 			"delete_failure_getAction": {
-				generateRepositoriesMock: func() repositories.Repositories {
+				generateRepositoriesMocks: func() repositories.Repositories {
 					repos := generateValidBuildingActionServiceMocks()
 					repos.BuildingAction = &mockBuildingActionRepository{
 						errs: []error{errDefault},
@@ -525,7 +525,7 @@ func Test_BuildingActionService(t *testing.T) {
 				},
 			},
 			"delete_failure_listCostsForAction": {
-				generateRepositoriesMock: func() repositories.Repositories {
+				generateRepositoriesMocks: func() repositories.Repositories {
 					repos := generateValidBuildingActionServiceMocks()
 					repos.BuildingActionCost = &mockBuildingActionCostRepository{
 						errs: []error{errDefault},
@@ -545,7 +545,7 @@ func Test_BuildingActionService(t *testing.T) {
 				},
 			},
 			"delete_failure_listResourcesOnPlanet": {
-				generateRepositoriesMock: func() repositories.Repositories {
+				generateRepositoriesMocks: func() repositories.Repositories {
 					repos := generateValidBuildingActionServiceMocks()
 					repos.PlanetResource = &mockPlanetResourceRepository{
 						err: errDefault,
@@ -565,7 +565,7 @@ func Test_BuildingActionService(t *testing.T) {
 				},
 			},
 			"delete_failure_updateResourcesOnPlanet": {
-				generateRepositoriesMock: func() repositories.Repositories {
+				generateRepositoriesMocks: func() repositories.Repositories {
 					repos := generateValidBuildingActionServiceMocks()
 					repos.PlanetResource = &mockPlanetResourceRepository{
 						planetResource: defaultPlanetResource,
@@ -586,7 +586,7 @@ func Test_BuildingActionService(t *testing.T) {
 				},
 			},
 			"delete_failure_deleteResourceProductionsForAction": {
-				generateRepositoriesMock: func() repositories.Repositories {
+				generateRepositoriesMocks: func() repositories.Repositories {
 					repos := generateValidBuildingActionServiceMocks()
 					repos.BuildingActionResourceProduction = &mockBuildingActionResourceProductionRepository{
 						errs: []error{errDefault},
@@ -606,7 +606,7 @@ func Test_BuildingActionService(t *testing.T) {
 				},
 			},
 			"delete_failure_deleteCostsForAction": {
-				generateRepositoriesMock: func() repositories.Repositories {
+				generateRepositoriesMocks: func() repositories.Repositories {
 					repos := generateValidBuildingActionServiceMocks()
 					repos.BuildingActionCost = &mockBuildingActionCostRepository{
 						actionCost: defaultBuildingActionCost,
@@ -630,7 +630,7 @@ func Test_BuildingActionService(t *testing.T) {
 				},
 			},
 			"delete_failure_deleteAction": {
-				generateRepositoriesMock: func() repositories.Repositories {
+				generateRepositoriesMocks: func() repositories.Repositories {
 					repos := generateValidBuildingActionServiceMocks()
 					repos.BuildingAction = &mockBuildingActionRepository{
 						errs: []error{

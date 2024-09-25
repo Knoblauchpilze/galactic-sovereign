@@ -40,8 +40,8 @@ var defaultUser = persistence.User{
 
 func Test_UserService(t *testing.T) {
 	s := ServicePoolTestSuite{
-		generateRepositoriesMock:      generateValidUserServiceMocks,
-		generateErrorRepositoriesMock: generateErrorUserRepositoryMock,
+		generateRepositoriesMocks:      generateValidUserServiceMocks,
+		generateErrorRepositoriesMocks: generateErrorUserRepositoryMock,
 
 		repositoryInteractionTestCases: map[string]repositoryInteractionTestCase{
 			"create": {
@@ -60,7 +60,7 @@ func Test_UserService(t *testing.T) {
 				},
 			},
 			"create_userFails": {
-				generateRepositoriesMock: generateErrorUserRepositoryMock,
+				generateRepositoriesMocks: generateErrorUserRepositoryMock,
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
 					s := NewUserService(ApiConfig{}, pool, repos)
 					_, err := s.Create(ctx, defaultUserDtoRequest)
@@ -83,7 +83,7 @@ func Test_UserService(t *testing.T) {
 				},
 			},
 			"get_userFails": {
-				generateRepositoriesMock: generateErrorUserRepositoryMock,
+				generateRepositoriesMocks: generateErrorUserRepositoryMock,
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
 					s := NewUserService(ApiConfig{}, pool, repos)
 					_, err := s.Get(ctx, defaultUserId)
@@ -105,7 +105,7 @@ func Test_UserService(t *testing.T) {
 				},
 			},
 			"list_userFails": {
-				generateRepositoriesMock: generateErrorUserRepositoryMock,
+				generateRepositoriesMocks: generateErrorUserRepositoryMock,
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
 					s := NewUserService(ApiConfig{}, pool, repos)
 					_, err := s.List(ctx)
@@ -137,7 +137,7 @@ func Test_UserService(t *testing.T) {
 				},
 			},
 			"update_userFails": {
-				generateRepositoriesMock: generateErrorUserRepositoryMock,
+				generateRepositoriesMocks: generateErrorUserRepositoryMock,
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
 					s := NewUserService(ApiConfig{}, pool, repos)
 					_, err := s.Update(ctx, defaultUserId, defaultUpdatedUserDtoRequest)
@@ -146,7 +146,7 @@ func Test_UserService(t *testing.T) {
 				expectedError: errDefault,
 			},
 			"update_fails": {
-				generateRepositoriesMock: func() repositories.Repositories {
+				generateRepositoriesMocks: func() repositories.Repositories {
 					return repositories.Repositories{
 						Acl:    &mockAclRepository{},
 						ApiKey: &mockApiKeyRepository{},
@@ -212,7 +212,7 @@ func Test_UserService(t *testing.T) {
 				},
 			},
 			"delete_aclFails": {
-				generateRepositoriesMock: func() repositories.Repositories {
+				generateRepositoriesMocks: func() repositories.Repositories {
 					return repositories.Repositories{
 						Acl: &mockAclRepository{
 							deleteErr: errDefault,
@@ -234,7 +234,7 @@ func Test_UserService(t *testing.T) {
 				},
 			},
 			"delete_apiKeyFails": {
-				generateRepositoriesMock: func() repositories.Repositories {
+				generateRepositoriesMocks: func() repositories.Repositories {
 					return repositories.Repositories{
 						Acl: &mockAclRepository{},
 						ApiKey: &mockApiKeyRepository{
@@ -256,7 +256,7 @@ func Test_UserService(t *testing.T) {
 				},
 			},
 			"delete_userFails": {
-				generateRepositoriesMock: generateErrorUserRepositoryMock,
+				generateRepositoriesMocks: generateErrorUserRepositoryMock,
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
 					s := NewUserService(ApiConfig{}, pool, repos)
 					return s.Delete(ctx, defaultUserId)
@@ -269,7 +269,7 @@ func Test_UserService(t *testing.T) {
 				},
 			},
 			"delete_userLimitFails": {
-				generateRepositoriesMock: func() repositories.Repositories {
+				generateRepositoriesMocks: func() repositories.Repositories {
 					return repositories.Repositories{
 						Acl:    &mockAclRepository{},
 						ApiKey: &mockApiKeyRepository{},
@@ -304,7 +304,7 @@ func Test_UserService(t *testing.T) {
 				},
 			},
 			"login_userFails": {
-				generateRepositoriesMock: generateErrorUserRepositoryMock,
+				generateRepositoriesMocks: generateErrorUserRepositoryMock,
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
 					s := NewUserService(ApiConfig{}, pool, repos)
 					_, err := s.Login(ctx, defaultUserDtoRequest)
@@ -331,7 +331,7 @@ func Test_UserService(t *testing.T) {
 				},
 			},
 			"login_apiKeyFails": {
-				generateRepositoriesMock: func() repositories.Repositories {
+				generateRepositoriesMocks: func() repositories.Repositories {
 					return repositories.Repositories{
 						Acl: &mockAclRepository{},
 						ApiKey: &mockApiKeyRepository{
@@ -383,7 +383,7 @@ func Test_UserService(t *testing.T) {
 				},
 			},
 			"loginById_userFails": {
-				generateRepositoriesMock: generateErrorUserRepositoryMock,
+				generateRepositoriesMocks: generateErrorUserRepositoryMock,
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
 					s := NewUserService(ApiConfig{}, pool, repos)
 					_, err := s.LoginById(ctx, defaultUserId)
@@ -410,7 +410,7 @@ func Test_UserService(t *testing.T) {
 				},
 			},
 			"loginById_apiKeyFails": {
-				generateRepositoriesMock: func() repositories.Repositories {
+				generateRepositoriesMocks: func() repositories.Repositories {
 					return repositories.Repositories{
 						Acl: &mockAclRepository{},
 						ApiKey: &mockApiKeyRepository{
@@ -459,7 +459,7 @@ func Test_UserService(t *testing.T) {
 				},
 			},
 			"logout_userFails": {
-				generateRepositoriesMock: func() repositories.Repositories {
+				generateRepositoriesMocks: func() repositories.Repositories {
 					return repositories.Repositories{
 						Acl:    &mockAclRepository{},
 						ApiKey: &mockApiKeyRepository{},
@@ -481,7 +481,7 @@ func Test_UserService(t *testing.T) {
 				},
 			},
 			"logout_apiKeyFails": {
-				generateRepositoriesMock: func() repositories.Repositories {
+				generateRepositoriesMocks: func() repositories.Repositories {
 					return repositories.Repositories{
 						Acl: &mockAclRepository{},
 						ApiKey: &mockApiKeyRepository{
@@ -536,7 +536,7 @@ func Test_UserService(t *testing.T) {
 				},
 			},
 			"list": {
-				generateRepositoriesMock: func() repositories.Repositories {
+				generateRepositoriesMocks: func() repositories.Repositories {
 					return repositories.Repositories{
 						Acl:    &mockAclRepository{},
 						ApiKey: &mockApiKeyRepository{},

@@ -57,8 +57,8 @@ var defaultBuildingResourceProduction = persistence.BuildingResourceProduction{
 
 func Test_UniverseService(t *testing.T) {
 	s := ServicePoolTestSuite{
-		generateRepositoriesMock:      generateValidUniverseServiceMocks,
-		generateErrorRepositoriesMock: generateErrorUniverseRepositoryMock,
+		generateRepositoriesMocks:      generateValidUniverseServiceMocks,
+		generateErrorRepositoriesMocks: generateErrorUniverseRepositoryMock,
 
 		repositoryInteractionTestCases: map[string]repositoryInteractionTestCase{
 			"create": {
@@ -75,7 +75,7 @@ func Test_UniverseService(t *testing.T) {
 				},
 			},
 			"create_repositoryFails": {
-				generateRepositoriesMock: generateErrorUniverseRepositoryMock,
+				generateRepositoriesMocks: generateErrorUniverseRepositoryMock,
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
 					s := NewUniverseService(pool, repos)
 					_, err := s.Create(ctx, defaultUniverseDtoRequest)
@@ -97,7 +97,7 @@ func Test_UniverseService(t *testing.T) {
 				},
 			},
 			"get_universeRepositoryFails": {
-				generateRepositoriesMock: generateErrorUniverseRepositoryMock,
+				generateRepositoriesMocks: generateErrorUniverseRepositoryMock,
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
 					s := NewUniverseService(pool, repos)
 					_, err := s.Get(ctx, defaultUniverseId)
@@ -118,7 +118,7 @@ func Test_UniverseService(t *testing.T) {
 				},
 			},
 			"get_resourceRepositoryFails": {
-				generateRepositoriesMock: func() repositories.Repositories {
+				generateRepositoriesMocks: func() repositories.Repositories {
 					repos := generateValidUniverseServiceMocks()
 					repos.Resource = &mockResourceRepository{
 						err: errDefault,
@@ -146,7 +146,7 @@ func Test_UniverseService(t *testing.T) {
 				},
 			},
 			"get_buildingRepositoryFails": {
-				generateRepositoriesMock: func() repositories.Repositories {
+				generateRepositoriesMocks: func() repositories.Repositories {
 					repos := generateValidUniverseServiceMocks()
 					repos.Building = &mockBuildingRepository{
 						err: errDefault,
@@ -174,7 +174,7 @@ func Test_UniverseService(t *testing.T) {
 				},
 			},
 			"get_buildingCostRepositoryFails": {
-				generateRepositoriesMock: func() repositories.Repositories {
+				generateRepositoriesMocks: func() repositories.Repositories {
 					repos := generateValidUniverseServiceMocks()
 					repos.BuildingCost = &mockBuildingCostRepository{
 						err: errDefault,
@@ -202,7 +202,7 @@ func Test_UniverseService(t *testing.T) {
 				},
 			},
 			"get_buildingResourceProductionRepositoryFails": {
-				generateRepositoriesMock: func() repositories.Repositories {
+				generateRepositoriesMocks: func() repositories.Repositories {
 					repos := generateValidUniverseServiceMocks()
 					repos.BuildingResourceProduction = &mockBuildingResourceProductionRepository{
 						err: errDefault,
@@ -230,7 +230,7 @@ func Test_UniverseService(t *testing.T) {
 				},
 			},
 			"list_repositoryFails": {
-				generateRepositoriesMock: generateErrorUniverseRepositoryMock,
+				generateRepositoriesMocks: generateErrorUniverseRepositoryMock,
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
 					s := NewUniverseService(pool, repos)
 					_, err := s.List(ctx)
@@ -251,7 +251,7 @@ func Test_UniverseService(t *testing.T) {
 				},
 			},
 			"delete_repositoryFails": {
-				generateRepositoriesMock: generateErrorUniverseRepositoryMock,
+				generateRepositoriesMocks: generateErrorUniverseRepositoryMock,
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
 					s := NewUniverseService(pool, repos)
 					return s.Delete(ctx, defaultUniverseId)
