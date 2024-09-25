@@ -11,19 +11,19 @@ import (
 )
 
 type PlanetResourceUpdateData struct {
-	planet                       uuid.UUID
-	until                        time.Time
-	planetResourceRepo           repositories.PlanetResourceRepository
-	planetResourceProductionRepo repositories.PlanetResourceProductionRepository
+	Planet                       uuid.UUID
+	Until                        time.Time
+	PlanetResourceRepo           repositories.PlanetResourceRepository
+	PlanetResourceProductionRepo repositories.PlanetResourceProductionRepository
 }
 
 func UpdatePlanetResourcesToTime(ctx context.Context, tx db.Transaction, data PlanetResourceUpdateData) error {
-	resources, err := data.planetResourceRepo.ListForPlanet(ctx, tx, data.planet)
+	resources, err := data.PlanetResourceRepo.ListForPlanet(ctx, tx, data.Planet)
 	if err != nil {
 		return err
 	}
 
-	productions, err := data.planetResourceProductionRepo.ListForPlanet(ctx, tx, data.planet)
+	productions, err := data.PlanetResourceProductionRepo.ListForPlanet(ctx, tx, data.Planet)
 	if err != nil {
 		return err
 	}
@@ -36,9 +36,9 @@ func UpdatePlanetResourcesToTime(ctx context.Context, tx db.Transaction, data Pl
 			continue
 		}
 
-		resource := updatePlanetResourceAmountToTime(resource, float64(production.Production), data.until)
+		resource := updatePlanetResourceAmountToTime(resource, float64(production.Production), data.Until)
 
-		_, err = data.planetResourceRepo.Update(ctx, tx, resource)
+		_, err = data.PlanetResourceRepo.Update(ctx, tx, resource)
 		if err != nil {
 			return err
 		}

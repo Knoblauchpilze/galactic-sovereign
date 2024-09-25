@@ -237,10 +237,10 @@ func Test_PlanetResourceService(t *testing.T) {
 			}
 
 			data := PlanetResourceUpdateData{
-				planet:                       planetId,
-				until:                        testCase.until,
-				planetResourceRepo:           repos.PlanetResource,
-				planetResourceProductionRepo: repos.PlanetResourceProduction,
+				Planet:                       planetId,
+				Until:                        testCase.until,
+				PlanetResourceRepo:           repos.PlanetResource,
+				PlanetResourceProductionRepo: repos.PlanetResourceProduction,
 			}
 
 			err := UpdatePlanetResourcesToTime(context.Background(), tx, data)
