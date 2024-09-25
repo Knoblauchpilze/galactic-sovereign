@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestActionWatcher_CallsNextMiddleware(t *testing.T) {
+func TestGameUpdateWatcher_CallsNextMiddleware(t *testing.T) {
 	assert := assert.New(t)
 
 	called := false
@@ -21,7 +21,7 @@ func TestActionWatcher_CallsNextMiddleware(t *testing.T) {
 
 	m := &mockActionService{}
 	ctx, _, _ := generateTestEchoContext()
-	callable := ActionWatcher(m, call)
+	callable := GameUpdateWatcher(m, call)
 
 	err := callable(ctx)
 
@@ -29,24 +29,24 @@ func TestActionWatcher_CallsNextMiddleware(t *testing.T) {
 	assert.True(called)
 }
 
-func TestActionWatcher_SchedulesActions(t *testing.T) {
+func TestGameUpdateWatcher_SchedulesActions(t *testing.T) {
 	assert := assert.New(t)
 
 	m := &mockActionService{}
 	ctx, _, _ := generateTestEchoContext()
-	callable := ActionWatcher(m, defaultHandler)
+	callable := GameUpdateWatcher(m, defaultHandler)
 
 	callable(ctx)
 
 	assert.Equal(1, m.processActionsCalled)
 }
 
-func TestActionWatcher_ScheduleTimeIsAtTheMomentOfTheCall(t *testing.T) {
+func TestGameUpdateWatcher_ScheduleTimeIsAtTheMomentOfTheCall(t *testing.T) {
 	assert := assert.New(t)
 
 	m := &mockActionService{}
 	ctx, _, _ := generateTestEchoContext()
-	callable := ActionWatcher(m, defaultHandler)
+	callable := GameUpdateWatcher(m, defaultHandler)
 
 	beforeCall := time.Now()
 
@@ -55,14 +55,14 @@ func TestActionWatcher_ScheduleTimeIsAtTheMomentOfTheCall(t *testing.T) {
 	assert.True(beforeCall.Before(m.until))
 }
 
-func TestActionWatcher_WhenServiceFails_SetsStatusToInternalServerError(t *testing.T) {
+func TestGameUpdateWatcher_WhenServiceFails_SetsStatusToInternalServerError(t *testing.T) {
 	assert := assert.New(t)
 
 	m := &mockActionService{
 		err: errDefault,
 	}
 	ctx, _, rw := generateTestEchoContext()
-	callable := ActionWatcher(m, defaultHandler)
+	callable := GameUpdateWatcher(m, defaultHandler)
 
 	err := callable(ctx)
 
@@ -71,7 +71,7 @@ func TestActionWatcher_WhenServiceFails_SetsStatusToInternalServerError(t *testi
 	assert.Equal("\"Failed to process actions\"\n", rw.Body.String())
 }
 
-func TestActionWatcher_WhenServiceFails_DoesNotCallHandler(t *testing.T) {
+func TestGameUpdateWatcher_WhenServiceFails_DoesNotCallHandler(t *testing.T) {
 	assert := assert.New(t)
 
 	called := false
@@ -84,7 +84,7 @@ func TestActionWatcher_WhenServiceFails_DoesNotCallHandler(t *testing.T) {
 		err: errDefault,
 	}
 	ctx, _, _ := generateTestEchoContext()
-	callable := ActionWatcher(m, call)
+	callable := GameUpdateWatcher(m, call)
 
 	err := callable(ctx)
 

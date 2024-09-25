@@ -18,7 +18,7 @@ type actionProcessingData struct {
 	service ActionService
 }
 
-func ActionWatcher(service ActionService, next echo.HandlerFunc) echo.HandlerFunc {
+func GameUpdateWatcher(service ActionService, next echo.HandlerFunc) echo.HandlerFunc {
 	data := actionProcessingData{
 		service: service,
 	}
