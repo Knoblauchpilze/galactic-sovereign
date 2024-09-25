@@ -1,4 +1,3 @@
-
-export function roundToInteger(value: number): number {
-  return Math.round(value);
+export function floorToInteger(value: number): number {
+	return Math.floor(value);
 }
