@@ -6,7 +6,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/KnoblauchPilze/user-service/pkg/db"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
@@ -16,7 +15,7 @@ type ActionService interface {
 }
 
 type PlanetResourceService interface {
-	UpdatePlanetUntil(ctx context.Context, tx db.Transaction, planet uuid.UUID, until time.Time) error
+	UpdatePlanetUntil(ctx context.Context, planet uuid.UUID, until time.Time) error
 }
 
 type actionProcessingData struct {
