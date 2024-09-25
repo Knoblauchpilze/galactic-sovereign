@@ -68,7 +68,13 @@ func (s *actionServiceImpl) processAction(ctx context.Context, action persistenc
 	}
 	defer tx.Close(ctx)
 
-	err = s.updateResourcesForPlanetUntilActionCompletes(ctx, tx, action)
+	data := game.PlanetResourceUpdateData{
+		Planet:                       action.Planet,
+		Until:                        action.CompletedAt,
+		PlanetResourceRepo:           s.planetResourceRepo,
+		PlanetResourceProductionRepo: s.planetResourceProductionRepo,
+	}
+	err = game.UpdatePlanetResourcesToTime(ctx, tx, data)
 	if err != nil {
 		return err
 	}
@@ -101,36 +107,6 @@ func (s *actionServiceImpl) processAction(ctx context.Context, action persistenc
 	}
 
 	return s.buildingActionRepo.Delete(ctx, tx, action.Id)
-}
-
-func (s *actionServiceImpl) updateResourcesForPlanetUntilActionCompletes(ctx context.Context, tx db.Transaction, action persistence.BuildingAction) error {
-	resources, err := s.planetResourceRepo.ListForPlanet(ctx, tx, action.Planet)
-	if err != nil {
-		return err
-	}
-
-	productions, err := s.planetResourceProductionRepo.ListForPlanet(ctx, tx, action.Planet)
-	if err != nil {
-		return err
-	}
-
-	productionsMap := persistence.ToPlanetResourceProductionMap(productions)
-
-	for _, resource := range resources {
-		production, ok := productionsMap[resource.Resource]
-		if !ok {
-			continue
-		}
-
-		resource := game.UpdatePlanetResourceAmountToTime(resource, float64(production.Production), action.CompletedAt)
-
-		_, err = s.planetResourceRepo.Update(ctx, tx, resource)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
 }
 
 func (s *actionServiceImpl) updateResourcesProductionForPlanet(ctx context.Context, tx db.Transaction, action persistence.BuildingAction) error {
