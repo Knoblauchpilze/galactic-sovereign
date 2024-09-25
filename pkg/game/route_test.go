@@ -124,7 +124,7 @@ func TestRoute_WhenServiceFails_SetsStatusToInternalError(t *testing.T) {
 	assert.Equal("\"Failed to process actions\"\n", rw.Body.String())
 }
 
-type testCase struct {
+type routeTestCase struct {
 	path     string
 	expected string
 }
@@ -132,7 +132,7 @@ type testCase struct {
 func TestRoute_Path(t *testing.T) {
 	assert := assert.New(t)
 
-	tests := []testCase{
+	tests := []routeTestCase{
 		{path: "path", expected: "/path"},
 		{path: "/path", expected: "/path"},
 		{path: "/path/", expected: "/path"},
@@ -151,7 +151,7 @@ func TestRoute_Path(t *testing.T) {
 func TestRoute_WithResource_GeneratePath(t *testing.T) {
 	assert := assert.New(t)
 
-	tests := []testCase{
+	tests := []routeTestCase{
 		{path: "path", expected: "/path/:id"},
 		{path: "/path", expected: "/path/:id"},
 		{path: "/path/", expected: "/path/:id"},
