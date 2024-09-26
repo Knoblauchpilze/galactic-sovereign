@@ -17,7 +17,6 @@ import (
 	"github.com/KnoblauchPilze/user-service/pkg/game"
 	"github.com/KnoblauchPilze/user-service/pkg/rest"
 	"github.com/google/uuid"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 )
@@ -69,85 +68,31 @@ func Test_BuildingActionEndpoints(t *testing.T) {
 				expectedStatusCode: http.StatusInternalServerError,
 				expectedError:      "\"Failed to process actions\"\n",
 			},
+			"whenPlanetResourceServiceFails": {
+				generateRoutes: func() rest.Routes {
+					m := &mockPlanetResourceService{
+						err: errDefault,
+					}
+
+					return BuildingActionEndpoints(&mockBuildingActionService{}, &mockActionService{}, m)
+				},
+				expectedStatusCode: http.StatusInternalServerError,
+				expectedError:      "\"Failed to update resources\"\n",
+			},
+		},
+
+		interactionTestCases: []routeInteractionTestCase{
+			{
+				generateRoutes: func(actionService game.ActionService, planetResourceService game.PlanetResourceService) rest.Routes {
+					return BuildingActionEndpoints(&mockBuildingActionService{},
+						actionService,
+						planetResourceService)
+				},
+			},
 		},
 	}
 
 	suite.Run(t, &s)
-}
-
-func TestBuildingActionEndpoints_WhenNoPlanetId_ExpectPlanetResourceNotUpdated(t *testing.T) {
-	assert := assert.New(t)
-
-	m := &mockPlanetResourceService{}
-
-	for _, route := range BuildingActionEndpoints(&mockBuildingActionService{}, &mockActionService{}, m) {
-		ctx, _ := generateTestEchoContextWithMethod(http.MethodGet)
-
-		handler := route.Handler()
-		err := handler(ctx)
-
-		assert.Nil(err)
-		assert.Equal(0, m.updatePlanetUntilCalled)
-	}
-}
-
-func TestBuildingActionEndpoints_WhenPlanetIdIsInvalid_ExpectPlanetResourceNotUpdated(t *testing.T) {
-	assert := assert.New(t)
-
-	m := &mockPlanetResourceService{}
-
-	for _, route := range BuildingActionEndpoints(&mockBuildingActionService{}, &mockActionService{}, m) {
-		ctx, _ := generateTestEchoContextWithMethod(http.MethodGet)
-		ctx.SetParamNames("id")
-		ctx.SetParamValues("not-a-uuid")
-
-		handler := route.Handler()
-		err := handler(ctx)
-
-		assert.Nil(err)
-		assert.Equal(0, m.updatePlanetUntilCalled)
-	}
-}
-
-func TestBuildingActionEndpoints_WhenPlanetIdValid_ExpectPlanetResourceAreUpdated(t *testing.T) {
-	assert := assert.New(t)
-
-	m := &mockPlanetResourceService{}
-
-	for _, route := range BuildingActionEndpoints(&mockBuildingActionService{}, &mockActionService{}, m) {
-		ctx, _ := generateTestEchoContextWithMethodAndId(http.MethodGet)
-
-		m.updatePlanetUntilCalled = 0
-
-		handler := route.Handler()
-		err := handler(ctx)
-
-		assert.Nil(err)
-		assert.Equal(1, m.updatePlanetUntilCalled)
-		assert.Equal(defaultUuid, m.planet)
-	}
-}
-
-func TestBuildingActionEndpoints_WhenPlanetResourceServiceFails_SetsReturnStatusInternalError(t *testing.T) {
-	assert := assert.New(t)
-
-	m := &mockPlanetResourceService{
-		err: errDefault,
-	}
-
-	for _, route := range BuildingActionEndpoints(&mockBuildingActionService{}, &mockActionService{}, m) {
-		ctx, rw := generateTestEchoContextWithMethodAndId(http.MethodGet)
-
-		m.updatePlanetUntilCalled = 0
-
-		handler := route.Handler()
-		err := handler(ctx)
-
-		assert.Nil(err)
-		assert.Equal(1, m.updatePlanetUntilCalled)
-		assert.Equal(http.StatusInternalServerError, rw.Code)
-		assert.Equal("\"Failed to update resources\"\n", rw.Body.String())
-	}
 }
 
 func Test_BuildingActionController(t *testing.T) {
