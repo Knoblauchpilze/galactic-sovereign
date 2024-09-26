@@ -14,8 +14,8 @@ import (
 	"github.com/KnoblauchPilze/user-service/pkg/communication"
 	"github.com/KnoblauchPilze/user-service/pkg/db"
 	"github.com/KnoblauchPilze/user-service/pkg/errors"
+	"github.com/KnoblauchPilze/user-service/pkg/rest"
 	"github.com/google/uuid"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 )
@@ -74,18 +74,19 @@ var defaultFullUniverseDtoResponse = communication.FullUniverseDtoResponse{
 	},
 }
 
-func TestUniverseEndpoints_GeneratesExpectedRoutes(t *testing.T) {
-	assert := assert.New(t)
-
-	actualRoutes := make(map[string]int)
-	for _, r := range UniverseEndpoints(&mockUniverseService{}) {
-		actualRoutes[r.Method()]++
+func Test_UniverseEndpoints(t *testing.T) {
+	s := RouteTestSuite{
+		generateRoutes: func() rest.Routes {
+			return UniverseEndpoints(&mockUniverseService{})
+		},
+		expectedRoutes: map[string]int{
+			http.MethodPost:   1,
+			http.MethodGet:    2,
+			http.MethodDelete: 1,
+		},
 	}
 
-	assert.Equal(3, len(actualRoutes))
-	assert.Equal(1, actualRoutes[http.MethodPost])
-	assert.Equal(2, actualRoutes[http.MethodGet])
-	assert.Equal(1, actualRoutes[http.MethodDelete])
+	suite.Run(t, &s)
 }
 
 func Test_UniverseController(t *testing.T) {

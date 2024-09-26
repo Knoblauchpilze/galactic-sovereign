@@ -10,8 +10,8 @@ import (
 	"github.com/KnoblauchPilze/user-service/internal/service"
 	"github.com/KnoblauchPilze/user-service/pkg/communication"
 	"github.com/KnoblauchPilze/user-service/pkg/errors"
+	"github.com/KnoblauchPilze/user-service/pkg/rest"
 	"github.com/google/uuid"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 )
@@ -51,16 +51,17 @@ var defaultAuthorizationResponseDto = communication.AuthorizationDtoResponse{
 	},
 }
 
-func TestAuthEndpoints_GeneratesExpectedRoutes(t *testing.T) {
-	assert := assert.New(t)
-
-	actualRoutes := make(map[string]int)
-	for _, r := range AuthEndpoints(&mockAuthService{}) {
-		actualRoutes[r.Method()]++
+func Test_AuthEndpoints(t *testing.T) {
+	s := RouteTestSuite{
+		generateRoutes: func() rest.Routes {
+			return AuthEndpoints(&mockAuthService{})
+		},
+		expectedRoutes: map[string]int{
+			http.MethodGet: 1,
+		},
 	}
 
-	assert.Equal(1, len(actualRoutes))
-	assert.Equal(1, actualRoutes[http.MethodGet])
+	suite.Run(t, &s)
 }
 
 func Test_AuthController(t *testing.T) {

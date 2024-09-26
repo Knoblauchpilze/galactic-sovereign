@@ -6,7 +6,9 @@ import (
 	"testing"
 
 	"github.com/KnoblauchPilze/user-service/pkg/db"
+	"github.com/KnoblauchPilze/user-service/pkg/rest"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/suite"
 )
 
 type mockConnectionPool struct {
@@ -16,16 +18,17 @@ type mockConnectionPool struct {
 	err        error
 }
 
-func TestHealthCheckEndpoints_GeneratesExpectedRoutes(t *testing.T) {
-	assert := assert.New(t)
-
-	actualRoutes := make(map[string]int)
-	for _, r := range HealthCheckEndpoints(&mockConnectionPool{}) {
-		actualRoutes[r.Method()]++
+func Test_HealthCheckEndpoints(t *testing.T) {
+	s := RouteTestSuite{
+		generateRoutes: func() rest.Routes {
+			return HealthCheckEndpoints(&mockConnectionPool{})
+		},
+		expectedRoutes: map[string]int{
+			http.MethodGet: 1,
+		},
 	}
 
-	assert.Equal(1, len(actualRoutes))
-	assert.Equal(1, actualRoutes[http.MethodGet])
+	suite.Run(t, &s)
 }
 
 func TestHealthcheck_CallsPoolPing(t *testing.T) {
