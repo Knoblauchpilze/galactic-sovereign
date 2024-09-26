@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"net/http/httptest"
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 )
@@ -24,31 +24,41 @@ type mockActionService struct {
 	until                time.Time
 }
 
+type mockPlanetResourceService struct {
+	PlanetResourceService
+
+	err error
+
+	updatePlanetUntilCalled int
+	planet                  uuid.UUID
+	until                   time.Time
+}
+
 func TestRoute_Method(t *testing.T) {
 	assert := assert.New(t)
 
-	r := NewRoute(http.MethodGet, "", defaultHandler, &mockActionService{})
+	r := NewRoute(http.MethodGet, "", defaultHandler, &mockActionService{}, &mockPlanetResourceService{})
 	assert.Equal(http.MethodGet, r.Method())
 }
 
 func TestRoute_WithResource_Method(t *testing.T) {
 	assert := assert.New(t)
 
-	r := NewResourceRoute(http.MethodGet, "", defaultHandler, &mockActionService{})
+	r := NewResourceRoute(http.MethodGet, "", defaultHandler, &mockActionService{}, &mockPlanetResourceService{})
 	assert.Equal(http.MethodGet, r.Method())
 }
 
 func TestRoute_Authorized(t *testing.T) {
 	assert := assert.New(t)
 
-	public := NewRoute(http.MethodGet, "", defaultHandler, &mockActionService{})
+	public := NewRoute(http.MethodGet, "", defaultHandler, &mockActionService{}, &mockPlanetResourceService{})
 	assert.Equal(false, public.Authorized())
 }
 
 func TestRoute_WithResource_Authorized(t *testing.T) {
 	assert := assert.New(t)
 
-	public := NewResourceRoute(http.MethodGet, "", defaultHandler, &mockActionService{})
+	public := NewResourceRoute(http.MethodGet, "", defaultHandler, &mockActionService{}, &mockPlanetResourceService{})
 	assert.Equal(false, public.Authorized())
 }
 
@@ -61,7 +71,7 @@ func TestRoute_Handler(t *testing.T) {
 		return nil
 	}
 
-	r := NewRoute(http.MethodGet, "", handler, &mockActionService{})
+	r := NewRoute(http.MethodGet, "", handler, &mockActionService{}, &mockPlanetResourceService{})
 	actual := r.Handler()
 	err := actual(dummyEchoContext())
 
@@ -78,7 +88,7 @@ func TestRoute_WithResource_Handler(t *testing.T) {
 		return nil
 	}
 
-	r := NewResourceRoute(http.MethodGet, "", handler, &mockActionService{})
+	r := NewResourceRoute(http.MethodGet, "", handler, &mockActionService{}, &mockPlanetResourceService{})
 	actual := r.Handler()
 	err := actual(dummyEchoContext())
 
@@ -86,7 +96,43 @@ func TestRoute_WithResource_Handler(t *testing.T) {
 	assert.Nil(err)
 }
 
-func TestRoute_WhenServiceFails_DoesNotCallHandler(t *testing.T) {
+func TestRoute_CallsActionService(t *testing.T) {
+	assert := assert.New(t)
+
+	handler := func(c echo.Context) error {
+		return nil
+	}
+
+	m := &mockActionService{}
+
+	r := NewResourceRoute(http.MethodGet, "", handler, m, &mockPlanetResourceService{})
+	actual := r.Handler()
+	err := actual(dummyEchoContext())
+
+	assert.Nil(err)
+	assert.Equal(1, m.processActionsCalled)
+}
+
+func TestRoute_ScheduleActionsIsAtTheRightTime(t *testing.T) {
+	assert := assert.New(t)
+
+	handler := func(c echo.Context) error {
+		return nil
+	}
+
+	m := &mockActionService{}
+
+	beforeCall := time.Now()
+
+	r := NewResourceRoute(http.MethodGet, "", handler, m, &mockPlanetResourceService{})
+	actual := r.Handler()
+	err := actual(dummyEchoContext())
+
+	assert.Nil(err)
+	assert.True(beforeCall.Before(m.until))
+}
+
+func TestRoute_WhenActionServiceFails_DoesNotCallHandler(t *testing.T) {
 	assert := assert.New(t)
 
 	handlerCalled := false
@@ -99,7 +145,7 @@ func TestRoute_WhenServiceFails_DoesNotCallHandler(t *testing.T) {
 		err: errDefault,
 	}
 
-	r := NewResourceRoute(http.MethodGet, "", handler, m)
+	r := NewResourceRoute(http.MethodGet, "", handler, m, &mockPlanetResourceService{})
 	actual := r.Handler()
 	err := actual(dummyEchoContext())
 
@@ -107,21 +153,116 @@ func TestRoute_WhenServiceFails_DoesNotCallHandler(t *testing.T) {
 	assert.Nil(err)
 }
 
-func TestRoute_WhenServiceFails_SetsStatusToInternalError(t *testing.T) {
+func TestRoute_WhenActionServiceFails_SetsStatusToInternalError(t *testing.T) {
 	assert := assert.New(t)
 
 	m := &mockActionService{
 		err: errDefault,
 	}
-	ctx, rw := dummyEchoContextWithRecorder()
+	ctx, _, rw := generateTestEchoContext()
 
-	r := NewResourceRoute(http.MethodGet, "", defaultHandler, m)
+	r := NewResourceRoute(http.MethodGet, "", defaultHandler, m, &mockPlanetResourceService{})
 	actual := r.Handler()
 	err := actual(ctx)
 
 	assert.Nil(err)
 	assert.Equal(http.StatusInternalServerError, rw.Code)
 	assert.Equal("\"Failed to process actions\"\n", rw.Body.String())
+}
+
+func TestRoute_WhenNoPlanetId_DoesNotUpdatePlanetResourceService(t *testing.T) {
+	assert := assert.New(t)
+
+	handler := func(c echo.Context) error {
+		return nil
+	}
+
+	m := &mockPlanetResourceService{}
+
+	r := NewResourceRoute(http.MethodGet, "", handler, &mockActionService{}, m)
+	actual := r.Handler()
+	ctx, _, _ := generateTestEchoContext()
+	err := actual(ctx)
+
+	assert.Nil(err)
+	assert.Equal(0, m.updatePlanetUntilCalled)
+}
+
+func TestRoute_CallsPlanetResourceService(t *testing.T) {
+	assert := assert.New(t)
+
+	handler := func(c echo.Context) error {
+		return nil
+	}
+
+	m := &mockPlanetResourceService{}
+
+	r := NewResourceRoute(http.MethodGet, "", handler, &mockActionService{}, m)
+	actual := r.Handler()
+	ctx, _, _ := generateTestEchoContextWithPlanetId()
+	err := actual(ctx)
+
+	assert.Nil(err)
+	assert.Equal(1, m.updatePlanetUntilCalled)
+}
+
+func TestRoute_UpdateResourcesIsAtTheRightTime(t *testing.T) {
+	assert := assert.New(t)
+
+	handler := func(c echo.Context) error {
+		return nil
+	}
+
+	m := &mockPlanetResourceService{}
+
+	beforeCall := time.Now()
+
+	r := NewResourceRoute(http.MethodGet, "", handler, &mockActionService{}, m)
+	actual := r.Handler()
+	ctx, _, _ := generateTestEchoContextWithPlanetId()
+	err := actual(ctx)
+
+	assert.Nil(err)
+	assert.True(beforeCall.Before(m.until))
+}
+
+func TestRoute_WhenPlanetResourceServiceFails_DoesNotCallHandler(t *testing.T) {
+	assert := assert.New(t)
+
+	handlerCalled := false
+	handler := func(c echo.Context) error {
+		handlerCalled = true
+		return nil
+	}
+
+	m := &mockPlanetResourceService{
+		err: errDefault,
+	}
+
+	r := NewResourceRoute(http.MethodGet, "", handler, &mockActionService{}, m)
+	actual := r.Handler()
+	ctx, _, _ := generateTestEchoContextWithPlanetId()
+	err := actual(ctx)
+
+	assert.False(handlerCalled)
+	assert.Nil(err)
+}
+
+func TestRoute_WhenPlanetResourceServiceFails_SetsStatusToInternalError(t *testing.T) {
+	assert := assert.New(t)
+
+	m := &mockPlanetResourceService{
+		err: errDefault,
+	}
+	ctx, _, rw := generateTestEchoContextWithPlanetId()
+
+	r := NewResourceRoute(http.MethodGet, "", defaultHandler, &mockActionService{}, m)
+	actual := r.Handler()
+	err := actual(ctx)
+
+	assert.Nil(err)
+	assert.Equal(http.StatusInternalServerError, rw.Code)
+	assert.Equal("\"Failed to update resources\"\n", rw.Body.String())
 }
 
 type routeTestCase struct {
@@ -142,7 +283,7 @@ func TestRoute_Path(t *testing.T) {
 	for _, tc := range tests {
 		t.Run("", func(t *testing.T) {
 
-			r := NewRoute(http.MethodGet, tc.path, defaultHandler, &mockActionService{})
+			r := NewRoute(http.MethodGet, tc.path, defaultHandler, &mockActionService{}, &mockPlanetResourceService{})
 			assert.Equal(tc.expected, r.Path())
 		})
 	}
@@ -161,7 +302,7 @@ func TestRoute_WithResource_GeneratePath(t *testing.T) {
 	for _, tc := range tests {
 		t.Run("", func(t *testing.T) {
 
-			r := NewResourceRoute(http.MethodGet, tc.path, defaultHandler, &mockActionService{})
+			r := NewResourceRoute(http.MethodGet, tc.path, defaultHandler, &mockActionService{}, &mockPlanetResourceService{})
 			assert.Equal(tc.expected, r.Path())
 		})
 	}
@@ -172,26 +313,25 @@ func TestRoute_WithResource_WhenIdPlaceHolderAlreadyExists_DoNotGeneratePath(t *
 
 	path := "/path/:id/addendum"
 
-	r := NewResourceRoute(http.MethodGet, path, defaultHandler, &mockActionService{})
+	r := NewResourceRoute(http.MethodGet, path, defaultHandler, &mockActionService{}, &mockPlanetResourceService{})
 
 	assert.Equal(path, r.Path())
 }
 
 func dummyEchoContext() echo.Context {
-	e, _ := dummyEchoContextWithRecorder()
+	e, _, _ := generateTestEchoContext()
 	return e
-}
-
-func dummyEchoContextWithRecorder() (echo.Context, *httptest.ResponseRecorder) {
-	e := echo.New()
-	req := httptest.NewRequest(http.MethodGet, "/", nil)
-	rw := httptest.NewRecorder()
-
-	return e.NewContext(req, rw), rw
 }
 
 func (m *mockActionService) ProcessActionsUntil(ctx context.Context, until time.Time) error {
 	m.processActionsCalled++
+	m.until = until
+	return m.err
+}
+
+func (m *mockPlanetResourceService) UpdatePlanetUntil(ctx context.Context, planet uuid.UUID, until time.Time) error {
+	m.updatePlanetUntilCalled++
+	m.planet = planet
 	m.until = until
 	return m.err
 }
