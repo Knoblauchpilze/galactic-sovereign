@@ -69,10 +69,11 @@ func main() {
 	buildingActionService := service.NewBuildingActionService(pool, repos)
 
 	actionService := service.NewActionService(pool, repos)
+	planetResourceService := service.NewPlanetResourceService(pool, repos)
 
 	s := rest.NewServer(conf.Server)
 
-	for _, route := range controller.PlanetEndpoints(planetService, actionService) {
+	for _, route := range controller.PlanetEndpoints(planetService, actionService, planetResourceService) {
 		if err := s.Register(route); err != nil {
 			logger.Errorf("Failed to register route: %v", err)
 			os.Exit(1)
@@ -93,7 +94,7 @@ func main() {
 		}
 	}
 
-	for _, route := range controller.BuildingActionEndpoints(buildingActionService, actionService) {
+	for _, route := range controller.BuildingActionEndpoints(buildingActionService, actionService, planetResourceService) {
 		if err := s.Register(route); err != nil {
 			logger.Errorf("Failed to register route: %v", err)
 			os.Exit(1)
