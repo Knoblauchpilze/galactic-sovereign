@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/KnoblauchPilze/user-service/pkg/errors"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
@@ -19,29 +20,62 @@ type PlanetResourceService interface {
 }
 
 type actionProcessingData struct {
-	lock    sync.Mutex
-	service ActionService
+	lock                  sync.Mutex
+	actionService         ActionService
+	planetResourceService PlanetResourceService
 }
 
-func GameUpdateWatcher(service ActionService, next echo.HandlerFunc) echo.HandlerFunc {
+func GameUpdateWatcher(actionService ActionService, planetResourceService PlanetResourceService, next echo.HandlerFunc) echo.HandlerFunc {
 	data := actionProcessingData{
-		service: service,
+		actionService:         actionService,
+		planetResourceService: planetResourceService,
 	}
 
 	return func(c echo.Context) error {
-		err := data.schedulePendingActions(c.Request().Context())
+		timeStamp := time.Now()
+
+		maybeId := c.Param("id")
+		var planet *uuid.UUID
+		if id, err := uuid.Parse(maybeId); err == nil {
+			planet = &id
+		}
+
+		err := data.updateGameToCurrentTime(c.Request().Context(), planet, timeStamp)
 		if err != nil {
-			c.Logger().Errorf("Failed to scheduled pending actions %v", err)
-			return c.JSON(http.StatusInternalServerError, "Failed to process actions")
+			if errors.IsErrorWithCode(err, actionSchedulingFailed) {
+				c.Logger().Errorf("Failed to scheduled pending actions %v", err)
+				return c.JSON(http.StatusInternalServerError, "Failed to process actions")
+			}
+			if errors.IsErrorWithCode(err, planetResourceUpdateFailed) {
+				c.Logger().Errorf("Failed to update planet resources %v", err)
+				return c.JSON(http.StatusInternalServerError, "Failed to update resources")
+			}
+
+			c.Logger().Errorf("Failed to update game to current time %v", err)
+			return c.JSON(http.StatusInternalServerError, "Failed to update game")
 		}
 
 		return next(c)
 	}
 }
 
-func (data *actionProcessingData) schedulePendingActions(ctx context.Context) error {
+func (data *actionProcessingData) updateGameToCurrentTime(ctx context.Context, planet *uuid.UUID, timeStamp time.Time) error {
 	data.lock.Lock()
 	defer data.lock.Unlock()
 
-	return data.service.ProcessActionsUntil(ctx, time.Now())
+	err := data.actionService.ProcessActionsUntil(ctx, timeStamp)
+	if err != nil {
+		return errors.WrapCode(err, actionSchedulingFailed)
+	}
+
+	if planet == nil {
+		return nil
+	}
+
+	err = data.planetResourceService.UpdatePlanetUntil(ctx, *planet, timeStamp)
+	if err != nil {
+		return errors.WrapCode(err, planetResourceUpdateFailed)
+	}
+
+	return nil
 }
