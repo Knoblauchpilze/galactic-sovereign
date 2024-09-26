@@ -15,6 +15,7 @@ import (
 	"github.com/KnoblauchPilze/user-service/pkg/db"
 	"github.com/KnoblauchPilze/user-service/pkg/errors"
 	"github.com/KnoblauchPilze/user-service/pkg/game"
+	"github.com/KnoblauchPilze/user-service/pkg/rest"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -46,36 +47,32 @@ var defaultBuildingActionDtoResponse = communication.BuildingActionDtoResponse{
 	CompletedAt:  time.Date(2024, 8, 11, 14, 12, 36, 651387243, time.UTC),
 }
 
-func TestBuildingActionEndpoints_GeneratesExpectedRoutes(t *testing.T) {
-	assert := assert.New(t)
+func Test_BuildingActionEndpoints(t *testing.T) {
+	s := RouteTestSuite{
+		generateRoutes: func() rest.Routes {
+			return BuildingActionEndpoints(&mockBuildingActionService{}, &mockActionService{}, &mockPlanetResourceService{})
+		},
+		expectedRoutes: map[string]int{
+			http.MethodPost:   1,
+			http.MethodDelete: 1,
+		},
 
-	actualRoutes := make(map[string]int)
-	for _, r := range BuildingActionEndpoints(&mockBuildingActionService{}, &mockActionService{}, &mockPlanetResourceService{}) {
-		actualRoutes[r.Method()]++
+		errorTestCases: map[string]routeErrorTestCase{
+			"whenActionServiceFails": {
+				generateRoutes: func() rest.Routes {
+					m := &mockActionService{
+						err: errDefault,
+					}
+
+					return BuildingActionEndpoints(&mockBuildingActionService{}, m, &mockPlanetResourceService{})
+				},
+				expectedStatusCode: http.StatusInternalServerError,
+				expectedError:      "\"Failed to process actions\"\n",
+			},
+		},
 	}
 
-	assert.Equal(2, len(actualRoutes))
-	assert.Equal(1, actualRoutes[http.MethodPost])
-	assert.Equal(1, actualRoutes[http.MethodDelete])
-}
-
-func TestBuildingActionEndpoints_WhenActionServiceFails_SetsReturnStatusInternalError(t *testing.T) {
-	assert := assert.New(t)
-
-	m := &mockActionService{
-		err: errDefault,
-	}
-
-	for _, route := range BuildingActionEndpoints(&mockBuildingActionService{}, m, &mockPlanetResourceService{}) {
-		ctx, rw := generateTestEchoContextWithMethodAndId(http.MethodGet)
-
-		handler := route.Handler()
-		err := handler(ctx)
-
-		assert.Nil(err)
-		assert.Equal(http.StatusInternalServerError, rw.Code)
-		assert.Equal("\"Failed to process actions\"\n", rw.Body.String())
-	}
+	suite.Run(t, &s)
 }
 
 func TestBuildingActionEndpoints_WhenNoPlanetId_ExpectPlanetResourceNotUpdated(t *testing.T) {
@@ -111,6 +108,7 @@ func TestBuildingActionEndpoints_WhenPlanetIdIsInvalid_ExpectPlanetResourceNotUp
 		assert.Equal(0, m.updatePlanetUntilCalled)
 	}
 }
+
 func TestBuildingActionEndpoints_WhenPlanetIdValid_ExpectPlanetResourceAreUpdated(t *testing.T) {
 	assert := assert.New(t)
 

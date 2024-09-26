@@ -14,8 +14,8 @@ import (
 	"github.com/KnoblauchPilze/user-service/pkg/communication"
 	"github.com/KnoblauchPilze/user-service/pkg/db"
 	"github.com/KnoblauchPilze/user-service/pkg/errors"
+	"github.com/KnoblauchPilze/user-service/pkg/rest"
 	"github.com/google/uuid"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 )
@@ -51,18 +51,19 @@ var defaultPlayerDtoResponse = communication.PlayerDtoResponse{
 	CreatedAt: time.Date(2024, 07, 13, 14, 42, 50, 651387235, time.UTC),
 }
 
-func TestPlayerEndpoints_GeneratesExpectedRoutes(t *testing.T) {
-	assert := assert.New(t)
-
-	actualRoutes := make(map[string]int)
-	for _, r := range PlayerEndpoints(&mockPlayerService{}) {
-		actualRoutes[r.Method()]++
+func Test_PlayerEndpoints(t *testing.T) {
+	s := RouteTestSuite{
+		generateRoutes: func() rest.Routes {
+			return PlayerEndpoints(&mockPlayerService{})
+		},
+		expectedRoutes: map[string]int{
+			http.MethodPost:   1,
+			http.MethodGet:    2,
+			http.MethodDelete: 1,
+		},
 	}
 
-	assert.Equal(3, len(actualRoutes))
-	assert.Equal(1, actualRoutes[http.MethodPost])
-	assert.Equal(2, actualRoutes[http.MethodGet])
-	assert.Equal(1, actualRoutes[http.MethodDelete])
+	suite.Run(t, &s)
 }
 
 func Test_PlayerController(t *testing.T) {

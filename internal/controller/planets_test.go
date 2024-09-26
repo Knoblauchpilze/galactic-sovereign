@@ -15,6 +15,7 @@ import (
 	"github.com/KnoblauchPilze/user-service/pkg/db"
 	"github.com/KnoblauchPilze/user-service/pkg/errors"
 	"github.com/KnoblauchPilze/user-service/pkg/game"
+	"github.com/KnoblauchPilze/user-service/pkg/rest"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -106,40 +107,33 @@ var defaultFullPlanetDtoResponse = communication.FullPlanetDtoResponse{
 	},
 }
 
-func TestPlanetEndpoints_GeneratesExpectedRoutes(t *testing.T) {
-	assert := assert.New(t)
+func Test_PlanetEndpoints(t *testing.T) {
+	s := RouteTestSuite{
+		generateRoutes: func() rest.Routes {
+			return PlanetEndpoints(&mockPlanetService{}, &mockActionService{}, &mockPlanetResourceService{})
+		},
+		expectedRoutes: map[string]int{
+			http.MethodPost:   1,
+			http.MethodGet:    2,
+			http.MethodDelete: 1,
+		},
 
-	actualRoutes := make(map[string]int)
-	for _, r := range PlanetEndpoints(&mockPlanetService{}, &mockActionService{}, &mockPlanetResourceService{}) {
-		actualRoutes[r.Method()]++
+		errorTestCases: map[string]routeErrorTestCase{
+			"whenActionServiceFails": {
+				generateRoutes: func() rest.Routes {
+					m := &mockActionService{
+						err: errDefault,
+					}
+
+					return PlanetEndpoints(&mockPlanetService{}, m, &mockPlanetResourceService{})
+				},
+				expectedStatusCode: http.StatusInternalServerError,
+				expectedError:      "\"Failed to process actions\"\n",
+			},
+		},
 	}
 
-	assert.Equal(3, len(actualRoutes))
-	assert.Equal(1, actualRoutes[http.MethodPost])
-	assert.Equal(2, actualRoutes[http.MethodGet])
-	assert.Equal(1, actualRoutes[http.MethodDelete])
-}
-
-func TestPlanetEndpoints_WhenActionServiceFails_SetsReturnStatusInternalError(t *testing.T) {
-	assert := assert.New(t)
-
-	m := &mockActionService{
-		err: errDefault,
-	}
-
-	for _, route := range PlanetEndpoints(&mockPlanetService{}, m, &mockPlanetResourceService{}) {
-		ctx, rw := generateTestEchoContextWithMethodAndId(http.MethodGet)
-
-		m.processActionsCalled = 0
-
-		handler := route.Handler()
-		err := handler(ctx)
-
-		assert.Nil(err)
-		assert.Equal(1, m.processActionsCalled)
-		assert.Equal(http.StatusInternalServerError, rw.Code)
-		assert.Equal("\"Failed to process actions\"\n", rw.Body.String())
-	}
+	suite.Run(t, &s)
 }
 
 func TestPlanetEndpoints_WhenNoPlanetId_ExpectPlanetResourceNotUpdated(t *testing.T) {
