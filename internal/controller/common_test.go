@@ -132,6 +132,16 @@ func generateTestEchoContextWithMethod(method string) (echo.Context, *httptest.R
 	return generateTestEchoContextFromRequest(req)
 }
 
+func generateTestEchoContextWithMethodAndId(method string) (echo.Context, *httptest.ResponseRecorder) {
+	req := httptest.NewRequest(method, "/", nil)
+	ctx, rw := generateTestEchoContextFromRequest(req)
+
+	ctx.SetParamNames("id")
+	ctx.SetParamValues(defaultUuid.String())
+
+	return ctx, rw
+}
+
 func generateTestEchoContextFromRequest(req *http.Request) (echo.Context, *httptest.ResponseRecorder) {
 	e := echo.New()
 	rw := httptest.NewRecorder()

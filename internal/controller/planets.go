@@ -13,23 +13,25 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func PlanetEndpoints(service service.PlanetService, actions game.ActionService) rest.Routes {
+func PlanetEndpoints(planetService service.PlanetService,
+	actionService game.ActionService,
+	planetResourceService game.PlanetResourceService) rest.Routes {
 	var out rest.Routes
 
-	postHandler := fromPlanetServiceAwareHttpHandler(createPlanet, service)
-	post := game.NewRoute(http.MethodPost, "/planets", postHandler, actions)
+	postHandler := fromPlanetServiceAwareHttpHandler(createPlanet, planetService)
+	post := game.NewRoute(http.MethodPost, "/planets", postHandler, actionService, planetResourceService)
 	out = append(out, post)
 
-	getHandler := fromPlanetServiceAwareHttpHandler(getPlanet, service)
-	get := game.NewResourceRoute(http.MethodGet, "/planets", getHandler, actions)
+	getHandler := fromPlanetServiceAwareHttpHandler(getPlanet, planetService)
+	get := game.NewResourceRoute(http.MethodGet, "/planets", getHandler, actionService, planetResourceService)
 	out = append(out, get)
 
-	listHandler := fromPlanetServiceAwareHttpHandler(listPlanets, service)
-	list := game.NewRoute(http.MethodGet, "/planets", listHandler, actions)
+	listHandler := fromPlanetServiceAwareHttpHandler(listPlanets, planetService)
+	list := game.NewRoute(http.MethodGet, "/planets", listHandler, actionService, planetResourceService)
 	out = append(out, list)
 
-	deleteHandler := fromPlanetServiceAwareHttpHandler(deletePlanet, service)
-	delete := game.NewResourceRoute(http.MethodDelete, "/planets", deleteHandler, actions)
+	deleteHandler := fromPlanetServiceAwareHttpHandler(deletePlanet, planetService)
+	delete := game.NewResourceRoute(http.MethodDelete, "/planets", deleteHandler, actionService, planetResourceService)
 	out = append(out, delete)
 
 	return out

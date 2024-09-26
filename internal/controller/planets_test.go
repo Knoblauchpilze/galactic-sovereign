@@ -45,6 +45,16 @@ type mockActionService struct {
 	until                time.Time
 }
 
+type mockPlanetResourceService struct {
+	game.PlanetResourceService
+
+	err error
+
+	updatePlanetUntilCalled int
+	planet                  uuid.UUID
+	until                   time.Time
+}
+
 var defaultPlanetId = uuid.MustParse("080f5a2b-800a-458d-9806-7660bde4db00")
 var defaultResourceId = uuid.MustParse("84e01480-5433-4ebe-a078-7e1cd18c86c4")
 var defaultBuildingId = uuid.MustParse("ba846861-b015-4726-b9a8-3fe1cf2621e7")
@@ -100,7 +110,7 @@ func TestPlanetEndpoints_GeneratesExpectedRoutes(t *testing.T) {
 	assert := assert.New(t)
 
 	actualRoutes := make(map[string]int)
-	for _, r := range PlanetEndpoints(&mockPlanetService{}, &mockActionService{}) {
+	for _, r := range PlanetEndpoints(&mockPlanetService{}, &mockActionService{}, &mockPlanetResourceService{}) {
 		actualRoutes[r.Method()]++
 	}
 
@@ -110,22 +120,100 @@ func TestPlanetEndpoints_GeneratesExpectedRoutes(t *testing.T) {
 	assert.Equal(1, actualRoutes[http.MethodDelete])
 }
 
-func TestPlanetEndpoints_WhenServiceFails_SetsReturnStatusInternalError(t *testing.T) {
+func TestPlanetEndpoints_WhenActionServiceFails_SetsReturnStatusInternalError(t *testing.T) {
 	assert := assert.New(t)
 
 	m := &mockActionService{
 		err: errDefault,
 	}
 
-	for _, route := range PlanetEndpoints(&mockPlanetService{}, m) {
-		ctx, rw := generateTestEchoContextWithMethod(http.MethodGet)
+	for _, route := range PlanetEndpoints(&mockPlanetService{}, m, &mockPlanetResourceService{}) {
+		ctx, rw := generateTestEchoContextWithMethodAndId(http.MethodGet)
+
+		m.processActionsCalled = 0
 
 		handler := route.Handler()
 		err := handler(ctx)
 
 		assert.Nil(err)
+		assert.Equal(1, m.processActionsCalled)
 		assert.Equal(http.StatusInternalServerError, rw.Code)
 		assert.Equal("\"Failed to process actions\"\n", rw.Body.String())
+	}
+}
+
+func TestPlanetEndpoints_WhenNoPlanetId_ExpectPlanetResourceNotUpdated(t *testing.T) {
+	assert := assert.New(t)
+
+	m := &mockPlanetResourceService{}
+
+	for _, route := range PlanetEndpoints(&mockPlanetService{}, &mockActionService{}, m) {
+		ctx, _ := generateTestEchoContextWithMethod(http.MethodGet)
+
+		handler := route.Handler()
+		err := handler(ctx)
+
+		assert.Nil(err)
+		assert.Equal(0, m.updatePlanetUntilCalled)
+	}
+}
+
+func TestPlanetEndpoints_WhenPlanetIdIsInvalid_ExpectPlanetResourceNotUpdated(t *testing.T) {
+	assert := assert.New(t)
+
+	m := &mockPlanetResourceService{}
+
+	for _, route := range PlanetEndpoints(&mockPlanetService{}, &mockActionService{}, m) {
+		ctx, _ := generateTestEchoContextWithMethod(http.MethodGet)
+		ctx.SetParamNames("id")
+		ctx.SetParamValues("not-a-uuid")
+
+		handler := route.Handler()
+		err := handler(ctx)
+
+		assert.Nil(err)
+		assert.Equal(0, m.updatePlanetUntilCalled)
+	}
+}
+
+func TestPlanetEndpoints_WhenPlanetIdValid_ExpectPlanetResourceAreUpdated(t *testing.T) {
+	assert := assert.New(t)
+
+	m := &mockPlanetResourceService{}
+
+	for _, route := range PlanetEndpoints(&mockPlanetService{}, &mockActionService{}, m) {
+		ctx, _ := generateTestEchoContextWithMethodAndId(http.MethodGet)
+
+		m.updatePlanetUntilCalled = 0
+
+		handler := route.Handler()
+		err := handler(ctx)
+
+		assert.Nil(err)
+		assert.Equal(1, m.updatePlanetUntilCalled)
+		assert.Equal(defaultUuid, m.planet)
+	}
+}
+
+func TestPlanetEndpoints_WhenPlanetResourceServiceFails_SetsReturnStatusInternalError(t *testing.T) {
+	assert := assert.New(t)
+
+	m := &mockPlanetResourceService{
+		err: errDefault,
+	}
+
+	for _, route := range PlanetEndpoints(&mockPlanetService{}, &mockActionService{}, m) {
+		ctx, rw := generateTestEchoContextWithMethodAndId(http.MethodGet)
+
+		m.updatePlanetUntilCalled = 0
+
+		handler := route.Handler()
+		err := handler(ctx)
+
+		assert.Nil(err)
+		assert.Equal(1, m.updatePlanetUntilCalled)
+		assert.Equal(http.StatusInternalServerError, rw.Code)
+		assert.Equal("\"Failed to update resources\"\n", rw.Body.String())
 	}
 }
 
@@ -418,6 +506,13 @@ func (m *mockPlanetService) Delete(ctx context.Context, id uuid.UUID) error {
 
 func (m *mockActionService) ProcessActionsUntil(ctx context.Context, until time.Time) error {
 	m.processActionsCalled++
+	m.until = until
+	return m.err
+}
+
+func (m *mockPlanetResourceService) UpdatePlanetUntil(ctx context.Context, planet uuid.UUID, until time.Time) error {
+	m.updatePlanetUntilCalled++
+	m.planet = planet
 	m.until = until
 	return m.err
 }
