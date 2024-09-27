@@ -5,6 +5,7 @@ import (
 
 	"github.com/KnoblauchPilze/user-service/pkg/communication"
 	"github.com/KnoblauchPilze/user-service/pkg/db"
+	"github.com/KnoblauchPilze/user-service/pkg/errors"
 	"github.com/KnoblauchPilze/user-service/pkg/game"
 	"github.com/KnoblauchPilze/user-service/pkg/persistence"
 	"github.com/KnoblauchPilze/user-service/pkg/repositories"
@@ -100,6 +101,10 @@ func (s *buildingActionServiceImpl) Delete(ctx context.Context, id uuid.UUID) er
 	action, err := s.buildingActionRepo.Get(ctx, tx, id)
 	if err != nil {
 		return err
+	}
+
+	if action.CompletedAt.Before(tx.TimeStamp()) {
+		return errors.NewCode(ActionAlreadyCompleted)
 	}
 
 	costs, err := s.buildingActionCostRepo.ListForAction(ctx, tx, action.Id)

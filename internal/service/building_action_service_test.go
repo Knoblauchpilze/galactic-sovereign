@@ -7,6 +7,7 @@ import (
 
 	"github.com/KnoblauchPilze/user-service/pkg/communication"
 	"github.com/KnoblauchPilze/user-service/pkg/db"
+	"github.com/KnoblauchPilze/user-service/pkg/errors"
 	"github.com/KnoblauchPilze/user-service/pkg/persistence"
 	"github.com/KnoblauchPilze/user-service/pkg/repositories"
 	"github.com/google/uuid"
@@ -651,6 +652,26 @@ func Test_BuildingActionService(t *testing.T) {
 
 					assert.Equal(1, m.deleteCalled)
 					assert.Equal(defaultBuildingAction.Id, m.deleteId)
+				},
+			},
+			"delete_failure_actionCompletedInThePast": {
+				generateConnectionPoolMock: func() db.ConnectionPool {
+					return &mockConnectionPool{
+						timeStamp: defaultBuildingAction.CompletedAt.Add(2 * time.Minute),
+					}
+				},
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewBuildingActionService(pool, repos)
+					return s.Delete(ctx, defaultBuildingAction.Id)
+				},
+				verifyError: func(err error, assert *require.Assertions) {
+					assert.True(errors.IsErrorWithCode(err, ActionAlreadyCompleted))
+				},
+				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
+					m := assertBuildingActionRepoIsAMock(repos, assert)
+
+					assert.Equal(1, m.getCalled)
+					assert.Equal(defaultBuildingAction.Id, m.getId)
 				},
 			},
 		},

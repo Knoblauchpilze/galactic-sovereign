@@ -25,8 +25,7 @@ func BuildingActionEndpoints(buildingActionService service.BuildingActionService
 	out = append(out, post)
 
 	deleteHandler := fromBuildingActionServiceAwareHttpHandler(deleteBuildingAction, buildingActionService)
-	// TODO: This will not process anything but should probably.
-	delete := game.NewResourceRoute(http.MethodDelete, "/actions", deleteHandler, actionService, planetResourceService)
+	delete := rest.NewResourceRoute(http.MethodDelete, false, "/actions", deleteHandler)
 	out = append(out, delete)
 
 	return out
