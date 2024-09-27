@@ -19,7 +19,7 @@ func PlanetEndpoints(planetService service.PlanetService,
 	var out rest.Routes
 
 	postHandler := fromPlanetServiceAwareHttpHandler(createPlanet, planetService)
-	post := game.NewRoute(http.MethodPost, "/planets", postHandler, actionService, planetResourceService)
+	post := rest.NewRoute(http.MethodPost, false, "/planets", postHandler)
 	out = append(out, post)
 
 	getHandler := fromPlanetServiceAwareHttpHandler(getPlanet, planetService)
@@ -27,7 +27,7 @@ func PlanetEndpoints(planetService service.PlanetService,
 	out = append(out, get)
 
 	listHandler := fromPlanetServiceAwareHttpHandler(listPlanets, planetService)
-	list := game.NewRoute(http.MethodGet, "/planets", listHandler, actionService, planetResourceService)
+	list := rest.NewRoute(http.MethodGet, false, "/planets", listHandler)
 	out = append(out, list)
 
 	deleteHandler := fromPlanetServiceAwareHttpHandler(deletePlanet, planetService)
