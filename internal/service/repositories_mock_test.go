@@ -124,6 +124,7 @@ type mockBuildingActionRepository struct {
 	listForPlanetId                uuid.UUID
 	listForPlanetCalled            int
 	listBeforeCompletionTimeCalled int
+	listBeforeCompletionTimePlanet uuid.UUID
 	listBeforeCompletionTime       time.Time
 	deleteCalled                   int
 	deleteId                       uuid.UUID
@@ -161,8 +162,9 @@ func (m *mockBuildingActionRepository) ListForPlanet(ctx context.Context, tx db.
 	return []persistence.BuildingAction{m.action}, *err
 }
 
-func (m *mockBuildingActionRepository) ListBeforeCompletionTime(ctx context.Context, tx db.Transaction, until time.Time) ([]persistence.BuildingAction, error) {
+func (m *mockBuildingActionRepository) ListBeforeCompletionTime(ctx context.Context, tx db.Transaction, planet uuid.UUID, until time.Time) ([]persistence.BuildingAction, error) {
 	m.listBeforeCompletionTimeCalled++
+	m.listBeforeCompletionTimePlanet = planet
 	m.listBeforeCompletionTime = until
 
 	err := getValueToReturnOr(m.calls, m.errs, nil)

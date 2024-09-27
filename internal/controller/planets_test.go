@@ -42,6 +42,7 @@ type mockActionService struct {
 	err error
 
 	processActionsCalled int
+	planet               uuid.UUID
 	until                time.Time
 }
 
@@ -443,8 +444,9 @@ func (m *mockPlanetService) Delete(ctx context.Context, id uuid.UUID) error {
 	return m.err
 }
 
-func (m *mockActionService) ProcessActionsUntil(ctx context.Context, until time.Time) error {
+func (m *mockActionService) ProcessActionsUntil(ctx context.Context, planet uuid.UUID, until time.Time) error {
 	m.processActionsCalled++
+	m.planet = planet
 	m.until = until
 	return m.err
 }

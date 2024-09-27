@@ -9,6 +9,7 @@ import (
 	"github.com/KnoblauchPilze/user-service/pkg/game"
 	"github.com/KnoblauchPilze/user-service/pkg/persistence"
 	"github.com/KnoblauchPilze/user-service/pkg/repositories"
+	"github.com/google/uuid"
 )
 
 type actionServiceImpl struct {
@@ -35,8 +36,8 @@ func NewActionService(conn db.ConnectionPool, repos repositories.Repositories) g
 	}
 }
 
-func (s *actionServiceImpl) ProcessActionsUntil(ctx context.Context, until time.Time) error {
-	actions, err := s.fetchActionsUntil(ctx, until)
+func (s *actionServiceImpl) ProcessActionsUntil(ctx context.Context, planet uuid.UUID, until time.Time) error {
+	actions, err := s.fetchActionsUntil(ctx, planet, until)
 	if err != nil {
 		return err
 	}
@@ -51,14 +52,14 @@ func (s *actionServiceImpl) ProcessActionsUntil(ctx context.Context, until time.
 	return nil
 }
 
-func (s *actionServiceImpl) fetchActionsUntil(ctx context.Context, until time.Time) ([]persistence.BuildingAction, error) {
+func (s *actionServiceImpl) fetchActionsUntil(ctx context.Context, planet uuid.UUID, until time.Time) ([]persistence.BuildingAction, error) {
 	tx, err := s.conn.StartTransaction(ctx)
 	if err != nil {
 		return []persistence.BuildingAction{}, err
 	}
 	defer tx.Close(ctx)
 
-	return s.buildingActionRepo.ListBeforeCompletionTime(ctx, tx, until)
+	return s.buildingActionRepo.ListBeforeCompletionTime(ctx, tx, planet, until)
 }
 
 func (s *actionServiceImpl) processAction(ctx context.Context, action persistence.BuildingAction) error {

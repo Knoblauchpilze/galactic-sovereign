@@ -14,7 +14,7 @@ type BuildingActionRepository interface {
 	Create(ctx context.Context, tx db.Transaction, action persistence.BuildingAction) (persistence.BuildingAction, error)
 	Get(ctx context.Context, tx db.Transaction, id uuid.UUID) (persistence.BuildingAction, error)
 	ListForPlanet(ctx context.Context, tx db.Transaction, planet uuid.UUID) ([]persistence.BuildingAction, error)
-	ListBeforeCompletionTime(ctx context.Context, tx db.Transaction, until time.Time) ([]persistence.BuildingAction, error)
+	ListBeforeCompletionTime(ctx context.Context, tx db.Transaction, planet uuid.UUID, until time.Time) ([]persistence.BuildingAction, error)
 	Delete(ctx context.Context, tx db.Transaction, action uuid.UUID) error
 	DeleteForPlanet(ctx context.Context, tx db.Transaction, planet uuid.UUID) error
 }
@@ -123,10 +123,11 @@ SELECT
 FROM
 	building_action
 WHERE
-	completed_at <= $1`
+	completed_at <= $1
+	AND planet = $2`
 
-func (r *buildingActionRepositoryImpl) ListBeforeCompletionTime(ctx context.Context, tx db.Transaction, until time.Time) ([]persistence.BuildingAction, error) {
-	res := tx.Query(ctx, listBuildingActionBeforeCompletionTimeSqlTemplate, until)
+func (r *buildingActionRepositoryImpl) ListBeforeCompletionTime(ctx context.Context, tx db.Transaction, planet uuid.UUID, until time.Time) ([]persistence.BuildingAction, error) {
+	res := tx.Query(ctx, listBuildingActionBeforeCompletionTimeSqlTemplate, until, planet)
 	if err := res.Err(); err != nil {
 		return []persistence.BuildingAction{}, err
 	}
