@@ -125,7 +125,7 @@ func Test_PlanetEndpoints(t *testing.T) {
 						err: errDefault,
 					}
 
-					return PlanetEndpoints(&mockPlanetService{}, m, &mockPlanetResourceService{})
+					return generateRoutesUsingGameUpdateWatcher(m, &mockPlanetResourceService{})
 				},
 				expectedStatusCode: http.StatusInternalServerError,
 				expectedError:      "\"Failed to process actions\"\n",
@@ -136,7 +136,7 @@ func Test_PlanetEndpoints(t *testing.T) {
 						err: errDefault,
 					}
 
-					return PlanetEndpoints(&mockPlanetService{}, &mockActionService{}, m)
+					return generateRoutesUsingGameUpdateWatcher(&mockActionService{}, m)
 				},
 				expectedStatusCode: http.StatusInternalServerError,
 				expectedError:      "\"Failed to update resources\"\n",
@@ -146,9 +146,7 @@ func Test_PlanetEndpoints(t *testing.T) {
 		interactionTestCases: []routeInteractionTestCase{
 			{
 				generateRoutes: func(actionService game.ActionService, planetResourceService game.PlanetResourceService) rest.Routes {
-					return PlanetEndpoints(&mockPlanetService{},
-						actionService,
-						planetResourceService)
+					return generateRoutesUsingGameUpdateWatcher(actionService, planetResourceService)
 				},
 			},
 		},
@@ -354,6 +352,22 @@ func Test_PlanetController(t *testing.T) {
 	}
 
 	suite.Run(t, &s)
+}
+
+func generateRoutesUsingGameUpdateWatcher(actionService game.ActionService, planetResourceService game.PlanetResourceService) rest.Routes {
+	allRoutes := PlanetEndpoints(&mockPlanetService{}, actionService, planetResourceService)
+
+	var routes rest.Routes
+	for _, route := range allRoutes {
+		isPost := route.Method() == http.MethodPost
+		isList := route.Method() == http.MethodGet && route.Path() == "/planets"
+
+		if !isPost && !isList {
+			routes = append(routes, route)
+		}
+	}
+
+	return routes
 }
 
 func generatePlanetServiceMock() service.PlanetService {
