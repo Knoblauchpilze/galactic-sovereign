@@ -63,7 +63,7 @@ func Test_BuildingActionEndpoints(t *testing.T) {
 						err: errDefault,
 					}
 
-					return BuildingActionEndpoints(&mockBuildingActionService{}, m, &mockPlanetResourceService{})
+					return generateBuildingActionRoutesUsingGameUpdateWatcher(m, &mockPlanetResourceService{})
 				},
 				expectedStatusCode: http.StatusInternalServerError,
 				expectedError:      "\"Failed to process actions\"\n",
@@ -74,7 +74,7 @@ func Test_BuildingActionEndpoints(t *testing.T) {
 						err: errDefault,
 					}
 
-					return BuildingActionEndpoints(&mockBuildingActionService{}, &mockActionService{}, m)
+					return generateBuildingActionRoutesUsingGameUpdateWatcher(&mockActionService{}, m)
 				},
 				expectedStatusCode: http.StatusInternalServerError,
 				expectedError:      "\"Failed to update resources\"\n",
@@ -84,9 +84,7 @@ func Test_BuildingActionEndpoints(t *testing.T) {
 		interactionTestCases: []routeInteractionTestCase{
 			{
 				generateRoutes: func(actionService game.ActionService, planetResourceService game.PlanetResourceService) rest.Routes {
-					return BuildingActionEndpoints(&mockBuildingActionService{},
-						actionService,
-						planetResourceService)
+					return generateBuildingActionRoutesUsingGameUpdateWatcher(actionService, planetResourceService)
 				},
 			},
 		},
@@ -224,6 +222,21 @@ func Test_BuildingActionController(t *testing.T) {
 	}
 
 	suite.Run(t, &s)
+}
+
+func generateBuildingActionRoutesUsingGameUpdateWatcher(actionService game.ActionService, planetResourceService game.PlanetResourceService) rest.Routes {
+	allRoutes := BuildingActionEndpoints(&mockBuildingActionService{}, actionService, planetResourceService)
+
+	var routes rest.Routes
+	for _, route := range allRoutes {
+		isDelete := route.Method() == http.MethodDelete
+
+		if !isDelete {
+			routes = append(routes, route)
+		}
+	}
+
+	return routes
 }
 
 func generateBuildingActionServiceMock() service.BuildingActionService {

@@ -125,7 +125,7 @@ func Test_PlanetEndpoints(t *testing.T) {
 						err: errDefault,
 					}
 
-					return generateRoutesUsingGameUpdateWatcher(m, &mockPlanetResourceService{})
+					return generatePlanetRoutesUsingGameUpdateWatcher(m, &mockPlanetResourceService{})
 				},
 				expectedStatusCode: http.StatusInternalServerError,
 				expectedError:      "\"Failed to process actions\"\n",
@@ -136,7 +136,7 @@ func Test_PlanetEndpoints(t *testing.T) {
 						err: errDefault,
 					}
 
-					return generateRoutesUsingGameUpdateWatcher(&mockActionService{}, m)
+					return generatePlanetRoutesUsingGameUpdateWatcher(&mockActionService{}, m)
 				},
 				expectedStatusCode: http.StatusInternalServerError,
 				expectedError:      "\"Failed to update resources\"\n",
@@ -146,7 +146,7 @@ func Test_PlanetEndpoints(t *testing.T) {
 		interactionTestCases: []routeInteractionTestCase{
 			{
 				generateRoutes: func(actionService game.ActionService, planetResourceService game.PlanetResourceService) rest.Routes {
-					return generateRoutesUsingGameUpdateWatcher(actionService, planetResourceService)
+					return generatePlanetRoutesUsingGameUpdateWatcher(actionService, planetResourceService)
 				},
 			},
 		},
@@ -354,7 +354,7 @@ func Test_PlanetController(t *testing.T) {
 	suite.Run(t, &s)
 }
 
-func generateRoutesUsingGameUpdateWatcher(actionService game.ActionService, planetResourceService game.PlanetResourceService) rest.Routes {
+func generatePlanetRoutesUsingGameUpdateWatcher(actionService game.ActionService, planetResourceService game.PlanetResourceService) rest.Routes {
 	allRoutes := PlanetEndpoints(&mockPlanetService{}, actionService, planetResourceService)
 
 	var routes rest.Routes
