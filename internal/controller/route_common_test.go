@@ -99,6 +99,75 @@ func (s *RouteTestSuite) Test_WhenActionServiceFails_ExpectCorrectInteraction() 
 	}
 }
 
+func (s *RouteTestSuite) Test_WhenNoPlanetId_ExpectNoSchedulingOfActions() {
+	for _, testCase := range s.interactionTestCases {
+		m := &mockActionService{}
+
+		s.Require().NotNil(testCase.generateRoutes)
+		routes := testCase.generateRoutes(m, &mockPlanetResourceService{})
+
+		for _, route := range routes {
+			s.T().Run("whenNoPlanetId_"+route.Method(), func(t *testing.T) {
+				m.processActionsCalled = 0
+				ctx, _ := generateTestEchoContextWithMethod(route.Method())
+
+				handler := route.Handler()
+				err := handler(ctx)
+
+				s.Require().Nil(err)
+				s.Require().Equal(0, m.processActionsCalled)
+			})
+		}
+	}
+}
+
+func (s *RouteTestSuite) Test_WhenPlanetIdIsInvalid_ExpectNoSchedulingOfActions() {
+	for _, testCase := range s.interactionTestCases {
+		m := &mockActionService{}
+
+		s.Require().NotNil(testCase.generateRoutes)
+		routes := testCase.generateRoutes(m, &mockPlanetResourceService{})
+
+		for _, route := range routes {
+			s.T().Run("whenPlanetIdIsInvalid_"+route.Method(), func(t *testing.T) {
+				m.processActionsCalled = 0
+				ctx, _ := generateTestEchoContextWithMethod(route.Method())
+				ctx.SetParamNames("id")
+				ctx.SetParamValues("not-a-uuid")
+
+				handler := route.Handler()
+				err := handler(ctx)
+
+				s.Require().Nil(err)
+				s.Require().Equal(0, m.processActionsCalled)
+			})
+		}
+	}
+}
+
+func (s *RouteTestSuite) Test_WhenPlanetIdIsValid_ExpectSchedulingOfActions() {
+	for _, testCase := range s.interactionTestCases {
+		m := &mockActionService{}
+
+		s.Require().NotNil(testCase.generateRoutes)
+		routes := testCase.generateRoutes(m, &mockPlanetResourceService{})
+
+		for _, route := range routes {
+			s.T().Run("whenPlanetIdIsValid_"+route.Method(), func(t *testing.T) {
+				m.processActionsCalled = 0
+				ctx, _ := generateTestEchoContextWithMethodAndId(route.Method())
+
+				handler := route.Handler()
+				err := handler(ctx)
+
+				s.Require().Nil(err)
+				s.Require().Equal(1, m.processActionsCalled)
+				s.Require().Equal(defaultUuid, m.planet)
+			})
+		}
+	}
+}
+
 func (s *RouteTestSuite) Test_WhenPlanetResourceServiceFails_ExpectCorrectInteraction() {
 	for _, testCase := range s.interactionTestCases {
 		m := &mockPlanetResourceService{
@@ -153,7 +222,7 @@ func (s *RouteTestSuite) Test_WhenPlanetIdIsInvalid_ExpectNoUpdateOfResources() 
 		routes := testCase.generateRoutes(&mockActionService{}, m)
 
 		for _, route := range routes {
-			s.T().Run("whenNoPlanetId_"+route.Method(), func(t *testing.T) {
+			s.T().Run("whenPlanetIdIsInvalid_"+route.Method(), func(t *testing.T) {
 				m.updatePlanetUntilCalled = 0
 				ctx, _ := generateTestEchoContextWithMethod(route.Method())
 				ctx.SetParamNames("id")
@@ -177,7 +246,7 @@ func (s *RouteTestSuite) Test_WhenPlanetIdIsValid_ExpectUpdateOfResources() {
 		routes := testCase.generateRoutes(&mockActionService{}, m)
 
 		for _, route := range routes {
-			s.T().Run("whenNoPlanetId_"+route.Method(), func(t *testing.T) {
+			s.T().Run("whenPlanetIdIsValid_"+route.Method(), func(t *testing.T) {
 				m.updatePlanetUntilCalled = 0
 				ctx, _ := generateTestEchoContextWithMethodAndId(route.Method())
 

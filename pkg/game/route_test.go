@@ -21,6 +21,7 @@ type mockActionService struct {
 	err error
 
 	processActionsCalled int
+	planet               uuid.UUID
 	until                time.Time
 }
 
@@ -96,6 +97,24 @@ func TestRoute_WithResource_Handler(t *testing.T) {
 	assert.Nil(err)
 }
 
+func TestRoute_WhenNoPlanetId_DoesNotScheduleActions(t *testing.T) {
+	assert := assert.New(t)
+
+	handler := func(c echo.Context) error {
+		return nil
+	}
+
+	m := &mockActionService{}
+
+	r := NewResourceRoute(http.MethodGet, "", handler, m, &mockPlanetResourceService{})
+	actual := r.Handler()
+	ctx, _, _ := generateTestEchoContext()
+	err := actual(ctx)
+
+	assert.Nil(err)
+	assert.Equal(0, m.processActionsCalled)
+}
+
 func TestRoute_CallsActionService(t *testing.T) {
 	assert := assert.New(t)
 
@@ -107,10 +126,12 @@ func TestRoute_CallsActionService(t *testing.T) {
 
 	r := NewResourceRoute(http.MethodGet, "", handler, m, &mockPlanetResourceService{})
 	actual := r.Handler()
-	err := actual(dummyEchoContext())
+	ctx, _, _ := generateTestEchoContextWithPlanetId()
+	err := actual(ctx)
 
 	assert.Nil(err)
 	assert.Equal(1, m.processActionsCalled)
+	assert.Equal(someUuid, m.planet)
 }
 
 func TestRoute_ScheduleActionsIsAtTheRightTime(t *testing.T) {
@@ -126,7 +147,8 @@ func TestRoute_ScheduleActionsIsAtTheRightTime(t *testing.T) {
 
 	r := NewResourceRoute(http.MethodGet, "", handler, m, &mockPlanetResourceService{})
 	actual := r.Handler()
-	err := actual(dummyEchoContext())
+	ctx, _, _ := generateTestEchoContextWithPlanetId()
+	err := actual(ctx)
 
 	assert.Nil(err)
 	assert.True(beforeCall.Before(m.until))
@@ -147,7 +169,8 @@ func TestRoute_WhenActionServiceFails_DoesNotCallHandler(t *testing.T) {
 
 	r := NewResourceRoute(http.MethodGet, "", handler, m, &mockPlanetResourceService{})
 	actual := r.Handler()
-	err := actual(dummyEchoContext())
+	ctx, _, _ := generateTestEchoContextWithPlanetId()
+	err := actual(ctx)
 
 	assert.False(handlerCalled)
 	assert.Nil(err)
@@ -159,7 +182,7 @@ func TestRoute_WhenActionServiceFails_SetsStatusToInternalError(t *testing.T) {
 	m := &mockActionService{
 		err: errDefault,
 	}
-	ctx, _, rw := generateTestEchoContext()
+	ctx, _, rw := generateTestEchoContextWithPlanetId()
 
 	r := NewResourceRoute(http.MethodGet, "", defaultHandler, m, &mockPlanetResourceService{})
 	actual := r.Handler()
@@ -204,6 +227,7 @@ func TestRoute_CallsPlanetResourceService(t *testing.T) {
 
 	assert.Nil(err)
 	assert.Equal(1, m.updatePlanetUntilCalled)
+	assert.Equal(someUuid, m.planet)
 }
 
 func TestRoute_UpdateResourcesIsAtTheRightTime(t *testing.T) {
@@ -323,8 +347,9 @@ func dummyEchoContext() echo.Context {
 	return e
 }
 
-func (m *mockActionService) ProcessActionsUntil(ctx context.Context, until time.Time) error {
+func (m *mockActionService) ProcessActionsUntil(ctx context.Context, planet uuid.UUID, until time.Time) error {
 	m.processActionsCalled++
+	m.planet = planet
 	m.until = until
 	return m.err
 }

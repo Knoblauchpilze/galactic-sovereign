@@ -32,7 +32,7 @@ func TestGameUpdateWatcher_CallsNextMiddleware(t *testing.T) {
 	assert.True(called)
 }
 
-func TestGameUpdateWatcher_SchedulesActions(t *testing.T) {
+func TestGameUpdateWatcher_WhenNoPlanetId_DoesNotScheduleResources(t *testing.T) {
 	assert := assert.New(t)
 
 	m := &mockActionService{}
@@ -41,14 +41,27 @@ func TestGameUpdateWatcher_SchedulesActions(t *testing.T) {
 
 	callable(ctx)
 
+	assert.Equal(0, m.processActionsCalled)
+}
+
+func TestGameUpdateWatcher_SchedulesActions(t *testing.T) {
+	assert := assert.New(t)
+
+	m := &mockActionService{}
+	ctx, _, _ := generateTestEchoContextWithPlanetId()
+	callable := GameUpdateWatcher(m, &mockPlanetResourceService{}, defaultHandler)
+
+	callable(ctx)
+
 	assert.Equal(1, m.processActionsCalled)
+	assert.Equal(someUuid, m.planet)
 }
 
 func TestGameUpdateWatcher_ScheduleActionsTimeIsAtTheMomentOfTheCall(t *testing.T) {
 	assert := assert.New(t)
 
 	m := &mockActionService{}
-	ctx, _, _ := generateTestEchoContext()
+	ctx, _, _ := generateTestEchoContextWithPlanetId()
 	callable := GameUpdateWatcher(m, &mockPlanetResourceService{}, defaultHandler)
 
 	beforeCall := time.Now()
@@ -64,7 +77,7 @@ func TestGameUpdateWatcher_WhenActionServiceFails_SetsStatusToInternalServerErro
 	m := &mockActionService{
 		err: errDefault,
 	}
-	ctx, _, rw := generateTestEchoContext()
+	ctx, _, rw := generateTestEchoContextWithPlanetId()
 	callable := GameUpdateWatcher(m, &mockPlanetResourceService{}, defaultHandler)
 
 	err := callable(ctx)
@@ -86,7 +99,7 @@ func TestGameUpdateWatcher_WhenActionServiceFails_DoesNotCallHandler(t *testing.
 	m := &mockActionService{
 		err: errDefault,
 	}
-	ctx, _, _ := generateTestEchoContext()
+	ctx, _, _ := generateTestEchoContextWithPlanetId()
 	callable := GameUpdateWatcher(m, &mockPlanetResourceService{}, call)
 
 	err := callable(ctx)

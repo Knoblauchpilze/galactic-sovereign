@@ -114,7 +114,7 @@ WHERE
 			"listBeforeCompletionTime": {
 				handler: func(ctx context.Context, tx db.Transaction) error {
 					s := NewBuildingActionRepository()
-					_, err := s.ListBeforeCompletionTime(ctx, tx, someTime)
+					_, err := s.ListBeforeCompletionTime(ctx, tx, defaultPlanetId, someTime)
 					return err
 				},
 				expectedSqlQueries: []string{
@@ -130,11 +130,13 @@ SELECT
 FROM
 	building_action
 WHERE
-	completed_at <= $1`,
+	completed_at <= $1
+	AND planet = $2`,
 				},
 				expectedArguments: [][]interface{}{
 					{
 						someTime,
+						defaultPlanetId,
 					},
 				},
 			},
@@ -227,7 +229,7 @@ WHERE
 			"listBeforeCompletionTime": {
 				handler: func(ctx context.Context, tx db.Transaction) error {
 					repo := NewBuildingActionRepository()
-					_, err := repo.ListBeforeCompletionTime(ctx, tx, someTime)
+					_, err := repo.ListBeforeCompletionTime(ctx, tx, defaultPlanetId, someTime)
 					return err
 				},
 				expectedGetAllCalls: 1,
