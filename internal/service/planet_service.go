@@ -84,6 +84,11 @@ func (s *planetServiceImpl) Get(ctx context.Context, id uuid.UUID) (communicatio
 		return communication.FullPlanetDtoResponse{}, err
 	}
 
+	storages, err := s.planetResourceStorageRepo.ListForPlanet(ctx, tx, planet.Id)
+	if err != nil {
+		return communication.FullPlanetDtoResponse{}, err
+	}
+
 	buildings, err := s.planetBuildingRepo.ListForPlanet(ctx, tx, planet.Id)
 	if err != nil {
 		return communication.FullPlanetDtoResponse{}, err
@@ -94,7 +99,7 @@ func (s *planetServiceImpl) Get(ctx context.Context, id uuid.UUID) (communicatio
 		return communication.FullPlanetDtoResponse{}, err
 	}
 
-	out := communication.ToFullPlanetDtoResponse(planet, resources, productions, buildings, buildingActions)
+	out := communication.ToFullPlanetDtoResponse(planet, resources, productions, storages, buildings, buildingActions)
 
 	return out, nil
 }
