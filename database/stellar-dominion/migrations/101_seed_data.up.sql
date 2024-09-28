@@ -49,6 +49,19 @@ INSERT INTO stellar_dominion_schema.planet_resource_production ("planet", "build
     15
   );
 
+INSERT INTO stellar_dominion_schema.planet_resource_storage ("planet", "resource", "storage")
+  VALUES (
+    '167bd268-6ae7-4cf4-a359-9534beabfeff',
+    'b4419b6b-b3bf-4576-aa92-055283addbc8',
+    10000
+  );
+INSERT INTO stellar_dominion_schema.planet_resource_storage ("planet", "resource", "storage")
+  VALUES (
+    '167bd268-6ae7-4cf4-a359-9534beabfeff',
+    'cd2ac9aa-9968-4ff5-b746-88f1f810fbb3',
+    9000
+  );
+
 INSERT INTO stellar_dominion_schema.planet_building ("planet", "building", "level")
   VALUES (
     '167bd268-6ae7-4cf4-a359-9534beabfeff',
@@ -96,6 +109,19 @@ INSERT INTO stellar_dominion_schema.planet_resource_production ("planet", "build
     NULL,
     'cd2ac9aa-9968-4ff5-b746-88f1f810fbb3',
     15
+  );
+
+INSERT INTO stellar_dominion_schema.planet_resource_storage ("planet", "resource", "storage")
+  VALUES (
+    '110cdf6f-2103-4e34-924f-fd57eb87ea3e',
+    'b4419b6b-b3bf-4576-aa92-055283addbc8',
+    10000
+  );
+INSERT INTO stellar_dominion_schema.planet_resource_storage ("planet", "resource", "storage")
+  VALUES (
+    '110cdf6f-2103-4e34-924f-fd57eb87ea3e',
+    'cd2ac9aa-9968-4ff5-b746-88f1f810fbb3',
+    9000
   );
 
 INSERT INTO stellar_dominion_schema.planet_building ("planet", "building", "level")
@@ -174,6 +200,19 @@ INSERT INTO stellar_dominion_schema.planet_resource_production ("planet", "build
     15
   );
 
+INSERT INTO stellar_dominion_schema.planet_resource_storage ("planet", "resource", "storage")
+  VALUES (
+    'fafd18e9-2db6-439a-aaf3-010771d694c9',
+    'b4419b6b-b3bf-4576-aa92-055283addbc8',
+    10000
+  );
+INSERT INTO stellar_dominion_schema.planet_resource_storage ("planet", "resource", "storage")
+  VALUES (
+    'fafd18e9-2db6-439a-aaf3-010771d694c9',
+    'cd2ac9aa-9968-4ff5-b746-88f1f810fbb3',
+    9000
+  );
+
 -- another-test-user@another-provider.com -> very-nice-pseudo / oberon
 INSERT INTO stellar_dominion_schema.player ("id", "api_user", "universe", "name")
   VALUES (
@@ -222,6 +261,19 @@ INSERT INTO stellar_dominion_schema.planet_resource_production ("planet", "build
     NULL,
     'cd2ac9aa-9968-4ff5-b746-88f1f810fbb3',
     15
+  );
+
+INSERT INTO stellar_dominion_schema.planet_resource_storage ("planet", "resource", "storage")
+  VALUES (
+    '00058def-e81d-43bb-aacf-a8402115449d',
+    'b4419b6b-b3bf-4576-aa92-055283addbc8',
+    10000
+  );
+INSERT INTO stellar_dominion_schema.planet_resource_storage ("planet", "resource", "storage")
+  VALUES (
+    '00058def-e81d-43bb-aacf-a8402115449d',
+    'cd2ac9aa-9968-4ff5-b746-88f1f810fbb3',
+    9000
   );
 
 INSERT INTO stellar_dominion_schema.planet_building ("planet", "building", "level")
@@ -285,6 +337,19 @@ INSERT INTO stellar_dominion_schema.planet_resource_production ("planet", "build
     NULL,
     'cd2ac9aa-9968-4ff5-b746-88f1f810fbb3',
     15
+  );
+
+INSERT INTO stellar_dominion_schema.planet_resource_storage ("planet", "resource", "storage")
+  VALUES (
+    '717ffa52-89bd-42eb-b34d-0f994a032e35',
+    'b4419b6b-b3bf-4576-aa92-055283addbc8',
+    10000
+  );
+INSERT INTO stellar_dominion_schema.planet_resource_storage ("planet", "resource", "storage")
+  VALUES (
+    '717ffa52-89bd-42eb-b34d-0f994a032e35',
+    'cd2ac9aa-9968-4ff5-b746-88f1f810fbb3',
+    9000
   );
 
 INSERT INTO stellar_dominion_schema.planet_building ("planet", "building", "level")
