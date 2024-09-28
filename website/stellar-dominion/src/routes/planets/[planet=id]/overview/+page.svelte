@@ -13,7 +13,7 @@
 	import heroContainer, { GAME_HERO_CONTAINER_PROPS } from '$lib/stores/ui/heroContainer';
 	import pageTitle, { HOMEPAGE_TITLE } from '$lib/stores/ui/pageTitle';
 
-	import { mapPlanetResourcesToUiResources } from '$lib/game/resources';
+	import { type UiResource, mapPlanetResourcesToUiResources } from '$lib/game/resources';
 	import { mapPlanetBuildingsToUiBuildings } from '$lib/game/buildings';
 	import { mapBuildingActionsToUiActions } from '$lib/game/actions.js';
 	import { floorToInteger } from '$lib/displayUtils';
@@ -35,6 +35,7 @@
 	$: resources = mapPlanetResourcesToUiResources(
 		data.planet.resources,
 		data.planet.productions,
+		data.planet.storages,
 		data.resources
 	);
 	$: buildings = mapPlanetBuildingsToUiBuildings(
@@ -51,6 +52,19 @@
 	function onActionCompleted() {
 		invalidate('data:planet');
 	}
+
+	function resourceTextColor(resource: UiResource): string {
+		if (resource.amount < resource.storage) {
+			return 'text-enabled';
+		}
+		return 'text-disabled';
+	}
+	function productionTextColor(resource: UiResource): string {
+		if (resource.production > 0) {
+			return 'text-enabled';
+		}
+		return 'text-disabled';
+	}
 </script>
 
 <CenteredWrapper width="w-4/5" height="h-4/5" bgColor="bg-overlay">
@@ -66,12 +80,16 @@
 		<div class="flex justify-around bg-black justify-items-stretch">
 			{#each resources as resource}
 				<div class="flex space-between">
+					<StyledText text="{resource.name}:" textColor="text-white" />
 					<StyledText
-						text="{resource.name}: {floorToInteger(resource.amount)}"
-						textColor="text-white"
+						text=" {floorToInteger(resource.amount)}"
+						textColor={resourceTextColor(resource)}
 						styling="px-1"
 					/>
-					<StyledText text="(+{floorToInteger(resource.production)}/h)" textColor="text-enabled" />
+					<StyledText
+						text="(+{floorToInteger(resource.production)}/h)"
+						textColor={productionTextColor(resource)}
+					/>
 				</div>
 			{/each}
 		</div>

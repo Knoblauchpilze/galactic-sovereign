@@ -3,8 +3,10 @@ import { buildUrl, safeFetch } from '$lib/api';
 import {
 	type PlanetResource,
 	type PlanetResourceProduction,
+	type PlanetResourceStorage,
 	parsePlanetResources,
-	parsePlanetResourceProductions
+	parsePlanetResourceProductions,
+	parsePlanetResourceStorages
 } from '$lib/game/resources';
 import { type PlanetBuilding, parsePlanetBuildings } from '$lib/game/buildings';
 import {
@@ -21,6 +23,7 @@ export interface ApiPlanet {
 
 	readonly resources: PlanetResource[];
 	readonly productions: PlanetResourceProduction[];
+	readonly storages: PlanetResourceStorage[];
 	readonly buildings: PlanetBuilding[];
 	readonly buildingActions: ApiBuildingAction[];
 }
@@ -32,6 +35,7 @@ export class Planet {
 
 	readonly resources: PlanetResource[] = [];
 	readonly productions: PlanetResourceProduction[] = [];
+	readonly storages: PlanetResourceStorage[] = [];
 	readonly buildings: PlanetBuilding[] = [];
 	readonly buildingActions: BuildingAction[] = [];
 
@@ -56,6 +60,10 @@ export class Planet {
 			this.productions = parsePlanetResourceProductions(response.productions);
 		}
 
+		if ('storages' in response && Array.isArray(response.storages)) {
+			this.storages = parsePlanetResourceStorages(response.storages);
+		}
+
 		if ('buildings' in response && Array.isArray(response.buildings)) {
 			this.buildings = parsePlanetBuildings(response.buildings);
 		}
@@ -73,6 +81,7 @@ export class Planet {
 
 			resources: this.resources,
 			productions: this.productions,
+			storages: this.storages,
 			buildings: this.buildings,
 			buildingActions: this.buildingActions.map((a) => a.toJson())
 		};
