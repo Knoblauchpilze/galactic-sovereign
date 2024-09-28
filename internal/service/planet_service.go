@@ -24,6 +24,7 @@ type planetServiceImpl struct {
 	planetRepo                           repositories.PlanetRepository
 	planetResourceRepo                   repositories.PlanetResourceRepository
 	planetResourceProductionRepo         repositories.PlanetResourceProductionRepository
+	planetResourceStorageRepo            repositories.PlanetResourceStorageRepository
 	buildingActionRepo                   repositories.BuildingActionRepository
 	buildingActionCostRepo               repositories.BuildingActionCostRepository
 	buildingActionResourceProductionRepo repositories.BuildingActionResourceProductionRepository
@@ -36,6 +37,7 @@ func NewPlanetService(conn db.ConnectionPool, repos repositories.Repositories) P
 		planetRepo:                           repos.Planet,
 		planetResourceRepo:                   repos.PlanetResource,
 		planetResourceProductionRepo:         repos.PlanetResourceProduction,
+		planetResourceStorageRepo:            repos.PlanetResourceStorage,
 		buildingActionRepo:                   repos.BuildingAction,
 		buildingActionCostRepo:               repos.BuildingActionCost,
 		buildingActionResourceProductionRepo: repos.BuildingActionResourceProduction,
@@ -162,6 +164,11 @@ func (s *planetServiceImpl) Delete(ctx context.Context, id uuid.UUID) error {
 	}
 
 	err = s.planetBuildingRepo.DeleteForPlanet(ctx, tx, id)
+	if err != nil {
+		return err
+	}
+
+	err = s.planetResourceStorageRepo.DeleteForPlanet(ctx, tx, id)
 	if err != nil {
 		return err
 	}

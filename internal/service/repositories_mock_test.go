@@ -537,6 +537,60 @@ func (m *mockPlanetResourceProductionRepository) DeleteForPlanet(ctx context.Con
 	return *err
 }
 
+type mockPlanetResourceStorageRepository struct {
+	repositories.PlanetResourceStorageRepository
+
+	planetResourceStorage persistence.PlanetResourceStorage
+	errs                  []error
+	calls                 int
+	updateErr             error
+
+	createCalled                  int
+	createdPlanetResourceStorage  persistence.PlanetResourceStorage
+	listForPlanetIds              []uuid.UUID
+	listForPlanetCalled           int
+	updateCalled                  int
+	updatedPlanetResourceStorages []persistence.PlanetResourceStorage
+	deleteForPlanetCalled         int
+	deleteForPlanetId             uuid.UUID
+}
+
+func (m *mockPlanetResourceStorageRepository) Create(ctx context.Context, tx db.Transaction, storage persistence.PlanetResourceStorage) (persistence.PlanetResourceStorage, error) {
+	m.createCalled++
+	m.createdPlanetResourceStorage = storage
+
+	err := getValueToReturnOr(m.calls, m.errs, nil)
+	m.calls++
+
+	return m.planetResourceStorage, *err
+}
+
+func (m *mockPlanetResourceStorageRepository) ListForPlanet(ctx context.Context, tx db.Transaction, planet uuid.UUID) ([]persistence.PlanetResourceStorage, error) {
+	m.listForPlanetCalled++
+	m.listForPlanetIds = append(m.listForPlanetIds, planet)
+
+	err := getValueToReturnOr(m.calls, m.errs, nil)
+	m.calls++
+
+	return []persistence.PlanetResourceStorage{m.planetResourceStorage}, *err
+}
+
+func (m *mockPlanetResourceStorageRepository) Update(ctx context.Context, tx db.Transaction, storage persistence.PlanetResourceStorage) (persistence.PlanetResourceStorage, error) {
+	m.updateCalled++
+	m.updatedPlanetResourceStorages = append(m.updatedPlanetResourceStorages, storage)
+	return storage, m.updateErr
+}
+
+func (m *mockPlanetResourceStorageRepository) DeleteForPlanet(ctx context.Context, tx db.Transaction, planet uuid.UUID) error {
+	m.deleteForPlanetCalled++
+	m.deleteForPlanetId = planet
+
+	err := getValueToReturnOr(m.calls, m.errs, nil)
+	m.calls++
+
+	return *err
+}
+
 type mockPlayerRepository struct {
 	repositories.PlayerRepository
 
