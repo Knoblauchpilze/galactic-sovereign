@@ -16,7 +16,7 @@
 	import { type UiResource, mapPlanetResourcesToUiResources } from '$lib/game/resources';
 	import { mapPlanetBuildingsToUiBuildings } from '$lib/game/buildings';
 	import { mapBuildingActionsToUiActions } from '$lib/game/actions.js';
-	import { floorToInteger } from '$lib/displayUtils';
+	import { floorToInteger, toFlooredShortString } from '$lib/displayUtils';
 	import { invalidate } from '$app/navigation';
 
 	// https://svelte.dev/blog/zero-config-type-safety
@@ -82,13 +82,18 @@
 				<div class="flex space-between">
 					<StyledText text="{resource.name}:" textColor="text-white" />
 					<StyledText
-						text=" {floorToInteger(resource.amount)}"
+						text={floorToInteger(resource.amount).toString()}
 						textColor={resourceTextColor(resource)}
 						styling="px-1"
 					/>
 					<StyledText
 						text="(+{floorToInteger(resource.production)}/h)"
 						textColor={productionTextColor(resource)}
+						styling="pr-1"
+					/>
+					<StyledText
+						text="(storage: {toFlooredShortString(resource.storage)})"
+						textColor="text-white"
 					/>
 				</div>
 			{/each}
