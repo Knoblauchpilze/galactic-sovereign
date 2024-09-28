@@ -195,6 +195,89 @@ func Test_ActionService(t *testing.T) {
 					assert.Equal(0, m.updateCalled)
 				},
 			},
+			"processActionsUntil_updatePlanetResources_whenStorageIsAlreadyFull_expectNoUpdate": {
+				generateRepositoriesMocks: func() repositories.Repositories {
+					repos := generateActionServiceMocks()
+
+					resource := defaultPlanetResource
+					resource.UpdatedAt = defaultBuildingAction.CompletedAt.Add(-2 * time.Minute)
+					repos.PlanetResource = &mockPlanetResourceRepository{
+						planetResource: resource,
+					}
+
+					storage := defaultPlanetResourceStorage
+					storage.Storage = int(defaultPlanetResource.Amount) - 10
+					repos.PlanetResourceStorage = &mockPlanetResourceStorageRepository{
+						planetResourceStorage: storage,
+					}
+
+					return repos
+				},
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewActionService(pool, repos)
+					return s.ProcessActionsUntil(ctx, defaultPlanetId, someTime)
+				},
+				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
+					m := assertPlanetResourceRepoIsAMock(repos, assert)
+
+					assert.Equal(1, m.updateCalled)
+					assert.Equal(1, len(m.updatedPlanetResources))
+					actual := m.updatedPlanetResources[0]
+
+					assert.Equal(defaultPlanetId, actual.Planet)
+					assert.Equal(defaultPlanetResource.Resource, actual.Resource)
+					assert.Equal(defaultPlanetResource.Amount, actual.Amount)
+
+					assert.Equal(defaultPlanetResource.CreatedAt, actual.CreatedAt)
+					assert.Equal(defaultBuildingAction.CompletedAt, actual.UpdatedAt)
+					assert.Equal(defaultPlanetResource.Version, actual.Version)
+				},
+			},
+			"whenUpdatingPlanetResources_whenStorageIsNotEnoughToAbsorbAllProduction_expectPartialUpdate": {
+				generateRepositoriesMocks: func() repositories.Repositories {
+					repos := generateActionServiceMocks()
+
+					resource := defaultPlanetResource
+					resource.Amount = 60.0
+					resource.UpdatedAt = defaultBuildingAction.CompletedAt.Add(-2 * time.Minute)
+					repos.PlanetResource = &mockPlanetResourceRepository{
+						planetResource: resource,
+					}
+
+					production := defaultPlanetResourceProduction
+					production.Production = 60
+					repos.PlanetResourceProduction = &mockPlanetResourceProductionRepository{
+						planetResourceProduction: production,
+					}
+
+					storage := defaultPlanetResourceStorage
+					storage.Storage = 62
+					repos.PlanetResourceStorage = &mockPlanetResourceStorageRepository{
+						planetResourceStorage: storage,
+					}
+
+					return repos
+				},
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewActionService(pool, repos)
+					return s.ProcessActionsUntil(ctx, defaultPlanetId, someTime)
+				},
+				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
+					m := assertPlanetResourceRepoIsAMock(repos, assert)
+
+					assert.Equal(1, m.updateCalled)
+					assert.Equal(1, len(m.updatedPlanetResources))
+					actual := m.updatedPlanetResources[0]
+
+					assert.Equal(defaultPlanetId, actual.Planet)
+					assert.Equal(defaultPlanetResource.Resource, actual.Resource)
+					assert.Equal(62.0, actual.Amount)
+
+					assert.Equal(defaultPlanetResource.CreatedAt, actual.CreatedAt)
+					assert.Equal(defaultBuildingAction.CompletedAt, actual.UpdatedAt)
+					assert.Equal(defaultPlanetResource.Version, actual.Version)
+				},
+			},
 			"processActionsUntil_getBuilding": {
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
 					s := NewActionService(pool, repos)
@@ -693,6 +776,9 @@ func generateActionServiceMocks() repositories.Repositories {
 		},
 		PlanetResourceProduction: &mockPlanetResourceProductionRepository{
 			planetResourceProduction: defaultPlanetResourceProduction,
+		},
+		PlanetResourceStorage: &mockPlanetResourceStorageRepository{
+			planetResourceStorage: defaultPlanetResourceStorage,
 		},
 	}
 }

@@ -21,6 +21,7 @@ type actionServiceImpl struct {
 	planetBuildingRepo                   repositories.PlanetBuildingRepository
 	planetResourceRepo                   repositories.PlanetResourceRepository
 	planetResourceProductionRepo         repositories.PlanetResourceProductionRepository
+	planetResourceStorageRepo            repositories.PlanetResourceStorageRepository
 }
 
 func NewActionService(conn db.ConnectionPool, repos repositories.Repositories) game.ActionService {
@@ -33,6 +34,7 @@ func NewActionService(conn db.ConnectionPool, repos repositories.Repositories) g
 		planetBuildingRepo:                   repos.PlanetBuilding,
 		planetResourceRepo:                   repos.PlanetResource,
 		planetResourceProductionRepo:         repos.PlanetResourceProduction,
+		planetResourceStorageRepo:            repos.PlanetResourceStorage,
 	}
 }
 
@@ -74,6 +76,7 @@ func (s *actionServiceImpl) processAction(ctx context.Context, action persistenc
 		Until:                        action.CompletedAt,
 		PlanetResourceRepo:           s.planetResourceRepo,
 		PlanetResourceProductionRepo: s.planetResourceProductionRepo,
+		PlanetResourceStorageRepo:    s.planetResourceStorageRepo,
 	}
 	err = game.UpdatePlanetResourcesToTime(ctx, tx, data)
 	if err != nil {
