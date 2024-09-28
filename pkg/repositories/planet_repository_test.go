@@ -73,6 +73,17 @@ FROM
 `,
 					`
 INSERT INTO
+	planet_resource_storage (planet, resource, storage, created_at)
+SELECT
+	$1,
+	id,
+	start_storage,
+	$2
+FROM
+	resource
+`,
+					`
+INSERT INTO
 	planet_building (planet, building, level, created_at)
 SELECT
 	$1,
@@ -88,6 +99,10 @@ FROM
 						defaultPlanet.Id,
 						defaultPlanet.Player,
 						defaultPlanet.Name,
+						defaultPlanet.CreatedAt,
+					},
+					{
+						defaultPlanet.Id,
 						defaultPlanet.CreatedAt,
 					},
 					{
@@ -138,6 +153,17 @@ FROM
 `,
 					`
 INSERT INTO
+	planet_resource_storage (planet, resource, storage, created_at)
+SELECT
+	$1,
+	id,
+	start_storage,
+	$2
+FROM
+	resource
+`,
+					`
+INSERT INTO
 	planet_building (planet, building, level, created_at)
 SELECT
 	$1,
@@ -158,6 +184,10 @@ FROM
 					{
 						defaultPlanet.Player,
 						defaultPlanet.Id,
+					},
+					{
+						defaultPlanet.Id,
+						defaultPlanet.CreatedAt,
 					},
 					{
 						defaultPlanet.Id,

@@ -55,6 +55,18 @@ FROM
 	resource
 `
 
+const createPlanetResourceStoragesSqlTemplate = `
+INSERT INTO
+	planet_resource_storage (planet, resource, storage, created_at)
+SELECT
+	$1,
+	id,
+	start_storage,
+	$2
+FROM
+	resource
+`
+
 const createPlanetBuildingsSqlTemplate = `
 INSERT INTO
 	planet_building (planet, building, level, created_at)
@@ -86,6 +98,11 @@ func (r *planetRepositoryImpl) Create(ctx context.Context, tx db.Transaction, pl
 	}
 
 	_, err = tx.Exec(ctx, createPlanetResourceProductionsSqlTemplate, planet.Id, planet.CreatedAt)
+	if err != nil {
+		return planet, err
+	}
+
+	_, err = tx.Exec(ctx, createPlanetResourceStoragesSqlTemplate, planet.Id, planet.CreatedAt)
 	if err != nil {
 		return planet, err
 	}
