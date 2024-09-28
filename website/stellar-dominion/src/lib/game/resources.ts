@@ -149,19 +149,17 @@ export function mapPlanetResourcesToUiResources(
 		const storage = planetStorage === undefined ? 0 : planetStorage.storage;
 
 		if (maybeResource === undefined) {
-			const isProducing = storage > 0;
 			return {
 				name: apiResource.name,
 				amount: 0,
-				production: isProducing ? production : 0,
+				production: production,
 				storage: storage
 			};
 		} else {
-			const isProducing = storage > maybeResource.amount;
 			return {
 				name: apiResource.name,
 				amount: maybeResource.amount,
-				production: isProducing ? production : 0,
+				production: production,
 				storage: storage
 			};
 		}
