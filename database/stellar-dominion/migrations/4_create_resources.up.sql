@@ -4,6 +4,7 @@ CREATE TABLE resource (
   name text,
   start_amount INTEGER NOT NULL,
   start_production INTEGER NOT NULL,
+  start_storage INTEGER NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (id),

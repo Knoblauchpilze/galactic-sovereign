@@ -61,6 +61,25 @@ CREATE TRIGGER trigger_planet_resource_production_updated_at
   FOR EACH ROW
   EXECUTE FUNCTION update_updated_at();
 
+CREATE TABLE planet_resource_storage (
+  planet uuid NOT NULL,
+  resource uuid NOT NULL,
+  storage INTEGER NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  version INTEGER DEFAULT 0,
+  FOREIGN KEY (planet) REFERENCES planet(id),
+  FOREIGN KEY (resource) REFERENCES resource(id),
+  UNIQUE (planet, resource)
+);
+
+CREATE INDEX planet_resource_storage_planet_index ON planet_resource_storage (planet);
+
+CREATE TRIGGER trigger_planet_resource_storage_updated_at
+  BEFORE UPDATE OR INSERT ON planet_resource_storage
+  FOR EACH ROW
+  EXECUTE FUNCTION update_updated_at();
+
 CREATE TABLE planet_building (
   planet uuid NOT NULL,
   building uuid NOT NULL,
