@@ -11,6 +11,7 @@ type FullPlanetDtoResponse struct {
 
 	Resources   []PlanetResourceDtoResponse
 	Productions []PlanetResourceProductionDtoResponse
+	Storages    []PlanetResourceStorageDtoResponse
 	Buildings   []PlanetBuildingDtoResponse
 
 	BuildingActions []BuildingActionDtoResponse
@@ -19,6 +20,7 @@ type FullPlanetDtoResponse struct {
 func ToFullPlanetDtoResponse(planet persistence.Planet,
 	resources []persistence.PlanetResource,
 	productions []persistence.PlanetResourceProduction,
+	storages []persistence.PlanetResourceStorage,
 	buildings []persistence.PlanetBuilding,
 	buildingActions []persistence.BuildingAction) FullPlanetDtoResponse {
 	out := FullPlanetDtoResponse{
@@ -33,6 +35,11 @@ func ToFullPlanetDtoResponse(planet persistence.Planet,
 	for _, production := range productions {
 		productionDto := ToPlanetResourceProductionDtoResponse(production)
 		out.Productions = append(out.Productions, productionDto)
+	}
+
+	for _, storage := range storages {
+		storageDto := ToPlanetResourceStorageDtoResponse(storage)
+		out.Storages = append(out.Storages, storageDto)
 	}
 
 	for _, building := range buildings {
@@ -53,6 +60,7 @@ func (dto FullPlanetDtoResponse) MarshalJSON() ([]byte, error) {
 		PlanetDtoResponse
 		Resources   []PlanetResourceDtoResponse           `json:"resources"`
 		Productions []PlanetResourceProductionDtoResponse `json:"productions"`
+		Storages    []PlanetResourceStorageDtoResponse    `json:"storages"`
 		Buildings   []PlanetBuildingDtoResponse           `json:"buildings"`
 
 		BuildingActions []BuildingActionDtoResponse `json:"buildingActions"`
@@ -60,6 +68,7 @@ func (dto FullPlanetDtoResponse) MarshalJSON() ([]byte, error) {
 		PlanetDtoResponse: dto.PlanetDtoResponse,
 		Resources:         dto.Resources,
 		Productions:       dto.Productions,
+		Storages:          dto.Storages,
 		Buildings:         dto.Buildings,
 
 		BuildingActions: dto.BuildingActions,
@@ -69,6 +78,9 @@ func (dto FullPlanetDtoResponse) MarshalJSON() ([]byte, error) {
 	}
 	if out.Productions == nil {
 		out.Productions = make([]PlanetResourceProductionDtoResponse, 0)
+	}
+	if out.Storages == nil {
+		out.Storages = make([]PlanetResourceStorageDtoResponse, 0)
 	}
 	if out.Buildings == nil {
 		out.Buildings = make([]PlanetBuildingDtoResponse, 0)

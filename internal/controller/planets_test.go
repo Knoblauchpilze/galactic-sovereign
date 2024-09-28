@@ -83,6 +83,11 @@ var defaultPlanetResourceProductionDtoResponse = communication.PlanetResourcePro
 	Resource:   defaultResourceId,
 	Production: 78,
 }
+var defaultPlanetResourceStorageDtoResponse = communication.PlanetResourceStorageDtoResponse{
+	Planet:   defaultPlanetId,
+	Resource: defaultResourceId,
+	Storage:  1234,
+}
 var defaultPlanetBuildingDtoResponse = communication.PlanetBuildingDtoResponse{
 	Planet:   defaultPlanetId,
 	Building: defaultBuildingId,
@@ -98,6 +103,9 @@ var defaultFullPlanetDtoResponse = communication.FullPlanetDtoResponse{
 	},
 	Productions: []communication.PlanetResourceProductionDtoResponse{
 		defaultPlanetResourceProductionDtoResponse,
+	},
+	Storages: []communication.PlanetResourceStorageDtoResponse{
+		defaultPlanetResourceStorageDtoResponse,
 	},
 	Buildings: []communication.PlanetBuildingDtoResponse{
 		defaultPlanetBuildingDtoResponse,
