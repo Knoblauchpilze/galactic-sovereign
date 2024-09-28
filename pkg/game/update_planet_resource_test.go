@@ -33,13 +33,9 @@ var metalProduction = persistence.PlanetResourceProduction{
 	CreatedAt:  someTime,
 	UpdatedAt:  someTime,
 }
-var resourceProductionPerHour = 5.0
-
-var thresholdForResourceEquality = 1e-6
-
 var crystalProduction = persistence.PlanetResourceProduction{
 	Planet:     planetId,
-	Resource:   uuid.MustParse("500de111-ef71-4e15-91e3-34b87bbad396"),
+	Resource:   defaultCrystalId,
 	Building:   &buildingId,
 	Production: 26,
 
@@ -48,6 +44,28 @@ var crystalProduction = persistence.PlanetResourceProduction{
 
 	Version: 7,
 }
+
+var metalStorage = persistence.PlanetResourceStorage{
+	Planet:    planetId,
+	Resource:  defaultMetalId,
+	Storage:   89,
+	CreatedAt: someTime,
+	UpdatedAt: someTime,
+}
+var crystalStorage = persistence.PlanetResourceStorage{
+	Planet:   planetId,
+	Resource: defaultCrystalId,
+	Storage:  78,
+
+	CreatedAt: someTime,
+	UpdatedAt: someTime,
+
+	Version: 7,
+}
+
+const resourceProductionPerHour = 5.0
+const resourceStorage = 1000
+const thresholdForResourceEquality = 1e-6
 
 func TestToPlanetResourceProductionMap(t *testing.T) {
 	assert := assert.New(t)
@@ -86,15 +104,54 @@ func TestToPlanetResourceProductionMap_whenMultipleProductionsForResource_expect
 	assert.Equal(expectedProduction, metal)
 }
 
+func TestToPlanetResourceStorageMap(t *testing.T) {
+	assert := assert.New(t)
+
+	in := []persistence.PlanetResourceStorage{metalStorage, crystalStorage}
+
+	actual := toPlanetResourceStorageMap(in)
+
+	assert.Equal(2, len(actual))
+
+	metal, ok := actual[metalStorage.Resource]
+	assert.True(ok)
+	assert.Equal(metalStorage.Storage, metal)
+
+	crystal, ok := actual[crystalStorage.Resource]
+	assert.True(ok)
+	assert.Equal(crystalStorage.Storage, crystal)
+}
+
+func TestToPlanetResourceStorageMap_whenMultipleProductionsForResource_expectThemToBeAdded(t *testing.T) {
+	assert := assert.New(t)
+
+	metalStorage1 := metalStorage
+	metalStorage2 := metalStorage
+	metalStorage2.Storage = 58
+
+	in := []persistence.PlanetResourceStorage{metalStorage1, metalStorage2}
+
+	actual := toPlanetResourceStorageMap(in)
+
+	assert.Equal(1, len(actual))
+
+	metal, ok := actual[metalStorage.Resource]
+	assert.True(ok)
+	expectedStorage := metalStorage1.Storage + metalStorage2.Storage
+	assert.Equal(expectedStorage, metal)
+}
+
 func TestUpdatePlanetResourceAmountToTime_whenTimeInThePast_expectNoUpdate(t *testing.T) {
 	assert := assert.New(t)
 
 	resource := generatePlanetResource()
+	expectedUpdatedAt := resource.UpdatedAt
 
 	inThePast := resource.UpdatedAt.Add(-1 * time.Hour)
-	updated := updatePlanetResourceAmountToTime(resource, resourceProductionPerHour, inThePast)
+	updated := updatePlanetResourceAmountToTime(resource, resourceProductionPerHour, resourceStorage, inThePast)
 
 	assert.Equal(resource.Amount, updated.Amount)
+	assert.Equal(expectedUpdatedAt, resource.UpdatedAt)
 }
 
 func TestUpdatePlanetResourceAmountToTime_updatesAmount(t *testing.T) {
@@ -137,11 +194,43 @@ func TestUpdatePlanetResourceAmountToTime_updatesAmount(t *testing.T) {
 	for name, testCase := range testCases {
 		t.Run(name, func(t *testing.T) {
 			oneHourFromNow := resource.UpdatedAt.Add(testCase.duration)
-			updated := updatePlanetResourceAmountToTime(resource, resourceProductionPerHour, oneHourFromNow)
+			updated := updatePlanetResourceAmountToTime(resource, resourceProductionPerHour, resourceStorage, oneHourFromNow)
 
 			assert.InDelta(testCase.expectedAmount, updated.Amount, thresholdForResourceEquality)
 		})
 	}
+}
+
+func TestUpdatePlanetResourceAmountToTime_whenAmountIsAlreadyAboveStorageCapacity_expectNoChange(t *testing.T) {
+	assert := assert.New(t)
+
+	resource := generatePlanetResource()
+
+	oneHourFromNow := resource.UpdatedAt.Add(1 * time.Hour)
+	smallerStorageCapacityAsResourceAlreadyAvailable := resource.Amount - 10
+	updated := updatePlanetResourceAmountToTime(resource,
+		resourceProductionPerHour,
+		smallerStorageCapacityAsResourceAlreadyAvailable,
+		oneHourFromNow)
+
+	assert.Equal(resource.Amount, updated.Amount)
+	assert.Equal(oneHourFromNow, updated.UpdatedAt)
+}
+
+func TestUpdatePlanetResourceAmountToTime_whenProductionExceedsStorage_expectCapped(t *testing.T) {
+	assert := assert.New(t)
+
+	resource := generatePlanetResource()
+
+	oneHourFromNow := resource.UpdatedAt.Add(1 * time.Hour)
+	storageSufficientToAbsorbHalfAnHourOfProduction := resource.Amount + resourceProductionPerHour/2
+	updated := updatePlanetResourceAmountToTime(resource,
+		resourceProductionPerHour,
+		storageSufficientToAbsorbHalfAnHourOfProduction,
+		oneHourFromNow)
+
+	expectedAmount := resource.Amount + resourceProductionPerHour/2
+	assert.Equal(expectedAmount, updated.Amount)
 }
 
 func TestUpdatePlanetResourceAmountToTime_updatesUpdatedAt(t *testing.T) {
@@ -150,7 +239,7 @@ func TestUpdatePlanetResourceAmountToTime_updatesUpdatedAt(t *testing.T) {
 	resource := generatePlanetResource()
 
 	oneHourFromNow := resource.UpdatedAt.Add(1 * time.Hour)
-	updated := updatePlanetResourceAmountToTime(resource, resourceProductionPerHour, oneHourFromNow)
+	updated := updatePlanetResourceAmountToTime(resource, resourceProductionPerHour, resourceStorage, oneHourFromNow)
 
 	assert.Equal(oneHourFromNow, updated.UpdatedAt)
 }
@@ -165,7 +254,7 @@ type planetResourceUpdateTestCase struct {
 	verifyMockInteractions    verifyMockInteractions
 }
 
-func Test_PlanetResourceService(t *testing.T) {
+func Test_UpdatePlanetResourcesToTime(t *testing.T) {
 	tests := map[string]planetResourceUpdateTestCase{
 		"whenUpdatingPlanetUntilTime_expectListResourcesForPlanetCalled": {
 			verifyMockInteractions: func(repos repositories.Repositories, assert *assert.Assertions) {
@@ -234,6 +323,121 @@ func Test_PlanetResourceService(t *testing.T) {
 				assert.Equal(defaultPlanetResource.Version, actual.Version)
 			},
 		},
+		"whenUpdatingPlanetUntilTime_whenResourceAlreadyFillingStorage_expectNoUpdate": {
+			until: defaultPlanetResource.UpdatedAt.Add(2 * time.Minute),
+			generateRepositoriesMocks: func() repositories.Repositories {
+				repos := generateDefaultRepositoriesMocks()
+
+				resource := defaultPlanetResource
+				resource.Amount = 60
+				repos.PlanetResource = &mockPlanetResourceRepository{
+					planetResource: resource,
+				}
+
+				storage := metalStorage
+				storage.Storage = 60
+				repos.PlanetResourceStorage = &mockPlanetResourceStorageRepository{
+					planetResourceStorage: storage,
+				}
+
+				return repos
+			},
+			verifyMockInteractions: func(repos repositories.Repositories, assert *assert.Assertions) {
+				m := assertPlanetResourceRepoIsAMock(repos, assert)
+
+				assert.Equal(1, m.updateCalled)
+				assert.Equal(1, len(m.updatedPlanetResources))
+
+				actual := m.updatedPlanetResources[0]
+				assert.Equal(planetId, actual.Planet)
+				assert.Equal(defaultMetalId, actual.Resource)
+				assert.Equal(60.0, actual.Amount)
+				assert.Equal(defaultPlanetResource.CreatedAt, actual.CreatedAt)
+				expectedUpdatedAt := defaultPlanetResource.UpdatedAt.Add(2 * time.Minute)
+				assert.Equal(expectedUpdatedAt, actual.UpdatedAt)
+				assert.Equal(defaultPlanetResource.Version, actual.Version)
+			},
+		},
+		"whenUpdatingPlanetUntilTime_whenStorageNotBigEnoughForWholeProduction_expectPartialUpdate": {
+			until: defaultPlanetResource.UpdatedAt.Add(2 * time.Minute),
+			generateRepositoriesMocks: func() repositories.Repositories {
+				repos := generateDefaultRepositoriesMocks()
+
+				resource := defaultPlanetResource
+				resource.Amount = 60
+				repos.PlanetResource = &mockPlanetResourceRepository{
+					planetResource: resource,
+				}
+
+				production := metalProduction
+				production.Production = 60
+				repos.PlanetResourceProduction = &mockPlanetResourceProductionRepository{
+					planetResourceProduction: production,
+				}
+
+				storage := metalStorage
+				storage.Storage = 61
+				repos.PlanetResourceStorage = &mockPlanetResourceStorageRepository{
+					planetResourceStorage: storage,
+				}
+
+				return repos
+			},
+			verifyMockInteractions: func(repos repositories.Repositories, assert *assert.Assertions) {
+				m := assertPlanetResourceRepoIsAMock(repos, assert)
+
+				assert.Equal(1, m.updateCalled)
+				assert.Equal(1, len(m.updatedPlanetResources))
+
+				actual := m.updatedPlanetResources[0]
+				assert.Equal(planetId, actual.Planet)
+				assert.Equal(defaultMetalId, actual.Resource)
+				assert.Equal(61.0, actual.Amount)
+				assert.Equal(defaultPlanetResource.CreatedAt, actual.CreatedAt)
+				expectedUpdatedAt := defaultPlanetResource.UpdatedAt.Add(2 * time.Minute)
+				assert.Equal(expectedUpdatedAt, actual.UpdatedAt)
+				assert.Equal(defaultPlanetResource.Version, actual.Version)
+			},
+		},
+		"whenUpdatingPlanetUntilTime_whenStorageInformationNotAvailable_expectNoProductionPossible": {
+			until: defaultPlanetResource.UpdatedAt.Add(2 * time.Minute),
+			generateRepositoriesMocks: func() repositories.Repositories {
+				repos := generateDefaultRepositoriesMocks()
+
+				resource := defaultPlanetResource
+				resource.Amount = 60
+				repos.PlanetResource = &mockPlanetResourceRepository{
+					planetResource: resource,
+				}
+
+				production := metalProduction
+				production.Production = 1
+				repos.PlanetResourceProduction = &mockPlanetResourceProductionRepository{
+					planetResourceProduction: production,
+				}
+
+				repos.PlanetResourceStorage = &mockPlanetResourceStorageRepository{
+					planetResourceStorage: crystalStorage,
+				}
+
+				return repos
+			},
+			verifyMockInteractions: func(repos repositories.Repositories, assert *assert.Assertions) {
+				m := assertPlanetResourceRepoIsAMock(repos, assert)
+
+				assert.Equal(1, m.updateCalled)
+				assert.Equal(1, len(m.updatedPlanetResources))
+
+				actual := m.updatedPlanetResources[0]
+				assert.Equal(planetId, actual.Planet)
+				assert.Equal(defaultMetalId, actual.Resource)
+				assert.Equal(60.0, actual.Amount)
+				assert.Equal(defaultPlanetResource.CreatedAt, actual.CreatedAt)
+				expectedUpdatedAt := defaultPlanetResource.UpdatedAt.Add(2 * time.Minute)
+				assert.Equal(expectedUpdatedAt, actual.UpdatedAt)
+				assert.Equal(defaultPlanetResource.Version, actual.Version)
+			},
+		},
 		"whenUpdatingPlanetUntilTime_whenUpdateOfResourceFails_expectError": {
 			generateRepositoriesMocks: func() repositories.Repositories {
 				repos := generateDefaultRepositoriesMocks()
@@ -290,6 +494,7 @@ func Test_PlanetResourceService(t *testing.T) {
 				Until:                        testCase.until,
 				PlanetResourceRepo:           repos.PlanetResource,
 				PlanetResourceProductionRepo: repos.PlanetResourceProduction,
+				PlanetResourceStorageRepo:    repos.PlanetResourceStorage,
 			}
 
 			err := UpdatePlanetResourcesToTime(context.Background(), tx, data)
@@ -319,6 +524,9 @@ func generateDefaultRepositoriesMocks() repositories.Repositories {
 		},
 		PlanetResourceProduction: &mockPlanetResourceProductionRepository{
 			planetResourceProduction: metalProduction,
+		},
+		PlanetResourceStorage: &mockPlanetResourceStorageRepository{
+			planetResourceStorage: metalStorage,
 		},
 	}
 }

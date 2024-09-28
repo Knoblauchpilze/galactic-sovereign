@@ -15,6 +15,7 @@ type planetResourceServiceImpl struct {
 
 	planetResourceRepo           repositories.PlanetResourceRepository
 	planetResourceProductionRepo repositories.PlanetResourceProductionRepository
+	planetResourceStorageRepo    repositories.PlanetResourceStorageRepository
 }
 
 func NewPlanetResourceService(conn db.ConnectionPool, repos repositories.Repositories) game.PlanetResourceService {
@@ -23,6 +24,7 @@ func NewPlanetResourceService(conn db.ConnectionPool, repos repositories.Reposit
 
 		planetResourceRepo:           repos.PlanetResource,
 		planetResourceProductionRepo: repos.PlanetResourceProduction,
+		planetResourceStorageRepo:    repos.PlanetResourceStorage,
 	}
 }
 
@@ -38,6 +40,7 @@ func (s *planetResourceServiceImpl) UpdatePlanetUntil(ctx context.Context, plane
 		Until:                        until,
 		PlanetResourceRepo:           s.planetResourceRepo,
 		PlanetResourceProductionRepo: s.planetResourceProductionRepo,
+		PlanetResourceStorageRepo:    s.planetResourceStorageRepo,
 	}
 
 	return game.UpdatePlanetResourcesToTime(ctx, tx, data)
