@@ -60,7 +60,7 @@
 		return 'text-disabled';
 	}
 	function productionTextColor(resource: UiResource): string {
-		if (resource.production > 0) {
+		if (resource.amount < resource.storage) {
 			return 'text-enabled';
 		}
 		return 'text-disabled';
