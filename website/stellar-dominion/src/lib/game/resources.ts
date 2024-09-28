@@ -97,15 +97,42 @@ export function parsePlanetResourceProductions(data: object[]): PlanetResourcePr
 	return out;
 }
 
+export interface PlanetResourceStorage {
+	readonly resource: string;
+	readonly storage: number;
+}
+
+export function parsePlanetResourceStorages(data: object[]): PlanetResourceStorage[] {
+	const out: PlanetResourceStorage[] = [];
+
+	for (const maybeStorage of data) {
+		const hasResource = 'resource' in maybeStorage && typeof maybeStorage.resource === 'string';
+		const hasStorage = 'storage' in maybeStorage && typeof maybeStorage.storage === 'number';
+
+		if (hasResource && hasStorage) {
+			const res: PlanetResourceStorage = {
+				resource: maybeStorage.resource as string,
+				storage: maybeStorage.storage as number
+			};
+
+			out.push(res);
+		}
+	}
+
+	return out;
+}
+
 export interface UiResource {
 	readonly name: string;
 	readonly amount: number;
 	readonly production: number;
+	readonly storage: number;
 }
 
 export function mapPlanetResourcesToUiResources(
 	planetResources: PlanetResource[],
 	planetProductions: PlanetResourceProduction[],
+	planetStorages: PlanetResourceStorage[],
 	apiResources: ApiResource[]
 ): UiResource[] {
 	return apiResources.map((apiResource) => {
@@ -118,17 +145,24 @@ export function mapPlanetResourcesToUiResources(
 			return currentProduction;
 		}, 0);
 
+		const planetStorage = planetStorages.find((s) => s.resource === apiResource.id);
+		const storage = planetStorage === undefined ? 0 : planetStorage.storage;
+
 		if (maybeResource === undefined) {
+			const isProducing = storage > 0;
 			return {
 				name: apiResource.name,
 				amount: 0,
-				production: production
+				production: isProducing ? production : 0,
+				storage: storage
 			};
 		} else {
+			const isProducing = storage > maybeResource.amount;
 			return {
 				name: apiResource.name,
 				amount: maybeResource.amount,
-				production: production
+				production: isProducing ? production : 0,
+				storage: storage
 			};
 		}
 	});
