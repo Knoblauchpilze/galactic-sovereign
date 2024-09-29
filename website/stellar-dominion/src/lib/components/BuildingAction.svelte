@@ -44,7 +44,7 @@
 <div class="p-4 m-2 bg-overlay">
 	<StyledText text={title} styling="font-bold" />
 	{#if actionImage !== undefined}
-		<enhanced:img src={actionImage.data} alt="Building visual" width="100" height="100" />
+		<enhanced:img src={actionImage.data} alt="Building visual" width="150" height="150" />
 	{/if}
 	<StyledText text="Upgrade to level {action.nextLevel}" textColor="text-white" />
 	<Timer durationMs={serverRemainingMs} onFinished={onActionCompleted} />

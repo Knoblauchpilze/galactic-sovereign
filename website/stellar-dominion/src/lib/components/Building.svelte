@@ -68,7 +68,7 @@
 <div class="p-4 m-2 bg-overlay">
 	<StyledText text="{title} (level {building.level})" styling="font-bold" />
 	{#if buildingImage !== undefined}
-		<enhanced:img src={buildingImage.data} alt="Building visual" width="100" height="100" />
+		<enhanced:img src={buildingImage.data} alt="Building visual" width="150" height="150" />
 	{/if}
 	<StyledText text="Required for level {building.level + 1}:" textColor="text-white" />
 	<table>
