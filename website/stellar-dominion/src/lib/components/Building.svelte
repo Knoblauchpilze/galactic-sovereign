@@ -3,6 +3,10 @@
 	import { type UiResource } from '$lib/game/resources';
 	import { StyledActionButton, StyledText } from '$lib/components';
 
+	export let building: UiBuilding;
+	export let availableResources: UiResource[];
+	export let buildingActionAlreadyRunning: boolean;
+
 	// https://kit.svelte.dev/docs/images#sveltejs-enhanced-img-dynamically-choosing-an-image
 	// https://github.com/vitejs/vite/issues/9599#issuecomment-1209333753
 	const modules = import.meta.glob<Record<string, string>>('$lib/assets/buildings/*.webp', {
@@ -11,10 +15,6 @@
 			enhanced: true
 		}
 	});
-
-	export let building: UiBuilding;
-	export let availableResources: UiResource[];
-	export let buildingActionAlreadyRunning: boolean;
 
 	function canAfford(cost: UiBuildingCost, availableResources: UiResource[]): boolean {
 		const maybeResource = availableResources.find((r) => r.name === cost.resource);
