@@ -55,7 +55,7 @@
 
 	function resourceTextColor(resource: UiResource): string {
 		if (resource.amount < resource.storage) {
-			return 'text-enabled';
+			return 'text-white';
 		}
 		return 'text-disabled';
 	}
