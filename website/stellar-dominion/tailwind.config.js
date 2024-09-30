@@ -11,14 +11,14 @@ export default {
 				'secondary-hover': '#fff',
 
 				// State
-				enabled: "#2a7a0c",
+				enabled: '#2a7a0c',
 				'enabled-hover': '#45d90f',
-				disabled: "#751c0d",
+				disabled: '#751c0d',
 				'disabled-hover': '#d92d0f',
 				error: '#d92d0f',
 
 				// Miscellaneous
-				overlay: '#0005',
+				overlay: '#0005'
 			},
 			backgroundImage: {
 				homepage: "url('$lib/assets/background.webp')",
