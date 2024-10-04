@@ -1,9 +1,8 @@
 import { error, redirect } from '@sveltejs/kit';
 import { loadCookies } from '$lib/cookies';
 import { Universe, type ApiUniverse, getUniverse } from '$lib/game/universes';
-import { Planet, getPlanet, createBuildingAction, deleteBuildingAction } from '$lib/game/planets';
+import { Planet, getPlanet } from '$lib/game/planets';
 import { ApiFailureReason } from '$lib/responseEnvelope.js';
-import { logoutUser } from '$lib/sessions';
 
 /** @type {import('./$types').PageLoad} */
 export async function load({ params, cookies, depends }) {
@@ -48,95 +47,3 @@ export async function load({ params, cookies, depends }) {
 		planet: planet.toJson()
 	};
 }
-
-/** @type {import('./$types').Actions} */
-export const actions = {
-	logout: async ({ cookies }) => {
-		const apiKey = cookies.get('api-key');
-		if (!apiKey) {
-			redirect(303, '/login');
-		}
-
-		const apiUser = cookies.get('api-user');
-		if (!apiUser) {
-			redirect(303, '/login');
-		}
-
-		const logoutResponse = await logoutUser(apiKey, apiUser);
-
-		if (logoutResponse.error()) {
-			return {
-				success: false,
-				message: logoutResponse.failureMessage()
-			};
-		}
-
-		redirect(303, '/login');
-	},
-
-	createBuildingAction: async ({ cookies, params, request }) => {
-		const apiKey = cookies.get('api-key');
-		if (!apiKey) {
-			redirect(303, '/login');
-		}
-
-		const apiUser = cookies.get('api-user');
-		if (!apiUser) {
-			redirect(303, '/login');
-		}
-
-		const data = await request.formData();
-
-		const buildingId = data.get('building');
-		if (!buildingId) {
-			return {
-				success: false,
-				missing: true,
-				message: 'Please select a building',
-
-				buildingId
-			};
-		}
-
-		const actionResponse = await createBuildingAction(apiKey, params.planet, buildingId as string);
-		if (actionResponse.error()) {
-			return {
-				success: false,
-				message: actionResponse.failureMessage()
-			};
-		}
-	},
-
-	deleteBuildingAction: async ({ cookies, request }) => {
-		const apiKey = cookies.get('api-key');
-		if (!apiKey) {
-			redirect(303, '/login');
-		}
-
-		const apiUser = cookies.get('api-user');
-		if (!apiUser) {
-			redirect(303, '/login');
-		}
-
-		const data = await request.formData();
-
-		const actionId = data.get('action');
-		if (!actionId) {
-			return {
-				success: false,
-				missing: true,
-				message: 'Please select an action',
-
-				actionId
-			};
-		}
-
-		const actionResponse = await deleteBuildingAction(apiKey, actionId as string);
-		if (actionResponse.error()) {
-			return {
-				success: false,
-				message: actionResponse.failureMessage()
-			};
-		}
-	}
-};
