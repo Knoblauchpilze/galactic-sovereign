@@ -6,6 +6,7 @@ export { default as StyledLink } from '$lib/components/StyledLink.svelte';
 export { default as StyledTitle } from '$lib/components/StyledTitle.svelte';
 export { default as StyledText } from '$lib/components/StyledText.svelte';
 
+export { default as GamePageWrapper } from '$lib/components/GamePageWrapper.svelte';
 export { default as CenteredWrapper } from '$lib/components/CenteredWrapper.svelte';
 export { default as FormField } from '$lib/components/FormField.svelte';
 export { default as HeroContainer } from '$lib/components/HeroContainer.svelte';

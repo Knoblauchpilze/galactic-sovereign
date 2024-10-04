@@ -49,7 +49,7 @@
 	<StyledText text="Upgrade to level {action.nextLevel}" textColor="text-white" />
 	<Timer durationMs={serverRemainingMs} onFinished={onActionCompleted} />
 	<div class={cancelButtonClass}>
-		<form method="POST" action="/planets/{action.planet}/overview?/deleteBuildingAction">
+		<form method="POST" action="/planets/{action.planet}/buildings?/deleteBuildingAction">
 			<input class="hidden" id="action" name="action" value={action.id} />
 			<StyledActionButton text="Cancel" enabled={!actionCompleted} negativeConfirmation />
 		</form>
