@@ -24,6 +24,7 @@
 	export let data;
 
 	// https://stackoverflow.com/questions/77047087/why-is-page-svelte-not-reloading-after-page-server-ts-executes-load-function
+	$: playerName = data.playerName;
 	$: planetName = data.planet.name;
 	$: universeName = data.universe.name;
 
@@ -56,7 +57,7 @@
 	}
 </script>
 
-<GamePageWrapper {universeName} {planetName} {resources}>
+<GamePageWrapper {universeName} {playerName} {planetName} {resources}>
 	<CenteredWrapper>
 		<StyledTitle text="Buildings on {planetName}" />
 		<!-- https://tailwindcss.com/docs/align-items -->

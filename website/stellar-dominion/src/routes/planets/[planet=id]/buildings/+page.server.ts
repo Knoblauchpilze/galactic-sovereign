@@ -43,6 +43,7 @@ export async function load({ params, cookies, depends }) {
 
 	return {
 		universe: universeApi,
+		playerName: gameCookies.playerName,
 		resources: universe.resources.map((r) => r.toJson()),
 		buildings: universe.buildings.map((b) => b.toJson()),
 		planet: planet.toJson()
