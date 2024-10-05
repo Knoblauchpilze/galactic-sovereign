@@ -7,6 +7,7 @@ export default {
 				// Palette
 				primary: '#263037',
 				'primary-hover': '#36454f',
+				'primary-selected': '#535a5e',
 				secondary: '#b87333',
 				'secondary-hover': '#fff',
 
