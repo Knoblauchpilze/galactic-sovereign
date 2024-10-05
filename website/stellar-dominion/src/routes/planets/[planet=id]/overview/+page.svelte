@@ -18,6 +18,7 @@
 	$: pageTitle.set(title);
 	$: activeScreen.set('overview');
 
+	$: playerName = data.playerName;
 	$: planetName = data.planet.name;
 	$: universeName = data.universe.name;
 
@@ -29,6 +30,6 @@
 	);
 </script>
 
-<GamePageWrapper {universeName} {planetName} {resources}>
+<GamePageWrapper {universeName} {playerName} {planetName} {resources}>
 	<CenteredWrapper><p class="text-white">This is being built...</p></CenteredWrapper>
 </GamePageWrapper>

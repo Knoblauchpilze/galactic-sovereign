@@ -8,6 +8,7 @@
 	// https://svelte.dev/blog/zero-config-type-safety
 	export let universeName: string;
 	export let planetName: string;
+	export let playerName: string;
 
 	export let resources: UiResource[];
 
@@ -28,6 +29,7 @@
 <CenteredWrapper bgColor="bg-overlay">
 	<Header>
 		<StyledText text={universeName} textColor="text-white" />
+		<StyledText text={playerName} textColor="text-white" />
 		<StyledText text={planetName} textColor="text-white" />
 		<form method="POST" action="?/logout">
 			<button class="hover:underline">Logout</button>
