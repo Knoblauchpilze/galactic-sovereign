@@ -1,14 +1,24 @@
 <script lang="ts">
 	import '$styles/app.css';
 	import { CenteredWrapper, Footer, StyledLink } from '$lib/components';
+
+	import activeScreen from '$lib/stores/activeScreen';
 </script>
 
 <div class="w-[90%] h-[90%] flex justify-center items-stretch bg-transparent">
-	<div class=" flex items-center">
-		<ul class="list-none p-0 m-0">
-			<li><a href="overview">Overview</a></li>
-			<li><a href="buildings">Buildings</a></li>
-		</ul>
+	<div class="flex flex-col justify-center items-stretch">
+		<StyledLink
+			text="Overview"
+			link="overview"
+			showAsButton={true}
+			disabled={$activeScreen === 'overview'}
+		/>
+		<StyledLink
+			text="Buildings"
+			link="buildings"
+			showAsButton={true}
+			disabled={$activeScreen === 'buildings'}
+		/>
 	</div>
 
 	<CenteredWrapper>

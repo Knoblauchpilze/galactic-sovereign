@@ -4,6 +4,7 @@
 	import heroImage, { GAME_HERO_IMAGE } from '$lib/stores/ui/heroImage';
 	import heroContainer, { GAME_HERO_CONTAINER_PROPS } from '$lib/stores/ui/heroContainer';
 	import pageTitle, { HOMEPAGE_TITLE } from '$lib/stores/ui/pageTitle';
+	import activeScreen from '$lib/stores/activeScreen';
 
 	import { CenteredWrapper, GamePageWrapper } from '$lib/components';
 
@@ -15,6 +16,7 @@
 	heroContainer.set(GAME_HERO_CONTAINER_PROPS);
 	$: title = HOMEPAGE_TITLE + ' - ' + data.planet.name;
 	$: pageTitle.set(title);
+	$: activeScreen.set('overview');
 
 	$: planetName = data.planet.name;
 	$: universeName = data.universe.name;
