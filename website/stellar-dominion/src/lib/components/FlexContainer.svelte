@@ -3,6 +3,7 @@
 	export let center: boolean = false;
 	export let extensible: boolean = true;
 	export let bgColor: string = 'bg-transparent';
+	export let styling: string = '';
 
 	$: direction = horizontal ? 'flex-row' : 'flex-col';
 	$: space = center ? 'justify-center' : 'justify-around';
@@ -10,6 +11,6 @@
 </script>
 
 <!-- https://stackoverflow.com/questions/29467660/how-to-stretch-children-to-fill-cross-axis -->
-<div class="flex {direction} {space} items-center {bgColor} {grow}">
+<div class="flex {direction} {space} items-center {bgColor} {grow} {styling}">
 	<slot />
 </div>
