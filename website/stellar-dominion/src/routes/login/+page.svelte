@@ -1,7 +1,7 @@
 <script lang="ts">
 	import '$styles/app.css';
 	import {
-		CenteredWrapper,
+		FlexContainer,
 		FormField,
 		StyledButton,
 		StyledError,
@@ -29,19 +29,19 @@
 	heroContainer.set(HOMEPAGE_HERO_CONTAINER_PROPS);
 </script>
 
-<CenteredWrapper>
+<FlexContainer>
 	<div class="fixed left-4 top-4">
 		<p class="text-secondary">
 			Don't have an account yet? Click <StyledLink text="here" link="/signup" /> to sign-up!"
 		</p>
 	</div>
 
-	<CenteredWrapper width="w-full" height="h-1/5">
+	<FlexContainer extensible={false} styling="h-1/5">
 		<StyledTitle text="Stellar Dominion" />
 		<StyledText text="Login" />
-	</CenteredWrapper>
+	</FlexContainer>
 
-	<CenteredWrapper width="w-full" height="h-3/5">
+	<FlexContainer extensible={false} styling="h-3/5">
 		<form method="POST" action="?/login" class="flex flex-col grow justify-evenly">
 			<FormField label="universe:" labelId="universe">
 				<select id="universe" name="universe">
@@ -89,8 +89,5 @@
 				<StyledError text="Failed to login: {form.message}" />
 			</div>
 		{/if}
-	</CenteredWrapper>
-</CenteredWrapper>
-
-<style>
-</style>
+	</FlexContainer>
+</FlexContainer>
