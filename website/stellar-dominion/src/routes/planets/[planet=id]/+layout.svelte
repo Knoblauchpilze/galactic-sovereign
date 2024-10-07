@@ -11,9 +11,9 @@
 	extensible={false}
 	center={true}
 	stretch={true}
-	bgColor={'bg-red-400 w-[90%] h-[90%]'}
+	styling={'w-[90%] h-[90%]'}
 >
-	<FlexContainer center={true} stretch={true} extensible={false} bgColor={'bg-orange-100'}>
+	<FlexContainer center={true} stretch={true} extensible={false}>
 		<StyledLink
 			text="Overview"
 			link="overview"

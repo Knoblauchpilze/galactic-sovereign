@@ -31,7 +31,7 @@
 </script>
 
 <GamePageWrapper {universeName} {playerName} {planetName} {resources}>
-	<FlexContainer bgColor={'bg-yellow-200'}>
+	<FlexContainer>
 		<p class="text-white">This is being built...</p>
 	</FlexContainer>
 </GamePageWrapper>

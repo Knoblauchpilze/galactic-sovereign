@@ -26,7 +26,7 @@
 	}
 </script>
 
-<FlexContainer bgColor="bg-blue-600">
+<FlexContainer>
 	<!-- https://stackoverflow.com/questions/67852559/pass-svelte-component-as-props -->
 	<Header>
 		<StyledText text={universeName} textColor="text-white" />
