@@ -6,7 +6,7 @@
 	import pageTitle, { HOMEPAGE_TITLE } from '$lib/stores/ui/pageTitle';
 	import activeScreen from '$lib/stores/activeScreen';
 
-	import { CenteredWrapper, GamePageWrapper } from '$lib/components';
+	import { FlexContainer, GamePageWrapper } from '$lib/components';
 
 	import { mapPlanetResourcesToUiResources } from '$lib/game/resources';
 
@@ -31,5 +31,7 @@
 </script>
 
 <GamePageWrapper {universeName} {playerName} {planetName} {resources}>
-	<CenteredWrapper><p class="text-white">This is being built...</p></CenteredWrapper>
+	<FlexContainer bgColor={'bg-yellow-200'}>
+		<p class="text-white">This is being built...</p>
+	</FlexContainer>
 </GamePageWrapper>
