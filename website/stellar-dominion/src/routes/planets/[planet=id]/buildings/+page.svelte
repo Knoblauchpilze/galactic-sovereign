@@ -53,10 +53,10 @@
 </script>
 
 <GamePageWrapper {universeName} {playerName} {planetName} {resources}>
-	<FlexContainer>
+	<FlexContainer align={'stretch'}>
 		<StyledTitle text="Buildings on {planetName}" />
 		<!-- https://tailwindcss.com/docs/align-items -->
-		<div class="w-full h-full flex flex-wrap items-start bg-transparent">
+		<FlexContainer horizontal={true} justify={'start'} align={'start'} styling={'flex-wrap'}>
 			{#each buildings as building}
 				<Building
 					{building}
@@ -64,15 +64,15 @@
 					buildingActionAlreadyRunning={anyBuildingActionRunning}
 				/>
 			{/each}
-		</div>
+		</FlexContainer>
 	</FlexContainer>
 
 	<FlexContainer>
 		<StyledTitle text="Actions running on {planetName}" />
-		<div class="w-full h-full flex flex-wrap items-start bg-transparent">
+		<FlexContainer horizontal={true} justify={'start'} align={'start'} styling={'flex-wrap'}>
 			{#each actions as action}
 				<BuildingAction {action} onCompleted={onActionCompleted} />
 			{/each}
-		</div>
+		</FlexContainer>
 	</FlexContainer>
 </GamePageWrapper>
