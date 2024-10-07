@@ -42,7 +42,7 @@
 	</FlexContainer>
 
 	<FlexContainer extensible={false} styling="h-3/5">
-		<form method="POST" action="?/login" class="flex flex-col grow justify-evenly">
+		<form method="POST" action="?/login" class="flex flex-col flex-1 justify-evenly">
 			<FormField label="universe:" labelId="universe">
 				<select id="universe" name="universe">
 					{#each data.universes as universe}

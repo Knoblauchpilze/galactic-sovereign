@@ -1,7 +1,14 @@
 <script lang="ts">
+	import { FlexContainer } from '$lib/components';
+
 	export let height: string = 'h-1/10';
 </script>
 
-<div class="fixed bottom-0 w-full {height} flex justify-around items-center bg-black text-white">
+<FlexContainer
+	horizontal={true}
+	center={false}
+	bgColor={'bg-black'}
+	styling="fixed bottom-0 w-full {height} text-white"
+>
 	<slot />
-</div>
+</FlexContainer>

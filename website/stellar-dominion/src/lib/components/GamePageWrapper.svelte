@@ -1,6 +1,6 @@
 <script lang="ts">
 	import '$styles/app.css';
-	import { CenteredWrapper, Header, StyledText } from '$lib/components';
+	import { FlexContainer, Header, StyledText } from '$lib/components';
 
 	import { type UiResource } from '$lib/game/resources';
 	import { floorToInteger, toFlooredShortString } from '$lib/displayUtils';
@@ -26,7 +26,7 @@
 	}
 </script>
 
-<CenteredWrapper bgColor="bg-overlay">
+<FlexContainer bgColor="bg-blue-600">
 	<!-- https://stackoverflow.com/questions/67852559/pass-svelte-component-as-props -->
 	<Header>
 		<StyledText text={universeName} textColor="text-white" />
@@ -37,7 +37,7 @@
 		</form>
 	</Header>
 
-	<div class="flex flex-col justify-start flex-grow w-full">
+	<div class="flex flex-col justify-start flex-1 w-full">
 		<div class="flex justify-around bg-black justify-items-stretch">
 			{#each resources as resource}
 				<div class="flex space-between">
@@ -62,4 +62,4 @@
 
 		<slot />
 	</div>
-</CenteredWrapper>
+</FlexContainer>

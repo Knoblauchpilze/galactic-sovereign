@@ -1,6 +1,6 @@
 <script lang="ts">
 	import '$styles/app.css';
-	import { CenteredWrapper, HeroContainer } from '$lib/components';
+	import { HeroContainer } from '$lib/components';
 
 	import pageTitle from '$lib/stores/ui/pageTitle';
 </script>
@@ -11,7 +11,5 @@
 </svelte:head>
 <!-- https://stackoverflow.com/questions/70805041/background-image-in-tailwindcss-using-dynamic-url-react-js -->
 <HeroContainer>
-	<CenteredWrapper>
-		<slot />
-	</CenteredWrapper>
+	<slot />
 </HeroContainer>
