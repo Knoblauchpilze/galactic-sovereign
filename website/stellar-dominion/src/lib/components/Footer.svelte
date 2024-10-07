@@ -6,7 +6,6 @@
 
 <FlexContainer
 	horizontal={true}
-	center={false}
 	bgColor={'bg-black'}
 	styling="fixed bottom-0 w-full {height} text-white"
 >

@@ -9,11 +9,11 @@
 <FlexContainer
 	horizontal={true}
 	extensible={false}
-	center={true}
-	stretch={true}
+	justify={'center'}
+	align={'stretch'}
 	styling={'w-[90%] h-[90%]'}
 >
-	<FlexContainer center={true} stretch={true} extensible={false}>
+	<FlexContainer justify={'center'} extensible={false}>
 		<StyledLink
 			text="Overview"
 			link="overview"
