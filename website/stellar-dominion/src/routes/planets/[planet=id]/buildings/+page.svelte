@@ -67,7 +67,7 @@
 		</FlexContainer>
 	</FlexContainer>
 
-	<FlexContainer>
+	<FlexContainer align={'stretch'}>
 		<StyledTitle text="Actions running on {planetName}" />
 		<FlexContainer horizontal={true} justify={'start'} align={'start'} styling={'flex-wrap'}>
 			{#each actions as action}
