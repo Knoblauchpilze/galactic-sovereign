@@ -37,7 +37,7 @@
 		</form>
 	</Header>
 
-	<FlexContainer styling={'w-full'}>
+	<FlexContainer align={'stretch'} styling={'w-full'}>
 		<FlexContainer horizontal={true} extensible={false} bgColor={'bg-black'} styling={'w-full'}>
 			{#each resources as resource}
 				<FlexContainer horizontal={true} extensible={false} styling={'space-between'}>
