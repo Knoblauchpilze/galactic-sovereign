@@ -9,6 +9,7 @@
 	$: direction = horizontal ? 'flex-row' : 'flex-col';
 	$: justification = 'justify-' + justify;
 	$: alignment = 'items-' + align;
+	// https://stackoverflow.com/questions/75999354/tailwindcss-content-larger-than-screen-when-adding-components
 	$: grow = extensible ? 'flex-1' : 'flex-none';
 </script>
 
