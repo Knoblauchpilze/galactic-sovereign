@@ -37,10 +37,10 @@
 		</form>
 	</Header>
 
-	<div class="flex flex-col justify-start flex-1 w-full">
-		<div class="flex justify-around bg-black justify-items-stretch">
+	<FlexContainer styling={'w-full'}>
+		<FlexContainer horizontal={true} extensible={false} bgColor={'bg-black'} styling={'w-full'}>
 			{#each resources as resource}
-				<div class="flex space-between">
+				<FlexContainer horizontal={true} extensible={false} styling={'space-between'}>
 					<StyledText text="{resource.name}:" textColor="text-white" />
 					<StyledText
 						text={floorToInteger(resource.amount).toString()}
@@ -56,10 +56,10 @@
 						text="(storage: {toFlooredShortString(resource.storage)})"
 						textColor="text-white"
 					/>
-				</div>
+				</FlexContainer>
 			{/each}
-		</div>
+		</FlexContainer>
 
 		<slot />
-	</div>
+	</FlexContainer>
 </FlexContainer>
