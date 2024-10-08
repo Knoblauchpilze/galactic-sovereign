@@ -13,19 +13,21 @@
 	align={'stretch'}
 	styling={'w-[90%] h-[90%]'}
 >
-	<FlexContainer justify={'center'} extensible={false}>
-		<StyledLink
-			text="Overview"
-			link="overview"
-			showAsButton={true}
-			disabled={$activeScreen === 'overview'}
-		/>
-		<StyledLink
-			text="Buildings"
-			link="buildings"
-			showAsButton={true}
-			disabled={$activeScreen === 'buildings'}
-		/>
+	<FlexContainer extensible={false}>
+		<FlexContainer extensible={false}>
+			<StyledLink
+				text="Overview"
+				link="overview"
+				showAsButton={true}
+				disabled={$activeScreen === 'overview'}
+			/>
+			<StyledLink
+				text="Buildings"
+				link="buildings"
+				showAsButton={true}
+				disabled={$activeScreen === 'buildings'}
+			/>
+		</FlexContainer>
 	</FlexContainer>
 
 	<slot />
