@@ -6,14 +6,19 @@
 	import pageTitle, { HOMEPAGE_TITLE } from '$lib/stores/ui/pageTitle';
 	import activeScreen from '$lib/stores/activeScreen';
 
-	import { GamePageWrapper, StyledTitle, Building, BuildingAction } from '$lib/components';
+	import {
+		FlexContainer,
+		GamePageWrapper,
+		StyledTitle,
+		Building,
+		BuildingAction
+	} from '$lib/components';
 
 	import { invalidate } from '$app/navigation';
 
 	import { mapPlanetResourcesToUiResources } from '$lib/game/resources';
 	import { mapPlanetBuildingsToUiBuildings } from '$lib/game/buildings';
 	import { mapBuildingActionsToUiActions } from '$lib/game/actions.js';
-	import FlexContainer from '$lib/components/FlexContainer.svelte';
 
 	// https://svelte.dev/blog/zero-config-type-safety
 	export let data;

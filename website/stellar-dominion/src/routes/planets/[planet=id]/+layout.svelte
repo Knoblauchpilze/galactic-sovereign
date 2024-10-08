@@ -1,9 +1,8 @@
 <script lang="ts">
 	import '$styles/app.css';
-	import { CenteredWrapper, Footer, StyledLink } from '$lib/components';
+	import { FlexContainer, Footer, StyledLink } from '$lib/components';
 
 	import activeScreen from '$lib/stores/activeScreen';
-	import FlexContainer from '$lib/components/FlexContainer.svelte';
 </script>
 
 <FlexContainer
