@@ -30,7 +30,6 @@ export async function load({ cookies }) {
 	};
 }
 
-/** @type {import('./$types').Actions} */
 export const actions = {
 	signup: async ({ cookies, request }) => {
 		const data = await request.formData();

@@ -22,7 +22,6 @@ export async function load({ cookies }) {
 	};
 }
 
-/** @type {import('./$types').Actions} */
 export const actions = {
 	login: async ({ cookies, request }) => {
 		const data = await request.formData();
