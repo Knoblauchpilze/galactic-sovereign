@@ -1,9 +1,12 @@
 import { error, redirect } from '@sveltejs/kit';
 import { loadCookies } from '$lib/cookies';
+
+import { ApiFailureReason } from '$lib/responseEnvelope.js';
+
+import { logout } from '$lib/actions/logout';
+
 import { Universe, type ApiUniverse, getUniverse } from '$lib/game/universes';
 import { Planet, getPlanet, createBuildingAction, deleteBuildingAction } from '$lib/game/planets';
-import { ApiFailureReason } from '$lib/responseEnvelope.js';
-import { logoutUser } from '$lib/sessions';
 
 /** @type {import('./$types').PageLoad} */
 export async function load({ params, cookies, depends }) {
@@ -50,31 +53,8 @@ export async function load({ params, cookies, depends }) {
 	};
 }
 
-/** @type {import('./$types').Actions} */
 export const actions = {
-	logout: async ({ cookies }) => {
-		const apiKey = cookies.get('api-key');
-		if (!apiKey) {
-			redirect(303, '/login');
-		}
-
-		const apiUser = cookies.get('api-user');
-		if (!apiUser) {
-			redirect(303, '/login');
-		}
-
-		const logoutResponse = await logoutUser(apiKey, apiUser);
-
-		if (logoutResponse.error()) {
-			return {
-				success: false,
-				message: logoutResponse.failureMessage()
-			};
-		}
-
-		redirect(303, '/login');
-	},
-
+	logout: logout,
 	createBuildingAction: async ({ cookies, params, request }) => {
 		const apiKey = cookies.get('api-key');
 		if (!apiKey) {
