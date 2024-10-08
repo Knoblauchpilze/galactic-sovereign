@@ -1,8 +1,12 @@
 import { error, redirect } from '@sveltejs/kit';
 import { loadCookies } from '$lib/cookies';
+
+import { ApiFailureReason } from '$lib/responseEnvelope.js';
+
+import { logout } from '$lib/actions/logout';
+
 import { Universe, type ApiUniverse, getUniverse } from '$lib/game/universes';
 import { Planet, getPlanet } from '$lib/game/planets';
-import { ApiFailureReason } from '$lib/responseEnvelope.js';
 
 /** @type {import('./$types').PageLoad} */
 export async function load({ params, cookies, depends }) {
@@ -48,3 +52,7 @@ export async function load({ params, cookies, depends }) {
 		planet: planet.toJson()
 	};
 }
+
+export const actions = {
+	logout: logout
+};
