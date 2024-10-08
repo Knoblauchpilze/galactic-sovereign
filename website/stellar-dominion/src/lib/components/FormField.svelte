@@ -1,9 +1,11 @@
 <script lang="ts">
+	import { FlexContainer } from '$lib/components';
+
 	export let label: string = 'My label';
 	export let labelId: string;
 </script>
 
-<div class="flex flex-col text-secondary">
+<FlexContainer extensible={false} align={'start'} styling={'text-secondary'}>
 	<label for={labelId}>{label}</label>
 	<slot />
-</div>
+</FlexContainer>
