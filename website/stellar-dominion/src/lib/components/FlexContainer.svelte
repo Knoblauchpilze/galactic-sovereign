@@ -1,6 +1,6 @@
 <script lang="ts">
 	export let vertical: boolean = true;
-	export let justify: string = 'around';
+	export let justify: string = 'evenly';
 	export let align: string = 'center';
 	export let extensible: boolean = true;
 	export let bgColor: string = 'bg-transparent';
