@@ -9,7 +9,7 @@
 
 <!-- https://stackoverflow.com/questions/1122381/how-to-force-child-div-to-be-100-of-parent-divs-height-without-specifying-pare -->
 <FlexContainer
-	horizontal={true}
+	vertical={false}
 	justify={'center'}
 	align={'stretch'}
 	extensible={false}

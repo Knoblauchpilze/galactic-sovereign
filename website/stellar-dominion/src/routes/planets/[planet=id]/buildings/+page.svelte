@@ -61,7 +61,7 @@
 	<FlexContainer align={'stretch'}>
 		<StyledTitle text="Buildings on {planetName}" />
 		<!-- https://tailwindcss.com/docs/align-items -->
-		<FlexContainer horizontal={true} justify={'start'} align={'start'} styling={'flex-wrap'}>
+		<FlexContainer vertical={false} justify={'start'} align={'start'} styling={'flex-wrap'}>
 			{#each buildings as building}
 				<Building
 					{building}
@@ -74,7 +74,7 @@
 
 	<FlexContainer align={'stretch'}>
 		<StyledTitle text="Actions running on {planetName}" />
-		<FlexContainer horizontal={true} justify={'start'} align={'start'} styling={'flex-wrap'}>
+		<FlexContainer vertical={false} justify={'start'} align={'start'} styling={'flex-wrap'}>
 			{#each actions as action}
 				<BuildingAction {action} onCompleted={onActionCompleted} />
 			{/each}

@@ -5,7 +5,7 @@
 </script>
 
 <FlexContainer
-	horizontal={true}
+	vertical={false}
 	bgColor={'bg-black'}
 	styling="fixed bottom-0 w-full {height} text-white"
 >

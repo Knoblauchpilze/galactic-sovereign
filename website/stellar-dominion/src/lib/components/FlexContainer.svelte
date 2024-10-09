@@ -1,12 +1,12 @@
 <script lang="ts">
-	export let horizontal: boolean = false;
+	export let vertical: boolean = true;
 	export let justify: string = 'around';
 	export let align: string = 'center';
 	export let extensible: boolean = true;
 	export let bgColor: string = 'bg-transparent';
 	export let styling: string = '';
 
-	$: direction = horizontal ? 'flex-row' : 'flex-col';
+	$: direction = vertical ? 'flex-col' : 'flex-row';
 	$: justification = 'justify-' + justify;
 	$: alignment = 'items-' + align;
 	// https://stackoverflow.com/questions/75999354/tailwindcss-content-larger-than-screen-when-adding-components

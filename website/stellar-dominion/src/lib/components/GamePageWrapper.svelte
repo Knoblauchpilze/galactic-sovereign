@@ -38,9 +38,9 @@
 	</Header>
 
 	<FlexContainer align={'stretch'} styling={'w-full'}>
-		<FlexContainer horizontal={true} extensible={false} bgColor={'bg-black'} styling={'w-full'}>
+		<FlexContainer vertical={false} extensible={false} bgColor={'bg-black'} styling={'w-full'}>
 			{#each resources as resource}
-				<FlexContainer horizontal={true} extensible={false} styling={'space-between'}>
+				<FlexContainer vertical={false} extensible={false} styling={'space-between'}>
 					<StyledText text="{resource.name}:" textColor="text-white" />
 					<StyledText
 						text={floorToInteger(resource.amount).toString()}

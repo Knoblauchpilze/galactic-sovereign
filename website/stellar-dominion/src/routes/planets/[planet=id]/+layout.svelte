@@ -6,7 +6,7 @@
 </script>
 
 <FlexContainer
-	horizontal={true}
+	vertical={false}
 	extensible={false}
 	justify={'center'}
 	align={'stretch'}
