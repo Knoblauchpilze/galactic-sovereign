@@ -1,7 +1,5 @@
 <!-- https://svelte.dev/docs/svelte-components -->
 <script lang="ts">
-	import { StyledButton } from '$lib/components';
-
 	export let text: string = 'Home';
 	export let link: string = '/';
 	export let showAsButton: boolean = false;
@@ -12,12 +10,15 @@
 <!-- https://tailwindcss.com/docs/hover-focus-and-other-states -->
 {#if showAsButton}
 	{#if disabled}
-		<a href={link}>
-			<StyledButton {text} enabled={false} />
+		<a
+			href={link}
+			class="px-12 py-4 rounded-[8px] bg-primary hover:bg-primary-hover text-secondary"
+		>
+			{text}
 		</a>
 	{:else}
-		<a href={link}>
-			<StyledButton {text} />
+		<a href={link} class="px-12 py-4 rounded-[8px] bg-primary-selected text-secondary">
+			{text}
 		</a>
 	{/if}
 {:else}
