@@ -1,5 +1,4 @@
 <script lang="ts">
-	import '$styles/app.css';
 	import { FlexContainer, Header, StyledText } from '$lib/components';
 
 	import { type UiResource } from '$lib/game/resources';

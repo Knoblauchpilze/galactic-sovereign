@@ -1,8 +1,9 @@
 <script lang="ts">
 	import '$styles/app.css';
-	import { HeroContainer } from '$lib/components';
 
 	import pageTitle from '$lib/stores/ui/pageTitle';
+
+	import { HeroContainer } from '$lib/components';
 </script>
 
 <!-- https://stackoverflow.com/questions/74243719/how-to-change-page-title-dynamically-in-sveltekit -->
