@@ -21,6 +21,8 @@ export interface ApiPlanet {
 	readonly player: string;
 	readonly name: string;
 
+	readonly createdAt: Date;
+
 	readonly resources: PlanetResource[];
 	readonly productions: PlanetResourceProduction[];
 	readonly storages: PlanetResourceStorage[];
@@ -32,6 +34,8 @@ export class Planet {
 	readonly id: string = '00000000-0000-0000-0000-000000000000';
 	readonly player: string = '00000000-0000-0000-0000-000000000000';
 	readonly name: string = '';
+
+	readonly createdAt: Date = new Date();
 
 	readonly resources: PlanetResource[] = [];
 	readonly productions: PlanetResourceProduction[] = [];
@@ -50,6 +54,10 @@ export class Planet {
 
 		if ('name' in response && typeof response.name === 'string') {
 			this.name = response.name;
+		}
+
+		if ('createdAt' in response && typeof response.createdAt === 'string') {
+			this.createdAt = new Date(response.createdAt);
 		}
 
 		if ('resources' in response && Array.isArray(response.resources)) {
@@ -78,6 +86,8 @@ export class Planet {
 			id: this.id,
 			player: this.player,
 			name: this.name,
+
+			createdAt: this.createdAt,
 
 			resources: this.resources,
 			productions: this.productions,
