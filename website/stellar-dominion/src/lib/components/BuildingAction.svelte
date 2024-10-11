@@ -1,6 +1,9 @@
 <script lang="ts">
-	import { type UiBuildingAction } from '$lib/game/actions';
+	import activeScreen from '$lib/stores/activeScreen';
+
 	import { StyledActionButton, StyledText, Timer } from '$lib/components';
+
+	import { type UiBuildingAction } from '$lib/game/actions';
 
 	export let action: UiBuildingAction;
 	export let onCompleted: () => void;
@@ -49,7 +52,7 @@
 	<StyledText text="Upgrade to level {action.nextLevel}" textColor="text-white" />
 	<Timer durationMs={serverRemainingMs} onFinished={onActionCompleted} />
 	<div class={cancelButtonClass}>
-		<form method="POST" action="/planets/{action.planet}/buildings?/deleteBuildingAction">
+		<form method="POST" action="/planets/{action.planet}/{$activeScreen}?/deleteBuildingAction">
 			<input class="hidden" id="action" name="action" value={action.id} />
 			<StyledActionButton text="Cancel" enabled={!actionCompleted} negativeConfirmation />
 		</form>

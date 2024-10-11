@@ -4,6 +4,7 @@ import { loadCookies } from '$lib/cookies';
 import { ApiFailureReason } from '$lib/responseEnvelope.js';
 
 import { logout } from '$lib/actions/logout';
+import { requestDeleteBuildingAction } from '$lib/actions/buildingAction';
 
 import { Universe, type ApiUniverse, getUniverse } from '$lib/game/universes';
 import { Planet, getPlanet } from '$lib/game/planets';
@@ -53,5 +54,6 @@ export async function load({ params, cookies, depends }) {
 }
 
 export const actions = {
-	logout: logout
+	logout: logout,
+	deleteBuildingAction: requestDeleteBuildingAction
 };

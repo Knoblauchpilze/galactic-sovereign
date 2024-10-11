@@ -1,7 +1,8 @@
 <script lang="ts">
+	import { StyledActionButton, StyledText } from '$lib/components';
+
 	import { type UiBuilding, type UiBuildingCost } from '$lib/game/buildings';
 	import { type UiResource } from '$lib/game/resources';
-	import { StyledActionButton, StyledText } from '$lib/components';
 
 	export let building: UiBuilding;
 	export let availableResources: UiResource[];
