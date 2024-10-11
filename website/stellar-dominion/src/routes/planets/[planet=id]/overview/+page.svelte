@@ -4,10 +4,13 @@
 	import pageTitle, { HOMEPAGE_TITLE } from '$lib/stores/ui/pageTitle';
 	import activeScreen from '$lib/stores/activeScreen';
 
-	import { FlexContainer, GamePageWrapper, StyledText, StyledTitle } from '$lib/components';
+	import { BuildingAction, FlexContainer, GamePageWrapper, StyledTitle } from '$lib/components';
+
+	import { invalidate } from '$app/navigation';
 
 	import { formatDate } from '$lib/time';
 	import { mapPlanetResourcesToUiResources } from '$lib/game/resources';
+	import { mapBuildingActionsToUiActions } from '$lib/game/actions.js';
 
 	export let data;
 
@@ -23,6 +26,7 @@
 
 	$: colonizationDate = formatDate(data.planet.createdAt);
 	$: usedFields = data.planet.buildings.reduce((used, building) => used + building.level, 0);
+	$: actions = mapBuildingActionsToUiActions(data.planet.buildingActions, data.buildings);
 
 	$: resources = mapPlanetResourcesToUiResources(
 		data.planet.resources,
@@ -30,6 +34,10 @@
 		data.planet.storages,
 		data.resources
 	);
+
+	function onActionCompleted() {
+		invalidate('data:planet');
+	}
 </script>
 
 <GamePageWrapper {universeName} {playerName} {planetName} {resources}>
@@ -47,6 +55,15 @@
 					<td class="text-white">{usedFields}</td>
 				</tr>
 			</table>
+		</FlexContainer>
+	</FlexContainer>
+
+	<FlexContainer align={'stretch'}>
+		<StyledTitle text="Actions running on {planetName}" />
+		<FlexContainer vertical={false} justify={'start'} align={'start'} styling={'flex-wrap'}>
+			{#each actions as action}
+				<BuildingAction {action} onCompleted={onActionCompleted} />
+			{/each}
 		</FlexContainer>
 	</FlexContainer>
 </GamePageWrapper>
