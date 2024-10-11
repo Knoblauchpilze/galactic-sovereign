@@ -1,5 +1,4 @@
 <script lang="ts">
-	import '$styles/app.css';
 	import { FlexContainer, Footer, StyledLink } from '$lib/components';
 
 	import activeScreen from '$lib/stores/activeScreen';

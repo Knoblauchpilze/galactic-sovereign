@@ -1,5 +1,4 @@
 <script lang="ts">
-	import '$styles/app.css';
 	import { FlexContainer, StyledLink, StyledText, StyledTitle } from '$lib/components';
 
 	import heroImage, { HOMEPAGE_HERO_IMAGE } from '$lib/stores/ui/heroImage';
