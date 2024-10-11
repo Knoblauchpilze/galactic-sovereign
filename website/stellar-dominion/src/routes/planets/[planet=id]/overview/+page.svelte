@@ -4,8 +4,9 @@
 	import pageTitle, { HOMEPAGE_TITLE } from '$lib/stores/ui/pageTitle';
 	import activeScreen from '$lib/stores/activeScreen';
 
-	import { FlexContainer, GamePageWrapper } from '$lib/components';
+	import { FlexContainer, GamePageWrapper, StyledText, StyledTitle } from '$lib/components';
 
+	import { formatDate } from '$lib/time';
 	import { mapPlanetResourcesToUiResources } from '$lib/game/resources';
 
 	export let data;
@@ -20,6 +21,9 @@
 	$: planetName = data.planet.name;
 	$: universeName = data.universe.name;
 
+	$: colonizationDate = formatDate(data.planet.createdAt);
+	$: usedFields = data.planet.buildings.reduce((used, building) => used + building.level, 0);
+
 	$: resources = mapPlanetResourcesToUiResources(
 		data.planet.resources,
 		data.planet.productions,
@@ -29,7 +33,20 @@
 </script>
 
 <GamePageWrapper {universeName} {playerName} {planetName} {resources}>
-	<FlexContainer>
-		<p class="text-white">This is being built...</p>
+	<FlexContainer align={'center'}>
+		<StyledTitle text="Overview of {planetName}" />
+
+		<FlexContainer justify={'center'} bgColor={'bg-overlay'}>
+			<table>
+				<tr>
+					<td class="text-white">Colonization date:</td>
+					<td class="text-white">{colonizationDate}</td>
+				</tr>
+				<tr>
+					<td class="text-white">Used fields:</td>
+					<td class="text-white">{usedFields}</td>
+				</tr>
+			</table>
+		</FlexContainer>
 	</FlexContainer>
 </GamePageWrapper>
