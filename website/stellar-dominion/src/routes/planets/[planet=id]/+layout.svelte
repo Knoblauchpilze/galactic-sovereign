@@ -11,7 +11,7 @@
 	align={'stretch'}
 	styling={'w-[90%] h-[90%]'}
 >
-	<FlexContainer extensible={false}>
+	<FlexContainer extensible={false} justify={'start'}>
 		<FlexContainer extensible={false}>
 			<StyledLink
 				text="Overview"
