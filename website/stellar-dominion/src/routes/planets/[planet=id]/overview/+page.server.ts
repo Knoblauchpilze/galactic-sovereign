@@ -8,7 +8,6 @@ import { logout } from '$lib/actions/logout';
 import { Universe, type ApiUniverse, getUniverse } from '$lib/game/universes';
 import { Planet, getPlanet } from '$lib/game/planets';
 
-/** @type {import('./$types').PageLoad} */
 export async function load({ params, cookies, depends }) {
 	const [valid, gameCookies] = loadCookies(cookies);
 	if (!valid) {

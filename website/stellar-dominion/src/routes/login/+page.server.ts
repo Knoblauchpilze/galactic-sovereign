@@ -5,7 +5,6 @@ import { ApiKey, loginUser } from '$lib/sessions';
 import { getUniverses, responseToUniverseArray } from '$lib/game/universes';
 import { fetchPlanetsFromPlayer, responseToPlanetArray } from '$lib/game/planets';
 
-/** @type {import('./$types').PageServerLoad} */
 export async function load({ cookies }) {
 	resetCookies(cookies);
 
