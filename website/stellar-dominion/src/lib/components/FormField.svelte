@@ -5,7 +5,7 @@
 	export let labelId: string;
 </script>
 
-<FlexContainer extensible={false} align={'start'} styling={'text-secondary'}>
+<FlexContainer extensible={false} align={'stretch'} styling={'text-secondary'}>
 	<label for={labelId}>{label}</label>
 	<slot />
 </FlexContainer>

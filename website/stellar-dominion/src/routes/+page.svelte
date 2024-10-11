@@ -8,7 +8,6 @@
 	heroContainer.set(HOMEPAGE_HERO_CONTAINER_PROPS);
 </script>
 
-<!-- <div class="flex flew-col justify-center items-center bg-yellow-200 flex-none h-3/5"> -->
 <FlexContainer extensible={false} styling="h-3/5">
 	<StyledTitle text="Stellar Dominion" />
 	<StyledText text="Battle for the galaxy" />
