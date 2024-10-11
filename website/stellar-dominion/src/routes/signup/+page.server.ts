@@ -3,7 +3,6 @@ import { resetCookies } from '$lib/cookies';
 import { registerPlayer } from '$lib/game/players';
 import { Universe, getUniverses } from '$lib/game/universes';
 
-/** @type {import('./$types').PageServerLoad} */
 export async function load({ cookies }) {
 	resetCookies(cookies);
 
