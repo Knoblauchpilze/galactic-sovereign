@@ -19,7 +19,8 @@
 	</FlexContainer>
 </div>
 
-<style>
+<!-- https://tailwindcss.com/docs/guides/sveltekit, point 8-->
+<style lang="postcss">
 	:global(body),
 	:global(html) {
 		height: 100%;
