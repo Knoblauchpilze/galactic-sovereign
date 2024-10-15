@@ -1,6 +1,7 @@
 package rest
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"testing"
@@ -36,7 +37,8 @@ type mockEchoServer struct {
 	groupCalled int
 	groups      []groupData
 
-	startCalled int
+	startCalled    int
+	shutdownCalled int
 
 	sleep time.Duration
 	err   error
@@ -540,6 +542,11 @@ func (m *mockEchoServer) Start(address string) error {
 	m.startCalled++
 	m.address = address
 	time.Sleep(m.sleep)
+	return m.err
+}
+
+func (m *mockEchoServer) Shutdown(ctx context.Context) error {
+	m.shutdownCalled++
 	return m.err
 }
 

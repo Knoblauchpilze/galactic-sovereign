@@ -8,7 +8,7 @@ setup:
 release:
 	go build -o build/bin/${APPLICATION} main.go
 
-install: release config
+install: release
 
 run: release
 	./build/bin/${APPLICATION} stellar-dominion-dev

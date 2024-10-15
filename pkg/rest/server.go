@@ -1,10 +1,12 @@
 package rest
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/KnoblauchPilze/user-service/pkg/errors"
 	"github.com/KnoblauchPilze/user-service/pkg/logger"
@@ -16,7 +18,7 @@ import (
 type Server interface {
 	Start()
 	Wait() error
-	Stop()
+	Stop() error
 	Register(route Route) error
 }
 
@@ -82,6 +84,7 @@ func (s *serverImpl) Start() {
 
 		logger.Infof("Starting server at %s for route %s", address, s.endpoint)
 		s.err = s.server.Start(address)
+		logger.Infof("Server gracefully at %s shutdown", address)
 	}()
 }
 
@@ -92,8 +95,13 @@ func (s *serverImpl) Wait() error {
 	return s.err
 }
 
-func (s *serverImpl) Stop() {
+func (s *serverImpl) Stop() error {
 	s.close <- true
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	return s.server.Shutdown(ctx)
 }
 
 func (s *serverImpl) Register(route Route) error {
