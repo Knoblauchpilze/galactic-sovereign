@@ -1,6 +1,10 @@
 package rest
 
-import "github.com/labstack/echo/v4"
+import (
+	"context"
+
+	"github.com/labstack/echo/v4"
+)
 
 type echoServerImpl struct {
 	e *echo.Echo
@@ -16,4 +20,8 @@ func (esi *echoServerImpl) Group(prefix string, m ...echo.MiddlewareFunc) echoRo
 
 func (esi *echoServerImpl) Start(address string) error {
 	return esi.e.Start(address)
+}
+
+func (esi *echoServerImpl) Shutdown(ctx context.Context) error {
+	return esi.e.Shutdown(ctx)
 }

@@ -114,7 +114,7 @@ func main() {
 	installCleanup(pool, s)
 
 	if err := s.Wait(); err != nil {
-		logger.Errorf("Error while servier was running: %v", err)
+		logger.Errorf("Error while server was running: %v", err)
 		os.Exit(1)
 	}
 }
@@ -126,7 +126,10 @@ func installCleanup(conn db.ConnectionPool, s rest.Server) {
 	go func() {
 		<-interruptChannel
 
-		s.Stop()
+		if err := s.Stop(); err != nil {
+			logger.Errorf("Error while stopping server: %v", err)
+		}
+
 		conn.Close()
 		os.Exit(1)
 	}()

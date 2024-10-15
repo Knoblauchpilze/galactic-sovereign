@@ -1,6 +1,8 @@
 package rest
 
 import (
+	"context"
+
 	"github.com/KnoblauchPilze/user-service/pkg/logger"
 	"github.com/labstack/echo/v4"
 )
@@ -20,6 +22,8 @@ type echoServer interface {
 	Group(string, ...echo.MiddlewareFunc) echoRouter
 
 	Start(string) error
+
+	Shutdown(context.Context) error
 }
 
 func createEchoServerWrapper() echoServer {
