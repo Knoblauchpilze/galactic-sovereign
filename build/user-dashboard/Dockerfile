@@ -1,7 +1,7 @@
 FROM node:22 AS builder
 ARG API_BASE_URL="http://user-service:80/v1/users"
 WORKDIR /build
-COPY website/user-dashboard ./
+COPY frontend/user-dashboard ./
 RUN echo "PUBLIC_API_BASE_URL='${API_BASE_URL}'" > .env
 # https://stackoverflow.com/questions/71844271/vite-is-not-recognized-on-npm-run-dev
 RUN npm install

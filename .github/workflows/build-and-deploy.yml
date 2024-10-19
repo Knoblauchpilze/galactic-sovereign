@@ -8,8 +8,8 @@ on:
       - "pkg/**"
       - "internal/**"
       - "cmd/**"
-      - "website/user-dashboard/**"
-      - "website/stellar-dominion/**"
+      - "frontend/user-dashboard/**"
+      - "frontend/stellar-dominion/**"
       # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#example-including-and-excluding-paths
       - "!build/user-service/version.txt"
       - "!build/user-dashboard/version.txt"
@@ -59,11 +59,11 @@ jobs:
               - '.github/workflows/stellar-dominion-service**'
               - '.github/workflows/services**'
             user-dashboard:
-              - 'website/user-dashboard/**'
+              - 'frontend/user-dashboard/**'
               - '.github/workflows/user-dashboard**'
               - '.github/workflows/services**'
             stellar-dominion:
-              - 'website/stellar-dominion/**'
+              - 'frontend/stellar-dominion/**'
               - '.github/workflows/stellar-dominion-build-and-push.yml'
               - '.github/workflows/services**'
   analyze-code-changes:
