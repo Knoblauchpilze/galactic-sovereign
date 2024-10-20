@@ -14,7 +14,7 @@ All services are dockerized and services are served behind traefik which serves 
 
 Below are the required badges to indicate the code coverage and whether the CI and latest deployments succeeded.
 
-[![codecov](https://codecov.io/gh/Knoblauchpilze/user-service/branch/master/badge.svg?token=WNLIZF0FBL)](https://codecov.io/gh/Knoblauchpilze/user-service)
+[![codecov](https://codecov.io/gh/Knoblauchpilze/galactic-sovereign/branch/master/badge.svg?token=WNLIZF0FBL)](https://codecov.io/gh/Knoblauchpilze/galactic-sovereign)
 
 [![Build and deploy services](https://github.com/KnoblauchPilze/galactic-sovereign/actions/workflows/build-and-deploy.yml/badge.svg)](https://github.com/KnoblauchPilze/galactic-sovereign/actions/workflows/build-and-deploy.yml)
 
@@ -32,10 +32,11 @@ This projects uses:
 - [postgresql](https://www.postgresql.org/) which can be taken from the packages with `sudo apt-get install postgresql-14` for example.
 - [docker](https://docs.docker.com/engine/install/ubuntu/#install-using-the-repository) which can be installed following the instructions of the previous link.
 - [AWS cli](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html#getting-started-install-instructions) which can be installed using the instructions in the previous link.
+- [node and npm](https://nodejs.org/en/download/package-manager) which can be installed using the instructions in the previous link.
 
 ## Clone the repository
 
-- Clone the repo: `git clone git@github.com:Knoblauchpilze/user-service.git`.
+- Clone the repo: `git clone git@github.com:Knoblauchpilze/galactic-sovereign.git`.
 - Install Go from [here](https://go.dev/doc/install). **NOTE**: this project expects Go 1.22 to be available on the system.
 - Go to the project's directory: `cd ~/path/to/the/repo`.
 - Go to the server's directory: `cd cmd/users`.
