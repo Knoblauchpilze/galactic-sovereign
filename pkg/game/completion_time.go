@@ -4,8 +4,8 @@ import (
 	"math"
 	"time"
 
-	"github.com/KnoblauchPilze/user-service/pkg/errors"
-	"github.com/KnoblauchPilze/user-service/pkg/persistence"
+	"github.com/KnoblauchPilze/galactic-sovereign/pkg/errors"
+	"github.com/KnoblauchPilze/galactic-sovereign/pkg/persistence"
 )
 
 const resourceUnitsPerHour float64 = 2500.0

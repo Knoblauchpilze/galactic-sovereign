@@ -3,7 +3,7 @@ package rest
 import (
 	"context"
 
-	"github.com/KnoblauchPilze/user-service/pkg/logger"
+	"github.com/KnoblauchPilze/galactic-sovereign/pkg/logger"
 	"github.com/labstack/echo/v4"
 )
 

@@ -3,9 +3,9 @@ package service
 import (
 	"context"
 
-	"github.com/KnoblauchPilze/user-service/pkg/communication"
-	"github.com/KnoblauchPilze/user-service/pkg/db"
-	"github.com/KnoblauchPilze/user-service/pkg/repositories"
+	"github.com/KnoblauchPilze/galactic-sovereign/pkg/communication"
+	"github.com/KnoblauchPilze/galactic-sovereign/pkg/db"
+	"github.com/KnoblauchPilze/galactic-sovereign/pkg/repositories"
 	"github.com/google/uuid"
 )
 

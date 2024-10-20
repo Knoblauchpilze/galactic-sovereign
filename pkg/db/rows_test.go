@@ -3,7 +3,7 @@ package db
 import (
 	"testing"
 
-	"github.com/KnoblauchPilze/user-service/pkg/errors"
+	"github.com/KnoblauchPilze/galactic-sovereign/pkg/errors"
 	"github.com/jackc/pgx/v5"
 	"github.com/stretchr/testify/assert"
 )

@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/KnoblauchPilze/user-service/pkg/db"
-	"github.com/KnoblauchPilze/user-service/pkg/repositories"
+	"github.com/KnoblauchPilze/galactic-sovereign/pkg/db"
+	"github.com/KnoblauchPilze/galactic-sovereign/pkg/repositories"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 )

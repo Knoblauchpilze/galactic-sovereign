@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/KnoblauchPilze/user-service/pkg/db"
+	"github.com/KnoblauchPilze/galactic-sovereign/pkg/db"
 	"github.com/stretchr/testify/suite"
 )
 

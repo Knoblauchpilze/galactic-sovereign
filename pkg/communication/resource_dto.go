@@ -3,7 +3,7 @@ package communication
 import (
 	"time"
 
-	"github.com/KnoblauchPilze/user-service/pkg/persistence"
+	"github.com/KnoblauchPilze/galactic-sovereign/pkg/persistence"
 	"github.com/google/uuid"
 )
 

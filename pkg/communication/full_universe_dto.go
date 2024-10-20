@@ -3,7 +3,7 @@ package communication
 import (
 	"encoding/json"
 
-	"github.com/KnoblauchPilze/user-service/pkg/persistence"
+	"github.com/KnoblauchPilze/galactic-sovereign/pkg/persistence"
 	"github.com/google/uuid"
 )
 

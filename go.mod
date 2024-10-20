@@ -1,4 +1,4 @@
-module github.com/KnoblauchPilze/user-service
+module github.com/KnoblauchPilze/galactic-sovereign
 
 go 1.20
 

@@ -1,7 +1,7 @@
 package game
 
 import (
-	"github.com/KnoblauchPilze/user-service/pkg/rest"
+	"github.com/KnoblauchPilze/galactic-sovereign/pkg/rest"
 	"github.com/labstack/echo/v4"
 )
 

@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/KnoblauchPilze/user-service/pkg/db"
+	"github.com/KnoblauchPilze/galactic-sovereign/pkg/db"
 )
 
 type mockConnectionPool struct {
