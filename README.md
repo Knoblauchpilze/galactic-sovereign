@@ -6,7 +6,7 @@ On this website you can find an online multiplayer web-browser game titled **Gal
 
 Below is a screenshot of the welcome page:
 
-![Welcome page of the Galactic Sovereign website](resources/galatcic-sovereign-welcome-page.png)
+![Welcome page of the Galactic Sovereign website](resources/galactic-sovereign-welcome-page.png)
 
 The goal of this project is to progressively migrate to a unique game concept, building the services needed for it and learning how to do it along the way.
 
