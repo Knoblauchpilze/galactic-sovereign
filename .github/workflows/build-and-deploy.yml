@@ -121,7 +121,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version: "1.22.x"
+          go-version: "1.23.2"
       - name: Run tests with coverage
         run: go test ./... -coverpkg=./... -race -covermode=atomic -coverprofile=coverage.out
       - name: Upload coverage to Codecov
