@@ -11,7 +11,7 @@ DB_NAME=${DATABASE_NAME:-db_user_service}
 DB_USER=${DATABASE_USER:-user_service_admin}
 DB_PASSWORD=${DATABASE_PASSWORD:-}
 
-S3_BUCKET_NAME=${S3_BUCKET:-s3://user-service-database-dumps}
+S3_BUCKET_NAME=${S3_BUCKET:-s3://user-service-database-backups}
 IAM_ROLE_NAME=${IAM_ROLE:-}
 
 DB_DUMP=$1
