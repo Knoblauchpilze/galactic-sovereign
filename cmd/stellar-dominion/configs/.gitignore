@@ -4,4 +4,4 @@
 # Ignore development configuration files
 *-dev.yml
 # https://stackoverflow.com/questions/4621072/git-ignore-all-files-of-a-certain-type-except-those-in-a-specific-subfolder
-*-template-*.yml
+!*-template-*.yml

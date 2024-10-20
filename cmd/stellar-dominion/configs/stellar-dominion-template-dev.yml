@@ -1,0 +1,5 @@
+Server:
+  Port: 60002
+Database:
+  User: stellar_dominion_manager
+  Password: DB_PASSWORD
