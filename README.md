@@ -1,33 +1,46 @@
-# user-service
+# galactic-sovereign
 
-This repository started as an experiment to create a service to manage users and authentication, along with a minimalistic website presenting a simple user dashboard.
+This repository is a monorepo containing the services needed to power the [gasteropo.de](https://gasteropo.de) website.
 
-After achieveing this goal, we continued building on top of it to create a browser game which would use the service and add more.
+On this website you can find an online multiplayer web-browser game titled **Galactic Sovereign**. This is a strategy game where the players can mine resources on their respective planets and improve the infrastructure to do so by upgrading their mines. It is largely inspired by the basics of [OGame](https://en.wikipedia.org/wiki/OGame), a famous strategy game.
 
-The goal is to make something that looks like [OGame](https://en.wikipedia.org/wiki/OGame), a famous strategy game. We chose a different name though: **Stellar Dominion: battle for the galaxy** [(1)](#a-note-on-the-name). Below is a screenshot of the welcome page:
+Below is a screenshot of the welcome page:
 
-![Welcome page of the Stellar Dominion website](resources/stellar-dominion-welcome-page.png)
+![Welcome page of the Galactic Sovereign website](resources/galatcic-sovereign-welcome-page.png)
 
-From the infrasturcture point of view, the project manages several `postgre` databases running on an EC2 instance. A CI based on github actions is used to maintain, test and deploy the services. Additionally this README helps to configure a periodic back-up of the databases to a S3 storage to prevent data losses.
+The goal of this project is to progressively migrate to a unique game concept, building the services needed for it and learning how to do it along the way.
 
-All services are dockerized and services are served behind traefik which serves as a reverse proxy to the cluster.
+# Overview
 
-Below are the required badges to indicate the code coverage and whether the CI and latest deployments succeeded.
+This project uses the following technologies:
+
+- [postgres](https://www.postgresql.org/) for the databases.
+- [AWS](https://aws.amazon.com/) as a cloud provider to deploy the website services.
+- [namecheap](https://www.namecheap.com) as a provider for the domain of the website.
+- [go](https://go.dev/) as the server backend language.
+- [sveltekit](https://kit.svelte.dev/) as the frontend development framework.
+- [docker](https://www.docker.com/) as the containerization tool to deploy services.
+- [dockerhub](https://hub.docker.com/) to host the images of services and make them available.
+- [docker compose](https://docs.docker.com/compose/) to handle the orchestration of the cluster of services powering the website.
+- [traefik](https://traefik.io/traefik/) as a reverse proxy to route the traffic to the services of the cluster.
+
+As this is a project to learn things without being a money sink, some aspects of the management of the website are handled with in-house solutions when they could use existing commercial software.
+
+# Badges
 
 [![codecov](https://codecov.io/gh/Knoblauchpilze/galactic-sovereign/branch/master/badge.svg?token=WNLIZF0FBL)](https://codecov.io/gh/Knoblauchpilze/galactic-sovereign)
 
 [![Build and deploy services](https://github.com/KnoblauchPilze/galactic-sovereign/actions/workflows/build-and-deploy.yml/badge.svg)](https://github.com/KnoblauchPilze/galactic-sovereign/actions/workflows/build-and-deploy.yml)
 
-## A note on the name
-
-There's a [similar project](http://www.stellardominion.com/) with the same name: this is just an unfortunate coincidence. As this project progresses we will most likely switch to another name. If you're involved in maintaining the existing _Stellar Dominion_ project please open an issue in this project and we'll contact you.
-
 # Installation
 
-## Prerequisite
+## Prerequisites
 
-This projects uses:
+The tools described below are directly used by the project. It is mandatory to install them in order to build the project locally.
 
+See the following links:
+
+- [golang](https://go.dev/doc/install): this project was developed using go `1.23.2`.
 - [golang migrate](https://github.com/golang-migrate/migrate/blob/master/cmd/migrate/README.md): following the instructions there should be enough.
 - [postgresql](https://www.postgresql.org/) which can be taken from the packages with `sudo apt-get install postgresql-14` for example.
 - [docker](https://docs.docker.com/engine/install/ubuntu/#install-using-the-repository) which can be installed following the instructions of the previous link.
@@ -36,13 +49,9 @@ This projects uses:
 
 ## Clone the repository
 
-- Clone the repo: `git clone git@github.com:Knoblauchpilze/galactic-sovereign.git`.
-- Install Go from [here](https://go.dev/doc/install). **NOTE**: this project expects Go 1.22 to be available on the system.
-- Go to the project's directory: `cd ~/path/to/the/repo`.
-- Go to the server's directory: `cd cmd/users`.
-- Compile and install the server: `make run`.
+Clone the repo: `git clone git@github.com:Knoblauchpilze/galactic-sovereign.git`.
 
-## Preparing for setting up the project
+## Preparation to set up the project
 
 In the rest of the installation instructions, the project assumes that:
 
