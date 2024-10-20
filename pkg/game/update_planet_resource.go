@@ -5,9 +5,9 @@ import (
 	"math"
 	"time"
 
-	"github.com/KnoblauchPilze/user-service/pkg/db"
-	"github.com/KnoblauchPilze/user-service/pkg/persistence"
-	"github.com/KnoblauchPilze/user-service/pkg/repositories"
+	"github.com/KnoblauchPilze/galactic-sovereign/pkg/db"
+	"github.com/KnoblauchPilze/galactic-sovereign/pkg/persistence"
+	"github.com/KnoblauchPilze/galactic-sovereign/pkg/repositories"
 	"github.com/google/uuid"
 )
 

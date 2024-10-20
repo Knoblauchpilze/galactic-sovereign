@@ -1,6 +1,6 @@
 package rest
 
-import "github.com/KnoblauchPilze/user-service/pkg/errors"
+import "github.com/KnoblauchPilze/galactic-sovereign/pkg/errors"
 
 const (
 	UnsupportedMethod         errors.ErrorCode = 150

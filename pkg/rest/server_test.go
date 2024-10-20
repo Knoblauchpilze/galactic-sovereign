@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/KnoblauchPilze/user-service/pkg/errors"
-	"github.com/KnoblauchPilze/user-service/pkg/repositories"
+	"github.com/KnoblauchPilze/galactic-sovereign/pkg/errors"
+	"github.com/KnoblauchPilze/galactic-sovereign/pkg/repositories"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 )

@@ -3,7 +3,7 @@ package communication
 import (
 	"encoding/json"
 
-	"github.com/KnoblauchPilze/user-service/pkg/persistence"
+	"github.com/KnoblauchPilze/galactic-sovereign/pkg/persistence"
 )
 
 type FullBuildingDtoResponse struct {

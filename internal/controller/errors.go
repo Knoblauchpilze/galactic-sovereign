@@ -1,7 +1,7 @@
 package controller
 
 import (
-	"github.com/KnoblauchPilze/user-service/pkg/errors"
+	"github.com/KnoblauchPilze/galactic-sovereign/pkg/errors"
 )
 
 const (

@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"github.com/KnoblauchPilze/user-service/pkg/logger"
+	"github.com/KnoblauchPilze/galactic-sovereign/pkg/logger"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )

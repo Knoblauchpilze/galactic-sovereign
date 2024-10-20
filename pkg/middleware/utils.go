@@ -3,7 +3,7 @@ package middleware
 import (
 	"net/http"
 
-	"github.com/KnoblauchPilze/user-service/pkg/logger"
+	"github.com/KnoblauchPilze/galactic-sovereign/pkg/logger"
 )
 
 func pathFromRequest(req *http.Request) string {

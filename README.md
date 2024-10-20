@@ -16,7 +16,7 @@ Below are the required badges to indicate the code coverage and whether the CI a
 
 [![codecov](https://codecov.io/gh/Knoblauchpilze/user-service/branch/master/badge.svg?token=WNLIZF0FBL)](https://codecov.io/gh/Knoblauchpilze/user-service)
 
-[![Build and deploy services](https://github.com/Knoblauchpilze/user-service/actions/workflows/build-and-deploy.yml/badge.svg)](https://github.com/Knoblauchpilze/user-service/actions/workflows/build-and-deploy.yml)
+[![Build and deploy services](https://github.com/KnoblauchPilze/galactic-sovereign/actions/workflows/build-and-deploy.yml/badge.svg)](https://github.com/KnoblauchPilze/galactic-sovereign/actions/workflows/build-and-deploy.yml)
 
 ## A note on the name
 
@@ -428,7 +428,7 @@ This service exposes CRUD operations to manage users. A user is defined as a sim
 
 ## Logging in and out
 
-In order to allow users to access information about the service, we provide a session mechanism. It is quite a wide topic and we gathered a few resources on whether this is a RESTful approach or not in the dedicated [PR #7](https://github.com/Knoblauchpilze/user-service/pull/7).
+In order to allow users to access information about the service, we provide a session mechanism. It is quite a wide topic and we gathered a few resources on whether this is a RESTful approach or not in the dedicated [PR #7](https://github.com/KnoblauchPilze/galactic-sovereign/pull/7).
 
 Upon calling the `POST /v1/users/sessions` route, the user will be able to obtain a token valid for a certain period of time and which can be used to access other endpoints in the service. This endpoint (along with the `POST /v1/users` endpoint to create a new user) is the only one which can be called unauthenticated.
 

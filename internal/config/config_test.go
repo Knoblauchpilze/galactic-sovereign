@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/KnoblauchPilze/user-service/internal/service"
-	"github.com/KnoblauchPilze/user-service/pkg/rest"
+	"github.com/KnoblauchPilze/galactic-sovereign/internal/service"
+	"github.com/KnoblauchPilze/galactic-sovereign/pkg/rest"
 	"github.com/labstack/gommon/log"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"

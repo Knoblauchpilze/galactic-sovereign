@@ -1,6 +1,6 @@
 package game
 
-import "github.com/KnoblauchPilze/user-service/pkg/errors"
+import "github.com/KnoblauchPilze/galactic-sovereign/pkg/errors"
 
 const (
 	NoSuchBuilding     errors.ErrorCode = 270

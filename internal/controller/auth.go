@@ -4,10 +4,10 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/KnoblauchPilze/user-service/internal/service"
-	"github.com/KnoblauchPilze/user-service/pkg/errors"
-	"github.com/KnoblauchPilze/user-service/pkg/middleware"
-	"github.com/KnoblauchPilze/user-service/pkg/rest"
+	"github.com/KnoblauchPilze/galactic-sovereign/internal/service"
+	"github.com/KnoblauchPilze/galactic-sovereign/pkg/errors"
+	"github.com/KnoblauchPilze/galactic-sovereign/pkg/middleware"
+	"github.com/KnoblauchPilze/galactic-sovereign/pkg/rest"
 	"github.com/labstack/echo/v4"
 )
 

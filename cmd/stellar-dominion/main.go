@@ -6,14 +6,14 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/KnoblauchPilze/user-service/cmd/stellar-dominion/internal"
-	"github.com/KnoblauchPilze/user-service/internal/config"
-	"github.com/KnoblauchPilze/user-service/internal/controller"
-	"github.com/KnoblauchPilze/user-service/internal/service"
-	"github.com/KnoblauchPilze/user-service/pkg/db"
-	"github.com/KnoblauchPilze/user-service/pkg/logger"
-	"github.com/KnoblauchPilze/user-service/pkg/repositories"
-	"github.com/KnoblauchPilze/user-service/pkg/rest"
+	"github.com/KnoblauchPilze/galactic-sovereign/cmd/stellar-dominion/internal"
+	"github.com/KnoblauchPilze/galactic-sovereign/internal/config"
+	"github.com/KnoblauchPilze/galactic-sovereign/internal/controller"
+	"github.com/KnoblauchPilze/galactic-sovereign/internal/service"
+	"github.com/KnoblauchPilze/galactic-sovereign/pkg/db"
+	"github.com/KnoblauchPilze/galactic-sovereign/pkg/logger"
+	"github.com/KnoblauchPilze/galactic-sovereign/pkg/repositories"
+	"github.com/KnoblauchPilze/galactic-sovereign/pkg/rest"
 )
 
 func determineConfigName() string {

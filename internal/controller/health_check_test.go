@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/KnoblauchPilze/user-service/pkg/db"
-	"github.com/KnoblauchPilze/user-service/pkg/rest"
+	"github.com/KnoblauchPilze/galactic-sovereign/pkg/db"
+	"github.com/KnoblauchPilze/galactic-sovereign/pkg/rest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )

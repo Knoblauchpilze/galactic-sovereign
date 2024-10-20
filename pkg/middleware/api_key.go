@@ -4,9 +4,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/KnoblauchPilze/user-service/pkg/db"
-	"github.com/KnoblauchPilze/user-service/pkg/errors"
-	"github.com/KnoblauchPilze/user-service/pkg/repositories"
+	"github.com/KnoblauchPilze/galactic-sovereign/pkg/db"
+	"github.com/KnoblauchPilze/galactic-sovereign/pkg/errors"
+	"github.com/KnoblauchPilze/galactic-sovereign/pkg/repositories"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )

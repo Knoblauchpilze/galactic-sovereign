@@ -4,8 +4,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/KnoblauchPilze/user-service/pkg/errors"
-	"github.com/KnoblauchPilze/user-service/pkg/persistence"
+	"github.com/KnoblauchPilze/galactic-sovereign/pkg/errors"
+	"github.com/KnoblauchPilze/galactic-sovereign/pkg/persistence"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 )

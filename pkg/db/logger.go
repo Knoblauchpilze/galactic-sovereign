@@ -6,7 +6,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/KnoblauchPilze/user-service/pkg/logger"
+	"github.com/KnoblauchPilze/galactic-sovereign/pkg/logger"
 	"github.com/jackc/pgx/v5/tracelog"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/gommon/log"

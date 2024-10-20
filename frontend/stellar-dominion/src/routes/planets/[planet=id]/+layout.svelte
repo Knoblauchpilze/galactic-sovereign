@@ -37,7 +37,7 @@
 		<p>
 			Found an issue? Report it <StyledLink
 				text="here"
-				link="https://github.com/Knoblauchpilze/user-service/issues"
+				link="https://github.com/KnoblauchPilze/galactic-sovereign/issues"
 			/>
 		</p>
 	</Footer>
