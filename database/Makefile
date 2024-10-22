@@ -1,25 +1,11 @@
 # Default variables
-# DB_PATH ?= users
-# DB_NAME ?= db_user_service
-# DB_HOST ?= localhost
-# DB_PORT ?= 5432
-# DB_USER ?= user_service_admin
-# DB_PASSWORD ?= "comes-this-from-environment"
-MIGRATION_STEPS ?= 1
-
-# DB_PATH ?= galactic-sovereign
-# DB_NAME ?= db_galactic_sovereign
-# DB_HOST ?= localhost
-# DB_PORT ?= 5432
-# DB_USER ?= galactic_sovereign_admin
-# DB_PASSWORD ?= W5QanVTbskfgdZ4ZPDu8LkHbA@6YS
-
-#DB_PATH ?= stellar-sovereign
-DB_NAME ?= db_stellar_dominion
+DB_PATH ?= users
+DB_NAME ?= db_user_service
 DB_HOST ?= localhost
 DB_PORT ?= 5432
-DB_USER ?= stellar_dominion_admin
-DB_PASSWORD ?= W5QanVTbskfgdZ4ZPDu8LkHbA@6YS
+DB_USER ?= user_service_admin
+DB_PASSWORD ?= "comes-this-from-environment"
+MIGRATION_STEPS ?= 1
 
 URL_ENCODED_PASSWORD=$(shell urlencode '${DB_PASSWORD}')
 
