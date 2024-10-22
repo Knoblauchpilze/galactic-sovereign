@@ -1,6 +1,6 @@
 # A word on Svelte
 
-When trying to build the webpage associated to the user service the question arised about which web framework to use. In the past, we used [react](https://react.dev/learn) for the [sogclient](https://github.com/Knoblauchpilze/sogclient) project. This was quite powerful but also very complex to get to work.
+When trying to build the webpage associated to the `user-service` the question arised about which web framework to use. In the past, we used [react](https://react.dev/learn) for the [sogclient](https://github.com/Knoblauchpilze/sogclient) project. This was quite powerful but also very complex to get to work.
 
 After a bit of research, we stumbled upon the [Svelte](https://kit.svelte.dev/docs/introduction) framework: this seems to be relatively lightweight.
 

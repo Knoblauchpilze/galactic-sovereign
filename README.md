@@ -47,17 +47,26 @@ See the following links:
 - [AWS cli](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html#getting-started-install-instructions) which can be installed using the instructions in the previous link.
 - [node and npm](https://nodejs.org/en/download/package-manager) which can be installed using the instructions in the previous link.
 
-## Clone the repository
+We also assume that this repository is cloned locally and available to use. To achieve this, just use the following command:
 
-Clone the repo: `git clone git@github.com:Knoblauchpilze/galactic-sovereign.git`.
+```bash
+git clone git@github.com:Knoblauchpilze/galactic-sovereign.git`
+```
 
-## Preparation to set up the project
+## Process to install
 
-In the rest of the installation instructions, the project assumes that:
+The following sections describe how to setup an AWS account so that it can be ued to host the website defined by this repository. This includes:
 
-- all necessary software is installed on the local machine.
-- 3 passwords have been generated and are available for each database needed for the project. As of now, we have two databases (for the users and for the game).
-- a RSA key pair is available along with an identity file wich authorization to log on the EC2 instance.
+- setting up S3 buckets for the database back-up process.
+- starting an EC2 instance and configuring it.
+- setup the databases on the remote instance.
+- generalities about the deployment process.
+
+In addition, the following sections expect that you have access to several (secured) passwords to be used for the various users needed by the databases. The current architecture requires **3** passwords per database. It is recommended to have separate passwords and not reuse them.
+
+## RSA key pair
+
+To interact with an EC2 instance we need to have access to an RSA key pair. Several ways exist to do this including letting AWS manage the key. We describe a way to generate it yourself.
 
 ### Generate a RSA key pair
 
@@ -80,8 +89,8 @@ To start the instance on which the service will be running you need an account w
 The instance should open the following ports:
 
 - allow incoming SSH connections (TCP 22)
-- allow outbound internet traffic (TCP 443 for https)
-- allow incoming internet traffic (TCP 443 for https)
+- allow outbound internet traffic (TCP 443 for https and TCP 80 for http)
+- allow incoming internet traffic (TCP 443 for https and TCP 80 for http)
 
 Additionally the instance should ideally be configured to support access for both IPv6 and IPv4. The reason for this is that as IPv4 are getting scarce, AWS decided to [start charging](https://aws.amazon.com/blogs/aws/new-aws-public-ipv4-address-charge-public-ip-insights/) when using one. In order to avoid unnecessary costs we attempt to allow reaching the services through IPv6. At the time of writing [github hosted runners](https://github.com/actions/runner/issues/3138) do not support IPv6 so we still have to keep the IPv4 support to deploy from the CI.
 
@@ -93,7 +102,7 @@ So as to be able to access the S3 bucket to push the back-ups of the database, t
 
 ### Software on the instance
 
-The service is running in a docker container and requires a `postgres` server to be available on the machine. The back-up process uses the the AWS cli to perform the S3 related operations. The deployment process uses `docker compose`.
+The service is running in a docker container and requires a `postgres` server to be available on the machine. The back-up process uses the the [AWS cli](https://aws.amazon.com/cli/) to perform the S3 related operations. The deployment process uses `docker compose`.
 
 ### Security keys
 
@@ -182,7 +191,7 @@ The project defines a CI workflow which is able to automatically update the runn
 
 In order to allow the CI to execute the docker commands needed to update the containers, it is necessary to add the default user to the group of users who can execute docker without sudo. This can be done by following this [guide](https://docs.docker.com/engine/install/linux-postinstall/).
 
-## Setup the databases
+## Setup the databases on the EC2 instance
 
 ### The postgres password
 
@@ -290,7 +299,9 @@ The back-up process is composed of two main components:
 - a cron job running regularly to dump the database
 - a S3 bucket to which the dumps are uploaded
 
-The bucket is named `user-service-database-dumps` and has a policy to only keep the back-ups for a couple of days: after that they anyway lose their relevance.
+The bucket is named `user-service-database-backups` and has a policy to only keep the back-ups for a couple of days: after that they anyway lose their relevance.
+
+**Note:** in case of another database the bucket name will be different. If a new database is added to the configuration defined in this service, it will most likely require creating a new bucket to store the back-ups.
 
 ### The back-up script
 
@@ -298,7 +309,7 @@ A convenience script is provided to perform the back-up: [database-backup.sh](sc
 
 **It is necessary to copy this script on the EC2 instance hosting the database.**
 
-The script expects the database password to be provided as environment variable under `DATABASE_PASSWORD`. Alternatively and in order to make it simpler to use the script with a cron job (see corresponding [section](#setting-up-the-database-backup)), in the remote case it can be beneficial to modify the copied version of the script to directly include the password in it. So change the line as follows (do not change the initial `:-` sequence):
+The script expects the database password to be provided as environment variable under `DATABASE_PASSWORD`. Alternatively and in order to make it simpler to use the script with a cron job (see corresponding [section](#setting-up-the-database-backup)), in the remote case **it can be beneficial to modify the copied version of the script to directly include the password and the role to use in it**. So change the line as follows (do not change the initial `:-` sequence):
 
 ```bash
 DB_PASSWORD=${DATABASE_PASSWORD:-the-actual-password}
@@ -426,41 +437,50 @@ Once this is done, insert the following line:
 */5 * * * * /path/to/service-monitoring.sh
 ```
 
-Most likely locally this will be the path to where the user cloned the repository and then `scripts/service-monitoring.sh` while in an EC2 instance it will be `/home/ubuntu/scripts/monitoringservice-monitoring.sh` for example.
+Most likely locally this will be the path to where the user cloned the repository and then `scripts/service-monitoring.sh` while in an EC2 instance it will be `/home/ubuntu/scripts/monitoring/service-monitoring.sh` for example.
 
 As it is presented here the cron job will trigger every 5 minutes and take actions appropriately. The script only handles one service so typically it is recommended to have such a cron job running for each and every service in the platform.
 
-# How does the service work?
+# How does sign-up/login/logout work?
 
 ## General design
 
-This service exposes CRUD operations to manage users. A user is defined as a simple collection of an email and a password. Any user can log in or out of the service.
+The base of our authentication system is the `user-service`. This service describes what a user is and which ones are registered in our system.
 
-## Logging in and out
+Each user is attached a set of credentials, along with some permissions and limits. This information can be returned by the `user-service` through a `auth` endpoint.
+
+Traefik has a [forwardAuth](https://doc.traefik.io/traefik/middlewares/http/forwardauth) middleware which allows (as its name suggests) to forward any request it receives to an external authentication server. Based on the response of this server it either denies or forwars the request.
+
+We leveraged this principle to hook the `user-service` with this middleware so that we can control the access to the API to only authenticated users.
+
+## The session concept
 
 In order to allow users to access information about the service, we provide a session mechanism. It is quite a wide topic and we gathered a few resources on whether this is a RESTful approach or not in the dedicated [PR #7](https://github.com/KnoblauchPilze/galactic-sovereign/pull/7).
 
-Upon calling the `POST /v1/users/sessions` route, the user will be able to obtain a token valid for a certain period of time and which can be used to access other endpoints in the service. This endpoint (along with the `POST /v1/users` endpoint to create a new user) is the only one which can be called unauthenticated.
+Upon calling the `POST /v1/users/sessions` route, the user will be able to obtain a token valid (see [API keys](#api-keys)) for a certain period of time and which can be used to access other endpoints in the cluster. This endpoint, along with the `POST /v1/users` endpoint to create a new user, are the only one which can be called unauthenticated.
 
 The session token is only valid for a certain amount of time and can be revoked early by calling `DELETE /v1/users/sessions/{user-id}`.
 
 ## API keys
 
-We use API keys in a similar way as the session keys described in this [Kong article](https://konghq.com/blog/learning-center/what-are-api-keys). Each key is a simple identifier that is required to access our service. It is created upon loggin in and deactivated upon logging out.
+We use API keys in a similar way as the session keys described in this [Kong article](https://konghq.com/blog/learning-center/what-are-api-keys). Each key is a simple identifier that is required to access our service. It is created upon logging in and deactivated upon logging out.
 
-## Web framework
+## The authentication endpoint
 
-We chose to use [echo](https://echo.labstack.com/) as a web framework for this project. This is used to instantiate the web server running the application and for interpreting the parameters provided by the input requests.
+The authentication endpoint is a corner stone of the strategy: this takes any http request and look for an API key attached to it as a header:
+
+- if there's no such header the request is denied.
+- if there's one but the key is invalid (either expired or unknown) the request is denied.
+
+As all requests are routed towards this endpoint by traefik before they reach the target service, we can guarantees an efficient filtering and only allow authorized users to access our cluster.
 
 ## Throttling
 
-Because this server is supposed to be deployed on a internet facing instance, we want to make sure that we don't risk being subjected to too many requests from undesired attackers. In an attempt to mitigate this we implemented a throttling mechanism which by default allows 10 requests per second from any sources before returning `429` on new requests. This is also built-in in the [traefik](#traefik-configuration) configuration.
+Because the services are deployed on a internet facing instance, we want to make sure that we don't risk being subjected to too many requests from undesired attackers. In an attempt to mitigate this we implemented a throttling mechanism which by default allows 10 requests per second from any sources before returning `429` on new requests. This is also built-in in the [traefik](#traefik-configuration) configuration.
 
 # The website
 
-Along with the backend to handle the users and their authentication, this project also created a small toy website to access the features offered by the service. More information can be found in the dedicated [README](website/README.md) document.
-
-With the CI already in place it should be relatively easy to set up the secrets needed to perform the deployment and start serving an actual website with the code defined in this repository.
+Along with the backend to handle the users and their authentication, this project also created a small toy website to access the features offered by the service. More information can be found in the dedicated [README](frontend/README.md) document.
 
 # Infrastructure and deploying the services
 
@@ -505,7 +525,7 @@ Regarding the API gateway, we chose [traefik](https://traefik.io/traefik/). This
 The deployment is defined in two different folders:
 
 - the infrastructure part is describedin the [deployments](deployments) folder and contains the `docker compose` configuration alongside the static traefik configuration but also the individual services' configuration files.
-- the [CI workflow](.github/workflows/deploy-services.yml) which is responsible to deploy the code to the remote server.
+- the [CI workflow](.github/workflows/build-and-deploy.yml) which is responsible to deploy the code to the remote server.
 
 The CI workflow should automatically trigger when a docker image for one of the services is successfully built or when a change is detected in the configuration.
 
@@ -543,10 +563,6 @@ We decided to use the bake-in solution provided by traefik as it supposedly play
 With that in place, we can put in place a certificate for each of the subdomains available on our website. One subtelty was that we can't override some properties of traefik's static configuration with environment variables. This seems to be because the ways to statically configure traefik are [mutually exclusive](https://github.com/traefik/traefik/issues/7545).
 
 In order to solve this last problem we decided to move the static traefik configuration to a template file and replace the secret values in the CI when deploying to the remote server. This was inspired by [this comment](https://github.com/traefik/traefik/issues/3853#issuecomment-1874779480).
-
-# Future work
-
-Additionally we don't have a real API gateway handling authentication. This might be handled by traefik using the [ForwardAuth](https://doc.traefik.io/traefik/middlewares/http/forwardauth/) middleware.
 
 # Cheat sheet
 
