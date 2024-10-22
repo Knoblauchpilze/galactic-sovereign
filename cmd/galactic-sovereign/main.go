@@ -6,7 +6,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/KnoblauchPilze/galactic-sovereign/cmd/stellar-dominion/internal"
+	"github.com/KnoblauchPilze/galactic-sovereign/cmd/galactic-sovereign/internal"
 	"github.com/KnoblauchPilze/galactic-sovereign/internal/config"
 	"github.com/KnoblauchPilze/galactic-sovereign/internal/controller"
 	"github.com/KnoblauchPilze/galactic-sovereign/internal/service"
@@ -18,7 +18,7 @@ import (
 
 func determineConfigName() string {
 	if len(os.Args) < 2 {
-		return "stellar-dominion-prod.yml"
+		return "galactic-sovereign-prod.yml"
 	}
 
 	return os.Args[1]

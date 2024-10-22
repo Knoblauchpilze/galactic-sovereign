@@ -1,4 +1,4 @@
-name: stellar-dominion-service
+name: galactic-sovereign-service
 
 on:
   workflow_call:
@@ -13,7 +13,7 @@ on:
         value: ${{ jobs.extract-service-tag.outputs.version }}
   push:
     paths:
-      - "build/stellar-dominion-service/Dockerfile"
+      - "build/galactic-sovereign-service/Dockerfile"
 
 jobs:
   extract-service-tag:
@@ -32,7 +32,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: ./build/stellar-dominion-service/Dockerfile
+          file: ./build/galactic-sovereign-service/Dockerfile
           build-args: GIT_COMMIT_HASH=${{ needs.extract-service-tag.outputs.version }}
           push: true
-          tags: totocorpsoftwareinc/stellar-dominion-service:${{ needs.extract-service-tag.outputs.version }}
+          tags: totocorpsoftwareinc/galactic-sovereign-service:${{ needs.extract-service-tag.outputs.version }}
