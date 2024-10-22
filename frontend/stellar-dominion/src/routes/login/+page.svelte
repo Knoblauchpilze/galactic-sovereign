@@ -30,7 +30,7 @@
 <FlexContainer>
 	<div class="fixed left-4 top-4">
 		<p class="text-secondary">
-			Don't have an account yet? Click <StyledLink text="here" link="/signup" /> to sign-up!"
+			Don't have an account yet? Click <StyledLink text="here" link="/signup" /> to sign-up!
 		</p>
 	</div>
 
