@@ -40,6 +40,7 @@ func TestDefaultConfig_ReplacesDatabaseConfiguration(t *testing.T) {
 
 	conf := DefaultConf()
 
+	// TODO: Replace
 	expected := db.Config{
 		Host:                "172.17.0.1",
 		Port:                5432,
