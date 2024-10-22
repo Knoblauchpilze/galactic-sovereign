@@ -274,7 +274,7 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_DEPLOY_SSH_KEY }}
           script: |
-            docker compose -f ./deployments/compose.yaml up -d
+            docker compose -f ./deployments/compose.yaml up -d --remove-orphans
   clean-deployment-config-backup:
     runs-on: ubuntu-latest
     needs: [analyze-deploy-status, deploy]
