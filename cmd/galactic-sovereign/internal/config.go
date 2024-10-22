@@ -6,6 +6,6 @@ import (
 
 func DefaultConf() config.Configuration {
 	conf := config.DefaultConf()
-	conf.Database.Name = "db_stellar_dominion"
+	conf.Database.Name = "db_galactic_sovereign"
 	return conf
 }

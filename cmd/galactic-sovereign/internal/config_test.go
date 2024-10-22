@@ -43,7 +43,7 @@ func TestDefaultConfig_ReplacesDatabaseConfiguration(t *testing.T) {
 	expected := db.Config{
 		Host:                "172.17.0.1",
 		Port:                5432,
-		Name:                "db_stellar_dominion",
+		Name:                "db_galactic_sovereign",
 		ConnectionsPoolSize: 1,
 		LogLevel:            log.DEBUG,
 	}

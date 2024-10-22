@@ -9,7 +9,7 @@ ENV_SERVER_PORT ?= 80
 
 NODE_PORT ?= 3001
 SERVER_ORIGIN ?= "http://localhost:3001"
-API_BASE_URL ?= "http://stellar-dominion-service:80/v1"
+API_BASE_URL ?= "http://galactic-sovereign-service:80/v1"
 USER_API_BASE_URL ?= "http://user-service:80/v1/users"
 
 # https://docs.docker.com/network/drivers/bridge/

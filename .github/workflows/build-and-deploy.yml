@@ -211,7 +211,7 @@ jobs:
         # https://deploy-preview-13474--docsdocker.netlify.app/compose/env-file/#compose-2x
         run: |
           echo "ENV_USER_DATABASE_PASSWORD=${{ secrets.USER_DATABASE_MANAGER_PASSWORD }}" >> ./deployments/.env
-          echo "ENV_GALACTIC_SOVEREIGN_DATABASE_PASSWORD=${{ secrets.STELLAR_DOMINION_DATABASE_MANAGER_PASSWORD }}" >> ./deployments/.env
+          echo "ENV_GALACTIC_SOVEREIGN_DATABASE_PASSWORD=${{ secrets.GALACTIC_SOVEREIGN_DATABASE_MANAGER_PASSWORD }}" >> ./deployments/.env
           echo "USER_DASHBOARD_ORIGIN=${{ secrets.USER_DASHBOARD_ORIGIN }}" >> ./deployments/.env
           echo "STELLAR_DOMINION_ORIGIN=${{ secrets.STELLAR_DOMINION_ORIGIN }}" >> ./deployments/.env
           echo "DOMAIN_NAME=${{ secrets.DOMAIN_NAME }}" >> ./deployments/.env
