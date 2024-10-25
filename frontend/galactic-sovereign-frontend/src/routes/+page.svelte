@@ -9,7 +9,7 @@
 </script>
 
 <FlexContainer extensible={false} styling="h-3/5">
-	<StyledTitle text="Stellar Dominion" />
+	<StyledTitle text="Galactic Sovereign" />
 	<StyledText text="Battle for the galaxy" />
 
 	<FlexContainer>
