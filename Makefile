@@ -92,34 +92,34 @@ user-dashboard-stop:
 
 user-dashboard-start: user-dashboard-build user-dashboard-run
 
-stellar-dominion-build:
+galactic-sovereign-frontend-build:
 	docker build \
 		--build-arg GIT_COMMIT_HASH=${GIT_COMMIT_HASH} \
 		--build-arg SERVER_ORIGIN=${SERVER_ORIGIN} \
 		--build-arg NODE_PORT=${NODE_PORT} \
 		--build-arg API_BASE_URL=${API_BASE_URL} \
 		--build-arg USER_API_BASE_URL=${USER_API_BASE_URL} \
-		--tag stellar-dominion:${GIT_COMMIT_HASH} \
-		-f build/stellar-dominion/Dockerfile \
+		--tag galactic-sovereign-frontend:${GIT_COMMIT_HASH} \
+		-f build/galactic-sovereign-frontend/Dockerfile \
 		.
 
-stellar-dominion-run:
+galactic-sovereign-frontend-run:
 	docker run \
 		--network ${DOCKER_NETWORK_BRIDGE_NAME} \
 		-p ${NODE_PORT}:${NODE_PORT} \
-		stellar-dominion:${GIT_COMMIT_HASH}
+		galactic-sovereign-frontend:${GIT_COMMIT_HASH}
 
-stellar-dominion-run-detached:
+galactic-sovereign-frontend-run-detached:
 	sudo docker run \
 		--network ${DOCKER_NETWORK_BRIDGE_NAME} \
 		-p ${NODE_PORT}:${NODE_PORT} \
-		--name stellar-dominion \
+		--name galactic-sovereign-frontend \
 		-d \
 		--restart on-failure:${RESTART_RETRIES_COUNT} \
-		stellar-dominion:${GIT_COMMIT_HASH}
+		galactic-sovereign-frontend:${GIT_COMMIT_HASH}
 
-stellar-dominion-stop:
-	sudo docker stop stellar-dominion
-	sudo docker rm stellar-dominion
+galactic-sovereign-frontend-stop:
+	sudo docker stop galactic-sovereign-frontend
+	sudo docker rm galactic-sovereign-frontend
 
-stellar-dominion-start: stellar-dominion-build stellar-dominion-run
+galactic-sovereign-frontend-start: galactic-sovereign-frontend-build galactic-sovereign-frontend-run

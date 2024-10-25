@@ -1,20 +1,20 @@
 http:
   routers:
-    stellar-dominion-https:
+    galactic-sovereign-frontend-https:
       entryPoints:
         - "websecure"
       rule: 'Host(`{{ env "DOMAIN_NAME" }}`) && PathPrefix(`/`)'
-      service: stellar-dominion
+      service: galactic-sovereign-frontend
       tls:
         certResolver: letsencryptresolver
 
-    stellar-dominion-www-https:
+    galactic-sovereign-frontend-www-https:
       entryPoints:
         - "websecure"
       rule: 'Host(`www.{{ env "DOMAIN_NAME" }}`) && PathPrefix(`/`)'
       middlewares:
         - "ws-redirect"
-      service: stellar-dominion
+      service: galactic-sovereign-frontend
       tls:
         certResolver: letsencryptresolver
 
@@ -25,7 +25,7 @@ http:
         replacement: 'https://{{ env "DOMAIN_NAME" }}/${1}'
 
   services:
-    stellar-dominion:
+    galactic-sovereign-frontend:
       loadBalancer:
         servers:
-          - url: "http://stellar-dominion:3001"
+          - url: "http://galactic-sovereign-frontend:3001"

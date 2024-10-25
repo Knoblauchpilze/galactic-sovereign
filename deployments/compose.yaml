@@ -33,14 +33,14 @@ services:
     environment:
       - ORIGIN=${USER_DASHBOARD_ORIGIN:-http://admin.localhost}
 
-  stellar-dominion:
-    image: totocorpsoftwareinc/stellar-dominion:${STELLAR_DOMINION_TAG}
-    container_name: stellar-dominion
+  galactic-sovereign-frontend:
+    image: totocorpsoftwareinc/galactic-sovereign-frontend:${GALACTIC_SOVEREIGN_FRONTEND_TAG}
+    container_name: galactic-sovereign-frontend
     restart: on-failure:5
     networks:
       - corp-network
     environment:
-      - ORIGIN=${STELLAR_DOMINION_ORIGIN:-http://localhost}
+      - ORIGIN=${GALACTIC_SOVEREIGN_FRONTEND_ORIGIN:-http://localhost}
 
   # https://www.reddit.com/r/Traefik/comments/123oz36/traefik_dashboard_access_with_staticdynamic/
   reverse-proxy:
