@@ -35,7 +35,7 @@
 	</div>
 
 	<FlexContainer extensible={false} styling="h-1/5">
-		<StyledTitle text="Stellar Dominion" />
+		<StyledTitle text="Galactic Sovereign" />
 		<StyledText text="Sign up" />
 	</FlexContainer>
 
