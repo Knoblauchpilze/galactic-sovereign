@@ -1,7 +1,5 @@
 import { ResponseEnvelope } from '$lib/responseEnvelope';
 import { buildUrl, safeFetch } from '$lib/api';
-import { ApiKey, loginUser, logoutUser } from '$lib/sessions';
-import { User, createUser } from '$lib/users';
 
 export class Player {
 	readonly id: string = '00000000-0000-0000-0000-000000000000';
@@ -55,39 +53,6 @@ export async function createPlayer(
 	const jsonContent = await response.json();
 
 	return new ResponseEnvelope(jsonContent);
-}
-
-export async function registerPlayer(
-	email: string,
-	password: string,
-	universeId: string,
-	playerName: string
-): Promise<ResponseEnvelope> {
-	const signupResponse = await createUser(email, password);
-	if (signupResponse.error()) {
-		return signupResponse;
-	}
-
-	const apiUser = new User(signupResponse);
-
-	const loginResponse = await loginUser(email, password);
-	if (loginResponse.error()) {
-		return loginResponse;
-	}
-
-	const apiKey = new ApiKey(loginResponse);
-
-	const playerResponse = await createPlayer(apiUser.id, universeId, playerName, apiKey.key);
-	if (playerResponse.error()) {
-		return playerResponse;
-	}
-
-	const logoutResponse = await logoutUser(apiKey.key, apiKey.user);
-	if (logoutResponse.error()) {
-		return logoutResponse;
-	}
-
-	return playerResponse;
 }
 
 export async function fetchPlayerFromApiUser(
