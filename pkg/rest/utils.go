@@ -2,30 +2,25 @@ package rest
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 )
 
+var multiSlashRegex = regexp.MustCompile("[/]+")
+
 func sanitizePath(route string) string {
+	route = fmt.Sprintf("/%s", route)
+	route = multiSlashRegex.ReplaceAllString(route, "/")
 	route = strings.TrimSuffix(route, "/")
-	if !strings.HasPrefix(route, "/") {
-		route = fmt.Sprintf("/%s", route)
+
+	if len(route) == 0 {
+		return "/"
 	}
 
 	return route
 }
 
-func concatenateEndpoints(basePath string, path string) string {
-	if len(basePath) == 0 && len(path) == 0 {
-		return "/"
-	}
-
-	if len(basePath) != 0 {
-		basePath = sanitizePath(basePath)
-	}
-
-	if len(path) != 0 {
-		path = sanitizePath(path)
-	}
-
-	return fmt.Sprintf("%s%s", basePath, path)
+func ConcatenateEndpoints(basePath string, path string) string {
+	concatenated := fmt.Sprintf("/%s/%s", basePath, path)
+	return sanitizePath(concatenated)
 }
