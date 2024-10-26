@@ -4,6 +4,7 @@ import { loadCookies } from '$lib/cookies';
 import { ApiFailureReason } from '$lib/responseEnvelope.js';
 
 import { logout } from '$lib/actions/logout';
+import { backToLobby } from '$lib/actions/backToLobby';
 import {
 	requestCreateBuildingAction,
 	requestDeleteBuildingAction
@@ -21,7 +22,7 @@ export async function load({ params, cookies, depends }) {
 	// https://learn.svelte.dev/tutorial/custom-dependencies
 	depends('data:planet');
 
-	const planetResponse = await getPlanet(gameCookies.apiKey, params.planet);
+	const planetResponse = await getPlanet(gameCookies.session.apiKey, params.planet);
 	if (planetResponse.error()) {
 		const reason = planetResponse.failureReason();
 
@@ -58,6 +59,7 @@ export async function load({ params, cookies, depends }) {
 
 export const actions = {
 	logout: logout,
+	backToLobby: backToLobby,
 	createBuildingAction: requestCreateBuildingAction,
 	deleteBuildingAction: requestDeleteBuildingAction
 };
