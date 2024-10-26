@@ -42,7 +42,6 @@ export function resetGameCookies(cookies: Cookies) {
 	cookies.set(COOKIE_KEY_UNIVERSE_ID, '', DEFAULT_COOKIES_OPT);
 }
 
-// TODO: To be removed.
 export function setCookies(cookies: Cookies, apiKey: ApiKey, player: Player) {
 	setSessionCookies(cookies, apiKey);
 	setGameCookies(cookies, player);
