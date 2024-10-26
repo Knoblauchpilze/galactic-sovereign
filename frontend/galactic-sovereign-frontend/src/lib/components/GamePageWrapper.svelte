@@ -31,6 +31,9 @@
 		<StyledText text={universeName} textColor="text-white" />
 		<StyledText text={playerName} textColor="text-white" />
 		<StyledText text={planetName} textColor="text-white" />
+		<form method="POST" action="?/backToLobby">
+			<button class="hover:underline">Back to the lobby</button>
+		</form>
 		<form method="POST" action="?/logout">
 			<button class="hover:underline">Logout</button>
 		</form>

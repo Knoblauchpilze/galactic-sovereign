@@ -14,8 +14,6 @@
 
 	export let form: HTMLFormElement;
 
-	export let data;
-
 	function resetFormError() {
 		if (!form) {
 			return;
@@ -41,13 +39,6 @@
 
 	<FlexContainer extensible={false} styling="h-3/5">
 		<form method="POST" action="?/signup" class="flex flex-col flex-1 justify-evenly">
-			<FormField label="universe:" labelId="universe">
-				<select id="universe" name="universe">
-					{#each data.universes as universe}
-						<option value={universe.id}>{universe.name}</option>
-					{/each}
-				</select>
-			</FormField>
 			<FormField label="email:" labelId="email">
 				<input
 					id="email"
@@ -65,16 +56,6 @@
 					type="text"
 					name="password"
 					placeholder="Enter your password"
-					required
-					on:input={resetFormError}
-				/></FormField
-			>
-			<FormField label="player:" labelId="player">
-				<input
-					id="player"
-					type="text"
-					name="player"
-					placeholder="Choose a name"
 					required
 					on:input={resetFormError}
 				/></FormField

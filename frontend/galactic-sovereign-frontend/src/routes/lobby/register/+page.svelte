@@ -14,6 +14,8 @@
 
 	export let form: HTMLFormElement;
 
+	export let data;
+
 	function resetFormError() {
 		if (!form) {
 			return;
@@ -28,44 +30,40 @@
 <FlexContainer>
 	<div class="fixed left-4 top-4">
 		<p class="text-secondary">
-			Don't have an account yet? Click <StyledLink text="here" link="/signup" /> to sign-up!
+			Back to the <StyledLink text="lobby" link="/lobby" />
 		</p>
 	</div>
 
 	<FlexContainer extensible={false} styling="h-1/5">
 		<StyledTitle text="Galactic Sovereign" />
-		<StyledText text="Login" />
+		<StyledText text="Join new universe" />
 	</FlexContainer>
 
 	<FlexContainer extensible={false} styling="h-3/5">
-		<form method="POST" action="?/login" class="flex flex-col flex-1 justify-evenly">
-			<FormField label="email:" labelId="email">
-				<input
-					id="email"
-					type="text"
-					name="email"
-					placeholder="Enter your email address"
-					required
-					value={form?.email ?? ''}
-					on:input={resetFormError}
-				/>
+		<form method="POST" action="?/register" class="flex flex-col flex-1 justify-evenly">
+			<FormField label="universe:" labelId="universe">
+				<select id="universe" name="universe">
+					{#each data.universes as universe}
+						<option value={universe.id}>{universe.name}</option>
+					{/each}
+				</select>
 			</FormField>
-			<FormField label="password:" labelId="password">
+			<FormField label="player:" labelId="player">
 				<input
-					id="password"
+					id="player"
 					type="text"
-					name="password"
-					placeholder="Enter your password"
+					name="player"
+					placeholder="Choose a name"
 					required
 					on:input={resetFormError}
 				/></FormField
 			>
-			<StyledButton text="Login" />
+			<StyledButton text="Start" />
 		</form>
 
 		{#if form?.message}
 			<div class="fixed bottom-4">
-				<StyledError text="Failed to login: {form.message}" />
+				<StyledError text="Failed to register in universe: {form.message}" />
 			</div>
 		{/if}
 	</FlexContainer>
