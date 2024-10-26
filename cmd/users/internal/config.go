@@ -6,6 +6,7 @@ import (
 
 func DefaultConf() config.Configuration {
 	conf := config.DefaultConf()
+	conf.Server.Prefix = "/users"
 	conf.Database.Name = "db_user_service"
 	return conf
 }

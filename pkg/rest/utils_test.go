@@ -17,11 +17,18 @@ func TestSanitizePath(t *testing.T) {
 	testCases := []testCase{
 		{in: "", expected: "/"},
 		{in: "/", expected: "/"},
+		{in: "//", expected: "/"},
 		{in: "path", expected: "/path"},
 		{in: "path/", expected: "/path"},
+		{in: "path//", expected: "/path"},
 		{in: "/path", expected: "/path"},
+		{in: "//path", expected: "/path"},
 		{in: "/path/", expected: "/path"},
+		{in: "//path/", expected: "/path"},
+		{in: "/path//", expected: "/path"},
+		{in: "//path//", expected: "/path"},
 		{in: "path/id", expected: "/path/id"},
+		{in: "path//id", expected: "/path/id"},
 		{in: "path/id/", expected: "/path/id"},
 		{in: "/path/id", expected: "/path/id"},
 		{in: "/path/id/", expected: "/path/id"},
@@ -36,42 +43,33 @@ func TestSanitizePath(t *testing.T) {
 	}
 }
 
-func TestConcatenateEndpoints_AllEmpty(t *testing.T) {
+func TestConcatenateEndpoints(t *testing.T) {
 	assert := assert.New(t)
 
-	actual := concatenateEndpoints("", "")
+	type testCase struct {
+		basePath string
+		path     string
+		expected string
+	}
 
-	assert.Equal("/", actual)
-}
+	testCases := []testCase{
+		{basePath: "", path: "", expected: "/"},
+		{basePath: "", path: "/some/path", expected: "/some/path"},
+		{basePath: "/some/path", path: "", expected: "/some/path"},
+		{basePath: "/some/endpoint", path: "/some/path", expected: "/some/endpoint/some/path"},
+		{basePath: "/some/endpoint", path: "some/path", expected: "/some/endpoint/some/path"},
+		{basePath: "some/endpoint", path: "some/path", expected: "/some/endpoint/some/path"},
+		{basePath: "some/endpoint", path: "/path/", expected: "/some/endpoint/path"},
+		{basePath: "/some/endpoint", path: "/path/", expected: "/some/endpoint/path"},
+		{basePath: "/some/endpoint/", path: "/path/", expected: "/some/endpoint/path"},
+		{basePath: "some/endpoint", path: "path/", expected: "/some/endpoint/path"},
+	}
 
-func TestConcatenateEndpoints_EmptyEndpoint(t *testing.T) {
-	assert := assert.New(t)
+	for _, testCase := range testCases {
+		t.Run("", func(t *testing.T) {
+			actual := ConcatenateEndpoints(testCase.basePath, testCase.path)
 
-	actual := concatenateEndpoints("", "/some/path")
-
-	assert.Equal("/some/path", actual)
-}
-
-func TestConcatenateEndpoints_EmptyPath(t *testing.T) {
-	assert := assert.New(t)
-
-	actual := concatenateEndpoints("/some/endpoint", "")
-
-	assert.Equal("/some/endpoint", actual)
-}
-
-func TestConcatenateEndpoints_DoesNotGenerateDoubleSlash(t *testing.T) {
-	assert := assert.New(t)
-
-	actual := concatenateEndpoints("/some/endpoint", "/some/path")
-
-	assert.Equal("/some/endpoint/some/path", actual)
-}
-
-func TestConcatenateEndpoints_ConcatenateCorrectly(t *testing.T) {
-	assert := assert.New(t)
-
-	actual := concatenateEndpoints("/some/endpoint", "some/path")
-
-	assert.Equal("/some/endpoint/some/path", actual)
+			assert.Equal(testCase.expected, actual)
+		})
+	}
 }

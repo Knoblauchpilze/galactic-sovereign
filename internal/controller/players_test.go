@@ -61,6 +61,10 @@ func Test_PlayerEndpoints(t *testing.T) {
 			http.MethodGet:    2,
 			http.MethodDelete: 1,
 		},
+		expectedPaths: map[string]int{
+			"/players":     2,
+			"/players/:id": 2,
+		},
 	}
 
 	suite.Run(t, &s)

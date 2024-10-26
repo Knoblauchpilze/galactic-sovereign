@@ -55,6 +55,10 @@ func Test_BuildingActionEndpoints(t *testing.T) {
 			http.MethodPost:   1,
 			http.MethodDelete: 1,
 		},
+		expectedPaths: map[string]int{
+			"/planets/:id/actions": 1,
+			"/actions/:id":         1,
+		},
 
 		errorTestCases: map[string]routeErrorTestCase{
 			"whenActionServiceFails": {

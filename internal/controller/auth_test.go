@@ -59,6 +59,9 @@ func Test_AuthEndpoints(t *testing.T) {
 		expectedRoutes: map[string]int{
 			http.MethodGet: 1,
 		},
+		expectedPaths: map[string]int{
+			"/auth": 1,
+		},
 	}
 
 	suite.Run(t, &s)

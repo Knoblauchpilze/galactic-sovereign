@@ -60,7 +60,7 @@ func (r *routeImpl) Handler() echo.HandlerFunc {
 func (r *routeImpl) Path() string {
 	path := r.path
 	if r.addIdInPath && !strings.Contains(path, RouteIdPlaceholder) {
-		path = concatenateEndpoints(path, RouteIdPlaceholder)
+		path = ConcatenateEndpoints(path, RouteIdPlaceholder)
 	}
 
 	return path
