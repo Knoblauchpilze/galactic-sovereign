@@ -22,6 +22,7 @@ func TestDefaultConfig_Server(t *testing.T) {
 
 	expected := rest.Config{
 		BasePath:  "/v1",
+		Prefix:    "",
 		Port:      uint16(80),
 		RateLimit: 10,
 	}

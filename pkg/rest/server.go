@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"strings"
 	"sync"
 	"time"
 
@@ -44,7 +43,7 @@ func NewServer(conf Config) Server {
 	publicRoutes := s.Group("")
 
 	return &serverImpl{
-		endpoint: strings.TrimSuffix(conf.BasePath, "/"),
+		endpoint: ConcatenateEndpoints(conf.BasePath, conf.Prefix),
 		port:     conf.Port,
 
 		server:       s,
@@ -63,7 +62,7 @@ func NewServerWithApiKey(conf Config, apiKeyRepository repositories.ApiKeyReposi
 	authorizedRoutes := s.Group("", middleware.ApiKey(apiKeyRepository))
 
 	return &serverImpl{
-		endpoint: strings.TrimSuffix(conf.BasePath, "/"),
+		endpoint: ConcatenateEndpoints(conf.BasePath, conf.Prefix),
 		port:     conf.Port,
 
 		server:           s,
@@ -106,7 +105,7 @@ func (s *serverImpl) Stop() error {
 
 func (s *serverImpl) Register(route Route) error {
 	path := route.Path()
-	path = concatenateEndpoints(s.endpoint, path)
+	path = ConcatenateEndpoints(s.endpoint, path)
 
 	router := s.publicRoutes
 	if route.Authorized() {

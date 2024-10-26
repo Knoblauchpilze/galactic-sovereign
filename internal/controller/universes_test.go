@@ -84,6 +84,10 @@ func Test_UniverseEndpoints(t *testing.T) {
 			http.MethodGet:    2,
 			http.MethodDelete: 1,
 		},
+		expectedPaths: map[string]int{
+			"/universes":     2,
+			"/universes/:id": 2,
+		},
 	}
 
 	suite.Run(t, &s)

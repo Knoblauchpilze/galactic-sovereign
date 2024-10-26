@@ -1,7 +1,18 @@
 # https://doc.traefik.io/traefik/routing/services/#configuration-examples
 http:
+  routers:
+    user-service-https:
+      entryPoints:
+        - "websecure"
+      rule: 'Host(`api.{{ env "DOMAIN_NAME" }}`) && PathPrefix(`/v1/users`)'
+      service: user-service
+      middlewares:
+        - "rate-limit"
+      tls:
+        certResolver: letsencryptresolver
+
   middlewares:
-    us-rate-limit:
+    rate-limit:
       rateLimit:
         average: 5
         burst: 10
@@ -12,4 +23,4 @@ http:
         servers:
           - url: "http://user-service:80"
         healthCheck:
-          path: /v1/healthcheck
+          path: /v1/users/healthcheck

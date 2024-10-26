@@ -26,6 +26,9 @@ func Test_HealthCheckEndpoints(t *testing.T) {
 		expectedRoutes: map[string]int{
 			http.MethodGet: 1,
 		},
+		expectedPaths: map[string]int{
+			"/healthcheck": 1,
+		},
 	}
 
 	suite.Run(t, &s)

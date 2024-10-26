@@ -1,14 +1,13 @@
 #!/bin/bash
 
-ENDPOINT=${SERVICE_ENDPOINT:-v1}
+ENDPOINT=${SERVICE_ENDPOINT:-v1/users}
 
 CONTAINER_NAME=${SERVICE_NAME:-user-service}
 DOCKER_COMPOSE_FILE=${COMPOSE_FILE:-/home/ubuntu/deployments/compose.yaml}
 
 # https://stackoverflow.com/questions/39070547/how-to-expose-a-docker-network-to-the-host-machine
 echo "Fetching IP of ${CONTAINER_NAME}"
-# The '/' seems to be added to the container's name.
-CONTAINER_IP=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' /${CONTAINER_NAME})
+CONTAINER_IP=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' ${CONTAINER_NAME})
 
 URL="http://${CONTAINER_IP}/${ENDPOINT}/healthcheck"
 

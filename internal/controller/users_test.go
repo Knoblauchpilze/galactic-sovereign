@@ -14,8 +14,8 @@ import (
 	"github.com/KnoblauchPilze/galactic-sovereign/pkg/communication"
 	"github.com/KnoblauchPilze/galactic-sovereign/pkg/db"
 	"github.com/KnoblauchPilze/galactic-sovereign/pkg/errors"
+	"github.com/KnoblauchPilze/galactic-sovereign/pkg/rest"
 	"github.com/google/uuid"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 )
@@ -56,19 +56,26 @@ var defaultApiKeyDtoResponse = communication.ApiKeyDtoResponse{
 	ValidUntil: time.Date(2024, 05, 05, 21, 32, 55, 651387237, time.UTC),
 }
 
-func TestUserEndpoints_GeneratesExpectedRoutes(t *testing.T) {
-	assert := assert.New(t)
-
-	actualRoutes := make(map[string]int)
-	for _, r := range UserEndpoints(&mockUserService{}) {
-		actualRoutes[r.Method()]++
+func Test_UsersEndpoints(t *testing.T) {
+	s := RouteTestSuite{
+		generateRoutes: func() rest.Routes {
+			return UserEndpoints(&mockUserService{})
+		},
+		expectedRoutes: map[string]int{
+			http.MethodPost:   3,
+			http.MethodGet:    2,
+			http.MethodPatch:  1,
+			http.MethodDelete: 2,
+		},
+		expectedPaths: map[string]int{
+			"/":             2,
+			"/:id":          3,
+			"/sessions":     1,
+			"/sessions/:id": 2,
+		},
 	}
 
-	assert.Equal(4, len(actualRoutes))
-	assert.Equal(3, actualRoutes[http.MethodPost])
-	assert.Equal(2, actualRoutes[http.MethodGet])
-	assert.Equal(1, actualRoutes[http.MethodPatch])
-	assert.Equal(2, actualRoutes[http.MethodDelete])
+	suite.Run(t, &s)
 }
 
 func Test_UserController(t *testing.T) {

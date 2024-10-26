@@ -18,7 +18,7 @@ func AuthEndpoints(service service.AuthService) rest.Routes {
 	var out rest.Routes
 
 	authHandler := fromAuthServiceAwareHttpHandler(authUser, service)
-	auth := rest.NewRoute(http.MethodGet, false, "/users/auth", authHandler)
+	auth := rest.NewRoute(http.MethodGet, false, "/auth", authHandler)
 	out = append(out, auth)
 
 	return out

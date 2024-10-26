@@ -125,6 +125,10 @@ func Test_PlanetEndpoints(t *testing.T) {
 			http.MethodGet:    2,
 			http.MethodDelete: 1,
 		},
+		expectedPaths: map[string]int{
+			"/planets":     2,
+			"/planets/:id": 2,
+		},
 
 		errorTestCases: map[string]routeErrorTestCase{
 			"whenActionServiceFails": {

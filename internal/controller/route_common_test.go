@@ -29,6 +29,7 @@ type RouteTestSuite struct {
 	generateRoutes routesGenerator
 
 	expectedRoutes map[string]int
+	expectedPaths  map[string]int
 
 	errorTestCases       map[string]routeErrorTestCase
 	interactionTestCases []routeInteractionTestCase
@@ -45,6 +46,23 @@ func (s *RouteTestSuite) Test_GeneratesExpectedRoutes() {
 	s.Require().Equal(len(s.expectedRoutes), len(actualRoutes))
 	for method, count := range actualRoutes {
 		expectedCount, ok := s.expectedRoutes[method]
+
+		s.Require().True(ok)
+		s.Require().Equal(expectedCount, count)
+	}
+}
+
+func (s *RouteTestSuite) Test_GeneratesExpectedPaths() {
+	routes := s.generateRoutes()
+	actualPaths := make(map[string]int)
+
+	for _, r := range routes {
+		actualPaths[r.Path()]++
+	}
+
+	s.Require().Equal(len(s.expectedPaths), len(actualPaths))
+	for expectedPath, expectedCount := range s.expectedPaths {
+		count, ok := actualPaths[expectedPath]
 
 		s.Require().True(ok)
 		s.Require().Equal(expectedCount, count)
