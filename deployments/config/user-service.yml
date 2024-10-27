@@ -7,15 +7,42 @@ http:
       rule: 'Host(`api.{{ env "DOMAIN_NAME" }}`) && PathPrefix(`/v1/users`)'
       service: user-service
       middlewares:
-        - "rate-limit"
+        - "us-rate-limit"
+        - "us-auth"
+      tls:
+        certResolver: letsencryptresolver
+
+    user-service-public-https-create:
+      entryPoints:
+        - "websecure"
+      rule: 'Host(`api.{{ env "DOMAIN_NAME" }}`) && Path(`/v1/users`) && Method(`POST`)'
+      service: galactic-sovereign-service
+      middlewares:
+        - "us-rate-limit"
+      tls:
+        certResolver: letsencryptresolver
+
+    user-service-public-https-session:
+      entryPoints:
+        - "websecure"
+      rule: 'Host(`api.{{ env "DOMAIN_NAME" }}`) && PathPrefix(`/v1/users/sessions`) && Method(`POST`)'
+      service: galactic-sovereign-service
+      middlewares:
+        - "us-rate-limit"
       tls:
         certResolver: letsencryptresolver
 
   middlewares:
-    rate-limit:
+    us-rate-limit:
       rateLimit:
         average: 5
         burst: 10
+    us-auth:
+      forwardAuth:
+        address: "http://user-service:80/v1/users/auth"
+        authResponseHeaders:
+          - "X-Acl"
+          - "X-User-Limit"
 
   services:
     user-service:

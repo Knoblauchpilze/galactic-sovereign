@@ -6,17 +6,17 @@ http:
       rule: 'Host(`api.{{ env "DOMAIN_NAME" }}`) && PathPrefix(`/v1/galactic-sovereign`)'
       service: galactic-sovereign-service
       middlewares:
-        - "rate-limit"
-        - "auth"
+        - "gs-rate-limit"
+        - "gs-auth"
       tls:
         certResolver: letsencryptresolver
 
   middlewares:
-    rate-limit:
+    gs-rate-limit:
       rateLimit:
         average: 5
         burst: 10
-    auth:
+    gs-auth:
       # https://doc.traefik.io/traefik/middlewares/http/forwardauth
       forwardAuth:
         address: "http://user-service:80/v1/users/auth"
