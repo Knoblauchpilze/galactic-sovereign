@@ -13,7 +13,7 @@ func HealthCheckEndpoints(pool db.ConnectionPool) rest.Routes {
 	var out rest.Routes
 
 	getHandler := fromDbAwareHttpHandler(healthcheck, pool)
-	get := rest.NewRoute(http.MethodGet, false, "/healthcheck", getHandler)
+	get := rest.NewRoute(http.MethodGet, "/healthcheck", getHandler)
 	out = append(out, get)
 
 	return out

@@ -16,19 +16,19 @@ func PlayerEndpoints(service service.PlayerService) rest.Routes {
 	var out rest.Routes
 
 	postHandler := fromPlayerServiceAwareHttpHandler(createPlayer, service)
-	post := rest.NewRoute(http.MethodPost, false, "/players", postHandler)
+	post := rest.NewRoute(http.MethodPost, "/players", postHandler)
 	out = append(out, post)
 
 	getHandler := fromPlayerServiceAwareHttpHandler(getPlayer, service)
-	get := rest.NewResourceRoute(http.MethodGet, false, "/players", getHandler)
+	get := rest.NewResourceRoute(http.MethodGet, "/players", getHandler)
 	out = append(out, get)
 
 	listHandler := fromPlayerServiceAwareHttpHandler(listPlayers, service)
-	list := rest.NewRoute(http.MethodGet, false, "/players", listHandler)
+	list := rest.NewRoute(http.MethodGet, "/players", listHandler)
 	out = append(out, list)
 
 	deleteHandler := fromPlayerServiceAwareHttpHandler(deletePlayer, service)
-	delete := rest.NewResourceRoute(http.MethodDelete, false, "/players", deleteHandler)
+	delete := rest.NewResourceRoute(http.MethodDelete, "/players", deleteHandler)
 	out = append(out, delete)
 
 	return out

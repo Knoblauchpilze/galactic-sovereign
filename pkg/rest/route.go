@@ -25,20 +25,40 @@ type routeImpl struct {
 	handler     echo.HandlerFunc
 }
 
-func NewRoute(method string, authorized bool, path string, handler echo.HandlerFunc) Route {
+func NewRoute(method string, path string, handler echo.HandlerFunc) Route {
 	return &routeImpl{
 		method:      method,
-		authorized:  authorized,
+		authorized:  false,
 		path:        sanitizePath(path),
 		addIdInPath: false,
 		handler:     handler,
 	}
 }
 
-func NewResourceRoute(method string, authorized bool, path string, handler echo.HandlerFunc) Route {
+func NewAuthorizedRoute(method string, path string, handler echo.HandlerFunc) Route {
 	return &routeImpl{
 		method:      method,
-		authorized:  authorized,
+		authorized:  true,
+		path:        sanitizePath(path),
+		addIdInPath: false,
+		handler:     handler,
+	}
+}
+
+func NewResourceRoute(method string, path string, handler echo.HandlerFunc) Route {
+	return &routeImpl{
+		method:      method,
+		authorized:  false,
+		path:        sanitizePath(path),
+		addIdInPath: true,
+		handler:     handler,
+	}
+}
+
+func NewAuthorizedResourceRoute(method string, path string, handler echo.HandlerFunc) Route {
+	return &routeImpl{
+		method:      method,
+		authorized:  true,
 		path:        sanitizePath(path),
 		addIdInPath: true,
 		handler:     handler,
