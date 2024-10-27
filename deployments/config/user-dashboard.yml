@@ -8,22 +8,6 @@ http:
       tls:
         certResolver: letsencryptresolver
 
-    user-dashboard-www-https:
-      entryPoints:
-        - "websecure"
-      rule: 'Host(`www.admin.{{ env "DOMAIN_NAME" }}`) && PathPrefix(`/`)'
-      middlewares:
-        - "ud-redirect"
-      service: user-dashboard
-      tls:
-        certResolver: letsencryptresolver
-
-  middlewares:
-    ud-redirect:
-      redirectRegex:
-        regex: '^https://www.admin.{{ env "DOMAIN_NAME" }}/(.*)'
-        replacement: 'https://admin.{{ env "DOMAIN_NAME" }}/${1}'
-
   services:
     user-dashboard:
       loadBalancer:
