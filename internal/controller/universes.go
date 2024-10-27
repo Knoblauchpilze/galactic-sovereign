@@ -16,19 +16,19 @@ func UniverseEndpoints(service service.UniverseService) rest.Routes {
 	var out rest.Routes
 
 	postHandler := fromUniverseServiceAwareHttpHandler(createUniverse, service)
-	post := rest.NewRoute(http.MethodPost, false, "/universes", postHandler)
+	post := rest.NewRoute(http.MethodPost, "/universes", postHandler)
 	out = append(out, post)
 
 	getHandler := fromUniverseServiceAwareHttpHandler(getUniverse, service)
-	get := rest.NewResourceRoute(http.MethodGet, false, "/universes", getHandler)
+	get := rest.NewResourceRoute(http.MethodGet, "/universes", getHandler)
 	out = append(out, get)
 
 	listHandler := fromUniverseServiceAwareHttpHandler(listUniverses, service)
-	list := rest.NewRoute(http.MethodGet, false, "/universes", listHandler)
+	list := rest.NewRoute(http.MethodGet, "/universes", listHandler)
 	out = append(out, list)
 
 	deleteHandler := fromUniverseServiceAwareHttpHandler(deleteUniverse, service)
-	delete := rest.NewResourceRoute(http.MethodDelete, false, "/universes", deleteHandler)
+	delete := rest.NewResourceRoute(http.MethodDelete, "/universes", deleteHandler)
 	out = append(out, delete)
 
 	return out
