@@ -11,7 +11,7 @@ func NewRoute(method string,
 	actionService ActionService,
 	planetResourceService PlanetResourceService) rest.Route {
 	wrapped := GameUpdateWatcher(actionService, planetResourceService, handler)
-	return rest.NewRoute(method, false, path, wrapped)
+	return rest.NewRoute(method, path, wrapped)
 }
 
 func NewResourceRoute(method string,
@@ -20,5 +20,5 @@ func NewResourceRoute(method string,
 	actionService ActionService,
 	planetResourceService PlanetResourceService) rest.Route {
 	wrapped := GameUpdateWatcher(actionService, planetResourceService, handler)
-	return rest.NewResourceRoute(method, false, path, wrapped)
+	return rest.NewResourceRoute(method, path, wrapped)
 }

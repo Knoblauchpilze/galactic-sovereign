@@ -14,34 +14,34 @@ var defaultHandler = func(c echo.Context) error { return nil }
 func TestRoute_Method(t *testing.T) {
 	assert := assert.New(t)
 
-	r := NewRoute(http.MethodGet, false, "", defaultHandler)
+	r := NewRoute(http.MethodGet, "", defaultHandler)
 	assert.Equal(http.MethodGet, r.Method())
 }
 
 func TestRoute_WithResource_Method(t *testing.T) {
 	assert := assert.New(t)
 
-	r := NewResourceRoute(http.MethodGet, false, "", defaultHandler)
+	r := NewResourceRoute(http.MethodGet, "", defaultHandler)
 	assert.Equal(http.MethodGet, r.Method())
 }
 
 func TestRoute_Authorized(t *testing.T) {
 	assert := assert.New(t)
 
-	public := NewRoute(http.MethodGet, false, "", defaultHandler)
+	public := NewRoute(http.MethodGet, "", defaultHandler)
 	assert.Equal(false, public.Authorized())
 
-	authorized := NewRoute(http.MethodGet, true, "", defaultHandler)
+	authorized := NewAuthorizedRoute(http.MethodGet, "", defaultHandler)
 	assert.Equal(true, authorized.Authorized())
 }
 
 func TestRoute_WithResource_Authorized(t *testing.T) {
 	assert := assert.New(t)
 
-	public := NewResourceRoute(http.MethodGet, false, "", defaultHandler)
+	public := NewResourceRoute(http.MethodGet, "", defaultHandler)
 	assert.Equal(false, public.Authorized())
 
-	authorized := NewResourceRoute(http.MethodGet, true, "", defaultHandler)
+	authorized := NewAuthorizedResourceRoute(http.MethodGet, "", defaultHandler)
 	assert.Equal(true, authorized.Authorized())
 }
 
@@ -54,7 +54,7 @@ func TestRoute_Handler(t *testing.T) {
 		return nil
 	}
 
-	r := NewRoute(http.MethodGet, false, "", handler)
+	r := NewRoute(http.MethodGet, "", handler)
 	actual := r.Handler()
 	actual(dummyEchoContext())
 
@@ -70,7 +70,7 @@ func TestRoute_WithResource_Handler(t *testing.T) {
 		return nil
 	}
 
-	r := NewResourceRoute(http.MethodGet, false, "", handler)
+	r := NewResourceRoute(http.MethodGet, "", handler)
 	actual := r.Handler()
 	actual(dummyEchoContext())
 
@@ -95,7 +95,7 @@ func TestRoute_Path(t *testing.T) {
 	for _, tc := range tests {
 		t.Run("", func(t *testing.T) {
 
-			r := NewRoute(http.MethodGet, false, tc.path, defaultHandler)
+			r := NewRoute(http.MethodGet, tc.path, defaultHandler)
 			assert.Equal(tc.expected, r.Path())
 		})
 	}
@@ -114,7 +114,7 @@ func TestRoute_WithResource_GeneratePath(t *testing.T) {
 	for _, tc := range tests {
 		t.Run("", func(t *testing.T) {
 
-			r := NewResourceRoute(http.MethodGet, false, tc.path, defaultHandler)
+			r := NewResourceRoute(http.MethodGet, tc.path, defaultHandler)
 			assert.Equal(tc.expected, r.Path())
 		})
 	}
@@ -125,7 +125,7 @@ func TestRoute_WithResource_WhenIdPlaceHolderAlreadyExists_DoNotGeneratePath(t *
 
 	path := "/path/:id/addendum"
 
-	r := NewResourceRoute(http.MethodGet, false, path, defaultHandler)
+	r := NewResourceRoute(http.MethodGet, path, defaultHandler)
 
 	assert.Equal(path, r.Path())
 }
