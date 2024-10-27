@@ -35,7 +35,7 @@ jobs:
           file: ./build/galactic-sovereign-frontend/Dockerfile
           build-args: |
             GIT_COMMIT_HASH=${{ needs.extract-service-tag.outputs.version }}
-            API_BASE_URL=http://galactic-sovereign-service:80/v1
+            API_BASE_URL=http://galactic-sovereign-service:80/v1/galactic-sovereign
             USER_API_BASE_URL=http://user-service:80/v1/users
           push: true
           tags: totocorpsoftwareinc/galactic-sovereign-frontend:${{ needs.extract-service-tag.outputs.version }}
