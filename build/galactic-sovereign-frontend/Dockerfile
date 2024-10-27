@@ -1,5 +1,5 @@
 FROM node:22 AS builder
-ARG API_BASE_URL="http://galactic-sovereign-service:80/v1"
+ARG API_BASE_URL="http://galactic-sovereign-service:80/v1/galactic-sovereign"
 ARG USER_API_BASE_URL="http://user-service:80/v1/users"
 WORKDIR /build
 COPY frontend/galactic-sovereign-frontend ./

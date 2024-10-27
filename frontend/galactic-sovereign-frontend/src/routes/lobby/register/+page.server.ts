@@ -7,7 +7,12 @@ import { fetchPlanetsFromPlayer, responseToPlanetArray } from '$lib/game/planets
 export async function load({ cookies }) {
 	resetGameCookies(cookies);
 
-	const universesResponse = await getUniverses();
+	const [valid, sessionCookies] = loadSessionCookies(cookies);
+	if (!valid) {
+		redirect(303, '/login');
+	}
+
+	const universesResponse = await getUniverses(sessionCookies.apiKey);
 
 	if (universesResponse.error()) {
 		error(404, { message: universesResponse.failureMessage() });

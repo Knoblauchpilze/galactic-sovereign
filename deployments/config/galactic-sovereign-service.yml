@@ -3,21 +3,11 @@ http:
     galactic-sovereign-service-https:
       entryPoints:
         - "websecure"
-      rule: 'Host(`api.{{ env "DOMAIN_NAME" }}`) && PathPrefix(`/v1`)'
+      rule: 'Host(`api.{{ env "DOMAIN_NAME" }}`) && PathPrefix(`/v1/galactic-sovereign`)'
       service: galactic-sovereign-service
       middlewares:
         - "rate-limit"
         - "auth"
-      tls:
-        certResolver: letsencryptresolver
-
-    galactic-sovereign-service-public-https:
-      entryPoints:
-        - "websecure"
-      rule: 'Host(`api.{{ env "DOMAIN_NAME" }}`) && PathPrefix(`/v1/universes`)'
-      service: galactic-sovereign-service
-      middlewares:
-        - "rate-limit"
       tls:
         certResolver: letsencryptresolver
 
@@ -40,4 +30,4 @@ http:
         servers:
           - url: "http://galactic-sovereign-service:80"
         healthCheck:
-          path: /v1/healthcheck
+          path: /v1/galactic-sovereign/healthcheck
