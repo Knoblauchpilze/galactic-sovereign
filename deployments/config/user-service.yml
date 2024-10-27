@@ -15,8 +15,8 @@ http:
     user-service-public-https-create:
       entryPoints:
         - "websecure"
-      rule: 'Host(`api.{{ env "DOMAIN_NAME" }}`) && Path(`/v1/users`) && Method(`POST`)'
-      service: galactic-sovereign-service
+      rule: 'Host(`api.{{ env "DOMAIN_NAME" }}`) && Method(`POST`) && Path(`/v1/users`)'
+      service: user-service
       middlewares:
         - "us-rate-limit"
       tls:
@@ -25,8 +25,8 @@ http:
     user-service-public-https-session:
       entryPoints:
         - "websecure"
-      rule: 'Host(`api.{{ env "DOMAIN_NAME" }}`) && PathPrefix(`/v1/users/sessions`) && Method(`POST`)'
-      service: galactic-sovereign-service
+      rule: 'Host(`api.{{ env "DOMAIN_NAME" }}`) && Method(`POST`) && PathPrefix(`/v1/users/sessions`)'
+      service: user-service
       middlewares:
         - "us-rate-limit"
       tls:
