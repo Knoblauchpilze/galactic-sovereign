@@ -6,6 +6,7 @@ import (
 
 func DefaultConf() config.Configuration {
 	conf := config.DefaultConf()
+	conf.Server.Prefix = "/galactic-sovereign"
 	conf.Database.Name = "db_galactic_sovereign"
 	return conf
 }

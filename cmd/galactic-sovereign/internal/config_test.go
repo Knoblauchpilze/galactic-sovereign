@@ -11,13 +11,14 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestDefaultConfig_LeavesServerUnchanged(t *testing.T) {
+func TestDefaultConfig_SetsCorrectPrefix(t *testing.T) {
 	assert := assert.New(t)
 
 	conf := DefaultConf()
 
 	expected := rest.Config{
 		BasePath:  "/v1",
+		Prefix:    "/galactic-sovereign",
 		Port:      uint16(80),
 		RateLimit: 10,
 	}

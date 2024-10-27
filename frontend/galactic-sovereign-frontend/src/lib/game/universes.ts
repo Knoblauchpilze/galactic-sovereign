@@ -45,7 +45,7 @@ export async function getUniverse(id: string): Promise<ResponseEnvelope> {
 	const url = buildUrl('universes/' + id);
 
 	const params = {
-		method: 'GET',
+		method: 'GET'
 	};
 
 	const response = await safeFetch(url, params);
@@ -54,11 +54,14 @@ export async function getUniverse(id: string): Promise<ResponseEnvelope> {
 	return new ResponseEnvelope(jsonContent);
 }
 
-export async function getUniverses(): Promise<ResponseEnvelope> {
+export async function getUniverses(apiKey: string): Promise<ResponseEnvelope> {
 	const url = buildUrl('universes');
 
 	const params = {
-		method: 'GET'
+		method: 'GET',
+		headers: {
+			'X-Api-Key': apiKey
+		}
 	};
 
 	const response = await safeFetch(url, params);
