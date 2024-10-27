@@ -3,6 +3,7 @@ package db
 import (
 	"net/url"
 	"testing"
+	"time"
 
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/stretchr/testify/assert"
@@ -33,6 +34,31 @@ func TestConfig_ToConnPoolConfig(t *testing.T) {
 	assert.Equal(expectedPassword, actual.ConnConfig.Password)
 
 	assert.Equal(int32(2), actual.MinConns)
+	assert.Equal(time.Duration(0), actual.ConnConfig.ConnectTimeout)
+}
+
+func TestConfig_ToConnPoolConfig_WithConnectTimeout(t *testing.T) {
+	assert := assert.New(t)
+
+	c := defaultPoolConf
+	c.ConnectTimeout = 2 * time.Second
+	actual, err := c.toConnPoolConfig()
+
+	assert.Nil(err)
+
+	assert.Equal(2*time.Second, actual.ConnConfig.ConnectTimeout)
+}
+
+func TestConfig_ToConnPoolConfig_WhenConnectTimeoutNotAFullSecond_ExpectRounded(t *testing.T) {
+	assert := assert.New(t)
+
+	c := defaultPoolConf
+	c.ConnectTimeout = 3*time.Second + 720*time.Millisecond
+	actual, err := c.toConnPoolConfig()
+
+	assert.Nil(err)
+
+	assert.Equal(3*time.Second, actual.ConnConfig.ConnectTimeout)
 }
 
 func TestConfig_ToConnPoolConfig_WhenInvalidPort_ExpectError(t *testing.T) {

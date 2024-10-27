@@ -64,6 +64,14 @@ func TestDefaultConfig_Database_AssumesPoolSizeOfOne(t *testing.T) {
 	assert.Equal(uint(1), conf.Database.ConnectionsPoolSize)
 }
 
+func TestDefaultConfig_Database_AssumesTwoSecondsConnectTimeout(t *testing.T) {
+	assert := assert.New(t)
+
+	conf := DefaultConf()
+
+	assert.Equal(2*time.Second, conf.Database.ConnectTimeout)
+}
+
 func TestDefaultConfig_Database_DoesNotDefineDb(t *testing.T) {
 	assert := assert.New(t)
 
