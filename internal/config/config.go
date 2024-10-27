@@ -71,6 +71,7 @@ func DefaultConf() Configuration {
 			Host:                "172.17.0.1",
 			Port:                5432,
 			ConnectionsPoolSize: 1,
+			ConnectTimeout:      2 * time.Second,
 			LogLevel:            log.DEBUG,
 		},
 	}

@@ -46,6 +46,7 @@ func TestDefaultConfig_ReplacesDatabaseConfiguration(t *testing.T) {
 		Port:                5432,
 		Name:                "db_user_service",
 		ConnectionsPoolSize: 1,
+		ConnectTimeout:      2 * time.Second,
 		LogLevel:            log.DEBUG,
 	}
 	assert.Equal(expected, conf.Database)
