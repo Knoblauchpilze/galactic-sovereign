@@ -304,6 +304,30 @@ func Test_UpdatePlanetResourcesToTime(t *testing.T) {
 				assert.Equal(1, m.listForPlanetCalled)
 			},
 		},
+		"whenUpdatingPlanetUntilTime_expectListResourceStoragesForPlanetCalled": {
+			verifyMockInteractions: func(repos repositories.Repositories, assert *assert.Assertions) {
+				m := assertPlanetResourceStorageRepoIsAMock(repos, assert)
+
+				assert.Equal(1, m.listForPlanetCalled)
+				assert.Equal([]uuid.UUID{planetId}, m.listForPlanetIds)
+			},
+		},
+		"whenUpdatingPlanetUntilTime_whenListResourceStoragesForPlanetFails_expectError": {
+			generateRepositoriesMocks: func() repositories.Repositories {
+				repos := generateDefaultRepositoriesMocks()
+				repos.PlanetResourceStorage = &mockPlanetResourceStorageRepository{
+					errs: []error{errDefault},
+				}
+
+				return repos
+			},
+			expectedError: errDefault,
+			verifyMockInteractions: func(repos repositories.Repositories, assert *assert.Assertions) {
+				m := assertPlanetResourceStorageRepoIsAMock(repos, assert)
+
+				assert.Equal(1, m.listForPlanetCalled)
+			},
+		},
 		"whenUpdatingPlanetUntilTime_expectResourceAreUpdatedWithCorrectValue": {
 			until: defaultPlanetResource.UpdatedAt.Add(2 * time.Minute),
 			verifyMockInteractions: func(repos repositories.Repositories, assert *assert.Assertions) {
@@ -543,6 +567,14 @@ func assertPlanetResourceProductionRepoIsAMock(repos repositories.Repositories, 
 	m, ok := repos.PlanetResourceProduction.(*mockPlanetResourceProductionRepository)
 	if !ok {
 		assert.Fail("Provided planet resource production repository is not a mock")
+	}
+	return m
+}
+
+func assertPlanetResourceStorageRepoIsAMock(repos repositories.Repositories, assert *assert.Assertions) *mockPlanetResourceStorageRepository {
+	m, ok := repos.PlanetResourceStorage.(*mockPlanetResourceStorageRepository)
+	if !ok {
+		assert.Fail("Provided planet resource storage repository is not a mock")
 	}
 	return m
 }

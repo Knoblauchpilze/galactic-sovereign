@@ -73,7 +73,7 @@ func Test_AuthController(t *testing.T) {
 		generateErrorServiceMock: generateErrorAuthServiceMock,
 
 		badInputTestCases: map[string]badInputTestCase[service.AuthService]{
-			"authUser": {
+			"authUser_noApiKey": {
 				req:                httptest.NewRequest(http.MethodGet, "/", nil),
 				handler:            authUser,
 				expectedBodyString: "\"Api key not found\"\n",

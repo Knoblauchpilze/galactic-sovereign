@@ -282,6 +282,26 @@ func TestPgxLoggerImpl_WhenMessageIsKnownAndSetToIgnore_ExpectFormattedLog(t *te
 	assert.Equal(0, len(m.args))
 }
 
+func TestPgxLoggerImpl_prepareMessage_ExpectFormattedLog(t *testing.T) {
+	assert := assert.New(t)
+
+	m := &mockEchoLogger{}
+	l := pgxLoggerImpl{
+		ignoreUnknownMessages: true,
+		logger:                m,
+	}
+
+	args := map[string]interface{}{
+		"sql":  "select * from table where id = $1",
+		"args": []interface{}{"aa-ee"},
+	}
+	l.Log(context.Background(), tracelog.LogLevelInfo, "Prepare", args)
+
+	assert.Equal(1, m.infoCalled)
+	assert.Equal("Prepare select * from table where id = $1 args=[aa-ee]", m.format)
+	assert.Equal(0, len(m.args))
+}
+
 func (m *mockEchoLogger) Debugf(format string, args ...interface{}) {
 	m.debugCalled++
 	m.format = format

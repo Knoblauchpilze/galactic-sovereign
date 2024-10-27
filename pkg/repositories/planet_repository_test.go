@@ -404,9 +404,7 @@ WHERE
 					_, err := s.Create(ctx, tx, defaultPlanet)
 					return err
 				},
-				verifyError: func(err error, assert *require.Assertions) {
-					assert.Equal(errDefault, err)
-				},
+				expectedError: errDefault,
 			},
 			"create_planetResourceFails": {
 				generateMock: func() db.Transaction {
@@ -423,9 +421,7 @@ WHERE
 					_, err := s.Create(ctx, tx, defaultPlanet)
 					return err
 				},
-				verifyError: func(err error, assert *require.Assertions) {
-					assert.Equal(errDefault, err)
-				},
+				expectedError: errDefault,
 			},
 			"create_planetResourceProductionFails": {
 				generateMock: func() db.Transaction {
@@ -443,9 +439,46 @@ WHERE
 					_, err := s.Create(ctx, tx, defaultPlanet)
 					return err
 				},
-				verifyError: func(err error, assert *require.Assertions) {
-					assert.Equal(errDefault, err)
+				expectedError: errDefault,
+			},
+			"create_planetResourceStorageFails": {
+				generateMock: func() db.Transaction {
+					return &mockTransaction{
+						execErrs: []error{
+							nil,
+							nil,
+							nil,
+							nil,
+							errDefault,
+						},
+					}
 				},
+				handler: func(ctx context.Context, tx db.Transaction) error {
+					s := NewPlanetRepository(&mockConnectionPool{})
+					_, err := s.Create(ctx, tx, defaultPlanet)
+					return err
+				},
+				expectedError: errDefault,
+			},
+			"create_planetBuildingFails": {
+				generateMock: func() db.Transaction {
+					return &mockTransaction{
+						execErrs: []error{
+							nil,
+							nil,
+							nil,
+							nil,
+							nil,
+							errDefault,
+						},
+					}
+				},
+				handler: func(ctx context.Context, tx db.Transaction) error {
+					s := NewPlanetRepository(&mockConnectionPool{})
+					_, err := s.Create(ctx, tx, defaultPlanet)
+					return err
+				},
+				expectedError: errDefault,
 			},
 			"delete_homeworldFails": {
 				generateMock: func() db.Transaction {
