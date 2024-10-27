@@ -84,6 +84,16 @@ func Test_UserController(t *testing.T) {
 		Password: "some-password",
 	}
 
+	userDtoWithInvalidEmail := communication.UserDtoRequest{
+		Email:    "",
+		Password: "password",
+	}
+
+	userDtoWithInvalidPassword := communication.UserDtoRequest{
+		Email:    "e.mail@domain.com",
+		Password: "",
+	}
+
 	s := ControllerTestSuite[service.UserService]{
 		generateServiceMock:      generateUserServiceMock,
 		generateErrorServiceMock: generateErrorUserServiceMock,
@@ -166,6 +176,18 @@ func Test_UserController(t *testing.T) {
 				handler:            createUser,
 				err:                errors.NewCode(db.DuplicatedKeySqlKey),
 				expectedHttpStatus: http.StatusConflict,
+			},
+			"createUser_invalidEmail": {
+				req:                generateTestRequestWithUserBody(http.MethodPost, userDtoWithInvalidEmail),
+				handler:            createUser,
+				err:                errors.NewCode(service.InvalidEmail),
+				expectedHttpStatus: http.StatusBadRequest,
+			},
+			"createUser_invalidPassword": {
+				req:                generateTestRequestWithUserBody(http.MethodPost, userDtoWithInvalidPassword),
+				handler:            createUser,
+				err:                errors.NewCode(service.InvalidPassword),
+				expectedHttpStatus: http.StatusBadRequest,
 			},
 			"getUser": {
 				req:                httptest.NewRequest(http.MethodGet, "/", nil),

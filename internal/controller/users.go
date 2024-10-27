@@ -60,6 +60,12 @@ func createUser(c echo.Context, s service.UserService) error {
 
 	out, err := s.Create(c.Request().Context(), userDtoRequest)
 	if err != nil {
+		if errors.IsErrorWithCode(err, service.InvalidEmail) {
+			return c.JSON(http.StatusBadRequest, "Invalid email")
+		}
+		if errors.IsErrorWithCode(err, service.InvalidPassword) {
+			return c.JSON(http.StatusBadRequest, "Invalid password")
+		}
 		if errors.IsErrorWithCode(err, db.DuplicatedKeySqlKey) {
 			return c.JSON(http.StatusConflict, "Email already used")
 		}
