@@ -49,6 +49,13 @@ func NewUserService(config ApiConfig, conn db.ConnectionPool, repos repositories
 func (s *userServiceImpl) Create(ctx context.Context, userDto communication.UserDtoRequest) (communication.UserDtoResponse, error) {
 	user := communication.FromUserDtoRequest(userDto)
 
+	if user.Email == "" {
+		return communication.UserDtoResponse{}, errors.NewCode(InvalidEmail)
+	}
+	if user.Password == "" {
+		return communication.UserDtoResponse{}, errors.NewCode(InvalidPassword)
+	}
+
 	createdUser, err := s.userRepo.Create(ctx, user)
 	if err != nil {
 		return communication.UserDtoResponse{}, err

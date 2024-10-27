@@ -68,6 +68,34 @@ func Test_UserService(t *testing.T) {
 				},
 				expectedError: errDefault,
 			},
+			"create_invalidEmail": {
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewUserService(ApiConfig{}, pool, repos)
+					dto := communication.UserDtoRequest{
+						Email:    "",
+						Password: "my-password",
+					}
+					_, err := s.Create(ctx, dto)
+					return err
+				},
+				verifyError: func(err error, assert *require.Assertions) {
+					assert.True(errors.IsErrorWithCode(err, InvalidEmail))
+				},
+			},
+			"create_invalidPassword": {
+				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+					s := NewUserService(ApiConfig{}, pool, repos)
+					dto := communication.UserDtoRequest{
+						Email:    "my@email.com",
+						Password: "",
+					}
+					_, err := s.Create(ctx, dto)
+					return err
+				},
+				verifyError: func(err error, assert *require.Assertions) {
+					assert.True(errors.IsErrorWithCode(err, InvalidPassword))
+				},
+			},
 			"get": {
 				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
 					s := NewUserService(ApiConfig{}, pool, repos)
