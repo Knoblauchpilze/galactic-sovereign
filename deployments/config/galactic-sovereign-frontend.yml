@@ -13,13 +13,13 @@ http:
         - "websecure"
       rule: 'Host(`www.{{ env "DOMAIN_NAME" }}`) && PathPrefix(`/`)'
       middlewares:
-        - "redirect"
+        - "gsf-redirect"
       service: galactic-sovereign-frontend
       tls:
         certResolver: letsencryptresolver
 
   middlewares:
-    redirect:
+    gsf-redirect:
       redirectRegex:
         regex: '^https://www.{{ env "DOMAIN_NAME" }}/(.*)'
         replacement: 'https://{{ env "DOMAIN_NAME" }}/${1}'
