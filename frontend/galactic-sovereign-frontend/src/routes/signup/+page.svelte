@@ -26,7 +26,7 @@
 </script>
 
 <FlexContainer>
-	<div class="fixed left-4 top-4">
+	<div class="fixed right-4 top-4">
 		<p class="text-secondary">
 			Already have an account yet? Click <StyledLink text="here" link="/login" /> to login!
 		</p>

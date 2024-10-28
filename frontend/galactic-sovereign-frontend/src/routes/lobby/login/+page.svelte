@@ -28,7 +28,7 @@
 </script>
 
 <FlexContainer>
-	<div class="fixed left-4 top-4">
+	<div class="fixed right-4 top-4">
 		<p class="text-secondary">
 			Back to the <StyledLink text="lobby" link="/lobby" />
 		</p>
