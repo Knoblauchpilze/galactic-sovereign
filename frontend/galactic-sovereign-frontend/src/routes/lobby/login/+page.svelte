@@ -40,26 +40,31 @@
 	</FlexContainer>
 
 	<FlexContainer extensible={false} styling="h-3/5">
-		<form method="POST" action="?/login" class="flex flex-col flex-1 justify-evenly">
-			<FormField label="universe:" labelId="universe">
-				<select id="universe" name="universe">
-					{#each data.universes as universe}
-						<option value={universe.id}>{universe.name}</option>
-					{/each}
-				</select>
-			</FormField>
-			<FormField label="player:" labelId="player">
-				<input
-					id="player"
-					type="text"
-					name="player"
-					placeholder="Choose a name"
-					required
-					on:input={resetFormError}
-				/></FormField
-			>
-			<StyledButton text="Play" />
-		</form>
+		{#if data.universes.length > 0}
+			<form method="POST" action="?/login" class="flex flex-col flex-1 justify-evenly">
+				<FormField label="universe:" labelId="universe">
+					<select id="universe" name="universe">
+						{#each data.universes as universe}
+							<option value={universe.id}>{universe.name}</option>
+						{/each}
+					</select>
+				</FormField>
+				<FormField label="player:" labelId="player">
+					<input
+						id="player"
+						type="text"
+						name="player"
+						placeholder="Choose a name"
+						required
+						on:input={resetFormError}
+					/></FormField
+				>
+				<StyledButton text="Play" />
+			</form>
+		{:else}
+			<StyledError text="You don't have an account yet, please register!" />
+			<StyledLink text="Register" link="/lobby/register" showAsButton={true} />
+		{/if}
 
 		{#if form?.message}
 			<div class="fixed bottom-4">

@@ -62,8 +62,8 @@
 				<StyledButton text="Start" />
 			</form>
 		{:else}
-			<StyledError text="You already have an account in all universes!" />
-			<StyledLink text="Back to the lobby" link="/lobby" showAsButton={true} />
+			<StyledError text="You already have an account in all universes, please login!" />
+			<StyledLink text="Login" link="/lobby/login" showAsButton={true} />
 		{/if}
 
 		{#if form?.message}
