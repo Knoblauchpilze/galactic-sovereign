@@ -8,6 +8,10 @@ Below is a screenshot of the welcome page:
 
 ![Welcome page of the Galactic Sovereign website](resources/galactic-sovereign-welcome-page.png)
 
+Here is a view of the lobby:
+
+![Lobby of the Galactic Sovereign website](resources/galactic-sovereign-lobby.png)
+
 And a screenshot of the actual game:
 
 ![In-game view for the Galactic Sovereign website](resources/galactic-sovereign-game-view.png)
