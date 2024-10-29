@@ -19,6 +19,8 @@
 				return 'justify-center';
 			case 'start':
 				return 'justify-start';
+			case 'between':
+				return 'justify-between';
 			default:
 				return 'justify-evenly';
 		}

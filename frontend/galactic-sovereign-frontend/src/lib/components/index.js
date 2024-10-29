@@ -14,6 +14,7 @@ export { default as HeroContainer } from '$lib/components/HeroContainer.svelte';
 export { default as Header } from '$lib/components/Header.svelte';
 export { default as Footer } from '$lib/components/Footer.svelte';
 
+export { default as SessionCard } from '$lib/components/SessionCard.svelte';
 export { default as Building } from '$lib/components/Building.svelte';
 export { default as BuildingAction } from '$lib/components/BuildingAction.svelte';
 export { default as Timer } from '$lib/components/Timer.svelte';
