@@ -1,6 +1,10 @@
 import { error, redirect } from '@sveltejs/kit';
 import { resetGameCookies, setGameCookies, loadSessionCookies } from '$lib/cookies';
-import { fetchPlayerFromApiUser, responseToPlayerArray } from '$lib/game/players';
+import {
+	fetchPlayerFromApiUser,
+	responseToPlayerArray,
+	mapPlayersToUiPlayers
+} from '$lib/game/players';
 import { getUniverses, responseToUniverseArray } from '$lib/game/universes';
 import { fetchPlanetsFromPlayer, responseToPlanetArray } from '$lib/game/planets';
 
@@ -27,13 +31,9 @@ export async function load({ cookies }) {
 	}
 
 	const players = responseToPlayerArray(playerResponse);
-	const universesWithAccount = players.map((p) => p.universe);
-
-	// https://stackoverflow.com/questions/33577868/filter-array-not-in-another-array
-	const universesWithAccountData = universes.filter((u) => universesWithAccount.includes(u.id));
 
 	return {
-		universes: universesWithAccountData.map((u) => u.toJson())
+		players: mapPlayersToUiPlayers(players, universes)
 	};
 }
 

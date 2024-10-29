@@ -1,5 +1,12 @@
 import { ResponseEnvelope } from '$lib/responseEnvelope';
 import { buildUrl, safeFetch } from '$lib/api';
+import { type ApiUniverse } from '$lib/game/universes';
+
+export interface ApiPlayer {
+	readonly id: string;
+	readonly name: string;
+	readonly universe: string;
+}
 
 export class Player {
 	readonly id: string = '00000000-0000-0000-0000-000000000000';
@@ -28,6 +35,14 @@ export class Player {
 		if ('createdAt' in response && typeof response.createdAt === 'string') {
 			this.createdAt = new Date(response.createdAt);
 		}
+	}
+
+	public toJson(): ApiPlayer {
+		return {
+			id: this.id,
+			name: this.name,
+			universe: this.universe
+		};
 	}
 }
 
@@ -92,4 +107,36 @@ export function responseToPlayerArray(response: ResponseEnvelope): Player[] {
 
 	// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/map
 	return details.map((maybePlayer) => new Player(maybePlayer));
+}
+
+export class UiPlayer {
+	readonly id: string = '';
+	readonly name: string = '';
+	readonly universeId: string = '';
+	readonly universeName: string = '';
+}
+
+export function mapPlayersToUiPlayers(
+	apiPlayers: Player[],
+	apiUniverses: ApiUniverse[]
+): UiPlayer[] {
+	return apiPlayers.map((apiPlayer) => {
+		const universe = apiUniverses.find((u) => u.id === apiPlayer.universe);
+
+		if (universe === undefined) {
+			return {
+				id: apiPlayer.id,
+				name: apiPlayer.name,
+				universeId: '',
+				universeName: 'Unknown universe'
+			};
+		} else {
+			return {
+				id: apiPlayer.id,
+				name: apiPlayer.name,
+				universeId: universe.id,
+				universeName: universe.name
+			};
+		}
+	});
 }
