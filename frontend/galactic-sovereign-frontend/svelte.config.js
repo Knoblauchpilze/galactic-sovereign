@@ -14,7 +14,7 @@ const config = {
 		adapter: adapter(),
 		// https://kit.svelte.dev/docs/configuration#alias
 		alias: {
-			'$styles': './src/styles'
+			$styles: './src/styles'
 		}
 	}
 };

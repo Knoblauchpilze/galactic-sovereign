@@ -20,7 +20,6 @@
 	import { mapPlanetBuildingsToUiBuildings } from '$lib/game/buildings';
 	import { mapBuildingActionsToUiActions } from '$lib/game/actions.js';
 
-	
 	interface Props {
 		// https://svelte.dev/blog/zero-config-type-safety
 		data: any;
@@ -44,20 +43,26 @@
 		activeScreen.set('buildings');
 	});
 
-	let resources = $derived(mapPlanetResourcesToUiResources(
-		data.planet.resources,
-		data.planet.productions,
-		data.planet.storages,
-		data.resources
-	));
-	let buildings = $derived(mapPlanetBuildingsToUiBuildings(
-		data.planet.id,
-		data.planet.buildings,
-		data.planet.buildingActions,
-		data.buildings,
-		data.resources
-	));
-	let actions = $derived(mapBuildingActionsToUiActions(data.planet.buildingActions, data.buildings));
+	let resources = $derived(
+		mapPlanetResourcesToUiResources(
+			data.planet.resources,
+			data.planet.productions,
+			data.planet.storages,
+			data.resources
+		)
+	);
+	let buildings = $derived(
+		mapPlanetBuildingsToUiBuildings(
+			data.planet.id,
+			data.planet.buildings,
+			data.planet.buildingActions,
+			data.buildings,
+			data.resources
+		)
+	);
+	let actions = $derived(
+		mapBuildingActionsToUiActions(data.planet.buildingActions, data.buildings)
+	);
 
 	let anyBuildingActionRunning = $derived(data.planet.buildingActions.length !== 0);
 

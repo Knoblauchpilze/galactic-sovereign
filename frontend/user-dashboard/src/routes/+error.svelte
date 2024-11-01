@@ -11,10 +11,12 @@
 	<h1>Oh noes, something went wrong...</h1>
 
 	<table>
-		<tr>
-			<td class="label">Error message:</td>
-			<td class="field">{errorMessage}</td>
-		</tr>
+		<tbody>
+			<tr>
+				<td class="label">Error message:</td>
+				<td class="field">{errorMessage}</td>
+			</tr>
+		</tbody>
 	</table>
 
 	<a href="/dashboard/login">Back to safety</a>

@@ -7,12 +7,7 @@
 		disabled?: boolean;
 	}
 
-	let {
-		text = 'Home',
-		link = '/',
-		showAsButton = false,
-		disabled = false
-	}: Props = $props();
+	let { text = 'Home', link = '/', showAsButton = false, disabled = false }: Props = $props();
 </script>
 
 <!-- https://tailwindcss.com/docs/padding -->

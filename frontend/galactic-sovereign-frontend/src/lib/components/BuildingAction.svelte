@@ -29,15 +29,17 @@
 	let cancelButtonClass = $state(serverRemainingMs > 0 ? '' : 'hidden');
 	let actionCompleted = $state(serverRemainingMs < 0);
 
-	let images = $derived(Object.keys(modules).map((imagePath) => {
-		return {
-			building: imagePath
-				.replace(/^.*[\\/]/, '')
-				.replace(/\..*$/, '')
-				.replace(/\_/, ' '),
-			data: modules[imagePath].default
-		};
-	}));
+	let images = $derived(
+		Object.keys(modules).map((imagePath) => {
+			return {
+				building: imagePath
+					.replace(/^.*[\\/]/, '')
+					.replace(/\..*$/, '')
+					.replace(/\_/, ' '),
+				data: modules[imagePath].default
+			};
+		})
+	);
 	let actionImage = $derived(images.find((image) => image.building === action.name));
 
 	function onActionCompleted() {
