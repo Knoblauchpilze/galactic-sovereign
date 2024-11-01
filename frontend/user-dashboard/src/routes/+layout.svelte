@@ -1,3 +1,6 @@
+<svelte:head>
+	<title>User dashboard</title>
+</svelte:head>
 <div class="root">
 	<div class="panel">
 		<slot></slot>
