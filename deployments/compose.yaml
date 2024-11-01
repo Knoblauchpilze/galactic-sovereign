@@ -44,7 +44,7 @@ services:
 
   # https://www.reddit.com/r/Traefik/comments/123oz36/traefik_dashboard_access_with_staticdynamic/
   reverse-proxy:
-    image: traefik:v3.0
+    image: traefik:v3.1
     container_name: reverse-proxy
     restart: always
     networks:
