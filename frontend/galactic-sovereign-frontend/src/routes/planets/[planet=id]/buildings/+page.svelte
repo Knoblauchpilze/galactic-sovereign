@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { run } from 'svelte/legacy';
+
 	import heroImage, { GAME_HERO_IMAGE } from '$lib/stores/ui/heroImage';
 	import heroContainer, { GAME_HERO_CONTAINER_PROPS } from '$lib/stores/ui/heroContainer';
 	import pageTitle, { HOMEPAGE_TITLE } from '$lib/stores/ui/pageTitle';
@@ -18,37 +20,46 @@
 	import { mapPlanetBuildingsToUiBuildings } from '$lib/game/buildings';
 	import { mapBuildingActionsToUiActions } from '$lib/game/actions.js';
 
-	// https://svelte.dev/blog/zero-config-type-safety
-	export let data;
+	
+	interface Props {
+		// https://svelte.dev/blog/zero-config-type-safety
+		data: any;
+	}
+
+	let { data }: Props = $props();
 
 	// https://stackoverflow.com/questions/77047087/why-is-page-svelte-not-reloading-after-page-server-ts-executes-load-function
-	$: playerName = data.playerName;
-	$: planetName = data.planet.name;
-	$: universeName = data.universe.name;
+	let playerName = $derived(data.playerName);
+	let planetName = $derived(data.planet.name);
+	let universeName = $derived(data.universe.name);
 
 	// https://stackoverflow.com/questions/75616911/sveltekit-fetching-on-the-server-and-updating-the-writable-store
 	heroImage.set(GAME_HERO_IMAGE);
 	heroContainer.set(GAME_HERO_CONTAINER_PROPS);
-	$: title = HOMEPAGE_TITLE + ' - ' + planetName;
-	$: pageTitle.set(title);
-	$: activeScreen.set('buildings');
+	let title = $derived(HOMEPAGE_TITLE + ' - ' + planetName);
+	run(() => {
+		pageTitle.set(title);
+	});
+	run(() => {
+		activeScreen.set('buildings');
+	});
 
-	$: resources = mapPlanetResourcesToUiResources(
+	let resources = $derived(mapPlanetResourcesToUiResources(
 		data.planet.resources,
 		data.planet.productions,
 		data.planet.storages,
 		data.resources
-	);
-	$: buildings = mapPlanetBuildingsToUiBuildings(
+	));
+	let buildings = $derived(mapPlanetBuildingsToUiBuildings(
 		data.planet.id,
 		data.planet.buildings,
 		data.planet.buildingActions,
 		data.buildings,
 		data.resources
-	);
-	$: actions = mapBuildingActionsToUiActions(data.planet.buildingActions, data.buildings);
+	));
+	let actions = $derived(mapBuildingActionsToUiActions(data.planet.buildingActions, data.buildings));
 
-	$: anyBuildingActionRunning = data.planet.buildingActions.length !== 0;
+	let anyBuildingActionRunning = $derived(data.planet.buildingActions.length !== 0);
 
 	function onActionCompleted() {
 		invalidate('data:planet');

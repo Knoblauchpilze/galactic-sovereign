@@ -12,9 +12,13 @@
 	import heroImage, { HOMEPAGE_HERO_IMAGE } from '$lib/stores/ui/heroImage';
 	import heroContainer, { HOMEPAGE_HERO_CONTAINER_PROPS } from '$lib/stores/ui/heroContainer';
 
-	export let form: HTMLFormElement;
 
-	export let data;
+	interface Props {
+		form: HTMLFormElement;
+		data: any;
+	}
+
+	let { form = $bindable(), data }: Props = $props();
 
 	function resetFormError() {
 		if (!form) {
@@ -56,7 +60,7 @@
 						name="player"
 						placeholder="Choose a name"
 						required
-						on:input={resetFormError}
+						oninput={resetFormError}
 					/></FormField
 				>
 				<StyledButton text="Start" />

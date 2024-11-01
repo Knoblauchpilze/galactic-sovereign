@@ -1,15 +1,21 @@
 <script lang="ts">
+	import { type Snippet } from 'svelte';
+
 	import { FlexContainer, Header, StyledText } from '$lib/components';
 
 	import { type UiResource } from '$lib/game/resources';
 	import { floorToInteger, toFlooredShortString } from '$lib/displayUtils';
 
-	// https://svelte.dev/blog/zero-config-type-safety
-	export let universeName: string;
-	export let planetName: string;
-	export let playerName: string;
+	interface Props {
+		// https://svelte.dev/blog/zero-config-type-safety
+		universeName: string;
+		planetName: string;
+		playerName: string;
+		resources: UiResource[];
+		children?: Snippet;
+	}
 
-	export let resources: UiResource[];
+	let { universeName, planetName, playerName, resources, children }: Props = $props();
 
 	function resourceTextColor(resource: UiResource): string {
 		if (resource.amount < resource.storage) {
@@ -62,6 +68,6 @@
 			{/each}
 		</FlexContainer>
 
-		<slot />
+		{@render children?.()}
 	</FlexContainer>
 </FlexContainer>

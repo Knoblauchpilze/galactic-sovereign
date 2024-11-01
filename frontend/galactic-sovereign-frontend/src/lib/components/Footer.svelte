@@ -1,7 +1,14 @@
 <script lang="ts">
+	import { type Snippet } from 'svelte';
+
 	import { FlexContainer } from '$lib/components';
 
-	export let height: string = 'h-1/10';
+	interface Props {
+		height?: string;
+		children?: Snippet;
+	}
+
+	let { height = 'h-1/10', children }: Props = $props();
 </script>
 
 <FlexContainer
@@ -9,5 +16,5 @@
 	bgColor={'bg-black'}
 	styling="fixed bottom-0 w-full {height} text-white"
 >
-	<slot />
+	{@render children?.()}
 </FlexContainer>

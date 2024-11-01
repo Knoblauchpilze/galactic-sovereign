@@ -1,11 +1,18 @@
 <script lang="ts">
+	import { type Snippet } from 'svelte';
+
 	import { FlexContainer } from '$lib/components';
 
-	export let label: string = 'My label';
-	export let labelId: string;
+	interface Props {
+		label?: string;
+		labelId: string;
+		children?: Snippet;
+	}
+
+	let { label = 'My label', labelId, children }: Props = $props();
 </script>
 
 <FlexContainer extensible={false} align={'stretch'} styling={'text-secondary'}>
 	<label for={labelId}>{label}</label>
-	<slot />
+	{@render children?.()}
 </FlexContainer>

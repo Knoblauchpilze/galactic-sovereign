@@ -1,10 +1,21 @@
 <script lang="ts">
+	import { type Snippet } from 'svelte';
+
 	import { FlexContainer } from '$lib/components';
 
-	export let width: string = 'w-full';
-	export let height: string = 'h-full';
+	interface Props {
+		width?: string;
+		height?: string;
+		bgColor?: string;
+		children?: Snippet;
+	}
 
-	export let bgColor: string = 'bg-transparent';
+	let {
+		width = 'w-full',
+		height = 'h-full',
+		bgColor = 'bg-transparent',
+		children
+	}: Props = $props();
 </script>
 
 <!-- https://stackoverflow.com/questions/1122381/how-to-force-child-div-to-be-100-of-parent-divs-height-without-specifying-pare -->
@@ -17,6 +28,6 @@
 >
 	<FlexContainer {bgColor}>
 		<!-- https://svelte.dev/tutorial/slots -->
-		<slot />
+		{@render children?.()}
 	</FlexContainer>
 </FlexContainer>
