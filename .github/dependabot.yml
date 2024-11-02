@@ -2,7 +2,7 @@ version: 2
 updates:
   - package-ecosystem: "npm"
     directories:
-      - "/frontend/galactic-sovereign"
+      - "/frontend/galactic-sovereign-frontend"
       - "/frontend/user-dashboard"
     schedule:
       interval: "weekly"
