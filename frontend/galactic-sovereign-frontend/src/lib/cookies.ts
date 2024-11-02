@@ -1,4 +1,4 @@
-import { type Cookies } from '@sveltejs/kit';
+import { type Cookies, redirect } from '@sveltejs/kit';
 import { ApiKey } from '$lib/sessions';
 import { Player } from '$lib/game/players';
 
@@ -43,9 +43,9 @@ export function loadSessionCookies(cookies: Cookies): [boolean, SessionCookies] 
 	const maybeApiUser = cookies.get(COOKIE_KEY_API_USER);
 	const maybeApiKey = cookies.get(COOKIE_KEY_API_KEY);
 
-	const validApiUser = maybeApiUser !== undefined;
-	const validApiKey = maybeApiKey !== undefined;
-	const valid = validApiUser || validApiKey;
+	const validApiUser = maybeApiUser !== undefined && maybeApiUser !== '';
+	const validApiKey = maybeApiKey !== undefined && maybeApiKey !== '';
+	const valid = validApiUser && validApiKey;
 
 	const out: SessionCookies = {
 		apiUser: validOrEmptyString(maybeApiUser, validApiUser),
@@ -53,6 +53,15 @@ export function loadSessionCookies(cookies: Cookies): [boolean, SessionCookies] 
 	};
 
 	return [valid, out];
+}
+
+export function loadSessionCookiesOrRedirectToLogin(cookies: Cookies): SessionCookies {
+	const [valid, sessionCookies] = loadSessionCookies(cookies);
+	if (!valid) {
+		redirect(303, '/login');
+	}
+
+	return sessionCookies;
 }
 
 export interface GameCookies {
@@ -78,10 +87,10 @@ export function loadGameCookies(cookies: Cookies): [boolean, GameCookies] {
 	const maybePlayerName = cookies.get(COOKIE_KEY_PLAYER_NAME);
 	const maybeUniverseId = cookies.get(COOKIE_KEY_UNIVERSE_ID);
 
-	const validPlayerId = maybePlayerId !== undefined;
-	const validPlayerName = maybePlayerName !== undefined;
-	const validUniverseId = maybeUniverseId !== undefined;
-	const valid = validPlayerId || validPlayerName || validUniverseId;
+	const validPlayerId = maybePlayerId !== undefined && maybePlayerId !== '';
+	const validPlayerName = maybePlayerName !== undefined && maybePlayerName !== '';
+	const validUniverseId = maybeUniverseId !== undefined && maybeUniverseId !== '';
+	const valid = validPlayerId && validPlayerName && validUniverseId;
 
 	const out: GameCookies = {
 		playerId: validOrEmptyString(maybePlayerId, validPlayerId),
@@ -117,4 +126,13 @@ export function loadAllCookies(cookies: Cookies): [boolean, AllCookies] {
 	};
 
 	return [validSession && validGame, out];
+}
+
+export function loadAllCookiesOrRedirectToLogin(cookies: Cookies): AllCookies {
+	const [valid, allCookies] = loadAllCookies(cookies);
+	if (!valid) {
+		redirect(303, '/login');
+	}
+
+	return allCookies;
 }
