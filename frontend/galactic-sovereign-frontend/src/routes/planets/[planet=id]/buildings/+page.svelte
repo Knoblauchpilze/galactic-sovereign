@@ -1,8 +1,12 @@
 <script lang="ts">
 	import heroImage, { GAME_HERO_IMAGE } from '$lib/stores/ui/heroImage';
 	import heroContainer, { GAME_HERO_CONTAINER_PROPS } from '$lib/stores/ui/heroContainer';
-	import pageTitle, { HOMEPAGE_TITLE } from '$lib/stores/ui/pageTitle';
+	import pageTitle from '$lib/stores/ui/pageTitle';
 	import activeScreen from '$lib/stores/activeScreen';
+
+	import { type UiResource } from '$lib/game/resources';
+	import { type UiBuilding } from '$lib/game/buildings';
+	import { type UiBuildingAction } from '$lib/game/actions';
 
 	import {
 		FlexContainer,
@@ -14,25 +18,34 @@
 
 	import { invalidate } from '$app/navigation';
 
+	interface Props {
+		wepageTitle: string;
+		universeName: string;
+		playerName: string;
+		planetName: string;
+		resources: UiResource[];
+		buildings: UiBuilding[];
+		buildingActions: UiBuildingAction[];
+	}
+
 	// https://svelte.dev/blog/zero-config-type-safety
-	let { data } = $props();
-
-	// https://stackoverflow.com/questions/77047087/why-is-page-svelte-not-reloading-after-page-server-ts-executes-load-function
-	let playerName = $derived(data.playerName);
-	let planetName = $derived(data.planet.name);
-	let universeName = $derived(data.universe.name);
-
-	let resources = $derived(data.resources);
-	let buildings = $derived(data.buildings);
-	let buildingActions = $derived(data.buildingActions);
+	let {
+		wepageTitle,
+		universeName,
+		playerName,
+		planetName,
+		resources,
+		buildings,
+		buildingActions
+	}: Props = $props();
 
 	// https://stackoverflow.com/questions/75616911/sveltekit-fetching-on-the-server-and-updating-the-writable-store
 	heroImage.set(GAME_HERO_IMAGE);
 	heroContainer.set(GAME_HERO_CONTAINER_PROPS);
-	pageTitle.set(data.pageTitle);
+	pageTitle.set(wepageTitle);
 	activeScreen.set('buildings');
 
-	let anyBuildingActionRunning = $derived(data.buildingActions.length !== 0);
+	let anyBuildingActionRunning = $derived(buildingActions.length !== 0);
 
 	function onActionCompleted() {
 		invalidate('data:planet');

@@ -9,7 +9,7 @@
 	import { invalidate } from '$app/navigation';
 
 	import { formatDate } from '$lib/time';
-	import { mapPlanetResourcesToUiResources } from '$lib/game/resources';
+	import { mapPlanetResourcesToUiResourcesDeprecated } from '$lib/game/resources';
 	import { mapBuildingActionsToUiActions } from '$lib/game/actions.js';
 
 	export let data;
@@ -28,7 +28,7 @@
 	$: usedFields = data.planet.buildings.reduce((used, building) => used + building.level, 0);
 	$: actions = mapBuildingActionsToUiActions(data.planet.buildingActions, data.buildings);
 
-	$: resources = mapPlanetResourcesToUiResources(
+	$: resources = mapPlanetResourcesToUiResourcesDeprecated(
 		data.planet.resources,
 		data.planet.productions,
 		data.planet.storages,

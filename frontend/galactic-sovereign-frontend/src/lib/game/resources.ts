@@ -1,3 +1,5 @@
+import type { ApiPlanet } from '$lib/game/planets';
+
 export interface ApiResource {
 	readonly id: string;
 	readonly name: string;
@@ -130,6 +132,41 @@ export interface UiResource {
 }
 
 export function mapPlanetResourcesToUiResources(
+	planet: ApiPlanet,
+	apiResources: ApiResource[]
+): UiResource[] {
+	return apiResources.map((apiResource) => {
+		const maybeResource = planet.resources.find((r) => r.id === apiResource.id);
+
+		const production = planet.productions.reduce((currentProduction, resource) => {
+			if (resource.resource === apiResource.id) {
+				return currentProduction + resource.production;
+			}
+			return currentProduction;
+		}, 0);
+
+		const planetStorage = planet.storages.find((s) => s.resource === apiResource.id);
+		const storage = planetStorage === undefined ? 0 : planetStorage.storage;
+
+		if (maybeResource === undefined) {
+			return {
+				name: apiResource.name,
+				amount: 0,
+				production: production,
+				storage: storage
+			};
+		} else {
+			return {
+				name: apiResource.name,
+				amount: maybeResource.amount,
+				production: production,
+				storage: storage
+			};
+		}
+	});
+}
+
+export function mapPlanetResourcesToUiResourcesDeprecated(
 	planetResources: PlanetResource[],
 	planetProductions: PlanetResourceProduction[],
 	planetStorages: PlanetResourceStorage[],
