@@ -1,13 +1,11 @@
 import { redirect } from '@sveltejs/kit';
 import { createUser } from '$lib/users';
 
-/** @type {import('./$types').PageServerLoad} */
 export async function load({ cookies }) {
 	cookies.set('api-key', '', { path: '/' });
 	cookies.set('api-user', '', { path: '/' });
 }
 
-/** @type {import('./$types').Actions} */
 export const actions = {
 	signup: async ({ cookies, request }) => {
 		const data = await request.formData();

@@ -1,6 +1,9 @@
 <script lang="ts">
-	/** @type {import('./$types').ActionData} */
-	export let form: HTMLFormElement;
+	interface Props {
+		form: HTMLFormElement;
+	}
+
+	let { form = $bindable() }: Props = $props();
 
 	function resetFormError() {
 		if (!form) {

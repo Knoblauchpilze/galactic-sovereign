@@ -1,4 +1,4 @@
-import ResponseEnvelope from '$lib/responseEnvelope';
+import { ResponseEnvelope } from '$lib/responseEnvelope';
 import { buildUrl, safeFetch } from '$lib/api';
 
 export default class User {

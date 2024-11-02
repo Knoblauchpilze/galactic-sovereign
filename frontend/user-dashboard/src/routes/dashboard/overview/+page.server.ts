@@ -3,7 +3,6 @@ import User, { getUser } from '$lib/users';
 import { logoutUser } from '$lib/sessions';
 import { ApiFailureReason } from '$lib/responseEnvelope.js';
 
-/** @type {import('./$types').PageServerLoad} */
 export async function load({ cookies }) {
 	const apiKey = cookies.get('api-key');
 	if (!apiKey) {
@@ -37,7 +36,6 @@ export async function load({ cookies }) {
 	};
 }
 
-/** @type {import('./$types').Actions} */
 export const actions = {
 	logout: async ({ cookies }) => {
 		const apiKey = cookies.get('api-key');

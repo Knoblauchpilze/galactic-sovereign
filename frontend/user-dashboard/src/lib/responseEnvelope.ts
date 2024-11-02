@@ -1,4 +1,4 @@
-export default class ResponseEnvelope {
+export class ResponseEnvelope {
 	readonly requestId: string;
 	readonly status: string;
 	readonly details: object;

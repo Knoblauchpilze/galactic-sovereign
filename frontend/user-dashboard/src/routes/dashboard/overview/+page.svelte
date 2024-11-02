@@ -1,10 +1,10 @@
 <script lang="ts">
-	export let data;
+	interface Props {
+		data: any;
+		form: HTMLFormElement;
+	}
 
-	let id: string = data.id;
-	let email: string = data.email;
-	let password: string = data.password;
-	let apiKey: string = data.apiKey;
+	let { data, form }: Props = $props();
 
 	// https://stackoverflow.com/questions/3552461/how-do-i-format-a-date-in-javascript
 	const options: Intl.DateTimeFormatOptions = {
@@ -17,9 +17,6 @@
 		hour12: false
 	};
 	const createdAt = data.createdAt.toLocaleDateString('en-US', options);
-
-	/** @type {import('./$types').ActionData} */
-	export let form: HTMLFormElement;
 </script>
 
 <div class="wrapper">
@@ -29,19 +26,19 @@
 		<tbody>
 			<tr>
 				<td class="label">ID:</td>
-				<td class="field">{id}</td>
+				<td class="field">{data.id}</td>
 			</tr>
 			<tr>
 				<td class="label">E-mail:</td>
-				<td class="field">{email}</td>
+				<td class="field">{data.email}</td>
 			</tr>
 			<tr>
 				<td class="label">Password:</td>
-				<td class="field">{password}</td>
+				<td class="field">{data.password}</td>
 			</tr>
 			<tr>
 				<td class="label">API key:</td>
-				<td class="field">{apiKey}</td>
+				<td class="field">{data.apiKey}</td>
 			</tr>
 			<tr>
 				<td class="label">Member since:</td>
