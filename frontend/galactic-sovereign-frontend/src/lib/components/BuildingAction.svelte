@@ -29,12 +29,19 @@
 	let cancelButtonClass = $state(serverRemainingMs > 0 ? '' : 'hidden');
 	let actionCompleted = $state(serverRemainingMs < 0);
 
+	// The image path looks like this:
+	// /src/lib/assets/buildings/crystal_mine.webp
+	// The name of the action looks like this:
+	// crystal mine
 	let images = $derived(
 		Object.keys(modules).map((imagePath) => {
 			return {
 				building: imagePath
+					// this removes the extension
 					.replace(/^.*[\\/]/, '')
+					// this removes anything before the last '/' character (keeping only the building name)
 					.replace(/\..*$/, '')
+					// this replaces the '_' by a space to match the action name
 					.replace(/\_/, ' '),
 				data: modules[imagePath].default
 			};
