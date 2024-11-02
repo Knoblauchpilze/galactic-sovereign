@@ -7,7 +7,6 @@
 	import { floorToInteger, toFlooredShortString } from '$lib/displayUtils';
 
 	interface Props {
-		// https://svelte.dev/blog/zero-config-type-safety
 		universeName: string;
 		planetName: string;
 		playerName: string;

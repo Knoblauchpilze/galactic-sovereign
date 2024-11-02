@@ -20,8 +20,8 @@
 	import { mapPlanetBuildingsToUiBuildings } from '$lib/game/buildings';
 	import { mapBuildingActionsToUiActions } from '$lib/game/actions.js';
 
+	// https://svelte.dev/blog/zero-config-type-safety
 	interface Props {
-		// https://svelte.dev/blog/zero-config-type-safety
 		data: any;
 	}
 
