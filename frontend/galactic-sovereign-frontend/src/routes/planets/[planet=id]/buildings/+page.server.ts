@@ -1,6 +1,7 @@
 import { loadAllCookiesOrRedirectToLogin } from '$lib/cookies';
-
 import { analayzeResponseEnvelopAndRedirectIfNeeded } from '$lib/responseEnvelope.js';
+
+import { HOMEPAGE_TITLE } from '$lib/stores/ui/pageTitle';
 
 import { logout } from '$lib/actions/logout';
 import { backToLobby } from '$lib/actions/backToLobby';
@@ -11,6 +12,9 @@ import {
 
 import { Universe, getUniverse } from '$lib/game/universes';
 import { Planet, getPlanet } from '$lib/game/planets';
+import { mapPlanetResourcesToUiResources } from '$lib/game/resources';
+import { mapPlanetBuildingsToUiBuildings } from '$lib/game/buildings';
+import { mapBuildingActionsToUiActions } from '$lib/game/actions.js';
 
 export async function load({ params, cookies, depends }) {
 	const allCookies = loadAllCookiesOrRedirectToLogin(cookies);
@@ -29,9 +33,22 @@ export async function load({ params, cookies, depends }) {
 	return {
 		universe: universe.toJson(),
 		playerName: allCookies.game.playerName,
-		resources: universe.resources.map((r) => r.toJson()),
-		buildings: universe.buildings.map((b) => b.toJson()),
-		planet: planet.toJson()
+		pageTitle: HOMEPAGE_TITLE + ' - ' + planet.name,
+		planet: planet.toJson(),
+		resources: mapPlanetResourcesToUiResources(
+			planet.resources,
+			planet.productions,
+			planet.storages,
+			universe.resources
+		),
+		buildings: mapPlanetBuildingsToUiBuildings(
+			planet.id,
+			planet.buildings,
+			planet.buildingActions,
+			universe.buildings,
+			universe.resources
+		),
+		buildingActions: mapBuildingActionsToUiActions(planet.buildingActions, universe.buildings)
 	};
 }
 
