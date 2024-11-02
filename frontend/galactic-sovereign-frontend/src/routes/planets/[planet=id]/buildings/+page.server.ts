@@ -1,4 +1,4 @@
-import { error, redirect } from '@sveltejs/kit';
+import { redirect } from '@sveltejs/kit';
 import { loadAllCookies } from '$lib/cookies';
 
 import { analayzeResponseEnvelopAndRedirectIfNeeded } from '$lib/responseEnvelope.js';
@@ -10,7 +10,7 @@ import {
 	requestDeleteBuildingAction
 } from '$lib/actions/buildingAction';
 
-import { Universe, type ApiUniverse, getUniverse } from '$lib/game/universes';
+import { Universe, getUniverse } from '$lib/game/universes';
 import { Planet, getPlanet } from '$lib/game/planets';
 
 export async function load({ params, cookies, depends }) {
