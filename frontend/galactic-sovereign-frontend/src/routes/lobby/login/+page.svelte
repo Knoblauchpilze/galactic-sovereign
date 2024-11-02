@@ -5,7 +5,7 @@
 	import heroContainer, { HOMEPAGE_HERO_CONTAINER_PROPS } from '$lib/stores/ui/heroContainer';
 	import SessionCard from '$lib/components/SessionCard.svelte';
 
-	export let data;
+	let { data } = $props();
 
 	heroImage.set(HOMEPAGE_HERO_IMAGE);
 	heroContainer.set(HOMEPAGE_HERO_CONTAINER_PROPS);

@@ -1,16 +1,25 @@
 <script lang="ts">
-	export let vertical: boolean = true;
-	export let justify: string = 'evenly';
-	export let align: string = 'center';
-	export let extensible: boolean = true;
-	export let bgColor: string = 'bg-transparent';
-	export let styling: string = '';
+	import { type Snippet } from 'svelte';
 
-	$: direction = vertical ? 'flex-col' : 'flex-row';
-	$: justification = generateJustifyClass(justify);
-	$: alignment = generateAlignClass(align);
-	// https://stackoverflow.com/questions/75999354/tailwindcss-content-larger-than-screen-when-adding-components
-	$: grow = extensible ? 'flex-1' : 'flex-none';
+	interface Props {
+		vertical?: boolean;
+		justify?: string;
+		align?: string;
+		extensible?: boolean;
+		bgColor?: string;
+		styling?: string;
+		children?: Snippet;
+	}
+
+	let {
+		vertical = true,
+		justify = 'evenly',
+		align = 'center',
+		extensible = true,
+		bgColor = 'bg-transparent',
+		styling = '',
+		children
+	}: Props = $props();
 
 	// https://tailwindcss.com/docs/content-configuration#dynamic-class-names
 	function generateJustifyClass(justify: string): string {
@@ -36,9 +45,14 @@
 				return 'items-center';
 		}
 	}
+	let direction = $derived(vertical ? 'flex-col' : 'flex-row');
+	let justification = $derived(generateJustifyClass(justify));
+	let alignment = $derived(generateAlignClass(align));
+	// https://stackoverflow.com/questions/75999354/tailwindcss-content-larger-than-screen-when-adding-components
+	let grow = $derived(extensible ? 'flex-1' : 'flex-none');
 </script>
 
 <!-- https://stackoverflow.com/questions/29467660/how-to-stretch-children-to-fill-cross-axis -->
 <div class="flex {direction} {justification} {alignment} {bgColor} {grow} {styling}">
-	<slot />
+	{@render children?.()}
 </div>

@@ -1,7 +1,14 @@
 <script lang="ts">
+	import { type Snippet } from 'svelte';
+
 	import { FlexContainer, Footer, StyledLink } from '$lib/components';
 
 	import activeScreen from '$lib/stores/activeScreen';
+	interface Props {
+		children?: Snippet;
+	}
+
+	let { children }: Props = $props();
 </script>
 
 <FlexContainer
@@ -28,7 +35,7 @@
 		</FlexContainer>
 	</FlexContainer>
 
-	<slot />
+	{@render children?.()}
 
 	<Footer>
 		<p>

@@ -4,9 +4,13 @@
 	import { type UiBuilding, type UiBuildingCost } from '$lib/game/buildings';
 	import { type UiResource } from '$lib/game/resources';
 
-	export let building: UiBuilding;
-	export let availableResources: UiResource[];
-	export let buildingActionAlreadyRunning: boolean;
+	interface Props {
+		building: UiBuilding;
+		availableResources: UiResource[];
+		buildingActionAlreadyRunning: boolean;
+	}
+
+	let { building, availableResources, buildingActionAlreadyRunning }: Props = $props();
 
 	// https://kit.svelte.dev/docs/images#sveltejs-enhanced-img-dynamically-choosing-an-image
 	// https://github.com/vitejs/vite/issues/9599#issuecomment-1209333753
@@ -31,34 +35,40 @@
 	}
 
 	// https://stackoverflow.com/questions/49296458/capitalize-first-letter-of-a-string-using-angular-or-typescript
-	$: title = building.name[0].toUpperCase() + building.name.slice(1);
+	let title = $derived(building.name[0].toUpperCase() + building.name.slice(1));
 
 	// https://stackoverflow.com/questions/68060723/glob-import-of-image-urls-in-sveltekit
 	// https://stackoverflow.com/questions/423376/how-to-get-the-file-name-from-a-full-path-using-javascript
-	$: images = Object.keys(modules).map((imagePath) => {
-		return {
-			building: imagePath
-				.replace(/^.*[\\/]/, '')
-				.replace(/\..*$/, '')
-				.replace(/\_/, ' '),
-			data: modules[imagePath].default
-		};
-	});
+	let images = $derived(
+		Object.keys(modules).map((imagePath) => {
+			return {
+				building: imagePath
+					.replace(/^.*[\\/]/, '')
+					.replace(/\..*$/, '')
+					.replace(/\_/, ' '),
+				data: modules[imagePath].default
+			};
+		})
+	);
 
-	$: costs = building.costs.map((c) => ({
-		resource: c.resource,
-		cost: c.cost,
-		color: textColor(c, availableResources)
-	}));
+	let costs = $derived(
+		building.costs.map((c) => ({
+			resource: c.resource,
+			cost: c.cost,
+			color: textColor(c, availableResources)
+		}))
+	);
 
-	$: gains = building.resourcesProduction.map((rp) => ({
-		resource: rp.resource,
-		nextProduction: rp.nextProduction,
-		gain: rp.gain
-	}));
-	$: needsGainsSection = gains.length > 0;
+	let gains = $derived(
+		building.resourcesProduction.map((rp) => ({
+			resource: rp.resource,
+			nextProduction: rp.nextProduction,
+			gain: rp.gain
+		}))
+	);
+	let needsGainsSection = $derived(gains.length > 0);
 
-	$: buildingImage = images.find((image) => image.building === building.name);
+	let buildingImage = $derived(images.find((image) => image.building === building.name));
 
 	const isAffordable = building.costs.reduce(
 		(currentlyAffordable, cost) => currentlyAffordable && canAfford(cost, availableResources),
@@ -73,22 +83,26 @@
 	{/if}
 	<StyledText text="Required for level {building.level + 1}:" textColor="text-white" />
 	<table>
-		{#each costs as cost}
-			<tr>
-				<td class="text-white capitalize">{cost.resource}:</td>
-				<td class={cost.color}>{cost.cost}</td>
-			</tr>
-		{/each}
+		<tbody>
+			{#each costs as cost}
+				<tr>
+					<td class="text-white capitalize">{cost.resource}:</td>
+					<td class={cost.color}>{cost.cost}</td>
+				</tr>
+			{/each}
+		</tbody>
 	</table>
 	{#if needsGainsSection}
 		<StyledText text="Production:" textColor="text-white" />
 		<table>
-			{#each gains as gain}
-				<tr>
-					<td class="text-white capitalize">{gain.resource}:</td>
-					<td class="text-enabled">{gain.nextProduction}(+{gain.gain})</td>
-				</tr>
-			{/each}
+			<tbody>
+				{#each gains as gain}
+					<tr>
+						<td class="text-white capitalize">{gain.resource}:</td>
+						<td class="text-enabled">{gain.nextProduction}(+{gain.gain})</td>
+					</tr>
+				{/each}
+			</tbody>
 		</table>
 	{/if}
 	<!-- https://kit.svelte.dev/docs/form-actions#default-actions -->

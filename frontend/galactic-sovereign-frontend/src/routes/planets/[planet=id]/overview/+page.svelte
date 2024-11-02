@@ -46,14 +46,16 @@
 
 		<FlexContainer justify={'center'} bgColor={'bg-overlay'}>
 			<table>
-				<tr>
-					<td class="text-white">Colonization date:</td>
-					<td class="text-white">{colonizationDate}</td>
-				</tr>
-				<tr>
-					<td class="text-white">Used fields:</td>
-					<td class="text-white">{usedFields}</td>
-				</tr>
+				<tbody>
+					<tr>
+						<td class="text-white">Colonization date:</td>
+						<td class="text-white">{colonizationDate}</td>
+					</tr>
+					<tr>
+						<td class="text-white">Used fields:</td>
+						<td class="text-white">{usedFields}</td>
+					</tr>
+				</tbody>
 			</table>
 		</FlexContainer>
 	</FlexContainer>

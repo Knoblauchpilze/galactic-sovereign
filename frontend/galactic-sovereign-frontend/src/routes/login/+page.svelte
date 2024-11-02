@@ -12,7 +12,11 @@
 	import heroImage, { HOMEPAGE_HERO_IMAGE } from '$lib/stores/ui/heroImage';
 	import heroContainer, { HOMEPAGE_HERO_CONTAINER_PROPS } from '$lib/stores/ui/heroContainer';
 
-	export let form: HTMLFormElement;
+	interface Props {
+		form: HTMLFormElement;
+	}
+
+	let { form = $bindable() }: Props = $props();
 
 	function resetFormError() {
 		if (!form) {
@@ -47,7 +51,7 @@
 					placeholder="Enter your email address"
 					required
 					value={form?.email ?? ''}
-					on:input={resetFormError}
+					oninput={resetFormError}
 				/>
 			</FormField>
 			<FormField label="password:" labelId="password">
@@ -57,7 +61,7 @@
 					name="password"
 					placeholder="Enter your password"
 					required
-					on:input={resetFormError}
+					oninput={resetFormError}
 				/></FormField
 			>
 			<StyledButton text="Login" />
