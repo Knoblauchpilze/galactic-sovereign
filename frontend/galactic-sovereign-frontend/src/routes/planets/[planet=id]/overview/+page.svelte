@@ -11,15 +11,16 @@
 	import { formatDate } from '$lib/time';
 
 	// https://svelte.dev/blog/zero-config-type-safety
-	export let data;
+	// https://svelte.dev/docs/kit/load#Page-data
+	let { data } = $props();
 
 	heroImage.set(GAME_HERO_IMAGE);
 	heroContainer.set(GAME_HERO_CONTAINER_PROPS);
 	pageTitle.set(data.wepageTitle);
 	activeScreen.set('overview');
 
-	$: colonizationDate = formatDate(data.planetCreationTime);
-	$: usedFields = data.buildings.reduce((used, building) => used + building.level, 0);
+	let colonizationDate = $derived(formatDate(data.planetCreationTime));
+	let usedFields = $derived(data.buildings.reduce((used, building) => used + building.level, 0));
 
 	function onActionCompleted() {
 		invalidate('data:planet');
