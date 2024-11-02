@@ -1,5 +1,5 @@
 import { type ApiResource } from '$lib/game/resources';
-import { type ApiBuildingAction } from './actions';
+import { type ApiPlanet } from '$lib/game/planets';
 
 export interface ApiBuilding {
 	readonly id: string;
@@ -250,20 +250,18 @@ function mapBuildingResourceProductionsToUiBuildingGains(
 }
 
 export function mapPlanetBuildingsToUiBuildings(
-	planet: string,
-	planetBuildings: PlanetBuilding[],
-	planetActions: ApiBuildingAction[],
+	planet: ApiPlanet,
 	apiBuildings: ApiBuilding[],
 	apiResources: ApiResource[]
 ): UiBuilding[] {
 	return apiBuildings.map((apiBuilding) => {
-		const maybeBuilding = planetBuildings.find((r) => r.id === apiBuilding.id);
+		const maybeBuilding = planet.buildings.find((r) => r.id === apiBuilding.id);
 		if (maybeBuilding === undefined) {
 			return {
 				id: apiBuilding.id,
 				name: apiBuilding.name,
 				level: 0,
-				planet: planet,
+				planet: planet.name,
 				hasAction: false,
 				costs: mapBuildingCostsToUiBuildingCosts(apiBuilding.costs, apiResources, 0),
 				resourcesProduction: mapBuildingResourceProductionsToUiBuildingGains(
@@ -273,13 +271,13 @@ export function mapPlanetBuildingsToUiBuildings(
 				)
 			};
 		} else {
-			const maybeAction = planetActions.find((a) => a.building === maybeBuilding.id);
+			const maybeAction = planet.buildingActions.find((a) => a.building === maybeBuilding.id);
 			if (maybeAction === undefined) {
 				return {
 					id: apiBuilding.id,
 					name: apiBuilding.name,
 					level: maybeBuilding.level,
-					planet: planet,
+					planet: planet.name,
 					hasAction: false,
 					costs: mapBuildingCostsToUiBuildingCosts(
 						apiBuilding.costs,
@@ -298,7 +296,7 @@ export function mapPlanetBuildingsToUiBuildings(
 				id: apiBuilding.id,
 				name: apiBuilding.name,
 				level: maybeBuilding.level,
-				planet: planet,
+				planet: planet.name,
 				hasAction: true,
 				action: maybeAction.id,
 				nextLevel: maybeAction.desiredLevel,

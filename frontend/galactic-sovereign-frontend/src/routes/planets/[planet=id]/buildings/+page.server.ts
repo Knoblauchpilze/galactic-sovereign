@@ -31,23 +31,14 @@ export async function load({ params, cookies, depends }) {
 	const universe = new Universe(universeResponse.getDetails());
 
 	return {
-		universe: universe.toJson(),
+		wepageTitle: HOMEPAGE_TITLE + ' - ' + planet.name,
+
+		universeName: universe.name,
 		playerName: allCookies.game.playerName,
-		pageTitle: HOMEPAGE_TITLE + ' - ' + planet.name,
-		planet: planet.toJson(),
-		resources: mapPlanetResourcesToUiResources(
-			planet.resources,
-			planet.productions,
-			planet.storages,
-			universe.resources
-		),
-		buildings: mapPlanetBuildingsToUiBuildings(
-			planet.id,
-			planet.buildings,
-			planet.buildingActions,
-			universe.buildings,
-			universe.resources
-		),
+		planetName: planet.name,
+
+		resources: mapPlanetResourcesToUiResources(planet, universe.resources),
+		buildings: mapPlanetBuildingsToUiBuildings(planet, universe.buildings, universe.resources),
 		buildingActions: mapBuildingActionsToUiActions(planet.buildingActions, universe.buildings)
 	};
 }
