@@ -7,8 +7,6 @@ export const requestCreateBuildingAction = async ({ cookies, request }: RequestE
 
 	const data = await request.formData();
 
-	console.log('cookies: ', JSON.stringify(sessionCookies));
-
 	const buildingId = data.get('building');
 	if (!buildingId) {
 		return {
