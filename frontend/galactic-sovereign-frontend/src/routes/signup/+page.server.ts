@@ -1,9 +1,9 @@
 import { redirect } from '@sveltejs/kit';
-import { resetCookies } from '$lib/cookies';
+import { resetAllCookies } from '$lib/cookies';
 import { createUser } from '$lib/users';
 
 export async function load({ cookies }) {
-	resetCookies(cookies);
+	resetAllCookies(cookies);
 }
 
 export const actions = {
@@ -42,7 +42,7 @@ export const actions = {
 			};
 		}
 
-		resetCookies(cookies);
+		resetAllCookies(cookies);
 
 		redirect(303, '/login');
 	}
