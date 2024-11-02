@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 
-	let errorMessage: string = 'Unexpected error happened';
+	let errorMessage: string = $state('Unexpected error happened');
 	if ($page.error !== null) {
 		errorMessage = $page.error.message;
 	}

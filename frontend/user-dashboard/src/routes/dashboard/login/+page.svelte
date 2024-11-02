@@ -1,6 +1,9 @@
 <script lang="ts">
-	/** @type {import('./$types').ActionData} */
-	export let form: HTMLFormElement;
+	interface Props {
+		form: HTMLFormElement;
+	}
+
+	let { form = $bindable() }: Props = $props();
 
 	function resetFormError() {
 		if (!form) {
@@ -28,7 +31,7 @@
 				placeholder="Enter your email address"
 				required
 				value={form?.email ?? ''}
-				on:input={resetFormError}
+				oninput={resetFormError}
 			/>
 		</div>
 		<div class="field">
@@ -38,7 +41,7 @@
 				name="password"
 				placeholder="Enter your password"
 				required
-				on:input={resetFormError}
+				oninput={resetFormError}
 			/>
 		</div>
 		<button class="action-button">Login</button>

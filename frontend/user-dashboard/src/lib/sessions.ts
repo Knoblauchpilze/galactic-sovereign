@@ -1,4 +1,4 @@
-import ResponseEnvelope, { createEmptySuccessResponseEnvelope } from '$lib/responseEnvelope';
+import { ResponseEnvelope, createEmptySuccessResponseEnvelope } from '$lib/responseEnvelope';
 import { buildUrl, safeFetch } from '$lib/api';
 import HttpStatus from '$lib/httpStatuses';
 

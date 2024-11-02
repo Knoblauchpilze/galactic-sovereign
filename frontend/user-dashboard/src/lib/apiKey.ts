@@ -1,4 +1,4 @@
-import ResponseEnvelope from '$lib/responseEnvelope';
+import { ResponseEnvelope } from '$lib/responseEnvelope';
 
 export default class ApiKey {
 	readonly user: string = '00000000-0000-0000-0000-000000000000';
