@@ -65,7 +65,7 @@
 	<StyledText text="Upgrade to level {action.nextLevel}" textColor="text-white" />
 	<Timer durationMs={serverRemainingMs} onFinished={onActionCompleted} />
 	<div class={cancelButtonClass}>
-		<form method="POST" action="/planets/{action.planet}/{$activeScreen}?/deleteBuildingAction">
+		<form method="POST" action="?/deleteBuildingAction">
 			<input class="hidden" id="action" name="action" value={action.id} />
 			<NegativeConfirmationButton text="Cancel" enabled={!actionCompleted} />
 		</form>

@@ -106,7 +106,7 @@
 		</table>
 	{/if}
 	<!-- https://kit.svelte.dev/docs/form-actions#default-actions -->
-	<form method="POST" action="/planets/{building.planet}/buildings?/createBuildingAction">
+	<form method="POST" action="?/createBuildingAction">
 		<input class="hidden" id="planet" name="planet" value={building.planet} />
 		<input class="hidden" id="building" name="building" value={building.id} />
 		<ConfirmationButton text="Upgrade" enabled={isAffordable && !buildingActionAlreadyRunning} />
