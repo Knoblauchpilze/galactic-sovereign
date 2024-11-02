@@ -1,5 +1,9 @@
 import { redirect } from '@sveltejs/kit';
-import { resetGameCookies, setGameCookies, loadSessionCookies } from '$lib/cookies';
+import {
+	resetGameCookies,
+	setGameCookies,
+	loadSessionCookiesOrRedirectToLogin
+} from '$lib/cookies';
 import { analayzeResponseEnvelopAndRedirectIfNeeded } from '$lib/responseEnvelope';
 import {
 	Player,
@@ -13,10 +17,7 @@ import { fetchPlanetsFromPlayer, responseToPlanetArray } from '$lib/game/planets
 export async function load({ cookies }) {
 	resetGameCookies(cookies);
 
-	const [valid, sessionCookies] = loadSessionCookies(cookies);
-	if (!valid) {
-		redirect(303, '/login');
-	}
+	const sessionCookies = loadSessionCookiesOrRedirectToLogin(cookies);
 
 	const universesResponse = await getUniverses(sessionCookies.apiKey);
 	analayzeResponseEnvelopAndRedirectIfNeeded(universesResponse);
@@ -41,10 +42,7 @@ export async function load({ cookies }) {
 
 export const actions = {
 	register: async ({ cookies, request }) => {
-		const [valid, sessionCookies] = loadSessionCookies(cookies);
-		if (!valid) {
-			redirect(303, '/login');
-		}
+		const sessionCookies = loadSessionCookiesOrRedirectToLogin(cookies);
 
 		const data = await request.formData();
 

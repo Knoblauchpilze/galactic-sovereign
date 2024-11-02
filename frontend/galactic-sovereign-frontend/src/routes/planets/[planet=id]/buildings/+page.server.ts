@@ -1,5 +1,4 @@
-import { redirect } from '@sveltejs/kit';
-import { loadAllCookies } from '$lib/cookies';
+import { loadAllCookiesOrRedirectToLogin } from '$lib/cookies';
 
 import { analayzeResponseEnvelopAndRedirectIfNeeded } from '$lib/responseEnvelope.js';
 
@@ -14,10 +13,7 @@ import { Universe, getUniverse } from '$lib/game/universes';
 import { Planet, getPlanet } from '$lib/game/planets';
 
 export async function load({ params, cookies, depends }) {
-	const [valid, allCookies] = loadAllCookies(cookies);
-	if (!valid) {
-		redirect(303, '/login');
-	}
+	const allCookies = loadAllCookiesOrRedirectToLogin(cookies);
 
 	// https://learn.svelte.dev/tutorial/custom-dependencies
 	depends('data:planet');

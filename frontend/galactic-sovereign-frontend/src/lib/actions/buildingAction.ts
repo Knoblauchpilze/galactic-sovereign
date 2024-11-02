@@ -1,14 +1,13 @@
-import { type RequestEvent, redirect } from '@sveltejs/kit';
-import { loadSessionCookies } from '$lib/cookies';
+import { type RequestEvent } from '@sveltejs/kit';
+import { loadSessionCookiesOrRedirectToLogin } from '$lib/cookies';
 import { createBuildingAction, deleteBuildingAction } from '$lib/game/planets';
 
 export const requestCreateBuildingAction = async ({ cookies, request }: RequestEvent) => {
-	const [valid, sessionCookies] = loadSessionCookies(cookies);
-	if (!valid) {
-		redirect(303, '/login');
-	}
+	const sessionCookies = loadSessionCookiesOrRedirectToLogin(cookies);
 
 	const data = await request.formData();
+
+	console.log('cookies: ', JSON.stringify(sessionCookies));
 
 	const buildingId = data.get('building');
 	if (!buildingId) {
@@ -46,10 +45,7 @@ export const requestCreateBuildingAction = async ({ cookies, request }: RequestE
 };
 
 export const requestDeleteBuildingAction = async ({ cookies, request }: RequestEvent) => {
-	const [valid, sessionCookies] = loadSessionCookies(cookies);
-	if (!valid) {
-		redirect(303, '/login');
-	}
+	const sessionCookies = loadSessionCookiesOrRedirectToLogin(cookies);
 
 	const data = await request.formData();
 
