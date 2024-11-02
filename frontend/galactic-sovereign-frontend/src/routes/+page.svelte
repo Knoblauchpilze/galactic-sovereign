@@ -13,7 +13,6 @@
 	<StyledText text="Battle for the galaxy" />
 
 	<FlexContainer>
-		<!-- https://svelte.dev/docs/component-directives -->
 		<StyledLink text="Login" link="/login" showAsButton={true} />
 
 		<StyledLink text="Sign up" link="/signup" showAsButton={true} />
