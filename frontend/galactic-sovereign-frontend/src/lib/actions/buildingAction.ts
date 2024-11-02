@@ -1,14 +1,10 @@
 import { type RequestEvent, redirect } from '@sveltejs/kit';
+import { loadSessionCookies } from '$lib/cookies';
 import { createBuildingAction, deleteBuildingAction } from '$lib/game/planets';
 
 export const requestCreateBuildingAction = async ({ cookies, request }: RequestEvent) => {
-	const apiKey = cookies.get('api-key');
-	if (!apiKey) {
-		redirect(303, '/login');
-	}
-
-	const apiUser = cookies.get('api-user');
-	if (!apiUser) {
+	const [valid, sessionCookies] = loadSessionCookies(cookies);
+	if (!valid) {
 		redirect(303, '/login');
 	}
 
@@ -37,7 +33,7 @@ export const requestCreateBuildingAction = async ({ cookies, request }: RequestE
 	}
 
 	const actionResponse = await createBuildingAction(
-		apiKey,
+		sessionCookies.apiKey,
 		planetId as string,
 		buildingId as string
 	);
@@ -50,13 +46,8 @@ export const requestCreateBuildingAction = async ({ cookies, request }: RequestE
 };
 
 export const requestDeleteBuildingAction = async ({ cookies, request }: RequestEvent) => {
-	const apiKey = cookies.get('api-key');
-	if (!apiKey) {
-		redirect(303, '/login');
-	}
-
-	const apiUser = cookies.get('api-user');
-	if (!apiUser) {
+	const [valid, sessionCookies] = loadSessionCookies(cookies);
+	if (!valid) {
 		redirect(303, '/login');
 	}
 
@@ -73,7 +64,7 @@ export const requestDeleteBuildingAction = async ({ cookies, request }: RequestE
 		};
 	}
 
-	const actionResponse = await deleteBuildingAction(apiKey, actionId as string);
+	const actionResponse = await deleteBuildingAction(sessionCookies.apiKey, actionId as string);
 	if (actionResponse.error()) {
 		return {
 			success: false,
