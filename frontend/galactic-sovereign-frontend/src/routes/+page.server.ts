@@ -1,5 +1,5 @@
-import { resetCookies } from '$lib/cookies';
+import { resetAllCookies } from '$lib/cookies';
 
 export async function load({ cookies }) {
-	resetCookies(cookies);
+	resetAllCookies(cookies);
 }

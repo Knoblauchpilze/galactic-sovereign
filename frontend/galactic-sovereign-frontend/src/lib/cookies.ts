@@ -20,6 +20,15 @@ export {
 	COOKIE_KEY_UNIVERSE_ID
 };
 
+function validOrEmptyString(maybeValue: string | undefined, valid: boolean): string {
+	return valid ? (maybeValue as string) : '';
+}
+
+export interface SessionCookies {
+	readonly apiUser: string;
+	readonly apiKey: string;
+}
+
 export function setSessionCookies(cookies: Cookies, apiKey: ApiKey) {
 	cookies.set(COOKIE_KEY_API_USER, apiKey.user, DEFAULT_COOKIES_OPT);
 	cookies.set(COOKIE_KEY_API_KEY, apiKey.key, DEFAULT_COOKIES_OPT);
@@ -28,37 +37,6 @@ export function setSessionCookies(cookies: Cookies, apiKey: ApiKey) {
 export function resetSessionCookies(cookies: Cookies) {
 	cookies.set(COOKIE_KEY_API_USER, '', DEFAULT_COOKIES_OPT);
 	cookies.set(COOKIE_KEY_API_KEY, '', DEFAULT_COOKIES_OPT);
-}
-
-export function setGameCookies(cookies: Cookies, player: Player) {
-	cookies.set(COOKIE_KEY_PLAYER_ID, player.id, DEFAULT_COOKIES_OPT);
-	cookies.set(COOKIE_KEY_PLAYER_NAME, player.name, DEFAULT_COOKIES_OPT);
-	cookies.set(COOKIE_KEY_UNIVERSE_ID, player.universe, DEFAULT_COOKIES_OPT);
-}
-
-export function resetGameCookies(cookies: Cookies) {
-	cookies.set(COOKIE_KEY_PLAYER_ID, '', DEFAULT_COOKIES_OPT);
-	cookies.set(COOKIE_KEY_PLAYER_NAME, '', DEFAULT_COOKIES_OPT);
-	cookies.set(COOKIE_KEY_UNIVERSE_ID, '', DEFAULT_COOKIES_OPT);
-}
-
-export function setCookies(cookies: Cookies, apiKey: ApiKey, player: Player) {
-	setSessionCookies(cookies, apiKey);
-	setGameCookies(cookies, player);
-}
-
-export function resetCookies(cookies: Cookies) {
-	resetSessionCookies(cookies);
-	resetGameCookies(cookies);
-}
-
-function validOrEmptyString(maybeValue: string | undefined, valid: boolean): string {
-	return valid ? (maybeValue as string) : '';
-}
-
-export interface SessionCookies {
-	readonly apiUser: string;
-	readonly apiKey: string;
 }
 
 export function loadSessionCookies(cookies: Cookies): [boolean, SessionCookies] {
@@ -78,30 +56,65 @@ export function loadSessionCookies(cookies: Cookies): [boolean, SessionCookies] 
 }
 
 export interface GameCookies {
-	readonly session: SessionCookies;
 	readonly playerId: string;
 	readonly playerName: string;
 	readonly universeId: string;
 }
 
-export function loadCookies(cookies: Cookies): [boolean, GameCookies] {
+export function setGameCookies(cookies: Cookies, player: Player) {
+	cookies.set(COOKIE_KEY_PLAYER_ID, player.id, DEFAULT_COOKIES_OPT);
+	cookies.set(COOKIE_KEY_PLAYER_NAME, player.name, DEFAULT_COOKIES_OPT);
+	cookies.set(COOKIE_KEY_UNIVERSE_ID, player.universe, DEFAULT_COOKIES_OPT);
+}
+
+export function resetGameCookies(cookies: Cookies) {
+	cookies.set(COOKIE_KEY_PLAYER_ID, '', DEFAULT_COOKIES_OPT);
+	cookies.set(COOKIE_KEY_PLAYER_NAME, '', DEFAULT_COOKIES_OPT);
+	cookies.set(COOKIE_KEY_UNIVERSE_ID, '', DEFAULT_COOKIES_OPT);
+}
+
+export function loadGameCookies(cookies: Cookies): [boolean, GameCookies] {
 	const maybePlayerId = cookies.get(COOKIE_KEY_PLAYER_ID);
 	const maybePlayerName = cookies.get(COOKIE_KEY_PLAYER_NAME);
 	const maybeUniverseId = cookies.get(COOKIE_KEY_UNIVERSE_ID);
 
-	const [validSession, session] = loadSessionCookies(cookies);
-
 	const validPlayerId = maybePlayerId !== undefined;
 	const validPlayerName = maybePlayerName !== undefined;
 	const validUniverseId = maybeUniverseId !== undefined;
-	const valid = validSession || validPlayerId || validUniverseId;
+	const valid = validPlayerId || validPlayerName || validUniverseId;
 
 	const out: GameCookies = {
-		session: session,
 		playerId: validOrEmptyString(maybePlayerId, validPlayerId),
 		playerName: validOrEmptyString(maybePlayerName, validPlayerName),
 		universeId: validOrEmptyString(maybeUniverseId, validUniverseId)
 	};
 
 	return [valid, out];
+}
+
+export interface AllCookies {
+	readonly session: SessionCookies;
+	readonly game: GameCookies;
+}
+
+export function setAllCookies(cookies: Cookies, apiKey: ApiKey, player: Player) {
+	setSessionCookies(cookies, apiKey);
+	setGameCookies(cookies, player);
+}
+
+export function resetAllCookies(cookies: Cookies) {
+	resetSessionCookies(cookies);
+	resetGameCookies(cookies);
+}
+
+export function loadAllCookies(cookies: Cookies): [boolean, AllCookies] {
+	const [validSession, sessionCookies] = loadSessionCookies(cookies);
+	const [validGame, gameCookies] = loadGameCookies(cookies);
+
+	const out = {
+		session: sessionCookies,
+		game: gameCookies
+	};
+
+	return [validSession && validGame, out];
 }

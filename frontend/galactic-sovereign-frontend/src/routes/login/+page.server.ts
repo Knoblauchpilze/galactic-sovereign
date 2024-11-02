@@ -1,9 +1,9 @@
 import { redirect } from '@sveltejs/kit';
-import { resetCookies, setSessionCookies } from '$lib/cookies';
+import { resetAllCookies, setSessionCookies } from '$lib/cookies';
 import { ApiKey, loginUser } from '$lib/sessions';
 
 export async function load({ cookies }) {
-	resetCookies(cookies);
+	resetAllCookies(cookies);
 }
 
 export const actions = {
