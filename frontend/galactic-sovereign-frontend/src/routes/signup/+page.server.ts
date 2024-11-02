@@ -14,31 +14,22 @@ export const actions = {
 		const password = data.get('password');
 		if (!email) {
 			return {
-				success: false,
-				missing: true,
 				message: 'Please fill in the email',
-
-				email
+				email: email
 			};
 		}
 		if (!password) {
 			return {
-				success: false,
-				missing: true,
 				message: 'Please fill in the password',
-
-				email
+				email: email
 			};
 		}
 
 		const signupResponse = await createUser(email as string, password as string);
 		if (signupResponse.error()) {
 			return {
-				success: false,
-				incorrect: true,
 				message: signupResponse.failureMessage(),
-
-				email
+				email: email
 			};
 		}
 

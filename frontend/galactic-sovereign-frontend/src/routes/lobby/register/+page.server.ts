@@ -55,15 +55,11 @@ export const actions = {
 		const playerName = data.get('player');
 		if (!universeId) {
 			return {
-				success: false,
-				missing: true,
 				message: 'Please select a universe'
 			};
 		}
 		if (!playerName) {
 			return {
-				success: false,
-				missing: true,
 				message: 'Please choose a name'
 			};
 		}
@@ -83,8 +79,6 @@ export const actions = {
 		const planetsResponse = await fetchPlanetsFromPlayer(player.id, sessionCookies.apiKey);
 		if (planetsResponse.error()) {
 			return {
-				success: false,
-				incorrect: true,
 				message: planetsResponse.failureMessage()
 			};
 		}
@@ -95,8 +89,6 @@ export const actions = {
 
 		if (maybePlanet === undefined) {
 			return {
-				success: false,
-				incorrect: true,
 				message: 'Player does not have any planet'
 			};
 		}
