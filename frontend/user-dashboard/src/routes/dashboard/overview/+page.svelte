@@ -26,26 +26,28 @@
 	<h1>User details</h1>
 
 	<table>
-		<tr>
-			<td class="label">ID:</td>
-			<td class="field">{id}</td>
-		</tr>
-		<tr>
-			<td class="label">E-mail:</td>
-			<td class="field">{email}</td>
-		</tr>
-		<tr>
-			<td class="label">Password:</td>
-			<td class="field">{password}</td>
-		</tr>
-		<tr>
-			<td class="label">API key:</td>
-			<td class="field">{apiKey}</td>
-		</tr>
-		<tr>
-			<td class="label">Member since:</td>
-			<td class="field">{createdAt}</td>
-		</tr>
+		<tbody>
+			<tr>
+				<td class="label">ID:</td>
+				<td class="field">{id}</td>
+			</tr>
+			<tr>
+				<td class="label">E-mail:</td>
+				<td class="field">{email}</td>
+			</tr>
+			<tr>
+				<td class="label">Password:</td>
+				<td class="field">{password}</td>
+			</tr>
+			<tr>
+				<td class="label">API key:</td>
+				<td class="field">{apiKey}</td>
+			</tr>
+			<tr>
+				<td class="label">Member since:</td>
+				<td class="field">{createdAt}</td>
+			</tr>
+		</tbody>
 	</table>
 
 	<form method="POST" action="?/logout">
