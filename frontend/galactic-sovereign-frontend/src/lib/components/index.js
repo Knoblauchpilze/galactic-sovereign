@@ -1,6 +1,8 @@
 // https://www.reddit.com/r/sveltejs/comments/w86pdj/sveltekit_folder_component_structure/
 export { default as StyledButton } from '$lib/components/StyledButton.svelte';
 export { default as StyledActionButton } from '$lib/components/StyledActionButton.svelte';
+export { default as ConfirmationButton } from '$lib/components/ConfirmationButton.svelte';
+export { default as NegativeConfirmationButton } from '$lib/components/NegativeConfirmationButton.svelte';
 export { default as StyledError } from '$lib/components/StyledError.svelte';
 export { default as StyledLink } from '$lib/components/StyledLink.svelte';
 export { default as StyledTitle } from '$lib/components/StyledTitle.svelte';

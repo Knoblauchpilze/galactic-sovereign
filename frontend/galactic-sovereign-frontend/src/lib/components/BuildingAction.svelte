@@ -1,7 +1,7 @@
 <script lang="ts">
 	import activeScreen from '$lib/stores/activeScreen';
 
-	import { StyledActionButton, StyledText, Timer } from '$lib/components';
+	import { NegativeConfirmationButton, StyledText, Timer } from '$lib/components';
 
 	import { type UiBuildingAction } from '$lib/game/actions';
 
@@ -67,7 +67,7 @@
 	<div class={cancelButtonClass}>
 		<form method="POST" action="/planets/{action.planet}/{$activeScreen}?/deleteBuildingAction">
 			<input class="hidden" id="action" name="action" value={action.id} />
-			<StyledActionButton text="Cancel" enabled={!actionCompleted} negativeConfirmation />
+			<NegativeConfirmationButton text="Cancel" enabled={!actionCompleted} />
 		</form>
 	</div>
 </div>

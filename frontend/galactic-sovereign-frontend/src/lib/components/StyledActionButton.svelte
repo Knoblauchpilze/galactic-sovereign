@@ -1,32 +1,17 @@
 <script lang="ts">
-	import { run } from 'svelte/legacy';
-
 	interface Props {
 		text?: string;
 		enabled?: boolean;
-		negativeConfirmation?: boolean;
+		bgColor?: string;
+		bgColorHover?: string;
 	}
 
-	let { text = 'Click me', enabled = false, negativeConfirmation = false }: Props = $props();
-
-	let bgColor: string = $state();
-	let bgColorHover: string = $state();
-
-	run(() => {
-		if (negativeConfirmation) {
-			bgColor = enabled ? 'bg-disabled' : 'bg-enabled';
-			bgColorHover = enabled ? 'hover:bg-disabled-hover' : 'hover:bg-enabled-hover';
-		} else {
-			bgColor = enabled ? 'bg-enabled' : 'bg-disabled';
-			bgColorHover = enabled ? 'hover:bg-enabled-hover' : 'hover:bg-disabled-hover';
-		}
-	});
-
-	run(() => {
-		if (!enabled) {
-			bgColorHover = bgColor;
-		}
-	});
+	let {
+		text = 'Click me',
+		enabled = true,
+		bgColor = 'bg-enabled',
+		bgColorHover = 'hover:bg-enabled-hover'
+	}: Props = $props();
 </script>
 
 {#if enabled}

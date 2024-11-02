@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { FlexContainer, StyledActionButton } from '$lib/components';
+	import { FlexContainer, ConfirmationButton } from '$lib/components';
 
 	import { type UiPlayer } from '$lib/game/players';
 
@@ -28,6 +28,6 @@
 	<form method="POST" action="?/login">
 		<input class="hidden" id="universe" name="universe" value={player.universeId} />
 		<input class="hidden" id="player" name="player" value={player.name} />
-		<StyledActionButton text="Join" enabled={true} />
+		<ConfirmationButton text="Join" />
 	</form>
 </FlexContainer>

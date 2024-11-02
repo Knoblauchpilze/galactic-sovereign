@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { StyledActionButton, StyledText } from '$lib/components';
+	import { ConfirmationButton, StyledText } from '$lib/components';
 
 	import { type UiBuilding, type UiBuildingCost } from '$lib/game/buildings';
 	import { type UiResource } from '$lib/game/resources';
@@ -109,6 +109,6 @@
 	<form method="POST" action="/planets/{building.planet}/buildings?/createBuildingAction">
 		<input class="hidden" id="planet" name="planet" value={building.planet} />
 		<input class="hidden" id="building" name="building" value={building.id} />
-		<StyledActionButton text="Upgrade" enabled={isAffordable && !buildingActionAlreadyRunning} />
+		<ConfirmationButton text="Upgrade" enabled={isAffordable && !buildingActionAlreadyRunning} />
 	</form>
 </div>
