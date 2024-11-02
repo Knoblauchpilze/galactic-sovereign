@@ -261,7 +261,7 @@ export function mapPlanetBuildingsToUiBuildings(
 				id: apiBuilding.id,
 				name: apiBuilding.name,
 				level: 0,
-				planet: planet.name,
+				planet: planet.id,
 				hasAction: false,
 				costs: mapBuildingCostsToUiBuildingCosts(apiBuilding.costs, apiResources, 0),
 				resourcesProduction: mapBuildingResourceProductionsToUiBuildingGains(
@@ -277,7 +277,7 @@ export function mapPlanetBuildingsToUiBuildings(
 					id: apiBuilding.id,
 					name: apiBuilding.name,
 					level: maybeBuilding.level,
-					planet: planet.name,
+					planet: planet.id,
 					hasAction: false,
 					costs: mapBuildingCostsToUiBuildingCosts(
 						apiBuilding.costs,
@@ -296,7 +296,7 @@ export function mapPlanetBuildingsToUiBuildings(
 				id: apiBuilding.id,
 				name: apiBuilding.name,
 				level: maybeBuilding.level,
-				planet: planet.name,
+				planet: planet.id,
 				hasAction: true,
 				action: maybeAction.id,
 				nextLevel: maybeAction.desiredLevel,
