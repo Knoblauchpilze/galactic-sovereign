@@ -18,10 +18,12 @@
 	<StyledTitle text="Oh noes, something went wrong..." />
 
 	<table>
-		<tr>
-			<td class="text-secondary">Error message:</td>
-			<td class="text-error">{errorMessage}</td>
-		</tr>
+		<tbody>
+			<tr>
+				<td class="text-secondary">Error message:</td>
+				<td class="text-error">{errorMessage}</td>
+			</tr>
+		</tbody>
 	</table>
 
 	<StyledLink text="Back to safety" link="/" showAsButton={true} />

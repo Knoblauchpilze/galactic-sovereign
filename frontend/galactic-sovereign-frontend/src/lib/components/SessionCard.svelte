@@ -13,14 +13,16 @@
 	styling={'px-8 py-2 my-2 rounded-[8px]'}
 >
 	<table class="mx-2">
-		<tr>
-			<td class="text-white capitalize">Universe:</td>
-			<td class="text-secondary">{player.universeName}</td>
-		</tr>
-		<tr>
-			<td class="text-white capitalize">Player:</td>
-			<td class="text-secondary">{player.name}</td>
-		</tr>
+		<tbody>
+			<tr>
+				<td class="text-white capitalize">Universe:</td>
+				<td class="text-secondary">{player.universeName}</td>
+			</tr>
+			<tr>
+				<td class="text-white capitalize">Player:</td>
+				<td class="text-secondary">{player.name}</td>
+			</tr>
+		</tbody>
 	</table>
 
 	<form method="POST" action="?/login">

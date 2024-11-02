@@ -4,18 +4,23 @@
 	import { StyledText } from '$lib/components';
 	import { msToTimeStringOrFinished } from '$lib/time';
 
-	export let durationMs;
 	// https://svelte.dev/repl/5f4a327999cd49e5a79e91f6fbe994c8?version=3.59.2
-	// https://stackoverflow.com/questions/29689966/how-to-define-type-for-a-function-callback-as-any-function-type-not-universal
-	export let onFinished: () => void;
 
-	let msElapsed = 0;
+	interface Props {
+		durationMs: any;
+		// https://stackoverflow.com/questions/29689966/how-to-define-type-for-a-function-callback-as-any-function-type-not-universal
+		onFinished: () => void;
+	}
+
+	let { durationMs, onFinished }: Props = $props();
+
+	let msElapsed = $state(0);
 	let interval: number;
 	// https://geoffrich.net/posts/svelte-$-meanings/
-	$: remainingMs = durationMs - msElapsed;
-	$: remaining = msToTimeStringOrFinished(remainingMs);
+	let remainingMs = $derived(durationMs - msElapsed);
+	let remaining = $derived(msToTimeStringOrFinished(remainingMs));
 
-	$: textColor = remainingMs <= 0 ? 'text-enabled' : 'text-white';
+	let textColor = $derived(remainingMs <= 0 ? 'text-enabled' : 'text-white');
 
 	const UPDATE_INTERVAL_MS = 1000;
 

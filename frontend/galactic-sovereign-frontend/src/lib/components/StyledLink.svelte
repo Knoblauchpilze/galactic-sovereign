@@ -1,9 +1,13 @@
 <!-- https://svelte.dev/docs/svelte-components -->
 <script lang="ts">
-	export let text: string = 'Home';
-	export let link: string = '/';
-	export let showAsButton: boolean = false;
-	export let disabled: boolean = false;
+	interface Props {
+		text?: string;
+		link?: string;
+		showAsButton?: boolean;
+		disabled?: boolean;
+	}
+
+	let { text = 'Home', link = '/', showAsButton = false, disabled = false }: Props = $props();
 </script>
 
 <!-- https://tailwindcss.com/docs/padding -->

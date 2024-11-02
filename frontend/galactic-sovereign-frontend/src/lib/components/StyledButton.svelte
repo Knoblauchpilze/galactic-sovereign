@@ -1,6 +1,10 @@
 <script lang="ts">
-	export let text: string = 'Click me';
-	export let enabled: boolean = true;
+	interface Props {
+		text?: string;
+		enabled?: boolean;
+	}
+
+	let { text = 'Click me', enabled = true }: Props = $props();
 </script>
 
 {#if enabled}

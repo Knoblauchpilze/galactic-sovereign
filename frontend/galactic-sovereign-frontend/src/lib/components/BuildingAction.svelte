@@ -5,8 +5,12 @@
 
 	import { type UiBuildingAction } from '$lib/game/actions';
 
-	export let action: UiBuildingAction;
-	export let onCompleted: () => void;
+	interface Props {
+		action: UiBuildingAction;
+		onCompleted: () => void;
+	}
+
+	let { action, onCompleted }: Props = $props();
 
 	// https://kit.svelte.dev/docs/images#sveltejs-enhanced-img-dynamically-choosing-an-image
 	// https://github.com/vitejs/vite/issues/9599#issuecomment-1209333753
@@ -22,19 +26,21 @@
 	// https://stackoverflow.com/questions/14980014/how-can-i-calculate-the-time-between-2-dates-in-typescript
 	const serverRemainingMs = action.completedAt.getTime() - Date.now();
 
-	let cancelButtonClass = serverRemainingMs > 0 ? '' : 'hidden';
-	let actionCompleted = serverRemainingMs < 0;
+	let cancelButtonClass = $state(serverRemainingMs > 0 ? '' : 'hidden');
+	let actionCompleted = $state(serverRemainingMs < 0);
 
-	$: images = Object.keys(modules).map((imagePath) => {
-		return {
-			building: imagePath
-				.replace(/^.*[\\/]/, '')
-				.replace(/\..*$/, '')
-				.replace(/\_/, ' '),
-			data: modules[imagePath].default
-		};
-	});
-	$: actionImage = images.find((image) => image.building === action.name);
+	let images = $derived(
+		Object.keys(modules).map((imagePath) => {
+			return {
+				building: imagePath
+					.replace(/^.*[\\/]/, '')
+					.replace(/\..*$/, '')
+					.replace(/\_/, ' '),
+				data: modules[imagePath].default
+			};
+		})
+	);
+	let actionImage = $derived(images.find((image) => image.building === action.name));
 
 	function onActionCompleted() {
 		cancelButtonClass = 'hidden';

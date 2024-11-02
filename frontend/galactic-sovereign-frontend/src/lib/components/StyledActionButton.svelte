@@ -1,22 +1,32 @@
 <script lang="ts">
-	export let text: string = 'Click me';
-	export let enabled: boolean = false;
-	export let negativeConfirmation: boolean = false;
+	import { run } from 'svelte/legacy';
 
-	let bgColor: string;
-	let bgColorHover: string;
-
-	$: if (negativeConfirmation) {
-		bgColor = enabled ? 'bg-disabled' : 'bg-enabled';
-		bgColorHover = enabled ? 'hover:bg-disabled-hover' : 'hover:bg-enabled-hover';
-	} else {
-		bgColor = enabled ? 'bg-enabled' : 'bg-disabled';
-		bgColorHover = enabled ? 'hover:bg-enabled-hover' : 'hover:bg-disabled-hover';
+	interface Props {
+		text?: string;
+		enabled?: boolean;
+		negativeConfirmation?: boolean;
 	}
 
-	$: if (!enabled) {
-		bgColorHover = bgColor;
-	}
+	let { text = 'Click me', enabled = false, negativeConfirmation = false }: Props = $props();
+
+	let bgColor: string = $state();
+	let bgColorHover: string = $state();
+
+	run(() => {
+		if (negativeConfirmation) {
+			bgColor = enabled ? 'bg-disabled' : 'bg-enabled';
+			bgColorHover = enabled ? 'hover:bg-disabled-hover' : 'hover:bg-enabled-hover';
+		} else {
+			bgColor = enabled ? 'bg-enabled' : 'bg-disabled';
+			bgColorHover = enabled ? 'hover:bg-enabled-hover' : 'hover:bg-disabled-hover';
+		}
+	});
+
+	run(() => {
+		if (!enabled) {
+			bgColorHover = bgColor;
+		}
+	});
 </script>
 
 {#if enabled}

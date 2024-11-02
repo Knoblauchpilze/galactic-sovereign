@@ -1,7 +1,11 @@
 <script lang="ts">
-	export let text: string = 'Missing text';
-	export let textColor: string = 'text-secondary';
-	export let styling: string = '';
+	interface Props {
+		text?: string;
+		textColor?: string;
+		styling?: string;
+	}
+
+	let { text = 'Missing text', textColor = 'text-secondary', styling = '' }: Props = $props();
 </script>
 
 <p class="{textColor} {styling}">{text}</p>
