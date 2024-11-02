@@ -1,3 +1,5 @@
+import { error, redirect } from '@sveltejs/kit';
+
 export class ResponseEnvelope {
 	readonly requestId: string;
 	readonly status: string;
@@ -63,4 +65,19 @@ export enum ApiFailureReason {
 	NONE = 0,
 	UNKNOWN_ERROR = 1,
 	API_KEY_EXPIRED = 2
+}
+
+export function analayzeResponseEnvelopAndRedirectIfNeeded(response: ResponseEnvelope) {
+	if (!response.error()) {
+		return;
+	}
+
+	const reason = response.failureReason();
+
+	switch (reason) {
+		case ApiFailureReason.API_KEY_EXPIRED:
+			redirect(303, '/login');
+	}
+
+	error(404, { message: response.failureMessage() });
 }

@@ -1,5 +1,6 @@
-import { error, redirect } from '@sveltejs/kit';
+import { redirect } from '@sveltejs/kit';
 import { resetGameCookies, setGameCookies, loadSessionCookies } from '$lib/cookies';
+import { analayzeResponseEnvelopAndRedirectIfNeeded } from '$lib/responseEnvelope';
 import {
 	fetchPlayerFromApiUser,
 	responseToPlayerArray,
@@ -17,19 +18,14 @@ export async function load({ cookies }) {
 	}
 
 	const universesResponse = await getUniverses(sessionCookies.apiKey);
-	if (universesResponse.error()) {
-		error(404, { message: universesResponse.failureMessage() });
-	}
+	analayzeResponseEnvelopAndRedirectIfNeeded(universesResponse);
 	const universes = responseToUniverseArray(universesResponse);
 
 	const playerResponse = await fetchPlayerFromApiUser(
 		sessionCookies.apiUser,
 		sessionCookies.apiKey
 	);
-	if (playerResponse.error()) {
-		error(404, { message: playerResponse.failureMessage() });
-	}
-
+	analayzeResponseEnvelopAndRedirectIfNeeded(playerResponse);
 	const players = responseToPlayerArray(playerResponse);
 
 	return {
@@ -63,13 +59,9 @@ export const actions = {
 			sessionCookies.apiUser,
 			sessionCookies.apiKey
 		);
-		if (playerResponse.error()) {
-			return {
-				message: playerResponse.failureMessage()
-			};
-		}
-
+		analayzeResponseEnvelopAndRedirectIfNeeded(playerResponse);
 		const players = responseToPlayerArray(playerResponse);
+
 		const maybePlayer = players.find(
 			(player) => player.universe === universeId && player.name === playerName
 		);
@@ -81,12 +73,7 @@ export const actions = {
 		}
 
 		const planetsResponse = await fetchPlanetsFromPlayer(maybePlayer.id, sessionCookies.apiKey);
-		if (planetsResponse.error()) {
-			return {
-				message: planetsResponse.failureMessage()
-			};
-		}
-
+		analayzeResponseEnvelopAndRedirectIfNeeded(planetsResponse);
 		const planets = responseToPlanetArray(planetsResponse);
 
 		// https://stackoverflow.com/questions/35605548/get-first-object-from-array
