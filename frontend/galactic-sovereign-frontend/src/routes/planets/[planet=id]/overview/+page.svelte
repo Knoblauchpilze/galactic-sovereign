@@ -1,7 +1,7 @@
 <script lang="ts">
 	import heroImage, { GAME_HERO_IMAGE } from '$lib/stores/ui/heroImage';
 	import heroContainer, { GAME_HERO_CONTAINER_PROPS } from '$lib/stores/ui/heroContainer';
-	import pageTitle, { HOMEPAGE_TITLE } from '$lib/stores/ui/pageTitle';
+	import pageTitle from '$lib/stores/ui/pageTitle';
 	import activeScreen from '$lib/stores/activeScreen';
 
 	import { BuildingAction, FlexContainer, GamePageWrapper, StyledTitle } from '$lib/components';
@@ -9,40 +9,31 @@
 	import { invalidate } from '$app/navigation';
 
 	import { formatDate } from '$lib/time';
-	import { mapPlanetResourcesToUiResourcesDeprecated } from '$lib/game/resources';
-	import { mapBuildingActionsToUiActions } from '$lib/game/actions.js';
 
+	// https://svelte.dev/blog/zero-config-type-safety
 	export let data;
 
 	heroImage.set(GAME_HERO_IMAGE);
 	heroContainer.set(GAME_HERO_CONTAINER_PROPS);
-	$: title = HOMEPAGE_TITLE + ' - ' + data.planet.name;
-	$: pageTitle.set(title);
-	$: activeScreen.set('overview');
+	pageTitle.set(data.wepageTitle);
+	activeScreen.set('overview');
 
-	$: playerName = data.playerName;
-	$: planetName = data.planet.name;
-	$: universeName = data.universe.name;
-
-	$: colonizationDate = formatDate(data.planet.createdAt);
-	$: usedFields = data.planet.buildings.reduce((used, building) => used + building.level, 0);
-	$: actions = mapBuildingActionsToUiActions(data.planet.buildingActions, data.buildings);
-
-	$: resources = mapPlanetResourcesToUiResourcesDeprecated(
-		data.planet.resources,
-		data.planet.productions,
-		data.planet.storages,
-		data.resources
-	);
+	$: colonizationDate = formatDate(data.planetCreationTime);
+	$: usedFields = data.buildings.reduce((used, building) => used + building.level, 0);
 
 	function onActionCompleted() {
 		invalidate('data:planet');
 	}
 </script>
 
-<GamePageWrapper {universeName} {playerName} {planetName} {resources}>
+<GamePageWrapper
+	universeName={data.universeName}
+	playerName={data.playerName}
+	planetName={data.planetName}
+	resources={data.resources}
+>
 	<FlexContainer align={'center'}>
-		<StyledTitle text="Overview of {planetName}" />
+		<StyledTitle text="Overview of {data.planetName}" />
 
 		<FlexContainer justify={'center'} bgColor={'bg-overlay'}>
 			<table>
@@ -61,9 +52,9 @@
 	</FlexContainer>
 
 	<FlexContainer align={'stretch'}>
-		<StyledTitle text="Actions running on {planetName}" />
+		<StyledTitle text="Actions running on {data.planetName}" />
 		<FlexContainer vertical={false} justify={'start'} align={'start'} styling={'flex-wrap'}>
-			{#each actions as action}
+			{#each data.buildingActions as action}
 				<BuildingAction {action} onCompleted={onActionCompleted} />
 			{/each}
 		</FlexContainer>

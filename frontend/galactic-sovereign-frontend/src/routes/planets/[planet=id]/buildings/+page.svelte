@@ -4,10 +4,6 @@
 	import pageTitle from '$lib/stores/ui/pageTitle';
 	import activeScreen from '$lib/stores/activeScreen';
 
-	import { type UiResource } from '$lib/game/resources';
-	import { type UiBuilding } from '$lib/game/buildings';
-	import { type UiBuildingAction } from '$lib/game/actions';
-
 	import {
 		FlexContainer,
 		GamePageWrapper,
@@ -18,49 +14,35 @@
 
 	import { invalidate } from '$app/navigation';
 
-	interface Props {
-		wepageTitle: string;
-		universeName: string;
-		playerName: string;
-		planetName: string;
-		resources: UiResource[];
-		buildings: UiBuilding[];
-		buildingActions: UiBuildingAction[];
-	}
-
-	// https://svelte.dev/blog/zero-config-type-safety
-	let {
-		wepageTitle,
-		universeName,
-		playerName,
-		planetName,
-		resources,
-		buildings,
-		buildingActions
-	}: Props = $props();
+	export let data;
 
 	// https://stackoverflow.com/questions/75616911/sveltekit-fetching-on-the-server-and-updating-the-writable-store
 	heroImage.set(GAME_HERO_IMAGE);
 	heroContainer.set(GAME_HERO_CONTAINER_PROPS);
-	pageTitle.set(wepageTitle);
+	pageTitle.set(data.wepageTitle);
 	activeScreen.set('buildings');
 
-	let anyBuildingActionRunning = $derived(buildingActions.length !== 0);
+	$: anyBuildingActionRunning = data.buildingActions.length !== 0;
 
 	function onActionCompleted() {
 		invalidate('data:planet');
 	}
 </script>
 
-<GamePageWrapper {universeName} {playerName} {planetName} {resources}>
+<GamePageWrapper
+	universeName={data.universeName}
+	playerName={data.playerName}
+	planetName={data.planetName}
+	resources={data.resources}
+>
 	<FlexContainer align={'stretch'}>
-		<StyledTitle text="Buildings on {planetName}" />
+		<StyledTitle text="Buildings on {data.planetName}" />
 		<!-- https://tailwindcss.com/docs/align-items -->
 		<FlexContainer vertical={false} justify={'start'} align={'start'} styling={'flex-wrap'}>
-			{#each buildings as building}
+			{#each data.buildings as building}
 				<Building
 					{building}
-					availableResources={resources}
+					availableResources={data.resources}
 					buildingActionAlreadyRunning={anyBuildingActionRunning}
 				/>
 			{/each}
@@ -68,9 +50,9 @@
 	</FlexContainer>
 
 	<FlexContainer align={'stretch'}>
-		<StyledTitle text="Actions running on {planetName}" />
+		<StyledTitle text="Actions running on {data.planetName}" />
 		<FlexContainer vertical={false} justify={'start'} align={'start'} styling={'flex-wrap'}>
-			{#each buildingActions as buildingAction}
+			{#each data.buildingActions as buildingAction}
 				<BuildingAction action={buildingAction} onCompleted={onActionCompleted} />
 			{/each}
 		</FlexContainer>
