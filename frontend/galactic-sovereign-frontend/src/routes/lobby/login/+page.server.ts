@@ -50,15 +50,11 @@ export const actions = {
 		const playerName = data.get('player');
 		if (!universeId) {
 			return {
-				success: false,
-				missing: true,
 				message: 'Please select a universe'
 			};
 		}
 		if (!playerName) {
 			return {
-				success: false,
-				missing: true,
 				message: 'Please choose a name'
 			};
 		}
@@ -69,8 +65,6 @@ export const actions = {
 		);
 		if (playerResponse.error()) {
 			return {
-				success: false,
-				incorrect: true,
 				message: playerResponse.failureMessage()
 			};
 		}
@@ -82,8 +76,6 @@ export const actions = {
 		// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/find
 		if (maybePlayer === undefined) {
 			return {
-				success: false,
-				incorrect: true,
 				message: 'No such player'
 			};
 		}
@@ -91,8 +83,6 @@ export const actions = {
 		const planetsResponse = await fetchPlanetsFromPlayer(maybePlayer.id, sessionCookies.apiKey);
 		if (planetsResponse.error()) {
 			return {
-				success: false,
-				incorrect: true,
 				message: planetsResponse.failureMessage()
 			};
 		}
@@ -104,8 +94,6 @@ export const actions = {
 
 		if (maybePlanet === undefined) {
 			return {
-				success: false,
-				incorrect: true,
 				message: 'Player does not have any planet'
 			};
 		}

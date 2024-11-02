@@ -14,31 +14,23 @@ export const actions = {
 		const password = data.get('password');
 		if (!email) {
 			return {
-				success: false,
-				missing: true,
+				// https://svelte.dev/docs/kit/form-actions
 				message: 'Please fill in the email',
-
-				email
+				email: email
 			};
 		}
 		if (!password) {
 			return {
-				success: false,
-				missing: true,
 				message: 'Please fill in the password',
-
-				email
+				email: email
 			};
 		}
 
 		const loginResponse = await loginUser(email as string, password as string);
 		if (loginResponse.error()) {
 			return {
-				success: false,
-				incorrect: true,
 				message: loginResponse.failureMessage(),
-
-				email
+				email: email
 			};
 		}
 
