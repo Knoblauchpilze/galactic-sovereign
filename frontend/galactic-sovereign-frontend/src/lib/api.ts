@@ -30,8 +30,7 @@ export function buildUserUrl(url: string): string {
 
 const genericFailureReason: string = 'Unknown failure';
 
-function analyzeFetchFailureReasone(reason: object): Response {
-	// https://developer.mozilla.org/en-US/docs/Web/API/Response/Response
+function analyzeFetchFailureReason(reason: object): Response {
 	let failureReason = genericFailureReason;
 	if (reason instanceof TypeError) {
 		failureReason = (reason as TypeError).message;
@@ -47,5 +46,5 @@ export async function safeFetch(
 	url: URL | RequestInfo,
 	init?: RequestInit | undefined
 ): Promise<Response> {
-	return await fetch(url, init).catch((reason) => analyzeFetchFailureReasone(reason));
+	return await fetch(url, init).catch((reason) => analyzeFetchFailureReason(reason));
 }
