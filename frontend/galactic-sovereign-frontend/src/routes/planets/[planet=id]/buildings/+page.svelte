@@ -14,7 +14,7 @@
 
 	import { invalidate } from '$app/navigation';
 
-	export let data;
+	let { data } = $props();
 
 	// https://stackoverflow.com/questions/75616911/sveltekit-fetching-on-the-server-and-updating-the-writable-store
 	heroImage.set(GAME_HERO_IMAGE);
@@ -22,7 +22,7 @@
 	pageTitle.set(data.wepageTitle);
 	activeScreen.set('buildings');
 
-	$: anyBuildingActionRunning = data.buildingActions.length !== 0;
+	let anyBuildingActionRunning = $derived(data.buildingActions.length !== 0);
 
 	function onActionCompleted() {
 		invalidate('data:planet');
