@@ -83,7 +83,7 @@ func (s *serverImpl) Start() {
 
 		logger.Infof("Starting server at %s for route %s", address, s.endpoint)
 		s.err = s.server.Start(address)
-		logger.Infof("Server gracefully at %s shutdown", address)
+		logger.Infof("Server at %s gracefully shutdown", address)
 	}()
 }
 
