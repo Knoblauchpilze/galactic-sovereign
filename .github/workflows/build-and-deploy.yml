@@ -178,7 +178,7 @@ jobs:
       needs.analyze-deploy-status.outputs.deploy-services == 'true'
     steps:
       - name: Back-up deployment config
-        uses: appleboy/ssh-action@v1.0.3
+        uses: appleboy/ssh-action@v1.1.0
         with:
           host: "${{ secrets.EC2_DEPLOY_HOST }}"
           username: ubuntu
@@ -271,7 +271,7 @@ jobs:
       needs.analyze-deploy-status.outputs.deploy-services == 'true'
     steps:
       - name: Deploy latest services version
-        uses: appleboy/ssh-action@v1.0.3
+        uses: appleboy/ssh-action@v1.1.0
         with:
           host: "${{ secrets.EC2_DEPLOY_HOST }}"
           username: ubuntu
@@ -288,7 +288,7 @@ jobs:
       needs.analyze-deploy-status.outputs.deploy-services == 'true'
     steps:
       - name: Clean back-up of deployment config
-        uses: appleboy/ssh-action@v1.0.3
+        uses: appleboy/ssh-action@v1.1.0
         with:
           host: "${{ secrets.EC2_DEPLOY_HOST }}"
           username: ubuntu
