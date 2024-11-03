@@ -45,12 +45,14 @@ jobs:
             deployment:
               - 'deployments/**'
             user-service:
+              - 'go.mod'
               - 'pkg/**'
               - 'internal/**'
               - 'cmd/users/**'
               - '.github/workflows/user-service**'
               - '.github/workflows/services**'
             galactic-sovereign-service:
+              - 'go.mod'
               - 'pkg/**'
               - 'internal/**'
               - 'cmd/galactic-sovereign/**'
