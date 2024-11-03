@@ -14,7 +14,7 @@ updates:
       interval: "weekly"
     open-pull-requests-limit: 20
     allow:
-      - dependency-type: "all"
+      - dependency-type: "direct"
 
   - package-ecosystem: "gomod"
     directory: "/"
@@ -22,4 +22,4 @@ updates:
       interval: "weekly"
     open-pull-requests-limit: 20
     allow:
-      - dependency-type: "all"
+      - dependency-type: "direct"
