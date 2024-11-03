@@ -16,9 +16,10 @@ on:
       - "!build/galactic-sovereign-frontend/version.txt"
       - "!build/galactic-sovereign-service/version.txt"
 
-# https://docs.github.com/en/actions/using-jobs/using-concurrency#example-concurrency-groups
+# https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/control-the-concurrency-of-workflows-and-jobs#example-only-cancel-in-progress-jobs-on-specific-branches
+# https://stackoverflow.com/questions/66335225/how-to-cancel-previous-runs-in-the-pr-when-you-push-new-commitsupdate-the-curre
 concurrency:
-  group: master-deployment
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
