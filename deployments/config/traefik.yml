@@ -13,5 +13,6 @@ http:
 
   middlewares:
     td-auth:
+      # https://doc.traefik.io/traefik/middlewares/http/basicauth/#configuration-examples
       basicAuth:
         users: '{{ env "TRAEFIK_USER"}}:{{ env "TRAEFIK_HASHED_PASSWORD" }}'
