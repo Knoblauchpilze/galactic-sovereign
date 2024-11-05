@@ -1,4 +1,5 @@
 <script lang="ts">
+	import '$styles/app.css';
 	import { type Snippet } from 'svelte';
 
 	interface Props {
