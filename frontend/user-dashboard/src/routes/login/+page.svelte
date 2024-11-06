@@ -35,6 +35,7 @@
 
 	<FlexContainer extensible={false} styling="h-3/5">
 		<form method="POST" action="?/login" class="flex flex-col flex-1 justify-evenly">
+			<!-- https://stackoverflow.com/questions/62278480/add-onchange-handler-to-input-in-svelte -->
 			<FormField label="email:" labelId="email">
 				<input
 					id="email"
@@ -60,6 +61,7 @@
 		</form>
 
 		{#if form?.message}
+			<!-- https://www.w3schools.com/howto/howto_js_snackbar.asp -->
 			<div class="fixed bottom-4">
 				<StyledError text="Failed to login: {form.message}" />
 			</div>
