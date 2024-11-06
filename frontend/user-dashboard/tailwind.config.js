@@ -5,21 +5,17 @@ export default {
 		extend: {
 			colors: {
 				// Palette
-				primary: '#263037',
-				'primary-hover': '#36454f',
-				'primary-selected': '#535a5e',
-				secondary: '#b87333',
+				primary: '#000',
+				'primary-hover': '#222',
+				'primary-selected': '#444',
+				secondary: '#fff',
 				'secondary-hover': '#fff',
 
 				// State
-				enabled: '#2a7a0c',
-				'enabled-hover': '#45d90f',
-				disabled: '#751c0d',
-				'disabled-hover': '#d92d0f',
 				error: '#d92d0f',
 
 				// Miscellaneous
-				overlay: '#0005'
+				overlay: '#0b0b45'
 			},
 			backgroundImage: {
 				homepage: "url('$lib/assets/background.webp')",
