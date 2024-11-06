@@ -1,49 +1,24 @@
 <script lang="ts">
 	import { page } from '$app/stores';
+	import { CenteredWrapper, StyledLink, StyledTitle } from '$lib/components';
 
-	let errorMessage: string = $state('Unexpected error happened');
+	let errorMessage: string = 'Unexpected error happened';
 	if ($page.error !== null) {
 		errorMessage = $page.error.message;
 	}
 </script>
 
-<div class="wrapper">
-	<h1>Oh noes, something went wrong...</h1>
+<CenteredWrapper height="h-1/2">
+	<StyledTitle text="Oh noes, something went wrong..." />
 
 	<table>
 		<tbody>
 			<tr>
-				<td class="label">Error message:</td>
-				<td class="field">{errorMessage}</td>
+				<td class="text-secondary">Error message:</td>
+				<td class="text-error">{errorMessage}</td>
 			</tr>
 		</tbody>
 	</table>
 
-	<a href="/dashboard/login">Back to safety</a>
-</div>
-
-<style>
-	.wrapper {
-		display: flex;
-		flex-direction: column;
-		justify-content: space-between;
-		align-items: center;
-	}
-
-	h1,
-	.label {
-		padding: 0.5em 1.5em;
-
-		color: #1eb854;
-	}
-
-	.field {
-		color: #1db8ab;
-	}
-
-	a {
-		padding: 1em 3em;
-
-		color: #1eb854;
-	}
-</style>
+	<StyledLink text="Back to safety" link="/" showAsButton={true} />
+</CenteredWrapper>

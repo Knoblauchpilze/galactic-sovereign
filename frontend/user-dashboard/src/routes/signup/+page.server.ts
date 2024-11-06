@@ -1,7 +1,5 @@
 import { redirect } from '@sveltejs/kit';
-// https://learn.svelte.dev/tutorial/lib
-import { loginUser } from '$lib/sessions';
-import ApiKey from '$lib/apiKey.js';
+import { createUser } from '$lib/users';
 
 export async function load({ cookies }) {
 	cookies.set('api-key', '', { path: '/' });
@@ -9,7 +7,7 @@ export async function load({ cookies }) {
 }
 
 export const actions = {
-	login: async ({ cookies, request }) => {
+	signup: async ({ cookies, request }) => {
 		const data = await request.formData();
 
 		const email = data.get('email');
@@ -33,26 +31,21 @@ export const actions = {
 			};
 		}
 
-		const loginResponse = await loginUser(email as string, password as string);
+		const signupResponse = await createUser(email as string, password as string);
 
-		if (loginResponse.error()) {
+		if (signupResponse.error()) {
 			return {
 				success: false,
 				incorrect: true,
-				message: loginResponse.failureMessage(),
+				message: signupResponse.failureMessage(),
 
 				email
 			};
 		}
 
-		const apiKey = new ApiKey(loginResponse);
+		cookies.set('api-user', '', { path: '/' });
+		cookies.set('api-key', '', { path: '/' });
 
-		const opts = {
-			path: '/'
-		};
-		cookies.set('api-user', apiKey.user, opts);
-		cookies.set('api-key', apiKey.key, opts);
-
-		redirect(303, '/dashboard/overview');
+		redirect(303, '/login');
 	}
 };
