@@ -16,7 +16,6 @@ import { mapBuildingActionsToUiActions } from '$lib/game/actions.js';
 export async function load({ params, cookies, depends }) {
 	const allCookies = loadAllCookiesOrRedirectToLogin(cookies);
 
-	// https://learn.svelte.dev/tutorial/custom-dependencies
 	depends('data:planet');
 
 	const planetResponse = await getPlanet(allCookies.session.apiKey, params.planet);
