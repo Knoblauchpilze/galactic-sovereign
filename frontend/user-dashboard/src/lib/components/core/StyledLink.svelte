@@ -1,3 +1,4 @@
+<!-- https://svelte.dev/docs/svelte-components -->
 <script lang="ts">
 	interface Props {
 		text?: string;
@@ -9,6 +10,8 @@
 	let { text = 'Home', link = '/', showAsButton = false, disabled = false }: Props = $props();
 </script>
 
+<!-- https://tailwindcss.com/docs/padding -->
+<!-- https://tailwindcss.com/docs/hover-focus-and-other-states -->
 {#if showAsButton}
 	{#if disabled}
 		<a href={link} class="px-12 py-4 rounded-[8px] bg-primary-selected text-secondary">

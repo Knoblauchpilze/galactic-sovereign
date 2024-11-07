@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/stores';
-	import { CenteredWrapper, StyledLink, StyledTitle } from '$lib/components';
+	import { FlexContainer, StyledLink, StyledTitle } from '$lib/components';
 
 	let errorMessage: string = 'Unexpected error happened';
 	if ($page.error !== null) {
@@ -8,7 +8,7 @@
 	}
 </script>
 
-<CenteredWrapper height="h-1/2">
+<FlexContainer extensible={false} styling={'h-1/2'}>
 	<StyledTitle text="Oh noes, something went wrong..." />
 
 	<table>
@@ -21,4 +21,4 @@
 	</table>
 
 	<StyledLink text="Back to safety" link="/" showAsButton={true} />
-</CenteredWrapper>
+</FlexContainer>
