@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { type Snippet } from 'svelte';
 
-	// https://stackoverflow.com/questions/70927735/pass-variable-up-from-page-to-svelte-layout-via-slot
 	import heroImage from '$lib/stores/ui/heroImage';
 	import heroContainer from '$lib/stores/ui/heroContainer';
 
