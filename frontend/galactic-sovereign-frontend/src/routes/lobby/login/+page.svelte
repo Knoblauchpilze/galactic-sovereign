@@ -3,7 +3,7 @@
 
 	import heroImage, { HOMEPAGE_HERO_IMAGE } from '$lib/stores/ui/heroImage';
 	import heroContainer, { HOMEPAGE_HERO_CONTAINER_PROPS } from '$lib/stores/ui/heroContainer';
-	import SessionCard from '$lib/components/SessionCard.svelte';
+	import { SessionCard } from '$lib/components';
 
 	let { data } = $props();
 
