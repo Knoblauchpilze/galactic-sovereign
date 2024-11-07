@@ -1,9 +1,9 @@
 import { redirect } from '@sveltejs/kit';
+import { resetSessionCookies } from '$lib/cookies';
 import { createUser } from '$lib/users';
 
 export async function load({ cookies }) {
-	cookies.set('api-key', '', { path: '/' });
-	cookies.set('api-user', '', { path: '/' });
+	resetSessionCookies(cookies);
 }
 
 export const actions = {
@@ -14,37 +14,26 @@ export const actions = {
 		const password = data.get('password');
 		if (!email) {
 			return {
-				success: false,
-				missing: true,
 				message: 'Please fill in the email',
-
-				email
+				email: email
 			};
 		}
 		if (!password) {
 			return {
-				success: false,
-				missing: true,
 				message: 'Please fill in the password',
-
-				email
+				email: email
 			};
 		}
 
 		const signupResponse = await createUser(email as string, password as string);
-
 		if (signupResponse.error()) {
 			return {
-				success: false,
-				incorrect: true,
 				message: signupResponse.failureMessage(),
-
-				email
+				email: email
 			};
 		}
 
-		cookies.set('api-user', '', { path: '/' });
-		cookies.set('api-key', '', { path: '/' });
+		resetSessionCookies(cookies);
 
 		redirect(303, '/login');
 	}

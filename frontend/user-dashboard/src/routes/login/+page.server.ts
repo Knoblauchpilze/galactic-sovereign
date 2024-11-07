@@ -1,11 +1,10 @@
 import { redirect } from '@sveltejs/kit';
 // https://learn.svelte.dev/tutorial/lib
-import { loginUser } from '$lib/sessions';
-import ApiKey from '$lib/apiKey.js';
+import { resetSessionCookies, setSessionCookies } from '$lib/cookies';
+import { ApiKey, loginUser } from '$lib/sessions';
 
 export async function load({ cookies }) {
-	cookies.set('api-key', '', { path: '/' });
-	cookies.set('api-user', '', { path: '/' });
+	resetSessionCookies(cookies);
 }
 
 export const actions = {
@@ -16,42 +15,28 @@ export const actions = {
 		const password = data.get('password');
 		if (!email) {
 			return {
-				success: false,
-				missing: true,
 				message: 'Please fill in the email',
-
-				email
+				email: email
 			};
 		}
 		if (!password) {
 			return {
-				success: false,
-				missing: true,
 				message: 'Please fill in the password',
-
-				email
+				email: email
 			};
 		}
 
 		const loginResponse = await loginUser(email as string, password as string);
-
 		if (loginResponse.error()) {
 			return {
-				success: false,
-				incorrect: true,
 				message: loginResponse.failureMessage(),
-
-				email
+				email: email
 			};
 		}
 
 		const apiKey = new ApiKey(loginResponse);
 
-		const opts = {
-			path: '/'
-		};
-		cookies.set('api-user', apiKey.user, opts);
-		cookies.set('api-key', apiKey.key, opts);
+		setSessionCookies(cookies, apiKey);
 
 		redirect(303, '/overview');
 	}

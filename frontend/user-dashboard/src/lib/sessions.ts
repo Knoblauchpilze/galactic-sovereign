@@ -1,9 +1,34 @@
 import { ResponseEnvelope, createEmptySuccessResponseEnvelope } from '$lib/responseEnvelope';
-import { buildUrl, safeFetch } from '$lib/api';
+import { buildUserUrl, safeFetch } from '$lib/api';
 import HttpStatus from '$lib/httpStatuses';
 
+export class ApiKey {
+	readonly user: string = '00000000-0000-0000-0000-000000000000';
+	readonly key: string = '00000000-0000-0000-0000-000000000000';
+	readonly validUntil: Date = new Date();
+
+	constructor(response: ResponseEnvelope) {
+		if (response.error()) {
+			return;
+		}
+
+		// https://stackoverflow.com/questions/455338/how-do-i-check-if-an-object-has-a-key-in-javascript
+		if ('user' in response.details && typeof response.details.user === 'string') {
+			this.user = response.details.user;
+		}
+
+		if ('key' in response.details && typeof response.details.key === 'string') {
+			this.key = response.details.key;
+		}
+
+		if ('validUntil' in response.details && typeof response.details.validUntil === 'string') {
+			this.validUntil = new Date(response.details.validUntil);
+		}
+	}
+}
+
 export async function loginUser(email: string, password: string): Promise<ResponseEnvelope> {
-	const url = buildUrl('sessions');
+	const url = buildUserUrl('sessions');
 	const body = JSON.stringify({ email: email, password: password });
 
 	const params = {
@@ -21,7 +46,7 @@ export async function loginUser(email: string, password: string): Promise<Respon
 }
 
 export async function logoutUser(apiKey: string, userId: string): Promise<ResponseEnvelope> {
-	const url = buildUrl('sessions/' + userId);
+	const url = buildUserUrl('sessions/' + userId);
 
 	const params = {
 		method: 'DELETE',
