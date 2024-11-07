@@ -1,9 +1,10 @@
 <script lang="ts">
 	import { page } from '$app/stores';
-	import { CenteredWrapper, StyledLink, StyledTitle } from '$lib/components';
+	import { StyledLink, StyledTitle } from '$lib/components';
 
 	import heroImage, { HOMEPAGE_HERO_IMAGE } from '$lib/stores/ui/heroImage';
 	import heroContainer, { HOMEPAGE_HERO_CONTAINER_PROPS } from '$lib/stores/ui/heroContainer';
+	import FlexContainer from '$lib/components/core/FlexContainer.svelte';
 
 	let errorMessage: string = 'Unexpected error happened';
 	if ($page.error !== null) {
@@ -14,7 +15,7 @@
 	heroContainer.set(HOMEPAGE_HERO_CONTAINER_PROPS);
 </script>
 
-<CenteredWrapper height="h-1/2">
+<FlexContainer extensible={false} styling={'h-1/2'}>
 	<StyledTitle text="Oh noes, something went wrong..." />
 
 	<table>
@@ -27,4 +28,4 @@
 	</table>
 
 	<StyledLink text="Back to safety" link="/" showAsButton={true} />
-</CenteredWrapper>
+</FlexContainer>
