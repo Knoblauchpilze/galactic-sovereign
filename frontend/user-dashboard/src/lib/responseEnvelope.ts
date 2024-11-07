@@ -1,3 +1,5 @@
+import { error, redirect } from '@sveltejs/kit';
+
 export class ResponseEnvelope {
 	readonly requestId: string;
 	readonly status: string;
@@ -37,6 +39,10 @@ export class ResponseEnvelope {
 				return ApiFailureReason.UNKNOWN_ERROR;
 		}
 	}
+
+	public getDetails(): object {
+		return this.details;
+	}
 }
 
 export function createFailedResponseEnvelope(details: object): ResponseEnvelope {
@@ -59,4 +65,20 @@ export enum ApiFailureReason {
 	NONE = 0,
 	UNKNOWN_ERROR = 1,
 	API_KEY_EXPIRED = 2
+}
+
+export function analayzeResponseEnvelopAndRedirectIfNeeded(response: ResponseEnvelope) {
+	if (!response.error()) {
+		return;
+	}
+
+	const reason = response.failureReason();
+
+	switch (reason) {
+		case ApiFailureReason.API_KEY_EXPIRED:
+			redirect(303, '/login');
+	}
+
+	// https://kit.svelte.dev/docs/errors
+	error(404, { message: response.failureMessage() });
 }

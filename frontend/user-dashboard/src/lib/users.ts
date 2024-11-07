@@ -1,7 +1,15 @@
 import { ResponseEnvelope } from '$lib/responseEnvelope';
-import { buildUrl, safeFetch } from '$lib/api';
+import { buildUserUrl, safeFetch } from '$lib/api';
+import { formatDate } from '$lib/time';
 
-export default class User {
+export interface ApiUser {
+	readonly id: string;
+	readonly email: string;
+	readonly password: string;
+	readonly createdAt: string;
+}
+
+export class User {
 	readonly id: string = '00000000-0000-0000-0000-000000000000';
 	readonly email: string = '';
 	readonly password: string = '';
@@ -30,10 +38,19 @@ export default class User {
 			this.createdAt = new Date(response.details.createdAt);
 		}
 	}
+
+	public toJson(): ApiUser {
+		return {
+			id: this.id,
+			email: this.email,
+			password: this.password,
+			createdAt: formatDate(this.createdAt)
+		};
+	}
 }
 
 export async function createUser(email: string, password: string): Promise<ResponseEnvelope> {
-	const url = buildUrl('');
+	const url = buildUserUrl('');
 	const body = JSON.stringify({ email: email, password: password });
 
 	const params = {
@@ -51,7 +68,7 @@ export async function createUser(email: string, password: string): Promise<Respo
 }
 
 export async function getUser(apiKey: string, id: string): Promise<ResponseEnvelope> {
-	const url = buildUrl(id);
+	const url = buildUserUrl(id);
 
 	const params = {
 		method: 'GET',

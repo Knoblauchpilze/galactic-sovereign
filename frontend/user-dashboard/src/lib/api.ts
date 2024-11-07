@@ -9,7 +9,7 @@ function trimTrailingSlash(url: string): string {
 	return url.substring(0, url.length - 1);
 }
 
-export function buildUrl(url: string): string {
+export function buildUserUrl(url: string): string {
 	const out = trimTrailingSlash(PUBLIC_API_BASE_URL);
 
 	if (url.length === 0) {
