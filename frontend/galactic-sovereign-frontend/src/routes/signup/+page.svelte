@@ -30,16 +30,14 @@
 </script>
 
 <FlexContainer>
-	<div class="fixed right-4 top-4">
-		<p class="text-secondary">
-			Already have an account yet? Click <StyledLink text="here" link="/login" /> to login!
-		</p>
-	</div>
-
 	<FlexContainer extensible={false} styling="h-1/5">
 		<StyledTitle text="Galactic Sovereign" />
 		<StyledText text="Sign up" />
 	</FlexContainer>
+
+	<p class="text-white">
+		Already have an account yet? Click <StyledLink text="here" link="/login" /> to login!
+	</p>
 
 	<FlexContainer extensible={false} styling="h-3/5">
 		<form method="POST" action="?/signup" class="flex flex-col flex-1 justify-evenly">
