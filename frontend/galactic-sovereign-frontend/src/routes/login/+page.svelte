@@ -32,7 +32,6 @@
 <FlexContainer>
 	<FlexContainer extensible={false} styling="h-1/5">
 		<StyledTitle text="Galactic Sovereign" />
-		<StyledText text="Login" />
 	</FlexContainer>
 
 	<p class="text-white">
@@ -40,6 +39,7 @@
 	</p>
 
 	<FlexContainer extensible={false} styling="h-3/5">
+		<StyledText text="Login" />
 		<form method="POST" action="?/login" class="flex flex-col flex-1 justify-evenly">
 			<FormField label="email:" labelId="email">
 				<input
