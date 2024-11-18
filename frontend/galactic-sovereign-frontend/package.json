@@ -17,7 +17,7 @@
 		"@sveltejs/adapter-node": "^5.1.1",
 		"@sveltejs/enhanced-img": "^0.4.1",
 		"@sveltejs/kit": "^2.8.0",
-		"@sveltejs/vite-plugin-svelte": "^4.0.0",
+		"@sveltejs/vite-plugin-svelte": "^4.0.1",
 		"@types/eslint": "^9.6.1",
 		"autoprefixer": "^10.4.20",
 		"eslint": "^9.14.0",
