@@ -33,7 +33,7 @@ jobs:
           base: ${{ github.ref_name }}
           filters: |
             ci:
-              - '.github/workflows/build-and-deploy.yml'
+              - '.github/workflows/build-and-push.yml'
             galactic-sovereign-service:
               - 'go.mod'
               - 'pkg/**'
