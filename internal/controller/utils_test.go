@@ -5,8 +5,11 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 )
+
+var defaultUuid = uuid.MustParse("08ce96a3-3430-48a8-a3b2-b1c987a207ca")
 
 func TestMarshalNilToEmptySlice_WhenNil_ExpectMarshalToEmptySlice(t *testing.T) {
 	assert := assert.New(t)
