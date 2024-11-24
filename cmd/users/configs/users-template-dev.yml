@@ -1,5 +1,0 @@
-Server:
-  Port: 60001
-Database:
-  User: user_service_manager
-  Password: DB_PASSWORD

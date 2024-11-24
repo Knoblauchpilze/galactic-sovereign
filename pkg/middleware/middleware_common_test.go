@@ -5,12 +5,8 @@ import (
 	"net/http"
 	"net/http/httptest"
 
-	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
-
-var defaultApiKey1 = uuid.MustParse("f847c203-1c56-43ad-9ac1-46f27d650917")
-var defaultApiKey2 = uuid.MustParse("297d3309-d88b-4b83-8d82-9c6aae8a9d7a")
 
 var errDefault = fmt.Errorf("some error")
 
@@ -45,12 +41,6 @@ func createErrorHandlerFunc() (echo.HTTPErrorHandler, *bool, *error) {
 	}
 
 	return handler, &called, &reportedErr
-}
-
-func generateTestEchoContextWithApiKey() (echo.Context, *httptest.ResponseRecorder) {
-	req := httptest.NewRequest(http.MethodGet, "/", nil)
-	req.Header.Add(apiKeyHeaderKey, defaultApiKey1.String())
-	return generateTestEchoContextFromRequest(req)
 }
 
 func generateTestEchoContext() (echo.Context, *httptest.ResponseRecorder) {

@@ -1,8 +1,8 @@
 package repositories
 
+import "regexp"
+
 type Repositories struct {
-	Acl                              AclRepository
-	ApiKey                           ApiKeyRepository
 	Building                         BuildingRepository
 	BuildingAction                   BuildingActionRepository
 	BuildingActionCost               BuildingActionCostRepository
@@ -16,7 +16,7 @@ type Repositories struct {
 	PlanetResourceStorage            PlanetResourceStorageRepository
 	Player                           PlayerRepository
 	Resource                         ResourceRepository
-	UserLimit                        UserLimitRepository
-	User                             UserRepository
 	Universe                         UniverseRepository
 }
+
+var duplicatedKeySqlErrorRegexp = regexp.MustCompile(`duplicate key value violates unique constraint ".*" \(SQLSTATE 23505\)`)

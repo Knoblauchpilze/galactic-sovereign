@@ -22,7 +22,6 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       ci: ${{ steps.filter.outputs.ci }}
-      user-service: ${{ steps.filter.outputs.user-service }}
       galactic-sovereign-service: ${{ steps.filter.outputs.galactic-sovereign-service }}
       user-dashboard: ${{ steps.filter.outputs.user-dashboard }}
       galactic-sovereign-frontend: ${{ steps.filter.outputs.galactic-sovereign-frontend }}
@@ -35,13 +34,6 @@ jobs:
           filters: |
             ci:
               - '.github/workflows/build-and-deploy.yml'
-            user-service:
-              - 'go.mod'
-              - 'pkg/**'
-              - 'internal/**'
-              - 'cmd/users/**'
-              - '.github/workflows/user-service**'
-              - '.github/workflows/services**'
             galactic-sovereign-service:
               - 'go.mod'
               - 'pkg/**'
@@ -61,15 +53,10 @@ jobs:
     runs-on: ubuntu-latest
     needs: [detect-code-changes]
     outputs:
-      user-service: ${{ steps.user-service.outputs.rebuild }}
       galactic-sovereign-service: ${{ steps.galactic-sovereign-service.outputs.rebuild }}
       user-dashboard: ${{ steps.user-dashboard.outputs.rebuild }}
       galactic-sovereign-frontend: ${{ steps.galactic-sovereign-frontend.outputs.rebuild }}
     steps:
-      - name: Determine user-service rebuild status
-        id: user-service
-        run: |
-          echo 'rebuild=${{ needs.detect-code-changes.outputs.user-service == 'true' || needs.detect-code-changes.outputs.ci == 'true' }}' >> $GITHUB_OUTPUT
       - name: Determine galactic-sovereign-service rebuild status
         id: galactic-sovereign-service
         run: |
@@ -91,12 +78,12 @@ jobs:
       - name: Detect if service tags should be persisted
         id: persist-tags
         run: |
-          echo 'persist=${{ (github.ref == 'refs/heads/master') && (needs.analyze-code-changes.outputs.user-service == 'true' || needs.analyze-code-changes.outputs.galactic-sovereign-service == 'true' || needs.analyze-code-changes.outputs.user-dashboard == 'true' || needs.analyze-code-changes.outputs.galactic-sovereign-frontend == 'true') }}' >> $GITHUB_OUTPUT
+          echo 'persist=${{ (github.ref == 'refs/heads/master') && (needs.analyze-code-changes.outputs.galactic-sovereign-service == 'true' || needs.analyze-code-changes.outputs.user-dashboard == 'true' || needs.analyze-code-changes.outputs.galactic-sovereign-frontend == 'true') }}' >> $GITHUB_OUTPUT
 
   tests:
     runs-on: ubuntu-latest
     needs: [analyze-code-changes]
-    if: ${{ needs.analyze-code-changes.outputs.user-service == 'true' || needs.analyze-code-changes.outputs.galactic-sovereign-service == 'true' }}
+    if: ${{ needs.analyze-code-changes.outputs.galactic-sovereign-service == 'true' }}
     steps:
       - uses: actions/checkout@v4
       - name: Setup Go
@@ -111,12 +98,6 @@ jobs:
           fail_ci_if_error: true
           files: ./coverage.out
           token: ${{ secrets.CODECOV_TOKEN }}
-  build-user-service:
-    needs: [tests]
-    uses: ./.github/workflows/user-service-build-and-push.yml
-    secrets:
-      dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
-      dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
   build-galactic-sovereign-service:
     needs: [tests]
     uses: ./.github/workflows/galactic-sovereign-service-build-and-push.yml
@@ -145,7 +126,6 @@ jobs:
       [
         analyze-code-changes,
         analyze-persist-tags-status,
-        build-user-service,
         build-galactic-sovereign-service,
         build-user-dashboard,
         build-galactic-sovereign-frontend,
@@ -164,10 +144,6 @@ jobs:
         with:
           repository: "Knoblauchpilze/ec2-deployment"
           token: ${{ secrets.DEPLOYMENT_TOKEN }}
-      - name: Save user-service tag
-        if: ${{ needs.analyze-code-changes.outputs.user-service == 'true' }}
-        run: |
-          echo "${{ needs.build-user-service.outputs.service-tag }}" > ./build/user-service/version.txt
       - name: Save galactic-sovereign-service tag
         if: ${{ needs.analyze-code-changes.outputs.galactic-sovereign-service == 'true' }}
         run: |
@@ -193,7 +169,6 @@ jobs:
     needs:
       [
         analyze-code-changes,
-        build-user-service,
         build-galactic-sovereign-service,
         build-user-dashboard,
         build-galactic-sovereign-frontend,
@@ -205,10 +180,6 @@ jobs:
       !contains(needs.*.result, 'cancelled')
     steps:
       - uses: actions/checkout@v4
-      - name: user-service tag
-        if: ${{ needs.analyze-code-changes.outputs.user-service == 'true' }}
-        run: |
-          echo "Tag is now $(cat ./build/user-service/version.txt)"
       - name: galactic-sovereign-service tag
         if: ${{ needs.analyze-code-changes.outputs.galactic-sovereign-service == 'true' }}
         run: |

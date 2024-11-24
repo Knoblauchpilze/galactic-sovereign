@@ -52,16 +52,6 @@ func (s *HandlerTestSuite[any]) TestPropagatesError() {
 	assert.Equal(errDefault, err)
 }
 
-func TestFromAuthServiceAwareHttpHandler(t *testing.T) {
-	s := HandlerTestSuite[service.AuthService]{
-		generateTestFunc: func(in func(echo.Context, service.AuthService) error) echo.HandlerFunc {
-			return fromAuthServiceAwareHttpHandler(in, &mockAuthService{})
-		},
-	}
-
-	suite.Run(t, &s)
-}
-
 func TestFromBuildingActionServiceAwareHttpHandler(t *testing.T) {
 	s := HandlerTestSuite[service.BuildingActionService]{
 		generateTestFunc: func(in func(echo.Context, service.BuildingActionService) error) echo.HandlerFunc {
@@ -106,16 +96,6 @@ func TestFromUniverseServiceAwareHttpHandler(t *testing.T) {
 	s := HandlerTestSuite[service.UniverseService]{
 		generateTestFunc: func(in func(echo.Context, service.UniverseService) error) echo.HandlerFunc {
 			return fromUniverseServiceAwareHttpHandler(in, &mockUniverseService{})
-		},
-	}
-
-	suite.Run(t, &s)
-}
-
-func TestFromUserServiceAwareHttpHandler(t *testing.T) {
-	s := HandlerTestSuite[service.UserService]{
-		generateTestFunc: func(in func(echo.Context, service.UserService) error) echo.HandlerFunc {
-			return fromUserServiceAwareHttpHandler(in, &mockUserService{})
 		},
 	}
 

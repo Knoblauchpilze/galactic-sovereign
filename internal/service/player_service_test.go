@@ -13,6 +13,7 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
+var defaultUserId = uuid.MustParse("08ce96a3-3430-48a8-a3b2-b1c987a207ca")
 var defaultPlayerId = uuid.MustParse("f16455b7-514c-44b1-847f-ba2cf99c765b")
 var defaultPlayerName = "my-player"
 
