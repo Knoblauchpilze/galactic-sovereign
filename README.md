@@ -38,7 +38,7 @@ As this is a project to learn things without being a money sink, some aspects of
 
 [![codecov](https://codecov.io/gh/Knoblauchpilze/galactic-sovereign/branch/master/badge.svg?token=WNLIZF0FBL)](https://codecov.io/gh/Knoblauchpilze/galactic-sovereign)
 
-[![Build and deploy services](https://github.com/KnoblauchPilze/galactic-sovereign/actions/workflows/build-and-deploy.yml/badge.svg)](https://github.com/KnoblauchPilze/galactic-sovereign/actions/workflows/build-and-deploy.yml)
+[![Build and push services](https://github.com/KnoblauchPilze/galactic-sovereign/actions/workflows/build-and-push.yml/badge.svg)](https://github.com/KnoblauchPilze/galactic-sovereign/actions/workflows/build-and-push.yml)
 
 # Installation
 
@@ -533,7 +533,7 @@ Regarding the API gateway, we chose [traefik](https://traefik.io/traefik/). This
 The deployment is defined in two different folders:
 
 - the infrastructure part is describedin the [deployments](deployments) folder and contains the `docker compose` configuration alongside the static traefik configuration but also the individual services' configuration files.
-- the [CI workflow](.github/workflows/build-and-deploy.yml) which is responsible to deploy the code to the remote server.
+- the [CI workflow](.github/workflows/build-and-push.yml) which is responsible to deploy the code to the remote server.
 
 The CI workflow should automatically trigger when a docker image for one of the services is successfully built or when a change is detected in the configuration.
 
