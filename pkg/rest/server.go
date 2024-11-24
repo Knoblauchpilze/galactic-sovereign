@@ -10,7 +10,6 @@ import (
 	"github.com/KnoblauchPilze/galactic-sovereign/pkg/errors"
 	"github.com/KnoblauchPilze/galactic-sovereign/pkg/logger"
 	"github.com/KnoblauchPilze/galactic-sovereign/pkg/middleware"
-	"github.com/KnoblauchPilze/galactic-sovereign/pkg/repositories"
 	em "github.com/labstack/echo/v4/middleware"
 )
 
@@ -48,26 +47,6 @@ func NewServer(conf Config) Server {
 
 		server:       s,
 		publicRoutes: publicRoutes,
-
-		close: close,
-	}
-}
-
-func NewServerWithApiKey(conf Config, apiKeyRepository repositories.ApiKeyRepository) Server {
-	s := creationFunc()
-	close := registerMiddlewares(s, conf.RateLimit)
-
-	// https://github.com/labstack/echo/issues/1737#issuecomment-753355711
-	publicRoutes := s.Group("")
-	authorizedRoutes := s.Group("", middleware.ApiKey(apiKeyRepository))
-
-	return &serverImpl{
-		endpoint: ConcatenateEndpoints(conf.BasePath, conf.Prefix),
-		port:     conf.Port,
-
-		server:           s,
-		publicRoutes:     publicRoutes,
-		authorizedRoutes: authorizedRoutes,
 
 		close: close,
 	}
