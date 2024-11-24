@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/KnoblauchPilze/galactic-sovereign/pkg/db"
@@ -23,6 +24,8 @@ type RepositoryPoolTestSuite struct {
 	dbReturnTestCases      map[string]dbPoolReturnTestCase
 	dbErrorTestCases       map[string]dbPoolErrorTestCase
 }
+
+var errDefault = fmt.Errorf("some error")
 
 func (s *RepositoryPoolTestSuite) TestPool_ExpectCorrectNumberOfCalls() {
 	for name, testCase := range s.dbInteractionTestCases {

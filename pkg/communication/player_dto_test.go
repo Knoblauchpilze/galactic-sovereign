@@ -10,7 +10,9 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+var defaultUser = uuid.MustParse("c74a22da-8a05-43a9-a8b9-717e422b0af4")
 var defaultPlayerId = uuid.MustParse("efc01287-830f-4b95-8b26-3deff7135f2d")
+var someTime = time.Date(2024, 05, 05, 20, 50, 18, 651387237, time.UTC)
 
 func TestPlayerDtoRequest_MarshalsToCamelCase(t *testing.T) {
 	assert := assert.New(t)

@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/KnoblauchPilze/galactic-sovereign/pkg/db"
@@ -10,91 +11,8 @@ import (
 	"github.com/google/uuid"
 )
 
-type mockAclRepository struct {
-	repositories.AclRepository
-
-	aclIds []uuid.UUID
-	acl    persistence.Acl
-
-	getErr        error
-	getForUserErr error
-	deleteErr     error
-
-	inAclIds         []uuid.UUID
-	getCalled        int
-	inUserId         uuid.UUID
-	getForUserCalled int
-	deleteCalled     int
-}
-
-func (m *mockAclRepository) Get(ctx context.Context, tx db.Transaction, id uuid.UUID) (persistence.Acl, error) {
-	m.getCalled++
-	m.inAclIds = append(m.inAclIds, id)
-	return m.acl, m.getErr
-}
-
-func (m *mockAclRepository) GetForUser(ctx context.Context, tx db.Transaction, user uuid.UUID) ([]uuid.UUID, error) {
-	m.getForUserCalled++
-	m.inUserId = user
-	return m.aclIds, m.getForUserErr
-}
-
-func (m *mockAclRepository) DeleteForUser(ctx context.Context, tx db.Transaction, user uuid.UUID) error {
-	m.deleteCalled++
-	m.inUserId = user
-	return m.deleteErr
-}
-
-type mockApiKeyRepository struct {
-	repositories.ApiKeyRepository
-
-	apiKey    persistence.ApiKey
-	apiKeyIds []uuid.UUID
-	createErr error
-	getErr    error
-	deleteErr error
-
-	createCalled        int
-	createdApiKey       persistence.ApiKey
-	getForKeyCalled     int
-	apiKeyId            uuid.UUID
-	getForUserCalled    int
-	userId              uuid.UUID
-	deleteCalled        int
-	deleteIds           []uuid.UUID
-	deleteForUserCalled int
-	deleteUserId        uuid.UUID
-}
-
-func (m *mockApiKeyRepository) Create(ctx context.Context, apiKey persistence.ApiKey) (persistence.ApiKey, error) {
-	m.createCalled++
-	m.createdApiKey = apiKey
-	return apiKey, m.createErr
-}
-
-func (m *mockApiKeyRepository) GetForUser(ctx context.Context, user uuid.UUID) ([]uuid.UUID, error) {
-	m.getForUserCalled++
-	m.userId = user
-	return m.apiKeyIds, m.getErr
-}
-
-func (m *mockApiKeyRepository) GetForKey(ctx context.Context, apiKey uuid.UUID) (persistence.ApiKey, error) {
-	m.getForKeyCalled++
-	m.apiKeyId = apiKey
-	return m.apiKey, m.getErr
-}
-
-func (m *mockApiKeyRepository) Delete(ctx context.Context, ids []uuid.UUID) error {
-	m.deleteCalled++
-	m.deleteIds = ids
-	return m.deleteErr
-}
-
-func (m *mockApiKeyRepository) DeleteForUser(ctx context.Context, tx db.Transaction, user uuid.UUID) error {
-	m.deleteForUserCalled++
-	m.deleteUserId = user
-	return m.deleteErr
-}
+var errDefault = fmt.Errorf("some error")
+var testDate = time.Date(2024, 04, 01, 11, 8, 47, 651387237, time.UTC)
 
 type mockBuildingRepository struct {
 	repositories.BuildingRepository
@@ -687,97 +605,6 @@ func (m *mockUniverseRepository) Delete(ctx context.Context, tx db.Transaction, 
 	m.deleteCalled++
 	m.deleteId = id
 	return m.err
-}
-
-type mockUserRepository struct {
-	repositories.UserRepository
-
-	user      persistence.User
-	ids       []uuid.UUID
-	err       error
-	updateErr error
-
-	createCalled   int
-	createdUser    persistence.User
-	getCalled      int
-	getId          uuid.UUID
-	getEmailCalled int
-	getEmail       string
-	listCalled     int
-	updateCalled   int
-	updatedUser    persistence.User
-	deleteCalled   int
-	deleteId       uuid.UUID
-}
-
-func (m *mockUserRepository) Create(ctx context.Context, user persistence.User) (persistence.User, error) {
-	m.createCalled++
-	m.createdUser = user
-	return m.user, m.err
-}
-
-func (m *mockUserRepository) Get(ctx context.Context, id uuid.UUID) (persistence.User, error) {
-	m.getCalled++
-	m.getId = id
-	return m.user, m.err
-}
-
-func (m *mockUserRepository) GetByEmail(ctx context.Context, email string) (persistence.User, error) {
-	m.getEmailCalled++
-	m.getEmail = email
-	return m.user, m.err
-}
-
-func (m *mockUserRepository) List(ctx context.Context) ([]uuid.UUID, error) {
-	m.listCalled++
-	return m.ids, m.err
-}
-
-func (m *mockUserRepository) Update(ctx context.Context, user persistence.User) (persistence.User, error) {
-	m.updateCalled++
-	m.updatedUser = user
-	return m.updatedUser, m.updateErr
-}
-
-func (m *mockUserRepository) Delete(ctx context.Context, tx db.Transaction, id uuid.UUID) error {
-	m.deleteCalled++
-	m.deleteId = id
-	return m.err
-}
-
-type mockUserLimitRepository struct {
-	repositories.UserLimitRepository
-
-	userLimitIds []uuid.UUID
-	userLimit    persistence.UserLimit
-
-	getErr        error
-	getForUserErr error
-	deleteErr     error
-
-	inUserLimitIds   []uuid.UUID
-	getCalled        int
-	inUserId         uuid.UUID
-	getForUserCalled int
-	deleteCalled     int
-}
-
-func (m *mockUserLimitRepository) Get(ctx context.Context, tx db.Transaction, id uuid.UUID) (persistence.UserLimit, error) {
-	m.getCalled++
-	m.inUserLimitIds = append(m.inUserLimitIds, id)
-	return m.userLimit, m.getErr
-}
-
-func (m *mockUserLimitRepository) GetForUser(ctx context.Context, tx db.Transaction, user uuid.UUID) ([]uuid.UUID, error) {
-	m.getForUserCalled++
-	m.inUserId = user
-	return m.userLimitIds, m.getForUserErr
-}
-
-func (m *mockUserLimitRepository) DeleteForUser(ctx context.Context, tx db.Transaction, user uuid.UUID) error {
-	m.deleteCalled++
-	m.inUserId = user
-	return m.deleteErr
 }
 
 func getValueToReturnOr[T any](count int, values []T, value T) *T {
