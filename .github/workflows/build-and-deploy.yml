@@ -161,6 +161,8 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          repository: "Knoblauchpilze/ec2-deployment"
       - name: Save user-service tag
         if: ${{ needs.analyze-code-changes.outputs.user-service == 'true' }}
         run: |
