@@ -4,17 +4,11 @@ on:
   push:
     paths:
       - ".github/workflows/**"
-      - "deployments/**"
       - "pkg/**"
       - "internal/**"
       - "cmd/**"
       - "frontend/user-dashboard/**"
       - "frontend/galactic-sovereign-frontend/**"
-      # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#example-including-and-excluding-paths
-      - "!build/user-service/version.txt"
-      - "!build/user-dashboard/version.txt"
-      - "!build/galactic-sovereign-frontend/version.txt"
-      - "!build/galactic-sovereign-service/version.txt"
 
 # https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/control-the-concurrency-of-workflows-and-jobs#example-only-cancel-in-progress-jobs-on-specific-branches
 # https://stackoverflow.com/questions/66335225/how-to-cancel-previous-runs-in-the-pr-when-you-push-new-commitsupdate-the-curre
@@ -28,7 +22,6 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       ci: ${{ steps.filter.outputs.ci }}
-      deployment: ${{ steps.filter.outputs.deployment }}
       user-service: ${{ steps.filter.outputs.user-service }}
       galactic-sovereign-service: ${{ steps.filter.outputs.galactic-sovereign-service }}
       user-dashboard: ${{ steps.filter.outputs.user-dashboard }}
@@ -42,8 +35,6 @@ jobs:
           filters: |
             ci:
               - '.github/workflows/build-and-deploy.yml'
-            deployment:
-              - 'deployments/**'
             user-service:
               - 'go.mod'
               - 'pkg/**'
@@ -78,19 +69,19 @@ jobs:
       - name: Determine user-service rebuild status
         id: user-service
         run: |
-          echo 'rebuild=${{ needs.detect-code-changes.outputs.user-service == 'true' }}' >> $GITHUB_OUTPUT
+          echo 'rebuild=${{ needs.detect-code-changes.outputs.user-service == 'true' || needs.analyze-code-changes.outputs.ci == 'true' }}' >> $GITHUB_OUTPUT
       - name: Determine galactic-sovereign-service rebuild status
         id: galactic-sovereign-service
         run: |
-          echo 'rebuild=${{ needs.detect-code-changes.outputs.galactic-sovereign-service == 'true' }}' >> $GITHUB_OUTPUT
+          echo 'rebuild=${{ needs.detect-code-changes.outputs.galactic-sovereign-service == 'true' || needs.analyze-code-changes.outputs.ci == 'true' }}' >> $GITHUB_OUTPUT
       - name: Determine user-dashboard rebuild status
         id: user-dashboard
         run: |
-          echo 'rebuild=${{ needs.detect-code-changes.outputs.user-dashboard == 'true' }}' >> $GITHUB_OUTPUT
+          echo 'rebuild=${{ needs.detect-code-changes.outputs.user-dashboard == 'true' || needs.analyze-code-changes.outputs.ci == 'true' }}' >> $GITHUB_OUTPUT
       - name: Determine galactic-sovereign-frontend rebuild status
         id: galactic-sovereign-frontend
         run: |
-          echo 'rebuild=${{ needs.detect-code-changes.outputs.galactic-sovereign-frontend == 'true' }}' >> $GITHUB_OUTPUT
+          echo 'rebuild=${{ needs.detect-code-changes.outputs.galactic-sovereign-frontend == 'true' || needs.analyze-code-changes.outputs.ci == 'true' }}' >> $GITHUB_OUTPUT
   analyze-persist-tags-status:
     runs-on: ubuntu-latest
     needs: [detect-code-changes, analyze-code-changes]
@@ -101,16 +92,6 @@ jobs:
         id: persist-tags
         run: |
           echo 'persist=${{ (github.ref == 'refs/heads/master') && (needs.analyze-code-changes.outputs.user-service == 'true' || needs.analyze-code-changes.outputs.galactic-sovereign-service == 'true' || needs.analyze-code-changes.outputs.user-dashboard == 'true' || needs.analyze-code-changes.outputs.galactic-sovereign-frontend == 'true') }}' >> $GITHUB_OUTPUT
-  analyze-deploy-status:
-    runs-on: ubuntu-latest
-    needs: [detect-code-changes, analyze-persist-tags-status]
-    outputs:
-      deploy-services: ${{ steps.deploy-services.outputs.deploy }}
-    steps:
-      - name: Detect if services should be deployed
-        id: deploy-services
-        run: |
-          echo 'deploy=${{ (github.ref == 'refs/heads/master') && (needs.analyze-persist-tags-status.outputs.persist == 'true' || needs.detect-code-changes.outputs.deployment == 'true' || needs.detect-code-changes.outputs.ci == 'true') }}' >> $GITHUB_OUTPUT
 
   tests:
     runs-on: ubuntu-latest
@@ -158,144 +139,6 @@ jobs:
       dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
       dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
 
-  backup-deployment-config:
-    runs-on: ubuntu-latest
-    # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idneeds
-    needs:
-      [
-        analyze-deploy-status,
-        build-user-service,
-        build-galactic-sovereign-service,
-        build-user-dashboard,
-        build-galactic-sovereign-frontend,
-      ]
-    # https://github.com/actions/runner/issues/491
-    # https://github.com/actions/runner/issues/2205#issuecomment-1400087739
-    if: |
-      always() &&
-      !contains(needs.*.result, 'failure') &&
-      !contains(needs.*.result, 'cancelled') &&
-      needs.analyze-deploy-status.outputs.deploy-services == 'true'
-    steps:
-      - name: Back-up deployment config
-        uses: appleboy/ssh-action@v1.2.0
-        with:
-          host: "${{ secrets.EC2_DEPLOY_HOST }}"
-          username: ubuntu
-          key: ${{ secrets.EC2_DEPLOY_SSH_KEY }}
-          script: |
-            rm -rf ~/deployments.bak
-            mv ~/deployments ~/deployments.bak
-            mkdir ~/deployments
-  sync-deployment-configuration:
-    runs-on: ubuntu-latest
-    needs:
-      [
-        backup-deployment-config,
-        analyze-code-changes,
-        analyze-deploy-status,
-        build-user-service,
-        build-galactic-sovereign-service,
-        build-user-dashboard,
-        build-galactic-sovereign-frontend,
-      ]
-    if: |
-      always() &&
-      !contains(needs.*.result, 'failure') &&
-      !contains(needs.*.result, 'cancelled') &&
-      needs.analyze-deploy-status.outputs.deploy-services == 'true'
-    steps:
-      - uses: actions/checkout@v4
-      - name: Substitute acme email
-        run: |
-          mv deployments/traefik-template.yml deployments/traefik.yml
-          sed -i 's/${EMAIL_TO_BE_REPLACED}/${{ secrets.ACME_EMAIL }}/g' deployments/traefik.yml
-      - name: Configure docker-compose deployment
-        # https://deploy-preview-13474--docsdocker.netlify.app/compose/env-file/#compose-2x
-        run: |
-          echo "ENV_USER_DATABASE_PASSWORD=${{ secrets.USER_SERVICE_DATABASE_MANAGER_PASSWORD }}" >> ./deployments/.env
-          echo "ENV_GALACTIC_SOVEREIGN_DATABASE_PASSWORD=${{ secrets.GALACTIC_SOVEREIGN_DATABASE_MANAGER_PASSWORD }}" >> ./deployments/.env
-          echo "USER_DASHBOARD_ORIGIN=${{ secrets.USER_DASHBOARD_ORIGIN }}" >> ./deployments/.env
-          echo "GALACTIC_SOVEREIGN_FRONTEND_ORIGIN=${{ secrets.GALACTIC_SOVEREIGN_FRONTEND_ORIGIN }}" >> ./deployments/.env
-          echo "DOMAIN_NAME=${{ secrets.DOMAIN_NAME }}" >> ./deployments/.env
-          echo "TRAEFIK_USER=${{ secrets.TRAEFIK_USER }}" >> ./deployments/.env
-          echo "TRAEFIK_HASHED_PASSWORD='"'${{ secrets.TRAEFIK_HASHED_PASSWORD }}'"'" >> ./deployments/.env
-      - name: Configure user-service tag from workflow output
-        if: ${{ needs.analyze-code-changes.outputs.user-service == 'true' }}
-        run: |
-          echo "USER_SERVICE_TAG=${{ needs.build-user-service.outputs.service-tag }}" >> ./deployments/.env
-      - name: Configure user-service tag from existing tag
-        if: ${{ needs.analyze-code-changes.outputs.user-service == 'false' }}
-        run: |
-          echo "USER_SERVICE_TAG=$(cat ./build/user-service/version.txt)" >> ./deployments/.env
-      - name: Configure galactic-sovereign-service tag from workflow output
-        if: ${{ needs.analyze-code-changes.outputs.galactic-sovereign-service == 'true' }}
-        run: |
-          echo "GALACTIC_SOVEREIGN_SERVICE_TAG=${{ needs.build-galactic-sovereign-service.outputs.service-tag }}" >> ./deployments/.env
-      - name: Configure galactic-sovereign-service tag from existing tag
-        if: ${{ needs.analyze-code-changes.outputs.galactic-sovereign-service == 'false' }}
-        run: |
-          echo "GALACTIC_SOVEREIGN_SERVICE_TAG=$(cat ./build/galactic-sovereign-service/version.txt)" >> ./deployments/.env
-      - name: Configure user-dashboard tag from workflow output
-        if: ${{ needs.analyze-code-changes.outputs.user-dashboard == 'true' }}
-        run: |
-          echo "USER_DASHBOARD_TAG=${{ needs.build-user-dashboard.outputs.service-tag }}" >> ./deployments/.env
-      - name: Configure user-dashboard tag from existing tag
-        if: ${{ needs.analyze-code-changes.outputs.user-dashboard == 'false' }}
-        run: |
-          echo "USER_DASHBOARD_TAG=$(cat ./build/user-dashboard/version.txt)" >> ./deployments/.env
-      - name: Configure galactic-sovereign-frontend tag from workflow output
-        if: ${{ needs.analyze-code-changes.outputs.galactic-sovereign-frontend == 'true' }}
-        run: |
-          echo "GALACTIC_SOVEREIGN_FRONTEND_TAG=${{ needs.build-galactic-sovereign-frontend.outputs.service-tag }}" >> ./deployments/.env
-      - name: Configure galactic-sovereign-frontend tag from existing tag
-        if: ${{ needs.analyze-code-changes.outputs.galactic-sovereign-frontend == 'false' }}
-        run: |
-          echo "GALACTIC_SOVEREIGN_FRONTEND_TAG=$(cat ./build/galactic-sovereign-frontend/version.txt)" >> ./deployments/.env
-      - name: Install SSH keys
-        uses: shimataro/ssh-key-action@v2
-        with:
-          key: ${{ secrets.EC2_DEPLOY_SSH_KEY }}
-          known_hosts: ${{ secrets.EC2_DEPLOY_SSH_KNOWN_HOSTS }}
-      - name: Sync deployment configuration
-        # https://www.tecmint.com/rsync-local-remote-file-synchronization-commands/#3_Copy_a_Directory_from_Local_to_Remote_Server
-        run: |
-          rsync -avzh ./deployments ubuntu@${{ secrets.EC2_DEPLOY_HOST }}:/home/ubuntu/
-  deploy:
-    runs-on: ubuntu-latest
-    needs: [analyze-deploy-status, sync-deployment-configuration]
-    if: |
-      always() &&
-      !contains(needs.*.result, 'failure') &&
-      !contains(needs.*.result, 'cancelled') &&
-      needs.analyze-deploy-status.outputs.deploy-services == 'true'
-    steps:
-      - name: Deploy latest services version
-        uses: appleboy/ssh-action@v1.2.0
-        with:
-          host: "${{ secrets.EC2_DEPLOY_HOST }}"
-          username: ubuntu
-          key: ${{ secrets.EC2_DEPLOY_SSH_KEY }}
-          script: |
-            docker compose -f ./deployments/compose.yaml up -d --remove-orphans
-  clean-deployment-config-backup:
-    runs-on: ubuntu-latest
-    needs: [analyze-deploy-status, deploy]
-    if: |
-      always() &&
-      !contains(needs.*.result, 'failure') &&
-      !contains(needs.*.result, 'cancelled') &&
-      needs.analyze-deploy-status.outputs.deploy-services == 'true'
-    steps:
-      - name: Clean back-up of deployment config
-        uses: appleboy/ssh-action@v1.2.0
-        with:
-          host: "${{ secrets.EC2_DEPLOY_HOST }}"
-          username: ubuntu
-          key: ${{ secrets.EC2_DEPLOY_SSH_KEY }}
-          script: |
-            rm -rf ~/deployments.bak
-
   persist-service-tags:
     runs-on: ubuntu-latest
     needs:
@@ -306,7 +149,6 @@ jobs:
         build-galactic-sovereign-service,
         build-user-dashboard,
         build-galactic-sovereign-frontend,
-        clean-deployment-config-backup,
       ]
     # https://github.com/actions/runner/issues/491
     if: |
@@ -348,7 +190,6 @@ jobs:
     needs:
       [
         analyze-code-changes,
-        analyze-deploy-status,
         build-user-service,
         build-galactic-sovereign-service,
         build-user-dashboard,
@@ -377,7 +218,3 @@ jobs:
         if: ${{ needs.analyze-code-changes.outputs.galactic-sovereign-frontend == 'true' }}
         run: |
           echo "Tag is now $(cat ./build/galactic-sovereign-frontend/version.txt)"
-      - name: deployed
-        if: ${{ needs.analyze-deploy-status.outputs.deploy-services }}
-        run: |
-          echo "Services were deployed"
