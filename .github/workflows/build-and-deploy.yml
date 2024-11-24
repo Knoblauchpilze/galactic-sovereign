@@ -91,7 +91,7 @@ jobs:
       - name: Detect if service tags should be persisted
         id: persist-tags
         run: |
-          echo 'persist=${{ (needs.analyze-code-changes.outputs.user-service == 'true' || needs.analyze-code-changes.outputs.galactic-sovereign-service == 'true' || needs.analyze-code-changes.outputs.user-dashboard == 'true' || needs.analyze-code-changes.outputs.galactic-sovereign-frontend == 'true') }}' >> $GITHUB_OUTPUT
+          echo 'persist=${{ (github.ref == 'refs/heads/master') && (needs.analyze-code-changes.outputs.user-service == 'true' || needs.analyze-code-changes.outputs.galactic-sovereign-service == 'true' || needs.analyze-code-changes.outputs.user-dashboard == 'true' || needs.analyze-code-changes.outputs.galactic-sovereign-frontend == 'true') }}' >> $GITHUB_OUTPUT
 
   tests:
     runs-on: ubuntu-latest
@@ -155,6 +155,7 @@ jobs:
       always() &&
       !contains(needs.*.result, 'failure') &&
       !contains(needs.*.result, 'cancelled') &&
+      github.ref == 'refs/heads/master' &&
       needs.analyze-persist-tags-status.outputs.persist == 'true'
     permissions:
       contents: write
