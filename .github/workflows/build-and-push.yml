@@ -82,6 +82,17 @@ jobs:
         id: persist-tags
         run: |
           echo 'persist=${{ (github.ref == 'refs/heads/master') && (needs.analyze-code-changes.outputs.galactic-sovereign-service == 'true' || needs.analyze-code-changes.outputs.user-dashboard == 'true' || needs.analyze-code-changes.outputs.galactic-sovereign-frontend == 'true') }}' >> $GITHUB_OUTPUT
+  extract-service-tag:
+    runs-on: ubuntu-latest
+    # https://docs.github.com/en/actions/using-jobs/defining-outputs-for-jobs
+    outputs:
+      version: ${{ steps.service-version.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Extract git commit hash
+        id: service-version
+        # https://stackoverflow.com/questions/58886293/getting-current-branch-and-commit-hash-in-github-action
+        run: echo "tag=$(git rev-parse --short $GITHUB_SHA)" >> $GITHUB_OUTPUT
 
   tests:
     runs-on: ubuntu-latest
@@ -102,23 +113,25 @@ jobs:
           files: ./coverage.out
           token: ${{ secrets.CODECOV_TOKEN }}
   build-galactic-sovereign-service:
-    needs: [tests]
+    needs: [tests, extract-service-tag]
     uses: ./.github/workflows/galactic-sovereign-service-build-and-push.yml
     secrets:
       dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
       dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
 
   build-user-dashboard:
-    needs: [analyze-code-changes]
+    needs: [analyze-code-changes, extract-service-tag]
     if: ${{ needs.analyze-code-changes.outputs.user-dashboard == 'true' }}
     uses: ./.github/workflows/user-dashboard-build-and-push.yml
     secrets:
       dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
       dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
   build-galactic-sovereign-frontend:
-    needs: [analyze-code-changes]
+    needs: [analyze-code-changes, extract-service-tag]
     if: ${{ needs.analyze-code-changes.outputs.galactic-sovereign-frontend == 'true' }}
     uses: ./.github/workflows/galactic-sovereign-frontend-build-and-push.yml
+    inputs:
+      service-tag: ${{ needs.extract-service-tag.outputs.version }}
     secrets:
       dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
       dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
