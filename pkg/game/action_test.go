@@ -12,7 +12,7 @@ import (
 
 var defaultId = uuid.MustParse("60043fb4-d4bc-4bf0-95fd-dcdaf09a6acc")
 
-func TestDetermineBuildingActionCost(t *testing.T) {
+func TestUnit_DetermineBuildingActionCost(t *testing.T) {
 	assert := assert.New(t)
 
 	action := persistence.BuildingAction{
@@ -51,7 +51,7 @@ func TestDetermineBuildingActionCost(t *testing.T) {
 	assert.Equal(expectedCost, costs[1])
 }
 
-func TestDetermineBuildingActionResourceProduction(t *testing.T) {
+func TestUnit_DetermineBuildingActionResourceProduction(t *testing.T) {
 	assert := assert.New(t)
 
 	action := persistence.BuildingAction{
@@ -90,7 +90,7 @@ func TestDetermineBuildingActionResourceProduction(t *testing.T) {
 	assert.Equal(expectedResourceProduction, productions[1])
 }
 
-func TestConsolidateBuildingActionLevel_WhenNoBuilding_SetsDefault(t *testing.T) {
+func TestUnit_ConsolidateBuildingActionLevel_WhenNoBuilding_SetsDefault(t *testing.T) {
 	assert := assert.New(t)
 
 	action := persistence.BuildingAction{
@@ -104,7 +104,7 @@ func TestConsolidateBuildingActionLevel_WhenNoBuilding_SetsDefault(t *testing.T)
 	assert.Equal(1, actual.DesiredLevel)
 }
 
-func TestConsolidateBuildingActionLevel_WhenBuildingExists_SetsCorrectLevel(t *testing.T) {
+func TestUnit_ConsolidateBuildingActionLevel_WhenBuildingExists_SetsCorrectLevel(t *testing.T) {
 	assert := assert.New(t)
 
 	action := persistence.BuildingAction{
@@ -123,7 +123,7 @@ func TestConsolidateBuildingActionLevel_WhenBuildingExists_SetsCorrectLevel(t *t
 	assert.Equal(27, actual.DesiredLevel)
 }
 
-func TestConsolidateBuildingActionCompletionTime_WhenResourceNotFound_ExpectError(t *testing.T) {
+func TestUnit_ConsolidateBuildingActionCompletionTime_WhenResourceNotFound_ExpectError(t *testing.T) {
 	assert := assert.New(t)
 
 	action := persistence.BuildingAction{
@@ -151,7 +151,7 @@ func TestConsolidateBuildingActionCompletionTime_WhenResourceNotFound_ExpectErro
 	assert.True(errors.IsErrorWithCode(err, NoSuchResource))
 }
 
-func TestConsolidateBuildingActionCompletionTime(t *testing.T) {
+func TestUnit_ConsolidateBuildingActionCompletionTime(t *testing.T) {
 	assert := assert.New(t)
 
 	action := persistence.BuildingAction{
@@ -175,7 +175,7 @@ func TestConsolidateBuildingActionCompletionTime(t *testing.T) {
 	assert.Equal(expectedCompletionTime, actual.CompletedAt)
 }
 
-func TestValidateActionBuilding_NoSuchBuilding(t *testing.T) {
+func TestUnit_ValidateActionBuilding_NoSuchBuilding(t *testing.T) {
 	assert := assert.New(t)
 
 	action := persistence.BuildingAction{
@@ -188,7 +188,7 @@ func TestValidateActionBuilding_NoSuchBuilding(t *testing.T) {
 	assert.True(errors.IsErrorWithCode(err, NoSuchBuilding))
 }
 
-func TestValidateActionBuilding(t *testing.T) {
+func TestUnit_ValidateActionBuilding(t *testing.T) {
 	assert := assert.New(t)
 
 	action := persistence.BuildingAction{
@@ -205,7 +205,7 @@ func TestValidateActionBuilding(t *testing.T) {
 	assert.Nil(err)
 }
 
-func TestValidateActionCost_NoSuchResource(t *testing.T) {
+func TestUnit_ValidateActionCost_NoSuchResource(t *testing.T) {
 	assert := assert.New(t)
 
 	resources := []persistence.PlanetResource{}
@@ -221,7 +221,7 @@ func TestValidateActionCost_NoSuchResource(t *testing.T) {
 	assert.True(errors.IsErrorWithCode(err, NotEnoughResources))
 }
 
-func TestValidateActionCost_TooLittleResource(t *testing.T) {
+func TestUnit_ValidateActionCost_TooLittleResource(t *testing.T) {
 	assert := assert.New(t)
 
 	resources := []persistence.PlanetResource{
@@ -242,7 +242,7 @@ func TestValidateActionCost_TooLittleResource(t *testing.T) {
 	assert.True(errors.IsErrorWithCode(err, NotEnoughResources))
 }
 
-func TestValidateActionCost_ExactlyEnoughResource(t *testing.T) {
+func TestUnit_ValidateActionCost_ExactlyEnoughResource(t *testing.T) {
 	assert := assert.New(t)
 
 	resources := []persistence.PlanetResource{
@@ -263,7 +263,7 @@ func TestValidateActionCost_ExactlyEnoughResource(t *testing.T) {
 	assert.Nil(err)
 }
 
-func TestValidateActionCost_MoreThanEnoughResource(t *testing.T) {
+func TestUnit_ValidateActionCost_MoreThanEnoughResource(t *testing.T) {
 	assert := assert.New(t)
 
 	resources := []persistence.PlanetResource{
@@ -284,7 +284,7 @@ func TestValidateActionCost_MoreThanEnoughResource(t *testing.T) {
 	assert.Nil(err)
 }
 
-func TestValidateBuildingAction_BuildingUnknown(t *testing.T) {
+func TestUnit_ValidateBuildingAction_BuildingUnknown(t *testing.T) {
 	assert := assert.New(t)
 
 	action := persistence.BuildingAction{
@@ -309,7 +309,7 @@ func TestValidateBuildingAction_BuildingUnknown(t *testing.T) {
 	assert.True(errors.IsErrorWithCode(err, NoSuchBuilding))
 }
 
-func TestValidateBuildingAction_CostFails(t *testing.T) {
+func TestUnit_ValidateBuildingAction_CostFails(t *testing.T) {
 	assert := assert.New(t)
 
 	action := persistence.BuildingAction{
@@ -338,7 +338,7 @@ func TestValidateBuildingAction_CostFails(t *testing.T) {
 	assert.True(errors.IsErrorWithCode(err, NotEnoughResources))
 }
 
-func TestValidateBuildingAction(t *testing.T) {
+func TestUnit_ValidateBuildingAction(t *testing.T) {
 	assert := assert.New(t)
 
 	action := persistence.BuildingAction{

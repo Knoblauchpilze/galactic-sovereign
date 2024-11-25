@@ -27,7 +27,7 @@ var defaultActionCosts = []persistence.BuildingActionCost{
 	},
 }
 
-func TestFindResourceForCost_NoSuchResource(t *testing.T) {
+func TestUnit_FindResourceForCost_NoSuchResource(t *testing.T) {
 	assert := assert.New(t)
 
 	cost := persistence.BuildingActionCost{
@@ -40,7 +40,7 @@ func TestFindResourceForCost_NoSuchResource(t *testing.T) {
 	assert.True(errors.IsErrorWithCode(err, noSuchResource))
 }
 
-func TestFindResourceForCost_ResourceExist(t *testing.T) {
+func TestUnit_FindResourceForCost_ResourceExist(t *testing.T) {
 	assert := assert.New(t)
 
 	cost := persistence.BuildingActionCost{
@@ -55,7 +55,7 @@ func TestFindResourceForCost_ResourceExist(t *testing.T) {
 	assert.Equal(expected, actual)
 }
 
-func TestUpdatePlanetResourceWithCosts_ResourceNotFound(t *testing.T) {
+func TestUnit_UpdatePlanetResourceWithCosts_ResourceNotFound(t *testing.T) {
 	assert := assert.New(t)
 
 	costs := []persistence.BuildingActionCost{
@@ -70,7 +70,7 @@ func TestUpdatePlanetResourceWithCosts_ResourceNotFound(t *testing.T) {
 	assert.True(errors.IsErrorWithCode(err, FailedToCreateAction))
 }
 
-func TestUpdatePlanetResourceWithCosts_UpdateResourceInDb(t *testing.T) {
+func TestUnit_UpdatePlanetResourceWithCosts_UpdateResourceInDb(t *testing.T) {
 	assert := assert.New(t)
 
 	m := &mockPlanetResourceRepository{}
@@ -81,7 +81,7 @@ func TestUpdatePlanetResourceWithCosts_UpdateResourceInDb(t *testing.T) {
 	assert.Equal(1, m.updateCalled)
 }
 
-func TestUpdatePlanetResourceWithCosts_AddResource(t *testing.T) {
+func TestUnit_UpdatePlanetResourceWithCosts_AddResource(t *testing.T) {
 	assert := assert.New(t)
 
 	m := &mockPlanetResourceRepository{}
@@ -95,7 +95,7 @@ func TestUpdatePlanetResourceWithCosts_AddResource(t *testing.T) {
 	assert.Equal(expectedAmount, m.updatedPlanetResources[0].Amount)
 }
 
-func TestUpdatePlanetResourceWithCosts_SubtractResource(t *testing.T) {
+func TestUnit_UpdatePlanetResourceWithCosts_SubtractResource(t *testing.T) {
 	assert := assert.New(t)
 
 	m := &mockPlanetResourceRepository{}
@@ -109,7 +109,7 @@ func TestUpdatePlanetResourceWithCosts_SubtractResource(t *testing.T) {
 	assert.Equal(expectedAmount, m.updatedPlanetResources[0].Amount)
 }
 
-func TestUpdatePlanetResourceWithCosts_Update_Fails(t *testing.T) {
+func TestUnit_UpdatePlanetResourceWithCosts_Update_Fails(t *testing.T) {
 	assert := assert.New(t)
 
 	m := &mockPlanetResourceRepository{
@@ -122,7 +122,7 @@ func TestUpdatePlanetResourceWithCosts_Update_Fails(t *testing.T) {
 	assert.Equal(1, m.updateCalled)
 }
 
-func TestUpdatePlanetResourceWithCosts_Update_OptimisticLockException(t *testing.T) {
+func TestUnit_UpdatePlanetResourceWithCosts_Update_OptimisticLockException(t *testing.T) {
 	assert := assert.New(t)
 
 	m := &mockPlanetResourceRepository{

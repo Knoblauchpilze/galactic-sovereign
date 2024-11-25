@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestCreateEchoServer_DisablesBanner(t *testing.T) {
+func TestUnit_CreateEchoServer_DisablesBanner(t *testing.T) {
 	assert := assert.New(t)
 
 	e := createEchoServer()
@@ -14,7 +14,7 @@ func TestCreateEchoServer_DisablesBanner(t *testing.T) {
 	assert.True(e.HideBanner)
 }
 
-func TestCreateEchoServer_DisablesPort(t *testing.T) {
+func TestUnit_CreateEchoServer_DisablesPort(t *testing.T) {
 	assert := assert.New(t)
 
 	e := createEchoServer()
@@ -22,7 +22,7 @@ func TestCreateEchoServer_DisablesPort(t *testing.T) {
 	assert.True(e.HidePort)
 }
 
-func TestCreateEchoServer_AttachesLoggerWithPrefix(t *testing.T) {
+func TestUnit_CreateEchoServer_AttachesLoggerWithPrefix(t *testing.T) {
 	assert := assert.New(t)
 
 	e := createEchoServer()

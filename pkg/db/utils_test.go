@@ -9,7 +9,7 @@ import (
 
 var defaultUuid = uuid.MustParse("08ce96a3-3430-48a8-a3b2-b1c987a207ca")
 
-func TestToSliceInterface(t *testing.T) {
+func TestUnit_ToSliceInterface(t *testing.T) {
 	assert := assert.New(t)
 
 	testCases := map[string][]uuid.UUID{
@@ -39,7 +39,7 @@ type inClauseTestCase struct {
 	expected string
 }
 
-func TestGenerateInClauseForArgs(t *testing.T) {
+func TestUnit_GenerateInClauseForArgs(t *testing.T) {
 	assert := assert.New(t)
 
 	testCases := map[string]inClauseTestCase{

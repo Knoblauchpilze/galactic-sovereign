@@ -21,7 +21,7 @@ var defaultBuildingResourceProductionDtoResponse = BuildingResourceProductionDto
 	Progress: 1.3,
 }
 
-func TestToBuildingResourceProductionDtoResponse(t *testing.T) {
+func TestUnit_ToBuildingResourceProductionDtoResponse(t *testing.T) {
 	assert := assert.New(t)
 
 	actual := ToBuildingResourceProductionDtoResponse(defaultBuildingResourceProduction)
@@ -32,7 +32,7 @@ func TestToBuildingResourceProductionDtoResponse(t *testing.T) {
 	assert.Equal(1.3, actual.Progress)
 }
 
-func TestBuildingResourceProductionDtoResponse_MarshalsToCamelCase(t *testing.T) {
+func TestUnit_BuildingResourceProductionDtoResponse_MarshalsToCamelCase(t *testing.T) {
 	assert := assert.New(t)
 
 	out, err := json.Marshal(defaultBuildingResourceProductionDtoResponse)

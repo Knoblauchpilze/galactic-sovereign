@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestLogger_UsesLoggerImpl(t *testing.T) {
+func TestUnit_Logger_UsesLoggerImpl(t *testing.T) {
 	assert := assert.New(t)
 	t.Cleanup(resetDefaultLogger)
 
@@ -22,13 +22,13 @@ func TestLogger_UsesLoggerImpl(t *testing.T) {
 	assert.True(ok)
 }
 
-func TestLogger_DefaultLevelIsTrace(t *testing.T) {
+func TestUnit_Logger_DefaultLevelIsTrace(t *testing.T) {
 	assert := assert.New(t)
 
 	assert.Equal(zerolog.TraceLevel, prettyLogger.GetLevel())
 }
 
-func TestLogger_Prefix(t *testing.T) {
+func TestUnit_Logger_Prefix(t *testing.T) {
 	assert := assert.New(t)
 	t.Cleanup(resetDefaultLogger)
 
@@ -42,7 +42,7 @@ func TestLogger_Prefix(t *testing.T) {
 	assert.Equal("anotherPrefix", l.Prefix())
 }
 
-func TestLogger_Level(t *testing.T) {
+func TestUnit_Logger_Level(t *testing.T) {
 	assert := assert.New(t)
 	t.Cleanup(resetDefaultLogger)
 
@@ -56,7 +56,7 @@ func TestLogger_Level(t *testing.T) {
 	assert.Equal(log.ERROR, l.Level())
 }
 
-func TestLogger_UsesConsoleWriter(t *testing.T) {
+func TestUnit_Logger_UsesConsoleWriter(t *testing.T) {
 	assert := assert.New(t)
 	t.Cleanup(resetDefaultLogger)
 
@@ -71,7 +71,7 @@ func TestLogger_UsesConsoleWriter(t *testing.T) {
 	assert.Equal(&m, scw.writer)
 }
 
-func TestLogger_AllowsReplacingOutput(t *testing.T) {
+func TestUnit_Logger_AllowsReplacingOutput(t *testing.T) {
 	assert := assert.New(t)
 	t.Cleanup(resetDefaultLogger)
 
@@ -87,7 +87,7 @@ func TestLogger_AllowsReplacingOutput(t *testing.T) {
 	assert.Equal(&m2, actual)
 }
 
-func TestLogger_Debugf(t *testing.T) {
+func TestUnit_Logger_Debugf(t *testing.T) {
 	assert := assert.New(t)
 	t.Cleanup(resetDefaultLogger)
 
@@ -104,7 +104,7 @@ func TestLogger_Debugf(t *testing.T) {
 	assert.True(matcher.MatchString(actual))
 }
 
-func TestLogger_Infof(t *testing.T) {
+func TestUnit_Logger_Infof(t *testing.T) {
 	assert := assert.New(t)
 	t.Cleanup(resetDefaultLogger)
 
@@ -121,7 +121,7 @@ func TestLogger_Infof(t *testing.T) {
 	assert.True(matcher.MatchString(actual))
 }
 
-func TestLogger_Warnf(t *testing.T) {
+func TestUnit_Logger_Warnf(t *testing.T) {
 	assert := assert.New(t)
 	t.Cleanup(resetDefaultLogger)
 
@@ -138,7 +138,7 @@ func TestLogger_Warnf(t *testing.T) {
 	assert.True(matcher.MatchString(actual))
 }
 
-func TestLogger_Errorf(t *testing.T) {
+func TestUnit_Logger_Errorf(t *testing.T) {
 	assert := assert.New(t)
 	t.Cleanup(resetDefaultLogger)
 
@@ -155,7 +155,7 @@ func TestLogger_Errorf(t *testing.T) {
 	assert.True(matcher.MatchString(actual))
 }
 
-func TestLogger_Panicf(t *testing.T) {
+func TestUnit_Logger_Panicf(t *testing.T) {
 	assert := assert.New(t)
 	t.Cleanup(resetDefaultLogger)
 
@@ -175,7 +175,7 @@ func TestLogger_Panicf(t *testing.T) {
 	assert.True(matcher.MatchString(actual))
 }
 
-func TestLogger_WithHeader(t *testing.T) {
+func TestUnit_Logger_WithHeader(t *testing.T) {
 	assert := assert.New(t)
 	t.Cleanup(resetDefaultLogger)
 
@@ -193,7 +193,7 @@ func TestLogger_WithHeader(t *testing.T) {
 	assert.True(matcher.MatchString(actual))
 }
 
-func TestLogger_Debugj(t *testing.T) {
+func TestUnit_Logger_Debugj(t *testing.T) {
 	assert := assert.New(t)
 	t.Cleanup(resetDefaultLogger)
 
@@ -210,7 +210,7 @@ func TestLogger_Debugj(t *testing.T) {
 	assert.True(matcher.MatchString(actual))
 }
 
-func TestLogger_Infoj(t *testing.T) {
+func TestUnit_Logger_Infoj(t *testing.T) {
 	assert := assert.New(t)
 	t.Cleanup(resetDefaultLogger)
 
@@ -227,7 +227,7 @@ func TestLogger_Infoj(t *testing.T) {
 	assert.True(matcher.MatchString(actual))
 }
 
-func TestLogger_Warnj(t *testing.T) {
+func TestUnit_Logger_Warnj(t *testing.T) {
 	assert := assert.New(t)
 	t.Cleanup(resetDefaultLogger)
 
@@ -244,7 +244,7 @@ func TestLogger_Warnj(t *testing.T) {
 	assert.True(matcher.MatchString(actual))
 }
 
-func TestLogger_Errorj(t *testing.T) {
+func TestUnit_Logger_Errorj(t *testing.T) {
 	assert := assert.New(t)
 	t.Cleanup(resetDefaultLogger)
 
@@ -261,7 +261,7 @@ func TestLogger_Errorj(t *testing.T) {
 	assert.True(matcher.MatchString(actual))
 }
 
-func TestLogger_Panicj(t *testing.T) {
+func TestUnit_Logger_Panicj(t *testing.T) {
 	assert := assert.New(t)
 	t.Cleanup(resetDefaultLogger)
 
@@ -281,7 +281,7 @@ func TestLogger_Panicj(t *testing.T) {
 	assert.True(matcher.MatchString(actual))
 }
 
-func TestLogger_JsonWithHeader(t *testing.T) {
+func TestUnit_Logger_JsonWithHeader(t *testing.T) {
 	assert := assert.New(t)
 	t.Cleanup(resetDefaultLogger)
 

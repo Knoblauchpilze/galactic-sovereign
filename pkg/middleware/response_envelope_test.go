@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestResponseEnvelope_CallsNextMiddleware(t *testing.T) {
+func TestUnit_ResponseEnvelope_CallsNextMiddleware(t *testing.T) {
 	assert := assert.New(t)
 	ctx, _ := generateTestEchoContext()
 	next, called := createHandlerFuncWithCalledBoolean()
@@ -21,7 +21,7 @@ func TestResponseEnvelope_CallsNextMiddleware(t *testing.T) {
 	assert.True(*called)
 }
 
-func TestResponseEnvelope_AssignsNewLogger(t *testing.T) {
+func TestUnit_ResponseEnvelope_AssignsNewLogger(t *testing.T) {
 	assert := assert.New(t)
 	ctx, _ := generateTestEchoContext()
 	next := createHandlerFuncReturning(nil)
@@ -36,7 +36,7 @@ func TestResponseEnvelope_AssignsNewLogger(t *testing.T) {
 	assert.NotEqual(l, actual)
 }
 
-func TestResponseEnvelope_SetsUuidPrefixForRequestLogger(t *testing.T) {
+func TestUnit_ResponseEnvelope_SetsUuidPrefixForRequestLogger(t *testing.T) {
 	assert := assert.New(t)
 	ctx, _ := generateTestEchoContext()
 	next := createHandlerFuncReturning(nil)
@@ -51,7 +51,7 @@ func TestResponseEnvelope_SetsUuidPrefixForRequestLogger(t *testing.T) {
 	assert.True(pattern.MatchString(actual.Prefix()))
 }
 
-func TestResponseEnvelope_AddLoggerToRequestContext(t *testing.T) {
+func TestUnit_ResponseEnvelope_AddLoggerToRequestContext(t *testing.T) {
 	assert := assert.New(t)
 	ctx, _ := generateTestEchoContext()
 	next := createHandlerFuncReturning(nil)
@@ -67,7 +67,7 @@ func TestResponseEnvelope_AddLoggerToRequestContext(t *testing.T) {
 	assert.True(ok)
 }
 
-func TestResponseEnvelope_OverridesResponseWriter(t *testing.T) {
+func TestUnit_ResponseEnvelope_OverridesResponseWriter(t *testing.T) {
 	assert := assert.New(t)
 	ctx, _ := generateTestEchoContext()
 	next := createHandlerFuncReturning(nil)
@@ -86,7 +86,7 @@ func TestResponseEnvelope_OverridesResponseWriter(t *testing.T) {
 	assert.Equal(w, actualW)
 }
 
-func TestResponseEnvelope_PropagatesError(t *testing.T) {
+func TestUnit_ResponseEnvelope_PropagatesError(t *testing.T) {
 	assert := assert.New(t)
 	ctx, _ := generateTestEchoContext()
 	next := createHandlerFuncReturning(errDefault)

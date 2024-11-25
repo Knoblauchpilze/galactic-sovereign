@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestToTraceLogLevel(t *testing.T) {
+func TestUnit_ToTraceLogLevel(t *testing.T) {
 	assert := assert.New(t)
 
 	type testCase struct {
@@ -36,7 +36,7 @@ func TestToTraceLogLevel(t *testing.T) {
 	}
 }
 
-func TestFlattenMap(t *testing.T) {
+func TestUnit_FlattenMap(t *testing.T) {
 	assert := assert.New(t)
 
 	type testCase struct {
@@ -63,7 +63,7 @@ func TestFlattenMap(t *testing.T) {
 
 var date = time.Date(2024, 04, 01, 11, 8, 47, 651387237, time.UTC)
 
-func TestPrepareSqlMessage(t *testing.T) {
+func TestUnit_PrepareSqlMessage(t *testing.T) {
 	assert := assert.New(t)
 
 	type testCase struct {
@@ -154,7 +154,7 @@ type mockEchoLogger struct {
 	args   []interface{}
 }
 
-func TestPgxLoggerImpl_Log_Trace(t *testing.T) {
+func TestUnit_PgxLoggerImpl_Log_Trace(t *testing.T) {
 	assert := assert.New(t)
 
 	m := &mockEchoLogger{}
@@ -169,7 +169,7 @@ func TestPgxLoggerImpl_Log_Trace(t *testing.T) {
 	assert.Equal(0, len(m.args))
 }
 
-func TestPgxLoggerImpl_Log_Debug(t *testing.T) {
+func TestUnit_PgxLoggerImpl_Log_Debug(t *testing.T) {
 	assert := assert.New(t)
 
 	m := &mockEchoLogger{}
@@ -184,7 +184,7 @@ func TestPgxLoggerImpl_Log_Debug(t *testing.T) {
 	assert.Equal(0, len(m.args))
 }
 
-func TestPgxLoggerImpl_Log_Info(t *testing.T) {
+func TestUnit_PgxLoggerImpl_Log_Info(t *testing.T) {
 	assert := assert.New(t)
 
 	m := &mockEchoLogger{}
@@ -199,7 +199,7 @@ func TestPgxLoggerImpl_Log_Info(t *testing.T) {
 	assert.Equal(0, len(m.args))
 }
 
-func TestPgxLoggerImpl_Log_Warn(t *testing.T) {
+func TestUnit_PgxLoggerImpl_Log_Warn(t *testing.T) {
 	assert := assert.New(t)
 
 	m := &mockEchoLogger{}
@@ -214,7 +214,7 @@ func TestPgxLoggerImpl_Log_Warn(t *testing.T) {
 	assert.Equal(0, len(m.args))
 }
 
-func TestPgxLoggerImpl_Log_Error(t *testing.T) {
+func TestUnit_PgxLoggerImpl_Log_Error(t *testing.T) {
 	assert := assert.New(t)
 
 	m := &mockEchoLogger{}
@@ -229,7 +229,7 @@ func TestPgxLoggerImpl_Log_Error(t *testing.T) {
 	assert.Equal(0, len(m.args))
 }
 
-func TestPgxLoggerImpl_Log_None(t *testing.T) {
+func TestUnit_PgxLoggerImpl_Log_None(t *testing.T) {
 	assert := assert.New(t)
 
 	m := &mockEchoLogger{}
@@ -245,7 +245,7 @@ func TestPgxLoggerImpl_Log_None(t *testing.T) {
 	assert.Equal(0, m.errorCalled)
 }
 
-func TestPgxLoggerImpl_WhenMessageIsUnknownAndSetToIgnore_ExpectNoLog(t *testing.T) {
+func TestUnit_PgxLoggerImpl_WhenMessageIsUnknownAndSetToIgnore_ExpectNoLog(t *testing.T) {
 	assert := assert.New(t)
 
 	m := &mockEchoLogger{}
@@ -262,7 +262,7 @@ func TestPgxLoggerImpl_WhenMessageIsUnknownAndSetToIgnore_ExpectNoLog(t *testing
 	assert.Equal(0, m.errorCalled)
 }
 
-func TestPgxLoggerImpl_WhenMessageIsKnownAndSetToIgnore_ExpectFormattedLog(t *testing.T) {
+func TestUnit_PgxLoggerImpl_WhenMessageIsKnownAndSetToIgnore_ExpectFormattedLog(t *testing.T) {
 	assert := assert.New(t)
 
 	m := &mockEchoLogger{}
@@ -282,7 +282,7 @@ func TestPgxLoggerImpl_WhenMessageIsKnownAndSetToIgnore_ExpectFormattedLog(t *te
 	assert.Equal(0, len(m.args))
 }
 
-func TestPgxLoggerImpl_prepareMessage_ExpectFormattedLog(t *testing.T) {
+func TestUnit_PgxLoggerImpl_prepareMessage_ExpectFormattedLog(t *testing.T) {
 	assert := assert.New(t)
 
 	m := &mockEchoLogger{}

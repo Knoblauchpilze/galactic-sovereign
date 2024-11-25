@@ -67,7 +67,7 @@ const resourceProductionPerHour = 5.0
 const resourceStorage = 1000
 const thresholdForResourceEquality = 1e-6
 
-func TestToPlanetResourceProductionMap(t *testing.T) {
+func TestUnit_ToPlanetResourceProductionMap(t *testing.T) {
 	assert := assert.New(t)
 
 	in := []persistence.PlanetResourceProduction{metalProduction, crystalProduction}
@@ -85,7 +85,7 @@ func TestToPlanetResourceProductionMap(t *testing.T) {
 	assert.Equal(crystalProduction.Production, crystal)
 }
 
-func TestToPlanetResourceProductionMap_whenMultipleProductionsForResource_expectThemToBeAdded(t *testing.T) {
+func TestUnit_ToPlanetResourceProductionMap_whenMultipleProductionsForResource_expectThemToBeAdded(t *testing.T) {
 	assert := assert.New(t)
 
 	metalProduction1 := metalProduction
@@ -104,7 +104,7 @@ func TestToPlanetResourceProductionMap_whenMultipleProductionsForResource_expect
 	assert.Equal(expectedProduction, metal)
 }
 
-func TestToPlanetResourceStorageMap(t *testing.T) {
+func TestUnit_ToPlanetResourceStorageMap(t *testing.T) {
 	assert := assert.New(t)
 
 	in := []persistence.PlanetResourceStorage{metalStorage, crystalStorage}
@@ -122,7 +122,7 @@ func TestToPlanetResourceStorageMap(t *testing.T) {
 	assert.Equal(crystalStorage.Storage, crystal)
 }
 
-func TestToPlanetResourceStorageMap_whenMultipleProductionsForResource_expectThemToBeAdded(t *testing.T) {
+func TestUnit_ToPlanetResourceStorageMap_whenMultipleProductionsForResource_expectThemToBeAdded(t *testing.T) {
 	assert := assert.New(t)
 
 	metalStorage1 := metalStorage
@@ -141,7 +141,7 @@ func TestToPlanetResourceStorageMap_whenMultipleProductionsForResource_expectThe
 	assert.Equal(expectedStorage, metal)
 }
 
-func TestUpdatePlanetResourceAmountToTime_whenTimeInThePast_expectNoUpdate(t *testing.T) {
+func TestUnit_UpdatePlanetResourceAmountToTime_whenTimeInThePast_expectNoUpdate(t *testing.T) {
 	assert := assert.New(t)
 
 	resource := generatePlanetResource()
@@ -154,7 +154,7 @@ func TestUpdatePlanetResourceAmountToTime_whenTimeInThePast_expectNoUpdate(t *te
 	assert.Equal(expectedUpdatedAt, resource.UpdatedAt)
 }
 
-func TestUpdatePlanetResourceAmountToTime_updatesAmount(t *testing.T) {
+func TestUnit_UpdatePlanetResourceAmountToTime_updatesAmount(t *testing.T) {
 	assert := assert.New(t)
 
 	resource := generatePlanetResource()
@@ -201,7 +201,7 @@ func TestUpdatePlanetResourceAmountToTime_updatesAmount(t *testing.T) {
 	}
 }
 
-func TestUpdatePlanetResourceAmountToTime_whenAmountIsAlreadyAboveStorageCapacity_expectNoChange(t *testing.T) {
+func TestUnit_UpdatePlanetResourceAmountToTime_whenAmountIsAlreadyAboveStorageCapacity_expectNoChange(t *testing.T) {
 	assert := assert.New(t)
 
 	resource := generatePlanetResource()
@@ -217,7 +217,7 @@ func TestUpdatePlanetResourceAmountToTime_whenAmountIsAlreadyAboveStorageCapacit
 	assert.Equal(oneHourFromNow, updated.UpdatedAt)
 }
 
-func TestUpdatePlanetResourceAmountToTime_whenProductionExceedsStorage_expectCapped(t *testing.T) {
+func TestUnit_UpdatePlanetResourceAmountToTime_whenProductionExceedsStorage_expectCapped(t *testing.T) {
 	assert := assert.New(t)
 
 	resource := generatePlanetResource()
@@ -233,7 +233,7 @@ func TestUpdatePlanetResourceAmountToTime_whenProductionExceedsStorage_expectCap
 	assert.Equal(expectedAmount, updated.Amount)
 }
 
-func TestUpdatePlanetResourceAmountToTime_updatesUpdatedAt(t *testing.T) {
+func TestUnit_UpdatePlanetResourceAmountToTime_updatesUpdatedAt(t *testing.T) {
 	assert := assert.New(t)
 
 	resource := generatePlanetResource()
@@ -254,7 +254,7 @@ type planetResourceUpdateTestCase struct {
 	verifyMockInteractions    verifyMockInteractions
 }
 
-func Test_UpdatePlanetResourcesToTime(t *testing.T) {
+func TestUnit__UpdatePlanetResourcesToTime(t *testing.T) {
 	tests := map[string]planetResourceUpdateTestCase{
 		"whenUpdatingPlanetUntilTime_expectListResourcesForPlanetCalled": {
 			verifyMockInteractions: func(repos repositories.Repositories, assert *assert.Assertions) {

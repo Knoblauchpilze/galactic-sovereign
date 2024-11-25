@@ -25,7 +25,7 @@ type mockPgxTransaction struct {
 	err error
 }
 
-func TestTransaction_Query_DelegatesToTransaction(t *testing.T) {
+func TestUnit_Transaction_Query_DelegatesToTransaction(t *testing.T) {
 	assert := assert.New(t)
 
 	mt := mockPgxTransaction{}
@@ -38,7 +38,7 @@ func TestTransaction_Query_DelegatesToTransaction(t *testing.T) {
 	assert.Equal(1, mt.queryCalled)
 }
 
-func TestTransaction_Query_PropagatesSqlQuery(t *testing.T) {
+func TestUnit_Transaction_Query_PropagatesSqlQuery(t *testing.T) {
 	assert := assert.New(t)
 
 	mt := mockPgxTransaction{}
@@ -51,7 +51,7 @@ func TestTransaction_Query_PropagatesSqlQuery(t *testing.T) {
 	assert.Equal(exampleSqlQuery, mt.sql)
 }
 
-func TestTransaction_Query_PropagatesSqlArguments(t *testing.T) {
+func TestUnit_Transaction_Query_PropagatesSqlArguments(t *testing.T) {
 	assert := assert.New(t)
 
 	mt := mockPgxTransaction{}
@@ -64,7 +64,7 @@ func TestTransaction_Query_PropagatesSqlArguments(t *testing.T) {
 	assert.Equal([]interface{}{1, "test-str"}, mt.arguments)
 }
 
-func TestTransaction_Query_PropagatesError(t *testing.T) {
+func TestUnit_Transaction_Query_PropagatesError(t *testing.T) {
 	assert := assert.New(t)
 
 	mt := mockPgxTransaction{
@@ -80,7 +80,7 @@ func TestTransaction_Query_PropagatesError(t *testing.T) {
 	assert.Equal(errDefault, actual.Err())
 }
 
-func TestTransaction_Exec_DelegatesToTransaction(t *testing.T) {
+func TestUnit_Transaction_Exec_DelegatesToTransaction(t *testing.T) {
 	assert := assert.New(t)
 
 	mt := mockPgxTransaction{}
@@ -93,7 +93,7 @@ func TestTransaction_Exec_DelegatesToTransaction(t *testing.T) {
 	assert.Equal(1, mt.execCalled)
 }
 
-func TestTransaction_Exec_PropagatesSqlQuery(t *testing.T) {
+func TestUnit_Transaction_Exec_PropagatesSqlQuery(t *testing.T) {
 	assert := assert.New(t)
 
 	mt := mockPgxTransaction{}
@@ -106,7 +106,7 @@ func TestTransaction_Exec_PropagatesSqlQuery(t *testing.T) {
 	assert.Equal(exampleExecQuery, mt.sql)
 }
 
-func TestTransaction_Exec_PropagatesSqlArguments(t *testing.T) {
+func TestUnit_Transaction_Exec_PropagatesSqlArguments(t *testing.T) {
 	assert := assert.New(t)
 
 	mt := mockPgxTransaction{}
@@ -119,7 +119,7 @@ func TestTransaction_Exec_PropagatesSqlArguments(t *testing.T) {
 	assert.Equal([]interface{}{1, "test-str"}, mt.arguments)
 }
 
-func TestTransaction_Exec_PropagatesError(t *testing.T) {
+func TestUnit_Transaction_Exec_PropagatesError(t *testing.T) {
 	assert := assert.New(t)
 
 	mt := mockPgxTransaction{
@@ -135,7 +135,7 @@ func TestTransaction_Exec_PropagatesError(t *testing.T) {
 	assert.Equal(errDefault, err)
 }
 
-func TestTransaction_Exec_PropagatesCommandTag(t *testing.T) {
+func TestUnit_Transaction_Exec_PropagatesCommandTag(t *testing.T) {
 	assert := assert.New(t)
 
 	mt := mockPgxTransaction{
@@ -150,7 +150,7 @@ func TestTransaction_Exec_PropagatesCommandTag(t *testing.T) {
 	assert.Equal(1, actual)
 }
 
-func TestTransaction_Close_WhenError_CallsRollback(t *testing.T) {
+func TestUnit_Transaction_Close_WhenError_CallsRollback(t *testing.T) {
 	assert := assert.New(t)
 
 	mt := mockPgxTransaction{}
@@ -164,7 +164,7 @@ func TestTransaction_Close_WhenError_CallsRollback(t *testing.T) {
 	assert.Equal(1, mt.rollbackCalled)
 }
 
-func TestTransaction_Close_WhenNoError_CallsCommit(t *testing.T) {
+func TestUnit_Transaction_Close_WhenNoError_CallsCommit(t *testing.T) {
 	assert := assert.New(t)
 
 	mt := mockPgxTransaction{}
@@ -177,7 +177,7 @@ func TestTransaction_Close_WhenNoError_CallsCommit(t *testing.T) {
 	assert.Equal(1, mt.commitCalled)
 }
 
-func TestTransation_TimeStamp_ReturnsInputTimeStamp(t *testing.T) {
+func TestUnit_Transation_TimeStamp_ReturnsInputTimeStamp(t *testing.T) {
 	assert := assert.New(t)
 
 	expected := time.Now()

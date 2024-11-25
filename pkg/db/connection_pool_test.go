@@ -14,7 +14,7 @@ import (
 
 var errDefault = fmt.Errorf("some error")
 
-func TestConnectionPool_NewConnectionPool_UsesProvidedConfig(t *testing.T) {
+func TestUnit_ConnectionPool_NewConnectionPool_UsesProvidedConfig(t *testing.T) {
 	assert := assert.New(t)
 
 	p := NewConnectionPool(defaultPoolConf)
@@ -25,7 +25,7 @@ func TestConnectionPool_NewConnectionPool_UsesProvidedConfig(t *testing.T) {
 	assert.Equal(defaultPoolConf, actual.config)
 }
 
-func TestConnectionPool_ConnectUsesConnectionFunc(t *testing.T) {
+func TestUnit_ConnectionPool_ConnectUsesConnectionFunc(t *testing.T) {
 	assert := assert.New(t)
 
 	called := false
@@ -41,7 +41,7 @@ func TestConnectionPool_ConnectUsesConnectionFunc(t *testing.T) {
 	assert.True(called)
 }
 
-func TestConnectionPool_ConnectToExpectedDatabase(t *testing.T) {
+func TestUnit_ConnectionPool_ConnectToExpectedDatabase(t *testing.T) {
 	assert := assert.New(t)
 
 	var actualConf *pgxpool.Config
@@ -60,7 +60,7 @@ func TestConnectionPool_ConnectToExpectedDatabase(t *testing.T) {
 	assert.Equal(expected.ConnString(), actualConf.ConnString())
 }
 
-func TestConnectionPool_ConnectPropagatesConversionError(t *testing.T) {
+func TestUnit_ConnectionPool_ConnectPropagatesConversionError(t *testing.T) {
 	assert := assert.New(t)
 
 	mockConnFunc := func(ctx context.Context, config *pgxpool.Config) (*pgxpool.Pool, error) {
@@ -78,7 +78,7 @@ func TestConnectionPool_ConnectPropagatesConversionError(t *testing.T) {
 	assert.Contains(actual.Error(), "invalid port (outside range)")
 }
 
-func TestConnectionPool_ConnectPropagatesConnectionError(t *testing.T) {
+func TestUnit_ConnectionPool_ConnectPropagatesConnectionError(t *testing.T) {
 	assert := assert.New(t)
 
 	mockConnFunc := func(ctx context.Context, config *pgxpool.Config) (*pgxpool.Pool, error) {
@@ -105,7 +105,7 @@ type mockPgxConnectionPool struct {
 	err error
 }
 
-func TestConnectionPool_Close_ReleasesTheDbConnection(t *testing.T) {
+func TestUnit_ConnectionPool_Close_ReleasesTheDbConnection(t *testing.T) {
 	assert := assert.New(t)
 
 	m := &mockPgxConnectionPool{}
@@ -118,7 +118,7 @@ func TestConnectionPool_Close_ReleasesTheDbConnection(t *testing.T) {
 	assert.Equal(1, m.closeCalled)
 }
 
-func TestConnectionPool_Ping_DelegatesToPool(t *testing.T) {
+func TestUnit_ConnectionPool_Ping_DelegatesToPool(t *testing.T) {
 	assert := assert.New(t)
 
 	m := &mockPgxConnectionPool{}
@@ -131,7 +131,7 @@ func TestConnectionPool_Ping_DelegatesToPool(t *testing.T) {
 	assert.Equal(1, m.pingCalled)
 }
 
-func TestConnectionPool_Ping_WhenPoolReturnsError_IndicatesFailure(t *testing.T) {
+func TestUnit_ConnectionPool_Ping_WhenPoolReturnsError_IndicatesFailure(t *testing.T) {
 	assert := assert.New(t)
 
 	m := &mockPgxConnectionPool{
@@ -146,7 +146,7 @@ func TestConnectionPool_Ping_WhenPoolReturnsError_IndicatesFailure(t *testing.T)
 	assert.True(errors.IsErrorWithCode(err, DatabasePingFailed))
 }
 
-func TestConnectionPool_Ping_WhenPoolReturnsError_WrapsIntoError(t *testing.T) {
+func TestUnit_ConnectionPool_Ping_WhenPoolReturnsError_WrapsIntoError(t *testing.T) {
 	assert := assert.New(t)
 
 	m := &mockPgxConnectionPool{
@@ -163,7 +163,7 @@ func TestConnectionPool_Ping_WhenPoolReturnsError_WrapsIntoError(t *testing.T) {
 	assert.Equal(errDefault, actual)
 }
 
-func TestConnectionPool_StartTransaction_DelegatesToPool(t *testing.T) {
+func TestUnit_ConnectionPool_StartTransaction_DelegatesToPool(t *testing.T) {
 	assert := assert.New(t)
 
 	m := &mockPgxConnectionPool{}
@@ -176,7 +176,7 @@ func TestConnectionPool_StartTransaction_DelegatesToPool(t *testing.T) {
 	assert.Equal(1, m.beginCalled)
 }
 
-func TestConnectionPool_StartTransaction_PropagatesPoolError(t *testing.T) {
+func TestUnit_ConnectionPool_StartTransaction_PropagatesPoolError(t *testing.T) {
 	assert := assert.New(t)
 
 	m := &mockPgxConnectionPool{
@@ -191,7 +191,7 @@ func TestConnectionPool_StartTransaction_PropagatesPoolError(t *testing.T) {
 	assert.Equal(errDefault, err)
 }
 
-func TestConnectionPool_StartTransaction_CreatesTransaction(t *testing.T) {
+func TestUnit_ConnectionPool_StartTransaction_CreatesTransaction(t *testing.T) {
 	assert := assert.New(t)
 
 	m := &mockPgxConnectionPool{
@@ -211,7 +211,7 @@ func TestConnectionPool_StartTransaction_CreatesTransaction(t *testing.T) {
 
 const exampleSqlQuery = "select * from table"
 
-func TestConnectionPool_Query_DelegatesToPool(t *testing.T) {
+func TestUnit_ConnectionPool_Query_DelegatesToPool(t *testing.T) {
 	assert := assert.New(t)
 
 	m := &mockPgxConnectionPool{}
@@ -224,7 +224,7 @@ func TestConnectionPool_Query_DelegatesToPool(t *testing.T) {
 	assert.Equal(1, m.queryCalled)
 }
 
-func TestConnectionPool_Query_PropagatesSqlQuery(t *testing.T) {
+func TestUnit_ConnectionPool_Query_PropagatesSqlQuery(t *testing.T) {
 	assert := assert.New(t)
 
 	m := &mockPgxConnectionPool{}
@@ -237,7 +237,7 @@ func TestConnectionPool_Query_PropagatesSqlQuery(t *testing.T) {
 	assert.Equal(exampleSqlQuery, m.sqlQuery)
 }
 
-func TestConnectionPool_Query_PropagatesSqlArguments(t *testing.T) {
+func TestUnit_ConnectionPool_Query_PropagatesSqlArguments(t *testing.T) {
 	assert := assert.New(t)
 
 	m := &mockPgxConnectionPool{}
@@ -250,7 +250,7 @@ func TestConnectionPool_Query_PropagatesSqlArguments(t *testing.T) {
 	assert.Equal([]interface{}{1, "test-str"}, m.arguments)
 }
 
-func TestConnectionPool_Query_PropagatesPoolError(t *testing.T) {
+func TestUnit_ConnectionPool_Query_PropagatesPoolError(t *testing.T) {
 	assert := assert.New(t)
 
 	m := &mockPgxConnectionPool{
@@ -267,7 +267,7 @@ func TestConnectionPool_Query_PropagatesPoolError(t *testing.T) {
 
 const exampleExecQuery = "insert into table values('1')"
 
-func TestConnectionPool_Exec_DelegatesToPool(t *testing.T) {
+func TestUnit_ConnectionPool_Exec_DelegatesToPool(t *testing.T) {
 	assert := assert.New(t)
 
 	m := &mockPgxConnectionPool{}
@@ -280,7 +280,7 @@ func TestConnectionPool_Exec_DelegatesToPool(t *testing.T) {
 	assert.Equal(1, m.execCalled)
 }
 
-func TestConnectionPool_Exec_PropagatesSqlQuery(t *testing.T) {
+func TestUnit_ConnectionPool_Exec_PropagatesSqlQuery(t *testing.T) {
 	assert := assert.New(t)
 
 	m := &mockPgxConnectionPool{}
@@ -293,7 +293,7 @@ func TestConnectionPool_Exec_PropagatesSqlQuery(t *testing.T) {
 	assert.Equal(exampleExecQuery, m.sqlQuery)
 }
 
-func TestConnection_Exec_PropagatesSqlArguments(t *testing.T) {
+func TestUnit_Connection_Exec_PropagatesSqlArguments(t *testing.T) {
 	assert := assert.New(t)
 
 	m := &mockPgxConnectionPool{}
@@ -306,7 +306,7 @@ func TestConnection_Exec_PropagatesSqlArguments(t *testing.T) {
 	assert.Equal([]interface{}{1, "test-str"}, m.arguments)
 }
 
-func TestConnectionPool_Exec_PropagatesPoolError(t *testing.T) {
+func TestUnit_ConnectionPool_Exec_PropagatesPoolError(t *testing.T) {
 	assert := assert.New(t)
 
 	m := &mockPgxConnectionPool{

@@ -27,7 +27,7 @@ var defaultPlanetDtoResponse = PlanetDtoResponse{
 	CreatedAt: someTime,
 }
 
-func TestPlanetDtoRequest_MarshalsToCamelCase(t *testing.T) {
+func TestUnit_PlanetDtoRequest_MarshalsToCamelCase(t *testing.T) {
 	assert := assert.New(t)
 
 	dto := PlanetDtoRequest{
@@ -46,7 +46,7 @@ func TestPlanetDtoRequest_MarshalsToCamelCase(t *testing.T) {
 	assert.JSONEq(expectedJson, string(out))
 }
 
-func TestFromPlanetDtoRequest(t *testing.T) {
+func TestUnit_FromPlanetDtoRequest(t *testing.T) {
 	assert := assert.New(t)
 
 	beforeConversion := time.Now()
@@ -66,7 +66,7 @@ func TestFromPlanetDtoRequest(t *testing.T) {
 	assert.Equal(actual.CreatedAt, actual.UpdatedAt)
 }
 
-func TestToPlanetDtoResponse(t *testing.T) {
+func TestUnit_ToPlanetDtoResponse(t *testing.T) {
 	assert := assert.New(t)
 
 	actual := ToPlanetDtoResponse(defaultPlanet)
@@ -78,7 +78,7 @@ func TestToPlanetDtoResponse(t *testing.T) {
 	assert.Equal(someTime, actual.CreatedAt)
 }
 
-func TestPlanetDtoResponse_MarshalsToCamelCase(t *testing.T) {
+func TestUnit_PlanetDtoResponse_MarshalsToCamelCase(t *testing.T) {
 	assert := assert.New(t)
 
 	out, err := json.Marshal(defaultPlanetDtoResponse)

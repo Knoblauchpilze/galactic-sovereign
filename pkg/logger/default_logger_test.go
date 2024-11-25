@@ -12,7 +12,7 @@ import (
 var matcherStr = `{"level":"${level}","time":"[0-9A-Z:+-]+","message":"26 test"}`
 var pattern = "${level}"
 
-func TestDefaultLogger_Tracef(t *testing.T) {
+func TestUnit_DefaultLogger_Tracef(t *testing.T) {
 	assert := assert.New(t)
 	t.Cleanup(resetPrettyLogger)
 
@@ -29,7 +29,7 @@ func TestDefaultLogger_Tracef(t *testing.T) {
 	assert.True(matcher.MatchString(actual))
 }
 
-func TestDefaultLogger_Debugf(t *testing.T) {
+func TestUnit_DefaultLogger_Debugf(t *testing.T) {
 	assert := assert.New(t)
 	t.Cleanup(resetPrettyLogger)
 
@@ -46,7 +46,7 @@ func TestDefaultLogger_Debugf(t *testing.T) {
 	assert.True(matcher.MatchString(actual))
 }
 
-func TestDefaultLogger_Infof(t *testing.T) {
+func TestUnit_DefaultLogger_Infof(t *testing.T) {
 	assert := assert.New(t)
 	t.Cleanup(resetPrettyLogger)
 
@@ -63,7 +63,7 @@ func TestDefaultLogger_Infof(t *testing.T) {
 	assert.True(matcher.MatchString(actual))
 }
 
-func TestDefaultLogger_Warnf(t *testing.T) {
+func TestUnit_DefaultLogger_Warnf(t *testing.T) {
 	assert := assert.New(t)
 	t.Cleanup(resetPrettyLogger)
 
@@ -80,7 +80,7 @@ func TestDefaultLogger_Warnf(t *testing.T) {
 	assert.True(matcher.MatchString(actual))
 }
 
-func TestDefaultLogger_Errorf(t *testing.T) {
+func TestUnit_DefaultLogger_Errorf(t *testing.T) {
 	assert := assert.New(t)
 	t.Cleanup(resetPrettyLogger)
 

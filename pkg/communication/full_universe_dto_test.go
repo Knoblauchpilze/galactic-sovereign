@@ -19,7 +19,7 @@ var defaultFullBuildingDtoResponse = FullBuildingDtoResponse{
 	},
 }
 
-func TestToFullUniverseDtoResponse(t *testing.T) {
+func TestUnit_ToFullUniverseDtoResponse(t *testing.T) {
 	assert := assert.New(t)
 
 	actual := ToFullUniverseDtoResponse(defaultUniverse,
@@ -39,7 +39,7 @@ func TestToFullUniverseDtoResponse(t *testing.T) {
 	assert.Equal(defaultFullBuildingDtoResponse, actual.Buildings[0])
 }
 
-func TestFullUniverseDtoResponse_MarshalsToCamelCase(t *testing.T) {
+func TestUnit_FullUniverseDtoResponse_MarshalsToCamelCase(t *testing.T) {
 	assert := assert.New(t)
 
 	dto := FullUniverseDtoResponse{
@@ -94,7 +94,7 @@ func TestFullUniverseDtoResponse_MarshalsToCamelCase(t *testing.T) {
 	assert.JSONEq(expectedJson, string(out))
 }
 
-func TestFullUniverseDtoResponse_WhenResourcesAreEmpty_MarshalsToEmptyArray(t *testing.T) {
+func TestUnit_FullUniverseDtoResponse_WhenResourcesAreEmpty_MarshalsToEmptyArray(t *testing.T) {
 	assert := assert.New(t)
 
 	dto := FullUniverseDtoResponse{
@@ -141,7 +141,7 @@ func TestFullUniverseDtoResponse_WhenResourcesAreEmpty_MarshalsToEmptyArray(t *t
 	assert.JSONEq(expectedJson, string(out))
 }
 
-func TestFullUniverseDtoResponse_WhenBuildingsAreEmpty_MarshalsToEmptyArray(t *testing.T) {
+func TestUnit_FullUniverseDtoResponse_WhenBuildingsAreEmpty_MarshalsToEmptyArray(t *testing.T) {
 	assert := assert.New(t)
 
 	dto := FullUniverseDtoResponse{

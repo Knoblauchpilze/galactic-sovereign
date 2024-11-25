@@ -12,7 +12,7 @@ var actionId = uuid.MustParse("f9fe2719-fded-4254-861e-6bd672a8662a")
 var planetId = uuid.MustParse("328c7dd2-7004-4a90-91c7-162ca9adf628")
 var buildingId = uuid.MustParse("4afa0ce8-3da3-4112-b10f-935919e962c3")
 
-func TestToBuildingAction(t *testing.T) {
+func TestUnit_ToBuildingAction(t *testing.T) {
 	assert := assert.New(t)
 
 	action := BuildingAction{

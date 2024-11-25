@@ -8,21 +8,21 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestRows_Err_NoError(t *testing.T) {
+func TestUnit_Rows_Err_NoError(t *testing.T) {
 	assert := assert.New(t)
 
 	r := newRows(nil, nil)
 	assert.Nil(r.Err())
 }
 
-func TestRows_Err_WithError(t *testing.T) {
+func TestUnit_Rows_Err_WithError(t *testing.T) {
 	assert := assert.New(t)
 
 	r := newRows(nil, errDefault)
 	assert.Equal(errDefault, r.Err())
 }
 
-func TestRows_Close_DoesNotPanicWhenRowsIsNil(t *testing.T) {
+func TestUnit_Rows_Close_DoesNotPanicWhenRowsIsNil(t *testing.T) {
 	assert := assert.New(t)
 
 	r := rowsImpl{}
@@ -38,7 +38,7 @@ type mockPgxRows struct {
 	closeCalled int
 }
 
-func TestRows_Close_ClosesRows(t *testing.T) {
+func TestUnit_Rows_Close_ClosesRows(t *testing.T) {
 	assert := assert.New(t)
 
 	m := mockPgxRows{}
@@ -54,7 +54,7 @@ type mockParser struct {
 	err        error
 }
 
-func TestRows_GetSingleValue_WhenError_Fails(t *testing.T) {
+func TestUnit_Rows_GetSingleValue_WhenError_Fails(t *testing.T) {
 	assert := assert.New(t)
 
 	mp := &mockParser{}
@@ -66,7 +66,7 @@ func TestRows_GetSingleValue_WhenError_Fails(t *testing.T) {
 	assert.Equal(0, mp.scanCalled)
 }
 
-func TestRows_GetSingleValue_WhenNilRows_Fails(t *testing.T) {
+func TestUnit_Rows_GetSingleValue_WhenNilRows_Fails(t *testing.T) {
 	assert := assert.New(t)
 
 	mp := &mockParser{}
@@ -78,7 +78,7 @@ func TestRows_GetSingleValue_WhenNilRows_Fails(t *testing.T) {
 	assert.Equal(0, mp.scanCalled)
 }
 
-func TestRows_GetAll_WhenNoRows_Fails(t *testing.T) {
+func TestUnit_Rows_GetAll_WhenNoRows_Fails(t *testing.T) {
 	assert := assert.New(t)
 
 	mr := &mockPgxRows{}
@@ -92,7 +92,7 @@ func TestRows_GetAll_WhenNoRows_Fails(t *testing.T) {
 	assert.Equal(0, mp.scanCalled)
 }
 
-func TestRows_GetSingleValue_CallsScan(t *testing.T) {
+func TestUnit_Rows_GetSingleValue_CallsScan(t *testing.T) {
 	assert := assert.New(t)
 
 	mr := &mockPgxRows{
@@ -106,7 +106,7 @@ func TestRows_GetSingleValue_CallsScan(t *testing.T) {
 	assert.Equal(1, mp.scanCalled)
 }
 
-func TestRows_GetSingleValue_ReturnsScanError(t *testing.T) {
+func TestUnit_Rows_GetSingleValue_ReturnsScanError(t *testing.T) {
 	assert := assert.New(t)
 
 	mr := &mockPgxRows{
@@ -122,7 +122,7 @@ func TestRows_GetSingleValue_ReturnsScanError(t *testing.T) {
 	assert.Equal(errDefault, err)
 }
 
-func TestRows_GetSingleValue_CallsClose(t *testing.T) {
+func TestUnit_Rows_GetSingleValue_CallsClose(t *testing.T) {
 	assert := assert.New(t)
 
 	mr := &mockPgxRows{
@@ -136,7 +136,7 @@ func TestRows_GetSingleValue_CallsClose(t *testing.T) {
 	assert.Equal(1, mr.closeCalled)
 }
 
-func TestRows_GetSingleValue_CallsCloseAlsoWhenScanFails(t *testing.T) {
+func TestUnit_Rows_GetSingleValue_CallsCloseAlsoWhenScanFails(t *testing.T) {
 	assert := assert.New(t)
 
 	mr := &mockPgxRows{
@@ -153,7 +153,7 @@ func TestRows_GetSingleValue_CallsCloseAlsoWhenScanFails(t *testing.T) {
 	assert.Equal(1, mr.closeCalled)
 }
 
-func TestRows_GetSingleValue_WithMultipleValues_Fails(t *testing.T) {
+func TestUnit_Rows_GetSingleValue_WithMultipleValues_Fails(t *testing.T) {
 	assert := assert.New(t)
 
 	mr := &mockPgxRows{
@@ -168,7 +168,7 @@ func TestRows_GetSingleValue_WithMultipleValues_Fails(t *testing.T) {
 	assert.Equal(1, mp.scanCalled)
 }
 
-func TestRows_GetAll_WhenError_Fails(t *testing.T) {
+func TestUnit_Rows_GetAll_WhenError_Fails(t *testing.T) {
 	assert := assert.New(t)
 
 	mp := &mockParser{}
@@ -180,7 +180,7 @@ func TestRows_GetAll_WhenError_Fails(t *testing.T) {
 	assert.Equal(0, mp.scanCalled)
 }
 
-func TestRows_GetAll_WhenNilRows_Succeeds(t *testing.T) {
+func TestUnit_Rows_GetAll_WhenNilRows_Succeeds(t *testing.T) {
 	assert := assert.New(t)
 
 	mp := &mockParser{}
@@ -192,7 +192,7 @@ func TestRows_GetAll_WhenNilRows_Succeeds(t *testing.T) {
 	assert.Equal(0, mp.scanCalled)
 }
 
-func TestRows_GetAll_WhenNoRows_Succeeds(t *testing.T) {
+func TestUnit_Rows_GetAll_WhenNoRows_Succeeds(t *testing.T) {
 	assert := assert.New(t)
 
 	mr := &mockPgxRows{}
@@ -205,7 +205,7 @@ func TestRows_GetAll_WhenNoRows_Succeeds(t *testing.T) {
 	assert.Equal(0, mp.scanCalled)
 }
 
-func TestRows_GetAll_WhenRows_Succeeds(t *testing.T) {
+func TestUnit_Rows_GetAll_WhenRows_Succeeds(t *testing.T) {
 	assert := assert.New(t)
 
 	mr := &mockPgxRows{
@@ -220,7 +220,7 @@ func TestRows_GetAll_WhenRows_Succeeds(t *testing.T) {
 	assert.Equal(2, mp.scanCalled)
 }
 
-func TestRows_GetAll_CallsClose(t *testing.T) {
+func TestUnit_Rows_GetAll_CallsClose(t *testing.T) {
 	assert := assert.New(t)
 
 	mr := &mockPgxRows{
@@ -234,7 +234,7 @@ func TestRows_GetAll_CallsClose(t *testing.T) {
 	assert.Equal(1, mr.closeCalled)
 }
 
-func TestRows_GetAll_ReturnsScanError(t *testing.T) {
+func TestUnit_Rows_GetAll_ReturnsScanError(t *testing.T) {
 	assert := assert.New(t)
 
 	mr := &mockPgxRows{
@@ -251,7 +251,7 @@ func TestRows_GetAll_ReturnsScanError(t *testing.T) {
 	assert.Equal(1, mp.scanCalled)
 }
 
-func TestRows_GetAll_CallsCloseAlsoWhenScanFails(t *testing.T) {
+func TestUnit_Rows_GetAll_CallsCloseAlsoWhenScanFails(t *testing.T) {
 	assert := assert.New(t)
 
 	mr := &mockPgxRows{

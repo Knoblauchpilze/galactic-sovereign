@@ -13,7 +13,7 @@ import (
 
 var defaultUuid = uuid.MustParse("08ce96a3-3430-48a8-a3b2-b1c987a207ca")
 
-func TestResponseEnvelope_MarshalsToCamelCase(t *testing.T) {
+func TestUnit_ResponseEnvelope_MarshalsToCamelCase(t *testing.T) {
 	assert := assert.New(t)
 
 	r := responseEnvelope{
@@ -36,7 +36,7 @@ func TestResponseEnvelope_MarshalsToCamelCase(t *testing.T) {
 	assert.JSONEq(expectedJson, string(out))
 }
 
-func TestEnvelopeResponseWriter_UsesProvidedWriter(t *testing.T) {
+func TestUnit_EnvelopeResponseWriter_UsesProvidedWriter(t *testing.T) {
 	assert := assert.New(t)
 	m := &mockResponseWriter{}
 
@@ -45,7 +45,7 @@ func TestEnvelopeResponseWriter_UsesProvidedWriter(t *testing.T) {
 	assert.Equal(m, erw.writer)
 }
 
-func TestEnvelopeResponseWriter_AutomaticallySetsSuccessStatusWhenNoStatusIsUsed(t *testing.T) {
+func TestUnit_EnvelopeResponseWriter_AutomaticallySetsSuccessStatusWhenNoStatusIsUsed(t *testing.T) {
 	assert := assert.New(t)
 	m := &mockResponseWriter{}
 
@@ -63,7 +63,7 @@ func TestEnvelopeResponseWriter_AutomaticallySetsSuccessStatusWhenNoStatusIsUsed
 	assert.JSONEq(expectedJson, string(m.data))
 }
 
-func TestEnvelopeResponseWriter_UsesProvidedRequestId(t *testing.T) {
+func TestUnit_EnvelopeResponseWriter_UsesProvidedRequestId(t *testing.T) {
 	assert := assert.New(t)
 	m := &mockResponseWriter{}
 
@@ -81,7 +81,7 @@ func TestEnvelopeResponseWriter_UsesProvidedRequestId(t *testing.T) {
 	assert.JSONEq(expectedJson, string(m.data))
 }
 
-func TestEnvelopeResponseWriter_ForwardsProvidedWriterHeaders(t *testing.T) {
+func TestUnit_EnvelopeResponseWriter_ForwardsProvidedWriterHeaders(t *testing.T) {
 	assert := assert.New(t)
 	m := &mockResponseWriter{
 		header: http.Header{
@@ -97,7 +97,7 @@ func TestEnvelopeResponseWriter_ForwardsProvidedWriterHeaders(t *testing.T) {
 	assert.Equal(m.header, actual)
 }
 
-func TestEnvelopeResponseWriter_WriteHeaderForwardsCallToProvidedWriter(t *testing.T) {
+func TestUnit_EnvelopeResponseWriter_WriteHeaderForwardsCallToProvidedWriter(t *testing.T) {
 	assert := assert.New(t)
 	m := &mockResponseWriter{}
 
@@ -109,7 +109,7 @@ func TestEnvelopeResponseWriter_WriteHeaderForwardsCallToProvidedWriter(t *testi
 	assert.Equal(http.StatusUnauthorized, m.code)
 }
 
-func TestEnvelopeResponseWriter_WriteHeaderUpdatesResponseEnvelopeStatus(t *testing.T) {
+func TestUnit_EnvelopeResponseWriter_WriteHeaderUpdatesResponseEnvelopeStatus(t *testing.T) {
 	assert := assert.New(t)
 	m := &mockResponseWriter{}
 
@@ -124,7 +124,7 @@ func TestEnvelopeResponseWriter_WriteHeaderUpdatesResponseEnvelopeStatus(t *test
 
 var sampleJsonData = []byte(`{"value":12}`)
 
-func TestEnvelopeResponseWriter_WriteForwardsCallToProvidedWriter(t *testing.T) {
+func TestUnit_EnvelopeResponseWriter_WriteForwardsCallToProvidedWriter(t *testing.T) {
 	assert := assert.New(t)
 	m := &mockResponseWriter{}
 
@@ -138,7 +138,7 @@ func TestEnvelopeResponseWriter_WriteForwardsCallToProvidedWriter(t *testing.T) 
 var matcherStr = `{"requestId":"08ce96a3-3430-48a8-a3b2-b1c987a207ca","status":"${STATUS}","details":{"value":12}}`
 var pattern = `${STATUS}`
 
-func TestEnvelopeResponseWriter_WriteWrapsSuccessDataWithEnvelope(t *testing.T) {
+func TestUnit_EnvelopeResponseWriter_WriteWrapsSuccessDataWithEnvelope(t *testing.T) {
 	assert := assert.New(t)
 	m := &mockResponseWriter{}
 
@@ -150,7 +150,7 @@ func TestEnvelopeResponseWriter_WriteWrapsSuccessDataWithEnvelope(t *testing.T) 
 	assert.True(matcher.MatchString(string(m.data)))
 }
 
-func TestEnvelopeResponseWriter_WriteWrapsFailureDataWithEnvelope(t *testing.T) {
+func TestUnit_EnvelopeResponseWriter_WriteWrapsFailureDataWithEnvelope(t *testing.T) {
 	assert := assert.New(t)
 	m := &mockResponseWriter{}
 
@@ -162,7 +162,7 @@ func TestEnvelopeResponseWriter_WriteWrapsFailureDataWithEnvelope(t *testing.T) 
 	assert.True(matcher.MatchString(string(m.data)))
 }
 
-func TestEnvelopeResponseWriter_UsesProvidedDataWhenNotJsonData(t *testing.T) {
+func TestUnit_EnvelopeResponseWriter_UsesProvidedDataWhenNotJsonData(t *testing.T) {
 	assert := assert.New(t)
 	m := &mockResponseWriter{}
 	data := []byte("some-data")

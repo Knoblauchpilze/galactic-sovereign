@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestSanitizePath(t *testing.T) {
+func TestUnit_SanitizePath(t *testing.T) {
 	assert := assert.New(t)
 
 	type testCase struct {
@@ -43,7 +43,7 @@ func TestSanitizePath(t *testing.T) {
 	}
 }
 
-func TestConcatenateEndpoints(t *testing.T) {
+func TestUnit_ConcatenateEndpoints(t *testing.T) {
 	assert := assert.New(t)
 
 	type testCase struct {

@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestToFullPlanetDtoResponse(t *testing.T) {
+func TestUnit_ToFullPlanetDtoResponse(t *testing.T) {
 	assert := assert.New(t)
 
 	actual := ToFullPlanetDtoResponse(
@@ -41,7 +41,7 @@ func TestToFullPlanetDtoResponse(t *testing.T) {
 	assert.Equal(defaultBuildingActionDtoResponse, actual.BuildingActions[0])
 }
 
-func TestFullPlanetDtoResponse_MarshalsToCamelCase(t *testing.T) {
+func TestUnit_FullPlanetDtoResponse_MarshalsToCamelCase(t *testing.T) {
 	assert := assert.New(t)
 
 	dto := FullPlanetDtoResponse{
@@ -121,7 +121,7 @@ func TestFullPlanetDtoResponse_MarshalsToCamelCase(t *testing.T) {
 	assert.JSONEq(expectedJson, string(out))
 }
 
-func TestFullPlanetDtoResponse_WhenResourcesAreEmpty_MarshalsToEmptyArray(t *testing.T) {
+func TestUnit_FullPlanetDtoResponse_WhenResourcesAreEmpty_MarshalsToEmptyArray(t *testing.T) {
 	assert := assert.New(t)
 
 	dto := FullPlanetDtoResponse{
@@ -191,7 +191,7 @@ func TestFullPlanetDtoResponse_WhenResourcesAreEmpty_MarshalsToEmptyArray(t *tes
 	assert.JSONEq(expectedJson, string(out))
 }
 
-func TestFullPlanetDtoResponse_WhenProductionsAreEmpty_MarshalsToEmptyArray(t *testing.T) {
+func TestUnit_FullPlanetDtoResponse_WhenProductionsAreEmpty_MarshalsToEmptyArray(t *testing.T) {
 	assert := assert.New(t)
 
 	dto := FullPlanetDtoResponse{
@@ -262,7 +262,7 @@ func TestFullPlanetDtoResponse_WhenProductionsAreEmpty_MarshalsToEmptyArray(t *t
 	assert.JSONEq(expectedJson, string(out))
 }
 
-func TestFullPlanetDtoResponse_WhenStoragesAreEmpty_MarshalsToEmptyArray(t *testing.T) {
+func TestUnit_FullPlanetDtoResponse_WhenStoragesAreEmpty_MarshalsToEmptyArray(t *testing.T) {
 	assert := assert.New(t)
 
 	dto := FullPlanetDtoResponse{
@@ -334,7 +334,7 @@ func TestFullPlanetDtoResponse_WhenStoragesAreEmpty_MarshalsToEmptyArray(t *test
 	assert.JSONEq(expectedJson, string(out))
 }
 
-func TestFullPlanetDtoResponse_WhenBuildingsAreEmpty_MarshalsToEmptyArray(t *testing.T) {
+func TestUnit_FullPlanetDtoResponse_WhenBuildingsAreEmpty_MarshalsToEmptyArray(t *testing.T) {
 	assert := assert.New(t)
 
 	dto := FullPlanetDtoResponse{
@@ -404,7 +404,7 @@ func TestFullPlanetDtoResponse_WhenBuildingsAreEmpty_MarshalsToEmptyArray(t *tes
 	assert.JSONEq(expectedJson, string(out))
 }
 
-func TestFullPlanetDtoResponse_WhenBuildingActionsAreEmpty_MarshalsToEmptyArray(t *testing.T) {
+func TestUnit_FullPlanetDtoResponse_WhenBuildingActionsAreEmpty_MarshalsToEmptyArray(t *testing.T) {
 	assert := assert.New(t)
 
 	dto := FullPlanetDtoResponse{

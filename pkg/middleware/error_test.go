@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestError_CallsNextMiddleware(t *testing.T) {
+func TestUnit_Error_CallsNextMiddleware(t *testing.T) {
 	assert := assert.New(t)
 	ctx, _ := generateTestEchoContext()
 	next, called := createHandlerFuncWithCalledBoolean()
@@ -22,7 +22,7 @@ func TestError_CallsNextMiddleware(t *testing.T) {
 	assert.True(*called)
 }
 
-func TestError_WhenNoErrorReturnsNoError(t *testing.T) {
+func TestUnit_Error_WhenNoErrorReturnsNoError(t *testing.T) {
 	assert := assert.New(t)
 	ctx, _ := generateTestEchoContext()
 	next := createHandlerFuncReturning(nil)
@@ -34,7 +34,7 @@ func TestError_WhenNoErrorReturnsNoError(t *testing.T) {
 	assert.Nil(actual)
 }
 
-func TestError_ConvertsErrorWithCodeToHttpError(t *testing.T) {
+func TestUnit_Error_ConvertsErrorWithCodeToHttpError(t *testing.T) {
 	assert := assert.New(t)
 	ctx, _ := generateTestEchoContext()
 	err := errors.NewCode(36)
@@ -50,7 +50,7 @@ func TestError_ConvertsErrorWithCodeToHttpError(t *testing.T) {
 	assert.Equal(httpErr.Message, err)
 }
 
-func TestError_PropagatesUnknownError(t *testing.T) {
+func TestUnit_Error_PropagatesUnknownError(t *testing.T) {
 	assert := assert.New(t)
 	ctx, _ := generateTestEchoContext()
 	err := fmt.Errorf("some error")

@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestIsInterfaceNil_Nil(t *testing.T) {
+func TestUnit_IsInterfaceNil_Nil(t *testing.T) {
 	assert := assert.New(t)
 
 	assert.NotPanics(func() {
@@ -15,7 +15,7 @@ func TestIsInterfaceNil_Nil(t *testing.T) {
 	assert.True(IsInterfaceNil(nil))
 }
 
-func TestIsInterfaceNil_Value(t *testing.T) {
+func TestUnit_IsInterfaceNil_Value(t *testing.T) {
 	assert := assert.New(t)
 
 	assert.NotPanics(func() {
@@ -24,7 +24,7 @@ func TestIsInterfaceNil_Value(t *testing.T) {
 	assert.False(IsInterfaceNil(1))
 }
 
-func TestIsInterfaceNil_Ptr(t *testing.T) {
+func TestUnit_IsInterfaceNil_Ptr(t *testing.T) {
 	assert := assert.New(t)
 
 	var out *int
@@ -38,7 +38,7 @@ func TestIsInterfaceNil_Ptr(t *testing.T) {
 	assert.False(IsInterfaceNil(out))
 }
 
-func TestIsInterfaceNil_Map(t *testing.T) {
+func TestUnit_IsInterfaceNil_Map(t *testing.T) {
 	assert := assert.New(t)
 
 	var out map[string]int
@@ -52,7 +52,7 @@ func TestIsInterfaceNil_Map(t *testing.T) {
 	assert.False(IsInterfaceNil(out))
 }
 
-func TestIsInterfaceNil_Array(t *testing.T) {
+func TestUnit_IsInterfaceNil_Array(t *testing.T) {
 	assert := assert.New(t)
 
 	var out [1]int
@@ -63,7 +63,7 @@ func TestIsInterfaceNil_Array(t *testing.T) {
 	assert.False(IsInterfaceNil(out))
 }
 
-func TestIsInterfaceNil_Chan(t *testing.T) {
+func TestUnit_IsInterfaceNil_Chan(t *testing.T) {
 	assert := assert.New(t)
 
 	var out chan string
@@ -77,7 +77,7 @@ func TestIsInterfaceNil_Chan(t *testing.T) {
 	assert.False(IsInterfaceNil(out))
 }
 
-func TestIsInterfaceNil_Slice(t *testing.T) {
+func TestUnit_IsInterfaceNil_Slice(t *testing.T) {
 	assert := assert.New(t)
 
 	var out []int

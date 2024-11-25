@@ -32,7 +32,7 @@ func (m *mockIoWriter) Write(p []byte) (n int, err error) {
 	return len(p), nil
 }
 
-func TestSafeConsoleWriter_CallsDefaultWriter(t *testing.T) {
+func TestUnit_SafeConsoleWriter_CallsDefaultWriter(t *testing.T) {
 	assert := assert.New(t)
 	t.Cleanup(resetConsoleWriter)
 
@@ -48,7 +48,7 @@ func TestSafeConsoleWriter_CallsDefaultWriter(t *testing.T) {
 	assert.Equal(expected, m.data[0])
 }
 
-func TestSafeConsoleWriter_DoesNotWriteConcurrently(t *testing.T) {
+func TestUnit_SafeConsoleWriter_DoesNotWriteConcurrently(t *testing.T) {
 	assert := assert.New(t)
 	t.Cleanup(resetConsoleWriter)
 

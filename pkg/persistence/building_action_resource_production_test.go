@@ -10,7 +10,7 @@ import (
 
 var resourceId = uuid.MustParse("e0e56162-b462-4c05-9bda-828a373037a7")
 
-func TestMergeWithPlanetResourceProduction(t *testing.T) {
+func TestUnit_MergeWithPlanetResourceProduction(t *testing.T) {
 	assert := assert.New(t)
 
 	actionProduction := BuildingActionResourceProduction{
@@ -41,7 +41,7 @@ func TestMergeWithPlanetResourceProduction(t *testing.T) {
 	assert.Equal(planetProduction.Version, actual.Version)
 }
 
-func TestToPlanetResourceProduction(t *testing.T) {
+func TestUnit_ToPlanetResourceProduction(t *testing.T) {
 	assert := assert.New(t)
 
 	actionProduction := BuildingActionResourceProduction{

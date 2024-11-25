@@ -11,7 +11,7 @@ import (
 
 var defaultUuid = uuid.MustParse("08ce96a3-3430-48a8-a3b2-b1c987a207ca")
 
-func TestMarshalNilToEmptySlice_WhenNil_ExpectMarshalToEmptySlice(t *testing.T) {
+func TestUnit_MarshalNilToEmptySlice_WhenNil_ExpectMarshalToEmptySlice(t *testing.T) {
 	assert := assert.New(t)
 
 	var in []int
@@ -22,7 +22,7 @@ func TestMarshalNilToEmptySlice_WhenNil_ExpectMarshalToEmptySlice(t *testing.T) 
 	assert.Equal("[]", string(actual))
 }
 
-func TestMarshalNilToEmptySlice_WhenNotNil_ExpectMarshalCorrectData(t *testing.T) {
+func TestUnit_MarshalNilToEmptySlice_WhenNotNil_ExpectMarshalCorrectData(t *testing.T) {
 	assert := assert.New(t)
 
 	in := []int{1, 2}
@@ -35,7 +35,7 @@ func TestMarshalNilToEmptySlice_WhenNotNil_ExpectMarshalCorrectData(t *testing.T
 
 var defaultKey = "my-key"
 
-func TestFetchIdFromQueryParam_whenNoId_expectNotExistAndNoError(t *testing.T) {
+func TestUnit_FetchIdFromQueryParam_whenNoId_expectNotExistAndNoError(t *testing.T) {
 	assert := assert.New(t)
 
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
@@ -46,7 +46,7 @@ func TestFetchIdFromQueryParam_whenNoId_expectNotExistAndNoError(t *testing.T) {
 	assert.Nil(err)
 }
 
-func TestFetchIdFromQueryParam_whenIdSetForOtherKey_expectNotExistAndNoError(t *testing.T) {
+func TestUnit_FetchIdFromQueryParam_whenIdSetForOtherKey_expectNotExistAndNoError(t *testing.T) {
 	assert := assert.New(t)
 
 	req := generateRequestWithQueryParams("not-the-default-key", defaultUuid.String())
@@ -57,7 +57,7 @@ func TestFetchIdFromQueryParam_whenIdSetForOtherKey_expectNotExistAndNoError(t *
 	assert.Nil(err)
 }
 
-func TestFetchIdFromQueryParam_whenIdSyntaxIsWrong_expectExistAndError(t *testing.T) {
+func TestUnit_FetchIdFromQueryParam_whenIdSyntaxIsWrong_expectExistAndError(t *testing.T) {
 	assert := assert.New(t)
 
 	req := generateRequestWithQueryParams(defaultKey, "not-a-uuid")
@@ -68,7 +68,7 @@ func TestFetchIdFromQueryParam_whenIdSyntaxIsWrong_expectExistAndError(t *testin
 	assert.Equal("invalid UUID length: 10", err.Error())
 }
 
-func TestFetchIdFromQueryParam_whenIdIsSet_expectExistCorrectIdAndNoError(t *testing.T) {
+func TestUnit_FetchIdFromQueryParam_whenIdIsSet_expectExistCorrectIdAndNoError(t *testing.T) {
 	assert := assert.New(t)
 
 	req := generateRequestWithQueryParams(defaultKey, defaultUuid.String())

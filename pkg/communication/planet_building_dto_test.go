@@ -24,7 +24,7 @@ var defaultPlanetBuildingDtoResponse = PlanetBuildingDtoResponse{
 	UpdatedAt: someOtherTime,
 }
 
-func TestToPlanetBuildingDtoResponse(t *testing.T) {
+func TestUnit_ToPlanetBuildingDtoResponse(t *testing.T) {
 	assert := assert.New(t)
 
 	actual := ToPlanetBuildingDtoResponse(defaultPlanetBuilding)
@@ -36,7 +36,7 @@ func TestToPlanetBuildingDtoResponse(t *testing.T) {
 	assert.Equal(someOtherTime, actual.UpdatedAt)
 }
 
-func TestPlanetBuildingDtoResponse_MarshalsToCamelCase(t *testing.T) {
+func TestUnit_PlanetBuildingDtoResponse_MarshalsToCamelCase(t *testing.T) {
 	assert := assert.New(t)
 
 	out, err := json.Marshal(defaultPlanetBuildingDtoResponse)

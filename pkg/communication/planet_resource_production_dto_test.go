@@ -24,7 +24,7 @@ var defaultPlanetResourceProductionDtoResponse = PlanetResourceProductionDtoResp
 	Production: 12,
 }
 
-func TestToPlanetResourceProductionDtoResponse(t *testing.T) {
+func TestUnit_ToPlanetResourceProductionDtoResponse(t *testing.T) {
 	assert := assert.New(t)
 
 	actual := ToPlanetResourceProductionDtoResponse(defaultPlanetResourceProduction)
@@ -35,7 +35,7 @@ func TestToPlanetResourceProductionDtoResponse(t *testing.T) {
 	assert.Equal(12, actual.Production)
 }
 
-func TestPlanetResourceProductionDtoResponse_MarshalsToCamelCase(t *testing.T) {
+func TestUnit_PlanetResourceProductionDtoResponse_MarshalsToCamelCase(t *testing.T) {
 	assert := assert.New(t)
 
 	out, err := json.Marshal(defaultPlanetResourceProductionDtoResponse)
@@ -51,7 +51,7 @@ func TestPlanetResourceProductionDtoResponse_MarshalsToCamelCase(t *testing.T) {
 	assert.JSONEq(expectedJson, string(out))
 }
 
-func TestPlanetResourceProductionDtoResponse_whenBuildingIsNotSet_expectBuildingIsOmitted(t *testing.T) {
+func TestUnit_PlanetResourceProductionDtoResponse_whenBuildingIsNotSet_expectBuildingIsOmitted(t *testing.T) {
 	assert := assert.New(t)
 
 	withoutBuilding := PlanetResourceProductionDtoResponse{

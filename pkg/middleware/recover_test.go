@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestRecover_CallsNextMiddleware(t *testing.T) {
+func TestUnit_Recover_CallsNextMiddleware(t *testing.T) {
 	assert := assert.New(t)
 	ctx, _ := generateTestEchoContext()
 	next, called := createHandlerFuncWithCalledBoolean()
@@ -20,7 +20,7 @@ func TestRecover_CallsNextMiddleware(t *testing.T) {
 	assert.True(*called)
 }
 
-func TestRecover_WhenNoErrorReturnsNoError(t *testing.T) {
+func TestUnit_Recover_WhenNoErrorReturnsNoError(t *testing.T) {
 	assert := assert.New(t)
 	ctx, _ := generateTestEchoContext()
 	next := createHandlerFuncReturning(nil)
@@ -32,7 +32,7 @@ func TestRecover_WhenNoErrorReturnsNoError(t *testing.T) {
 	assert.Nil(actual)
 }
 
-func TestRecover_WhenNoErrorDoesNotCallContextError(t *testing.T) {
+func TestUnit_Recover_WhenNoErrorDoesNotCallContextError(t *testing.T) {
 	assert := assert.New(t)
 	errHandler, called, _ := createErrorHandlerFunc()
 	ctx, _ := generateTestEchoContextWithErrorHandler(errHandler)
@@ -45,7 +45,7 @@ func TestRecover_WhenNoErrorDoesNotCallContextError(t *testing.T) {
 	assert.False(*called)
 }
 
-func TestRecover_PropagatesError(t *testing.T) {
+func TestUnit_Recover_PropagatesError(t *testing.T) {
 	assert := assert.New(t)
 	ctx, _ := generateTestEchoContext()
 	next := createHandlerFuncReturning(errDefault)
@@ -63,7 +63,7 @@ func createPanickingHandlerFunc(err interface{}) echo.HandlerFunc {
 	}
 }
 
-func TestRecover_SetsContextErrorOnPanic(t *testing.T) {
+func TestUnit_Recover_SetsContextErrorOnPanic(t *testing.T) {
 	assert := assert.New(t)
 	errHandler, called, reportedErr := createErrorHandlerFunc()
 	ctx, _ := generateTestEchoContextWithErrorHandler(errHandler)
@@ -77,7 +77,7 @@ func TestRecover_SetsContextErrorOnPanic(t *testing.T) {
 	assert.Equal(errDefault, *reportedErr)
 }
 
-func TestRecover_ConvertsToErrorUnknownPanic(t *testing.T) {
+func TestUnit_Recover_ConvertsToErrorUnknownPanic(t *testing.T) {
 	assert := assert.New(t)
 	errHandler, called, reportedErr := createErrorHandlerFunc()
 	ctx, _ := generateTestEchoContextWithErrorHandler(errHandler)
