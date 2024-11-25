@@ -149,6 +149,7 @@ jobs:
         build-galactic-sovereign-service,
         build-user-dashboard,
         build-galactic-sovereign-frontend,
+        extract-service-tag,
       ]
     # https://github.com/actions/runner/issues/491
     if: |
@@ -167,15 +168,15 @@ jobs:
       - name: Save galactic-sovereign-service tag
         if: ${{ needs.analyze-code-changes.outputs.galactic-sovereign-service == 'true' }}
         run: |
-          echo "${{ needs.build-galactic-sovereign-service.outputs.service-tag }}" > ./build/galactic-sovereign-service/version.txt
+          echo "${{ needs.extract-service-tag.outputs.version }}" > ./build/galactic-sovereign-service/version.txt
       - name: Save user-dashboard tag
         if: ${{ needs.analyze-code-changes.outputs.user-dashboard == 'true' }}
         run: |
-          echo "${{ needs.build-user-dashboard.outputs.service-tag }}" > ./build/user-dashboard/version.txt
+          echo "${{ needs.extract-service-tag.outputs.version }}" > ./build/user-dashboard/version.txt
       - name: Save galactic-sovereign-frontend tag
         if: ${{ needs.analyze-code-changes.outputs.galactic-sovereign-frontend == 'true' }}
         run: |
-          echo "${{ needs.build-galactic-sovereign-frontend.outputs.service-tag }}" > ./build/galactic-sovereign-frontend/version.txt
+          echo "${{ needs.extract-service-tag.outputs.version }}" > ./build/galactic-sovereign-frontend/version.txt
       - name: Commit changes
         run: |
           git pull
