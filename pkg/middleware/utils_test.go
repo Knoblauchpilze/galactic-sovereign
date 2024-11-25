@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestPathFromRequest_NilRequest(t *testing.T) {
+func TestUnit_PathFromRequest_NilRequest(t *testing.T) {
 	assert := assert.New(t)
 
 	actual := pathFromRequest(nil)
@@ -16,7 +16,7 @@ func TestPathFromRequest_NilRequest(t *testing.T) {
 	assert.Equal("", actual)
 }
 
-func TestPathFromRequest_NoPath(t *testing.T) {
+func TestUnit_PathFromRequest_NoPath(t *testing.T) {
 	assert := assert.New(t)
 	req := http.Request{
 		Host: "host",
@@ -27,7 +27,7 @@ func TestPathFromRequest_NoPath(t *testing.T) {
 	assert.Equal("host", actual)
 }
 
-func TestPathFromRequest_WithPath(t *testing.T) {
+func TestUnit_PathFromRequest_WithPath(t *testing.T) {
 	assert := assert.New(t)
 	req := http.Request{
 		Host: "host",
@@ -41,7 +41,7 @@ func TestPathFromRequest_WithPath(t *testing.T) {
 	assert.Equal("host/path", actual)
 }
 
-func TestFormatHttpStatusCode_2XX(t *testing.T) {
+func TestUnit_FormatHttpStatusCode_2XX(t *testing.T) {
 	assert := assert.New(t)
 
 	actual := formatHttpStatusCode(http.StatusOK)
@@ -51,7 +51,7 @@ func TestFormatHttpStatusCode_2XX(t *testing.T) {
 	assert.Equal("\x1b[1;32m202\x1b[0m", actual)
 }
 
-func TestFormatHttpStatusCode_3XX(t *testing.T) {
+func TestUnit_FormatHttpStatusCode_3XX(t *testing.T) {
 	assert := assert.New(t)
 
 	actual := formatHttpStatusCode(http.StatusFound)
@@ -61,7 +61,7 @@ func TestFormatHttpStatusCode_3XX(t *testing.T) {
 	assert.Equal("\x1b[1;36m304\x1b[0m", actual)
 }
 
-func TestFormatHttpStatusCode_4XX(t *testing.T) {
+func TestUnit_FormatHttpStatusCode_4XX(t *testing.T) {
 	assert := assert.New(t)
 
 	actual := formatHttpStatusCode(http.StatusBadRequest)
@@ -71,7 +71,7 @@ func TestFormatHttpStatusCode_4XX(t *testing.T) {
 	assert.Equal("\x1b[1;33m403\x1b[0m", actual)
 }
 
-func TestFormatHttpStatusCode_5XX(t *testing.T) {
+func TestUnit_FormatHttpStatusCode_5XX(t *testing.T) {
 	assert := assert.New(t)
 
 	actual := formatHttpStatusCode(http.StatusInternalServerError)

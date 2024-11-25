@@ -14,7 +14,7 @@ var defaultUser = uuid.MustParse("c74a22da-8a05-43a9-a8b9-717e422b0af4")
 var defaultPlayerId = uuid.MustParse("efc01287-830f-4b95-8b26-3deff7135f2d")
 var someTime = time.Date(2024, 05, 05, 20, 50, 18, 651387237, time.UTC)
 
-func TestPlayerDtoRequest_MarshalsToCamelCase(t *testing.T) {
+func TestUnit_PlayerDtoRequest_MarshalsToCamelCase(t *testing.T) {
 	assert := assert.New(t)
 
 	dto := PlayerDtoRequest{
@@ -36,7 +36,7 @@ func TestPlayerDtoRequest_MarshalsToCamelCase(t *testing.T) {
 	assert.JSONEq(expectedJson, string(out))
 }
 
-func TestFromPlayerDtoRequest(t *testing.T) {
+func TestUnit_FromPlayerDtoRequest(t *testing.T) {
 	assert := assert.New(t)
 
 	beforeConversion := time.Now()
@@ -57,7 +57,7 @@ func TestFromPlayerDtoRequest(t *testing.T) {
 	assert.Equal(actual.CreatedAt, actual.UpdatedAt)
 }
 
-func TestToPlayerDtoResponse(t *testing.T) {
+func TestUnit_ToPlayerDtoResponse(t *testing.T) {
 	assert := assert.New(t)
 
 	entity := persistence.Player{
@@ -78,7 +78,7 @@ func TestToPlayerDtoResponse(t *testing.T) {
 	assert.Equal(someTime, actual.CreatedAt)
 }
 
-func TestPlayerDtoResponse_MarshalsToCamelCase(t *testing.T) {
+func TestUnit_PlayerDtoResponse_MarshalsToCamelCase(t *testing.T) {
 	assert := assert.New(t)
 
 	dto := PlayerDtoResponse{

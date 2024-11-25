@@ -11,21 +11,21 @@ import (
 
 var defaultHandler = func(c echo.Context) error { return nil }
 
-func TestRoute_Method(t *testing.T) {
+func TestUnit_Route_Method(t *testing.T) {
 	assert := assert.New(t)
 
 	r := NewRoute(http.MethodGet, "", defaultHandler)
 	assert.Equal(http.MethodGet, r.Method())
 }
 
-func TestRoute_WithResource_Method(t *testing.T) {
+func TestUnit_Route_WithResource_Method(t *testing.T) {
 	assert := assert.New(t)
 
 	r := NewResourceRoute(http.MethodGet, "", defaultHandler)
 	assert.Equal(http.MethodGet, r.Method())
 }
 
-func TestRoute_Authorized(t *testing.T) {
+func TestUnit_Route_Authorized(t *testing.T) {
 	assert := assert.New(t)
 
 	public := NewRoute(http.MethodGet, "", defaultHandler)
@@ -35,7 +35,7 @@ func TestRoute_Authorized(t *testing.T) {
 	assert.Equal(true, authorized.Authorized())
 }
 
-func TestRoute_WithResource_Authorized(t *testing.T) {
+func TestUnit_Route_WithResource_Authorized(t *testing.T) {
 	assert := assert.New(t)
 
 	public := NewResourceRoute(http.MethodGet, "", defaultHandler)
@@ -45,7 +45,7 @@ func TestRoute_WithResource_Authorized(t *testing.T) {
 	assert.Equal(true, authorized.Authorized())
 }
 
-func TestRoute_Handler(t *testing.T) {
+func TestUnit_Route_Handler(t *testing.T) {
 	assert := assert.New(t)
 
 	handlerCalled := false
@@ -61,7 +61,7 @@ func TestRoute_Handler(t *testing.T) {
 	assert.True(handlerCalled)
 }
 
-func TestRoute_WithResource_Handler(t *testing.T) {
+func TestUnit_Route_WithResource_Handler(t *testing.T) {
 	assert := assert.New(t)
 
 	handlerCalled := false
@@ -82,7 +82,7 @@ type testCase struct {
 	expected string
 }
 
-func TestRoute_Path(t *testing.T) {
+func TestUnit_Route_Path(t *testing.T) {
 	assert := assert.New(t)
 
 	tests := []testCase{
@@ -101,7 +101,7 @@ func TestRoute_Path(t *testing.T) {
 	}
 }
 
-func TestRoute_WithResource_GeneratePath(t *testing.T) {
+func TestUnit_Route_WithResource_GeneratePath(t *testing.T) {
 	assert := assert.New(t)
 
 	tests := []testCase{
@@ -120,7 +120,7 @@ func TestRoute_WithResource_GeneratePath(t *testing.T) {
 	}
 }
 
-func TestRoute_WithResource_WhenIdPlaceHolderAlreadyExists_DoNotGeneratePath(t *testing.T) {
+func TestUnit_Route_WithResource_WhenIdPlaceHolderAlreadyExists_DoNotGeneratePath(t *testing.T) {
 	assert := assert.New(t)
 
 	path := "/path/:id/addendum"

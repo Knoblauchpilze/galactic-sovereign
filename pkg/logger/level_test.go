@@ -16,7 +16,7 @@ var echoLogLevels = map[log.Lvl]zerolog.Level{
 	log.OFF:   zerolog.NoLevel,
 }
 
-func TestLevel_fromEchoLogLevel(t *testing.T) {
+func TestUnit_Level_fromEchoLogLevel(t *testing.T) {
 	for in, expected := range echoLogLevels {
 		t.Run("", func(t *testing.T) {
 			actual := fromEchoLogLevel(in)
@@ -36,7 +36,7 @@ var zerologLevels = map[zerolog.Level]log.Lvl{
 	zerolog.Disabled:   log.OFF,
 }
 
-func TestLevel_fromZerologLevel(t *testing.T) {
+func TestUnit_Level_fromZerologLevel(t *testing.T) {
 	for in, expected := range zerologLevels {
 		t.Run("", func(t *testing.T) {
 			actual := fromZerologLevel(in)

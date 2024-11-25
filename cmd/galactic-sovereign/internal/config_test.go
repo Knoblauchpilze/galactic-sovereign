@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestDefaultConfig_SetsCorrectPrefix(t *testing.T) {
+func TestUnit_DefaultConfig_SetsCorrectPrefix(t *testing.T) {
 	assert := assert.New(t)
 
 	conf := DefaultConf()
@@ -25,7 +25,7 @@ func TestDefaultConfig_SetsCorrectPrefix(t *testing.T) {
 	assert.Equal(expected, conf.Server)
 }
 
-func TestDefaultConfig_LeavesApiKeyUnchanged(t *testing.T) {
+func TestUnit_DefaultConfig_LeavesApiKeyUnchanged(t *testing.T) {
 	assert := assert.New(t)
 
 	conf := DefaultConf()
@@ -36,7 +36,7 @@ func TestDefaultConfig_LeavesApiKeyUnchanged(t *testing.T) {
 	assert.Equal(expected, conf.ApiKey)
 }
 
-func TestDefaultConfig_ReplacesDatabaseConfiguration(t *testing.T) {
+func TestUnit_DefaultConfig_ReplacesDatabaseConfiguration(t *testing.T) {
 	assert := assert.New(t)
 
 	conf := DefaultConf()

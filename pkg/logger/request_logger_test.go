@@ -12,7 +12,7 @@ type mockEchoLogger struct {
 	echo.Logger
 }
 
-func TestGetRequestLogger_ReturnsSetLogger(t *testing.T) {
+func TestUnit_GetRequestLogger_ReturnsSetLogger(t *testing.T) {
 	assert := assert.New(t)
 
 	log := &mockEchoLogger{}
@@ -22,7 +22,7 @@ func TestGetRequestLogger_ReturnsSetLogger(t *testing.T) {
 	assert.Equal(log, actual)
 }
 
-func TestGetRequestLogger_WhenLoggerButWithDifferentType_ReturnsLoggerWithNoRequestId(t *testing.T) {
+func TestUnit_GetRequestLogger_WhenLoggerButWithDifferentType_ReturnsLoggerWithNoRequestId(t *testing.T) {
 	assert := assert.New(t)
 
 	ctx := context.WithValue(context.Background(), LogKey, "not-a-logger")
@@ -31,7 +31,7 @@ func TestGetRequestLogger_WhenLoggerButWithDifferentType_ReturnsLoggerWithNoRequ
 	assert.Equal("", log.Prefix())
 }
 
-func TestGetRequestLogger_WhenNoLogger_ReturnsLoggerWithNoRequestId(t *testing.T) {
+func TestUnit_GetRequestLogger_WhenNoLogger_ReturnsLoggerWithNoRequestId(t *testing.T) {
 	assert := assert.New(t)
 
 	log := GetRequestLogger(context.Background())

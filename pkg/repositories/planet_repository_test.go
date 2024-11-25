@@ -24,7 +24,7 @@ var defaultPlanet = persistence.Planet{
 	UpdatedAt: time.Date(2024, 7, 9, 20, 11, 21, 651387230, time.UTC),
 }
 
-func Test_PlanetRepository_Transaction(t *testing.T) {
+func TestUnit__PlanetRepository_Transaction(t *testing.T) {
 	dummyStr := ""
 	dummyBool := false
 

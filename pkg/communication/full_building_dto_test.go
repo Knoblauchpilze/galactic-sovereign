@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestToFullBuildingDtoResponse(t *testing.T) {
+func TestUnit_ToFullBuildingDtoResponse(t *testing.T) {
 	assert := assert.New(t)
 
 	actual := ToFullBuildingDtoResponse(defaultBuilding, []persistence.BuildingCost{defaultBuildingCost}, []persistence.BuildingResourceProduction{defaultBuildingResourceProduction})
@@ -24,7 +24,7 @@ func TestToFullBuildingDtoResponse(t *testing.T) {
 	assert.Equal(defaultBuildingResourceProductionDtoResponse, actual.Productions[0])
 }
 
-func TestFullBuildingDtoResponse_MarshalsToCamelCase(t *testing.T) {
+func TestUnit_FullBuildingDtoResponse_MarshalsToCamelCase(t *testing.T) {
 	assert := assert.New(t)
 
 	dto := FullBuildingDtoResponse{
@@ -65,7 +65,7 @@ func TestFullBuildingDtoResponse_MarshalsToCamelCase(t *testing.T) {
 	assert.JSONEq(expectedJson, string(out))
 }
 
-func TestFullBuildingDtoResponse_WhenCostsAreEmpty_MarshalsToEmptyArray(t *testing.T) {
+func TestUnit_FullBuildingDtoResponse_WhenCostsAreEmpty_MarshalsToEmptyArray(t *testing.T) {
 	assert := assert.New(t)
 
 	dto := FullBuildingDtoResponse{
@@ -97,7 +97,7 @@ func TestFullBuildingDtoResponse_WhenCostsAreEmpty_MarshalsToEmptyArray(t *testi
 	assert.JSONEq(expectedJson, string(out))
 }
 
-func TestFullBuildingDtoResponse_WhenProductionsAreEmpty_MarshalsToEmptyArray(t *testing.T) {
+func TestUnit_FullBuildingDtoResponse_WhenProductionsAreEmpty_MarshalsToEmptyArray(t *testing.T) {
 	assert := assert.New(t)
 
 	dto := FullBuildingDtoResponse{

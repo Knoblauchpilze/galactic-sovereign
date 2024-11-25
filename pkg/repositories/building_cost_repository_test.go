@@ -11,7 +11,7 @@ import (
 
 var defaultBuildingId = uuid.MustParse("9c5a9f5c-b53e-4f5c-af6f-cb04e47abd95")
 
-func Test_BuildingCostRepository_Transaction(t *testing.T) {
+func TestUnit__BuildingCostRepository_Transaction(t *testing.T) {
 	var dummyInt int
 	var dummyFloat64 float64
 

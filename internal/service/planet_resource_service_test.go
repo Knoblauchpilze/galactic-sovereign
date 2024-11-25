@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
-func Test_PlanetResourceService(t *testing.T) {
+func TestUnit__PlanetResourceService(t *testing.T) {
 	s := ServicePoolTestSuite{
 		generateRepositoriesMocks: generatePlanetResourceServiceMocks,
 

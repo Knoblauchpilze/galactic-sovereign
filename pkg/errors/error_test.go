@@ -12,7 +12,7 @@ var errSomeError = fmt.Errorf("some error")
 
 const someCode = ErrorCode(26)
 
-func TestError_New(t *testing.T) {
+func TestUnit_Error_New(t *testing.T) {
 	assert := assert.New(t)
 
 	err := New("haha")
@@ -24,7 +24,7 @@ func TestError_New(t *testing.T) {
 	assert.Equal(GenericErrorCode, impl.Value)
 }
 
-func TestError_NewCode(t *testing.T) {
+func TestUnit_Error_NewCode(t *testing.T) {
 	assert := assert.New(t)
 
 	err := NewCode(someCode)
@@ -36,7 +36,7 @@ func TestError_NewCode(t *testing.T) {
 	assert.Equal(someCode, impl.Value)
 }
 
-func TestError_NewCode_WhenGenericCode_ExpectMessage(t *testing.T) {
+func TestUnit_Error_NewCode_WhenGenericCode_ExpectMessage(t *testing.T) {
 	assert := assert.New(t)
 
 	testCases := []struct {
@@ -57,7 +57,7 @@ func TestError_NewCode_WhenGenericCode_ExpectMessage(t *testing.T) {
 	}
 }
 
-func TestError_NewNotImplemented(t *testing.T) {
+func TestUnit_Error_NewNotImplemented(t *testing.T) {
 	assert := assert.New(t)
 
 	err := NotImplemented()
@@ -69,7 +69,7 @@ func TestError_NewNotImplemented(t *testing.T) {
 	assert.Equal(NotImplementedCode, impl.Value)
 }
 
-func TestError_NewCodeWithDetails(t *testing.T) {
+func TestUnit_Error_NewCodeWithDetails(t *testing.T) {
 	assert := assert.New(t)
 
 	err := NewCodeWithDetails(someCode, "message")
@@ -81,7 +81,7 @@ func TestError_NewCodeWithDetails(t *testing.T) {
 	assert.Equal(someCode, impl.Value)
 }
 
-func TestError_Newf(t *testing.T) {
+func TestUnit_Error_Newf(t *testing.T) {
 	assert := assert.New(t)
 
 	err := Newf("haha %d", 22)
@@ -92,7 +92,7 @@ func TestError_Newf(t *testing.T) {
 	assert.Nil(impl.Cause)
 }
 
-func TestError_Wrap(t *testing.T) {
+func TestUnit_Error_Wrap(t *testing.T) {
 	assert := assert.New(t)
 
 	err := Wrap(errSomeError, "context")
@@ -103,7 +103,7 @@ func TestError_Wrap(t *testing.T) {
 	assert.Equal(errSomeError, impl.Cause)
 }
 
-func TestError_WrapCode(t *testing.T) {
+func TestUnit_Error_WrapCode(t *testing.T) {
 	assert := assert.New(t)
 
 	err := WrapCode(errSomeError, someCode)
@@ -115,7 +115,7 @@ func TestError_WrapCode(t *testing.T) {
 	assert.Equal(someCode, impl.Value)
 }
 
-func TestError_Wrapf(t *testing.T) {
+func TestUnit_Error_Wrapf(t *testing.T) {
 	assert := assert.New(t)
 
 	err := Wrapf(errSomeError, "context %d", -44)
@@ -126,7 +126,7 @@ func TestError_Wrapf(t *testing.T) {
 	assert.Equal(errSomeError, impl.Cause)
 }
 
-func TestError_Unwrap(t *testing.T) {
+func TestUnit_Error_Unwrap(t *testing.T) {
 	assert := assert.New(t)
 
 	err := Unwrap(nil)
@@ -147,7 +147,7 @@ func TestError_Unwrap(t *testing.T) {
 	assert.Nil(causeOfCause)
 }
 
-func TestError_Error(t *testing.T) {
+func TestUnit_Error_Error(t *testing.T) {
 	assert := assert.New(t)
 
 	err := Wrapf(errSomeError, "context %d", -44)
@@ -161,7 +161,7 @@ func TestError_Error(t *testing.T) {
 	assert.Equal(expected, err.Error())
 }
 
-func TestError_Code(t *testing.T) {
+func TestUnit_Error_Code(t *testing.T) {
 	assert := assert.New(t)
 
 	err := NewCode(someCode)
@@ -171,7 +171,7 @@ func TestError_Code(t *testing.T) {
 	assert.Equal(someCode, impl.Code())
 }
 
-func TestError_MarshalJSON(t *testing.T) {
+func TestUnit_Error_MarshalJSON(t *testing.T) {
 	assert := assert.New(t)
 
 	err := New("haha")
@@ -203,7 +203,7 @@ func TestError_MarshalJSON(t *testing.T) {
 	assert.Equal(expected, string(out))
 }
 
-func TestError_IsErrorWithCode(t *testing.T) {
+func TestUnit_Error_IsErrorWithCode(t *testing.T) {
 	assert := assert.New(t)
 
 	assert.False(IsErrorWithCode(nil, someCode))

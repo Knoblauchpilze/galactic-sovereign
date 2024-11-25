@@ -27,7 +27,7 @@ var defaultPlayer = persistence.Player{
 	Version:   5,
 }
 
-func Test_PlayerRepository(t *testing.T) {
+func TestUnit__PlayerRepository(t *testing.T) {
 	dummyStr := ""
 	dummyInt := 0
 
@@ -143,7 +143,7 @@ func Test_PlayerRepository(t *testing.T) {
 	suite.Run(t, &s)
 }
 
-func Test_PlayerRepository_Transaction(t *testing.T) {
+func TestUnit__PlayerRepository_Transaction(t *testing.T) {
 	s := RepositoryTransactionTestSuite{
 		dbInteractionTestCases: map[string]dbTransactionInteractionTestCase{
 			"create": {

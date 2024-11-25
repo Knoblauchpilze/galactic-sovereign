@@ -22,7 +22,7 @@ var defaultPlanetResourceStorageDtoResponse = PlanetResourceStorageDtoResponse{
 	Storage:  20,
 }
 
-func TestToPlanetResourceStorageDtoResponse(t *testing.T) {
+func TestUnit_ToPlanetResourceStorageDtoResponse(t *testing.T) {
 	assert := assert.New(t)
 
 	actual := ToPlanetResourceStorageDtoResponse(defaultPlanetResourceStorage)
@@ -32,7 +32,7 @@ func TestToPlanetResourceStorageDtoResponse(t *testing.T) {
 	assert.Equal(20, actual.Storage)
 }
 
-func TestPlanetResourceStorageDtoResponse_MarshalsToCamelCase(t *testing.T) {
+func TestUnit_PlanetResourceStorageDtoResponse_MarshalsToCamelCase(t *testing.T) {
 	assert := assert.New(t)
 
 	out, err := json.Marshal(defaultPlanetResourceStorageDtoResponse)

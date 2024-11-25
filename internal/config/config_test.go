@@ -15,7 +15,7 @@ import (
 
 var errDefault = fmt.Errorf("some error")
 
-func TestDefaultConfig_Server(t *testing.T) {
+func TestUnit_DefaultConfig_Server(t *testing.T) {
 	assert := assert.New(t)
 
 	conf := DefaultConf()
@@ -29,7 +29,7 @@ func TestDefaultConfig_Server(t *testing.T) {
 	assert.Equal(expected, conf.Server)
 }
 
-func TestDefaultConfig_ApiKey(t *testing.T) {
+func TestUnit_DefaultConfig_ApiKey(t *testing.T) {
 	assert := assert.New(t)
 
 	conf := DefaultConf()
@@ -40,7 +40,7 @@ func TestDefaultConfig_ApiKey(t *testing.T) {
 	assert.Equal(expected, conf.ApiKey)
 }
 
-func TestDefaultConfig_Database_AssumesDockerLocalhost(t *testing.T) {
+func TestUnit_DefaultConfig_Database_AssumesDockerLocalhost(t *testing.T) {
 	assert := assert.New(t)
 
 	conf := DefaultConf()
@@ -48,7 +48,7 @@ func TestDefaultConfig_Database_AssumesDockerLocalhost(t *testing.T) {
 	assert.Equal("172.17.0.1", conf.Database.Host)
 }
 
-func TestDefaultConfig_Database_AssumesPort5432(t *testing.T) {
+func TestUnit_DefaultConfig_Database_AssumesPort5432(t *testing.T) {
 	assert := assert.New(t)
 
 	conf := DefaultConf()
@@ -56,7 +56,7 @@ func TestDefaultConfig_Database_AssumesPort5432(t *testing.T) {
 	assert.Equal(uint16(5432), conf.Database.Port)
 }
 
-func TestDefaultConfig_Database_AssumesPoolSizeOfOne(t *testing.T) {
+func TestUnit_DefaultConfig_Database_AssumesPoolSizeOfOne(t *testing.T) {
 	assert := assert.New(t)
 
 	conf := DefaultConf()
@@ -64,7 +64,7 @@ func TestDefaultConfig_Database_AssumesPoolSizeOfOne(t *testing.T) {
 	assert.Equal(uint(1), conf.Database.ConnectionsPoolSize)
 }
 
-func TestDefaultConfig_Database_AssumesTwoSecondsConnectTimeout(t *testing.T) {
+func TestUnit_DefaultConfig_Database_AssumesTwoSecondsConnectTimeout(t *testing.T) {
 	assert := assert.New(t)
 
 	conf := DefaultConf()
@@ -72,7 +72,7 @@ func TestDefaultConfig_Database_AssumesTwoSecondsConnectTimeout(t *testing.T) {
 	assert.Equal(2*time.Second, conf.Database.ConnectTimeout)
 }
 
-func TestDefaultConfig_Database_DoesNotDefineDb(t *testing.T) {
+func TestUnit_DefaultConfig_Database_DoesNotDefineDb(t *testing.T) {
 	assert := assert.New(t)
 
 	conf := DefaultConf()
@@ -80,7 +80,7 @@ func TestDefaultConfig_Database_DoesNotDefineDb(t *testing.T) {
 	assert.Equal("", conf.Database.Name)
 }
 
-func TestDefaultConfig_Database_DoesNotDefineUser(t *testing.T) {
+func TestUnit_DefaultConfig_Database_DoesNotDefineUser(t *testing.T) {
 	assert := assert.New(t)
 
 	conf := DefaultConf()
@@ -88,7 +88,7 @@ func TestDefaultConfig_Database_DoesNotDefineUser(t *testing.T) {
 	assert.Equal("", conf.Database.User)
 }
 
-func TestDefaultConfig_Database_DoesNotDefinePassword(t *testing.T) {
+func TestUnit_DefaultConfig_Database_DoesNotDefinePassword(t *testing.T) {
 	assert := assert.New(t)
 
 	conf := DefaultConf()
@@ -96,7 +96,7 @@ func TestDefaultConfig_Database_DoesNotDefinePassword(t *testing.T) {
 	assert.Equal("", conf.Database.Password)
 }
 
-func TestDefaultConfig_Database_AssumesDebugLogLevel(t *testing.T) {
+func TestUnit_DefaultConfig_Database_AssumesDebugLogLevel(t *testing.T) {
 	assert := assert.New(t)
 
 	conf := DefaultConf()
@@ -122,7 +122,7 @@ type mockConfigurationParser struct {
 
 const defaultConfigName = "some-config"
 
-func TestLoadConfiguration_LooksForYamlFiles(t *testing.T) {
+func TestUnit_LoadConfiguration_LooksForYamlFiles(t *testing.T) {
 	assert := assert.New(t)
 	t.Cleanup(resetConfigurationParser)
 
@@ -134,7 +134,7 @@ func TestLoadConfiguration_LooksForYamlFiles(t *testing.T) {
 	assert.Equal("yaml", m.confType)
 }
 
-func TestLoadConfiguration_LooksForFilesInExpectedPath(t *testing.T) {
+func TestUnit_LoadConfiguration_LooksForFilesInExpectedPath(t *testing.T) {
 	assert := assert.New(t)
 	t.Cleanup(resetConfigurationParser)
 
@@ -146,7 +146,7 @@ func TestLoadConfiguration_LooksForFilesInExpectedPath(t *testing.T) {
 	assert.Equal([]string{"configs"}, m.confPaths)
 }
 
-func TestLoadConfiguration_LooksForTheRightFile(t *testing.T) {
+func TestUnit_LoadConfiguration_LooksForTheRightFile(t *testing.T) {
 	assert := assert.New(t)
 	t.Cleanup(resetConfigurationParser)
 
@@ -158,7 +158,7 @@ func TestLoadConfiguration_LooksForTheRightFile(t *testing.T) {
 	assert.Equal(defaultConfigName, m.confName)
 }
 
-func TestLoadConfiguration_AppliesEnvironmentOverrides(t *testing.T) {
+func TestUnit_LoadConfiguration_AppliesEnvironmentOverrides(t *testing.T) {
 	assert := assert.New(t)
 	t.Cleanup(resetConfigurationParser)
 
@@ -172,7 +172,7 @@ func TestLoadConfiguration_AppliesEnvironmentOverrides(t *testing.T) {
 	assert.Equal(strings.NewReplacer(".", "_"), m.envKeyReplacer)
 }
 
-func TestLoadConfiguration_ReadsConfiguration(t *testing.T) {
+func TestUnit_LoadConfiguration_ReadsConfiguration(t *testing.T) {
 	assert := assert.New(t)
 	t.Cleanup(resetConfigurationParser)
 
@@ -184,7 +184,7 @@ func TestLoadConfiguration_ReadsConfiguration(t *testing.T) {
 	assert.Equal(1, m.readCalled)
 }
 
-func TestLoadConfiguration_WhenError_ExpectDefaultAndError(t *testing.T) {
+func TestUnit_LoadConfiguration_WhenError_ExpectDefaultAndError(t *testing.T) {
 	assert := assert.New(t)
 	t.Cleanup(resetConfigurationParser)
 
@@ -199,7 +199,7 @@ func TestLoadConfiguration_WhenError_ExpectDefaultAndError(t *testing.T) {
 	assert.Equal(DefaultConf(), conf)
 }
 
-func TestLoadConfiguration_UnmarshalsInConfiguration(t *testing.T) {
+func TestUnit_LoadConfiguration_UnmarshalsInConfiguration(t *testing.T) {
 	assert := assert.New(t)
 	t.Cleanup(resetConfigurationParser)
 
@@ -212,7 +212,7 @@ func TestLoadConfiguration_UnmarshalsInConfiguration(t *testing.T) {
 	assert.Equal(0, len(m.unmarshalOpts))
 }
 
-func TestLoadConfiguration_WhenUnmarshalFails_ExpectDefaultAndError(t *testing.T) {
+func TestUnit_LoadConfiguration_WhenUnmarshalFails_ExpectDefaultAndError(t *testing.T) {
 	assert := assert.New(t)
 	t.Cleanup(resetConfigurationParser)
 

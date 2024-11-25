@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestThrottle_CallsNextMiddleware(t *testing.T) {
+func TestUnit_Throttle_CallsNextMiddleware(t *testing.T) {
 	assert := assert.New(t)
 	ctx, _ := generateTestEchoContext()
 	next, called := createHandlerFuncWithCalledBoolean()
@@ -24,7 +24,7 @@ func TestThrottle_CallsNextMiddleware(t *testing.T) {
 	close <- true
 }
 
-func TestThrottle_WhenNoTokensLeft_ExpectTooManyRequests(t *testing.T) {
+func TestUnit_Throttle_WhenNoTokensLeft_ExpectTooManyRequests(t *testing.T) {
 	assert := assert.New(t)
 	ctx, rw := generateTestEchoContext()
 	next := createHandlerFuncReturning(nil)
@@ -37,7 +37,7 @@ func TestThrottle_WhenNoTokensLeft_ExpectTooManyRequests(t *testing.T) {
 	close <- true
 }
 
-func TestThrottle_WhenWaitingForRefill_ExpectOk(t *testing.T) {
+func TestUnit_Throttle_WhenWaitingForRefill_ExpectOk(t *testing.T) {
 	assert := assert.New(t)
 	e := echo.New()
 	next := createHandlerFuncReturningCode(http.StatusOK)
@@ -58,7 +58,7 @@ func TestThrottle_WhenWaitingForRefill_ExpectOk(t *testing.T) {
 	close <- true
 }
 
-func TestThrottle_PropagatesError(t *testing.T) {
+func TestUnit_Throttle_PropagatesError(t *testing.T) {
 	assert := assert.New(t)
 	ctx, _ := generateTestEchoContext()
 	next := createHandlerFuncReturning(errDefault)
@@ -72,7 +72,7 @@ func TestThrottle_PropagatesError(t *testing.T) {
 	close <- true
 }
 
-func TestThrottle_ConcurrentUse_ExpectFirstServed(t *testing.T) {
+func TestUnit_Throttle_ConcurrentUse_ExpectFirstServed(t *testing.T) {
 	assert := assert.New(t)
 
 	em, close := Throttle(1, 1, 1)

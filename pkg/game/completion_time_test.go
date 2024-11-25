@@ -24,7 +24,7 @@ var defaultResources = []persistence.Resource{
 	},
 }
 
-func TestBuildingCompletionTimeFromCost_whenMetalNotFound_expectError(t *testing.T) {
+func TestUnit_BuildingCompletionTimeFromCost_whenMetalNotFound_expectError(t *testing.T) {
 	assert := assert.New(t)
 
 	resources := []persistence.Resource{}
@@ -35,7 +35,7 @@ func TestBuildingCompletionTimeFromCost_whenMetalNotFound_expectError(t *testing
 	assert.True(errors.IsErrorWithCode(err, NoSuchResource))
 }
 
-func TestBuildingCompletionTimeFromCost_whenCrystalNotFound_expectError(t *testing.T) {
+func TestUnit_BuildingCompletionTimeFromCost_whenCrystalNotFound_expectError(t *testing.T) {
 	assert := assert.New(t)
 
 	resources := []persistence.Resource{
@@ -51,7 +51,7 @@ func TestBuildingCompletionTimeFromCost_whenCrystalNotFound_expectError(t *testi
 	assert.True(errors.IsErrorWithCode(err, NoSuchResource))
 }
 
-func TestBuildingCompletionTimeFromCost_onlyMetalCost(t *testing.T) {
+func TestUnit_BuildingCompletionTimeFromCost_onlyMetalCost(t *testing.T) {
 	assert := assert.New(t)
 
 	costs := []persistence.BuildingActionCost{
@@ -67,7 +67,7 @@ func TestBuildingCompletionTimeFromCost_onlyMetalCost(t *testing.T) {
 	assert.Equal(30*time.Minute, duration)
 }
 
-func TestBuildingCompletionTimeFromCost_onlyCrystalCost(t *testing.T) {
+func TestUnit_BuildingCompletionTimeFromCost_onlyCrystalCost(t *testing.T) {
 	assert := assert.New(t)
 
 	costs := []persistence.BuildingActionCost{
@@ -85,7 +85,7 @@ func TestBuildingCompletionTimeFromCost_onlyCrystalCost(t *testing.T) {
 	assert.Equal(expectedDuration, duration)
 }
 
-func TestBuildingCompletionTimeFromCost_metalAndCrystal(t *testing.T) {
+func TestUnit_BuildingCompletionTimeFromCost_metalAndCrystal(t *testing.T) {
 	assert := assert.New(t)
 
 	costs := []persistence.BuildingActionCost{

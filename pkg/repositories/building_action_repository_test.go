@@ -26,7 +26,7 @@ var defaultBuildingAction = persistence.BuildingAction{
 }
 var someTime = time.Date(2024, 8, 17, 13, 35, 52, 651387244, time.UTC)
 
-func Test_BuildingActionRepository_Transaction(t *testing.T) {
+func TestUnit__BuildingActionRepository_Transaction(t *testing.T) {
 	var dummyInt int
 
 	s := RepositoryTransactionTestSuite{

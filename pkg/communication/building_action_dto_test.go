@@ -30,7 +30,7 @@ var defaultBuildingActionDtoResponse = BuildingActionDtoResponse{
 	CompletedAt:  someOtherTime,
 }
 
-func TestBuildingActionDtoRequest_MarshalsToCamelCase(t *testing.T) {
+func TestUnit_BuildingActionDtoRequest_MarshalsToCamelCase(t *testing.T) {
 	assert := assert.New(t)
 
 	dto := BuildingActionDtoRequest{
@@ -49,7 +49,7 @@ func TestBuildingActionDtoRequest_MarshalsToCamelCase(t *testing.T) {
 	assert.JSONEq(expectedJson, string(out))
 }
 
-func TestFromBuildingActionDtoRequest(t *testing.T) {
+func TestUnit_FromBuildingActionDtoRequest(t *testing.T) {
 	assert := assert.New(t)
 
 	beforeConversion := time.Now()
@@ -70,7 +70,7 @@ func TestFromBuildingActionDtoRequest(t *testing.T) {
 	assert.True(actual.CompletedAt.IsZero())
 }
 
-func TestToBuildingActionDtoResponse(t *testing.T) {
+func TestUnit_ToBuildingActionDtoResponse(t *testing.T) {
 	assert := assert.New(t)
 
 	actual := ToBuildingActionDtoResponse(defaultBuildignAction)
@@ -84,7 +84,7 @@ func TestToBuildingActionDtoResponse(t *testing.T) {
 	assert.Equal(someOtherTime, actual.CompletedAt)
 }
 
-func TestBuildingActionDtoResponse_MarshalsToCamelCase(t *testing.T) {
+func TestUnit_BuildingActionDtoResponse_MarshalsToCamelCase(t *testing.T) {
 	assert := assert.New(t)
 
 	out, err := json.Marshal(defaultBuildingActionDtoResponse)

@@ -23,7 +23,7 @@ var defaultResource = persistence.Resource{
 	UpdatedAt: time.Date(2024, 7, 28, 9, 43, 8, 651387234, time.UTC),
 }
 
-func Test_ResourceRepository(t *testing.T) {
+func TestUnit__ResourceRepository(t *testing.T) {
 	dummyStr := ""
 
 	s := RepositoryPoolTestSuite{
@@ -164,7 +164,7 @@ func Test_ResourceRepository(t *testing.T) {
 	suite.Run(t, &s)
 }
 
-func Test_ResourceRepository_Transaction(t *testing.T) {
+func TestUnit__ResourceRepository_Transaction(t *testing.T) {
 	dummyStr := ""
 
 	s := RepositoryTransactionTestSuite{

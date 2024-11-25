@@ -52,7 +52,7 @@ var defaultResources = []persistence.Resource{
 	},
 }
 
-func Test_BuildingActionService(t *testing.T) {
+func TestUnit__BuildingActionService(t *testing.T) {
 	beforeTestSuite := time.Now()
 
 	s := ServicePoolTestSuite{

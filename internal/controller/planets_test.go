@@ -115,7 +115,7 @@ var defaultFullPlanetDtoResponse = communication.FullPlanetDtoResponse{
 	},
 }
 
-func Test_PlanetEndpoints(t *testing.T) {
+func TestUnit__PlanetEndpoints(t *testing.T) {
 	s := RouteTestSuite{
 		generateRoutes: func() rest.Routes {
 			return PlanetEndpoints(&mockPlanetService{}, &mockActionService{}, &mockPlanetResourceService{})
@@ -167,7 +167,7 @@ func Test_PlanetEndpoints(t *testing.T) {
 	suite.Run(t, &s)
 }
 
-func Test_PlanetController(t *testing.T) {
+func TestUnit__PlanetController(t *testing.T) {
 	s := ControllerTestSuite[service.PlanetService]{
 		generateServiceMock:      generatePlanetServiceMock,
 		generateErrorServiceMock: generateErrorPlanetServiceMock,

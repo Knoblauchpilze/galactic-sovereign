@@ -26,7 +26,7 @@ var defaultPlanetResourceDtoResponse = PlanetResourceDtoResponse{
 	UpdatedAt: someOtherTime,
 }
 
-func TestToPlanetResourceDtoResponse(t *testing.T) {
+func TestUnit_ToPlanetResourceDtoResponse(t *testing.T) {
 	assert := assert.New(t)
 
 	actual := ToPlanetResourceDtoResponse(defaultPlanetResource)
@@ -38,7 +38,7 @@ func TestToPlanetResourceDtoResponse(t *testing.T) {
 	assert.Equal(someOtherTime, actual.UpdatedAt)
 }
 
-func TestPlanetResourceDtoResponse_MarshalsToCamelCase(t *testing.T) {
+func TestUnit_PlanetResourceDtoResponse_MarshalsToCamelCase(t *testing.T) {
 	assert := assert.New(t)
 
 	out, err := json.Marshal(defaultPlanetResourceDtoResponse)

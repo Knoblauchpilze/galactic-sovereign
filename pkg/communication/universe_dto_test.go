@@ -25,7 +25,7 @@ var defaultUniverseDtoResponse = UniverseDtoResponse{
 	CreatedAt: someTime,
 }
 
-func TestUniverseDtoRequest_MarshalsToCamelCase(t *testing.T) {
+func TestUnit_UniverseDtoRequest_MarshalsToCamelCase(t *testing.T) {
 	assert := assert.New(t)
 
 	dto := UniverseDtoRequest{
@@ -42,7 +42,7 @@ func TestUniverseDtoRequest_MarshalsToCamelCase(t *testing.T) {
 	assert.JSONEq(expectedJson, string(out))
 }
 
-func TestFromUniverseDtoRequest(t *testing.T) {
+func TestUnit_FromUniverseDtoRequest(t *testing.T) {
 	assert := assert.New(t)
 
 	beforeConversion := time.Now()
@@ -59,7 +59,7 @@ func TestFromUniverseDtoRequest(t *testing.T) {
 	assert.Equal(actual.CreatedAt, actual.UpdatedAt)
 }
 
-func TestToUniverseDtoResponse(t *testing.T) {
+func TestUnit_ToUniverseDtoResponse(t *testing.T) {
 	assert := assert.New(t)
 
 	actual := ToUniverseDtoResponse(defaultUniverse)
@@ -69,7 +69,7 @@ func TestToUniverseDtoResponse(t *testing.T) {
 	assert.Equal(someTime, actual.CreatedAt)
 }
 
-func TestUniverseDtoResponse_MarshalsToCamelCase(t *testing.T) {
+func TestUnit_UniverseDtoResponse_MarshalsToCamelCase(t *testing.T) {
 	assert := assert.New(t)
 
 	out, err := json.Marshal(defaultUniverseDtoResponse)

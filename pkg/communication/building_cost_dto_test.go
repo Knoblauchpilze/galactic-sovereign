@@ -21,7 +21,7 @@ var defaultBuildingCostDtoResponse = BuildingCostDtoResponse{
 	Progress: 1.3,
 }
 
-func TestToBuildingCostDtoResponse(t *testing.T) {
+func TestUnit_ToBuildingCostDtoResponse(t *testing.T) {
 	assert := assert.New(t)
 
 	actual := ToBuildingCostDtoResponse(defaultBuildingCost)
@@ -32,7 +32,7 @@ func TestToBuildingCostDtoResponse(t *testing.T) {
 	assert.Equal(1.3, actual.Progress)
 }
 
-func TestBuildingCostDtoResponse_MarshalsToCamelCase(t *testing.T) {
+func TestUnit_BuildingCostDtoResponse_MarshalsToCamelCase(t *testing.T) {
 	assert := assert.New(t)
 
 	out, err := json.Marshal(defaultBuildingCostDtoResponse)

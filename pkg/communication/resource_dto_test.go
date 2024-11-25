@@ -22,7 +22,7 @@ var defaultResourceDtoResponse = ResourceDtoResponse{
 	CreatedAt: someTime,
 }
 
-func TestToResourceDtoResponse(t *testing.T) {
+func TestUnit_ToResourceDtoResponse(t *testing.T) {
 	assert := assert.New(t)
 
 	actual := ToResourceDtoResponse(defaultResource)
@@ -32,7 +32,7 @@ func TestToResourceDtoResponse(t *testing.T) {
 	assert.Equal(someTime, actual.CreatedAt)
 }
 
-func TestResourceDtoResponse_MarshalsToCamelCase(t *testing.T) {
+func TestUnit_ResourceDtoResponse_MarshalsToCamelCase(t *testing.T) {
 	assert := assert.New(t)
 
 	out, err := json.Marshal(defaultResourceDtoResponse)

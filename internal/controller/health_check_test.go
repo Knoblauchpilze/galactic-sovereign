@@ -18,7 +18,7 @@ type mockConnectionPool struct {
 	err        error
 }
 
-func Test_HealthCheckEndpoints(t *testing.T) {
+func TestUnit__HealthCheckEndpoints(t *testing.T) {
 	s := RouteTestSuite{
 		generateRoutes: func() rest.Routes {
 			return HealthCheckEndpoints(&mockConnectionPool{})
@@ -34,7 +34,7 @@ func Test_HealthCheckEndpoints(t *testing.T) {
 	suite.Run(t, &s)
 }
 
-func TestHealthcheck_CallsPoolPing(t *testing.T) {
+func TestUnit_Healthcheck_CallsPoolPing(t *testing.T) {
 	assert := assert.New(t)
 
 	mc := dummyEchoContext()
@@ -45,7 +45,7 @@ func TestHealthcheck_CallsPoolPing(t *testing.T) {
 	assert.Equal(1, mp.pingCalled)
 }
 
-func TestHealthcheck_WhenPingSucceeds_SetsSatusToOk(t *testing.T) {
+func TestUnit_Healthcheck_WhenPingSucceeds_SetsSatusToOk(t *testing.T) {
 	assert := assert.New(t)
 
 	ctx, rw := generateTestEchoContextWithMethod(http.MethodGet)
@@ -57,7 +57,7 @@ func TestHealthcheck_WhenPingSucceeds_SetsSatusToOk(t *testing.T) {
 	assert.Equal(http.StatusOK, rw.Code)
 }
 
-func TestHealthcheck_WhenPingFails_PropagatesError(t *testing.T) {
+func TestUnit_Healthcheck_WhenPingFails_PropagatesError(t *testing.T) {
 	assert := assert.New(t)
 
 	ctx, rw := generateTestEchoContextWithMethod(http.MethodGet)
@@ -71,7 +71,7 @@ func TestHealthcheck_WhenPingFails_PropagatesError(t *testing.T) {
 	assert.Equal("{\"Code\":260,\"Cause\":\"some error\"}\n", rw.Body.String())
 }
 
-func TestHealthcheck_WhenPingFails_SetsStatusToServiceUnavailable(t *testing.T) {
+func TestUnit_Healthcheck_WhenPingFails_SetsStatusToServiceUnavailable(t *testing.T) {
 	assert := assert.New(t)
 
 	ctx, rw := generateTestEchoContextWithMethod(http.MethodGet)

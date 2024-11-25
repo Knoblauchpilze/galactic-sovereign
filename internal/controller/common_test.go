@@ -52,7 +52,7 @@ func (s *HandlerTestSuite[any]) TestPropagatesError() {
 	assert.Equal(errDefault, err)
 }
 
-func TestFromBuildingActionServiceAwareHttpHandler(t *testing.T) {
+func TestUnit_FromBuildingActionServiceAwareHttpHandler(t *testing.T) {
 	s := HandlerTestSuite[service.BuildingActionService]{
 		generateTestFunc: func(in func(echo.Context, service.BuildingActionService) error) echo.HandlerFunc {
 			return fromBuildingActionServiceAwareHttpHandler(in, &mockBuildingActionService{})
@@ -62,7 +62,7 @@ func TestFromBuildingActionServiceAwareHttpHandler(t *testing.T) {
 	suite.Run(t, &s)
 }
 
-func TestFromDbAwareHttpHandler(t *testing.T) {
+func TestUnit_FromDbAwareHttpHandler(t *testing.T) {
 	s := HandlerTestSuite[db.ConnectionPool]{
 		generateTestFunc: func(in func(echo.Context, db.ConnectionPool) error) echo.HandlerFunc {
 			return fromDbAwareHttpHandler(in, &mockConnectionPool{})
@@ -72,7 +72,7 @@ func TestFromDbAwareHttpHandler(t *testing.T) {
 	suite.Run(t, &s)
 }
 
-func TestFromPlanetServiceAwareHttpHandler(t *testing.T) {
+func TestUnit_FromPlanetServiceAwareHttpHandler(t *testing.T) {
 	s := HandlerTestSuite[service.PlanetService]{
 		generateTestFunc: func(in func(echo.Context, service.PlanetService) error) echo.HandlerFunc {
 			return fromPlanetServiceAwareHttpHandler(in, &mockPlanetService{})
@@ -82,7 +82,7 @@ func TestFromPlanetServiceAwareHttpHandler(t *testing.T) {
 	suite.Run(t, &s)
 }
 
-func TestFromPlayerServiceAwareHttpHandler(t *testing.T) {
+func TestUnit_FromPlayerServiceAwareHttpHandler(t *testing.T) {
 	s := HandlerTestSuite[service.PlayerService]{
 		generateTestFunc: func(in func(echo.Context, service.PlayerService) error) echo.HandlerFunc {
 			return fromPlayerServiceAwareHttpHandler(in, &mockPlayerService{})
@@ -92,7 +92,7 @@ func TestFromPlayerServiceAwareHttpHandler(t *testing.T) {
 	suite.Run(t, &s)
 }
 
-func TestFromUniverseServiceAwareHttpHandler(t *testing.T) {
+func TestUnit_FromUniverseServiceAwareHttpHandler(t *testing.T) {
 	s := HandlerTestSuite[service.UniverseService]{
 		generateTestFunc: func(in func(echo.Context, service.UniverseService) error) echo.HandlerFunc {
 			return fromUniverseServiceAwareHttpHandler(in, &mockUniverseService{})

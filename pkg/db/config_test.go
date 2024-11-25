@@ -19,7 +19,7 @@ var defaultPoolConf = Config{
 	ConnectionsPoolSize: 2,
 }
 
-func TestConfig_ToConnPoolConfig(t *testing.T) {
+func TestUnit_Config_ToConnPoolConfig(t *testing.T) {
 	assert := assert.New(t)
 
 	c := defaultPoolConf
@@ -37,7 +37,7 @@ func TestConfig_ToConnPoolConfig(t *testing.T) {
 	assert.Equal(time.Duration(0), actual.ConnConfig.ConnectTimeout)
 }
 
-func TestConfig_ToConnPoolConfig_WithConnectTimeout(t *testing.T) {
+func TestUnit_Config_ToConnPoolConfig_WithConnectTimeout(t *testing.T) {
 	assert := assert.New(t)
 
 	c := defaultPoolConf
@@ -49,7 +49,7 @@ func TestConfig_ToConnPoolConfig_WithConnectTimeout(t *testing.T) {
 	assert.Equal(2*time.Second, actual.ConnConfig.ConnectTimeout)
 }
 
-func TestConfig_ToConnPoolConfig_WhenConnectTimeoutNotAFullSecond_ExpectRounded(t *testing.T) {
+func TestUnit_Config_ToConnPoolConfig_WhenConnectTimeoutNotAFullSecond_ExpectRounded(t *testing.T) {
 	assert := assert.New(t)
 
 	c := defaultPoolConf
@@ -61,7 +61,7 @@ func TestConfig_ToConnPoolConfig_WhenConnectTimeoutNotAFullSecond_ExpectRounded(
 	assert.Equal(3*time.Second, actual.ConnConfig.ConnectTimeout)
 }
 
-func TestConfig_ToConnPoolConfig_WhenInvalidPort_ExpectError(t *testing.T) {
+func TestUnit_Config_ToConnPoolConfig_WhenInvalidPort_ExpectError(t *testing.T) {
 	assert := assert.New(t)
 
 	c := defaultPoolConf
@@ -73,7 +73,7 @@ func TestConfig_ToConnPoolConfig_WhenInvalidPort_ExpectError(t *testing.T) {
 	assert.True(ok)
 }
 
-func TestConfig_ToConnPoolConfig_UrlEncodesPassword(t *testing.T) {
+func TestUnit_Config_ToConnPoolConfig_UrlEncodesPassword(t *testing.T) {
 	assert := assert.New(t)
 
 	c := defaultPoolConf

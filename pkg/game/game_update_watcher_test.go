@@ -13,7 +13,7 @@ import (
 
 var someUuid = uuid.MustParse("83a57c6c-7a5a-4c6a-87c9-2d6445f805a2")
 
-func TestGameUpdateWatcher_CallsNextMiddleware(t *testing.T) {
+func TestUnit_GameUpdateWatcher_CallsNextMiddleware(t *testing.T) {
 	assert := assert.New(t)
 
 	called := false
@@ -32,7 +32,7 @@ func TestGameUpdateWatcher_CallsNextMiddleware(t *testing.T) {
 	assert.True(called)
 }
 
-func TestGameUpdateWatcher_WhenNoPlanetId_DoesNotScheduleResources(t *testing.T) {
+func TestUnit_GameUpdateWatcher_WhenNoPlanetId_DoesNotScheduleResources(t *testing.T) {
 	assert := assert.New(t)
 
 	m := &mockActionService{}
@@ -44,7 +44,7 @@ func TestGameUpdateWatcher_WhenNoPlanetId_DoesNotScheduleResources(t *testing.T)
 	assert.Equal(0, m.processActionsCalled)
 }
 
-func TestGameUpdateWatcher_SchedulesActions(t *testing.T) {
+func TestUnit_GameUpdateWatcher_SchedulesActions(t *testing.T) {
 	assert := assert.New(t)
 
 	m := &mockActionService{}
@@ -57,7 +57,7 @@ func TestGameUpdateWatcher_SchedulesActions(t *testing.T) {
 	assert.Equal(someUuid, m.planet)
 }
 
-func TestGameUpdateWatcher_ScheduleActionsTimeIsAtTheMomentOfTheCall(t *testing.T) {
+func TestUnit_GameUpdateWatcher_ScheduleActionsTimeIsAtTheMomentOfTheCall(t *testing.T) {
 	assert := assert.New(t)
 
 	m := &mockActionService{}
@@ -71,7 +71,7 @@ func TestGameUpdateWatcher_ScheduleActionsTimeIsAtTheMomentOfTheCall(t *testing.
 	assert.True(beforeCall.Before(m.until))
 }
 
-func TestGameUpdateWatcher_WhenActionServiceFails_SetsStatusToInternalServerError(t *testing.T) {
+func TestUnit_GameUpdateWatcher_WhenActionServiceFails_SetsStatusToInternalServerError(t *testing.T) {
 	assert := assert.New(t)
 
 	m := &mockActionService{
@@ -87,7 +87,7 @@ func TestGameUpdateWatcher_WhenActionServiceFails_SetsStatusToInternalServerErro
 	assert.Equal("\"Failed to process actions\"\n", rw.Body.String())
 }
 
-func TestGameUpdateWatcher_WhenActionServiceFails_DoesNotCallHandler(t *testing.T) {
+func TestUnit_GameUpdateWatcher_WhenActionServiceFails_DoesNotCallHandler(t *testing.T) {
 	assert := assert.New(t)
 
 	called := false
@@ -108,7 +108,7 @@ func TestGameUpdateWatcher_WhenActionServiceFails_DoesNotCallHandler(t *testing.
 	assert.False(called)
 }
 
-func TestGameUpdateWatcher_WhenNoPlanetId_DoesNotCallUpdateOfPlanetResource(t *testing.T) {
+func TestUnit_GameUpdateWatcher_WhenNoPlanetId_DoesNotCallUpdateOfPlanetResource(t *testing.T) {
 	assert := assert.New(t)
 
 	m := &mockPlanetResourceService{}
@@ -120,7 +120,7 @@ func TestGameUpdateWatcher_WhenNoPlanetId_DoesNotCallUpdateOfPlanetResource(t *t
 	assert.Equal(0, m.updatePlanetUntilCalled)
 }
 
-func TestGameUpdateWatcher_SchedulesUpdateOfResources(t *testing.T) {
+func TestUnit_GameUpdateWatcher_SchedulesUpdateOfResources(t *testing.T) {
 	assert := assert.New(t)
 
 	m := &mockPlanetResourceService{}
@@ -133,7 +133,7 @@ func TestGameUpdateWatcher_SchedulesUpdateOfResources(t *testing.T) {
 	assert.Equal(someUuid, m.planet)
 }
 
-func TestGameUpdateWatcher_UpdateResourcesTimeIsAtTheMomentOfTheCall(t *testing.T) {
+func TestUnit_GameUpdateWatcher_UpdateResourcesTimeIsAtTheMomentOfTheCall(t *testing.T) {
 	assert := assert.New(t)
 
 	m := &mockPlanetResourceService{}
@@ -147,7 +147,7 @@ func TestGameUpdateWatcher_UpdateResourcesTimeIsAtTheMomentOfTheCall(t *testing.
 	assert.True(beforeCall.Before(m.until))
 }
 
-func TestGameUpdateWatcher_WhenPlanetResourceServiceFails_SetsStatusToInternalServerError(t *testing.T) {
+func TestUnit_GameUpdateWatcher_WhenPlanetResourceServiceFails_SetsStatusToInternalServerError(t *testing.T) {
 	assert := assert.New(t)
 
 	m := &mockPlanetResourceService{
@@ -163,7 +163,7 @@ func TestGameUpdateWatcher_WhenPlanetResourceServiceFails_SetsStatusToInternalSe
 	assert.Equal("\"Failed to update resources\"\n", rw.Body.String())
 }
 
-func TestGameUpdateWatcher_WhenPlanetResourceServiceFails_DoesNotCallHandler(t *testing.T) {
+func TestUnit_GameUpdateWatcher_WhenPlanetResourceServiceFails_DoesNotCallHandler(t *testing.T) {
 	assert := assert.New(t)
 
 	called := false

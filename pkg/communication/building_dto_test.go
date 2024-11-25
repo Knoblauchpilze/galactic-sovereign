@@ -22,7 +22,7 @@ var defaultBuildingDtoResponse = BuildingDtoResponse{
 	CreatedAt: someTime,
 }
 
-func TestToBuildingDtoResponse(t *testing.T) {
+func TestUnit_ToBuildingDtoResponse(t *testing.T) {
 	assert := assert.New(t)
 
 	actual := ToBuildingDtoResponse(defaultBuilding)
@@ -32,7 +32,7 @@ func TestToBuildingDtoResponse(t *testing.T) {
 	assert.Equal(someTime, actual.CreatedAt)
 }
 
-func TestBuildingDtoResponse_MarshalsToCamelCase(t *testing.T) {
+func TestUnit_BuildingDtoResponse_MarshalsToCamelCase(t *testing.T) {
 	assert := assert.New(t)
 
 	out, err := json.Marshal(defaultBuildingDtoResponse)

@@ -35,35 +35,35 @@ type mockPlanetResourceService struct {
 	until                   time.Time
 }
 
-func TestRoute_Method(t *testing.T) {
+func TestUnit_Route_Method(t *testing.T) {
 	assert := assert.New(t)
 
 	r := NewRoute(http.MethodGet, "", defaultHandler, &mockActionService{}, &mockPlanetResourceService{})
 	assert.Equal(http.MethodGet, r.Method())
 }
 
-func TestRoute_WithResource_Method(t *testing.T) {
+func TestUnit_Route_WithResource_Method(t *testing.T) {
 	assert := assert.New(t)
 
 	r := NewResourceRoute(http.MethodGet, "", defaultHandler, &mockActionService{}, &mockPlanetResourceService{})
 	assert.Equal(http.MethodGet, r.Method())
 }
 
-func TestRoute_Authorized(t *testing.T) {
+func TestUnit_Route_Authorized(t *testing.T) {
 	assert := assert.New(t)
 
 	public := NewRoute(http.MethodGet, "", defaultHandler, &mockActionService{}, &mockPlanetResourceService{})
 	assert.Equal(false, public.Authorized())
 }
 
-func TestRoute_WithResource_Authorized(t *testing.T) {
+func TestUnit_Route_WithResource_Authorized(t *testing.T) {
 	assert := assert.New(t)
 
 	public := NewResourceRoute(http.MethodGet, "", defaultHandler, &mockActionService{}, &mockPlanetResourceService{})
 	assert.Equal(false, public.Authorized())
 }
 
-func TestRoute_Handler(t *testing.T) {
+func TestUnit_Route_Handler(t *testing.T) {
 	assert := assert.New(t)
 
 	handlerCalled := false
@@ -80,7 +80,7 @@ func TestRoute_Handler(t *testing.T) {
 	assert.Nil(err)
 }
 
-func TestRoute_WithResource_Handler(t *testing.T) {
+func TestUnit_Route_WithResource_Handler(t *testing.T) {
 	assert := assert.New(t)
 
 	handlerCalled := false
@@ -97,7 +97,7 @@ func TestRoute_WithResource_Handler(t *testing.T) {
 	assert.Nil(err)
 }
 
-func TestRoute_WhenNoPlanetId_DoesNotScheduleActions(t *testing.T) {
+func TestUnit_Route_WhenNoPlanetId_DoesNotScheduleActions(t *testing.T) {
 	assert := assert.New(t)
 
 	handler := func(c echo.Context) error {
@@ -115,7 +115,7 @@ func TestRoute_WhenNoPlanetId_DoesNotScheduleActions(t *testing.T) {
 	assert.Equal(0, m.processActionsCalled)
 }
 
-func TestRoute_CallsActionService(t *testing.T) {
+func TestUnit_Route_CallsActionService(t *testing.T) {
 	assert := assert.New(t)
 
 	handler := func(c echo.Context) error {
@@ -134,7 +134,7 @@ func TestRoute_CallsActionService(t *testing.T) {
 	assert.Equal(someUuid, m.planet)
 }
 
-func TestRoute_ScheduleActionsIsAtTheRightTime(t *testing.T) {
+func TestUnit_Route_ScheduleActionsIsAtTheRightTime(t *testing.T) {
 	assert := assert.New(t)
 
 	handler := func(c echo.Context) error {
@@ -154,7 +154,7 @@ func TestRoute_ScheduleActionsIsAtTheRightTime(t *testing.T) {
 	assert.True(beforeCall.Before(m.until))
 }
 
-func TestRoute_WhenActionServiceFails_DoesNotCallHandler(t *testing.T) {
+func TestUnit_Route_WhenActionServiceFails_DoesNotCallHandler(t *testing.T) {
 	assert := assert.New(t)
 
 	handlerCalled := false
@@ -176,7 +176,7 @@ func TestRoute_WhenActionServiceFails_DoesNotCallHandler(t *testing.T) {
 	assert.Nil(err)
 }
 
-func TestRoute_WhenActionServiceFails_SetsStatusToInternalError(t *testing.T) {
+func TestUnit_Route_WhenActionServiceFails_SetsStatusToInternalError(t *testing.T) {
 	assert := assert.New(t)
 
 	m := &mockActionService{
@@ -193,7 +193,7 @@ func TestRoute_WhenActionServiceFails_SetsStatusToInternalError(t *testing.T) {
 	assert.Equal("\"Failed to process actions\"\n", rw.Body.String())
 }
 
-func TestRoute_WhenNoPlanetId_DoesNotUpdatePlanetResourceService(t *testing.T) {
+func TestUnit_Route_WhenNoPlanetId_DoesNotUpdatePlanetResourceService(t *testing.T) {
 	assert := assert.New(t)
 
 	handler := func(c echo.Context) error {
@@ -211,7 +211,7 @@ func TestRoute_WhenNoPlanetId_DoesNotUpdatePlanetResourceService(t *testing.T) {
 	assert.Equal(0, m.updatePlanetUntilCalled)
 }
 
-func TestRoute_CallsPlanetResourceService(t *testing.T) {
+func TestUnit_Route_CallsPlanetResourceService(t *testing.T) {
 	assert := assert.New(t)
 
 	handler := func(c echo.Context) error {
@@ -230,7 +230,7 @@ func TestRoute_CallsPlanetResourceService(t *testing.T) {
 	assert.Equal(someUuid, m.planet)
 }
 
-func TestRoute_UpdateResourcesIsAtTheRightTime(t *testing.T) {
+func TestUnit_Route_UpdateResourcesIsAtTheRightTime(t *testing.T) {
 	assert := assert.New(t)
 
 	handler := func(c echo.Context) error {
@@ -250,7 +250,7 @@ func TestRoute_UpdateResourcesIsAtTheRightTime(t *testing.T) {
 	assert.True(beforeCall.Before(m.until))
 }
 
-func TestRoute_WhenPlanetResourceServiceFails_DoesNotCallHandler(t *testing.T) {
+func TestUnit_Route_WhenPlanetResourceServiceFails_DoesNotCallHandler(t *testing.T) {
 	assert := assert.New(t)
 
 	handlerCalled := false
@@ -272,7 +272,7 @@ func TestRoute_WhenPlanetResourceServiceFails_DoesNotCallHandler(t *testing.T) {
 	assert.Nil(err)
 }
 
-func TestRoute_WhenPlanetResourceServiceFails_SetsStatusToInternalError(t *testing.T) {
+func TestUnit_Route_WhenPlanetResourceServiceFails_SetsStatusToInternalError(t *testing.T) {
 	assert := assert.New(t)
 
 	m := &mockPlanetResourceService{
@@ -294,7 +294,7 @@ type routeTestCase struct {
 	expected string
 }
 
-func TestRoute_Path(t *testing.T) {
+func TestUnit_Route_Path(t *testing.T) {
 	assert := assert.New(t)
 
 	tests := []routeTestCase{
@@ -313,7 +313,7 @@ func TestRoute_Path(t *testing.T) {
 	}
 }
 
-func TestRoute_WithResource_GeneratePath(t *testing.T) {
+func TestUnit_Route_WithResource_GeneratePath(t *testing.T) {
 	assert := assert.New(t)
 
 	tests := []routeTestCase{
@@ -332,7 +332,7 @@ func TestRoute_WithResource_GeneratePath(t *testing.T) {
 	}
 }
 
-func TestRoute_WithResource_WhenIdPlaceHolderAlreadyExists_DoNotGeneratePath(t *testing.T) {
+func TestUnit_Route_WithResource_WhenIdPlaceHolderAlreadyExists_DoNotGeneratePath(t *testing.T) {
 	assert := assert.New(t)
 
 	path := "/path/:id/addendum"

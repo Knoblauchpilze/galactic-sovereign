@@ -54,7 +54,7 @@ type mockEchoRouter struct {
 
 var errDefault = fmt.Errorf("some error")
 
-func TestServer_DefinesOneGroup_WithoutMiddleware(t *testing.T) {
+func TestUnit_Server_DefinesOneGroup_WithoutMiddleware(t *testing.T) {
 	assert := assert.New(t)
 	t.Cleanup(resetCreatorFunc)
 
@@ -67,7 +67,7 @@ func TestServer_DefinesOneGroup_WithoutMiddleware(t *testing.T) {
 	assert.Equal(0, ms.groups[0].middlewares)
 }
 
-func TestServer_Register_UsesPathFromRoute(t *testing.T) {
+func TestUnit_Server_Register_UsesPathFromRoute(t *testing.T) {
 	assert := assert.New(t)
 
 	mr := &mockRoute{}
@@ -79,7 +79,7 @@ func TestServer_Register_UsesPathFromRoute(t *testing.T) {
 	assert.Equal(1, mr.pathCalled)
 }
 
-func TestServer_RegisterAuthorized_ExpectsErrorDueToMissingAuthorization(t *testing.T) {
+func TestUnit_Server_RegisterAuthorized_ExpectsErrorDueToMissingAuthorization(t *testing.T) {
 	assert := assert.New(t)
 
 	mr := &mockRoute{
@@ -93,7 +93,7 @@ func TestServer_RegisterAuthorized_ExpectsErrorDueToMissingAuthorization(t *test
 	assert.True(errors.IsErrorWithCode(err, AuthorizationNotSupported))
 }
 
-func TestServer_Register_PropagatesPathFromConfig(t *testing.T) {
+func TestUnit_Server_Register_PropagatesPathFromConfig(t *testing.T) {
 	assert := assert.New(t)
 	t.Cleanup(resetCreatorFunc)
 
@@ -113,7 +113,7 @@ func TestServer_Register_PropagatesPathFromConfig(t *testing.T) {
 	assert.Equal("/some-path/path", ms.groups[0].group.path)
 }
 
-func TestServer_Register_SanitizesPath(t *testing.T) {
+func TestUnit_Server_Register_SanitizesPath(t *testing.T) {
 	assert := assert.New(t)
 	t.Cleanup(resetCreatorFunc)
 
@@ -133,7 +133,7 @@ func TestServer_Register_SanitizesPath(t *testing.T) {
 	assert.Equal("/some-path/addition", ms.groups[0].group.path)
 }
 
-func TestServer_Register_SupportsPost(t *testing.T) {
+func TestUnit_Server_Register_SupportsPost(t *testing.T) {
 	assert := assert.New(t)
 	t.Cleanup(resetCreatorFunc)
 
@@ -150,7 +150,7 @@ func TestServer_Register_SupportsPost(t *testing.T) {
 	assert.Equal(1, ms.groups[0].group.postCalled)
 }
 
-func TestServer_Register_SupportsGet(t *testing.T) {
+func TestUnit_Server_Register_SupportsGet(t *testing.T) {
 	assert := assert.New(t)
 	t.Cleanup(resetCreatorFunc)
 
@@ -167,7 +167,7 @@ func TestServer_Register_SupportsGet(t *testing.T) {
 	assert.Equal(1, ms.groups[0].group.getCalled)
 }
 
-func TestServer_Register_SupportsPatch(t *testing.T) {
+func TestUnit_Server_Register_SupportsPatch(t *testing.T) {
 	assert := assert.New(t)
 	t.Cleanup(resetCreatorFunc)
 
@@ -184,7 +184,7 @@ func TestServer_Register_SupportsPatch(t *testing.T) {
 	assert.Equal(1, ms.groups[0].group.patchCalled)
 }
 
-func TestServer_Register_SupportsDelete(t *testing.T) {
+func TestUnit_Server_Register_SupportsDelete(t *testing.T) {
 	assert := assert.New(t)
 	t.Cleanup(resetCreatorFunc)
 
@@ -201,7 +201,7 @@ func TestServer_Register_SupportsDelete(t *testing.T) {
 	assert.Equal(1, ms.groups[0].group.deleteCalled)
 }
 
-func TestServer_Register_FailsForUnsupportedMethod(t *testing.T) {
+func TestUnit_Server_Register_FailsForUnsupportedMethod(t *testing.T) {
 	assert := assert.New(t)
 
 	testMethods := []string{
@@ -228,7 +228,7 @@ func TestServer_Register_FailsForUnsupportedMethod(t *testing.T) {
 	}
 }
 
-func TestServer_Start_CallsServerStart(t *testing.T) {
+func TestUnit_Server_Start_CallsServerStart(t *testing.T) {
 	assert := assert.New(t)
 	t.Cleanup(resetCreatorFunc)
 
@@ -241,7 +241,7 @@ func TestServer_Start_CallsServerStart(t *testing.T) {
 	assert.Equal(1, ms.startCalled)
 }
 
-func TestServer_Start_UsesPortFromConfig(t *testing.T) {
+func TestUnit_Server_Start_UsesPortFromConfig(t *testing.T) {
 	assert := assert.New(t)
 	t.Cleanup(resetCreatorFunc)
 
@@ -257,7 +257,7 @@ func TestServer_Start_UsesPortFromConfig(t *testing.T) {
 	assert.Equal(":36", ms.address)
 }
 
-func TestServer_Start_ReturnsServerError(t *testing.T) {
+func TestUnit_Server_Start_ReturnsServerError(t *testing.T) {
 	assert := assert.New(t)
 	t.Cleanup(resetCreatorFunc)
 
@@ -271,7 +271,7 @@ func TestServer_Start_ReturnsServerError(t *testing.T) {
 	assert.Equal(errDefault, err)
 }
 
-func TestServer_Wait_WhenNotStarted_ReturnsImmediately(t *testing.T) {
+func TestUnit_Server_Wait_WhenNotStarted_ReturnsImmediately(t *testing.T) {
 	assert := assert.New(t)
 	t.Cleanup(resetCreatorFunc)
 
@@ -286,7 +286,7 @@ func TestServer_Wait_WhenNotStarted_ReturnsImmediately(t *testing.T) {
 	assert.True(elapsed < time.Duration(100*time.Millisecond))
 }
 
-func TestServer_Wait_WhenStarted_TakesTime(t *testing.T) {
+func TestUnit_Server_Wait_WhenStarted_TakesTime(t *testing.T) {
 	assert := assert.New(t)
 	t.Cleanup(resetCreatorFunc)
 
@@ -304,7 +304,7 @@ func TestServer_Wait_WhenStarted_TakesTime(t *testing.T) {
 	assert.True(900*time.Millisecond < elapsed)
 }
 
-func TestRegisterMiddlewares_registersExpectedMiddlewareCount(t *testing.T) {
+func TestUnit_RegisterMiddlewares_registersExpectedMiddlewareCount(t *testing.T) {
 	assert := assert.New(t)
 
 	ms := mockEchoServer{}
