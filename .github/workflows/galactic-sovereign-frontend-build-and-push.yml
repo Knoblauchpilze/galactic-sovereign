@@ -11,9 +11,6 @@ on:
       service-tag:
         description: "Tag of the generated service docker image"
         value: ${{ jobs.extract-service-tag.outputs.version }}
-  push:
-    paths:
-      - "build/galactic-sovereign-frontend/Dockerfile"
 
 jobs:
   extract-service-tag:
