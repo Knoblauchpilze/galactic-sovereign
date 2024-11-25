@@ -115,6 +115,8 @@ jobs:
   build-galactic-sovereign-service:
     needs: [tests, extract-service-tag]
     uses: ./.github/workflows/galactic-sovereign-service-build-and-push.yml
+    with:
+      service-tag: ${{ needs.extract-service-tag.outputs.version }}
     secrets:
       dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
       dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
@@ -130,8 +132,6 @@ jobs:
     needs: [analyze-code-changes, extract-service-tag]
     if: ${{ needs.analyze-code-changes.outputs.galactic-sovereign-frontend == 'true' }}
     uses: ./.github/workflows/galactic-sovereign-frontend-build-and-push.yml
-    with:
-      service-tag: ${{ needs.extract-service-tag.outputs.version }}
     secrets:
       dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
       dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
