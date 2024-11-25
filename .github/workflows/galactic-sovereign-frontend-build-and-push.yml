@@ -2,6 +2,11 @@ name: galactic-sovereign-frontend
 
 on:
   workflow_call:
+    inputs:
+      service-tag:
+        description: "The tag of the service to build"
+        required: true
+        type: string
     secrets:
       dockerhub-username:
         required: true
@@ -13,11 +18,8 @@ on:
         value: ${{ jobs.extract-service-tag.outputs.version }}
 
 jobs:
-  extract-service-tag:
-    uses: ./.github/workflows/services-extract-tag.yml
   build-and-push-docker-image:
     runs-on: ubuntu-latest
-    needs: [extract-service-tag]
     steps:
       - uses: actions/checkout@v4
       - name: Login to Docker Hub
@@ -31,8 +33,8 @@ jobs:
           context: .
           file: ./build/galactic-sovereign-frontend/Dockerfile
           build-args: |
-            GIT_COMMIT_HASH=${{ needs.extract-service-tag.outputs.version }}
+            GIT_COMMIT_HASH=${{ inputs.service-tag }}
             API_BASE_URL=http://galactic-sovereign-service:80/v1/galactic-sovereign
             USER_API_BASE_URL=http://user-service:80/v1/users
           push: true
-          tags: totocorpsoftwareinc/galactic-sovereign-frontend:${{ needs.extract-service-tag.outputs.version }}
+          tags: totocorpsoftwareinc/galactic-sovereign-frontend:${{ inputs.service-tag }}

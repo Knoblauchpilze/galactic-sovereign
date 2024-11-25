@@ -125,6 +125,8 @@ jobs:
     needs: [analyze-code-changes, extract-service-tag]
     if: ${{ needs.analyze-code-changes.outputs.user-dashboard == 'true' }}
     uses: ./.github/workflows/user-dashboard-build-and-push.yml
+    with:
+      service-tag: ${{ needs.extract-service-tag.outputs.version }}
     secrets:
       dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
       dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
@@ -132,6 +134,8 @@ jobs:
     needs: [analyze-code-changes, extract-service-tag]
     if: ${{ needs.analyze-code-changes.outputs.galactic-sovereign-frontend == 'true' }}
     uses: ./.github/workflows/galactic-sovereign-frontend-build-and-push.yml
+    with:
+      service-tag: ${{ needs.extract-service-tag.outputs.version }}
     secrets:
       dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
       dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
