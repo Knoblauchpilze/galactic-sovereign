@@ -1,7 +1,9 @@
 package game
 
 import (
-	"github.com/KnoblauchPilze/galactic-sovereign/pkg/rest"
+	"strings"
+
+	"github.com/KnoblauchPilze/backend-toolkit/pkg/rest"
 	"github.com/labstack/echo/v4"
 )
 
@@ -20,5 +22,10 @@ func NewResourceRoute(method string,
 	actionService ActionService,
 	planetResourceService PlanetResourceService) rest.Route {
 	wrapped := GameUpdateWatcher(actionService, planetResourceService, handler)
-	return rest.NewResourceRoute(method, path, wrapped)
+
+	if !strings.Contains(path, "/:id") {
+		path = rest.ConcatenateEndpoints(path, "/:id")
+	}
+
+	return rest.NewRoute(method, path, wrapped)
 }

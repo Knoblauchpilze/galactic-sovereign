@@ -1,15 +1,14 @@
 package controller
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/KnoblauchPilze/backend-toolkit/pkg/errors"
+	"github.com/KnoblauchPilze/backend-toolkit/pkg/rest"
 	"github.com/KnoblauchPilze/galactic-sovereign/internal/service"
 	"github.com/KnoblauchPilze/galactic-sovereign/pkg/communication"
 	"github.com/KnoblauchPilze/galactic-sovereign/pkg/db"
 	"github.com/KnoblauchPilze/galactic-sovereign/pkg/game"
-	"github.com/KnoblauchPilze/galactic-sovereign/pkg/rest"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
@@ -19,9 +18,8 @@ func BuildingActionEndpoints(buildingActionService service.BuildingActionService
 	planetResourceService game.PlanetResourceService) rest.Routes {
 	var out rest.Routes
 
-	path := fmt.Sprintf("/planets/%s/actions", rest.RouteIdPlaceholder)
 	postHandler := fromBuildingActionServiceAwareHttpHandler(createBuildingAction, buildingActionService)
-	post := game.NewResourceRoute(http.MethodPost, path, postHandler, actionService, planetResourceService)
+	post := game.NewResourceRoute(http.MethodPost, "/planets/:id/actions", postHandler, actionService, planetResourceService)
 	out = append(out, post)
 
 	deleteHandler := fromBuildingActionServiceAwareHttpHandler(deleteBuildingAction, buildingActionService)

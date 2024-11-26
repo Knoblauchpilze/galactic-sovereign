@@ -4,10 +4,10 @@ import (
 	"net/http"
 
 	"github.com/KnoblauchPilze/backend-toolkit/pkg/errors"
+	"github.com/KnoblauchPilze/backend-toolkit/pkg/rest"
 	"github.com/KnoblauchPilze/galactic-sovereign/internal/service"
 	"github.com/KnoblauchPilze/galactic-sovereign/pkg/communication"
 	"github.com/KnoblauchPilze/galactic-sovereign/pkg/db"
-	"github.com/KnoblauchPilze/galactic-sovereign/pkg/rest"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
@@ -20,7 +20,7 @@ func UniverseEndpoints(service service.UniverseService) rest.Routes {
 	out = append(out, post)
 
 	getHandler := fromUniverseServiceAwareHttpHandler(getUniverse, service)
-	get := rest.NewResourceRoute(http.MethodGet, "/universes", getHandler)
+	get := rest.NewRoute(http.MethodGet, "/universes/:id", getHandler)
 	out = append(out, get)
 
 	listHandler := fromUniverseServiceAwareHttpHandler(listUniverses, service)
@@ -28,7 +28,7 @@ func UniverseEndpoints(service service.UniverseService) rest.Routes {
 	out = append(out, list)
 
 	deleteHandler := fromUniverseServiceAwareHttpHandler(deleteUniverse, service)
-	delete := rest.NewResourceRoute(http.MethodDelete, "/universes", deleteHandler)
+	delete := rest.NewRoute(http.MethodDelete, "/universes/:id", deleteHandler)
 	out = append(out, delete)
 
 	return out

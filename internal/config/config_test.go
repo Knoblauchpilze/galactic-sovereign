@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/KnoblauchPilze/backend-toolkit/pkg/server"
 	"github.com/KnoblauchPilze/galactic-sovereign/internal/service"
-	"github.com/KnoblauchPilze/galactic-sovereign/pkg/rest"
 	"github.com/labstack/gommon/log"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
@@ -20,11 +20,9 @@ func TestUnit_DefaultConfig_Server(t *testing.T) {
 
 	conf := DefaultConf()
 
-	expected := rest.Config{
-		BasePath:  "/v1",
-		Prefix:    "",
-		Port:      uint16(80),
-		RateLimit: 10,
+	expected := server.Config{
+		BasePath: "/v1",
+		Port:     uint16(80),
 	}
 	assert.Equal(expected, conf.Server)
 }
