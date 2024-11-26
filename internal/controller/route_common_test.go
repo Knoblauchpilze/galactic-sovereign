@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/KnoblauchPilze/backend-toolkit/pkg/rest"
 	"github.com/KnoblauchPilze/galactic-sovereign/pkg/game"
-	"github.com/KnoblauchPilze/galactic-sovereign/pkg/rest"
 	"github.com/stretchr/testify/suite"
 )
 

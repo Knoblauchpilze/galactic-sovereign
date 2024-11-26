@@ -4,10 +4,10 @@ import (
 	"net/http"
 
 	"github.com/KnoblauchPilze/backend-toolkit/pkg/errors"
+	"github.com/KnoblauchPilze/backend-toolkit/pkg/rest"
 	"github.com/KnoblauchPilze/galactic-sovereign/internal/service"
 	"github.com/KnoblauchPilze/galactic-sovereign/pkg/communication"
 	"github.com/KnoblauchPilze/galactic-sovereign/pkg/db"
-	"github.com/KnoblauchPilze/galactic-sovereign/pkg/rest"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
@@ -20,7 +20,7 @@ func PlayerEndpoints(service service.PlayerService) rest.Routes {
 	out = append(out, post)
 
 	getHandler := fromPlayerServiceAwareHttpHandler(getPlayer, service)
-	get := rest.NewResourceRoute(http.MethodGet, "/players", getHandler)
+	get := rest.NewRoute(http.MethodGet, "/players/:id", getHandler)
 	out = append(out, get)
 
 	listHandler := fromPlayerServiceAwareHttpHandler(listPlayers, service)
@@ -28,7 +28,7 @@ func PlayerEndpoints(service service.PlayerService) rest.Routes {
 	out = append(out, list)
 
 	deleteHandler := fromPlayerServiceAwareHttpHandler(deletePlayer, service)
-	delete := rest.NewResourceRoute(http.MethodDelete, "/players", deleteHandler)
+	delete := rest.NewRoute(http.MethodDelete, "/players/:id", deleteHandler)
 	out = append(out, delete)
 
 	return out

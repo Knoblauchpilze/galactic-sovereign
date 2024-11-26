@@ -4,15 +4,15 @@ import (
 	"strings"
 	"time"
 
+	"github.com/KnoblauchPilze/backend-toolkit/pkg/server"
 	"github.com/KnoblauchPilze/galactic-sovereign/internal/service"
 	"github.com/KnoblauchPilze/galactic-sovereign/pkg/db"
-	"github.com/KnoblauchPilze/galactic-sovereign/pkg/rest"
 	"github.com/labstack/gommon/log"
 	"github.com/spf13/viper"
 )
 
 type Configuration struct {
-	Server   rest.Config
+	Server   server.Config
 	Database db.Config
 	ApiKey   service.ApiConfig
 }
@@ -58,10 +58,9 @@ func LoadConfiguration(configName string, defaultConf Configuration) (Configurat
 
 func DefaultConf() Configuration {
 	return Configuration{
-		Server: rest.Config{
-			BasePath:  "/v1",
-			Port:      uint16(80),
-			RateLimit: 10,
+		Server: server.Config{
+			BasePath: "/v1",
+			Port:     uint16(80),
 		},
 		ApiKey: service.ApiConfig{
 			ApiKeyValidity: time.Duration(3 * time.Hour),

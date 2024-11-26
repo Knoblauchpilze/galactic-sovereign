@@ -49,20 +49,6 @@ func TestUnit_Route_WithResource_Method(t *testing.T) {
 	assert.Equal(http.MethodGet, r.Method())
 }
 
-func TestUnit_Route_Authorized(t *testing.T) {
-	assert := assert.New(t)
-
-	public := NewRoute(http.MethodGet, "", defaultHandler, &mockActionService{}, &mockPlanetResourceService{})
-	assert.Equal(false, public.Authorized())
-}
-
-func TestUnit_Route_WithResource_Authorized(t *testing.T) {
-	assert := assert.New(t)
-
-	public := NewResourceRoute(http.MethodGet, "", defaultHandler, &mockActionService{}, &mockPlanetResourceService{})
-	assert.Equal(false, public.Authorized())
-}
-
 func TestUnit_Route_Handler(t *testing.T) {
 	assert := assert.New(t)
 
