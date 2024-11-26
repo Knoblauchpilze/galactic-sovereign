@@ -72,17 +72,17 @@ jobs:
           go-version: "1.23.2"
       - name: Install migrate tool
         run: go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
-      - name: Setup users database
+      - name: Setup galactic-sovereign database
         run: |
           psql \
             postgresql://postgres@localhost \
             -v admin_password=$ADMIN_PASSWORD \
             -v manager_password=$MANAGER_PASSWORD \
             -v user_password=$USER_PASSWORD \
-            -f users/db_user_create.sql
+            -f galactic-sovereign/db_user_create.sql
           psql \
             postgresql://postgres@localhost \
-            -f users/db_create.sql
+            -f galactic-sovereign/db_create.sql
         working-directory: ./database
         env:
           PGPASSWORD: postgres
@@ -92,8 +92,8 @@ jobs:
       - name: Migrate schema up
         run: |
           migrate \
-            -path users/migrations \
-            -database postgresql://user_service_admin@localhost/db_user_service?sslmode=disable \
+            -path galactic-sovereign/migrations \
+            -database postgresql://galactic_sovereign_admin@localhost/db_galactic_sovereign?sslmode=disable \
             up
         working-directory: ./database
         env:
