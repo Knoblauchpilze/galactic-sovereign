@@ -97,21 +97,9 @@ jobs:
   tests:
     runs-on: ubuntu-latest
     needs: [analyze-code-changes]
-    if: ${{ needs.analyze-code-changes.outputs.galactic-sovereign-service == 'true' }}
-    steps:
-      - uses: actions/checkout@v4
-      - name: Setup Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: "1.23.2"
-      - name: Run tests with coverage
-        run: go test ./... -coverpkg=./... -race -covermode=atomic -coverprofile=coverage.out
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v5
-        with:
-          fail_ci_if_error: true
-          files: ./coverage.out
-          token: ${{ secrets.CODECOV_TOKEN }}
+    uses: ./.github/workflows/galactic-sovereign-service-tests.yml
+    secrets:
+      codecov-token: ${{ secrets.CODECOV_TOKEN }}
   build-galactic-sovereign-service:
     needs: [tests, extract-service-tag]
     uses: ./.github/workflows/galactic-sovereign-service-build-and-push.yml
