@@ -68,7 +68,13 @@ func TestUnit_Healthcheck_WhenPingFails_PropagatesError(t *testing.T) {
 	err := healthcheck(ctx, mp)
 
 	assert.Nil(err)
-	assert.Equal("{\"Code\":260,\"Cause\":\"some error\"}\n", rw.Body.String())
+	expectedResponse := `
+	{
+		"Cause": "some error",
+		"Code": 260,
+		"Message": "An unexpected error occurred"
+	}`
+	assert.JSONEq(expectedResponse, rw.Body.String())
 }
 
 func TestUnit_Healthcheck_WhenPingFails_SetsStatusToServiceUnavailable(t *testing.T) {

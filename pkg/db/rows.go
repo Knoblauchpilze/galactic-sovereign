@@ -1,8 +1,8 @@
 package db
 
 import (
+	"github.com/KnoblauchPilze/backend-toolkit/pkg/errors"
 	"github.com/KnoblauchPilze/galactic-sovereign/pkg/common"
-	"github.com/KnoblauchPilze/galactic-sovereign/pkg/errors"
 	"github.com/jackc/pgx/v5"
 )
 

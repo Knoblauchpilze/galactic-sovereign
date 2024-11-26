@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/KnoblauchPilze/galactic-sovereign/pkg/errors"
+	"github.com/KnoblauchPilze/backend-toolkit/pkg/errors"
 	"github.com/KnoblauchPilze/galactic-sovereign/pkg/logger"
 	"github.com/KnoblauchPilze/galactic-sovereign/pkg/middleware"
 	em "github.com/labstack/echo/v4/middleware"
