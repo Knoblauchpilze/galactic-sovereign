@@ -194,6 +194,7 @@ jobs:
         build-user-dashboard,
         build-galactic-sovereign-frontend,
         persist-service-tags,
+        extract-service-tag,
       ]
     if: |
       always() &&
@@ -204,12 +205,12 @@ jobs:
       - name: galactic-sovereign-service tag
         if: ${{ needs.analyze-code-changes.outputs.galactic-sovereign-service == 'true' }}
         run: |
-          echo "Tag is now $(cat ./build/galactic-sovereign-service/version.txt)"
+          echo "Tag is now ${{ needs.extract-service-tag.outputs.version }}"
       - name: user-dashboard tag
         if: ${{ needs.analyze-code-changes.outputs.user-dashboard == 'true' }}
         run: |
-          echo "Tag is now $(cat ./build/user-dashboard/version.txt)"
+          echo "Tag is now ${{ needs.extract-service-tag.outputs.version }}"
       - name: galactic-sovereign-frontend tag
         if: ${{ needs.analyze-code-changes.outputs.galactic-sovereign-frontend == 'true' }}
         run: |
-          echo "Tag is now $(cat ./build/galactic-sovereign-frontend/version.txt)"
+          echo "Tag is now ${{ needs.extract-service-tag.outputs.version }}"
