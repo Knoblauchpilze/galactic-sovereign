@@ -10,10 +10,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/KnoblauchPilze/backend-toolkit/pkg/errors"
 	"github.com/KnoblauchPilze/galactic-sovereign/internal/service"
 	"github.com/KnoblauchPilze/galactic-sovereign/pkg/communication"
 	"github.com/KnoblauchPilze/galactic-sovereign/pkg/db"
-	"github.com/KnoblauchPilze/galactic-sovereign/pkg/errors"
 	"github.com/KnoblauchPilze/galactic-sovereign/pkg/game"
 	"github.com/KnoblauchPilze/galactic-sovereign/pkg/rest"
 	"github.com/google/uuid"

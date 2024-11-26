@@ -5,9 +5,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/KnoblauchPilze/backend-toolkit/pkg/errors"
 	"github.com/KnoblauchPilze/galactic-sovereign/pkg/communication"
 	"github.com/KnoblauchPilze/galactic-sovereign/pkg/db"
-	"github.com/KnoblauchPilze/galactic-sovereign/pkg/errors"
 	"github.com/KnoblauchPilze/galactic-sovereign/pkg/persistence"
 	"github.com/KnoblauchPilze/galactic-sovereign/pkg/repositories"
 	"github.com/google/uuid"

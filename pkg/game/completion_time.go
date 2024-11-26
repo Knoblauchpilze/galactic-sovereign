@@ -4,7 +4,7 @@ import (
 	"math"
 	"time"
 
-	"github.com/KnoblauchPilze/galactic-sovereign/pkg/errors"
+	"github.com/KnoblauchPilze/backend-toolkit/pkg/errors"
 	"github.com/KnoblauchPilze/galactic-sovereign/pkg/persistence"
 )
 

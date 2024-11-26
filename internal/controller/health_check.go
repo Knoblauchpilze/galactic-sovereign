@@ -3,8 +3,8 @@ package controller
 import (
 	"net/http"
 
+	"github.com/KnoblauchPilze/backend-toolkit/pkg/errors"
 	"github.com/KnoblauchPilze/galactic-sovereign/pkg/db"
-	"github.com/KnoblauchPilze/galactic-sovereign/pkg/errors"
 	"github.com/KnoblauchPilze/galactic-sovereign/pkg/rest"
 	"github.com/labstack/echo/v4"
 )
