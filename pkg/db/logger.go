@@ -6,25 +6,26 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/KnoblauchPilze/galactic-sovereign/pkg/logger"
+	"github.com/KnoblauchPilze/backend-toolkit/pkg/logger"
 	"github.com/jackc/pgx/v5/tracelog"
-	"github.com/labstack/echo/v4"
 	"github.com/labstack/gommon/log"
 )
 
 type pgxLoggerImpl struct {
 	ignoreUnknownMessages bool
-	logger                echo.Logger
+	log                   logger.Logger
 }
 
 const pgxPrefixString = "pgx"
 const pgxPrepareMessage = "Prepare"
 const pgxQueryMessage = "Query"
 
-func new(ignoreUnknownMessages bool) tracelog.Logger {
+func new(ignoreUnknownMessages bool, log logger.Logger) tracelog.Logger {
+	clone := logger.Clone(log)
+	clone.SetPrefix(pgxPrefixString)
 	return &pgxLoggerImpl{
 		ignoreUnknownMessages: ignoreUnknownMessages,
-		logger:                logger.New(pgxPrefixString),
+		log:                   clone,
 	}
 }
 
@@ -51,15 +52,15 @@ func (l *pgxLoggerImpl) Log(ctx context.Context, level tracelog.LogLevel, msg st
 
 	switch level {
 	case tracelog.LogLevelTrace:
-		l.logger.Debugf(outMsg)
+		l.log.Debugf(outMsg)
 	case tracelog.LogLevelDebug:
-		l.logger.Debugf(outMsg)
+		l.log.Debugf(outMsg)
 	case tracelog.LogLevelInfo:
-		l.logger.Infof(outMsg)
+		l.log.Infof(outMsg)
 	case tracelog.LogLevelWarn:
-		l.logger.Warnf(outMsg)
+		l.log.Warnf(outMsg)
 	case tracelog.LogLevelError:
-		l.logger.Errorf(outMsg)
+		l.log.Errorf(outMsg)
 	}
 }
 

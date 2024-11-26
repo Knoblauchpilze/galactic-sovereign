@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/KnoblauchPilze/backend-toolkit/pkg/logger"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/jackc/pgx/v5/tracelog"
 	"github.com/labstack/gommon/log"
@@ -28,7 +29,7 @@ const postgresqlConnectionStringTemplate = "postgresql://${user}:${password}@${h
 // https://github.com/jackc/pgx/blob/f57b2854f8204b1ff19a02a0879a66655bc4ec78/pgconn/config.go#L295
 const connectTimeoutStringTemplate = "&connect_timeout=${connect_timeout}"
 
-func (c Config) toConnPoolConfig() (*pgxpool.Config, error) {
+func (c Config) toConnPoolConfig(log logger.Logger) (*pgxpool.Config, error) {
 	// https://stackoverflow.com/questions/3582552/what-is-the-format-for-the-postgresql-connection-string-url
 	connStr := postgresqlConnectionStringTemplate
 	connStr = strings.ReplaceAll(connStr, "${user}", c.User)
@@ -51,7 +52,7 @@ func (c Config) toConnPoolConfig() (*pgxpool.Config, error) {
 
 	// TODO: How to make sure that the request id is logged?
 	conf.ConnConfig.Tracer = &tracelog.TraceLog{
-		Logger:   new(true),
+		Logger:   new(true, log),
 		LogLevel: toTracelogLevel(c.LogLevel),
 	}
 

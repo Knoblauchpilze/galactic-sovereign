@@ -35,7 +35,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	pool := db.NewConnectionPool(conf.Database)
+	pool := db.NewConnectionPool(conf.Database, log)
 	if err := pool.Connect(context.Background()); err != nil {
 		log.Errorf("Failed to connect to the database: %v", err)
 		os.Exit(1)

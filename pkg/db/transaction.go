@@ -4,12 +4,13 @@ import (
 	"context"
 	"time"
 
-	"github.com/KnoblauchPilze/galactic-sovereign/pkg/logger"
+	"github.com/KnoblauchPilze/backend-toolkit/pkg/logger"
 	"github.com/jackc/pgx/v5"
 )
 
 type transactionImpl struct {
 	tx        pgx.Tx
+	log       logger.Logger
 	timeStamp time.Time
 	err       error
 }
@@ -24,7 +25,7 @@ func (t *transactionImpl) Close(ctx context.Context) {
 	}
 
 	if err != nil && err != pgx.ErrTxClosed {
-		logger.GetRequestLogger(ctx).Warnf("Transaction ended in error state: %v", err)
+		t.log.Warnf("Transaction ended in error state: %v", err)
 	}
 }
 

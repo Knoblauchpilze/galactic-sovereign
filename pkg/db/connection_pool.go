@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/KnoblauchPilze/backend-toolkit/pkg/errors"
-	"github.com/KnoblauchPilze/galactic-sovereign/pkg/logger"
+	"github.com/KnoblauchPilze/backend-toolkit/pkg/logger"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -14,27 +14,29 @@ type pgxConnectionFunc func(context.Context, *pgxpool.Config) (*pgxpool.Pool, er
 
 type connectionPoolImpl struct {
 	config Config
+	log    logger.Logger
 
 	lock     sync.Mutex
 	connFunc pgxConnectionFunc
 	pool     pgxConnectionPool
 }
 
-func NewConnectionPool(config Config) ConnectionPool {
-	return newConnectionPool(config, pgxpool.NewWithConfig)
+func NewConnectionPool(config Config, log logger.Logger) ConnectionPool {
+	return newConnectionPool(config, log, pgxpool.NewWithConfig)
 }
 
-func newConnectionPool(config Config, connFunc pgxConnectionFunc) ConnectionPool {
+func newConnectionPool(config Config, log logger.Logger, connFunc pgxConnectionFunc) ConnectionPool {
 	return &connectionPoolImpl{
 		config:   config,
+		log:      log,
 		connFunc: connFunc,
 	}
 }
 
 func (c *connectionPoolImpl) Connect(ctx context.Context) error {
-	logger.Infof("Connecting to %s at %s:%d with user %s", c.config.Name, c.config.Host, c.config.Port, c.config.User)
+	c.log.Infof("Connecting to %s at %s:%d with user %s", c.config.Name, c.config.Host, c.config.Port, c.config.User)
 
-	conf, err := c.config.toConnPoolConfig()
+	conf, err := c.config.toConnPoolConfig(c.log)
 	if err != nil {
 		return err
 	}
@@ -60,7 +62,7 @@ func (c *connectionPoolImpl) Close() {
 	}
 
 	c.pool.Close()
-	logger.Infof("Closed connection to %s at %s:%d with user %s", c.config.Name, c.config.Host, c.config.Port, c.config.User)
+	c.log.Infof("Closed connection to %s at %s:%d with user %s", c.config.Name, c.config.Host, c.config.Port, c.config.User)
 }
 
 func (c *connectionPoolImpl) Ping(ctx context.Context) error {
@@ -78,8 +80,9 @@ func (c *connectionPoolImpl) StartTransaction(ctx context.Context) (Transaction,
 	}
 
 	tx := transactionImpl{
-		timeStamp: time.Now(),
 		tx:        pgxTx,
+		log:       c.log,
+		timeStamp: time.Now(),
 	}
 	return &tx, nil
 }
