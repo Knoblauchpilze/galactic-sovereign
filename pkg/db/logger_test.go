@@ -2,14 +2,28 @@ package db
 
 import (
 	"context"
+	"io"
+	"os"
 	"testing"
 	"time"
 
+	"github.com/KnoblauchPilze/backend-toolkit/pkg/logger"
 	"github.com/jackc/pgx/v5/tracelog"
-	"github.com/labstack/echo/v4"
 	"github.com/labstack/gommon/log"
 	"github.com/stretchr/testify/assert"
 )
+
+type mockLogger struct {
+	logger.Logger
+
+	debugCalled int
+	infoCalled  int
+	warnCalled  int
+	errorCalled int
+
+	format string
+	args   []interface{}
+}
 
 func TestUnit_ToTraceLogLevel(t *testing.T) {
 	assert := assert.New(t)
@@ -142,24 +156,12 @@ func TestUnit_PrepareSqlMessage(t *testing.T) {
 	}
 }
 
-type mockEchoLogger struct {
-	echo.Logger
-
-	debugCalled int
-	infoCalled  int
-	warnCalled  int
-	errorCalled int
-
-	format string
-	args   []interface{}
-}
-
 func TestUnit_PgxLoggerImpl_Log_Trace(t *testing.T) {
 	assert := assert.New(t)
 
-	m := &mockEchoLogger{}
+	m := &mockLogger{}
 	l := pgxLoggerImpl{
-		logger: m,
+		log: m,
 	}
 
 	l.Log(context.Background(), tracelog.LogLevelTrace, "message", map[string]any{"toto": 1})
@@ -172,9 +174,9 @@ func TestUnit_PgxLoggerImpl_Log_Trace(t *testing.T) {
 func TestUnit_PgxLoggerImpl_Log_Debug(t *testing.T) {
 	assert := assert.New(t)
 
-	m := &mockEchoLogger{}
+	m := &mockLogger{}
 	l := pgxLoggerImpl{
-		logger: m,
+		log: m,
 	}
 
 	l.Log(context.Background(), tracelog.LogLevelDebug, "message", map[string]any{"toto": 1})
@@ -187,9 +189,9 @@ func TestUnit_PgxLoggerImpl_Log_Debug(t *testing.T) {
 func TestUnit_PgxLoggerImpl_Log_Info(t *testing.T) {
 	assert := assert.New(t)
 
-	m := &mockEchoLogger{}
+	m := &mockLogger{}
 	l := pgxLoggerImpl{
-		logger: m,
+		log: m,
 	}
 
 	l.Log(context.Background(), tracelog.LogLevelInfo, "message", map[string]any{"toto": 1})
@@ -202,9 +204,9 @@ func TestUnit_PgxLoggerImpl_Log_Info(t *testing.T) {
 func TestUnit_PgxLoggerImpl_Log_Warn(t *testing.T) {
 	assert := assert.New(t)
 
-	m := &mockEchoLogger{}
+	m := &mockLogger{}
 	l := pgxLoggerImpl{
-		logger: m,
+		log: m,
 	}
 
 	l.Log(context.Background(), tracelog.LogLevelWarn, "message", map[string]any{"toto": 1})
@@ -217,9 +219,9 @@ func TestUnit_PgxLoggerImpl_Log_Warn(t *testing.T) {
 func TestUnit_PgxLoggerImpl_Log_Error(t *testing.T) {
 	assert := assert.New(t)
 
-	m := &mockEchoLogger{}
+	m := &mockLogger{}
 	l := pgxLoggerImpl{
-		logger: m,
+		log: m,
 	}
 
 	l.Log(context.Background(), tracelog.LogLevelError, "message", map[string]any{"toto": 1})
@@ -232,9 +234,9 @@ func TestUnit_PgxLoggerImpl_Log_Error(t *testing.T) {
 func TestUnit_PgxLoggerImpl_Log_None(t *testing.T) {
 	assert := assert.New(t)
 
-	m := &mockEchoLogger{}
+	m := &mockLogger{}
 	l := pgxLoggerImpl{
-		logger: m,
+		log: m,
 	}
 
 	l.Log(context.Background(), tracelog.LogLevelNone, "message", map[string]any{"toto": 1})
@@ -248,10 +250,10 @@ func TestUnit_PgxLoggerImpl_Log_None(t *testing.T) {
 func TestUnit_PgxLoggerImpl_WhenMessageIsUnknownAndSetToIgnore_ExpectNoLog(t *testing.T) {
 	assert := assert.New(t)
 
-	m := &mockEchoLogger{}
+	m := &mockLogger{}
 	l := pgxLoggerImpl{
 		ignoreUnknownMessages: true,
-		logger:                m,
+		log:                   m,
 	}
 
 	l.Log(context.Background(), tracelog.LogLevelError, "message", map[string]any{"toto": 1})
@@ -265,10 +267,10 @@ func TestUnit_PgxLoggerImpl_WhenMessageIsUnknownAndSetToIgnore_ExpectNoLog(t *te
 func TestUnit_PgxLoggerImpl_WhenMessageIsKnownAndSetToIgnore_ExpectFormattedLog(t *testing.T) {
 	assert := assert.New(t)
 
-	m := &mockEchoLogger{}
+	m := &mockLogger{}
 	l := pgxLoggerImpl{
 		ignoreUnknownMessages: true,
-		logger:                m,
+		log:                   m,
 	}
 
 	args := map[string]interface{}{
@@ -285,10 +287,10 @@ func TestUnit_PgxLoggerImpl_WhenMessageIsKnownAndSetToIgnore_ExpectFormattedLog(
 func TestUnit_PgxLoggerImpl_prepareMessage_ExpectFormattedLog(t *testing.T) {
 	assert := assert.New(t)
 
-	m := &mockEchoLogger{}
+	m := &mockLogger{}
 	l := pgxLoggerImpl{
 		ignoreUnknownMessages: true,
-		logger:                m,
+		log:                   m,
 	}
 
 	args := map[string]interface{}{
@@ -302,25 +304,47 @@ func TestUnit_PgxLoggerImpl_prepareMessage_ExpectFormattedLog(t *testing.T) {
 	assert.Equal(0, len(m.args))
 }
 
-func (m *mockEchoLogger) Debugf(format string, args ...interface{}) {
+func (m *mockLogger) Output() io.Writer {
+	return os.Stdout
+}
+
+func (m *mockLogger) Level() logger.Level {
+	return logger.DEBUG
+}
+
+func (m *mockLogger) SetLevel(logger.Level) {}
+
+func (m *mockLogger) Prefix() string {
+	return ""
+}
+
+func (m *mockLogger) SetPrefix(string) {}
+
+func (m *mockLogger) Header() string {
+	return ""
+}
+
+func (m *mockLogger) SetHeader(string) {}
+
+func (m *mockLogger) Debugf(format string, args ...interface{}) {
 	m.debugCalled++
 	m.format = format
 	m.args = append(m.args, args...)
 }
 
-func (m *mockEchoLogger) Infof(format string, args ...interface{}) {
+func (m *mockLogger) Infof(format string, args ...interface{}) {
 	m.infoCalled++
 	m.format = format
 	m.args = append(m.args, args...)
 }
 
-func (m *mockEchoLogger) Warnf(format string, args ...interface{}) {
+func (m *mockLogger) Warnf(format string, args ...interface{}) {
 	m.warnCalled++
 	m.format = format
 	m.args = append(m.args, args...)
 }
 
-func (m *mockEchoLogger) Errorf(format string, args ...interface{}) {
+func (m *mockLogger) Errorf(format string, args ...interface{}) {
 	m.errorCalled++
 	m.format = format
 	m.args = append(m.args, args...)

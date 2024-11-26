@@ -23,7 +23,7 @@ func TestUnit_Config_ToConnPoolConfig(t *testing.T) {
 	assert := assert.New(t)
 
 	c := defaultPoolConf
-	actual, err := c.toConnPoolConfig()
+	actual, err := c.toConnPoolConfig(&mockLogger{})
 
 	assert.Nil(err)
 	assert.Equal("host", actual.ConnConfig.Host)
@@ -42,7 +42,7 @@ func TestUnit_Config_ToConnPoolConfig_WithConnectTimeout(t *testing.T) {
 
 	c := defaultPoolConf
 	c.ConnectTimeout = 2 * time.Second
-	actual, err := c.toConnPoolConfig()
+	actual, err := c.toConnPoolConfig(&mockLogger{})
 
 	assert.Nil(err)
 
@@ -54,7 +54,7 @@ func TestUnit_Config_ToConnPoolConfig_WhenConnectTimeoutNotAFullSecond_ExpectRou
 
 	c := defaultPoolConf
 	c.ConnectTimeout = 3*time.Second + 720*time.Millisecond
-	actual, err := c.toConnPoolConfig()
+	actual, err := c.toConnPoolConfig(&mockLogger{})
 
 	assert.Nil(err)
 
@@ -67,7 +67,7 @@ func TestUnit_Config_ToConnPoolConfig_WhenInvalidPort_ExpectError(t *testing.T) 
 	c := defaultPoolConf
 	c.Port = 0
 
-	_, err := c.toConnPoolConfig()
+	_, err := c.toConnPoolConfig(&mockLogger{})
 
 	_, ok := err.(*pgconn.ParseConfigError)
 	assert.True(ok)
@@ -79,7 +79,7 @@ func TestUnit_Config_ToConnPoolConfig_UrlEncodesPassword(t *testing.T) {
 	c := defaultPoolConf
 	c.Password = "zefpoi*${oiz}"
 
-	conf, err := c.toConnPoolConfig()
+	conf, err := c.toConnPoolConfig(&mockLogger{})
 
 	assert.Nil(err)
 	expectedConnString := "postgresql://user:zefpoi%2A%24%7Boiz%7D@host:36/db?pool_min_conns=2"

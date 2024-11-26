@@ -17,7 +17,7 @@ var errDefault = fmt.Errorf("some error")
 func TestUnit_ConnectionPool_NewConnectionPool_UsesProvidedConfig(t *testing.T) {
 	assert := assert.New(t)
 
-	p := NewConnectionPool(defaultPoolConf)
+	p := NewConnectionPool(defaultPoolConf, &mockLogger{})
 
 	actual, ok := p.(*connectionPoolImpl)
 
@@ -35,7 +35,7 @@ func TestUnit_ConnectionPool_ConnectUsesConnectionFunc(t *testing.T) {
 		return nil, nil
 	}
 
-	p := newConnectionPool(defaultPoolConf, mockConnFunc)
+	p := newConnectionPool(defaultPoolConf, &mockLogger{}, mockConnFunc)
 	p.Connect(context.Background())
 
 	assert.True(called)
@@ -51,10 +51,10 @@ func TestUnit_ConnectionPool_ConnectToExpectedDatabase(t *testing.T) {
 		return nil, nil
 	}
 
-	p := newConnectionPool(defaultPoolConf, mockConnFunc)
+	p := newConnectionPool(defaultPoolConf, &mockLogger{}, mockConnFunc)
 	err := p.Connect(context.Background())
 
-	expected, _ := defaultPoolConf.toConnPoolConfig()
+	expected, _ := defaultPoolConf.toConnPoolConfig(&mockLogger{})
 
 	assert.Nil(err)
 	assert.Equal(expected.ConnString(), actualConf.ConnString())
@@ -70,7 +70,7 @@ func TestUnit_ConnectionPool_ConnectPropagatesConversionError(t *testing.T) {
 	conf := defaultPoolConf
 	conf.Port = 0
 
-	p := newConnectionPool(conf, mockConnFunc)
+	p := newConnectionPool(conf, &mockLogger{}, mockConnFunc)
 	err := p.Connect(context.Background())
 
 	actual, ok := err.(*pgconn.ParseConfigError)
@@ -85,7 +85,7 @@ func TestUnit_ConnectionPool_ConnectPropagatesConnectionError(t *testing.T) {
 		return nil, errDefault
 	}
 
-	p := newConnectionPool(defaultPoolConf, mockConnFunc)
+	p := newConnectionPool(defaultPoolConf, &mockLogger{}, mockConnFunc)
 	err := p.Connect(context.Background())
 
 	assert.Equal(errDefault, err)
@@ -110,6 +110,7 @@ func TestUnit_ConnectionPool_Close_ReleasesTheDbConnection(t *testing.T) {
 
 	m := &mockPgxConnectionPool{}
 	p := connectionPoolImpl{
+		log:  &mockLogger{},
 		pool: m,
 	}
 
