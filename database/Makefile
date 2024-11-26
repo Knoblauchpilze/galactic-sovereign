@@ -1,9 +1,9 @@
 # Default variables
-DB_PATH ?= users
-DB_NAME ?= db_user_service
+DB_PATH ?= galactic-sovereign
+DB_NAME ?= db_galactic_sovereign
 DB_HOST ?= localhost
 DB_PORT ?= 5432
-DB_USER ?= user_service_admin
+DB_USER ?= galactic_sovereign_admin
 DB_PASSWORD ?= "comes-this-from-environment"
 MIGRATION_STEPS ?= 1
 
