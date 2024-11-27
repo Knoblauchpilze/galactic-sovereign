@@ -32,7 +32,7 @@ var defaultUpdatedPlanetResourceProduction = persistence.PlanetResourceProductio
 	Version:    6,
 }
 
-func TestUnit__PlanetResourceProductionRepository_Transaction(t *testing.T) {
+func TestUnit_PlanetResourceProductionRepository_Transaction(t *testing.T) {
 	var dummyUuid *uuid.UUID
 	var dummyInt int
 

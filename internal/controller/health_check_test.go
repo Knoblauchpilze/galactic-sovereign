@@ -18,7 +18,7 @@ type mockConnectionPool struct {
 	err        error
 }
 
-func TestUnit__HealthCheckEndpoints(t *testing.T) {
+func TestUnit_HealthCheckEndpoints(t *testing.T) {
 	s := RouteTestSuite{
 		generateRoutes: func() rest.Routes {
 			return HealthCheckEndpoints(&mockConnectionPool{})

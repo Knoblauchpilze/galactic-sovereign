@@ -22,7 +22,7 @@ var defaultUpdatedPlanetBuilding = persistence.PlanetBuilding{
 	Version:   4,
 }
 
-func TestUnit__PlanetBuildingRepository_Transaction(t *testing.T) {
+func TestUnit_PlanetBuildingRepository_Transaction(t *testing.T) {
 	var dummyInt int
 
 	s := RepositoryTransactionTestSuite{

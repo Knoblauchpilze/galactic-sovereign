@@ -19,7 +19,7 @@ var defaultBuildingActionCost = persistence.BuildingActionCost{
 	Amount:   26,
 }
 
-func TestUnit__BuildingActionCostRepository_Transaction(t *testing.T) {
+func TestUnit_BuildingActionCostRepository_Transaction(t *testing.T) {
 	dummyInt := 0
 
 	s := RepositoryTransactionTestSuite{

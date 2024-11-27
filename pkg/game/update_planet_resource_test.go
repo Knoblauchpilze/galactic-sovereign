@@ -254,7 +254,7 @@ type planetResourceUpdateTestCase struct {
 	verifyMockInteractions    verifyMockInteractions
 }
 
-func TestUnit__UpdatePlanetResourcesToTime(t *testing.T) {
+func TestUnit_UpdatePlanetResourcesToTime(t *testing.T) {
 	tests := map[string]planetResourceUpdateTestCase{
 		"whenUpdatingPlanetUntilTime_expectListResourcesForPlanetCalled": {
 			verifyMockInteractions: func(repos repositories.Repositories, assert *assert.Assertions) {

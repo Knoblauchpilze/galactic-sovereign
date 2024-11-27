@@ -24,7 +24,7 @@ var defaultUniverse = persistence.Universe{
 	Version:   5,
 }
 
-func TestUnit__UniverseRepository(t *testing.T) {
+func TestUnit_UniverseRepository(t *testing.T) {
 	dummyStr := ""
 	dummyInt := 0
 
@@ -114,7 +114,7 @@ func TestUnit__UniverseRepository(t *testing.T) {
 	suite.Run(t, &s)
 }
 
-func TestUnit__UniverseRepository_Transaction(t *testing.T) {
+func TestUnit_UniverseRepository_Transaction(t *testing.T) {
 	dummyStr := ""
 	dummyInt := 0
 

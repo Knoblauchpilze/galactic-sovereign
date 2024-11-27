@@ -30,7 +30,7 @@ var defaultUpdatedPlanetResource = persistence.PlanetResource{
 	Version:   6,
 }
 
-func TestUnit__PlanetResourceRepository_Transaction(t *testing.T) {
+func TestUnit_PlanetResourceRepository_Transaction(t *testing.T) {
 	var dummyFloat64 float64
 	var dummyInt int
 

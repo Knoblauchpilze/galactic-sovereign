@@ -59,7 +59,7 @@ var defaultPlanetBuilding = persistence.PlanetBuilding{
 	UpdatedAt: testDate,
 }
 
-func TestUnit__PlanetService(t *testing.T) {
+func TestUnit_PlanetService(t *testing.T) {
 	s := ServicePoolTestSuite{
 		generateRepositoriesMocks:      generatePlanetServiceMocks,
 		generateErrorRepositoriesMocks: generateErrorPlanetServiceMocks,

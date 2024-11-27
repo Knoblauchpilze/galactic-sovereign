@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
-func TestUnit__BuildingRepository_Transaction(t *testing.T) {
+func TestUnit_BuildingRepository_Transaction(t *testing.T) {
 	dummyStr := ""
 
 	s := RepositoryTransactionTestSuite{

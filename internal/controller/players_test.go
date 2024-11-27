@@ -51,7 +51,7 @@ var defaultPlayerDtoResponse = communication.PlayerDtoResponse{
 	CreatedAt: time.Date(2024, 07, 13, 14, 42, 50, 651387235, time.UTC),
 }
 
-func TestUnit__PlayerEndpoints(t *testing.T) {
+func TestUnit_PlayerEndpoints(t *testing.T) {
 	s := RouteTestSuite{
 		generateRoutes: func() rest.Routes {
 			return PlayerEndpoints(&mockPlayerService{})
@@ -70,7 +70,7 @@ func TestUnit__PlayerEndpoints(t *testing.T) {
 	suite.Run(t, &s)
 }
 
-func TestUnit__PlayerController(t *testing.T) {
+func TestUnit_PlayerController(t *testing.T) {
 	s := ControllerTestSuite[service.PlayerService]{
 		generateServiceMock:      generatePlayerServiceMock,
 		generateErrorServiceMock: generateErrorPlayerServiceMock,
