@@ -2,50 +2,27 @@ package internal
 
 import (
 	"testing"
-	"time"
 
-	"github.com/KnoblauchPilze/backend-toolkit/pkg/server"
-	"github.com/KnoblauchPilze/galactic-sovereign/internal/service"
-	"github.com/KnoblauchPilze/galactic-sovereign/pkg/db"
-	"github.com/labstack/gommon/log"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestUnit_DefaultConfig_SetsCorrectPrefix(t *testing.T) {
-	assert := assert.New(t)
+func TestUnit_DefaultConfig_DefinesCorrectRestConfiguration(t *testing.T) {
+	config := DefaultConfig()
 
-	conf := DefaultConf()
-
-	expected := server.Config{
-		BasePath: "/v1/galactic-sovereign",
-		Port:     uint16(80),
-	}
-	assert.Equal(expected, conf.Server)
+	assert.Equal(t, "/v1/galactic-sovereign", config.Server.BasePath)
+	assert.Equal(t, uint16(80), config.Server.Port)
 }
 
-func TestUnit_DefaultConfig_LeavesApiKeyUnchanged(t *testing.T) {
-	assert := assert.New(t)
+func TestUnit_DefaultConfig_SetsExpectedDbConnection(t *testing.T) {
+	config := DefaultConfig()
 
-	conf := DefaultConf()
-
-	expected := service.ApiConfig{
-		ApiKeyValidity: 3 * time.Hour,
-	}
-	assert.Equal(expected, conf.ApiKey)
+	assert.Equal(t, "172.17.0.1", config.Database.Host)
+	assert.Equal(t, "db_galactic_sovereign", config.Database.Database)
+	assert.Equal(t, "galactic_sovereign_manager", config.Database.User)
 }
 
-func TestUnit_DefaultConfig_ReplacesDatabaseConfiguration(t *testing.T) {
-	assert := assert.New(t)
+func TestUnit_DefaultConfig_DoesNotSetDbPassword(t *testing.T) {
+	config := DefaultConfig()
 
-	conf := DefaultConf()
-
-	expected := db.Config{
-		Host:                "172.17.0.1",
-		Port:                5432,
-		Name:                "db_galactic_sovereign",
-		ConnectionsPoolSize: 1,
-		ConnectTimeout:      2 * time.Second,
-		LogLevel:            log.DEBUG,
-	}
-	assert.Equal(expected, conf.Database)
+	assert.Equal(t, "comes-from-the-environment", config.Database.Password)
 }

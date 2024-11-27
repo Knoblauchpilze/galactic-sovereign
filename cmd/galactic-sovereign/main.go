@@ -4,14 +4,15 @@ import (
 	"context"
 	"os"
 
+	"github.com/KnoblauchPilze/backend-toolkit/pkg/config"
 	"github.com/KnoblauchPilze/backend-toolkit/pkg/logger"
 	"github.com/KnoblauchPilze/backend-toolkit/pkg/server"
 	"github.com/KnoblauchPilze/galactic-sovereign/cmd/galactic-sovereign/internal"
-	"github.com/KnoblauchPilze/galactic-sovereign/internal/config"
 	"github.com/KnoblauchPilze/galactic-sovereign/internal/controller"
 	"github.com/KnoblauchPilze/galactic-sovereign/internal/service"
 	"github.com/KnoblauchPilze/galactic-sovereign/pkg/db"
 	"github.com/KnoblauchPilze/galactic-sovereign/pkg/repositories"
+	glog "github.com/labstack/gommon/log"
 )
 
 func determineConfigName() string {
@@ -25,7 +26,7 @@ func determineConfigName() string {
 func main() {
 	log := logger.New(logger.NewPrettyWriter(os.Stdout))
 
-	conf, err := config.LoadConfiguration(determineConfigName(), internal.DefaultConf())
+	conf, err := config.Load(determineConfigName(), internal.DefaultConfig())
 	if err != nil {
 		log.Errorf("Failed to load configuration: %v", err)
 		os.Exit(1)
@@ -35,7 +36,18 @@ func main() {
 		os.Exit(1)
 	}
 
-	pool := db.NewConnectionPool(conf.Database, log)
+	dbConf := db.Config{
+		Host:                conf.Database.Host,
+		Port:                conf.Database.Port,
+		Name:                conf.Database.Database,
+		User:                conf.Database.User,
+		Password:            conf.Database.Password,
+		ConnectionsPoolSize: 1,
+		ConnectTimeout:      conf.Database.ConnectTimeout,
+		LogLevel:            glog.DEBUG,
+	}
+
+	pool := db.NewConnectionPool(dbConf, log)
 	if err := pool.Connect(context.Background()); err != nil {
 		log.Errorf("Failed to connect to the database: %v", err)
 		os.Exit(1)
