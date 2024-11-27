@@ -30,7 +30,7 @@ var defaultUpdatedPlanetResourceStorage = persistence.PlanetResourceStorage{
 	Version:   3,
 }
 
-func TestUnit__PlanetResourceStorageRepository_Transaction(t *testing.T) {
+func TestUnit_PlanetResourceStorageRepository_Transaction(t *testing.T) {
 	var dummyInt int
 
 	s := RepositoryTransactionTestSuite{

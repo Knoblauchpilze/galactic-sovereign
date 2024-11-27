@@ -46,7 +46,7 @@ var defaultBuildingActionDtoResponse = communication.BuildingActionDtoResponse{
 	CompletedAt:  time.Date(2024, 8, 11, 14, 12, 36, 651387243, time.UTC),
 }
 
-func TestUnit__BuildingActionEndpoints(t *testing.T) {
+func TestUnit_BuildingActionEndpoints(t *testing.T) {
 	s := RouteTestSuite{
 		generateRoutes: func() rest.Routes {
 			return BuildingActionEndpoints(&mockBuildingActionService{}, &mockActionService{}, &mockPlanetResourceService{})
@@ -97,7 +97,7 @@ func TestUnit__BuildingActionEndpoints(t *testing.T) {
 	suite.Run(t, &s)
 }
 
-func TestUnit__BuildingActionController(t *testing.T) {
+func TestUnit_BuildingActionController(t *testing.T) {
 	s := ControllerTestSuite[service.BuildingActionService]{
 		generateServiceMock:      generateBuildingActionServiceMock,
 		generateErrorServiceMock: generateErrorBuildingActionServiceMock,

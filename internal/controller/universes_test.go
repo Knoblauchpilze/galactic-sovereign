@@ -74,7 +74,7 @@ var defaultFullUniverseDtoResponse = communication.FullUniverseDtoResponse{
 	},
 }
 
-func TestUnit__UniverseEndpoints(t *testing.T) {
+func TestUnit_UniverseEndpoints(t *testing.T) {
 	s := RouteTestSuite{
 		generateRoutes: func() rest.Routes {
 			return UniverseEndpoints(&mockUniverseService{})
@@ -93,7 +93,7 @@ func TestUnit__UniverseEndpoints(t *testing.T) {
 	suite.Run(t, &s)
 }
 
-func TestUnit__UniverseController(t *testing.T) {
+func TestUnit_UniverseController(t *testing.T) {
 	s := ControllerTestSuite[service.UniverseService]{
 		generateServiceMock:      generateUniverseServiceMock,
 		generateErrorServiceMock: generateErrorUniverseServiceMock,

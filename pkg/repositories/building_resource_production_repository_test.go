@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
-func TestUnit__BuildingResourceProductionRepository_Transaction(t *testing.T) {
+func TestUnit_BuildingResourceProductionRepository_Transaction(t *testing.T) {
 	var dummyInt int
 	var dummyFloat64 float64
 

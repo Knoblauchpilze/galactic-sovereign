@@ -19,7 +19,7 @@ var defaultBuildingActionResourceProduction = persistence.BuildingActionResource
 	Production: 18,
 }
 
-func TestUnit__BuildingActionResourceProductionRepository_Transaction(t *testing.T) {
+func TestUnit_BuildingActionResourceProductionRepository_Transaction(t *testing.T) {
 	dummyInt := 0
 
 	s := RepositoryTransactionTestSuite{
