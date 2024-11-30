@@ -18,7 +18,7 @@ CREATE TABLE homeworld (
   player uuid NOT NULL,
   planet uuid NOT NULL,
   PRIMARY KEY (player, planet),
-  UNIQUE (player, planet),
+  UNIQUE (player),
   FOREIGN KEY (player) REFERENCES player(id),
   FOREIGN KEY (planet) REFERENCES planet(id)
 );
