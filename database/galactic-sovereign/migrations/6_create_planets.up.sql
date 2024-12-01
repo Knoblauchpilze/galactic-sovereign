@@ -9,11 +9,6 @@ CREATE TABLE planet (
   FOREIGN KEY (player) REFERENCES player(id)
 );
 
-CREATE TRIGGER trigger_planet_updated_at
-  BEFORE UPDATE OR INSERT ON planet
-  FOR EACH ROW
-  EXECUTE FUNCTION update_updated_at();
-
 CREATE TABLE homeworld (
   player uuid NOT NULL,
   planet uuid NOT NULL,
@@ -75,11 +70,6 @@ CREATE TABLE planet_resource_storage (
 
 CREATE INDEX planet_resource_storage_planet_index ON planet_resource_storage (planet);
 
-CREATE TRIGGER trigger_planet_resource_storage_updated_at
-  BEFORE UPDATE OR INSERT ON planet_resource_storage
-  FOR EACH ROW
-  EXECUTE FUNCTION update_updated_at();
-
 CREATE TABLE planet_building (
   planet uuid NOT NULL,
   building uuid NOT NULL,
@@ -93,8 +83,3 @@ CREATE TABLE planet_building (
 );
 
 CREATE INDEX planet_building_planet_index ON planet_building (planet);
-
-CREATE TRIGGER trigger_planet_building_updated_at
-  BEFORE UPDATE OR INSERT ON planet_building
-  FOR EACH ROW
-  EXECUTE FUNCTION update_updated_at();
