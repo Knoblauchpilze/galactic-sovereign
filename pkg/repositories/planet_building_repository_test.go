@@ -5,217 +5,248 @@ import (
 	"testing"
 	"time"
 
+	"github.com/KnoblauchPilze/backend-toolkit/pkg/db"
 	"github.com/KnoblauchPilze/backend-toolkit/pkg/errors"
-	"github.com/KnoblauchPilze/galactic-sovereign/pkg/db"
+	eassert "github.com/KnoblauchPilze/easy-assert/assert"
 	"github.com/KnoblauchPilze/galactic-sovereign/pkg/persistence"
 	"github.com/google/uuid"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/stretchr/testify/suite"
 )
 
-var defaultUpdatedPlanetBuilding = persistence.PlanetBuilding{
-	Planet:    defaultPlanetId,
-	Building:  defaultBuildingId,
-	Level:     36,
-	CreatedAt: time.Date(2024, 8, 16, 14, 9, 21, 651387245, time.UTC),
-	UpdatedAt: time.Date(2024, 8, 16, 14, 9, 22, 651387245, time.UTC),
-	Version:   4,
+func TestIT_PlanetBuildingRepository_GetForPlanetAndBuilding(t *testing.T) {
+	repo, conn, tx := newTestPlanetBuildingRepositoryAndTransaction(t)
+	defer conn.Close(context.Background())
+	planet, _, _ := insertTestPlanetForPlayer(t, conn)
+	pb, building := insertTestPlanetBuildingForPlanet(t, conn, planet.Id)
+
+	actual, err := repo.GetForPlanetAndBuilding(context.Background(), tx, planet.Id, building.Id)
+	tx.Close(context.Background())
+	assert.Nil(t, err)
+
+	assert.True(t, eassert.EqualsIgnoringFields(actual, pb))
 }
 
-func TestUnit_PlanetBuildingRepository_Transaction(t *testing.T) {
-	var dummyInt int
+func TestIT_PlanetBuildingRepository_ListForPlanet(t *testing.T) {
+	repo, conn, tx := newTestPlanetBuildingRepositoryAndTransaction(t)
+	defer conn.Close(context.Background())
+	planet1, _, _ := insertTestPlanetForPlayer(t, conn)
+	pb1, _ := insertTestPlanetBuildingForPlanet(t, conn, planet1.Id)
+	pb2, _ := insertTestPlanetBuildingForPlanet(t, conn, planet1.Id)
+	planet2, _, _ := insertTestPlanetForPlayer(t, conn)
+	_, b3 := insertTestPlanetBuildingForPlanet(t, conn, planet2.Id)
 
-	s := RepositoryTransactionTestSuite{
-		dbInteractionTestCases: map[string]dbTransactionInteractionTestCase{
-			"getForPlanetAndBuilding": {
-				handler: func(ctx context.Context, tx db.Transaction) error {
-					s := NewPlanetBuildingRepository()
-					_, err := s.GetForPlanetAndBuilding(ctx, tx, defaultPlanetId, defaultBuildingId)
-					return err
-				},
-				expectedSqlQueries: []string{
-					`
-SELECT
-	planet,
-	building,
-	level,
-	created_at,
-	updated_at,
-	version
-FROM
-	planet_building
-WHERE
-	planet = $1
-	AND building = $2`,
-				},
-				expectedArguments: [][]interface{}{
-					{
-						defaultPlanetId,
-						defaultBuildingId,
-					},
-				},
-			},
-			"listForPlanet": {
-				handler: func(ctx context.Context, tx db.Transaction) error {
-					s := NewPlanetBuildingRepository()
-					_, err := s.ListForPlanet(ctx, tx, defaultPlanetId)
-					return err
-				},
-				expectedSqlQueries: []string{
-					`
-SELECT
-	planet,
-	building,
-	level,
-	created_at,
-	updated_at,
-	version
-FROM
-	planet_building
-WHERE
-	planet = $1
-`,
-				},
-				expectedArguments: [][]interface{}{
-					{
-						defaultPlanetId,
-					},
-				},
-			},
-			"update": {
-				sqlMode: ExecBased,
-				generateMock: func() db.Transaction {
-					return &mockTransaction{
-						affectedRows: []int{1},
-					}
-				},
-				handler: func(ctx context.Context, tx db.Transaction) error {
-					s := NewPlanetBuildingRepository()
-					_, err := s.Update(ctx, tx, defaultUpdatedPlanetBuilding)
-					return err
-				},
-				expectedSqlQueries: []string{
-					`
-UPDATE
-	planet_building
-SET
-	level = $1,
-	version = $2
-WHERE
-	planet = $3
-	AND building = $4
-	AND version = $5
-`,
-				},
-				expectedArguments: [][]interface{}{
-					{
-						defaultUpdatedPlanetBuilding.Level,
-						defaultUpdatedPlanetBuilding.Version + 1,
-						defaultUpdatedPlanetBuilding.Planet,
-						defaultUpdatedPlanetBuilding.Building,
-						defaultUpdatedPlanetBuilding.Version,
-					},
-				},
-			},
-			"deleteForPlanet": {
-				sqlMode: ExecBased,
-				generateMock: func() db.Transaction {
-					return &mockTransaction{
-						affectedRows: []int{1},
-					}
-				},
-				handler: func(ctx context.Context, tx db.Transaction) error {
-					s := NewPlanetBuildingRepository()
-					return s.DeleteForPlanet(ctx, tx, defaultPlanetId)
-				},
-				expectedSqlQueries: []string{
-					`DELETE FROM planet_building WHERE planet = $1`,
-				},
-				expectedArguments: [][]interface{}{
-					{
-						defaultPlanetId,
-					},
-				},
-			},
-		},
+	actual, err := repo.ListForPlanet(context.Background(), tx, planet1.Id)
+	tx.Close(context.Background())
 
-		dbSingleValueTestCases: map[string]dbTransactionSingleValueTestCase{
-			"getForPlanetAndBuilding": {
-				handler: func(ctx context.Context, tx db.Transaction) error {
-					repo := NewPlanetBuildingRepository()
-					_, err := repo.GetForPlanetAndBuilding(ctx, tx, defaultPlanetId, defaultBuildingId)
-					return err
-				},
-				expectedGetSingleValueCalls: 1,
-				expectedScanCalls:           1,
-				expectedScannedProps: [][]interface{}{
-					{
-						&uuid.UUID{},
-						&uuid.UUID{},
-						&dummyInt,
-						&time.Time{},
-						&time.Time{},
-						&dummyInt,
-					},
-				},
-			},
-		},
+	assert.Nil(t, err)
+	assert.GreaterOrEqual(t, len(actual), 2)
+	assert.True(t, eassert.ContainsIgnoringFields(actual, pb1))
+	assert.True(t, eassert.ContainsIgnoringFields(actual, pb2))
+	for _, planetBuilding := range actual {
+		assert.NotEqual(t, planetBuilding.Planet, planet2.Id)
+		assert.NotEqual(t, planetBuilding.Building, b3.Id)
+	}
+}
 
-		dbGetAllTestCases: map[string]dbTransactionGetAllTestCase{
-			"listForPlanet": {
-				handler: func(ctx context.Context, tx db.Transaction) error {
-					repo := NewPlanetBuildingRepository()
-					_, err := repo.ListForPlanet(ctx, tx, defaultPlanetId)
-					return err
-				},
-				expectedGetAllCalls: 1,
-				expectedScanCalls:   1,
-				expectedScannedProps: [][]interface{}{
-					{
-						&uuid.UUID{},
-						&uuid.UUID{},
-						&dummyInt,
-						&time.Time{},
-						&time.Time{},
-						&dummyInt,
-					},
-				},
-			},
-		},
+func TestIT_PlanetBuildingRepository_Update(t *testing.T) {
+	repo, conn, tx := newTestPlanetBuildingRepositoryAndTransaction(t)
+	defer conn.Close(context.Background())
+	planet, _, _ := insertTestPlanetForPlayer(t, conn)
+	planetBuilding, building := insertTestPlanetBuildingForPlanet(t, conn, planet.Id)
 
-		dbErrorTestCases: map[string]dbTransactionErrorTestCase{
-			"update_noRowsAffected": {
-				generateMock: func() db.Transaction {
-					return &mockTransaction{
-						affectedRows: []int{0},
-					}
-				},
-				handler: func(ctx context.Context, tx db.Transaction) error {
-					s := NewPlanetBuildingRepository()
-					_, err := s.Update(ctx, tx, defaultUpdatedPlanetBuilding)
-					return err
-				},
-				verifyError: func(err error, assert *require.Assertions) {
-					assert.True(errors.IsErrorWithCode(err, db.OptimisticLockException))
-				},
-			},
-			"update_moreThanOneRowAffected": {
-				generateMock: func() db.Transaction {
-					return &mockTransaction{
-						affectedRows: []int{2},
-					}
-				},
-				handler: func(ctx context.Context, tx db.Transaction) error {
-					s := NewPlanetBuildingRepository()
-					_, err := s.Update(ctx, tx, defaultUpdatedPlanetBuilding)
-					return err
-				},
-				verifyError: func(err error, assert *require.Assertions) {
-					assert.True(errors.IsErrorWithCode(err, db.MoreThanOneMatchingSqlRows))
-				},
-			},
-		},
+	updatedBuilding := planetBuilding
+	updatedBuilding.UpdatedAt = planetBuilding.UpdatedAt.Add(24 * time.Minute)
+	updatedBuilding.Level = planetBuilding.Level + 4
+
+	actual, err := repo.Update(context.Background(), tx, updatedBuilding)
+	tx.Close(context.Background())
+
+	assert.Nil(t, err)
+
+	expected := persistence.PlanetBuilding{
+		Planet:    planet.Id,
+		Building:  building.Id,
+		Level:     planetBuilding.Level + 4,
+		CreatedAt: planetBuilding.CreatedAt,
+		UpdatedAt: updatedBuilding.UpdatedAt,
+		Version:   planetBuilding.Version + 1,
 	}
 
-	suite.Run(t, &s)
+	assert.True(t, eassert.EqualsIgnoringFields(actual, expected))
+}
+
+func TestIT_PlanetBuildingRepository_Update_WhenVersionIsWrong_ExpectOptimisticLockException(t *testing.T) {
+	repo, conn, tx := newTestPlanetBuildingRepositoryAndTransaction(t)
+	defer conn.Close(context.Background())
+	planet, _, _ := insertTestPlanetForPlayer(t, conn)
+	planetBuilding, _ := insertTestPlanetBuildingForPlanet(t, conn, planet.Id)
+
+	updatedBuilding := planetBuilding
+	updatedBuilding.Level = planetBuilding.Level * 4
+	updatedBuilding.Version = planetBuilding.Version + 2
+
+	_, err := repo.Update(context.Background(), tx, updatedBuilding)
+	tx.Close(context.Background())
+
+	assert.True(t, errors.IsErrorWithCode(err, OptimisticLockException), "Actual err: %v", err)
+}
+
+func TestIT_PlanetBuildingRepository_Update_BumpsUpdatedAt(t *testing.T) {
+	repo, conn := newTestPlanetBuildingRepository(t)
+	defer conn.Close(context.Background())
+	planet, _, _ := insertTestPlanetForPlayer(t, conn)
+	planetBuilding, _ := insertTestPlanetBuildingForPlanet(t, conn, planet.Id)
+
+	updatedBuilding := planetBuilding
+	updatedBuilding.UpdatedAt = planetBuilding.UpdatedAt.Add(1 * time.Hour)
+	updatedBuilding.Level = planetBuilding.Level + 2
+
+	func() {
+		tx, err := conn.BeginTx(context.Background())
+		require.Nil(t, err)
+		defer tx.Close(context.Background())
+
+		_, err = repo.Update(context.Background(), tx, updatedBuilding)
+		assert.Nil(t, err)
+	}()
+
+	var updatedBuildingFromDb persistence.PlanetBuilding
+	func() {
+		tx, err := conn.BeginTx(context.Background())
+		require.Nil(t, err)
+		defer tx.Close(context.Background())
+
+		allBuildings, err := repo.ListForPlanet(context.Background(), tx, planet.Id)
+		require.Nil(t, err)
+		assert.Len(t, allBuildings, 1)
+
+		updatedBuildingFromDb = allBuildings[0]
+	}()
+
+	assert.Equal(t, updatedBuildingFromDb.UpdatedAt, updatedBuildingFromDb.UpdatedAt)
+}
+
+func TestIT_PlanetBuildingRepository_Update_BumpsVersion(t *testing.T) {
+	repo, conn := newTestPlanetBuildingRepository(t)
+	defer conn.Close(context.Background())
+	planet, _, _ := insertTestPlanetForPlayer(t, conn)
+	planetBuilding, _ := insertTestPlanetBuildingForPlanet(t, conn, planet.Id)
+
+	updatedBuilding := planetBuilding
+	updatedBuilding.UpdatedAt = planetBuilding.UpdatedAt.Add(1 * time.Hour)
+	updatedBuilding.Level = planetBuilding.Level + 2
+
+	func() {
+		tx, err := conn.BeginTx(context.Background())
+		require.Nil(t, err)
+		defer tx.Close(context.Background())
+
+		_, err = repo.Update(context.Background(), tx, updatedBuilding)
+		assert.Nil(t, err)
+	}()
+
+	var updatedBuildingFromDb persistence.PlanetBuilding
+	func() {
+		tx, err := conn.BeginTx(context.Background())
+		require.Nil(t, err)
+		defer tx.Close(context.Background())
+
+		allBuildings, err := repo.ListForPlanet(context.Background(), tx, planet.Id)
+		require.Nil(t, err)
+		assert.Len(t, allBuildings, 1)
+
+		updatedBuildingFromDb = allBuildings[0]
+	}()
+
+	assert.Equal(t, planetBuilding.Version+1, updatedBuildingFromDb.Version)
+}
+
+func TestIT_PlanetBuildingRepository_DeleteForPlanet(t *testing.T) {
+	repo, conn, tx := newTestPlanetBuildingRepositoryAndTransaction(t)
+	defer conn.Close(context.Background())
+	planet1, _, _ := insertTestPlanetForPlayer(t, conn)
+	insertTestPlanetBuildingForPlanet(t, conn, planet1.Id)
+	insertTestPlanetBuildingForPlanet(t, conn, planet1.Id)
+	planet2, _, _ := insertTestPlanetForPlayer(t, conn)
+	pb2, _ := insertTestPlanetBuildingForPlanet(t, conn, planet2.Id)
+
+	err := repo.DeleteForPlanet(context.Background(), tx, planet1.Id)
+	tx.Close(context.Background())
+
+	assert.Nil(t, err)
+	assertPlanetBuildingDoesNotExist(t, conn, planet1.Id)
+	assertPlanetBuildingLevel(t, conn, planet2.Id, pb2.Building, pb2.Level)
+}
+
+func TestIT_PlanetBuildingRepository_DeleteForPlanet_WhenNotFound_ExpectSuccess(t *testing.T) {
+	repo, conn, tx := newTestPlanetBuildingRepositoryAndTransaction(t)
+	defer conn.Close(context.Background())
+	nonExistingId := uuid.MustParse("00000000-0000-1221-0000-000000000000")
+
+	err := repo.DeleteForPlanet(context.Background(), tx, nonExistingId)
+	tx.Close(context.Background())
+
+	assert.Nil(t, err)
+}
+
+func newTestPlanetBuildingRepository(t *testing.T) (PlanetBuildingRepository, db.Connection) {
+	conn := newTestConnection(t)
+	return NewPlanetBuildingRepository(), conn
+}
+
+func newTestPlanetBuildingRepositoryAndTransaction(t *testing.T) (PlanetBuildingRepository, db.Connection, db.Transaction) {
+	repo, conn := newTestPlanetBuildingRepository(t)
+	tx, err := conn.BeginTx(context.Background())
+	require.Nil(t, err)
+	return repo, conn, tx
+}
+
+func insertTestPlanetBuildingForPlanet(t *testing.T, conn db.Connection, planet uuid.UUID) (persistence.PlanetBuilding, persistence.Building) {
+	someTime := time.Date(2024, 12, 4, 21, 51, 15, 0, time.UTC)
+
+	building := insertTestBuilding(t, conn)
+
+	planetBuilding := persistence.PlanetBuilding{
+		Planet:    planet,
+		Building:  building.Id,
+		Level:     0,
+		CreatedAt: someTime,
+		UpdatedAt: someTime,
+	}
+
+	sqlQuery := `INSERT INTO planet_building (planet, building, level, created_at, updated_at) VALUES ($1, $2, $3, $4, $5)`
+	_, err := conn.Exec(
+		context.Background(),
+		sqlQuery,
+		planetBuilding.Planet,
+		planetBuilding.Building,
+		planetBuilding.Level,
+		planetBuilding.CreatedAt,
+		planetBuilding.UpdatedAt,
+	)
+	require.Nil(t, err)
+
+	return planetBuilding, building
+}
+
+func assertPlanetBuildingExists(t *testing.T, conn db.Connection, planet uuid.UUID, building uuid.UUID) {
+	sqlQuery := `SELECT COUNT(*) FROM planet_building WHERE planet = $1 AND building = $2`
+	value, err := db.QueryOne[int](context.Background(), conn, sqlQuery, planet, building)
+	require.Nil(t, err)
+	require.Equal(t, 1, value)
+}
+
+func assertPlanetBuildingDoesNotExist(t *testing.T, conn db.Connection, planet uuid.UUID) {
+	sqlQuery := `SELECT COUNT(building) FROM planet_building WHERE planet = $1`
+	value, err := db.QueryOne[int](context.Background(), conn, sqlQuery, planet)
+	require.Nil(t, err)
+	require.Zero(t, value)
+}
+
+func assertPlanetBuildingLevel(t *testing.T, conn db.Connection, planet uuid.UUID, building uuid.UUID, level int) {
+	sqlQuery := `SELECT level FROM planet_building WHERE planet = $1 AND building = $2`
+	value, err := db.QueryOne[int](context.Background(), conn, sqlQuery, planet, building)
+	require.Nil(t, err)
+	require.Equal(t, level, value)
 }

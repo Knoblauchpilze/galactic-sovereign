@@ -112,5 +112,6 @@ func (s *playerServiceImpl) Delete(ctx context.Context, id uuid.UUID) error {
 	}
 	defer tx.Close(ctx)
 
+	// TODO: We should also delete the planets of a player.
 	return s.playerRepo.Delete(ctx, tx, id)
 }

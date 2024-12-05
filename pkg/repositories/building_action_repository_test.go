@@ -14,6 +14,8 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
+var defaultPlanetId = uuid.MustParse("0a05c1be-3235-48d6-b0e2-849b8664a515")
+var defaultBuildingId = uuid.MustParse("9c5a9f5c-b53e-4f5c-af6f-cb04e47abd95")
 var defaultBuildinActionId = uuid.MustParse("1ec83c50-0f25-4918-b49a-52b7816189b9")
 var defaultBuildingAction = persistence.BuildingAction{
 	Id:           defaultBuildinActionId,

@@ -3,8 +3,7 @@ package repositories
 import (
 	"context"
 
-	"github.com/KnoblauchPilze/backend-toolkit/pkg/errors"
-	"github.com/KnoblauchPilze/galactic-sovereign/pkg/db"
+	"github.com/KnoblauchPilze/backend-toolkit/pkg/db"
 	"github.com/KnoblauchPilze/galactic-sovereign/pkg/persistence"
 	"github.com/google/uuid"
 )
@@ -29,10 +28,6 @@ INSERT INTO
 
 func (r *buildingActionCostRepositoryImpl) Create(ctx context.Context, tx db.Transaction, cost persistence.BuildingActionCost) (persistence.BuildingActionCost, error) {
 	_, err := tx.Exec(ctx, createBuildingActionCostSqlTemplate, cost.Action, cost.Resource, cost.Amount)
-	if err != nil && duplicatedKeySqlErrorRegexp.MatchString(err.Error()) {
-		return cost, errors.NewCode(db.DuplicatedKeySqlKey)
-	}
-
 	return cost, err
 }
 
@@ -47,31 +42,10 @@ WHERE
 	action = $1`
 
 func (r *buildingActionCostRepositoryImpl) ListForAction(ctx context.Context, tx db.Transaction, action uuid.UUID) ([]persistence.BuildingActionCost, error) {
-	res := tx.Query(ctx, listBuildingActionCostForActionSqlTemplate, action)
-	if err := res.Err(); err != nil {
-		return []persistence.BuildingActionCost{}, err
-	}
-
-	var out []persistence.BuildingActionCost
-	parser := func(rows db.Scannable) error {
-		var cost persistence.BuildingActionCost
-		err := rows.Scan(&cost.Action, &cost.Resource, &cost.Amount)
-		if err != nil {
-			return err
-		}
-
-		out = append(out, cost)
-		return nil
-	}
-
-	if err := res.GetAll(parser); err != nil {
-		return []persistence.BuildingActionCost{}, err
-	}
-
-	return out, nil
+	return db.QueryAllTx[persistence.BuildingActionCost](ctx, tx, listBuildingActionCostForActionSqlTemplate, action)
 }
 
-const deleteBuildingActionCostForActionSqlTemplate = "DELETE FROM building_action_cost WHERE action = $1"
+const deleteBuildingActionCostForActionSqlTemplate = `DELETE FROM building_action_cost WHERE action = $1`
 
 func (r *buildingActionCostRepositoryImpl) DeleteForAction(ctx context.Context, tx db.Transaction, action uuid.UUID) error {
 	_, err := tx.Exec(ctx, deleteBuildingActionCostForActionSqlTemplate, action)

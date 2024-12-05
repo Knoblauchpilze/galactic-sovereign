@@ -13,6 +13,7 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
+var defaultResourceId = uuid.MustParse("4b60c8fe-39df-492b-95e8-71474bbac5ea")
 var defaultBuildingActionResourceProduction = persistence.BuildingActionResourceProduction{
 	Action:     defaultBuildinActionId,
 	Resource:   defaultResourceId,

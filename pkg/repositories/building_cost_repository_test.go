@@ -4,66 +4,61 @@ import (
 	"context"
 	"testing"
 
-	"github.com/KnoblauchPilze/galactic-sovereign/pkg/db"
+	"github.com/KnoblauchPilze/backend-toolkit/pkg/db"
+	"github.com/KnoblauchPilze/galactic-sovereign/pkg/persistence"
 	"github.com/google/uuid"
-	"github.com/stretchr/testify/suite"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
-var defaultBuildingId = uuid.MustParse("9c5a9f5c-b53e-4f5c-af6f-cb04e47abd95")
+func TestIT_BuildingCostRepository_List(t *testing.T) {
+	repo, conn, tx := newTestBuildingCostRepositoryAndTransaction(t)
+	defer conn.Close(context.Background())
+	defer tx.Close(context.Background())
+	bc1, b, _ := insertTestBuildingCostForBuilding(t, conn)
+	bc2, _ := insertTestBuildingCost(t, conn, b.Id)
 
-func TestUnit_BuildingCostRepository_Transaction(t *testing.T) {
-	var dummyInt int
-	var dummyFloat64 float64
+	actual, err := repo.ListForBuilding(context.Background(), tx, b.Id)
 
-	s := RepositoryTransactionTestSuite{
-		dbInteractionTestCases: map[string]dbTransactionInteractionTestCase{
-			"listForBuilding": {
-				handler: func(ctx context.Context, tx db.Transaction) error {
-					s := NewBuildingCostRepository()
-					_, err := s.ListForBuilding(ctx, tx, defaultBuildingId)
-					return err
-				},
-				expectedSqlQueries: []string{
-					`
-SELECT
-	building,
-	resource,
-	cost,
-	progress
-FROM
-	building_cost
-WHERE
-	building = $1
-`,
-				},
-				expectedArguments: [][]interface{}{
-					{
-						defaultBuildingId,
-					},
-				},
-			},
-		},
+	assert.Nil(t, err)
+	assert.GreaterOrEqual(t, len(actual), 2)
+	assert.Contains(t, actual, bc1)
+	assert.Contains(t, actual, bc2)
+}
 
-		dbGetAllTestCases: map[string]dbTransactionGetAllTestCase{
-			"listForBuilding": {
-				handler: func(ctx context.Context, tx db.Transaction) error {
-					repo := NewBuildingCostRepository()
-					_, err := repo.ListForBuilding(ctx, tx, defaultBuildingId)
-					return err
-				},
-				expectedGetAllCalls: 1,
-				expectedScanCalls:   1,
-				expectedScannedProps: [][]interface{}{
-					{
-						&uuid.UUID{},
-						&uuid.UUID{},
-						&dummyInt,
-						&dummyFloat64,
-					},
-				},
-			},
-		},
+func newTestBuildingCostRepositoryAndTransaction(t *testing.T) (BuildingCostRepository, db.Connection, db.Transaction) {
+	conn := newTestConnection(t)
+	tx, err := conn.BeginTx(context.Background())
+	require.Nil(t, err)
+	return NewBuildingCostRepository(), conn, tx
+}
+
+func insertTestBuildingCost(t *testing.T, conn db.Connection, building uuid.UUID) (persistence.BuildingCost, persistence.Resource) {
+	resource := insertTestResource(t, conn)
+
+	cost := persistence.BuildingCost{
+		Building: building,
+		Resource: resource.Id,
+		Cost:     41,
+		Progress: 1.6,
 	}
 
-	suite.Run(t, &s)
+	sqlQuery := `INSERT INTO building_cost (building, resource, cost, progress) VALUES ($1, $2, $3, $4)`
+	_, err := conn.Exec(
+		context.Background(),
+		sqlQuery,
+		cost.Building,
+		cost.Resource,
+		cost.Cost,
+		cost.Progress,
+	)
+	require.Nil(t, err)
+
+	return cost, resource
+}
+
+func insertTestBuildingCostForBuilding(t *testing.T, conn db.Connection) (persistence.BuildingCost, persistence.Building, persistence.Resource) {
+	building := insertTestBuilding(t, conn)
+	cost, resource := insertTestBuildingCost(t, conn, building.Id)
+	return cost, building, resource
 }
