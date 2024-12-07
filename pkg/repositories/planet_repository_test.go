@@ -390,6 +390,19 @@ func TestIT_PlanetRepository_CreationDeletionWorkflow(t *testing.T) {
 
 		defer tx.Close(context.Background())
 
+		planetFromDb, err := repo.Get(context.Background(), tx, planet.Id)
+		require.Nil(t, err)
+
+		assert.True(t, eassert.EqualsIgnoringFields(planet, planetFromDb, "UpdatedAt"))
+		assert.True(t, eassert.AreTimeCloserThan(planet.CreatedAt, planetFromDb.UpdatedAt, 1*time.Second))
+	}()
+
+	func() {
+		tx, err := conn.BeginTx(context.Background())
+		require.Nil(t, err)
+
+		defer tx.Close(context.Background())
+
 		err = repo.Delete(context.Background(), tx, planet.Id)
 		require.Nil(t, err)
 	}()
@@ -419,6 +432,19 @@ func TestIT_PlanetRepository_HomeWorldCreationDeletionWorkflow(t *testing.T) {
 
 		_, err = repo.Create(context.Background(), tx, planet)
 		require.Nil(t, err)
+	}()
+
+	func() {
+		tx, err := conn.BeginTx(context.Background())
+		require.Nil(t, err)
+
+		defer tx.Close(context.Background())
+
+		planetFromDb, err := repo.Get(context.Background(), tx, planet.Id)
+		require.Nil(t, err)
+
+		assert.True(t, eassert.EqualsIgnoringFields(planet, planetFromDb, "UpdatedAt"))
+		assert.True(t, eassert.AreTimeCloserThan(planet.CreatedAt, planetFromDb.UpdatedAt, 1*time.Second))
 	}()
 
 	func() {
