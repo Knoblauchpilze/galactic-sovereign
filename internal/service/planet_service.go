@@ -3,8 +3,8 @@ package service
 import (
 	"context"
 
+	"github.com/KnoblauchPilze/backend-toolkit/pkg/db"
 	"github.com/KnoblauchPilze/galactic-sovereign/pkg/communication"
-	"github.com/KnoblauchPilze/galactic-sovereign/pkg/db"
 	"github.com/KnoblauchPilze/galactic-sovereign/pkg/repositories"
 	"github.com/google/uuid"
 )
@@ -18,7 +18,7 @@ type PlanetService interface {
 }
 
 type planetServiceImpl struct {
-	conn db.ConnectionPool
+	conn db.Connection
 
 	planetBuildingRepo                   repositories.PlanetBuildingRepository
 	planetRepo                           repositories.PlanetRepository
@@ -30,7 +30,7 @@ type planetServiceImpl struct {
 	buildingActionResourceProductionRepo repositories.BuildingActionResourceProductionRepository
 }
 
-func NewPlanetService(conn db.ConnectionPool, repos repositories.Repositories) PlanetService {
+func NewPlanetService(conn db.Connection, repos repositories.Repositories) PlanetService {
 	return &planetServiceImpl{
 		conn:                                 conn,
 		planetBuildingRepo:                   repos.PlanetBuilding,
@@ -47,7 +47,7 @@ func NewPlanetService(conn db.ConnectionPool, repos repositories.Repositories) P
 func (s *planetServiceImpl) Create(ctx context.Context, planetDto communication.PlanetDtoRequest) (communication.PlanetDtoResponse, error) {
 	planet := communication.FromPlanetDtoRequest(planetDto)
 
-	tx, err := s.conn.StartTransaction(ctx)
+	tx, err := s.conn.BeginTx(ctx)
 	if err != nil {
 		return communication.PlanetDtoResponse{}, err
 	}
@@ -63,7 +63,7 @@ func (s *planetServiceImpl) Create(ctx context.Context, planetDto communication.
 }
 
 func (s *planetServiceImpl) Get(ctx context.Context, id uuid.UUID) (communication.FullPlanetDtoResponse, error) {
-	tx, err := s.conn.StartTransaction(ctx)
+	tx, err := s.conn.BeginTx(ctx)
 	if err != nil {
 		return communication.FullPlanetDtoResponse{}, err
 	}
@@ -105,7 +105,7 @@ func (s *planetServiceImpl) Get(ctx context.Context, id uuid.UUID) (communicatio
 }
 
 func (s *planetServiceImpl) List(ctx context.Context) ([]communication.PlanetDtoResponse, error) {
-	tx, err := s.conn.StartTransaction(ctx)
+	tx, err := s.conn.BeginTx(ctx)
 	if err != nil {
 		return []communication.PlanetDtoResponse{}, err
 	}
@@ -126,7 +126,7 @@ func (s *planetServiceImpl) List(ctx context.Context) ([]communication.PlanetDto
 }
 
 func (s *planetServiceImpl) ListForPlayer(ctx context.Context, player uuid.UUID) ([]communication.PlanetDtoResponse, error) {
-	tx, err := s.conn.StartTransaction(ctx)
+	tx, err := s.conn.BeginTx(ctx)
 	if err != nil {
 		return []communication.PlanetDtoResponse{}, err
 	}
@@ -148,7 +148,7 @@ func (s *planetServiceImpl) ListForPlayer(ctx context.Context, player uuid.UUID)
 
 // TODO: We probably don't need to delete everything anymore: the planet repository should take care of everything
 func (s *planetServiceImpl) Delete(ctx context.Context, id uuid.UUID) error {
-	tx, err := s.conn.StartTransaction(ctx)
+	tx, err := s.conn.BeginTx(ctx)
 	if err != nil {
 		return err
 	}

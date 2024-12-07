@@ -3,8 +3,8 @@ package service
 import (
 	"context"
 
+	"github.com/KnoblauchPilze/backend-toolkit/pkg/db"
 	"github.com/KnoblauchPilze/backend-toolkit/pkg/errors"
-	"github.com/KnoblauchPilze/galactic-sovereign/pkg/db"
 	"github.com/KnoblauchPilze/galactic-sovereign/pkg/persistence"
 	"github.com/KnoblauchPilze/galactic-sovereign/pkg/repositories"
 )
@@ -44,7 +44,7 @@ func updatePlanetResourceWithCosts(ctx context.Context, tx db.Transaction, repo 
 
 		_, err = repo.Update(ctx, tx, planetResource)
 		if err != nil {
-			if errors.IsErrorWithCode(err, db.OptimisticLockException) {
+			if errors.IsErrorWithCode(err, repositories.OptimisticLockException) {
 				return errors.NewCode(ConflictingStateForAction)
 			}
 

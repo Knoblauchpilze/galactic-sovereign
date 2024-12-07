@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
+	"github.com/KnoblauchPilze/backend-toolkit/pkg/db"
 	"github.com/KnoblauchPilze/galactic-sovereign/pkg/communication"
-	"github.com/KnoblauchPilze/galactic-sovereign/pkg/db"
 	"github.com/KnoblauchPilze/galactic-sovereign/pkg/persistence"
 	"github.com/KnoblauchPilze/galactic-sovereign/pkg/repositories"
 	"github.com/google/uuid"
@@ -39,7 +39,7 @@ func TestUnit_PlayerService(t *testing.T) {
 
 		repositoryInteractionTestCases: map[string]repositoryInteractionTestCase{
 			"create": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+				handler: func(ctx context.Context, pool db.Connection, repos repositories.Repositories) error {
 					s := NewPlayerService(pool, repos)
 					_, err := s.Create(ctx, defaultPlayerDtoRequest)
 					return err
@@ -55,7 +55,7 @@ func TestUnit_PlayerService(t *testing.T) {
 				},
 			},
 			"create_createPlanet": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+				handler: func(ctx context.Context, pool db.Connection, repos repositories.Repositories) error {
 					s := NewPlayerService(pool, repos)
 					_, err := s.Create(ctx, defaultPlayerDtoRequest)
 					return err
@@ -71,7 +71,7 @@ func TestUnit_PlayerService(t *testing.T) {
 			},
 			"create_playerRepositoryFails": {
 				generateRepositoriesMocks: generateErrorPlayerServiceMocks,
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+				handler: func(ctx context.Context, pool db.Connection, repos repositories.Repositories) error {
 					s := NewPlayerService(pool, repos)
 					_, err := s.Create(ctx, defaultPlayerDtoRequest)
 					return err
@@ -87,7 +87,7 @@ func TestUnit_PlayerService(t *testing.T) {
 						Player: &mockPlayerRepository{},
 					}
 				},
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+				handler: func(ctx context.Context, pool db.Connection, repos repositories.Repositories) error {
 					s := NewPlayerService(pool, repos)
 					_, err := s.Create(ctx, defaultPlayerDtoRequest)
 					return err
@@ -95,7 +95,7 @@ func TestUnit_PlayerService(t *testing.T) {
 				expectedError: errDefault,
 			},
 			"get": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+				handler: func(ctx context.Context, pool db.Connection, repos repositories.Repositories) error {
 					s := NewPlayerService(pool, repos)
 					_, err := s.Get(ctx, defaultPlayerId)
 					return err
@@ -110,7 +110,7 @@ func TestUnit_PlayerService(t *testing.T) {
 			},
 			"get_repositoryFails": {
 				generateRepositoriesMocks: generateErrorPlayerServiceMocks,
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+				handler: func(ctx context.Context, pool db.Connection, repos repositories.Repositories) error {
 					s := NewPlayerService(pool, repos)
 					_, err := s.Get(ctx, defaultPlayerId)
 					return err
@@ -118,7 +118,7 @@ func TestUnit_PlayerService(t *testing.T) {
 				expectedError: errDefault,
 			},
 			"list": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+				handler: func(ctx context.Context, pool db.Connection, repos repositories.Repositories) error {
 					s := NewPlayerService(pool, repos)
 					_, err := s.List(ctx)
 					return err
@@ -132,7 +132,7 @@ func TestUnit_PlayerService(t *testing.T) {
 			},
 			"list_repositoryFails": {
 				generateRepositoriesMocks: generateErrorPlayerServiceMocks,
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+				handler: func(ctx context.Context, pool db.Connection, repos repositories.Repositories) error {
 					s := NewPlayerService(pool, repos)
 					_, err := s.List(ctx)
 					return err
@@ -140,7 +140,7 @@ func TestUnit_PlayerService(t *testing.T) {
 				expectedError: errDefault,
 			},
 			"listForApiUser": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+				handler: func(ctx context.Context, pool db.Connection, repos repositories.Repositories) error {
 					s := NewPlayerService(pool, repos)
 					_, err := s.ListForApiUser(ctx, defaultUserId)
 					return err
@@ -155,7 +155,7 @@ func TestUnit_PlayerService(t *testing.T) {
 			},
 			"listForApiUser_repositoryFails": {
 				generateRepositoriesMocks: generateErrorPlayerServiceMocks,
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+				handler: func(ctx context.Context, pool db.Connection, repos repositories.Repositories) error {
 					s := NewPlayerService(pool, repos)
 					_, err := s.ListForApiUser(ctx, defaultUserId)
 					return err
@@ -163,7 +163,7 @@ func TestUnit_PlayerService(t *testing.T) {
 				expectedError: errDefault,
 			},
 			"delete": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+				handler: func(ctx context.Context, pool db.Connection, repos repositories.Repositories) error {
 					s := NewPlayerService(pool, repos)
 					return s.Delete(ctx, defaultPlayerId)
 				},
@@ -177,7 +177,7 @@ func TestUnit_PlayerService(t *testing.T) {
 			},
 			"delete_repositoryFails": {
 				generateRepositoriesMocks: generateErrorPlayerServiceMocks,
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+				handler: func(ctx context.Context, pool db.Connection, repos repositories.Repositories) error {
 					s := NewPlayerService(pool, repos)
 					return s.Delete(ctx, defaultPlayerId)
 				},
@@ -187,7 +187,7 @@ func TestUnit_PlayerService(t *testing.T) {
 
 		returnTestCases: map[string]returnTestCase{
 			"create": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) interface{} {
+				handler: func(ctx context.Context, pool db.Connection, repos repositories.Repositories) interface{} {
 					s := NewPlayerService(pool, repos)
 					out, _ := s.Create(ctx, defaultPlayerDtoRequest)
 					return out
@@ -203,7 +203,7 @@ func TestUnit_PlayerService(t *testing.T) {
 				},
 			},
 			"get": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) interface{} {
+				handler: func(ctx context.Context, pool db.Connection, repos repositories.Repositories) interface{} {
 					s := NewPlayerService(pool, repos)
 					out, _ := s.Get(ctx, defaultPlayerId)
 					return out
@@ -219,7 +219,7 @@ func TestUnit_PlayerService(t *testing.T) {
 				},
 			},
 			"list": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) interface{} {
+				handler: func(ctx context.Context, pool db.Connection, repos repositories.Repositories) interface{} {
 					s := NewPlayerService(pool, repos)
 					out, _ := s.List(ctx)
 					return out
@@ -237,7 +237,7 @@ func TestUnit_PlayerService(t *testing.T) {
 				},
 			},
 			"listForApiUser": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) interface{} {
+				handler: func(ctx context.Context, pool db.Connection, repos repositories.Repositories) interface{} {
 					s := NewPlayerService(pool, repos)
 					out, _ := s.ListForApiUser(ctx, defaultUserId)
 					return out
@@ -258,14 +258,14 @@ func TestUnit_PlayerService(t *testing.T) {
 
 		transactionTestCases: map[string]transactionTestCase{
 			"create": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+				handler: func(ctx context.Context, pool db.Connection, repos repositories.Repositories) error {
 					s := NewPlayerService(pool, repos)
 					_, err := s.Create(ctx, defaultPlayerDtoRequest)
 					return err
 				},
 			},
 			"delete": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+				handler: func(ctx context.Context, pool db.Connection, repos repositories.Repositories) error {
 					s := NewPlayerService(pool, repos)
 					return s.Delete(ctx, defaultPlayerId)
 				},

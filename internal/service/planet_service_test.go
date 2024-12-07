@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
+	"github.com/KnoblauchPilze/backend-toolkit/pkg/db"
 	"github.com/KnoblauchPilze/galactic-sovereign/pkg/communication"
-	"github.com/KnoblauchPilze/galactic-sovereign/pkg/db"
 	"github.com/KnoblauchPilze/galactic-sovereign/pkg/persistence"
 	"github.com/KnoblauchPilze/galactic-sovereign/pkg/repositories"
 	"github.com/google/uuid"
@@ -66,7 +66,7 @@ func TestUnit_PlanetService(t *testing.T) {
 
 		repositoryInteractionTestCases: map[string]repositoryInteractionTestCase{
 			"create": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+				handler: func(ctx context.Context, pool db.Connection, repos repositories.Repositories) error {
 					s := NewPlanetService(pool, repos)
 					_, err := s.Create(ctx, defaultPlanetDtoRequest)
 					return err
@@ -81,7 +81,7 @@ func TestUnit_PlanetService(t *testing.T) {
 			},
 			"create_repositoryFails": {
 				generateRepositoriesMocks: generateErrorPlanetServiceMocks,
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+				handler: func(ctx context.Context, pool db.Connection, repos repositories.Repositories) error {
 					s := NewPlanetService(pool, repos)
 					_, err := s.Create(ctx, defaultPlanetDtoRequest)
 					return err
@@ -89,7 +89,7 @@ func TestUnit_PlanetService(t *testing.T) {
 				expectedError: errDefault,
 			},
 			"get_planet": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+				handler: func(ctx context.Context, pool db.Connection, repos repositories.Repositories) error {
 					s := NewPlanetService(pool, repos)
 					_, err := s.Get(ctx, defaultPlanetId)
 					return err
@@ -103,7 +103,7 @@ func TestUnit_PlanetService(t *testing.T) {
 			},
 			"get_planetRepositoryFails": {
 				generateRepositoriesMocks: generateErrorPlanetServiceMocks,
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+				handler: func(ctx context.Context, pool db.Connection, repos repositories.Repositories) error {
 					s := NewPlanetService(pool, repos)
 					_, err := s.Get(ctx, defaultPlanetId)
 					return err
@@ -111,7 +111,7 @@ func TestUnit_PlanetService(t *testing.T) {
 				expectedError: errDefault,
 			},
 			"get_planetResource": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+				handler: func(ctx context.Context, pool db.Connection, repos repositories.Repositories) error {
 					s := NewPlanetService(pool, repos)
 					_, err := s.Get(ctx, defaultPlanetId)
 					return err
@@ -132,7 +132,7 @@ func TestUnit_PlanetService(t *testing.T) {
 
 					return repos
 				},
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+				handler: func(ctx context.Context, pool db.Connection, repos repositories.Repositories) error {
 					s := NewPlanetService(pool, repos)
 					_, err := s.Get(ctx, defaultPlanetId)
 					return err
@@ -140,7 +140,7 @@ func TestUnit_PlanetService(t *testing.T) {
 				expectedError: errDefault,
 			},
 			"get_planetResourceProduction": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+				handler: func(ctx context.Context, pool db.Connection, repos repositories.Repositories) error {
 					s := NewPlanetService(pool, repos)
 					_, err := s.Get(ctx, defaultPlanetId)
 					return err
@@ -161,7 +161,7 @@ func TestUnit_PlanetService(t *testing.T) {
 
 					return repos
 				},
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+				handler: func(ctx context.Context, pool db.Connection, repos repositories.Repositories) error {
 					s := NewPlanetService(pool, repos)
 					_, err := s.Get(ctx, defaultPlanetId)
 					return err
@@ -169,7 +169,7 @@ func TestUnit_PlanetService(t *testing.T) {
 				expectedError: errDefault,
 			},
 			"get_planetResourceStorage": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+				handler: func(ctx context.Context, pool db.Connection, repos repositories.Repositories) error {
 					s := NewPlanetService(pool, repos)
 					_, err := s.Get(ctx, defaultPlanetId)
 					return err
@@ -190,7 +190,7 @@ func TestUnit_PlanetService(t *testing.T) {
 
 					return repos
 				},
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+				handler: func(ctx context.Context, pool db.Connection, repos repositories.Repositories) error {
 					s := NewPlanetService(pool, repos)
 					_, err := s.Get(ctx, defaultPlanetId)
 					return err
@@ -198,7 +198,7 @@ func TestUnit_PlanetService(t *testing.T) {
 				expectedError: errDefault,
 			},
 			"get_planetBuilding": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+				handler: func(ctx context.Context, pool db.Connection, repos repositories.Repositories) error {
 					s := NewPlanetService(pool, repos)
 					_, err := s.Get(ctx, defaultPlanetId)
 					return err
@@ -219,7 +219,7 @@ func TestUnit_PlanetService(t *testing.T) {
 
 					return repos
 				},
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+				handler: func(ctx context.Context, pool db.Connection, repos repositories.Repositories) error {
 					s := NewPlanetService(pool, repos)
 					_, err := s.Get(ctx, defaultPlanetId)
 					return err
@@ -227,7 +227,7 @@ func TestUnit_PlanetService(t *testing.T) {
 				expectedError: errDefault,
 			},
 			"get_buildingAction": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+				handler: func(ctx context.Context, pool db.Connection, repos repositories.Repositories) error {
 					s := NewPlanetService(pool, repos)
 					_, err := s.Get(ctx, defaultPlanetId)
 					return err
@@ -248,7 +248,7 @@ func TestUnit_PlanetService(t *testing.T) {
 
 					return repos
 				},
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+				handler: func(ctx context.Context, pool db.Connection, repos repositories.Repositories) error {
 					s := NewPlanetService(pool, repos)
 					_, err := s.Get(ctx, defaultPlanetId)
 					return err
@@ -256,7 +256,7 @@ func TestUnit_PlanetService(t *testing.T) {
 				expectedError: errDefault,
 			},
 			"list": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+				handler: func(ctx context.Context, pool db.Connection, repos repositories.Repositories) error {
 					s := NewPlanetService(pool, repos)
 					_, err := s.List(ctx)
 					return err
@@ -269,7 +269,7 @@ func TestUnit_PlanetService(t *testing.T) {
 			},
 			"list_planetRepositoryFails": {
 				generateRepositoriesMocks: generateErrorPlanetServiceMocks,
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+				handler: func(ctx context.Context, pool db.Connection, repos repositories.Repositories) error {
 					s := NewPlanetService(pool, repos)
 					_, err := s.List(ctx)
 					return err
@@ -277,7 +277,7 @@ func TestUnit_PlanetService(t *testing.T) {
 				expectedError: errDefault,
 			},
 			"listForPlayer": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+				handler: func(ctx context.Context, pool db.Connection, repos repositories.Repositories) error {
 					s := NewPlanetService(pool, repos)
 					_, err := s.ListForPlayer(ctx, defaultPlayerId)
 					return err
@@ -291,7 +291,7 @@ func TestUnit_PlanetService(t *testing.T) {
 			},
 			"listForPlayer_planetRepositoryFails": {
 				generateRepositoriesMocks: generateErrorPlanetServiceMocks,
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+				handler: func(ctx context.Context, pool db.Connection, repos repositories.Repositories) error {
 					s := NewPlanetService(pool, repos)
 					_, err := s.ListForPlayer(ctx, defaultPlayerId)
 					return err
@@ -299,7 +299,7 @@ func TestUnit_PlanetService(t *testing.T) {
 				expectedError: errDefault,
 			},
 			"delete_buildingActionResourceProduction": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+				handler: func(ctx context.Context, pool db.Connection, repos repositories.Repositories) error {
 					s := NewPlanetService(pool, repos)
 					return s.Delete(ctx, defaultPlanetId)
 				},
@@ -311,7 +311,7 @@ func TestUnit_PlanetService(t *testing.T) {
 				},
 			},
 			"delete_buildingActionCost": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+				handler: func(ctx context.Context, pool db.Connection, repos repositories.Repositories) error {
 					s := NewPlanetService(pool, repos)
 					return s.Delete(ctx, defaultPlanetId)
 				},
@@ -323,7 +323,7 @@ func TestUnit_PlanetService(t *testing.T) {
 				},
 			},
 			"delete_buildingAction": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+				handler: func(ctx context.Context, pool db.Connection, repos repositories.Repositories) error {
 					s := NewPlanetService(pool, repos)
 					return s.Delete(ctx, defaultPlanetId)
 				},
@@ -335,7 +335,7 @@ func TestUnit_PlanetService(t *testing.T) {
 				},
 			},
 			"delete_planetBuilding": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+				handler: func(ctx context.Context, pool db.Connection, repos repositories.Repositories) error {
 					s := NewPlanetService(pool, repos)
 					return s.Delete(ctx, defaultPlanetId)
 				},
@@ -347,7 +347,7 @@ func TestUnit_PlanetService(t *testing.T) {
 				},
 			},
 			"delete_planetResourceProduction": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+				handler: func(ctx context.Context, pool db.Connection, repos repositories.Repositories) error {
 					s := NewPlanetService(pool, repos)
 					return s.Delete(ctx, defaultPlanetId)
 				},
@@ -359,7 +359,7 @@ func TestUnit_PlanetService(t *testing.T) {
 				},
 			},
 			"delete_planetResourceStorage": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+				handler: func(ctx context.Context, pool db.Connection, repos repositories.Repositories) error {
 					s := NewPlanetService(pool, repos)
 					return s.Delete(ctx, defaultPlanetId)
 				},
@@ -371,7 +371,7 @@ func TestUnit_PlanetService(t *testing.T) {
 				},
 			},
 			"delete_planetResource": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+				handler: func(ctx context.Context, pool db.Connection, repos repositories.Repositories) error {
 					s := NewPlanetService(pool, repos)
 					return s.Delete(ctx, defaultPlanetId)
 				},
@@ -383,7 +383,7 @@ func TestUnit_PlanetService(t *testing.T) {
 				},
 			},
 			"delete_planet": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+				handler: func(ctx context.Context, pool db.Connection, repos repositories.Repositories) error {
 					s := NewPlanetService(pool, repos)
 					return s.Delete(ctx, defaultPlanetId)
 				},
@@ -403,7 +403,7 @@ func TestUnit_PlanetService(t *testing.T) {
 
 					return repos
 				},
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+				handler: func(ctx context.Context, pool db.Connection, repos repositories.Repositories) error {
 					s := NewPlanetService(pool, repos)
 					return s.Delete(ctx, defaultPlanetId)
 				},
@@ -423,7 +423,7 @@ func TestUnit_PlanetService(t *testing.T) {
 
 					return repos
 				},
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+				handler: func(ctx context.Context, pool db.Connection, repos repositories.Repositories) error {
 					s := NewPlanetService(pool, repos)
 					return s.Delete(ctx, defaultPlanetId)
 				},
@@ -443,7 +443,7 @@ func TestUnit_PlanetService(t *testing.T) {
 
 					return repos
 				},
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+				handler: func(ctx context.Context, pool db.Connection, repos repositories.Repositories) error {
 					s := NewPlanetService(pool, repos)
 					return s.Delete(ctx, defaultPlanetId)
 				},
@@ -463,7 +463,7 @@ func TestUnit_PlanetService(t *testing.T) {
 
 					return repos
 				},
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+				handler: func(ctx context.Context, pool db.Connection, repos repositories.Repositories) error {
 					s := NewPlanetService(pool, repos)
 					return s.Delete(ctx, defaultPlanetId)
 				},
@@ -483,7 +483,7 @@ func TestUnit_PlanetService(t *testing.T) {
 
 					return repos
 				},
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+				handler: func(ctx context.Context, pool db.Connection, repos repositories.Repositories) error {
 					s := NewPlanetService(pool, repos)
 					return s.Delete(ctx, defaultPlanetId)
 				},
@@ -503,7 +503,7 @@ func TestUnit_PlanetService(t *testing.T) {
 
 					return repos
 				},
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+				handler: func(ctx context.Context, pool db.Connection, repos repositories.Repositories) error {
 					s := NewPlanetService(pool, repos)
 					return s.Delete(ctx, defaultPlanetId)
 				},
@@ -523,7 +523,7 @@ func TestUnit_PlanetService(t *testing.T) {
 
 					return repos
 				},
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+				handler: func(ctx context.Context, pool db.Connection, repos repositories.Repositories) error {
 					s := NewPlanetService(pool, repos)
 					return s.Delete(ctx, defaultPlanetId)
 				},
@@ -543,7 +543,7 @@ func TestUnit_PlanetService(t *testing.T) {
 
 					return repos
 				},
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+				handler: func(ctx context.Context, pool db.Connection, repos repositories.Repositories) error {
 					s := NewPlanetService(pool, repos)
 					return s.Delete(ctx, defaultPlanetId)
 				},
@@ -558,7 +558,7 @@ func TestUnit_PlanetService(t *testing.T) {
 
 		returnTestCases: map[string]returnTestCase{
 			"create": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) interface{} {
+				handler: func(ctx context.Context, pool db.Connection, repos repositories.Repositories) interface{} {
 					s := NewPlanetService(pool, repos)
 					out, _ := s.Create(ctx, defaultPlanetDtoRequest)
 					return out
@@ -572,7 +572,7 @@ func TestUnit_PlanetService(t *testing.T) {
 				},
 			},
 			"get": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) interface{} {
+				handler: func(ctx context.Context, pool db.Connection, repos repositories.Repositories) interface{} {
 					s := NewPlanetService(pool, repos)
 					out, _ := s.Get(ctx, defaultPlanetId)
 					return out
@@ -632,7 +632,7 @@ func TestUnit_PlanetService(t *testing.T) {
 				},
 			},
 			"list": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) interface{} {
+				handler: func(ctx context.Context, pool db.Connection, repos repositories.Repositories) interface{} {
 					s := NewPlanetService(pool, repos)
 					out, _ := s.List(ctx)
 					return out
@@ -648,7 +648,7 @@ func TestUnit_PlanetService(t *testing.T) {
 				},
 			},
 			"listForPlayer": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) interface{} {
+				handler: func(ctx context.Context, pool db.Connection, repos repositories.Repositories) interface{} {
 					s := NewPlanetService(pool, repos)
 					out, _ := s.ListForPlayer(ctx, defaultPlayerId)
 					return out
@@ -667,35 +667,35 @@ func TestUnit_PlanetService(t *testing.T) {
 
 		transactionTestCases: map[string]transactionTestCase{
 			"create": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+				handler: func(ctx context.Context, pool db.Connection, repos repositories.Repositories) error {
 					s := NewPlanetService(pool, repos)
 					_, err := s.Create(ctx, defaultPlanetDtoRequest)
 					return err
 				},
 			},
 			"get": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+				handler: func(ctx context.Context, pool db.Connection, repos repositories.Repositories) error {
 					s := NewPlanetService(pool, repos)
 					_, err := s.Get(ctx, defaultPlanetId)
 					return err
 				},
 			},
 			"list": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+				handler: func(ctx context.Context, pool db.Connection, repos repositories.Repositories) error {
 					s := NewPlanetService(pool, repos)
 					_, err := s.List(ctx)
 					return err
 				},
 			},
 			"listForPlayer": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+				handler: func(ctx context.Context, pool db.Connection, repos repositories.Repositories) error {
 					s := NewPlanetService(pool, repos)
 					_, err := s.ListForPlayer(ctx, defaultPlayerId)
 					return err
 				},
 			},
 			"delete": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+				handler: func(ctx context.Context, pool db.Connection, repos repositories.Repositories) error {
 					s := NewPlanetService(pool, repos)
 					return s.Delete(ctx, defaultPlanetId)
 				},

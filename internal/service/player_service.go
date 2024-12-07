@@ -3,8 +3,8 @@ package service
 import (
 	"context"
 
+	"github.com/KnoblauchPilze/backend-toolkit/pkg/db"
 	"github.com/KnoblauchPilze/galactic-sovereign/pkg/communication"
-	"github.com/KnoblauchPilze/galactic-sovereign/pkg/db"
 	"github.com/KnoblauchPilze/galactic-sovereign/pkg/persistence"
 	"github.com/KnoblauchPilze/galactic-sovereign/pkg/repositories"
 	"github.com/google/uuid"
@@ -19,13 +19,13 @@ type PlayerService interface {
 }
 
 type playerServiceImpl struct {
-	conn db.ConnectionPool
+	conn db.Connection
 
 	playerRepo repositories.PlayerRepository
 	planetRepo repositories.PlanetRepository
 }
 
-func NewPlayerService(conn db.ConnectionPool, repos repositories.Repositories) PlayerService {
+func NewPlayerService(conn db.Connection, repos repositories.Repositories) PlayerService {
 	return &playerServiceImpl{
 		conn:       conn,
 		playerRepo: repos.Player,
@@ -36,7 +36,7 @@ func NewPlayerService(conn db.ConnectionPool, repos repositories.Repositories) P
 func (s *playerServiceImpl) Create(ctx context.Context, playerDto communication.PlayerDtoRequest) (communication.PlayerDtoResponse, error) {
 	player := communication.FromPlayerDtoRequest(playerDto)
 
-	tx, err := s.conn.StartTransaction(ctx)
+	tx, err := s.conn.BeginTx(ctx)
 	if err != nil {
 		return communication.PlayerDtoResponse{}, err
 	}
@@ -106,7 +106,7 @@ func (s *playerServiceImpl) ListForApiUser(ctx context.Context, apiUser uuid.UUI
 }
 
 func (s *playerServiceImpl) Delete(ctx context.Context, id uuid.UUID) error {
-	tx, err := s.conn.StartTransaction(ctx)
+	tx, err := s.conn.BeginTx(ctx)
 	if err != nil {
 		return err
 	}
