@@ -5,14 +5,13 @@ import (
 	"os"
 
 	"github.com/KnoblauchPilze/backend-toolkit/pkg/config"
+	"github.com/KnoblauchPilze/backend-toolkit/pkg/db"
 	"github.com/KnoblauchPilze/backend-toolkit/pkg/logger"
 	"github.com/KnoblauchPilze/backend-toolkit/pkg/server"
 	"github.com/KnoblauchPilze/galactic-sovereign/cmd/galactic-sovereign/internal"
 	"github.com/KnoblauchPilze/galactic-sovereign/internal/controller"
 	"github.com/KnoblauchPilze/galactic-sovereign/internal/service"
-	"github.com/KnoblauchPilze/galactic-sovereign/pkg/db"
 	"github.com/KnoblauchPilze/galactic-sovereign/pkg/repositories"
-	glog "github.com/labstack/gommon/log"
 )
 
 func determineConfigName() string {
@@ -31,33 +30,13 @@ func main() {
 		log.Errorf("Failed to load configuration: %v", err)
 		os.Exit(1)
 	}
-	if conf.Database.User == "" || conf.Database.Password == "" {
-		log.Errorf("Please provide a user and password to connect to the database")
+
+	conn, err := db.New(context.Background(), conf.Database)
+	if err != nil {
+		log.Errorf("Failed to create db connection: %v", err)
 		os.Exit(1)
 	}
-
-	dbConf := db.Config{
-		Host:                conf.Database.Host,
-		Port:                conf.Database.Port,
-		Name:                conf.Database.Database,
-		User:                conf.Database.User,
-		Password:            conf.Database.Password,
-		ConnectionsPoolSize: 1,
-		ConnectTimeout:      conf.Database.ConnectTimeout,
-		LogLevel:            glog.DEBUG,
-	}
-
-	pool := db.NewConnectionPool(dbConf, log)
-	if err := pool.Connect(context.Background()); err != nil {
-		log.Errorf("Failed to connect to the database: %v", err)
-		os.Exit(1)
-	}
-	defer pool.Close()
-
-	if err := pool.Ping(context.Background()); err != nil {
-		log.Errorf("Failed to ping the database: %v", err)
-		os.Exit(1)
-	}
+	defer conn.Close(context.Background())
 
 	repos := repositories.Repositories{
 		Building:                         repositories.NewBuildingRepository(),
@@ -66,23 +45,23 @@ func main() {
 		BuildingActionResourceProduction: repositories.NewBuildingActionResourceProductionRepository(),
 		BuildingCost:                     repositories.NewBuildingCostRepository(),
 		BuildingResourceProduction:       repositories.NewBuildingResourceProductionRepository(),
-		Planet:                           repositories.NewPlanetRepository(pool),
+		Planet:                           repositories.NewPlanetRepository(conn),
 		PlanetBuilding:                   repositories.NewPlanetBuildingRepository(),
 		PlanetResource:                   repositories.NewPlanetResourceRepository(),
 		PlanetResourceProduction:         repositories.NewPlanetResourceProductionRepository(),
 		PlanetResourceStorage:            repositories.NewPlanetResourceStorageRepository(),
-		Player:                           repositories.NewPlayerRepository(pool),
-		Resource:                         repositories.NewResourceRepository(pool),
-		Universe:                         repositories.NewUniverseRepository(pool),
+		Player:                           repositories.NewPlayerRepository(conn),
+		Resource:                         repositories.NewResourceRepository(),
+		Universe:                         repositories.NewUniverseRepository(conn),
 	}
 
-	planetService := service.NewPlanetService(pool, repos)
-	playerService := service.NewPlayerService(pool, repos)
-	universeService := service.NewUniverseService(pool, repos)
-	buildingActionService := service.NewBuildingActionService(pool, repos)
+	planetService := service.NewPlanetService(conn, repos)
+	playerService := service.NewPlayerService(conn, repos)
+	universeService := service.NewUniverseService(conn, repos)
+	buildingActionService := service.NewBuildingActionService(conn, repos)
 
-	actionService := service.NewActionService(pool, repos)
-	planetResourceService := service.NewPlanetResourceService(pool, repos)
+	actionService := service.NewActionService(conn, repos)
+	planetResourceService := service.NewPlanetResourceService(conn, repos)
 
 	s := server.NewWithLogger(conf.Server, log)
 
@@ -114,7 +93,7 @@ func main() {
 		}
 	}
 
-	for _, route := range controller.HealthCheckEndpoints(pool) {
+	for _, route := range controller.HealthCheckEndpoints(conn) {
 		if err := s.AddRoute(route); err != nil {
 			log.Errorf("Failed to register route: %v", err)
 			os.Exit(1)
