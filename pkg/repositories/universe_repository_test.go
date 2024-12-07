@@ -18,6 +18,7 @@ import (
 
 func TestIT_UniverseRepository_Create(t *testing.T) {
 	repo, conn := newTestUniverseRepository(t)
+	defer conn.Close(context.Background())
 
 	universe := persistence.Universe{
 		Id:        uuid.New(),
@@ -35,6 +36,7 @@ func TestIT_UniverseRepository_Create(t *testing.T) {
 
 func TestIT_UniverseRepository_Create_WhenDuplicateName_ExpectFailure(t *testing.T) {
 	repo, conn := newTestUniverseRepository(t)
+	defer conn.Close(context.Background())
 	universe := insertTestUniverse(t, conn)
 
 	newUniverse := persistence.Universe{
@@ -74,6 +76,7 @@ func TestIT_UniverseRepository_Get_WhenNotFound_ExpectFailure(t *testing.T) {
 
 func TestIT_UniverseRepository_List(t *testing.T) {
 	repo, conn := newTestUniverseRepository(t)
+	defer conn.Close(context.Background())
 	u1 := insertTestUniverse(t, conn)
 	u2 := insertTestUniverse(t, conn)
 
