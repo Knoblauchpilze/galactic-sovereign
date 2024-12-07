@@ -146,6 +146,7 @@ func (s *planetServiceImpl) ListForPlayer(ctx context.Context, player uuid.UUID)
 	return out, nil
 }
 
+// TODO: We probably don't need to delete everything anymore: the planet repository should take care of everything
 func (s *planetServiceImpl) Delete(ctx context.Context, id uuid.UUID) error {
 	tx, err := s.conn.StartTransaction(ctx)
 	if err != nil {
