@@ -4,8 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/KnoblauchPilze/backend-toolkit/pkg/errors"
-	"github.com/KnoblauchPilze/galactic-sovereign/pkg/db"
+	"github.com/KnoblauchPilze/backend-toolkit/pkg/db"
 	"github.com/KnoblauchPilze/galactic-sovereign/pkg/persistence"
 	"github.com/google/uuid"
 )
@@ -33,10 +32,6 @@ INSERT INTO
 
 func (r *buildingActionRepositoryImpl) Create(ctx context.Context, tx db.Transaction, action persistence.BuildingAction) (persistence.BuildingAction, error) {
 	_, err := tx.Exec(ctx, createBuildingActionSqlTemplate, action.Id, action.Planet, action.Building, action.CurrentLevel, action.DesiredLevel, action.CreatedAt, action.CompletedAt)
-	if err != nil && duplicatedKeySqlErrorRegexp.MatchString(err.Error()) {
-		return action, errors.NewCode(db.DuplicatedKeySqlKey)
-	}
-
 	return action, err
 }
 
@@ -55,21 +50,7 @@ WHERE
 	id = $1`
 
 func (r *buildingActionRepositoryImpl) Get(ctx context.Context, tx db.Transaction, id uuid.UUID) (persistence.BuildingAction, error) {
-	res := tx.Query(ctx, getBuildingActionSqlTemplate, id)
-	if err := res.Err(); err != nil {
-		return persistence.BuildingAction{}, err
-	}
-
-	var out persistence.BuildingAction
-	parser := func(rows db.Scannable) error {
-		return rows.Scan(&out.Id, &out.Planet, &out.Building, &out.CurrentLevel, &out.DesiredLevel, &out.CreatedAt, &out.CompletedAt)
-	}
-
-	if err := res.GetSingleValue(parser); err != nil {
-		return persistence.BuildingAction{}, err
-	}
-
-	return out, nil
+	return db.QueryOneTx[persistence.BuildingAction](ctx, tx, getBuildingActionSqlTemplate, id)
 }
 
 const listBuildingActionForPlanetSqlTemplate = `
@@ -87,28 +68,7 @@ WHERE
 	planet = $1`
 
 func (r *buildingActionRepositoryImpl) ListForPlanet(ctx context.Context, tx db.Transaction, planet uuid.UUID) ([]persistence.BuildingAction, error) {
-	res := tx.Query(ctx, listBuildingActionForPlanetSqlTemplate, planet)
-	if err := res.Err(); err != nil {
-		return []persistence.BuildingAction{}, err
-	}
-
-	var out []persistence.BuildingAction
-	parser := func(rows db.Scannable) error {
-		var action persistence.BuildingAction
-		err := rows.Scan(&action.Id, &action.Planet, &action.Building, &action.CurrentLevel, &action.DesiredLevel, &action.CreatedAt, &action.CompletedAt)
-		if err != nil {
-			return err
-		}
-
-		out = append(out, action)
-		return nil
-	}
-
-	if err := res.GetAll(parser); err != nil {
-		return []persistence.BuildingAction{}, err
-	}
-
-	return out, nil
+	return db.QueryAllTx[persistence.BuildingAction](ctx, tx, listBuildingActionForPlanetSqlTemplate, planet)
 }
 
 const listBuildingActionBeforeCompletionTimeSqlTemplate = `
@@ -127,45 +87,18 @@ WHERE
 	AND planet = $2`
 
 func (r *buildingActionRepositoryImpl) ListBeforeCompletionTime(ctx context.Context, tx db.Transaction, planet uuid.UUID, until time.Time) ([]persistence.BuildingAction, error) {
-	res := tx.Query(ctx, listBuildingActionBeforeCompletionTimeSqlTemplate, until, planet)
-	if err := res.Err(); err != nil {
-		return []persistence.BuildingAction{}, err
-	}
-
-	var out []persistence.BuildingAction
-	parser := func(rows db.Scannable) error {
-		var action persistence.BuildingAction
-		err := rows.Scan(&action.Id, &action.Planet, &action.Building, &action.CurrentLevel, &action.DesiredLevel, &action.CreatedAt, &action.CompletedAt)
-		if err != nil {
-			return err
-		}
-
-		out = append(out, action)
-		return nil
-	}
-
-	if err := res.GetAll(parser); err != nil {
-		return []persistence.BuildingAction{}, err
-	}
-
-	return out, nil
+	return db.QueryAllTx[persistence.BuildingAction](ctx, tx, listBuildingActionBeforeCompletionTimeSqlTemplate, until, planet)
 }
 
-const deleteBuildingActionSqlTemplate = "DELETE FROM building_action WHERE id = $1"
+const deleteBuildingActionSqlTemplate = `DELETE FROM building_action WHERE id = $1`
 
+// TODO: Should also delete costs and production effects
 func (r *buildingActionRepositoryImpl) Delete(ctx context.Context, tx db.Transaction, action uuid.UUID) error {
-	affected, err := tx.Exec(ctx, deleteBuildingActionSqlTemplate, action)
-	if err != nil {
-		return err
-	}
-	if affected != 1 {
-		return errors.NewCode(db.NoMatchingSqlRows)
-	}
-
+	_, err := tx.Exec(ctx, deleteBuildingActionSqlTemplate, action)
 	return err
 }
 
-const deleteBuildingActionForPlanetSqlTemplate = "DELETE FROM building_action WHERE planet = $1"
+const deleteBuildingActionForPlanetSqlTemplate = `DELETE FROM building_action WHERE planet = $1`
 
 func (r *buildingActionRepositoryImpl) DeleteForPlanet(ctx context.Context, tx db.Transaction, planet uuid.UUID) error {
 	_, err := tx.Exec(ctx, deleteBuildingActionForPlanetSqlTemplate, planet)
