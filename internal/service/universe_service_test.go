@@ -62,8 +62,8 @@ func TestUnit_UniverseService(t *testing.T) {
 
 		repositoryInteractionTestCases: map[string]repositoryInteractionTestCase{
 			"create": {
-				handler: func(ctx context.Context, pool db.Connection, repos repositories.Repositories) error {
-					s := NewUniverseService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewUniverseService(conn, repos)
 					_, err := s.Create(ctx, defaultUniverseDtoRequest)
 					return err
 				},
@@ -76,16 +76,16 @@ func TestUnit_UniverseService(t *testing.T) {
 			},
 			"create_repositoryFails": {
 				generateRepositoriesMocks: generateErrorUniverseServiceMocks,
-				handler: func(ctx context.Context, pool db.Connection, repos repositories.Repositories) error {
-					s := NewUniverseService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewUniverseService(conn, repos)
 					_, err := s.Create(ctx, defaultUniverseDtoRequest)
 					return err
 				},
 				expectedError: errDefault,
 			},
 			"get": {
-				handler: func(ctx context.Context, pool db.Connection, repos repositories.Repositories) error {
-					s := NewUniverseService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewUniverseService(conn, repos)
 					_, err := s.Get(ctx, defaultUniverseId)
 					return err
 				},
@@ -98,16 +98,16 @@ func TestUnit_UniverseService(t *testing.T) {
 			},
 			"get_universeRepositoryFails": {
 				generateRepositoriesMocks: generateErrorUniverseServiceMocks,
-				handler: func(ctx context.Context, pool db.Connection, repos repositories.Repositories) error {
-					s := NewUniverseService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewUniverseService(conn, repos)
 					_, err := s.Get(ctx, defaultUniverseId)
 					return err
 				},
 				expectedError: errDefault,
 			},
 			"get_resourceRepository": {
-				handler: func(ctx context.Context, pool db.Connection, repos repositories.Repositories) error {
-					s := NewUniverseService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewUniverseService(conn, repos)
 					_, err := s.Get(ctx, defaultUniverseId)
 					return err
 				},
@@ -126,16 +126,16 @@ func TestUnit_UniverseService(t *testing.T) {
 
 					return repos
 				},
-				handler: func(ctx context.Context, pool db.Connection, repos repositories.Repositories) error {
-					s := NewUniverseService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewUniverseService(conn, repos)
 					_, err := s.Get(ctx, defaultUniverseId)
 					return err
 				},
 				expectedError: errDefault,
 			},
 			"get_buildingRepository": {
-				handler: func(ctx context.Context, pool db.Connection, repos repositories.Repositories) error {
-					s := NewUniverseService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewUniverseService(conn, repos)
 					_, err := s.Get(ctx, defaultUniverseId)
 					return err
 				},
@@ -154,16 +154,16 @@ func TestUnit_UniverseService(t *testing.T) {
 
 					return repos
 				},
-				handler: func(ctx context.Context, pool db.Connection, repos repositories.Repositories) error {
-					s := NewUniverseService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewUniverseService(conn, repos)
 					_, err := s.Get(ctx, defaultUniverseId)
 					return err
 				},
 				expectedError: errDefault,
 			},
 			"get_buildingCostRepository": {
-				handler: func(ctx context.Context, pool db.Connection, repos repositories.Repositories) error {
-					s := NewUniverseService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewUniverseService(conn, repos)
 					_, err := s.Get(ctx, defaultUniverseId)
 					return err
 				},
@@ -182,16 +182,16 @@ func TestUnit_UniverseService(t *testing.T) {
 
 					return repos
 				},
-				handler: func(ctx context.Context, pool db.Connection, repos repositories.Repositories) error {
-					s := NewUniverseService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewUniverseService(conn, repos)
 					_, err := s.Get(ctx, defaultUniverseId)
 					return err
 				},
 				expectedError: errDefault,
 			},
 			"get_buildingResourceProductionRepository": {
-				handler: func(ctx context.Context, pool db.Connection, repos repositories.Repositories) error {
-					s := NewUniverseService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewUniverseService(conn, repos)
 					_, err := s.Get(ctx, defaultUniverseId)
 					return err
 				},
@@ -210,16 +210,16 @@ func TestUnit_UniverseService(t *testing.T) {
 
 					return repos
 				},
-				handler: func(ctx context.Context, pool db.Connection, repos repositories.Repositories) error {
-					s := NewUniverseService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewUniverseService(conn, repos)
 					_, err := s.Get(ctx, defaultUniverseId)
 					return err
 				},
 				expectedError: errDefault,
 			},
 			"list": {
-				handler: func(ctx context.Context, pool db.Connection, repos repositories.Repositories) error {
-					s := NewUniverseService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewUniverseService(conn, repos)
 					_, err := s.List(ctx)
 					return err
 				},
@@ -231,16 +231,16 @@ func TestUnit_UniverseService(t *testing.T) {
 			},
 			"list_repositoryFails": {
 				generateRepositoriesMocks: generateErrorUniverseServiceMocks,
-				handler: func(ctx context.Context, pool db.Connection, repos repositories.Repositories) error {
-					s := NewUniverseService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewUniverseService(conn, repos)
 					_, err := s.List(ctx)
 					return err
 				},
 				expectedError: errDefault,
 			},
 			"delete": {
-				handler: func(ctx context.Context, pool db.Connection, repos repositories.Repositories) error {
-					s := NewUniverseService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewUniverseService(conn, repos)
 					return s.Delete(ctx, defaultUniverseId)
 				},
 				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
@@ -252,8 +252,8 @@ func TestUnit_UniverseService(t *testing.T) {
 			},
 			"delete_repositoryFails": {
 				generateRepositoriesMocks: generateErrorUniverseServiceMocks,
-				handler: func(ctx context.Context, pool db.Connection, repos repositories.Repositories) error {
-					s := NewUniverseService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewUniverseService(conn, repos)
 					return s.Delete(ctx, defaultUniverseId)
 				},
 				expectedError: errDefault,
@@ -262,8 +262,8 @@ func TestUnit_UniverseService(t *testing.T) {
 
 		returnTestCases: map[string]returnTestCase{
 			"create": {
-				handler: func(ctx context.Context, pool db.Connection, repos repositories.Repositories) interface{} {
-					s := NewUniverseService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) interface{} {
+					s := NewUniverseService(conn, repos)
 					out, _ := s.Create(ctx, defaultUniverseDtoRequest)
 					return out
 				},
@@ -275,8 +275,8 @@ func TestUnit_UniverseService(t *testing.T) {
 				},
 			},
 			"get": {
-				handler: func(ctx context.Context, pool db.Connection, repos repositories.Repositories) interface{} {
-					s := NewUniverseService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) interface{} {
+					s := NewUniverseService(conn, repos)
 					out, _ := s.Get(ctx, defaultUniverseId)
 					return out
 				},
@@ -324,8 +324,8 @@ func TestUnit_UniverseService(t *testing.T) {
 				},
 			},
 			"list": {
-				handler: func(ctx context.Context, pool db.Connection, repos repositories.Repositories) interface{} {
-					s := NewUniverseService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) interface{} {
+					s := NewUniverseService(conn, repos)
 					out, _ := s.List(ctx)
 					return out
 				},
@@ -342,15 +342,15 @@ func TestUnit_UniverseService(t *testing.T) {
 
 		transactionTestCases: map[string]transactionTestCase{
 			"get": {
-				handler: func(ctx context.Context, pool db.Connection, repos repositories.Repositories) error {
-					s := NewUniverseService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewUniverseService(conn, repos)
 					_, err := s.Get(ctx, defaultUniverseId)
 					return err
 				},
 			},
 			"delete": {
-				handler: func(ctx context.Context, pool db.Connection, repos repositories.Repositories) error {
-					s := NewUniverseService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewUniverseService(conn, repos)
 					return s.Delete(ctx, defaultUniverseId)
 				},
 			},
