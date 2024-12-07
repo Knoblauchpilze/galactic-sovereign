@@ -5,14 +5,14 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/KnoblauchPilze/backend-toolkit/pkg/db"
 	"github.com/KnoblauchPilze/backend-toolkit/pkg/rest"
-	"github.com/KnoblauchPilze/galactic-sovereign/pkg/db"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
 
-type mockConnectionPool struct {
-	db.ConnectionPool
+type mockConnection struct {
+	db.Connection
 
 	pingCalled int
 	err        error
@@ -21,7 +21,7 @@ type mockConnectionPool struct {
 func TestUnit_HealthCheckEndpoints(t *testing.T) {
 	s := RouteTestSuite{
 		generateRoutes: func() rest.Routes {
-			return HealthCheckEndpoints(&mockConnectionPool{})
+			return HealthCheckEndpoints(&mockConnection{})
 		},
 		expectedRoutes: map[string]int{
 			http.MethodGet: 1,
@@ -38,7 +38,7 @@ func TestUnit_Healthcheck_CallsPoolPing(t *testing.T) {
 	assert := assert.New(t)
 
 	mc := dummyEchoContext()
-	mp := &mockConnectionPool{}
+	mp := &mockConnection{}
 
 	healthcheck(mc, mp)
 
@@ -49,7 +49,7 @@ func TestUnit_Healthcheck_WhenPingSucceeds_SetsSatusToOk(t *testing.T) {
 	assert := assert.New(t)
 
 	ctx, rw := generateTestEchoContextWithMethod(http.MethodGet)
-	mp := &mockConnectionPool{}
+	mp := &mockConnection{}
 
 	err := healthcheck(ctx, mp)
 
@@ -61,7 +61,7 @@ func TestUnit_Healthcheck_WhenPingFails_PropagatesError(t *testing.T) {
 	assert := assert.New(t)
 
 	ctx, rw := generateTestEchoContextWithMethod(http.MethodGet)
-	mp := &mockConnectionPool{
+	mp := &mockConnection{
 		err: errDefault,
 	}
 
@@ -81,7 +81,7 @@ func TestUnit_Healthcheck_WhenPingFails_SetsStatusToServiceUnavailable(t *testin
 	assert := assert.New(t)
 
 	ctx, rw := generateTestEchoContextWithMethod(http.MethodGet)
-	mp := &mockConnectionPool{
+	mp := &mockConnection{
 		err: errDefault,
 	}
 
@@ -91,7 +91,7 @@ func TestUnit_Healthcheck_WhenPingFails_SetsStatusToServiceUnavailable(t *testin
 	assert.Equal(http.StatusServiceUnavailable, rw.Code)
 }
 
-func (m *mockConnectionPool) Ping(ctx context.Context) error {
+func (m *mockConnection) Ping(ctx context.Context) error {
 	m.pingCalled++
 	return m.err
 }

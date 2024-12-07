@@ -6,8 +6,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/KnoblauchPilze/backend-toolkit/pkg/db"
 	"github.com/KnoblauchPilze/galactic-sovereign/internal/service"
-	"github.com/KnoblauchPilze/galactic-sovereign/pkg/db"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
@@ -63,9 +63,9 @@ func TestUnit_FromBuildingActionServiceAwareHttpHandler(t *testing.T) {
 }
 
 func TestUnit_FromDbAwareHttpHandler(t *testing.T) {
-	s := HandlerTestSuite[db.ConnectionPool]{
-		generateTestFunc: func(in func(echo.Context, db.ConnectionPool) error) echo.HandlerFunc {
-			return fromDbAwareHttpHandler(in, &mockConnectionPool{})
+	s := HandlerTestSuite[db.Connection]{
+		generateTestFunc: func(in func(echo.Context, db.Connection) error) echo.HandlerFunc {
+			return fromDbAwareHttpHandler(in, &mockConnection{})
 		},
 	}
 
