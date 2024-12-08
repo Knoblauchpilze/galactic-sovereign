@@ -1,7 +1,5 @@
 package repositories
 
-import "regexp"
-
 type Repositories struct {
 	Building                         BuildingRepository
 	BuildingAction                   BuildingActionRepository
@@ -18,5 +16,3 @@ type Repositories struct {
 	Resource                         ResourceRepository
 	Universe                         UniverseRepository
 }
-
-var duplicatedKeySqlErrorRegexp = regexp.MustCompile(`duplicate key value violates unique constraint ".*" \(SQLSTATE 23505\)`)
