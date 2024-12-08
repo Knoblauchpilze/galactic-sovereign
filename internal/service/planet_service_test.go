@@ -2,13 +2,17 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"testing"
+	"time"
 
 	"github.com/KnoblauchPilze/backend-toolkit/pkg/db"
+	eassert "github.com/KnoblauchPilze/easy-assert/assert"
 	"github.com/KnoblauchPilze/galactic-sovereign/pkg/communication"
 	"github.com/KnoblauchPilze/galactic-sovereign/pkg/persistence"
 	"github.com/KnoblauchPilze/galactic-sovereign/pkg/repositories"
 	"github.com/google/uuid"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 )
@@ -789,4 +793,78 @@ func assertBuildingActionRepoIsAMock(repos repositories.Repositories, assert *re
 		assert.Fail("Provided building action repository is not a mock")
 	}
 	return m
+}
+
+func TestIT_PlanetService_CreationDeletionWorkflow(t *testing.T) {
+	conn := newTestConnection(t)
+	repos := repositories.Repositories{
+		PlanetBuilding:                   repositories.NewPlanetBuildingRepository(),
+		Planet:                           repositories.NewPlanetRepository(conn),
+		PlanetResource:                   repositories.NewPlanetResourceRepository(),
+		PlanetResourceProduction:         repositories.NewPlanetResourceProductionRepository(),
+		PlanetResourceStorage:            repositories.NewPlanetResourceStorageRepository(),
+		BuildingAction:                   repositories.NewBuildingActionRepository(),
+		BuildingActionCost:               repositories.NewBuildingActionCostRepository(),
+		BuildingActionResourceProduction: repositories.NewBuildingActionResourceProductionRepository(),
+	}
+	player, _ := insertTestPlayerInUniverse(t, conn)
+
+	service := NewPlanetService(conn, repos)
+
+	planetRequest := communication.PlanetDtoRequest{
+		Player: player.Id,
+		Name:   fmt.Sprintf("my-planet-%s", uuid.NewString()),
+	}
+
+	beforeCreation := time.Now()
+
+	var err error
+	var planetResponse communication.PlanetDtoResponse
+	func() {
+		planetResponse, err = service.Create(context.Background(), planetRequest)
+		require.Nil(t, err)
+	}()
+
+	assertPlanetExists(t, conn, planetResponse.Id)
+	expected := communication.PlanetDtoResponse{
+		Player:    planetRequest.Player,
+		Name:      planetRequest.Name,
+		Homeworld: false,
+	}
+	assert.True(t, eassert.EqualsIgnoringFields(planetResponse, expected, "Id", "CreatedAt"))
+	assert.True(t, planetResponse.CreatedAt.After(beforeCreation))
+
+	func() {
+		planetFromDb, err := service.Get(context.Background(), planetResponse.Id)
+		require.Nil(t, err)
+
+		assert.True(t, eassert.EqualsIgnoringFields(planetFromDb.PlanetDtoResponse, planetResponse, "CreatedAt"))
+		assert.True(t, eassert.AreTimeCloserThan(
+			planetFromDb.PlanetDtoResponse.CreatedAt,
+			planetResponse.CreatedAt,
+			1*time.Second,
+		))
+		assert.True(t, planetResponse.CreatedAt.After(beforeCreation))
+	}()
+
+	func() {
+		err = service.Delete(context.Background(), planetResponse.Id)
+		require.Nil(t, err)
+	}()
+
+	assertPlanetDoesNotExist(t, conn, planetResponse.Id)
+}
+
+func assertPlanetExists(t *testing.T, conn db.Connection, id uuid.UUID) {
+	sqlQuery := `SELECT id FROM planet WHERE id = $1`
+	value, err := db.QueryOne[uuid.UUID](context.Background(), conn, sqlQuery, id)
+	require.Nil(t, err)
+	require.Equal(t, id, value)
+}
+
+func assertPlanetDoesNotExist(t *testing.T, conn db.Connection, id uuid.UUID) {
+	sqlQuery := `SELECT COUNT(id) FROM planet WHERE id = $1`
+	value, err := db.QueryOne[int](context.Background(), conn, sqlQuery, id)
+	require.Nil(t, err)
+	require.Zero(t, value)
 }
