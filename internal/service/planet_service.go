@@ -20,8 +20,8 @@ type PlanetService interface {
 type planetServiceImpl struct {
 	conn db.Connection
 
-	planetBuildingRepo                   repositories.PlanetBuildingRepository
 	planetRepo                           repositories.PlanetRepository
+	planetBuildingRepo                   repositories.PlanetBuildingRepository
 	planetResourceRepo                   repositories.PlanetResourceRepository
 	planetResourceProductionRepo         repositories.PlanetResourceProductionRepository
 	planetResourceStorageRepo            repositories.PlanetResourceStorageRepository
@@ -33,8 +33,8 @@ type planetServiceImpl struct {
 func NewPlanetService(conn db.Connection, repos repositories.Repositories) PlanetService {
 	return &planetServiceImpl{
 		conn:                                 conn,
-		planetBuildingRepo:                   repos.PlanetBuilding,
 		planetRepo:                           repos.Planet,
+		planetBuildingRepo:                   repos.PlanetBuilding,
 		planetResourceRepo:                   repos.PlanetResource,
 		planetResourceProductionRepo:         repos.PlanetResourceProduction,
 		planetResourceStorageRepo:            repos.PlanetResourceStorage,
