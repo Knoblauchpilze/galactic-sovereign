@@ -93,6 +93,19 @@ func TestIT_PlayerRepository_List(t *testing.T) {
 	assert.True(t, eassert.ContainsIgnoringFields(actual, p2))
 }
 
+func TestIT_PlayerRepository_ListForApiUser(t *testing.T) {
+	repo, conn := newTestPlayerRepository(t)
+	defer conn.Close(context.Background())
+	p1, universe := insertTestPlayerInUniverse(t, conn)
+	insertTestPlayer(t, conn, universe.Id)
+
+	actual, err := repo.ListForApiUser(context.Background(), p1.ApiUser)
+
+	assert.Nil(t, err)
+	assert.Equal(t, len(actual), 1)
+	assert.True(t, eassert.ContainsIgnoringFields(actual, p1))
+}
+
 func TestIT_PlayerRepository_Delete(t *testing.T) {
 	repo, conn, tx := newTestPlayerRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
