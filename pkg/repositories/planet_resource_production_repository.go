@@ -49,8 +49,27 @@ WHERE
 	planet = $1
 	AND building = $2`
 
+const listPlanetResourceProductionForPlanetAndBuildingWithoutBuildingSqlTemplate = `
+SELECT
+	planet,
+	building,
+	resource,
+	production,
+	created_at,
+	updated_at,
+	version
+FROM
+	planet_resource_production
+WHERE
+	planet = $1
+	AND building IS NULL`
+
 func (r *planetResourceProductionRepositoryImpl) GetForPlanetAndBuilding(ctx context.Context, tx db.Transaction, planet uuid.UUID, building *uuid.UUID) (persistence.PlanetResourceProduction, error) {
-	return db.QueryOneTx[persistence.PlanetResourceProduction](ctx, tx, listPlanetResourceProductionForPlanetAndBuildingSqlTemplate, planet, building)
+	if building == nil {
+		return db.QueryOneTx[persistence.PlanetResourceProduction](ctx, tx, listPlanetResourceProductionForPlanetAndBuildingWithoutBuildingSqlTemplate, planet)
+	} else {
+		return db.QueryOneTx[persistence.PlanetResourceProduction](ctx, tx, listPlanetResourceProductionForPlanetAndBuildingSqlTemplate, planet, building)
+	}
 }
 
 const listPlanetResourceProductionForPlanetSqlTemplate = `

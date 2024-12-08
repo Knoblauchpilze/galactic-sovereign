@@ -120,6 +120,46 @@ func TestIT_PlanetResourceProductionRepository_Create_WhenDuplicateResourceProdu
 	assertPlanetResourceProductionForBuilding(t, conn, planet.Id, resource.Id, building.Id, production.Production)
 }
 
+func TestIT_PlanetResourceProductionRepository_GetForPlanetAndBuilding(t *testing.T) {
+	repo, conn, tx := newTestPlanetResourceProductionRepositoryAndTransaction(t)
+	defer conn.Close(context.Background())
+	planet1, _, _ := insertTestPlanetForPlayer(t, conn)
+	building1 := insertTestBuilding(t, conn)
+	building2 := insertTestBuilding(t, conn)
+	insertTestPlanetResourceProductionForBuilding(t, conn, planet1.Id, nil)
+	prp2, _ := insertTestPlanetResourceProductionForBuilding(t, conn, planet1.Id, &building1.Id)
+	insertTestPlanetResourceProductionForBuilding(t, conn, planet1.Id, &building2.Id)
+
+	planet2, _, _ := insertTestPlanetForPlayer(t, conn)
+	insertTestPlanetResourceProduction(t, conn, planet2.Id)
+
+	actual, err := repo.GetForPlanetAndBuilding(context.Background(), tx, planet1.Id, &building1.Id)
+	tx.Close(context.Background())
+
+	assert.Nil(t, err)
+	assert.True(t, eassert.EqualsIgnoringFields(actual, prp2))
+}
+
+func TestIT_PlanetResourceProductionRepository_GetForPlanetAndBuilding_WhenBuildingIsNull_ExpectSuccess(t *testing.T) {
+	repo, conn, tx := newTestPlanetResourceProductionRepositoryAndTransaction(t)
+	defer conn.Close(context.Background())
+	planet1, _, _ := insertTestPlanetForPlayer(t, conn)
+	building1 := insertTestBuilding(t, conn)
+	building2 := insertTestBuilding(t, conn)
+	prp1, _ := insertTestPlanetResourceProductionForBuilding(t, conn, planet1.Id, nil)
+	insertTestPlanetResourceProductionForBuilding(t, conn, planet1.Id, &building1.Id)
+	insertTestPlanetResourceProductionForBuilding(t, conn, planet1.Id, &building2.Id)
+
+	planet2, _, _ := insertTestPlanetForPlayer(t, conn)
+	insertTestPlanetResourceProduction(t, conn, planet2.Id)
+
+	actual, err := repo.GetForPlanetAndBuilding(context.Background(), tx, planet1.Id, nil)
+	tx.Close(context.Background())
+
+	assert.Nil(t, err)
+	assert.True(t, eassert.EqualsIgnoringFields(actual, prp1))
+}
+
 func TestIT_PlanetResourceProductionRepository_ListForPlanet(t *testing.T) {
 	repo, conn, tx := newTestPlanetResourceProductionRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
