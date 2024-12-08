@@ -37,7 +37,11 @@ type buildingActionServiceImpl struct {
 }
 
 func NewBuildingActionService(conn db.Connection, repos repositories.Repositories) BuildingActionService {
-	return newBuildingActionService(conn, repos, game.ConsolidateBuildingActionCompletionTime, game.ValidateBuildingAction)
+	return newBuildingActionServiceWithCompletionTime(conn, repos, game.ConsolidateBuildingActionCompletionTime)
+}
+
+func newBuildingActionServiceWithCompletionTime(conn db.Connection, repos repositories.Repositories, completionTimeConsolidator buildingActionCompletionTimeConsolidator) BuildingActionService {
+	return newBuildingActionService(conn, repos, completionTimeConsolidator, game.ValidateBuildingAction)
 }
 
 func newBuildingActionService(conn db.Connection, repos repositories.Repositories, completionTimeConsolidator buildingActionCompletionTimeConsolidator, validator buildingActionValidator) BuildingActionService {

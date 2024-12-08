@@ -11,6 +11,7 @@ import (
 	"github.com/KnoblauchPilze/galactic-sovereign/pkg/persistence"
 	"github.com/KnoblauchPilze/galactic-sovereign/pkg/repositories"
 	"github.com/google/uuid"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 )
@@ -649,11 +650,11 @@ func TestUnit_BuildingActionService(t *testing.T) {
 
 func generateBuildingActionServiceMocks() repositories.Repositories {
 	return repositories.Repositories{
-		PlanetResource: &mockPlanetResourceRepository{
-			planetResource: defaultPlanetResource,
-		},
 		Resource: &mockResourceRepository{
 			resources: defaultResources,
+		},
+		PlanetResource: &mockPlanetResourceRepository{
+			planetResource: defaultPlanetResource,
 		},
 		PlanetBuilding: &mockPlanetBuildingRepository{
 			planetBuilding: defaultPlanetBuilding,
@@ -698,4 +699,83 @@ func assertBuildingActionResourceProductionRepoIsAMock(repos repositories.Reposi
 		assert.Fail("Provided building action resource production repository is not a mock")
 	}
 	return m
+}
+
+func TestIT_BuildingActionService_CreationDeletionWorkflow(t *testing.T) {
+	conn := newTestConnection(t)
+	repos := repositories.Repositories{
+		Resource:                         repositories.NewResourceRepository(),
+		PlanetResource:                   repositories.NewPlanetResourceRepository(),
+		PlanetBuilding:                   repositories.NewPlanetBuildingRepository(),
+		BuildingCost:                     repositories.NewBuildingCostRepository(),
+		BuildingResourceProduction:       repositories.NewBuildingResourceProductionRepository(),
+		BuildingAction:                   repositories.NewBuildingActionRepository(),
+		BuildingActionCost:               repositories.NewBuildingActionCostRepository(),
+		BuildingActionResourceProduction: repositories.NewBuildingActionResourceProductionRepository(),
+	}
+	planet, _, _ := insertTestPlanetForPlayer(t, conn)
+	building, _ := insertTestPlanetBuildingForPlanet(t, conn, planet.Id)
+	_, resource := insertTestBuildingCost(t, conn, building.Building)
+	insertTestPlanetResourceForResource(t, conn, planet.Id, resource.Id)
+
+	var returnedCompletionTime time.Time
+	completionTimeFunc := func(action persistence.BuildingAction, resources []persistence.Resource, costs []persistence.BuildingActionCost) (persistence.BuildingAction, error) {
+		returnedCompletionTime = time.Now().Add(1 * time.Hour)
+		action.CompletedAt = returnedCompletionTime
+		return action, nil
+	}
+
+	service := newBuildingActionServiceWithCompletionTime(conn, repos, completionTimeFunc)
+
+	actionRequest := communication.BuildingActionDtoRequest{
+		Planet:   planet.Id,
+		Building: building.Building,
+	}
+
+	beforeCreation := time.Now()
+
+	var actionResponse communication.BuildingActionDtoResponse
+	func() {
+		tx, err := conn.BeginTx(context.Background())
+		require.Nil(t, err)
+
+		defer tx.Close(context.Background())
+
+		actionResponse, err = service.Create(context.Background(), actionRequest)
+		require.Nil(t, err)
+	}()
+
+	assertBuildingActionExists(t, conn, actionResponse.Id)
+	assert.Equal(t, actionRequest.Planet, actionResponse.Planet)
+	assert.Equal(t, actionRequest.Building, actionResponse.Building)
+	assert.True(t, actionResponse.CreatedAt.After(beforeCreation))
+	assert.Equal(t, 4, actionResponse.CurrentLevel)
+	assert.Equal(t, 5, actionResponse.DesiredLevel)
+	assert.Equal(t, returnedCompletionTime, actionResponse.CompletedAt)
+
+	func() {
+		tx, err := conn.BeginTx(context.Background())
+		require.Nil(t, err)
+
+		defer tx.Close(context.Background())
+
+		err = service.Delete(context.Background(), actionResponse.Id)
+		require.Nil(t, err)
+	}()
+
+	assertBuildingActionDoesNotExist(t, conn, actionResponse.Id)
+}
+
+func assertBuildingActionExists(t *testing.T, conn db.Connection, action uuid.UUID) {
+	sqlQuery := `SELECT COUNT(*) FROM building_action WHERE id = $1`
+	value, err := db.QueryOne[int](context.Background(), conn, sqlQuery, action)
+	require.Nil(t, err)
+	require.Equal(t, 1, value)
+}
+
+func assertBuildingActionDoesNotExist(t *testing.T, conn db.Connection, action uuid.UUID) {
+	sqlQuery := `SELECT COUNT(*) FROM building_action WHERE id = $1`
+	value, err := db.QueryOne[int](context.Background(), conn, sqlQuery, action)
+	require.Nil(t, err)
+	require.Zero(t, value)
 }
