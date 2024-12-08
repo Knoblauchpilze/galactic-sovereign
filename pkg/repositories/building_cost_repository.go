@@ -3,7 +3,7 @@ package repositories
 import (
 	"context"
 
-	"github.com/KnoblauchPilze/galactic-sovereign/pkg/db"
+	"github.com/KnoblauchPilze/backend-toolkit/pkg/db"
 	"github.com/KnoblauchPilze/galactic-sovereign/pkg/persistence"
 	"github.com/google/uuid"
 )
@@ -27,30 +27,8 @@ SELECT
 FROM
 	building_cost
 WHERE
-	building = $1
-`
+	building = $1`
 
 func (r *buildingCostRepositoryImpl) ListForBuilding(ctx context.Context, tx db.Transaction, building uuid.UUID) ([]persistence.BuildingCost, error) {
-	res := tx.Query(ctx, listBuildingCostForBuildingSqlTemplate, building)
-	if err := res.Err(); err != nil {
-		return []persistence.BuildingCost{}, err
-	}
-
-	var out []persistence.BuildingCost
-	parser := func(rows db.Scannable) error {
-		var cost persistence.BuildingCost
-		err := rows.Scan(&cost.Building, &cost.Resource, &cost.Cost, &cost.Progress)
-		if err != nil {
-			return err
-		}
-
-		out = append(out, cost)
-		return nil
-	}
-
-	if err := res.GetAll(parser); err != nil {
-		return []persistence.BuildingCost{}, err
-	}
-
-	return out, nil
+	return db.QueryAllTx[persistence.BuildingCost](ctx, tx, listBuildingCostForBuildingSqlTemplate, building)
 }

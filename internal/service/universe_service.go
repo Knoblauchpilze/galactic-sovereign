@@ -3,8 +3,8 @@ package service
 import (
 	"context"
 
+	"github.com/KnoblauchPilze/backend-toolkit/pkg/db"
 	"github.com/KnoblauchPilze/galactic-sovereign/pkg/communication"
-	"github.com/KnoblauchPilze/galactic-sovereign/pkg/db"
 	"github.com/KnoblauchPilze/galactic-sovereign/pkg/persistence"
 	"github.com/KnoblauchPilze/galactic-sovereign/pkg/repositories"
 	"github.com/google/uuid"
@@ -18,7 +18,7 @@ type UniverseService interface {
 }
 
 type universeServiceImpl struct {
-	conn db.ConnectionPool
+	conn db.Connection
 
 	universeRepo                   repositories.UniverseRepository
 	resourceRepo                   repositories.ResourceRepository
@@ -27,7 +27,7 @@ type universeServiceImpl struct {
 	buildingResourceProductionRepo repositories.BuildingResourceProductionRepository
 }
 
-func NewUniverseService(conn db.ConnectionPool, repos repositories.Repositories) UniverseService {
+func NewUniverseService(conn db.Connection, repos repositories.Repositories) UniverseService {
 	return &universeServiceImpl{
 		conn:                           conn,
 		universeRepo:                   repos.Universe,
@@ -51,7 +51,7 @@ func (s *universeServiceImpl) Create(ctx context.Context, universeDto communicat
 }
 
 func (s *universeServiceImpl) Get(ctx context.Context, id uuid.UUID) (communication.FullUniverseDtoResponse, error) {
-	tx, err := s.conn.StartTransaction(ctx)
+	tx, err := s.conn.BeginTx(ctx)
 	if err != nil {
 		return communication.FullUniverseDtoResponse{}, err
 	}
@@ -113,7 +113,7 @@ func (s *universeServiceImpl) List(ctx context.Context) ([]communication.Univers
 }
 
 func (s *universeServiceImpl) Delete(ctx context.Context, id uuid.UUID) error {
-	tx, err := s.conn.StartTransaction(ctx)
+	tx, err := s.conn.BeginTx(ctx)
 	if err != nil {
 		return err
 	}

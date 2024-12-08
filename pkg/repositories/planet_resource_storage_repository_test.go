@@ -5,215 +5,275 @@ import (
 	"testing"
 	"time"
 
+	"github.com/KnoblauchPilze/backend-toolkit/pkg/db"
+	"github.com/KnoblauchPilze/backend-toolkit/pkg/db/pgx"
 	"github.com/KnoblauchPilze/backend-toolkit/pkg/errors"
-	"github.com/KnoblauchPilze/galactic-sovereign/pkg/db"
+	eassert "github.com/KnoblauchPilze/easy-assert/assert"
 	"github.com/KnoblauchPilze/galactic-sovereign/pkg/persistence"
 	"github.com/google/uuid"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/stretchr/testify/suite"
 )
 
-var defaultPlanetResourceStorage = persistence.PlanetResourceStorage{
-	Planet:    defaultPlanetId,
-	Resource:  defaultResourceId,
-	Storage:   31,
-	CreatedAt: time.Date(2024, 9, 28, 11, 04, 31, 651387252, time.UTC),
-	UpdatedAt: time.Date(2024, 9, 28, 11, 04, 32, 651387252, time.UTC),
-	Version:   2,
-}
-var defaultUpdatedPlanetResourceStorage = persistence.PlanetResourceStorage{
-	Planet:    defaultPlanetId,
-	Resource:  defaultResourceId,
-	Storage:   321,
-	CreatedAt: time.Date(2024, 9, 28, 11, 04, 52, 651387252, time.UTC),
-	UpdatedAt: time.Date(2024, 9, 28, 11, 04, 53, 651387252, time.UTC),
-	Version:   3,
-}
+func TestIT_PlanetResourceStorageRepository_Create(t *testing.T) {
+	repo, conn, tx := newTestPlanetResourceStorageRepositoryAndTransaction(t)
+	defer conn.Close(context.Background())
+	planet, _, _ := insertTestPlanetForPlayer(t, conn)
+	resource := insertTestResource(t, conn)
 
-func TestUnit_PlanetResourceStorageRepository_Transaction(t *testing.T) {
-	var dummyInt int
-
-	s := RepositoryTransactionTestSuite{
-		dbInteractionTestCases: map[string]dbTransactionInteractionTestCase{
-			"create": {
-				sqlMode: ExecBased,
-				handler: func(ctx context.Context, tx db.Transaction) error {
-					s := NewPlanetResourceStorageRepository()
-					_, err := s.Create(ctx, tx, defaultPlanetResourceStorage)
-					return err
-				},
-				expectedSqlQueries: []string{
-					`INSERT INTO planet_resource_storage (planet, resource, storage, created_at) VALUES($1, $2, $3, $4)`,
-				},
-				expectedArguments: [][]interface{}{
-					{
-						defaultPlanetResourceStorage.Planet,
-						defaultPlanetResourceStorage.Resource,
-						defaultPlanetResourceStorage.Storage,
-						defaultPlanetResourceStorage.CreatedAt,
-					},
-				},
-			},
-			"listForPlanet": {
-				handler: func(ctx context.Context, tx db.Transaction) error {
-					s := NewPlanetResourceStorageRepository()
-					_, err := s.ListForPlanet(ctx, tx, defaultPlanetId)
-					return err
-				},
-				expectedSqlQueries: []string{
-					`
-SELECT
-	planet,
-	resource,
-	storage,
-	created_at,
-	updated_at,
-	version
-FROM
-	planet_resource_storage
-WHERE
-	planet = $1
-`,
-				},
-				expectedArguments: [][]interface{}{
-					{
-						defaultPlanetId,
-					},
-				},
-			},
-			"update": {
-				sqlMode: ExecBased,
-				generateMock: func() db.Transaction {
-					return &mockTransaction{
-						affectedRows: []int{1},
-					}
-				},
-				handler: func(ctx context.Context, tx db.Transaction) error {
-					s := NewPlanetResourceStorageRepository()
-					_, err := s.Update(ctx, tx, defaultUpdatedPlanetResourceStorage)
-					return err
-				},
-				expectedSqlQueries: []string{
-					`
-UPDATE
-	planet_resource_storage
-SET
-	storage = $1,
-	updated_at = $2,
-	version = $3
-WHERE
-	planet = $4
-	AND resource = $5
-	AND version = $6
-`,
-				},
-				expectedArguments: [][]interface{}{
-					{
-						defaultUpdatedPlanetResourceStorage.Storage,
-						defaultUpdatedPlanetResourceStorage.UpdatedAt,
-						defaultUpdatedPlanetResourceStorage.Version + 1,
-						defaultUpdatedPlanetResourceStorage.Planet,
-						defaultUpdatedPlanetResourceStorage.Resource,
-						defaultUpdatedPlanetResourceStorage.Version,
-					},
-				},
-			},
-			"deleteForPlanet": {
-				sqlMode: ExecBased,
-				generateMock: func() db.Transaction {
-					return &mockTransaction{
-						affectedRows: []int{1},
-					}
-				},
-				handler: func(ctx context.Context, tx db.Transaction) error {
-					s := NewPlanetResourceStorageRepository()
-					return s.DeleteForPlanet(ctx, tx, defaultPlanetId)
-				},
-				expectedSqlQueries: []string{
-					`DELETE FROM planet_resource_storage WHERE planet = $1`,
-				},
-				expectedArguments: [][]interface{}{
-					{
-						defaultPlanetId,
-					},
-				},
-			},
-		},
-
-		dbGetAllTestCases: map[string]dbTransactionGetAllTestCase{
-			"listForPlanet": {
-				handler: func(ctx context.Context, tx db.Transaction) error {
-					repo := NewPlanetResourceStorageRepository()
-					_, err := repo.ListForPlanet(ctx, tx, defaultPlanetId)
-					return err
-				},
-				expectedGetAllCalls: 1,
-				expectedScanCalls:   1,
-				expectedScannedProps: [][]interface{}{
-					{
-						&uuid.UUID{},
-						&uuid.UUID{},
-						&dummyInt,
-						&time.Time{},
-						&time.Time{},
-						&dummyInt,
-					},
-				},
-			},
-		},
-
-		dbReturnTestCases: map[string]dbTransactionReturnTestCase{
-			"create": {
-				handler: func(ctx context.Context, tx db.Transaction) interface{} {
-					s := NewPlanetResourceStorageRepository()
-					out, _ := s.Create(ctx, tx, defaultPlanetResourceStorage)
-					return out
-				},
-				expectedContent: defaultPlanetResourceStorage,
-			},
-			"update": {
-				handler: func(ctx context.Context, tx db.Transaction) interface{} {
-					s := NewPlanetResourceStorageRepository()
-					out, _ := s.Update(ctx, tx, defaultUpdatedPlanetResourceStorage)
-					return out
-				},
-				expectedContent: defaultUpdatedPlanetResourceStorage,
-			},
-		},
-
-		dbErrorTestCases: map[string]dbTransactionErrorTestCase{
-			"update_optimisticLockException": {
-				generateMock: func() db.Transaction {
-					return &mockTransaction{
-						affectedRows: []int{0},
-					}
-				},
-				handler: func(ctx context.Context, tx db.Transaction) error {
-					s := NewPlanetResourceStorageRepository()
-					_, err := s.Update(ctx, tx, defaultUpdatedPlanetResourceStorage)
-					return err
-				},
-				verifyError: func(err error, assert *require.Assertions) {
-					assert.True(errors.IsErrorWithCode(err, db.OptimisticLockException))
-				},
-			},
-			"update_moreThanOneRowAffected": {
-				generateMock: func() db.Transaction {
-					return &mockTransaction{
-						affectedRows: []int{2},
-					}
-				},
-				handler: func(ctx context.Context, tx db.Transaction) error {
-					s := NewPlanetResourceStorageRepository()
-					_, err := s.Update(ctx, tx, defaultUpdatedPlanetResourceStorage)
-					return err
-				},
-				verifyError: func(err error, assert *require.Assertions) {
-					assert.True(errors.IsErrorWithCode(err, db.MoreThanOneMatchingSqlRows))
-				},
-			},
-		},
+	storage := persistence.PlanetResourceStorage{
+		Planet:    planet.Id,
+		Resource:  resource.Id,
+		Storage:   29,
+		CreatedAt: time.Now(),
 	}
 
-	suite.Run(t, &s)
+	actual, err := repo.Create(context.Background(), tx, storage)
+	assert.Nil(t, err)
+	tx.Close(context.Background())
+
+	assert.True(t, eassert.EqualsIgnoringFields(actual, storage, "UpdatedAt"))
+	assert.Equal(t, actual.UpdatedAt, actual.CreatedAt)
+	assertPlanetResourceStorageExists(t, conn, planet.Id, resource.Id)
+}
+
+func TestIT_PlanetResourceStorageRepository_Create_WhenDuplicateResource_ExpectFailure(t *testing.T) {
+	repo, conn, tx := newTestPlanetResourceStorageRepositoryAndTransaction(t)
+	defer conn.Close(context.Background())
+	planet, _, _ := insertTestPlanetForPlayer(t, conn)
+	storage, resource := insertTestPlanetResourceStorage(t, conn, planet.Id)
+
+	newStorage := persistence.PlanetResourceStorage{
+		Planet:    planet.Id,
+		Resource:  resource.Id,
+		Storage:   storage.Storage * 2,
+		CreatedAt: time.Now(),
+	}
+
+	_, err := repo.Create(context.Background(), tx, newStorage)
+	tx.Close(context.Background())
+
+	assert.True(t, errors.IsErrorWithCode(err, pgx.UniqueConstraintViolation), "Actual err: %v", err)
+	assertPlanetResourceStorage(t, conn, planet.Id, resource.Id, storage.Storage)
+}
+
+func TestIT_PlanetResourceStorageRepository_ListForPlanet(t *testing.T) {
+	repo, conn, tx := newTestPlanetResourceStorageRepositoryAndTransaction(t)
+	defer conn.Close(context.Background())
+	planet1, _, _ := insertTestPlanetForPlayer(t, conn)
+	ps1, _ := insertTestPlanetResourceStorage(t, conn, planet1.Id)
+	ps2, _ := insertTestPlanetResourceStorage(t, conn, planet1.Id)
+	planet2, _, _ := insertTestPlanetForPlayer(t, conn)
+	_, r3 := insertTestPlanetResourceStorage(t, conn, planet2.Id)
+
+	actual, err := repo.ListForPlanet(context.Background(), tx, planet1.Id)
+	tx.Close(context.Background())
+
+	assert.Nil(t, err)
+	assert.GreaterOrEqual(t, len(actual), 2)
+	assert.True(t, eassert.ContainsIgnoringFields(actual, ps1))
+	assert.True(t, eassert.ContainsIgnoringFields(actual, ps2))
+	for _, storage := range actual {
+		assert.NotEqual(t, storage.Planet, planet2.Id)
+		assert.NotEqual(t, storage.Resource, r3.Id)
+	}
+}
+
+func TestIT_PlanetResourceStorageRepository_Update(t *testing.T) {
+	repo, conn, tx := newTestPlanetResourceStorageRepositoryAndTransaction(t)
+	defer conn.Close(context.Background())
+	planet, _, _ := insertTestPlanetForPlayer(t, conn)
+	storage, resource := insertTestPlanetResourceStorage(t, conn, planet.Id)
+
+	updatedStorage := storage
+	updatedStorage.UpdatedAt = storage.UpdatedAt.Add(3 * time.Second)
+	updatedStorage.Storage = storage.Storage * 3
+
+	actual, err := repo.Update(context.Background(), tx, updatedStorage)
+	tx.Close(context.Background())
+
+	assert.Nil(t, err)
+
+	expected := persistence.PlanetResourceStorage{
+		Planet:    planet.Id,
+		Resource:  resource.Id,
+		Storage:   storage.Storage * 3,
+		CreatedAt: storage.CreatedAt,
+		UpdatedAt: updatedStorage.UpdatedAt,
+		Version:   storage.Version + 1,
+	}
+	assert.True(t, eassert.EqualsIgnoringFields(actual, expected))
+}
+
+func TestIT_PlanetResourceStorageRepository_Update_WhenVersionIsWrong_ExpectOptimisticLockException(t *testing.T) {
+	repo, conn, tx := newTestPlanetResourceStorageRepositoryAndTransaction(t)
+	defer conn.Close(context.Background())
+	planet, _, _ := insertTestPlanetForPlayer(t, conn)
+	storage, _ := insertTestPlanetResourceStorage(t, conn, planet.Id)
+
+	updatedStorage := storage
+	updatedStorage.Storage = storage.Storage * 4
+	updatedStorage.Version = storage.Version + 2
+
+	_, err := repo.Update(context.Background(), tx, updatedStorage)
+	tx.Close(context.Background())
+
+	assert.True(t, errors.IsErrorWithCode(err, OptimisticLockException), "Actual err: %v", err)
+}
+
+func TestIT_PlanetResourceStorageRepository_Update_BumpsUpdatedAt(t *testing.T) {
+	repo, conn := newTestPlanetResourceStorageRepository(t)
+	defer conn.Close(context.Background())
+	planet, _, _ := insertTestPlanetForPlayer(t, conn)
+	storage, _ := insertTestPlanetResourceStorage(t, conn, planet.Id)
+
+	updatedStorage := storage
+	updatedStorage.UpdatedAt = storage.UpdatedAt.Add(2 * time.Second)
+	updatedStorage.Storage = storage.Storage * 3
+
+	func() {
+		tx, err := conn.BeginTx(context.Background())
+		require.Nil(t, err)
+		defer tx.Close(context.Background())
+
+		_, err = repo.Update(context.Background(), tx, updatedStorage)
+		assert.Nil(t, err)
+	}()
+
+	var updatedStorageFromDb persistence.PlanetResourceStorage
+	func() {
+		tx, err := conn.BeginTx(context.Background())
+		require.Nil(t, err)
+		defer tx.Close(context.Background())
+
+		allStorages, err := repo.ListForPlanet(context.Background(), tx, planet.Id)
+		require.Nil(t, err)
+		assert.Len(t, allStorages, 1)
+
+		updatedStorageFromDb = allStorages[0]
+	}()
+
+	assert.True(t, updatedStorage.UpdatedAt.Equal(updatedStorageFromDb.UpdatedAt))
+}
+
+func TestIT_PlanetResourceStorageRepository_Update_BumpsVersion(t *testing.T) {
+	repo, conn := newTestPlanetResourceStorageRepository(t)
+	defer conn.Close(context.Background())
+	planet, _, _ := insertTestPlanetForPlayer(t, conn)
+	storage, _ := insertTestPlanetResourceStorage(t, conn, planet.Id)
+
+	updatedStorage := storage
+	updatedStorage.Storage = storage.Storage * 3
+
+	func() {
+		tx, err := conn.BeginTx(context.Background())
+		require.Nil(t, err)
+		defer tx.Close(context.Background())
+
+		_, err = repo.Update(context.Background(), tx, updatedStorage)
+		assert.Nil(t, err)
+	}()
+
+	var updatedStorageFromDb persistence.PlanetResourceStorage
+	func() {
+		tx, err := conn.BeginTx(context.Background())
+		require.Nil(t, err)
+		defer tx.Close(context.Background())
+
+		allStorages, err := repo.ListForPlanet(context.Background(), tx, planet.Id)
+		require.Nil(t, err)
+		assert.Len(t, allStorages, 1)
+
+		updatedStorageFromDb = allStorages[0]
+	}()
+
+	assert.Equal(t, storage.Version+1, updatedStorageFromDb.Version)
+}
+
+func TestIT_PlanetResourceStorageRepository_DeleteForPlanet(t *testing.T) {
+	repo, conn, tx := newTestPlanetResourceStorageRepositoryAndTransaction(t)
+	defer conn.Close(context.Background())
+	planet1, _, _ := insertTestPlanetForPlayer(t, conn)
+	insertTestPlanetResourceStorage(t, conn, planet1.Id)
+	planet2, _, _ := insertTestPlanetForPlayer(t, conn)
+	pr2, _ := insertTestPlanetResourceStorage(t, conn, planet2.Id)
+
+	err := repo.DeleteForPlanet(context.Background(), tx, planet1.Id)
+	tx.Close(context.Background())
+
+	assert.Nil(t, err)
+	assertPlanetResourceStorageDoesNotExist(t, conn, planet1.Id)
+	assertPlanetResourceStorage(t, conn, planet2.Id, pr2.Resource, pr2.Storage)
+}
+
+func TestIT_PlanetResourceStorageRepository_DeleteForPlanet_WhenNotFound_ExpectSuccess(t *testing.T) {
+	repo, conn, tx := newTestPlanetResourceStorageRepositoryAndTransaction(t)
+	defer conn.Close(context.Background())
+	nonExistingId := uuid.MustParse("00000000-0000-1221-0000-000000000000")
+
+	err := repo.DeleteForPlanet(context.Background(), tx, nonExistingId)
+	tx.Close(context.Background())
+
+	assert.Nil(t, err)
+}
+
+func newTestPlanetResourceStorageRepository(t *testing.T) (PlanetResourceStorageRepository, db.Connection) {
+	conn := newTestConnection(t)
+	return NewPlanetResourceStorageRepository(), conn
+}
+
+func newTestPlanetResourceStorageRepositoryAndTransaction(t *testing.T) (PlanetResourceStorageRepository, db.Connection, db.Transaction) {
+	repo, conn := newTestPlanetResourceStorageRepository(t)
+	tx, err := conn.BeginTx(context.Background())
+	require.Nil(t, err)
+	return repo, conn, tx
+}
+
+func insertTestPlanetResourceStorage(t *testing.T, conn db.Connection, planet uuid.UUID) (persistence.PlanetResourceStorage, persistence.Resource) {
+	someTime := time.Date(2024, 12, 1, 21, 55, 27, 0, time.UTC)
+
+	resource := insertTestResource(t, conn)
+
+	planetResourceStorage := persistence.PlanetResourceStorage{
+		Planet:    planet,
+		Resource:  resource.Id,
+		Storage:   6233,
+		CreatedAt: someTime,
+		UpdatedAt: someTime,
+	}
+
+	sqlQuery := `INSERT INTO planet_resource_storage (planet, resource, storage, created_at, updated_at) VALUES ($1, $2, $3, $4, $5)`
+	_, err := conn.Exec(
+		context.Background(),
+		sqlQuery,
+		planetResourceStorage.Planet,
+		planetResourceStorage.Resource,
+		planetResourceStorage.Storage,
+		planetResourceStorage.CreatedAt,
+		planetResourceStorage.UpdatedAt,
+	)
+	require.Nil(t, err)
+
+	return planetResourceStorage, resource
+}
+
+func assertPlanetResourceStorageExists(t *testing.T, conn db.Connection, planet uuid.UUID, resource uuid.UUID) {
+	sqlQuery := `SELECT COUNT(*) FROM planet_resource_storage WHERE planet = $1 AND resource = $2`
+	value, err := db.QueryOne[int](context.Background(), conn, sqlQuery, planet, resource)
+	require.Nil(t, err)
+	require.Equal(t, 1, value)
+}
+
+func assertPlanetResourceStorageDoesNotExist(t *testing.T, conn db.Connection, planet uuid.UUID) {
+	sqlQuery := `SELECT COUNT(resource) FROM planet_resource_storage WHERE planet = $1`
+	value, err := db.QueryOne[int](context.Background(), conn, sqlQuery, planet)
+	require.Nil(t, err)
+	require.Zero(t, value)
+}
+
+func assertPlanetResourceStorage(t *testing.T, conn db.Connection, planet uuid.UUID, resource uuid.UUID, storage int) {
+	sqlQuery := `SELECT storage FROM planet_resource_storage WHERE planet = $1 AND resource = $2`
+	value, err := db.QueryOne[int](context.Background(), conn, sqlQuery, planet, resource)
+	require.Nil(t, err)
+	require.Equal(t, storage, value)
 }

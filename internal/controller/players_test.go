@@ -10,11 +10,12 @@ import (
 	"testing"
 	"time"
 
+	"github.com/KnoblauchPilze/backend-toolkit/pkg/db"
+	"github.com/KnoblauchPilze/backend-toolkit/pkg/db/pgx"
 	"github.com/KnoblauchPilze/backend-toolkit/pkg/errors"
 	"github.com/KnoblauchPilze/backend-toolkit/pkg/rest"
 	"github.com/KnoblauchPilze/galactic-sovereign/internal/service"
 	"github.com/KnoblauchPilze/galactic-sovereign/pkg/communication"
-	"github.com/KnoblauchPilze/galactic-sovereign/pkg/db"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
@@ -119,7 +120,7 @@ func TestUnit_PlayerController(t *testing.T) {
 			"createPlayer_duplicatedKey": {
 				req:                generateTestRequestWithDefaultPlayerBody(http.MethodPost),
 				handler:            createPlayer,
-				err:                errors.NewCode(db.DuplicatedKeySqlKey),
+				err:                errors.NewCode(pgx.UniqueConstraintViolation),
 				expectedHttpStatus: http.StatusConflict,
 			},
 			"getPlayer": {
@@ -133,7 +134,7 @@ func TestUnit_PlayerController(t *testing.T) {
 				req:                httptest.NewRequest(http.MethodGet, "/", nil),
 				idAsRouteParam:     true,
 				handler:            getPlayer,
-				err:                errors.NewCode(db.NoMatchingSqlRows),
+				err:                errors.NewCode(db.NoMatchingRows),
 				expectedHttpStatus: http.StatusNotFound,
 			},
 			"listPlayers": {
@@ -153,7 +154,7 @@ func TestUnit_PlayerController(t *testing.T) {
 				req:                httptest.NewRequest(http.MethodDelete, "/", nil),
 				idAsRouteParam:     true,
 				handler:            deletePlayer,
-				err:                errors.NewCode(db.NoMatchingSqlRows),
+				err:                errors.NewCode(db.NoMatchingRows),
 				expectedHttpStatus: http.StatusNotFound,
 			},
 		},
