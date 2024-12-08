@@ -7,6 +7,7 @@ import (
 
 	"github.com/KnoblauchPilze/backend-toolkit/pkg/db"
 	"github.com/KnoblauchPilze/backend-toolkit/pkg/errors"
+	eassert "github.com/KnoblauchPilze/easy-assert/assert"
 	"github.com/KnoblauchPilze/galactic-sovereign/pkg/communication"
 	"github.com/KnoblauchPilze/galactic-sovereign/pkg/persistence"
 	"github.com/KnoblauchPilze/galactic-sovereign/pkg/repositories"
@@ -718,8 +719,10 @@ func TestIT_BuildingActionService_CreationDeletionWorkflow(t *testing.T) {
 	_, resource := insertTestBuildingCost(t, conn, building.Building)
 	insertTestPlanetResourceForResource(t, conn, planet.Id, resource.Id)
 
+	var generatedCreatedAt time.Time
 	var returnedCompletionTime time.Time
 	completionTimeFunc := func(action persistence.BuildingAction, resources []persistence.Resource, costs []persistence.BuildingActionCost) (persistence.BuildingAction, error) {
+		generatedCreatedAt = action.CreatedAt
 		returnedCompletionTime = time.Now().Add(1 * time.Hour)
 		action.CompletedAt = returnedCompletionTime
 		return action, nil
@@ -732,33 +735,25 @@ func TestIT_BuildingActionService_CreationDeletionWorkflow(t *testing.T) {
 		Building: building.Building,
 	}
 
-	beforeCreation := time.Now()
-
+	var err error
 	var actionResponse communication.BuildingActionDtoResponse
 	func() {
-		tx, err := conn.BeginTx(context.Background())
-		require.Nil(t, err)
-
-		defer tx.Close(context.Background())
-
 		actionResponse, err = service.Create(context.Background(), actionRequest)
 		require.Nil(t, err)
 	}()
 
 	assertBuildingActionExists(t, conn, actionResponse.Id)
-	assert.Equal(t, actionRequest.Planet, actionResponse.Planet)
-	assert.Equal(t, actionRequest.Building, actionResponse.Building)
-	assert.True(t, actionResponse.CreatedAt.After(beforeCreation))
-	assert.Equal(t, 4, actionResponse.CurrentLevel)
-	assert.Equal(t, 5, actionResponse.DesiredLevel)
-	assert.Equal(t, returnedCompletionTime, actionResponse.CompletedAt)
+	expected := communication.BuildingActionDtoResponse{
+		Planet:       actionRequest.Planet,
+		Building:     actionRequest.Building,
+		CurrentLevel: 4,
+		DesiredLevel: 5,
+		CreatedAt:    generatedCreatedAt,
+		CompletedAt:  returnedCompletionTime,
+	}
+	assert.True(t, eassert.EqualsIgnoringFields(actionResponse, expected, "Id"))
 
 	func() {
-		tx, err := conn.BeginTx(context.Background())
-		require.Nil(t, err)
-
-		defer tx.Close(context.Background())
-
 		err = service.Delete(context.Background(), actionResponse.Id)
 		require.Nil(t, err)
 	}()
