@@ -11,7 +11,6 @@ import (
 type BuildingActionCostRepository interface {
 	Create(ctx context.Context, tx db.Transaction, cost persistence.BuildingActionCost) (persistence.BuildingActionCost, error)
 	ListForAction(ctx context.Context, tx db.Transaction, action uuid.UUID) ([]persistence.BuildingActionCost, error)
-	DeleteForAction(ctx context.Context, tx db.Transaction, action uuid.UUID) error
 	DeleteForPlanet(ctx context.Context, tx db.Transaction, planet uuid.UUID) error
 }
 
@@ -43,13 +42,6 @@ WHERE
 
 func (r *buildingActionCostRepositoryImpl) ListForAction(ctx context.Context, tx db.Transaction, action uuid.UUID) ([]persistence.BuildingActionCost, error) {
 	return db.QueryAllTx[persistence.BuildingActionCost](ctx, tx, listBuildingActionCostForActionSqlTemplate, action)
-}
-
-const deleteBuildingActionCostForActionSqlTemplate = `DELETE FROM building_action_cost WHERE action = $1`
-
-func (r *buildingActionCostRepositoryImpl) DeleteForAction(ctx context.Context, tx db.Transaction, action uuid.UUID) error {
-	_, err := tx.Exec(ctx, deleteBuildingActionCostForActionSqlTemplate, action)
-	return err
 }
 
 // https://stackoverflow.com/questions/21662726/delete-using-left-outer-join-in-postgres

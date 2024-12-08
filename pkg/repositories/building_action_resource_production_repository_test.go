@@ -73,32 +73,6 @@ func TestIT_BuildingActionResourceProductionRepository_ListForAction(t *testing.
 	}
 }
 
-func TestIT_BuildingActionResourceProductionRepository_DeleteForAction(t *testing.T) {
-	repo, conn, tx := newTestBuildingActionResourceProductionRepositoryAndTransaction(t)
-	defer conn.Close(context.Background())
-	_, action1, _ := insertTestBuildingActionResourceProduction(t, conn)
-	insertTestBuildingActionResourceProductionForAction(t, conn, action1.Id)
-	barp2, action2, _ := insertTestBuildingActionResourceProduction(t, conn)
-
-	err := repo.DeleteForAction(context.Background(), tx, action1.Id)
-	tx.Close(context.Background())
-
-	assert.Nil(t, err)
-	assertBuildingActionResourceProductionDoesNotExist(t, conn, action1.Id)
-	assertBuildingActionResourceProductionForResource(t, conn, action2.Id, barp2.Resource, barp2.Production)
-}
-
-func TestIT_BuildingActionResourceProductionRepository_DeleteForAction_WhenNotFound_ExpectSuccess(t *testing.T) {
-	repo, conn, tx := newTestBuildingActionResourceProductionRepositoryAndTransaction(t)
-	defer conn.Close(context.Background())
-	nonExistingId := uuid.MustParse("00000000-0000-1221-0000-000000000000")
-
-	err := repo.DeleteForAction(context.Background(), tx, nonExistingId)
-	tx.Close(context.Background())
-
-	assert.Nil(t, err)
-}
-
 func TestIT_BuildingActionResourceProductionRepository_DeleteForPlanet(t *testing.T) {
 	repo, conn, tx := newTestBuildingActionResourceProductionRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())

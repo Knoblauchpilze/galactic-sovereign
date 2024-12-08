@@ -122,16 +122,6 @@ func (s *buildingActionServiceImpl) Delete(ctx context.Context, id uuid.UUID) er
 		return err
 	}
 
-	err = s.buildingActionResourceProductionRepo.DeleteForAction(ctx, tx, id)
-	if err != nil {
-		return err
-	}
-
-	err = s.buildingActionCostRepo.DeleteForAction(ctx, tx, id)
-	if err != nil {
-		return err
-	}
-
 	return s.buildingActionRepo.Delete(ctx, tx, id)
 }
 

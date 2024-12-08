@@ -151,6 +151,42 @@ func TestIT_BuildingActionRepository_Delete_WhenNotFound_ExpectSuccess(t *testin
 	assert.Nil(t, err)
 }
 
+func TestIT_BuildingActionProductionRepository_Delete_ExpectProductionShouldBeDeleted(t *testing.T) {
+	repo, conn, tx := newTestBuildingActionRepositoryAndTransaction(t)
+	defer conn.Close(context.Background())
+	action1, _ := insertTestBuildingAction(t, conn)
+	insertTestBuildingActionResourceProductionForAction(t, conn, action1.Id)
+
+	action2, _ := insertTestBuildingAction(t, conn)
+	production2, _ := insertTestBuildingActionResourceProductionForAction(t, conn, action2.Id)
+
+	err := repo.Delete(context.Background(), tx, action1.Id)
+	tx.Close(context.Background())
+
+	assert.Nil(t, err)
+	assertBuildingActionDoesNotExist(t, conn, action1.Id)
+	assertBuildingActionResourceProductionDoesNotExist(t, conn, action1.Id)
+	assertBuildingActionResourceProductionForResource(t, conn, action2.Id, production2.Resource, production2.Production)
+}
+
+func TestIT_BuildingActionProductionRepository_Delete_ExpectCostShouldBeDeleted(t *testing.T) {
+	repo, conn, tx := newTestBuildingActionRepositoryAndTransaction(t)
+	defer conn.Close(context.Background())
+	action1, _ := insertTestBuildingAction(t, conn)
+	insertTestBuildingActionCostForAction(t, conn, action1.Id)
+
+	action2, _ := insertTestBuildingAction(t, conn)
+	cost2, _ := insertTestBuildingActionCostForAction(t, conn, action2.Id)
+
+	err := repo.Delete(context.Background(), tx, action1.Id)
+	tx.Close(context.Background())
+
+	assert.Nil(t, err)
+	assertBuildingActionDoesNotExist(t, conn, action1.Id)
+	assertBuildingActionCostDoesNotExist(t, conn, action1.Id)
+	assertBuildingActionCostForResource(t, conn, action2.Id, cost2.Resource, cost2.Amount)
+}
+
 func TestIT_BuildingActionRepository_DeleteForPlanet(t *testing.T) {
 	repo, conn, tx := newTestBuildingActionRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())

@@ -90,11 +90,22 @@ func (r *buildingActionRepositoryImpl) ListBeforeCompletionTime(ctx context.Cont
 	return db.QueryAllTx[persistence.BuildingAction](ctx, tx, listBuildingActionBeforeCompletionTimeSqlTemplate, until, planet)
 }
 
+const deleteBuildingActionCostsSqlTemplate = `DELETE FROM building_action_cost WHERE action = $1`
+const deleteBuildingActionResourceProductionSqlTemplate = `DELETE FROM building_action_resource_production WHERE action = $1`
 const deleteBuildingActionSqlTemplate = `DELETE FROM building_action WHERE id = $1`
 
-// TODO: Should also delete costs and production effects
 func (r *buildingActionRepositoryImpl) Delete(ctx context.Context, tx db.Transaction, action uuid.UUID) error {
-	_, err := tx.Exec(ctx, deleteBuildingActionSqlTemplate, action)
+	_, err := tx.Exec(ctx, deleteBuildingActionCostsSqlTemplate, action)
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.Exec(ctx, deleteBuildingActionResourceProductionSqlTemplate, action)
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.Exec(ctx, deleteBuildingActionSqlTemplate, action)
 	return err
 }
 

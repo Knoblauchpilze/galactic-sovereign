@@ -73,32 +73,6 @@ func TestIT_BuildingActionCostRepository_ListForAction(t *testing.T) {
 	}
 }
 
-func TestIT_BuildingActionCostRepository_DeleteForAction(t *testing.T) {
-	repo, conn, tx := newTestBuildingActionCostRepositoryAndTransaction(t)
-	defer conn.Close(context.Background())
-	_, action1, _ := insertTestBuildingActionCost(t, conn)
-	insertTestBuildingActionCostForAction(t, conn, action1.Id)
-	bac2, action2, _ := insertTestBuildingActionCost(t, conn)
-
-	err := repo.DeleteForAction(context.Background(), tx, action1.Id)
-	tx.Close(context.Background())
-
-	assert.Nil(t, err)
-	assertBuildingActionCostDoesNotExist(t, conn, action1.Id)
-	assertBuildingActionCostForResource(t, conn, action2.Id, bac2.Resource, bac2.Amount)
-}
-
-func TestIT_BuildingActionCostRepository_DeleteForAction_WhenNotFound_ExpectSuccess(t *testing.T) {
-	repo, conn, tx := newTestBuildingActionCostRepositoryAndTransaction(t)
-	defer conn.Close(context.Background())
-	nonExistingId := uuid.MustParse("00000000-0000-1221-0000-000000000000")
-
-	err := repo.DeleteForAction(context.Background(), tx, nonExistingId)
-	tx.Close(context.Background())
-
-	assert.Nil(t, err)
-}
-
 func TestIT_BuildingActionCostRepository_DeleteForPlanet(t *testing.T) {
 	repo, conn, tx := newTestBuildingActionCostRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
