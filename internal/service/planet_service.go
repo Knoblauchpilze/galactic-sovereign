@@ -169,25 +169,5 @@ func (s *planetServiceImpl) Delete(ctx context.Context, id uuid.UUID) error {
 		return err
 	}
 
-	err = s.planetBuildingRepo.DeleteForPlanet(ctx, tx, id)
-	if err != nil {
-		return err
-	}
-
-	err = s.planetResourceStorageRepo.DeleteForPlanet(ctx, tx, id)
-	if err != nil {
-		return err
-	}
-
-	err = s.planetResourceProductionRepo.DeleteForPlanet(ctx, tx, id)
-	if err != nil {
-		return err
-	}
-
-	err = s.planetResourceRepo.DeleteForPlanet(ctx, tx, id)
-	if err != nil {
-		return err
-	}
-
 	return s.planetRepo.Delete(ctx, tx, id)
 }
