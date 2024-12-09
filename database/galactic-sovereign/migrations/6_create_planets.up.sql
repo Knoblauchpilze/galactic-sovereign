@@ -3,22 +3,17 @@ CREATE TABLE planet (
   id uuid NOT NULL,
   player uuid NOT NULL,
   name text NOT NULL,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  updated_at TIMESTAMP WITH TIME ZONE NOT NULL,
   PRIMARY KEY (id),
   FOREIGN KEY (player) REFERENCES player(id)
 );
-
-CREATE TRIGGER trigger_planet_updated_at
-  BEFORE UPDATE OR INSERT ON planet
-  FOR EACH ROW
-  EXECUTE FUNCTION update_updated_at();
 
 CREATE TABLE homeworld (
   player uuid NOT NULL,
   planet uuid NOT NULL,
   PRIMARY KEY (player, planet),
-  UNIQUE (player, planet),
+  UNIQUE (player),
   FOREIGN KEY (player) REFERENCES player(id),
   FOREIGN KEY (planet) REFERENCES planet(id)
 );
@@ -27,8 +22,8 @@ CREATE TABLE planet_resource (
   planet uuid NOT NULL,
   resource uuid NOT NULL,
   amount numeric(15, 5) NOT NULL,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  updated_at TIMESTAMP WITH TIME ZONE NOT NULL,
   version INTEGER DEFAULT 0,
   FOREIGN KEY (planet) REFERENCES planet(id),
   FOREIGN KEY (resource) REFERENCES resource(id),
@@ -42,8 +37,8 @@ CREATE TABLE planet_resource_production (
   building uuid,
   resource uuid NOT NULL,
   production INTEGER NOT NULL,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  updated_at TIMESTAMP WITH TIME ZONE NOT NULL,
   version INTEGER DEFAULT 0,
   FOREIGN KEY (planet) REFERENCES planet(id),
   FOREIGN KEY (building) REFERENCES building(id),
@@ -56,17 +51,12 @@ CREATE TABLE planet_resource_production (
 
 CREATE INDEX planet_resource_production_planet_index ON planet_resource_production (planet);
 
-CREATE TRIGGER trigger_planet_resource_production_updated_at
-  BEFORE UPDATE OR INSERT ON planet_resource_production
-  FOR EACH ROW
-  EXECUTE FUNCTION update_updated_at();
-
 CREATE TABLE planet_resource_storage (
   planet uuid NOT NULL,
   resource uuid NOT NULL,
   storage INTEGER NOT NULL,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  updated_at TIMESTAMP WITH TIME ZONE NOT NULL,
   version INTEGER DEFAULT 0,
   FOREIGN KEY (planet) REFERENCES planet(id),
   FOREIGN KEY (resource) REFERENCES resource(id),
@@ -75,17 +65,12 @@ CREATE TABLE planet_resource_storage (
 
 CREATE INDEX planet_resource_storage_planet_index ON planet_resource_storage (planet);
 
-CREATE TRIGGER trigger_planet_resource_storage_updated_at
-  BEFORE UPDATE OR INSERT ON planet_resource_storage
-  FOR EACH ROW
-  EXECUTE FUNCTION update_updated_at();
-
 CREATE TABLE planet_building (
   planet uuid NOT NULL,
   building uuid NOT NULL,
   level INTEGER NOT NULL,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  updated_at TIMESTAMP WITH TIME ZONE NOT NULL,
   version INTEGER DEFAULT 0,
   FOREIGN KEY (planet) REFERENCES planet(id),
   FOREIGN KEY (building) REFERENCES building(id),
@@ -93,8 +78,3 @@ CREATE TABLE planet_building (
 );
 
 CREATE INDEX planet_building_planet_index ON planet_building (planet);
-
-CREATE TRIGGER trigger_planet_building_updated_at
-  BEFORE UPDATE OR INSERT ON planet_building
-  FOR EACH ROW
-  EXECUTE FUNCTION update_updated_at();

@@ -3,11 +3,11 @@ package controller
 import (
 	"net/http"
 
+	"github.com/KnoblauchPilze/backend-toolkit/pkg/db"
 	"github.com/KnoblauchPilze/backend-toolkit/pkg/errors"
 	"github.com/KnoblauchPilze/backend-toolkit/pkg/rest"
 	"github.com/KnoblauchPilze/galactic-sovereign/internal/service"
 	"github.com/KnoblauchPilze/galactic-sovereign/pkg/communication"
-	"github.com/KnoblauchPilze/galactic-sovereign/pkg/db"
 	"github.com/KnoblauchPilze/galactic-sovereign/pkg/game"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
@@ -61,7 +61,7 @@ func getPlanet(c echo.Context, s service.PlanetService) error {
 
 	out, err := s.Get(c.Request().Context(), id)
 	if err != nil {
-		if errors.IsErrorWithCode(err, db.NoMatchingSqlRows) {
+		if errors.IsErrorWithCode(err, db.NoMatchingRows) {
 			return c.JSON(http.StatusNotFound, "No such planet")
 		}
 
@@ -106,7 +106,7 @@ func deletePlanet(c echo.Context, s service.PlanetService) error {
 
 	err = s.Delete(c.Request().Context(), id)
 	if err != nil {
-		if errors.IsErrorWithCode(err, db.NoMatchingSqlRows) {
+		if errors.IsErrorWithCode(err, db.NoMatchingRows) {
 			return c.JSON(http.StatusNotFound, "No such planet")
 		}
 
