@@ -11,7 +11,6 @@ import (
 type BuildingActionResourceProductionRepository interface {
 	Create(ctx context.Context, tx db.Transaction, production persistence.BuildingActionResourceProduction) (persistence.BuildingActionResourceProduction, error)
 	ListForAction(ctx context.Context, tx db.Transaction, action uuid.UUID) ([]persistence.BuildingActionResourceProduction, error)
-	DeleteForPlanet(ctx context.Context, tx db.Transaction, planet uuid.UUID) error
 }
 
 type buildingActionResourceProductionRepositoryImpl struct{}
@@ -42,19 +41,4 @@ WHERE
 
 func (r *buildingActionResourceProductionRepositoryImpl) ListForAction(ctx context.Context, tx db.Transaction, action uuid.UUID) ([]persistence.BuildingActionResourceProduction, error) {
 	return db.QueryAllTx[persistence.BuildingActionResourceProduction](ctx, tx, listBuildingActionResourceProductionForActionSqlTemplate, action)
-}
-
-const deleteBuildingActionResourceProductionForPlanetSqlTemplate = `
-DELETE FROM
-	building_action_resource_production
-USING
-	building_action_resource_production AS barp
-	LEFT JOIN building_action AS ba ON ba.id = barp.action
-WHERE
-	building_action_resource_production.action = barp.action
-	AND ba.planet = $1`
-
-func (r *buildingActionResourceProductionRepositoryImpl) DeleteForPlanet(ctx context.Context, tx db.Transaction, planet uuid.UUID) error {
-	_, err := tx.Exec(ctx, deleteBuildingActionResourceProductionForPlanetSqlTemplate, planet)
-	return err
 }

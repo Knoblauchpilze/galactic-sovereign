@@ -109,9 +109,38 @@ func (r *buildingActionRepositoryImpl) Delete(ctx context.Context, tx db.Transac
 	return err
 }
 
+// https://stackoverflow.com/questions/21662726/delete-using-left-outer-join-in-postgres
+const deleteBuildingActionCostForPlanetSqlTemplate = `
+DELETE FROM
+	building_action_cost
+USING
+	building_action_cost AS bac
+	LEFT JOIN building_action AS ba ON ba.id = bac.action
+WHERE
+	building_action_cost.action = bac.action
+	AND ba.planet = $1`
+const deleteBuildingActionResourceProductionForPlanetSqlTemplate = `
+DELETE FROM
+	building_action_resource_production
+USING
+	building_action_resource_production AS barp
+	LEFT JOIN building_action AS ba ON ba.id = barp.action
+WHERE
+	building_action_resource_production.action = barp.action
+	AND ba.planet = $1`
 const deleteBuildingActionForPlanetSqlTemplate = `DELETE FROM building_action WHERE planet = $1`
 
 func (r *buildingActionRepositoryImpl) DeleteForPlanet(ctx context.Context, tx db.Transaction, planet uuid.UUID) error {
-	_, err := tx.Exec(ctx, deleteBuildingActionForPlanetSqlTemplate, planet)
+	_, err := tx.Exec(ctx, deleteBuildingActionCostForPlanetSqlTemplate, planet)
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.Exec(ctx, deleteBuildingActionResourceProductionForPlanetSqlTemplate, planet)
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.Exec(ctx, deleteBuildingActionForPlanetSqlTemplate, planet)
 	return err
 }

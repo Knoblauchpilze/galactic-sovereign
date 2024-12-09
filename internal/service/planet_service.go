@@ -20,27 +20,23 @@ type PlanetService interface {
 type planetServiceImpl struct {
 	conn db.Connection
 
-	planetRepo                           repositories.PlanetRepository
-	planetBuildingRepo                   repositories.PlanetBuildingRepository
-	planetResourceRepo                   repositories.PlanetResourceRepository
-	planetResourceProductionRepo         repositories.PlanetResourceProductionRepository
-	planetResourceStorageRepo            repositories.PlanetResourceStorageRepository
-	buildingActionRepo                   repositories.BuildingActionRepository
-	buildingActionCostRepo               repositories.BuildingActionCostRepository
-	buildingActionResourceProductionRepo repositories.BuildingActionResourceProductionRepository
+	planetRepo                   repositories.PlanetRepository
+	planetBuildingRepo           repositories.PlanetBuildingRepository
+	planetResourceRepo           repositories.PlanetResourceRepository
+	planetResourceProductionRepo repositories.PlanetResourceProductionRepository
+	planetResourceStorageRepo    repositories.PlanetResourceStorageRepository
+	buildingActionRepo           repositories.BuildingActionRepository
 }
 
 func NewPlanetService(conn db.Connection, repos repositories.Repositories) PlanetService {
 	return &planetServiceImpl{
-		conn:                                 conn,
-		planetRepo:                           repos.Planet,
-		planetBuildingRepo:                   repos.PlanetBuilding,
-		planetResourceRepo:                   repos.PlanetResource,
-		planetResourceProductionRepo:         repos.PlanetResourceProduction,
-		planetResourceStorageRepo:            repos.PlanetResourceStorage,
-		buildingActionRepo:                   repos.BuildingAction,
-		buildingActionCostRepo:               repos.BuildingActionCost,
-		buildingActionResourceProductionRepo: repos.BuildingActionResourceProduction,
+		conn:                         conn,
+		planetRepo:                   repos.Planet,
+		planetBuildingRepo:           repos.PlanetBuilding,
+		planetResourceRepo:           repos.PlanetResource,
+		planetResourceProductionRepo: repos.PlanetResourceProduction,
+		planetResourceStorageRepo:    repos.PlanetResourceStorage,
+		buildingActionRepo:           repos.BuildingAction,
 	}
 }
 
@@ -146,23 +142,12 @@ func (s *planetServiceImpl) ListForPlayer(ctx context.Context, player uuid.UUID)
 	return out, nil
 }
 
-// TODO: We probably don't need to delete everything anymore: the planet repository should take care of everything
 func (s *planetServiceImpl) Delete(ctx context.Context, id uuid.UUID) error {
 	tx, err := s.conn.BeginTx(ctx)
 	if err != nil {
 		return err
 	}
 	defer tx.Close(ctx)
-
-	err = s.buildingActionResourceProductionRepo.DeleteForPlanet(ctx, tx, id)
-	if err != nil {
-		return err
-	}
-
-	err = s.buildingActionCostRepo.DeleteForPlanet(ctx, tx, id)
-	if err != nil {
-		return err
-	}
 
 	err = s.buildingActionRepo.DeleteForPlanet(ctx, tx, id)
 	if err != nil {

@@ -73,33 +73,6 @@ func TestIT_BuildingActionCostRepository_ListForAction(t *testing.T) {
 	}
 }
 
-func TestIT_BuildingActionCostRepository_DeleteForPlanet(t *testing.T) {
-	repo, conn, tx := newTestBuildingActionCostRepositoryAndTransaction(t)
-	defer conn.Close(context.Background())
-	_, action1, _ := insertTestBuildingActionCost(t, conn)
-	insertTestBuildingActionCostForAction(t, conn, action1.Id)
-	bac3, action2, _ := insertTestBuildingActionCost(t, conn)
-
-	err := repo.DeleteForPlanet(context.Background(), tx, action1.Planet)
-	tx.Close(context.Background())
-
-	assert.Nil(t, err)
-	assertBuildingActionCostForPlanetDoesNotExist(t, conn, action1.Planet)
-	assertBuildingActionCostDoesNotExist(t, conn, action1.Id)
-	assertBuildingActionCostForResource(t, conn, action2.Id, bac3.Resource, bac3.Amount)
-}
-
-func TestIT_BuildingActionCostRepository_DeleteForPlanet_WhenNotFound_ExpectSuccess(t *testing.T) {
-	repo, conn, tx := newTestBuildingActionCostRepositoryAndTransaction(t)
-	defer conn.Close(context.Background())
-	nonExistingId := uuid.MustParse("00000000-0000-1221-0000-000000000000")
-
-	err := repo.DeleteForPlanet(context.Background(), tx, nonExistingId)
-	tx.Close(context.Background())
-
-	assert.Nil(t, err)
-}
-
 func newTestBuildingActionCostRepository(t *testing.T) (BuildingActionCostRepository, db.Connection) {
 	conn := newTestConnection(t)
 	return NewBuildingActionCostRepository(), conn
@@ -145,13 +118,6 @@ func assertBuildingActionCostExists(t *testing.T, conn db.Connection, action uui
 	value, err := db.QueryOne[int](context.Background(), conn, sqlQuery, action, resource)
 	require.Nil(t, err)
 	require.Equal(t, 1, value)
-}
-
-func assertBuildingActionCostForPlanetDoesNotExist(t *testing.T, conn db.Connection, planet uuid.UUID) {
-	sqlQuery := `SELECT COUNT(*) FROM building_action_cost AS bac LEFT JOIN building_action AS ba ON bac.action = ba.id WHERE ba.planet = $1`
-	value, err := db.QueryOne[int](context.Background(), conn, sqlQuery, planet)
-	require.Nil(t, err)
-	require.Zero(t, value)
 }
 
 func assertBuildingActionCostDoesNotExist(t *testing.T, conn db.Connection, action uuid.UUID) {

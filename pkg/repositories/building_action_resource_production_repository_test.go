@@ -73,33 +73,6 @@ func TestIT_BuildingActionResourceProductionRepository_ListForAction(t *testing.
 	}
 }
 
-func TestIT_BuildingActionResourceProductionRepository_DeleteForPlanet(t *testing.T) {
-	repo, conn, tx := newTestBuildingActionResourceProductionRepositoryAndTransaction(t)
-	defer conn.Close(context.Background())
-	_, action1, _ := insertTestBuildingActionResourceProduction(t, conn)
-	insertTestBuildingActionResourceProductionForAction(t, conn, action1.Id)
-	barp3, action2, _ := insertTestBuildingActionResourceProduction(t, conn)
-
-	err := repo.DeleteForPlanet(context.Background(), tx, action1.Planet)
-	tx.Close(context.Background())
-
-	assert.Nil(t, err)
-	assertBuildingActionResourceProductionForPlanetDoesNotExist(t, conn, action1.Planet)
-	assertBuildingActionResourceProductionDoesNotExist(t, conn, action1.Id)
-	assertBuildingActionResourceProductionForResource(t, conn, action2.Id, barp3.Resource, barp3.Production)
-}
-
-func TestIT_BuildingActionResourceProductionRepository_DeleteForPlanet_WhenNotFound_ExpectSuccess(t *testing.T) {
-	repo, conn, tx := newTestBuildingActionResourceProductionRepositoryAndTransaction(t)
-	defer conn.Close(context.Background())
-	nonExistingId := uuid.MustParse("00000000-0000-1221-0000-000000000000")
-
-	err := repo.DeleteForPlanet(context.Background(), tx, nonExistingId)
-	tx.Close(context.Background())
-
-	assert.Nil(t, err)
-}
-
 func newTestBuildingActionResourceProductionRepository(t *testing.T) (BuildingActionResourceProductionRepository, db.Connection) {
 	conn := newTestConnection(t)
 	return NewBuildingActionResourceProductionRepository(), conn
@@ -145,13 +118,6 @@ func assertBuildingActionResourceProductionExists(t *testing.T, conn db.Connecti
 	value, err := db.QueryOne[int](context.Background(), conn, sqlQuery, action, resource)
 	require.Nil(t, err)
 	require.Equal(t, 1, value)
-}
-
-func assertBuildingActionResourceProductionForPlanetDoesNotExist(t *testing.T, conn db.Connection, planet uuid.UUID) {
-	sqlQuery := `SELECT COUNT(*) FROM building_action_resource_production AS barp LEFT JOIN building_action AS ba ON barp.action = ba.id WHERE ba.planet = $1`
-	value, err := db.QueryOne[int](context.Background(), conn, sqlQuery, planet)
-	require.Nil(t, err)
-	require.Zero(t, value)
 }
 
 func assertBuildingActionResourceProductionDoesNotExist(t *testing.T, conn db.Connection, action uuid.UUID) {
