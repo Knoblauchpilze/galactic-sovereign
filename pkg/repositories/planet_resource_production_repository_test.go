@@ -339,34 +339,6 @@ func TestIT_PlanetResourceProductionRepository_Update_BumpsVersion(t *testing.T)
 	assert.Equal(t, production.Version+1, updatedProductionFromDb.Version)
 }
 
-func TestIT_PlanetResourceProductionRepository_DeleteForPlanet(t *testing.T) {
-	repo, conn, tx := newTestPlanetResourceProductionRepositoryAndTransaction(t)
-	defer conn.Close(context.Background())
-	planet1, _, _ := insertTestPlanetForPlayer(t, conn)
-	insertTestPlanetResourceProduction(t, conn, planet1.Id)
-	insertTestPlanetResourceProductionForBuilding(t, conn, planet1.Id, nil)
-	planet2, _, _ := insertTestPlanetForPlayer(t, conn)
-	prp2, _ := insertTestPlanetResourceProductionForBuilding(t, conn, planet2.Id, nil)
-
-	err := repo.DeleteForPlanet(context.Background(), tx, planet1.Id)
-	tx.Close(context.Background())
-
-	assert.Nil(t, err)
-	assertPlanetResourceProductionDoesNotExist(t, conn, planet1.Id)
-	assertPlanetResourceProduction(t, conn, planet2.Id, prp2.Resource, prp2.Production)
-}
-
-func TestIT_PlanetResourceProductionRepository_DeleteForPlanet_WhenNotFound_ExpectSuccess(t *testing.T) {
-	repo, conn, tx := newTestPlanetResourceProductionRepositoryAndTransaction(t)
-	defer conn.Close(context.Background())
-	nonExistingId := uuid.MustParse("00000000-0000-1221-0000-000000000000")
-
-	err := repo.DeleteForPlanet(context.Background(), tx, nonExistingId)
-	tx.Close(context.Background())
-
-	assert.Nil(t, err)
-}
-
 func newTestPlanetResourceProductionRepository(t *testing.T) (PlanetResourceProductionRepository, db.Connection) {
 	conn := newTestConnection(t)
 	return NewPlanetResourceProductionRepository(), conn

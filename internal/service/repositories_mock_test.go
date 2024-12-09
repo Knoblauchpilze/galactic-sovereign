@@ -223,8 +223,6 @@ type mockPlanetBuildingRepository struct {
 	listForPlanetId                 uuid.UUID
 	updateCalled                    int
 	updateBuilding                  persistence.PlanetBuilding
-	deleteForPlanetCalled           int
-	deleteForPlanetId               uuid.UUID
 }
 
 func (m *mockPlanetBuildingRepository) GetForPlanetAndBuilding(ctx context.Context, tx db.Transaction, planet uuid.UUID, building uuid.UUID) (persistence.PlanetBuilding, error) {
@@ -244,12 +242,6 @@ func (m *mockPlanetBuildingRepository) Update(ctx context.Context, tx db.Transac
 	m.updateCalled++
 	m.updateBuilding = building
 	return m.updateBuilding, m.updateErr
-}
-
-func (m *mockPlanetBuildingRepository) DeleteForPlanet(ctx context.Context, tx db.Transaction, planet uuid.UUID) error {
-	m.deleteForPlanetCalled++
-	m.deleteForPlanetId = planet
-	return m.err
 }
 
 type mockPlanetRepository struct {
@@ -311,8 +303,6 @@ type mockPlanetResourceRepository struct {
 	listForPlanetCalled    int
 	updateCalled           int
 	updatedPlanetResources []persistence.PlanetResource
-	deleteForPlanetCalled  int
-	deleteForPlanetId      uuid.UUID
 }
 
 func (m *mockPlanetResourceRepository) Create(ctx context.Context, tx db.Transaction, resource persistence.PlanetResource) (persistence.PlanetResource, error) {
@@ -333,12 +323,6 @@ func (m *mockPlanetResourceRepository) Update(ctx context.Context, tx db.Transac
 	return resource, m.updateErr
 }
 
-func (m *mockPlanetResourceRepository) DeleteForPlanet(ctx context.Context, tx db.Transaction, planet uuid.UUID) error {
-	m.deleteForPlanetCalled++
-	m.deleteForPlanetId = planet
-	return m.err
-}
-
 type mockPlanetResourceProductionRepository struct {
 	repositories.PlanetResourceProductionRepository
 
@@ -356,8 +340,6 @@ type mockPlanetResourceProductionRepository struct {
 	listForPlanetCalled              int
 	updateCalled                     int
 	updatedPlanetResourceProductions []persistence.PlanetResourceProduction
-	deleteForPlanetCalled            int
-	deleteForPlanetId                uuid.UUID
 }
 
 func (m *mockPlanetResourceProductionRepository) Create(ctx context.Context, tx db.Transaction, production persistence.PlanetResourceProduction) (persistence.PlanetResourceProduction, error) {
@@ -397,16 +379,6 @@ func (m *mockPlanetResourceProductionRepository) Update(ctx context.Context, tx 
 	return production, m.updateErr
 }
 
-func (m *mockPlanetResourceProductionRepository) DeleteForPlanet(ctx context.Context, tx db.Transaction, planet uuid.UUID) error {
-	m.deleteForPlanetCalled++
-	m.deleteForPlanetId = planet
-
-	err := getValueToReturnOr(m.calls, m.errs, nil)
-	m.calls++
-
-	return *err
-}
-
 type mockPlanetResourceStorageRepository struct {
 	repositories.PlanetResourceStorageRepository
 
@@ -421,8 +393,6 @@ type mockPlanetResourceStorageRepository struct {
 	listForPlanetCalled           int
 	updateCalled                  int
 	updatedPlanetResourceStorages []persistence.PlanetResourceStorage
-	deleteForPlanetCalled         int
-	deleteForPlanetId             uuid.UUID
 }
 
 func (m *mockPlanetResourceStorageRepository) Create(ctx context.Context, tx db.Transaction, storage persistence.PlanetResourceStorage) (persistence.PlanetResourceStorage, error) {
@@ -449,16 +419,6 @@ func (m *mockPlanetResourceStorageRepository) Update(ctx context.Context, tx db.
 	m.updateCalled++
 	m.updatedPlanetResourceStorages = append(m.updatedPlanetResourceStorages, storage)
 	return storage, m.updateErr
-}
-
-func (m *mockPlanetResourceStorageRepository) DeleteForPlanet(ctx context.Context, tx db.Transaction, planet uuid.UUID) error {
-	m.deleteForPlanetCalled++
-	m.deleteForPlanetId = planet
-
-	err := getValueToReturnOr(m.calls, m.errs, nil)
-	m.calls++
-
-	return *err
 }
 
 type mockPlayerRepository struct {
