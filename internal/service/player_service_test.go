@@ -282,6 +282,9 @@ func TestUnit_PlayerService(t *testing.T) {
 
 func generatePlayerServiceMocks() repositories.Repositories {
 	return repositories.Repositories{
+		BuildingAction: &mockBuildingActionRepository{
+			action: defaultBuildingAction,
+		},
 		Planet: &mockPlanetRepository{
 			planet: defaultPlanet,
 		},
@@ -293,7 +296,8 @@ func generatePlayerServiceMocks() repositories.Repositories {
 
 func generateErrorPlayerServiceMocks() repositories.Repositories {
 	return repositories.Repositories{
-		Planet: &mockPlanetRepository{},
+		BuildingAction: &mockBuildingActionRepository{},
+		Planet:         &mockPlanetRepository{},
 		Player: &mockPlayerRepository{
 			err: errDefault,
 		},
@@ -334,11 +338,49 @@ func TestIT_PlayerService_Create_ExpectHomeworldRegisteredForPlayer(t *testing.T
 	assertHomeworldExistsForPlayer(t, conn, playerResponse.Id)
 }
 
+func TestIT_PlayerService_Delete_ExpectBuildingActionToBeDeleted(t *testing.T) {
+	conn := newTestConnection(t)
+	repos := repositories.Repositories{
+		Planet:         repositories.NewPlanetRepository(conn),
+		Player:         repositories.NewPlayerRepository(conn),
+		BuildingAction: repositories.NewBuildingActionRepository(),
+	}
+	universe := insertTestUniverse(t, conn)
+
+	service := NewPlayerService(conn, repos)
+
+	playerRequest := communication.PlayerDtoRequest{
+		ApiUser:  uuid.New(),
+		Universe: universe.Id,
+		Name:     fmt.Sprintf("my-player-%s", uuid.NewString()),
+	}
+
+	var err error
+	var playerResponse communication.PlayerDtoResponse
+	func() {
+		playerResponse, err = service.Create(context.Background(), playerRequest)
+		require.Nil(t, err)
+	}()
+
+	planet := getHomeworldForPlayer(t, conn, playerResponse.Id)
+	action, _ := insertTestBuildingActionForPlanet(t, conn, planet)
+
+	func() {
+		err = service.Delete(context.Background(), playerResponse.Id)
+		require.Nil(t, err)
+	}()
+
+	assertPlayerDoesNotExist(t, conn, playerResponse.Id)
+	assertHomeworldDoesNotExistForPlayer(t, conn, playerResponse.Id)
+	assertBuildingActionDoesNotExist(t, conn, action.Id)
+}
+
 func TestIT_PlayerService_CreationDeletionWorkflow(t *testing.T) {
 	conn := newTestConnection(t)
 	repos := repositories.Repositories{
-		Planet: repositories.NewPlanetRepository(conn),
-		Player: repositories.NewPlayerRepository(conn),
+		Planet:         repositories.NewPlanetRepository(conn),
+		Player:         repositories.NewPlayerRepository(conn),
+		BuildingAction: repositories.NewBuildingActionRepository(),
 	}
 	universe := insertTestUniverse(t, conn)
 
@@ -423,4 +465,11 @@ func assertHomeworldDoesNotExistForPlayer(t *testing.T, conn db.Connection, play
 	value, err := db.QueryOne[int](context.Background(), conn, sqlQuery, player)
 	require.Nil(t, err)
 	require.Zero(t, value)
+}
+
+func getHomeworldForPlayer(t *testing.T, conn db.Connection, player uuid.UUID) uuid.UUID {
+	sqlQuery := `SELECT planet FROM homeworld WHERE player = $1`
+	planet, err := db.QueryOne[uuid.UUID](context.Background(), conn, sqlQuery, player)
+	require.Nil(t, err)
+	return planet
 }

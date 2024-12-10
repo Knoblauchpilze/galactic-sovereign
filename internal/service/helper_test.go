@@ -251,3 +251,35 @@ func insertTestPlanetResourceForResource(t *testing.T, conn db.Connection, plane
 
 	return planetResource
 }
+
+func insertTestBuildingActionForPlanet(t *testing.T, conn db.Connection, planet uuid.UUID) (persistence.BuildingAction, persistence.Building) {
+	someTime := time.Date(2024, 12, 10, 19, 38, 15, 0, time.UTC)
+
+	building := insertTestBuilding(t, conn)
+
+	action := persistence.BuildingAction{
+		Id:           uuid.New(),
+		Planet:       planet,
+		Building:     building.Id,
+		CurrentLevel: 4,
+		DesiredLevel: 5,
+		CreatedAt:    someTime,
+		CompletedAt:  someTime.Add(1*time.Hour + 2*time.Minute),
+	}
+
+	sqlQuery := `INSERT INTO building_action (id, planet, building, current_level, desired_level, created_at, completed_at) VALUES ($1, $2, $3, $4, $5, $6, $7)`
+	_, err := conn.Exec(
+		context.Background(),
+		sqlQuery,
+		action.Id,
+		action.Planet,
+		action.Building,
+		action.CurrentLevel,
+		action.DesiredLevel,
+		action.CreatedAt,
+		action.CompletedAt,
+	)
+	require.Nil(t, err)
+
+	return action, building
+}

@@ -111,6 +111,13 @@ func (m *mockBuildingActionRepository) DeleteForPlanet(ctx context.Context, tx d
 	return *err
 }
 
+func (m *mockBuildingActionRepository) DeleteForPlayer(ctx context.Context, tx db.Transaction, player uuid.UUID) error {
+	err := getValueToReturnOr(m.calls, m.errs, nil)
+	m.calls++
+
+	return *err
+}
+
 type mockBuildingActionCostRepository struct {
 	repositories.BuildingActionCostRepository
 

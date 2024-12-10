@@ -21,15 +21,17 @@ type PlayerService interface {
 type playerServiceImpl struct {
 	conn db.Connection
 
-	playerRepo repositories.PlayerRepository
-	planetRepo repositories.PlanetRepository
+	buildingActionRepo repositories.BuildingActionRepository
+	planetRepo         repositories.PlanetRepository
+	playerRepo         repositories.PlayerRepository
 }
 
 func NewPlayerService(conn db.Connection, repos repositories.Repositories) PlayerService {
 	return &playerServiceImpl{
-		conn:       conn,
-		playerRepo: repos.Player,
-		planetRepo: repos.Planet,
+		conn:               conn,
+		buildingActionRepo: repos.BuildingAction,
+		planetRepo:         repos.Planet,
+		playerRepo:         repos.Player,
 	}
 }
 
@@ -111,6 +113,11 @@ func (s *playerServiceImpl) Delete(ctx context.Context, id uuid.UUID) error {
 		return err
 	}
 	defer tx.Close(ctx)
+
+	err = s.buildingActionRepo.DeleteForPlayer(ctx, tx, id)
+	if err != nil {
+		return err
+	}
 
 	err = s.planetRepo.DeleteForPlayer(ctx, tx, id)
 	if err != nil {
