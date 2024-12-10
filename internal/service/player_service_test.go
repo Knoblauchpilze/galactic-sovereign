@@ -314,6 +314,7 @@ func assertPlayerRepoIsAMock(repos repositories.Repositories, assert *require.As
 
 func TestIT_PlayerService_Create_ExpectHomeworldRegisteredForPlayer(t *testing.T) {
 	conn := newTestConnection(t)
+	defer conn.Close(context.Background())
 	repos := repositories.Repositories{
 		Planet: repositories.NewPlanetRepository(conn),
 		Player: repositories.NewPlayerRepository(conn),
@@ -340,6 +341,7 @@ func TestIT_PlayerService_Create_ExpectHomeworldRegisteredForPlayer(t *testing.T
 
 func TestIT_PlayerService_Delete_ExpectBuildingActionToBeDeleted(t *testing.T) {
 	conn := newTestConnection(t)
+	defer conn.Close(context.Background())
 	repos := repositories.Repositories{
 		Planet:         repositories.NewPlanetRepository(conn),
 		Player:         repositories.NewPlayerRepository(conn),
@@ -377,6 +379,7 @@ func TestIT_PlayerService_Delete_ExpectBuildingActionToBeDeleted(t *testing.T) {
 
 func TestIT_PlayerService_CreationDeletionWorkflow(t *testing.T) {
 	conn := newTestConnection(t)
+	defer conn.Close(context.Background())
 	repos := repositories.Repositories{
 		Planet:         repositories.NewPlanetRepository(conn),
 		Player:         repositories.NewPlayerRepository(conn),

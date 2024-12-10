@@ -599,6 +599,7 @@ func assertBuildingActionRepoIsAMock(repos repositories.Repositories, assert *re
 
 func TestIT_PlanetService_CreationDeletionWorkflow(t *testing.T) {
 	conn := newTestConnection(t)
+	defer conn.Close(context.Background())
 	repos := repositories.Repositories{
 		Planet:                           repositories.NewPlanetRepository(conn),
 		PlanetBuilding:                   repositories.NewPlanetBuildingRepository(),
