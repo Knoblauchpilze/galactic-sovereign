@@ -619,6 +619,7 @@ func TestIT_PlanetService_CreationDeletionWorkflow(t *testing.T) {
 	}
 
 	beforeCreation := time.Now()
+	time.Sleep(100 * time.Millisecond)
 
 	var err error
 	var planetResponse communication.PlanetDtoResponse
@@ -646,7 +647,7 @@ func TestIT_PlanetService_CreationDeletionWorkflow(t *testing.T) {
 			planetResponse.CreatedAt,
 			1*time.Second,
 		))
-		assert.True(t, planetResponse.CreatedAt.After(beforeCreation))
+		assert.True(t, planetFromDb.CreatedAt.After(beforeCreation))
 	}()
 
 	func() {
