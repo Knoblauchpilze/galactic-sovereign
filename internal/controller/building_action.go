@@ -3,11 +3,12 @@ package controller
 import (
 	"net/http"
 
+	"github.com/KnoblauchPilze/backend-toolkit/pkg/db"
+	"github.com/KnoblauchPilze/backend-toolkit/pkg/db/pgx"
 	"github.com/KnoblauchPilze/backend-toolkit/pkg/errors"
 	"github.com/KnoblauchPilze/backend-toolkit/pkg/rest"
 	"github.com/KnoblauchPilze/galactic-sovereign/internal/service"
 	"github.com/KnoblauchPilze/galactic-sovereign/pkg/communication"
-	"github.com/KnoblauchPilze/galactic-sovereign/pkg/db"
 	"github.com/KnoblauchPilze/galactic-sovereign/pkg/game"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
@@ -49,7 +50,7 @@ func createBuildingAction(c echo.Context, s service.BuildingActionService) error
 		if errors.IsErrorWithCode(err, game.NotEnoughResources) {
 			return c.JSON(http.StatusBadRequest, "Not enough resources")
 		}
-		if errors.IsErrorWithCode(err, db.DuplicatedKeySqlKey) {
+		if errors.IsErrorWithCode(err, pgx.UniqueConstraintViolation) {
 			return c.JSON(http.StatusConflict, "Building action already exists")
 		}
 
@@ -68,7 +69,7 @@ func deleteBuildingAction(c echo.Context, s service.BuildingActionService) error
 
 	err = s.Delete(c.Request().Context(), id)
 	if err != nil {
-		if errors.IsErrorWithCode(err, db.NoMatchingSqlRows) {
+		if errors.IsErrorWithCode(err, db.NoMatchingRows) {
 			return c.JSON(http.StatusNotFound, "No such action")
 		}
 

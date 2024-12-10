@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/KnoblauchPilze/backend-toolkit/pkg/errors"
-	"github.com/KnoblauchPilze/galactic-sovereign/pkg/db"
 	"github.com/KnoblauchPilze/galactic-sovereign/pkg/persistence"
+	"github.com/KnoblauchPilze/galactic-sovereign/pkg/repositories"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 )
@@ -126,7 +126,7 @@ func TestUnit_UpdatePlanetResourceWithCosts_Update_OptimisticLockException(t *te
 	assert := assert.New(t)
 
 	m := &mockPlanetResourceRepository{
-		updateErr: errors.NewCode(db.OptimisticLockException),
+		updateErr: errors.NewCode(repositories.OptimisticLockException),
 	}
 
 	err := updatePlanetResourceWithCosts(context.Background(), nil, m, defaultPlanetResources, defaultActionCosts, addResource)

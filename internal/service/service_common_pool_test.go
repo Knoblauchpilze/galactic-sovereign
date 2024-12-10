@@ -4,29 +4,29 @@ import (
 	"context"
 	"testing"
 
-	"github.com/KnoblauchPilze/galactic-sovereign/pkg/db"
+	"github.com/KnoblauchPilze/backend-toolkit/pkg/db"
 	"github.com/KnoblauchPilze/galactic-sovereign/pkg/repositories"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 )
 
-type testFunc func(context.Context, db.ConnectionPool, repositories.Repositories) error
-type returnTestFunc func(context.Context, db.ConnectionPool, repositories.Repositories) interface{}
+type testFunc func(context.Context, db.Connection, repositories.Repositories) error
+type returnTestFunc func(context.Context, db.Connection, repositories.Repositories) interface{}
 type generateRepositoriesMocks func() repositories.Repositories
 
 type verifyError func(error, *require.Assertions)
 type verifyMockInteractions func(repositories.Repositories, *require.Assertions)
 
-type generateConnectionPoolMock func() db.ConnectionPool
-type verifyPoolInteractions func(db.ConnectionPool, *require.Assertions)
+type generateConnectionMock func() db.Connection
+type verifyPoolInteractions func(db.Connection, *require.Assertions)
 
 type repositoryInteractionTestCase struct {
-	generateConnectionPoolMock generateConnectionPoolMock
-	generateRepositoriesMocks  generateRepositoriesMocks
-	handler                    testFunc
-	expectedError              error
-	verifyError                verifyError
-	verifyInteractions         verifyMockInteractions
+	generateConnectionMock    generateConnectionMock
+	generateRepositoriesMocks generateRepositoriesMocks
+	handler                   testFunc
+	expectedError             error
+	verifyError               verifyError
+	verifyInteractions        verifyMockInteractions
 }
 
 type verifyContent func(interface{}, repositories.Repositories, *require.Assertions)
@@ -44,12 +44,12 @@ type transactionTestCase struct {
 }
 
 type transactionInteractionTestCase struct {
-	generateConnectionPoolMock generateConnectionPoolMock
-	generateRepositoriesMocks  generateRepositoriesMocks
-	handler                    testFunc
-	expectedError              error
-	verifyInteractions         verifyPoolInteractions
-	verifyMockInteractions     verifyMockInteractions
+	generateConnectionMock    generateConnectionMock
+	generateRepositoriesMocks generateRepositoriesMocks
+	handler                   testFunc
+	expectedError             error
+	verifyInteractions        verifyPoolInteractions
+	verifyMockInteractions    verifyMockInteractions
 }
 
 type ServicePoolTestSuite struct {
@@ -74,14 +74,14 @@ func (s *ServicePoolTestSuite) TestWhenCallingHandler_ExpectCorrectInteraction()
 				repos = s.generateRepositoriesMocks()
 			}
 
-			var pool db.ConnectionPool
-			if testCase.generateConnectionPoolMock != nil {
-				pool = testCase.generateConnectionPoolMock()
+			var conn db.Connection
+			if testCase.generateConnectionMock != nil {
+				conn = testCase.generateConnectionMock()
 			} else {
-				pool = &mockConnectionPool{}
+				conn = &mockConnection{}
 			}
 
-			err := testCase.handler(context.Background(), pool, repos)
+			err := testCase.handler(context.Background(), conn, repos)
 
 			if testCase.verifyError != nil {
 				testCase.verifyError(err, s.Require())
@@ -105,7 +105,7 @@ func (s *ServicePoolTestSuite) TestWhenRepositorySucceeds_ReturnsExpectedValue()
 				repos = s.generateRepositoriesMocks()
 			}
 
-			actual := testCase.handler(context.Background(), &mockConnectionPool{}, repos)
+			actual := testCase.handler(context.Background(), &mockConnection{}, repos)
 
 			if testCase.verifyContent != nil {
 				testCase.verifyContent(actual, repos, s.Require())
@@ -126,7 +126,7 @@ func (s *ServicePoolTestSuite) TestWhenUsingTransaction_ExpectCallsClose() {
 				repos = s.generateRepositoriesMocks()
 			}
 
-			m := &mockConnectionPool{}
+			m := &mockConnection{}
 			testCase.handler(context.Background(), m, repos)
 
 			for _, tx := range m.txs {
@@ -146,7 +146,7 @@ func (s *ServicePoolTestSuite) TestWhenCreatingTransactionFails_ExpectErrorIsPro
 				repos = s.generateRepositoriesMocks()
 			}
 
-			m := &mockConnectionPool{
+			m := &mockConnection{
 				errs: []error{errDefault},
 			}
 			err := testCase.handler(context.Background(), m, repos)
@@ -166,11 +166,11 @@ func (s *ServicePoolTestSuite) TestWhenUsingTransaction_ExpectCorrectInteraction
 				repos = s.generateRepositoriesMocks()
 			}
 
-			var m db.ConnectionPool
-			if testCase.generateConnectionPoolMock != nil {
-				m = testCase.generateConnectionPoolMock()
+			var m db.Connection
+			if testCase.generateConnectionMock != nil {
+				m = testCase.generateConnectionMock()
 			} else {
-				m = &mockConnectionPool{}
+				m = &mockConnection{}
 			}
 			err := testCase.handler(context.Background(), m, repos)
 
