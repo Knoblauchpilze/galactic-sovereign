@@ -76,10 +76,3 @@ func (r *planetResourceRepositoryImpl) Update(ctx context.Context, tx db.Transac
 
 	return resource, nil
 }
-
-const deletePlanetResourceSqlTemplate = `DELETE FROM planet_resource WHERE planet = $1`
-
-func (r *planetResourceRepositoryImpl) DeleteForPlanet(ctx context.Context, tx db.Transaction, planet uuid.UUID) error {
-	_, err := tx.Exec(ctx, deletePlanetResourceSqlTemplate, planet)
-	return err
-}
