@@ -16,6 +16,7 @@ type BuildingActionRepository interface {
 	ListBeforeCompletionTime(ctx context.Context, tx db.Transaction, planet uuid.UUID, until time.Time) ([]persistence.BuildingAction, error)
 	Delete(ctx context.Context, tx db.Transaction, action uuid.UUID) error
 	DeleteForPlanet(ctx context.Context, tx db.Transaction, planet uuid.UUID) error
+	DeleteForPlayer(ctx context.Context, tx db.Transaction, player uuid.UUID) error
 }
 
 type buildingActionRepositoryImpl struct{}
@@ -112,21 +113,21 @@ func (r *buildingActionRepositoryImpl) Delete(ctx context.Context, tx db.Transac
 // https://stackoverflow.com/questions/21662726/delete-using-left-outer-join-in-postgres
 const deleteBuildingActionCostForPlanetSqlTemplate = `
 DELETE FROM
-	building_action_cost
+	building_action_cost AS bacd
 USING
 	building_action_cost AS bac
 	LEFT JOIN building_action AS ba ON ba.id = bac.action
 WHERE
-	building_action_cost.action = bac.action
+	bacd.action = bac.action
 	AND ba.planet = $1`
 const deleteBuildingActionResourceProductionForPlanetSqlTemplate = `
 DELETE FROM
-	building_action_resource_production
+	building_action_resource_production AS barpd
 USING
 	building_action_resource_production AS barp
 	LEFT JOIN building_action AS ba ON ba.id = barp.action
 WHERE
-	building_action_resource_production.action = barp.action
+	barpd.action = barp.action
 	AND ba.planet = $1`
 const deleteBuildingActionForPlanetSqlTemplate = `DELETE FROM building_action WHERE planet = $1`
 
@@ -142,5 +143,50 @@ func (r *buildingActionRepositoryImpl) DeleteForPlanet(ctx context.Context, tx d
 	}
 
 	_, err = tx.Exec(ctx, deleteBuildingActionForPlanetSqlTemplate, planet)
+	return err
+}
+
+const deleteBuildingActionCostForPlayerSqlTemplate = `
+DELETE FROM
+	building_action_cost AS bacd
+USING
+	building_action_cost AS bac
+	LEFT JOIN building_action AS ba ON ba.id = bac.action
+	LEFT JOIN planet AS p ON p.id = ba.planet
+WHERE
+	bacd.action = bac.action
+	AND p.player = $1`
+const deleteBuildingActionResourceProductionForPlayerSqlTemplate = `
+DELETE FROM
+	building_action_resource_production AS barpd
+USING
+	building_action_resource_production AS barp
+	LEFT JOIN building_action AS ba ON ba.id = barp.action
+	LEFT JOIN planet AS p ON p.id = ba.planet
+WHERE
+	barpd.action = barp.action
+	AND p.player = $1`
+const deleteBuildingActionForPlayerSqlTemplate = `
+DELETE FROM
+	building_action AS bad
+USING
+	building_action AS ba
+	LEFT JOIN planet AS p ON p.id = ba.planet
+WHERE
+	bad.id = ba.id
+	AND p.player = $1`
+
+func (r *buildingActionRepositoryImpl) DeleteForPlayer(ctx context.Context, tx db.Transaction, player uuid.UUID) error {
+	_, err := tx.Exec(ctx, deleteBuildingActionCostForPlayerSqlTemplate, player)
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.Exec(ctx, deleteBuildingActionResourceProductionForPlayerSqlTemplate, player)
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.Exec(ctx, deleteBuildingActionForPlayerSqlTemplate, player)
 	return err
 }
