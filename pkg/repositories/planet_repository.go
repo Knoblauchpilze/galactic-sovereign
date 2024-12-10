@@ -14,6 +14,7 @@ type PlanetRepository interface {
 	List(ctx context.Context, tx db.Transaction) ([]persistence.Planet, error)
 	ListForPlayer(ctx context.Context, tx db.Transaction, player uuid.UUID) ([]persistence.Planet, error)
 	Delete(ctx context.Context, tx db.Transaction, id uuid.UUID) error
+	DeleteForPlayer(ctx context.Context, tx db.Transaction, player uuid.UUID) error
 }
 
 type planetRepositoryImpl struct {
@@ -210,5 +211,78 @@ func (r *planetRepositoryImpl) Delete(ctx context.Context, tx db.Transaction, id
 	}
 
 	_, err = tx.Exec(ctx, deletePlanetSqlTemplate, id)
+	return err
+}
+
+const deletePlanetBuildingForPlayerSqlTemplate = `
+DELETE FROM
+	planet_building AS pbd
+USING
+	planet_building AS pb
+	LEFT JOIN planet AS p ON pb.planet = p.id
+WHERE
+	pbd.planet = pb.planet
+	AND pbd.building = pb.building
+	AND p.player = $1`
+const deletePlanetResourceStorageForPlayerSqlTemplate = `
+DELETE FROM
+	planet_resource_storage AS prsd
+USING
+	planet_resource_storage AS prs
+	LEFT JOIN planet AS p ON prs.planet = p.id
+WHERE
+	prsd.planet = prs.planet
+	AND prsd.resource = prs.resource
+	AND p.player = $1`
+const deletePlanetResourceProductionForPlayerSqlTemplate = `
+DELETE FROM
+	planet_resource_production AS prpd
+USING
+	planet_resource_production AS prp
+	LEFT JOIN planet AS p ON prp.planet = p.id
+WHERE
+	prpd.planet = prp.planet
+	AND prpd.resource = prp.resource
+	AND p.player = $1`
+const deletePlanetResourceForPlayerSqlTemplate = `
+DELETE FROM
+	planet_resource AS prd
+USING
+	planet_resource AS pr
+	LEFT JOIN planet AS p ON pr.planet = p.id
+WHERE
+	prd.planet = pr.planet
+	AND prd.resource = pr.resource
+	AND p.player = $1`
+const deletePlanetHomeworldForPlayerSqlTemplate = `DELETE FROM homeworld WHERE player = $1`
+const deletePlanetSqlForPlayerTemplate = `DELETE FROM planet WHERE player = $1`
+
+func (r *planetRepositoryImpl) DeleteForPlayer(ctx context.Context, tx db.Transaction, player uuid.UUID) error {
+	_, err := tx.Exec(ctx, deletePlanetBuildingForPlayerSqlTemplate, player)
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.Exec(ctx, deletePlanetResourceStorageForPlayerSqlTemplate, player)
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.Exec(ctx, deletePlanetResourceProductionForPlayerSqlTemplate, player)
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.Exec(ctx, deletePlanetResourceForPlayerSqlTemplate, player)
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.Exec(ctx, deletePlanetHomeworldForPlayerSqlTemplate, player)
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.Exec(ctx, deletePlanetSqlForPlayerTemplate, player)
 	return err
 }

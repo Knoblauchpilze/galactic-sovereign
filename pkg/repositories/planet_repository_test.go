@@ -410,6 +410,75 @@ func TestIT_PlanetRepository_CreationDeletionWorkflow(t *testing.T) {
 	assertPlanetDoesNotExist(t, conn, planet.Id)
 }
 
+func TestIT_PlanetRepository_DeleteForPlayer_ExpectHomeworldToBeDeleted(t *testing.T) {
+	repo, conn, tx := newTestPlanetRepositoryAndTransaction(t)
+	defer conn.Close(context.Background())
+	planet, _, _ := insertTestHomeworldPlanetForPlayer(t, conn)
+
+	err := repo.DeleteForPlayer(context.Background(), tx, planet.Player)
+	tx.Close(context.Background())
+
+	assert.Nil(t, err)
+	assertPlanetDoesNotExist(t, conn, planet.Id)
+	assertPlanetIsNotHomeworld(t, conn, planet.Id)
+}
+
+func TestIT_PlanetRepository_DeleteForPlayer_ExpectBuildingToBeDeleted(t *testing.T) {
+	repo, conn, tx := newTestPlanetRepositoryAndTransaction(t)
+	defer conn.Close(context.Background())
+	planet, _, _ := insertTestHomeworldPlanetForPlayer(t, conn)
+	insertTestPlanetBuildingForPlanet(t, conn, planet.Id)
+
+	err := repo.DeleteForPlayer(context.Background(), tx, planet.Player)
+	tx.Close(context.Background())
+
+	assert.Nil(t, err)
+	assertPlanetDoesNotExist(t, conn, planet.Id)
+	assertPlanetBuildingDoesNotExist(t, conn, planet.Id)
+}
+
+func TestIT_PlanetRepository_DeleteForPlayer_ExpectResourceStorageToBeDeleted(t *testing.T) {
+	repo, conn, tx := newTestPlanetRepositoryAndTransaction(t)
+	defer conn.Close(context.Background())
+	planet, _, _ := insertTestHomeworldPlanetForPlayer(t, conn)
+	insertTestPlanetResourceStorage(t, conn, planet.Id)
+
+	err := repo.DeleteForPlayer(context.Background(), tx, planet.Player)
+	tx.Close(context.Background())
+
+	assert.Nil(t, err)
+	assertPlanetDoesNotExist(t, conn, planet.Id)
+	assertPlanetResourceStorageDoesNotExist(t, conn, planet.Id)
+}
+
+func TestIT_PlanetRepository_DeleteForPlayer_ExpectResourceProductionToBeDeleted(t *testing.T) {
+	repo, conn, tx := newTestPlanetRepositoryAndTransaction(t)
+	defer conn.Close(context.Background())
+	planet, _, _ := insertTestHomeworldPlanetForPlayer(t, conn)
+	insertTestPlanetResourceProduction(t, conn, planet.Id)
+
+	err := repo.DeleteForPlayer(context.Background(), tx, planet.Player)
+	tx.Close(context.Background())
+
+	assert.Nil(t, err)
+	assertPlanetDoesNotExist(t, conn, planet.Id)
+	assertPlanetResourceProductionDoesNotExist(t, conn, planet.Id)
+}
+
+func TestIT_PlanetRepository_DeleteForPlayer_ExpectResourceToBeDeleted(t *testing.T) {
+	repo, conn, tx := newTestPlanetRepositoryAndTransaction(t)
+	defer conn.Close(context.Background())
+	planet, _, _ := insertTestHomeworldPlanetForPlayer(t, conn)
+	insertTestPlanetResource(t, conn, planet.Id)
+
+	err := repo.DeleteForPlayer(context.Background(), tx, planet.Player)
+	tx.Close(context.Background())
+
+	assert.Nil(t, err)
+	assertPlanetDoesNotExist(t, conn, planet.Id)
+	assertPlanetResourceDoesNotExist(t, conn, planet.Id)
+}
+
 func TestIT_PlanetRepository_HomeWorldCreationDeletionWorkflow(t *testing.T) {
 	repo, conn := newTestPlanetRepository(t)
 	defer conn.Close(context.Background())
