@@ -4,11 +4,11 @@ import (
 	"context"
 	"time"
 
-	"github.com/KnoblauchPilze/galactic-sovereign/pkg/db"
+	"github.com/KnoblauchPilze/backend-toolkit/pkg/db"
 )
 
-type mockConnectionPool struct {
-	db.ConnectionPool
+type mockConnection struct {
+	db.Connection
 
 	timeStamp time.Time
 
@@ -16,7 +16,7 @@ type mockConnectionPool struct {
 	errs []error
 }
 
-func (m *mockConnectionPool) StartTransaction(ctx context.Context) (db.Transaction, error) {
+func (m *mockConnection) BeginTx(ctx context.Context) (db.Transaction, error) {
 	mt := &mockTransaction{
 		timeStamp: m.timeStamp,
 	}

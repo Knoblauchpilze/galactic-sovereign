@@ -2,311 +2,394 @@ package repositories
 
 import (
 	"context"
-	"fmt"
 	"testing"
 	"time"
 
+	"github.com/KnoblauchPilze/backend-toolkit/pkg/db"
+	"github.com/KnoblauchPilze/backend-toolkit/pkg/db/pgx"
 	"github.com/KnoblauchPilze/backend-toolkit/pkg/errors"
-	"github.com/KnoblauchPilze/galactic-sovereign/pkg/db"
+	eassert "github.com/KnoblauchPilze/easy-assert/assert"
 	"github.com/KnoblauchPilze/galactic-sovereign/pkg/persistence"
 	"github.com/google/uuid"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/stretchr/testify/suite"
 )
 
-var defaultBuildinActionId = uuid.MustParse("1ec83c50-0f25-4918-b49a-52b7816189b9")
-var defaultBuildingAction = persistence.BuildingAction{
-	Id:           defaultBuildinActionId,
-	Planet:       defaultPlanetId,
-	Building:     defaultBuildingId,
-	CurrentLevel: 56,
-	DesiredLevel: 61,
-	CreatedAt:    time.Date(2024, 8, 11, 21, 40, 51, 651387244, time.UTC),
-	CompletedAt:  time.Date(2024, 7, 11, 21, 40, 54, 651387244, time.UTC),
-}
-var someTime = time.Date(2024, 8, 17, 13, 35, 52, 651387244, time.UTC)
+func TestIT_BuildingActionRepository_Create(t *testing.T) {
+	repo, conn, tx := newTestBuildingActionRepositoryAndTransaction(t)
+	defer conn.Close(context.Background())
+	planet, _, _ := insertTestPlanetForPlayer(t, conn)
+	building := insertTestBuilding(t, conn)
 
-func TestUnit_BuildingActionRepository_Transaction(t *testing.T) {
-	var dummyInt int
-
-	s := RepositoryTransactionTestSuite{
-		dbInteractionTestCases: map[string]dbTransactionInteractionTestCase{
-			"create": {
-				sqlMode: ExecBased,
-				handler: func(ctx context.Context, tx db.Transaction) error {
-					s := NewBuildingActionRepository()
-					_, err := s.Create(ctx, tx, defaultBuildingAction)
-					return err
-				},
-				expectedSqlQueries: []string{
-					`
-INSERT INTO
-	building_action (id, planet, building, current_level, desired_level, created_at, completed_at)
-	VALUES($1, $2, $3, $4, $5, $6, $7)
-`,
-				},
-				expectedArguments: [][]interface{}{
-					{
-						defaultBuildingAction.Id,
-						defaultBuildingAction.Planet,
-						defaultBuildingAction.Building,
-						defaultBuildingAction.CurrentLevel,
-						defaultBuildingAction.DesiredLevel,
-						defaultBuildingAction.CreatedAt,
-						defaultBuildingAction.CompletedAt,
-					},
-				},
-			},
-			"get": {
-				handler: func(ctx context.Context, tx db.Transaction) error {
-					s := NewBuildingActionRepository()
-					_, err := s.Get(ctx, tx, defaultBuildinActionId)
-					return err
-				},
-				expectedSqlQueries: []string{
-					`
-SELECT
-	id,
-	planet,
-	building,
-	current_level,
-	desired_level,
-	created_at,
-	completed_at
-FROM
-	building_action
-WHERE
-	id = $1`,
-				},
-				expectedArguments: [][]interface{}{
-					{
-						defaultBuildinActionId,
-					},
-				},
-			},
-			"listForPlanet": {
-				handler: func(ctx context.Context, tx db.Transaction) error {
-					s := NewBuildingActionRepository()
-					_, err := s.ListForPlanet(ctx, tx, defaultPlanetId)
-					return err
-				},
-				expectedSqlQueries: []string{
-					`
-SELECT
-	id,
-	planet,
-	building,
-	current_level,
-	desired_level,
-	created_at,
-	completed_at
-FROM
-	building_action
-WHERE
-	planet = $1`,
-				},
-				expectedArguments: [][]interface{}{
-					{
-						defaultPlanetId,
-					},
-				},
-			},
-			"listBeforeCompletionTime": {
-				handler: func(ctx context.Context, tx db.Transaction) error {
-					s := NewBuildingActionRepository()
-					_, err := s.ListBeforeCompletionTime(ctx, tx, defaultPlanetId, someTime)
-					return err
-				},
-				expectedSqlQueries: []string{
-					`
-SELECT
-	id,
-	planet,
-	building,
-	current_level,
-	desired_level,
-	created_at,
-	completed_at
-FROM
-	building_action
-WHERE
-	completed_at <= $1
-	AND planet = $2`,
-				},
-				expectedArguments: [][]interface{}{
-					{
-						someTime,
-						defaultPlanetId,
-					},
-				},
-			},
-			"delete": {
-				sqlMode: ExecBased,
-				generateMock: func() db.Transaction {
-					return &mockTransaction{
-						affectedRows: []int{1, 1},
-					}
-				},
-				handler: func(ctx context.Context, tx db.Transaction) error {
-					s := NewBuildingActionRepository()
-					return s.Delete(ctx, tx, defaultBuildinActionId)
-				},
-				expectedSqlQueries: []string{
-					`DELETE FROM building_action WHERE id = $1`,
-				},
-				expectedArguments: [][]interface{}{
-					{
-						defaultBuildinActionId,
-					},
-				},
-			},
-			"deleteForPlanet": {
-				sqlMode: ExecBased,
-				generateMock: func() db.Transaction {
-					return &mockTransaction{
-						affectedRows: []int{1},
-					}
-				},
-				handler: func(ctx context.Context, tx db.Transaction) error {
-					s := NewBuildingActionRepository()
-					return s.DeleteForPlanet(ctx, tx, defaultPlanetId)
-				},
-				expectedSqlQueries: []string{
-					`DELETE FROM building_action WHERE planet = $1`,
-				},
-				expectedArguments: [][]interface{}{
-					{
-						defaultPlanetId,
-					},
-				},
-			},
-		},
-
-		dbSingleValueTestCases: map[string]dbTransactionSingleValueTestCase{
-			"get": {
-				handler: func(ctx context.Context, tx db.Transaction) error {
-					repo := NewBuildingActionRepository()
-					_, err := repo.Get(ctx, tx, defaultBuildinActionId)
-					return err
-				},
-				expectedGetSingleValueCalls: 1,
-				expectedScanCalls:           1,
-				expectedScannedProps: [][]interface{}{
-					{
-						&uuid.UUID{},
-						&uuid.UUID{},
-						&uuid.UUID{},
-						&dummyInt,
-						&dummyInt,
-						&time.Time{},
-						&time.Time{},
-					},
-				},
-			},
-		},
-
-		dbGetAllTestCases: map[string]dbTransactionGetAllTestCase{
-			"listForPlanet": {
-				handler: func(ctx context.Context, tx db.Transaction) error {
-					repo := NewBuildingActionRepository()
-					_, err := repo.ListForPlanet(ctx, tx, defaultPlanetId)
-					return err
-				},
-				expectedGetAllCalls: 1,
-				expectedScanCalls:   1,
-				expectedScannedProps: [][]interface{}{
-					{
-						&uuid.UUID{},
-						&uuid.UUID{},
-						&uuid.UUID{},
-						&dummyInt,
-						&dummyInt,
-						&time.Time{},
-						&time.Time{},
-					},
-				},
-			},
-			"listBeforeCompletionTime": {
-				handler: func(ctx context.Context, tx db.Transaction) error {
-					repo := NewBuildingActionRepository()
-					_, err := repo.ListBeforeCompletionTime(ctx, tx, defaultPlanetId, someTime)
-					return err
-				},
-				expectedGetAllCalls: 1,
-				expectedScanCalls:   1,
-				expectedScannedProps: [][]interface{}{
-					{
-						&uuid.UUID{},
-						&uuid.UUID{},
-						&uuid.UUID{},
-						&dummyInt,
-						&dummyInt,
-						&time.Time{},
-						&time.Time{},
-					},
-				},
-			},
-		},
-
-		dbReturnTestCases: map[string]dbTransactionReturnTestCase{
-			"create": {
-				handler: func(ctx context.Context, tx db.Transaction) interface{} {
-					s := NewBuildingActionRepository()
-					out, _ := s.Create(ctx, tx, defaultBuildingAction)
-					return out
-				},
-				expectedContent: defaultBuildingAction,
-			},
-		},
-
-		dbErrorTestCases: map[string]dbTransactionErrorTestCase{
-			"create_duplicatedKey": {
-				generateMock: func() db.Transaction {
-					return &mockTransaction{
-						execErrs: []error{
-							fmt.Errorf(`duplicate key value violates unique constraint "building_action_planet_key" (SQLSTATE 23505)`),
-						},
-					}
-				},
-				handler: func(ctx context.Context, tx db.Transaction) error {
-					s := NewBuildingActionRepository()
-					_, err := s.Create(ctx, tx, defaultBuildingAction)
-					return err
-				},
-				verifyError: func(err error, assert *require.Assertions) {
-					assert.True(errors.IsErrorWithCode(err, db.DuplicatedKeySqlKey))
-				},
-			},
-			"delete_noRowsAffected": {
-				generateMock: func() db.Transaction {
-					return &mockTransaction{
-						affectedRows: []int{0},
-					}
-				},
-				handler: func(ctx context.Context, tx db.Transaction) error {
-					s := NewBuildingActionRepository()
-					return s.Delete(ctx, tx, defaultBuildinActionId)
-				},
-				verifyError: func(err error, assert *require.Assertions) {
-					assert.True(errors.IsErrorWithCode(err, db.NoMatchingSqlRows))
-				},
-			},
-			"delete_moreThanOneRowAffected": {
-				generateMock: func() db.Transaction {
-					return &mockTransaction{
-						affectedRows: []int{2},
-					}
-				},
-				handler: func(ctx context.Context, tx db.Transaction) error {
-					s := NewBuildingActionRepository()
-					return s.Delete(ctx, tx, defaultBuildinActionId)
-				},
-				verifyError: func(err error, assert *require.Assertions) {
-					assert.True(errors.IsErrorWithCode(err, db.NoMatchingSqlRows))
-				},
-			},
-		},
+	action := persistence.BuildingAction{
+		Id:           uuid.New(),
+		Planet:       planet.Id,
+		Building:     building.Id,
+		CurrentLevel: 2,
+		DesiredLevel: 3,
+		CreatedAt:    time.Now(),
+		CompletedAt:  time.Now().Add(1 * time.Hour),
 	}
 
-	suite.Run(t, &s)
+	actual, err := repo.Create(context.Background(), tx, action)
+	tx.Close(context.Background())
+	assert.Nil(t, err)
+
+	assert.True(t, eassert.EqualsIgnoringFields(actual, action))
+	assertBuildingActionExists(t, conn, action.Id)
+}
+
+func TestIT_BuildingActionRepository_Create_WhenDuplicatePlanet_ExpectFailure(t *testing.T) {
+	repo, conn, tx := newTestBuildingActionRepositoryAndTransaction(t)
+	defer conn.Close(context.Background())
+	defer tx.Close(context.Background())
+	_, planet := insertTestBuildingAction(t, conn)
+	building := insertTestBuilding(t, conn)
+
+	newAction := persistence.BuildingAction{
+		Id:           uuid.New(),
+		Planet:       planet.Id,
+		Building:     building.Id,
+		CurrentLevel: 4,
+		DesiredLevel: 5,
+		CreatedAt:    time.Now(),
+		CompletedAt:  time.Now().Add(1 * time.Minute),
+	}
+
+	_, err := repo.Create(context.Background(), tx, newAction)
+
+	assert.True(t, errors.IsErrorWithCode(err, pgx.UniqueConstraintViolation), "Actual err: %v", err)
+	assertBuildingActionDoesNotExist(t, conn, newAction.Id)
+}
+
+func TestIT_BuildingActionRepository_Get(t *testing.T) {
+	repo, conn, tx := newTestBuildingActionRepositoryAndTransaction(t)
+	defer conn.Close(context.Background())
+	defer tx.Close(context.Background())
+	action, _ := insertTestBuildingAction(t, conn)
+
+	actual, err := repo.Get(context.Background(), tx, action.Id)
+	assert.Nil(t, err)
+
+	assert.True(t, eassert.EqualsIgnoringFields(actual, action))
+}
+
+func TestIT_BuildingActionRepository_Get_WhenNotFound_ExpectFailure(t *testing.T) {
+	repo, conn, tx := newTestBuildingActionRepositoryAndTransaction(t)
+	defer conn.Close(context.Background())
+	defer tx.Close(context.Background())
+
+	// Non-existent id
+	id := uuid.MustParse("00000000-1111-2222-1111-000000000000")
+	_, err := repo.Get(context.Background(), tx, id)
+	assert.True(t, errors.IsErrorWithCode(err, db.NoMatchingRows), "Actual err: %v", err)
+}
+
+func TestIT_BuildingActionRepository_ListForPlanet(t *testing.T) {
+	repo, conn, tx := newTestBuildingActionRepositoryAndTransaction(t)
+	defer conn.Close(context.Background())
+	defer tx.Close(context.Background())
+	action1, planet1 := insertTestBuildingAction(t, conn)
+	insertTestBuildingAction(t, conn)
+
+	actual, err := repo.ListForPlanet(context.Background(), tx, planet1.Id)
+
+	assert.Nil(t, err)
+	assert.GreaterOrEqual(t, len(actual), 1)
+	assert.True(t, eassert.ContainsIgnoringFields(actual, action1))
+}
+
+func TestIT_BuildingActionRepository_ListBeforeCompletionTime_WhenCompletionTimeBeforeQueriedTime_ExpectActionReturned(t *testing.T) {
+	repo, conn, tx := newTestBuildingActionRepositoryAndTransaction(t)
+	defer conn.Close(context.Background())
+	defer tx.Close(context.Background())
+	action, planet := insertTestBuildingAction(t, conn)
+
+	until := action.CompletedAt.Add(1 * time.Second)
+
+	actual, err := repo.ListBeforeCompletionTime(context.Background(), tx, planet.Id, until)
+
+	assert.Nil(t, err)
+	assert.GreaterOrEqual(t, len(actual), 1)
+	assert.True(t, eassert.ContainsIgnoringFields(actual, action))
+}
+
+func TestIT_BuildingActionRepository_ListBeforeCompletionTime_WhenCompletionTimeInTheFuture_ExpectActionNotReturned(t *testing.T) {
+	repo, conn, tx := newTestBuildingActionRepositoryAndTransaction(t)
+	defer conn.Close(context.Background())
+	defer tx.Close(context.Background())
+	action, planet := insertTestBuildingAction(t, conn)
+
+	until := action.CompletedAt.Add(-1 * time.Second)
+
+	actual, err := repo.ListBeforeCompletionTime(context.Background(), tx, planet.Id, until)
+
+	assert.Nil(t, err)
+	assert.Equal(t, len(actual), 0)
+}
+
+func TestIT_BuildingActionRepository_Delete(t *testing.T) {
+	repo, conn, tx := newTestBuildingActionRepositoryAndTransaction(t)
+	defer conn.Close(context.Background())
+	action, _ := insertTestBuildingAction(t, conn)
+
+	err := repo.Delete(context.Background(), tx, action.Id)
+	tx.Close(context.Background())
+
+	assert.Nil(t, err)
+	assertBuildingActionDoesNotExist(t, conn, action.Id)
+}
+
+func TestIT_BuildingActionRepository_Delete_WhenNotFound_ExpectSuccess(t *testing.T) {
+	repo, conn, tx := newTestBuildingActionRepositoryAndTransaction(t)
+	defer conn.Close(context.Background())
+	nonExistingId := uuid.MustParse("00000000-0000-1221-0000-000000000000")
+
+	err := repo.Delete(context.Background(), tx, nonExistingId)
+	tx.Close(context.Background())
+
+	assert.Nil(t, err)
+}
+
+func TestIT_BuildingActionProductionRepository_Delete_ExpectProductionShouldBeDeleted(t *testing.T) {
+	repo, conn, tx := newTestBuildingActionRepositoryAndTransaction(t)
+	defer conn.Close(context.Background())
+	action1, _ := insertTestBuildingAction(t, conn)
+	insertTestBuildingActionResourceProductionForAction(t, conn, action1.Id)
+
+	action2, _ := insertTestBuildingAction(t, conn)
+	production2, _ := insertTestBuildingActionResourceProductionForAction(t, conn, action2.Id)
+
+	err := repo.Delete(context.Background(), tx, action1.Id)
+	tx.Close(context.Background())
+
+	assert.Nil(t, err)
+	assertBuildingActionDoesNotExist(t, conn, action1.Id)
+	assertBuildingActionResourceProductionDoesNotExist(t, conn, action1.Id)
+	assertBuildingActionResourceProductionForResource(t, conn, action2.Id, production2.Resource, production2.Production)
+}
+
+func TestIT_BuildingActionProductionRepository_Delete_ExpectCostShouldBeDeleted(t *testing.T) {
+	repo, conn, tx := newTestBuildingActionRepositoryAndTransaction(t)
+	defer conn.Close(context.Background())
+	action1, _ := insertTestBuildingAction(t, conn)
+	insertTestBuildingActionCostForAction(t, conn, action1.Id)
+
+	action2, _ := insertTestBuildingAction(t, conn)
+	cost2, _ := insertTestBuildingActionCostForAction(t, conn, action2.Id)
+
+	err := repo.Delete(context.Background(), tx, action1.Id)
+	tx.Close(context.Background())
+
+	assert.Nil(t, err)
+	assertBuildingActionDoesNotExist(t, conn, action1.Id)
+	assertBuildingActionCostDoesNotExist(t, conn, action1.Id)
+	assertBuildingActionCostForResource(t, conn, action2.Id, cost2.Resource, cost2.Amount)
+}
+
+func TestIT_BuildingActionRepository_DeleteForPlanet(t *testing.T) {
+	repo, conn, tx := newTestBuildingActionRepositoryAndTransaction(t)
+	defer conn.Close(context.Background())
+	action, planet := insertTestBuildingAction(t, conn)
+
+	err := repo.DeleteForPlanet(context.Background(), tx, planet.Id)
+	tx.Close(context.Background())
+
+	assert.Nil(t, err)
+	assertBuildingActionDoesNotExist(t, conn, action.Id)
+}
+
+func TestIT_BuildingActionProductionRepository_DeleteForPlanet_ExpectProductionShouldBeDeleted(t *testing.T) {
+	repo, conn, tx := newTestBuildingActionRepositoryAndTransaction(t)
+	defer conn.Close(context.Background())
+	action1, _ := insertTestBuildingAction(t, conn)
+	insertTestBuildingActionResourceProductionForAction(t, conn, action1.Id)
+
+	action2, _ := insertTestBuildingAction(t, conn)
+	production2, _ := insertTestBuildingActionResourceProductionForAction(t, conn, action2.Id)
+
+	err := repo.DeleteForPlanet(context.Background(), tx, action1.Planet)
+	tx.Close(context.Background())
+
+	assert.Nil(t, err)
+	assertBuildingActionDoesNotExist(t, conn, action1.Id)
+	assertBuildingActionResourceProductionDoesNotExist(t, conn, action1.Id)
+	assertBuildingActionResourceProductionForResource(t, conn, action2.Id, production2.Resource, production2.Production)
+}
+
+func TestIT_BuildingActionProductionRepository_DeleteForPlanet_ExpectCostShouldBeDeleted(t *testing.T) {
+	repo, conn, tx := newTestBuildingActionRepositoryAndTransaction(t)
+	defer conn.Close(context.Background())
+	action1, _ := insertTestBuildingAction(t, conn)
+	insertTestBuildingActionCostForAction(t, conn, action1.Id)
+
+	action2, _ := insertTestBuildingAction(t, conn)
+	cost2, _ := insertTestBuildingActionCostForAction(t, conn, action2.Id)
+
+	err := repo.DeleteForPlanet(context.Background(), tx, action1.Planet)
+	tx.Close(context.Background())
+
+	assert.Nil(t, err)
+	assertBuildingActionDoesNotExist(t, conn, action1.Id)
+	assertBuildingActionCostDoesNotExist(t, conn, action1.Id)
+	assertBuildingActionCostForResource(t, conn, action2.Id, cost2.Resource, cost2.Amount)
+}
+
+func TestIT_BuildingActionRepository_DeleteForPlayer(t *testing.T) {
+	repo, conn, tx := newTestBuildingActionRepositoryAndTransaction(t)
+	defer conn.Close(context.Background())
+	action, planet := insertTestBuildingAction(t, conn)
+
+	err := repo.DeleteForPlayer(context.Background(), tx, planet.Player)
+	tx.Close(context.Background())
+
+	assert.Nil(t, err)
+	assertBuildingActionDoesNotExist(t, conn, action.Id)
+}
+
+func TestIT_BuildingActionProductionRepository_DeleteForPlayer_ExpectProductionShouldBeDeleted(t *testing.T) {
+	repo, conn, tx := newTestBuildingActionRepositoryAndTransaction(t)
+	defer conn.Close(context.Background())
+	action1, planet1 := insertTestBuildingAction(t, conn)
+	insertTestBuildingActionResourceProductionForAction(t, conn, action1.Id)
+
+	action2, _ := insertTestBuildingAction(t, conn)
+	production2, _ := insertTestBuildingActionResourceProductionForAction(t, conn, action2.Id)
+
+	err := repo.DeleteForPlayer(context.Background(), tx, planet1.Player)
+	tx.Close(context.Background())
+
+	assert.Nil(t, err)
+	assertBuildingActionDoesNotExist(t, conn, action1.Id)
+	assertBuildingActionResourceProductionDoesNotExist(t, conn, action1.Id)
+	assertBuildingActionResourceProductionForResource(t, conn, action2.Id, production2.Resource, production2.Production)
+}
+
+func TestIT_BuildingActionProductionRepository_DeleteForPlayer_ExpectCostShouldBeDeleted(t *testing.T) {
+	repo, conn, tx := newTestBuildingActionRepositoryAndTransaction(t)
+	defer conn.Close(context.Background())
+	action1, planet1 := insertTestBuildingAction(t, conn)
+	insertTestBuildingActionCostForAction(t, conn, action1.Id)
+
+	action2, _ := insertTestBuildingAction(t, conn)
+	cost2, _ := insertTestBuildingActionCostForAction(t, conn, action2.Id)
+
+	err := repo.DeleteForPlayer(context.Background(), tx, planet1.Player)
+	tx.Close(context.Background())
+
+	assert.Nil(t, err)
+	assertBuildingActionDoesNotExist(t, conn, action1.Id)
+	assertBuildingActionCostDoesNotExist(t, conn, action1.Id)
+	assertBuildingActionCostForResource(t, conn, action2.Id, cost2.Resource, cost2.Amount)
+}
+
+func TestIT_BuildingActionRepository_CreationDeletionWorkflow(t *testing.T) {
+	repo, conn := newTestBuildingActionRepository(t)
+	defer conn.Close(context.Background())
+
+	planet, _, _ := insertTestPlanetForPlayer(t, conn)
+	building := insertTestBuilding(t, conn)
+
+	action := persistence.BuildingAction{
+		Id:           uuid.New(),
+		Planet:       planet.Id,
+		Building:     building.Id,
+		CurrentLevel: 26,
+		DesiredLevel: 27,
+		CreatedAt:    time.Date(2024, 12, 7, 20, 26, 47, 0, time.UTC),
+		CompletedAt:  time.Date(2024, 12, 7, 21, 26, 47, 0, time.UTC),
+	}
+
+	func() {
+		tx, err := conn.BeginTx(context.Background())
+		require.Nil(t, err)
+
+		defer tx.Close(context.Background())
+
+		_, err = repo.Create(context.Background(), tx, action)
+		require.Nil(t, err)
+	}()
+
+	func() {
+		tx, err := conn.BeginTx(context.Background())
+		require.Nil(t, err)
+
+		defer tx.Close(context.Background())
+
+		actionFromDb, err := repo.Get(context.Background(), tx, action.Id)
+		require.Nil(t, err)
+
+		assert.True(t, eassert.EqualsIgnoringFields(action, actionFromDb))
+	}()
+
+	func() {
+		tx, err := conn.BeginTx(context.Background())
+		require.Nil(t, err)
+
+		defer tx.Close(context.Background())
+
+		err = repo.Delete(context.Background(), tx, action.Id)
+		require.Nil(t, err)
+	}()
+
+	assertBuildingActionDoesNotExist(t, conn, action.Id)
+}
+
+func newTestBuildingActionRepository(t *testing.T) (BuildingActionRepository, db.Connection) {
+	conn := newTestConnection(t)
+	return NewBuildingActionRepository(), conn
+}
+
+func newTestBuildingActionRepositoryAndTransaction(t *testing.T) (BuildingActionRepository, db.Connection, db.Transaction) {
+	repo, conn := newTestBuildingActionRepository(t)
+	tx, err := conn.BeginTx(context.Background())
+	require.Nil(t, err)
+	return repo, conn, tx
+}
+
+func insertTestBuildingAction(t *testing.T, conn db.Connection) (persistence.BuildingAction, persistence.Planet) {
+	someTime := time.Date(2024, 12, 7, 20, 8, 48, 0, time.UTC)
+
+	planet, _, _ := insertTestPlanetForPlayer(t, conn)
+	building := insertTestBuilding(t, conn)
+
+	action := persistence.BuildingAction{
+		Id:           uuid.New(),
+		Planet:       planet.Id,
+		Building:     building.Id,
+		CurrentLevel: 4,
+		DesiredLevel: 5,
+		CreatedAt:    someTime,
+		CompletedAt:  someTime.Add(1*time.Hour + 2*time.Minute),
+	}
+
+	sqlQuery := `INSERT INTO building_action (id, planet, building, current_level, desired_level, created_at, completed_at) VALUES ($1, $2, $3, $4, $5, $6, $7)`
+	_, err := conn.Exec(
+		context.Background(),
+		sqlQuery,
+		action.Id,
+		action.Planet,
+		action.Building,
+		action.CurrentLevel,
+		action.DesiredLevel,
+		action.CreatedAt,
+		action.CompletedAt,
+	)
+	require.Nil(t, err)
+
+	return action, planet
+}
+
+func assertBuildingActionExists(t *testing.T, conn db.Connection, action uuid.UUID) {
+	sqlQuery := `SELECT COUNT(*) FROM building_action WHERE id = $1`
+	value, err := db.QueryOne[int](context.Background(), conn, sqlQuery, action)
+	require.Nil(t, err)
+	require.Equal(t, 1, value)
+}
+
+func assertBuildingActionDoesNotExist(t *testing.T, conn db.Connection, action uuid.UUID) {
+	sqlQuery := `SELECT COUNT(*) FROM building_action WHERE id = $1`
+	value, err := db.QueryOne[int](context.Background(), conn, sqlQuery, action)
+	require.Nil(t, err)
+	require.Zero(t, value)
 }

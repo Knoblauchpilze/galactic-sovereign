@@ -3,9 +3,9 @@ package service
 import (
 	"context"
 
+	"github.com/KnoblauchPilze/backend-toolkit/pkg/db"
 	"github.com/KnoblauchPilze/backend-toolkit/pkg/errors"
 	"github.com/KnoblauchPilze/galactic-sovereign/pkg/communication"
-	"github.com/KnoblauchPilze/galactic-sovereign/pkg/db"
 	"github.com/KnoblauchPilze/galactic-sovereign/pkg/game"
 	"github.com/KnoblauchPilze/galactic-sovereign/pkg/persistence"
 	"github.com/KnoblauchPilze/galactic-sovereign/pkg/repositories"
@@ -21,7 +21,7 @@ type buildingActionCompletionTimeConsolidator func(action persistence.BuildingAc
 type buildingActionValidator func(action persistence.BuildingAction, resources []persistence.PlanetResource, buildings []persistence.PlanetBuilding, costs []persistence.BuildingActionCost) error
 
 type buildingActionServiceImpl struct {
-	conn db.ConnectionPool
+	conn db.Connection
 
 	completionTimeConsolidator buildingActionCompletionTimeConsolidator
 	validator                  buildingActionValidator
@@ -36,11 +36,15 @@ type buildingActionServiceImpl struct {
 	buildingActionResourceProductionRepo repositories.BuildingActionResourceProductionRepository
 }
 
-func NewBuildingActionService(conn db.ConnectionPool, repos repositories.Repositories) BuildingActionService {
-	return newBuildingActionService(conn, repos, game.ConsolidateBuildingActionCompletionTime, game.ValidateBuildingAction)
+func NewBuildingActionService(conn db.Connection, repos repositories.Repositories) BuildingActionService {
+	return newBuildingActionServiceWithCompletionTime(conn, repos, game.ConsolidateBuildingActionCompletionTime)
 }
 
-func newBuildingActionService(conn db.ConnectionPool, repos repositories.Repositories, completionTimeConsolidator buildingActionCompletionTimeConsolidator, validator buildingActionValidator) BuildingActionService {
+func newBuildingActionServiceWithCompletionTime(conn db.Connection, repos repositories.Repositories, completionTimeConsolidator buildingActionCompletionTimeConsolidator) BuildingActionService {
+	return newBuildingActionService(conn, repos, completionTimeConsolidator, game.ValidateBuildingAction)
+}
+
+func newBuildingActionService(conn db.Connection, repos repositories.Repositories, completionTimeConsolidator buildingActionCompletionTimeConsolidator, validator buildingActionValidator) BuildingActionService {
 	return &buildingActionServiceImpl{
 		conn: conn,
 
@@ -61,7 +65,7 @@ func newBuildingActionService(conn db.ConnectionPool, repos repositories.Reposit
 func (s *buildingActionServiceImpl) Create(ctx context.Context, actionDto communication.BuildingActionDtoRequest) (communication.BuildingActionDtoResponse, error) {
 	action := communication.FromBuildingActionDtoRequest(actionDto)
 
-	tx, err := s.conn.StartTransaction(ctx)
+	tx, err := s.conn.BeginTx(ctx)
 	if err != nil {
 		return communication.BuildingActionDtoResponse{}, err
 	}
@@ -92,7 +96,7 @@ func (s *buildingActionServiceImpl) Create(ctx context.Context, actionDto commun
 }
 
 func (s *buildingActionServiceImpl) Delete(ctx context.Context, id uuid.UUID) error {
-	tx, err := s.conn.StartTransaction(ctx)
+	tx, err := s.conn.BeginTx(ctx)
 	if err != nil {
 		return err
 	}
@@ -118,16 +122,6 @@ func (s *buildingActionServiceImpl) Delete(ctx context.Context, id uuid.UUID) er
 	}
 
 	err = updatePlanetResourceWithCosts(ctx, tx, s.planetResourceRepo, planetResources, costs, addResource)
-	if err != nil {
-		return err
-	}
-
-	err = s.buildingActionResourceProductionRepo.DeleteForAction(ctx, tx, id)
-	if err != nil {
-		return err
-	}
-
-	err = s.buildingActionCostRepo.DeleteForAction(ctx, tx, id)
 	if err != nil {
 		return err
 	}

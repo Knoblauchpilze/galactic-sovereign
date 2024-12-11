@@ -3,8 +3,8 @@ package service
 import (
 	"context"
 
+	"github.com/KnoblauchPilze/backend-toolkit/pkg/db"
 	"github.com/KnoblauchPilze/galactic-sovereign/pkg/communication"
-	"github.com/KnoblauchPilze/galactic-sovereign/pkg/db"
 	"github.com/KnoblauchPilze/galactic-sovereign/pkg/repositories"
 	"github.com/google/uuid"
 )
@@ -18,36 +18,32 @@ type PlanetService interface {
 }
 
 type planetServiceImpl struct {
-	conn db.ConnectionPool
+	conn db.Connection
 
-	planetBuildingRepo                   repositories.PlanetBuildingRepository
-	planetRepo                           repositories.PlanetRepository
-	planetResourceRepo                   repositories.PlanetResourceRepository
-	planetResourceProductionRepo         repositories.PlanetResourceProductionRepository
-	planetResourceStorageRepo            repositories.PlanetResourceStorageRepository
-	buildingActionRepo                   repositories.BuildingActionRepository
-	buildingActionCostRepo               repositories.BuildingActionCostRepository
-	buildingActionResourceProductionRepo repositories.BuildingActionResourceProductionRepository
+	planetRepo                   repositories.PlanetRepository
+	planetBuildingRepo           repositories.PlanetBuildingRepository
+	planetResourceRepo           repositories.PlanetResourceRepository
+	planetResourceProductionRepo repositories.PlanetResourceProductionRepository
+	planetResourceStorageRepo    repositories.PlanetResourceStorageRepository
+	buildingActionRepo           repositories.BuildingActionRepository
 }
 
-func NewPlanetService(conn db.ConnectionPool, repos repositories.Repositories) PlanetService {
+func NewPlanetService(conn db.Connection, repos repositories.Repositories) PlanetService {
 	return &planetServiceImpl{
-		conn:                                 conn,
-		planetBuildingRepo:                   repos.PlanetBuilding,
-		planetRepo:                           repos.Planet,
-		planetResourceRepo:                   repos.PlanetResource,
-		planetResourceProductionRepo:         repos.PlanetResourceProduction,
-		planetResourceStorageRepo:            repos.PlanetResourceStorage,
-		buildingActionRepo:                   repos.BuildingAction,
-		buildingActionCostRepo:               repos.BuildingActionCost,
-		buildingActionResourceProductionRepo: repos.BuildingActionResourceProduction,
+		conn:                         conn,
+		planetRepo:                   repos.Planet,
+		planetBuildingRepo:           repos.PlanetBuilding,
+		planetResourceRepo:           repos.PlanetResource,
+		planetResourceProductionRepo: repos.PlanetResourceProduction,
+		planetResourceStorageRepo:    repos.PlanetResourceStorage,
+		buildingActionRepo:           repos.BuildingAction,
 	}
 }
 
 func (s *planetServiceImpl) Create(ctx context.Context, planetDto communication.PlanetDtoRequest) (communication.PlanetDtoResponse, error) {
 	planet := communication.FromPlanetDtoRequest(planetDto)
 
-	tx, err := s.conn.StartTransaction(ctx)
+	tx, err := s.conn.BeginTx(ctx)
 	if err != nil {
 		return communication.PlanetDtoResponse{}, err
 	}
@@ -63,7 +59,7 @@ func (s *planetServiceImpl) Create(ctx context.Context, planetDto communication.
 }
 
 func (s *planetServiceImpl) Get(ctx context.Context, id uuid.UUID) (communication.FullPlanetDtoResponse, error) {
-	tx, err := s.conn.StartTransaction(ctx)
+	tx, err := s.conn.BeginTx(ctx)
 	if err != nil {
 		return communication.FullPlanetDtoResponse{}, err
 	}
@@ -105,7 +101,7 @@ func (s *planetServiceImpl) Get(ctx context.Context, id uuid.UUID) (communicatio
 }
 
 func (s *planetServiceImpl) List(ctx context.Context) ([]communication.PlanetDtoResponse, error) {
-	tx, err := s.conn.StartTransaction(ctx)
+	tx, err := s.conn.BeginTx(ctx)
 	if err != nil {
 		return []communication.PlanetDtoResponse{}, err
 	}
@@ -126,7 +122,7 @@ func (s *planetServiceImpl) List(ctx context.Context) ([]communication.PlanetDto
 }
 
 func (s *planetServiceImpl) ListForPlayer(ctx context.Context, player uuid.UUID) ([]communication.PlanetDtoResponse, error) {
-	tx, err := s.conn.StartTransaction(ctx)
+	tx, err := s.conn.BeginTx(ctx)
 	if err != nil {
 		return []communication.PlanetDtoResponse{}, err
 	}
@@ -147,43 +143,13 @@ func (s *planetServiceImpl) ListForPlayer(ctx context.Context, player uuid.UUID)
 }
 
 func (s *planetServiceImpl) Delete(ctx context.Context, id uuid.UUID) error {
-	tx, err := s.conn.StartTransaction(ctx)
+	tx, err := s.conn.BeginTx(ctx)
 	if err != nil {
 		return err
 	}
 	defer tx.Close(ctx)
 
-	err = s.buildingActionResourceProductionRepo.DeleteForPlanet(ctx, tx, id)
-	if err != nil {
-		return err
-	}
-
-	err = s.buildingActionCostRepo.DeleteForPlanet(ctx, tx, id)
-	if err != nil {
-		return err
-	}
-
 	err = s.buildingActionRepo.DeleteForPlanet(ctx, tx, id)
-	if err != nil {
-		return err
-	}
-
-	err = s.planetBuildingRepo.DeleteForPlanet(ctx, tx, id)
-	if err != nil {
-		return err
-	}
-
-	err = s.planetResourceStorageRepo.DeleteForPlanet(ctx, tx, id)
-	if err != nil {
-		return err
-	}
-
-	err = s.planetResourceProductionRepo.DeleteForPlanet(ctx, tx, id)
-	if err != nil {
-		return err
-	}
-
-	err = s.planetResourceRepo.DeleteForPlanet(ctx, tx, id)
 	if err != nil {
 		return err
 	}

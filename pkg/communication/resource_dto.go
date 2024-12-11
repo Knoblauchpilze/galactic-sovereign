@@ -10,6 +10,7 @@ import (
 type ResourceDtoResponse struct {
 	Id   uuid.UUID `json:"id"`
 	Name string    `json:"name"`
+	// TODO: Should include start_production and other props
 
 	CreatedAt time.Time `json:"createdAt"`
 }

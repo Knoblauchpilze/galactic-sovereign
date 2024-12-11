@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/KnoblauchPilze/galactic-sovereign/pkg/db"
+	"github.com/KnoblauchPilze/backend-toolkit/pkg/db"
 	"github.com/KnoblauchPilze/galactic-sovereign/pkg/repositories"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
@@ -17,8 +17,8 @@ func TestUnit_PlanetResourceService(t *testing.T) {
 
 		repositoryInteractionTestCases: map[string]repositoryInteractionTestCase{
 			"whenUpdatingPlanetResources_expectPlanetResourcesChangedWithCorrectValues": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewPlanetResourceService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewPlanetResourceService(conn, repos)
 					threeMinutesAfterUpdatedAt := defaultPlanetResource.UpdatedAt.Add(3 * time.Minute)
 					return s.UpdatePlanetUntil(ctx, defaultPlanetId, threeMinutesAfterUpdatedAt)
 				},
@@ -52,8 +52,8 @@ func TestUnit_PlanetResourceService(t *testing.T) {
 
 					return repos
 				},
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewPlanetResourceService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewPlanetResourceService(conn, repos)
 					threeMinutesAfterUpdatedAt := defaultPlanetResource.UpdatedAt.Add(3 * time.Minute)
 					return s.UpdatePlanetUntil(ctx, defaultPlanetId, threeMinutesAfterUpdatedAt)
 				},
@@ -98,8 +98,8 @@ func TestUnit_PlanetResourceService(t *testing.T) {
 
 					return repos
 				},
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewPlanetResourceService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewPlanetResourceService(conn, repos)
 					threeMinutesAfterUpdatedAt := defaultPlanetResource.UpdatedAt.Add(3 * time.Minute)
 					return s.UpdatePlanetUntil(ctx, defaultPlanetId, threeMinutesAfterUpdatedAt)
 				},
@@ -124,8 +124,8 @@ func TestUnit_PlanetResourceService(t *testing.T) {
 
 		transactionTestCases: map[string]transactionTestCase{
 			"updatePlanetUntil": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewPlanetResourceService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewPlanetResourceService(conn, repos)
 					return s.UpdatePlanetUntil(ctx, defaultPlanetId, someTime)
 				},
 			},
@@ -133,27 +133,27 @@ func TestUnit_PlanetResourceService(t *testing.T) {
 
 		transactionInteractionTestCases: map[string]transactionInteractionTestCase{
 			"whenUpdatingPlanetResources_createsATransactionAndClosesIt": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewPlanetResourceService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewPlanetResourceService(conn, repos)
 					return s.UpdatePlanetUntil(ctx, defaultPlanetId, someTime)
 				},
-				verifyInteractions: func(pool db.ConnectionPool, assert *require.Assertions) {
-					m := assertConnectionPoolIsAMock(pool, assert)
+				verifyInteractions: func(conn db.Connection, assert *require.Assertions) {
+					m := assertConnectionIsAMock(conn, assert)
 
 					assert.Equal(1, len(m.txs))
 					assert.Equal(1, m.txs[0].closeCalled)
 				},
 			},
 			"whenUpdatingPlanetResources_whenFailureToCreateTransaction_expectPlanetResourcesNotUpdated": {
-				generateConnectionPoolMock: func() db.ConnectionPool {
-					return &mockConnectionPool{
+				generateConnectionMock: func() db.Connection {
+					return &mockConnection{
 						errs: []error{
 							errDefault,
 						},
 					}
 				},
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewPlanetResourceService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewPlanetResourceService(conn, repos)
 					return s.UpdatePlanetUntil(ctx, defaultPlanetId, someTime)
 				},
 				expectedError: errDefault,

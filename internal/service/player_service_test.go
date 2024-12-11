@@ -2,13 +2,17 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"testing"
+	"time"
 
+	"github.com/KnoblauchPilze/backend-toolkit/pkg/db"
+	eassert "github.com/KnoblauchPilze/easy-assert/assert"
 	"github.com/KnoblauchPilze/galactic-sovereign/pkg/communication"
-	"github.com/KnoblauchPilze/galactic-sovereign/pkg/db"
 	"github.com/KnoblauchPilze/galactic-sovereign/pkg/persistence"
 	"github.com/KnoblauchPilze/galactic-sovereign/pkg/repositories"
 	"github.com/google/uuid"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 )
@@ -39,8 +43,8 @@ func TestUnit_PlayerService(t *testing.T) {
 
 		repositoryInteractionTestCases: map[string]repositoryInteractionTestCase{
 			"create": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewPlayerService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewPlayerService(conn, repos)
 					_, err := s.Create(ctx, defaultPlayerDtoRequest)
 					return err
 				},
@@ -55,8 +59,8 @@ func TestUnit_PlayerService(t *testing.T) {
 				},
 			},
 			"create_createPlanet": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewPlayerService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewPlayerService(conn, repos)
 					_, err := s.Create(ctx, defaultPlayerDtoRequest)
 					return err
 				},
@@ -71,8 +75,8 @@ func TestUnit_PlayerService(t *testing.T) {
 			},
 			"create_playerRepositoryFails": {
 				generateRepositoriesMocks: generateErrorPlayerServiceMocks,
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewPlayerService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewPlayerService(conn, repos)
 					_, err := s.Create(ctx, defaultPlayerDtoRequest)
 					return err
 				},
@@ -87,16 +91,16 @@ func TestUnit_PlayerService(t *testing.T) {
 						Player: &mockPlayerRepository{},
 					}
 				},
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewPlayerService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewPlayerService(conn, repos)
 					_, err := s.Create(ctx, defaultPlayerDtoRequest)
 					return err
 				},
 				expectedError: errDefault,
 			},
 			"get": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewPlayerService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewPlayerService(conn, repos)
 					_, err := s.Get(ctx, defaultPlayerId)
 					return err
 				},
@@ -110,16 +114,16 @@ func TestUnit_PlayerService(t *testing.T) {
 			},
 			"get_repositoryFails": {
 				generateRepositoriesMocks: generateErrorPlayerServiceMocks,
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewPlayerService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewPlayerService(conn, repos)
 					_, err := s.Get(ctx, defaultPlayerId)
 					return err
 				},
 				expectedError: errDefault,
 			},
 			"list": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewPlayerService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewPlayerService(conn, repos)
 					_, err := s.List(ctx)
 					return err
 				},
@@ -132,16 +136,16 @@ func TestUnit_PlayerService(t *testing.T) {
 			},
 			"list_repositoryFails": {
 				generateRepositoriesMocks: generateErrorPlayerServiceMocks,
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewPlayerService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewPlayerService(conn, repos)
 					_, err := s.List(ctx)
 					return err
 				},
 				expectedError: errDefault,
 			},
 			"listForApiUser": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewPlayerService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewPlayerService(conn, repos)
 					_, err := s.ListForApiUser(ctx, defaultUserId)
 					return err
 				},
@@ -155,16 +159,16 @@ func TestUnit_PlayerService(t *testing.T) {
 			},
 			"listForApiUser_repositoryFails": {
 				generateRepositoriesMocks: generateErrorPlayerServiceMocks,
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewPlayerService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewPlayerService(conn, repos)
 					_, err := s.ListForApiUser(ctx, defaultUserId)
 					return err
 				},
 				expectedError: errDefault,
 			},
 			"delete": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewPlayerService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewPlayerService(conn, repos)
 					return s.Delete(ctx, defaultPlayerId)
 				},
 
@@ -177,8 +181,8 @@ func TestUnit_PlayerService(t *testing.T) {
 			},
 			"delete_repositoryFails": {
 				generateRepositoriesMocks: generateErrorPlayerServiceMocks,
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewPlayerService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewPlayerService(conn, repos)
 					return s.Delete(ctx, defaultPlayerId)
 				},
 				expectedError: errDefault,
@@ -187,8 +191,8 @@ func TestUnit_PlayerService(t *testing.T) {
 
 		returnTestCases: map[string]returnTestCase{
 			"create": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) interface{} {
-					s := NewPlayerService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) interface{} {
+					s := NewPlayerService(conn, repos)
 					out, _ := s.Create(ctx, defaultPlayerDtoRequest)
 					return out
 				},
@@ -203,8 +207,8 @@ func TestUnit_PlayerService(t *testing.T) {
 				},
 			},
 			"get": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) interface{} {
-					s := NewPlayerService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) interface{} {
+					s := NewPlayerService(conn, repos)
 					out, _ := s.Get(ctx, defaultPlayerId)
 					return out
 				},
@@ -219,8 +223,8 @@ func TestUnit_PlayerService(t *testing.T) {
 				},
 			},
 			"list": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) interface{} {
-					s := NewPlayerService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) interface{} {
+					s := NewPlayerService(conn, repos)
 					out, _ := s.List(ctx)
 					return out
 				},
@@ -237,8 +241,8 @@ func TestUnit_PlayerService(t *testing.T) {
 				},
 			},
 			"listForApiUser": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) interface{} {
-					s := NewPlayerService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) interface{} {
+					s := NewPlayerService(conn, repos)
 					out, _ := s.ListForApiUser(ctx, defaultUserId)
 					return out
 				},
@@ -258,15 +262,15 @@ func TestUnit_PlayerService(t *testing.T) {
 
 		transactionTestCases: map[string]transactionTestCase{
 			"create": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewPlayerService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewPlayerService(conn, repos)
 					_, err := s.Create(ctx, defaultPlayerDtoRequest)
 					return err
 				},
 			},
 			"delete": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewPlayerService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewPlayerService(conn, repos)
 					return s.Delete(ctx, defaultPlayerId)
 				},
 			},
@@ -278,6 +282,9 @@ func TestUnit_PlayerService(t *testing.T) {
 
 func generatePlayerServiceMocks() repositories.Repositories {
 	return repositories.Repositories{
+		BuildingAction: &mockBuildingActionRepository{
+			action: defaultBuildingAction,
+		},
 		Planet: &mockPlanetRepository{
 			planet: defaultPlanet,
 		},
@@ -289,6 +296,8 @@ func generatePlayerServiceMocks() repositories.Repositories {
 
 func generateErrorPlayerServiceMocks() repositories.Repositories {
 	return repositories.Repositories{
+		BuildingAction: &mockBuildingActionRepository{},
+		Planet:         &mockPlanetRepository{},
 		Player: &mockPlayerRepository{
 			err: errDefault,
 		},
@@ -301,4 +310,169 @@ func assertPlayerRepoIsAMock(repos repositories.Repositories, assert *require.As
 		assert.Fail("Provided player repository is not a mock")
 	}
 	return m
+}
+
+func TestIT_PlayerService_Create_ExpectHomeworldRegisteredForPlayer(t *testing.T) {
+	conn := newTestConnection(t)
+	defer conn.Close(context.Background())
+	repos := repositories.Repositories{
+		Planet: repositories.NewPlanetRepository(conn),
+		Player: repositories.NewPlayerRepository(conn),
+	}
+	universe := insertTestUniverse(t, conn)
+
+	service := NewPlayerService(conn, repos)
+
+	var err error
+	var playerResponse communication.PlayerDtoResponse
+	func() {
+		playerRequest := communication.PlayerDtoRequest{
+			ApiUser:  uuid.New(),
+			Universe: universe.Id,
+			Name:     fmt.Sprintf("my-player-%s", uuid.NewString()),
+		}
+
+		playerResponse, err = service.Create(context.Background(), playerRequest)
+		require.Nil(t, err)
+	}()
+
+	assertHomeworldExistsForPlayer(t, conn, playerResponse.Id)
+}
+
+func TestIT_PlayerService_Delete_ExpectBuildingActionToBeDeleted(t *testing.T) {
+	conn := newTestConnection(t)
+	defer conn.Close(context.Background())
+	repos := repositories.Repositories{
+		Planet:         repositories.NewPlanetRepository(conn),
+		Player:         repositories.NewPlayerRepository(conn),
+		BuildingAction: repositories.NewBuildingActionRepository(),
+	}
+	universe := insertTestUniverse(t, conn)
+
+	service := NewPlayerService(conn, repos)
+
+	playerRequest := communication.PlayerDtoRequest{
+		ApiUser:  uuid.New(),
+		Universe: universe.Id,
+		Name:     fmt.Sprintf("my-player-%s", uuid.NewString()),
+	}
+
+	var err error
+	var playerResponse communication.PlayerDtoResponse
+	func() {
+		playerResponse, err = service.Create(context.Background(), playerRequest)
+		require.Nil(t, err)
+	}()
+
+	planet := getHomeworldForPlayer(t, conn, playerResponse.Id)
+	action, _ := insertTestBuildingActionForPlanet(t, conn, planet)
+
+	func() {
+		err = service.Delete(context.Background(), playerResponse.Id)
+		require.Nil(t, err)
+	}()
+
+	assertPlayerDoesNotExist(t, conn, playerResponse.Id)
+	assertHomeworldDoesNotExistForPlayer(t, conn, playerResponse.Id)
+	assertBuildingActionDoesNotExist(t, conn, action.Id)
+}
+
+func TestIT_PlayerService_CreationDeletionWorkflow(t *testing.T) {
+	conn := newTestConnection(t)
+	defer conn.Close(context.Background())
+	repos := repositories.Repositories{
+		Planet:         repositories.NewPlanetRepository(conn),
+		Player:         repositories.NewPlayerRepository(conn),
+		BuildingAction: repositories.NewBuildingActionRepository(),
+	}
+	universe := insertTestUniverse(t, conn)
+
+	service := NewPlayerService(conn, repos)
+
+	playerRequest := communication.PlayerDtoRequest{
+		ApiUser:  uuid.New(),
+		Universe: universe.Id,
+		Name:     fmt.Sprintf("my-player-%s", uuid.NewString()),
+	}
+
+	beforeCreation := time.Now()
+	// Make sure that there's a bit of time between the creation and this timestamp
+	time.Sleep(100 * time.Millisecond)
+
+	var err error
+	var playerResponse communication.PlayerDtoResponse
+	func() {
+		playerResponse, err = service.Create(context.Background(), playerRequest)
+		require.Nil(t, err)
+	}()
+
+	assertPlayerExists(t, conn, playerResponse.Id)
+	expected := communication.PlayerDtoResponse{
+		ApiUser:  playerRequest.ApiUser,
+		Universe: playerRequest.Universe,
+		Name:     playerRequest.Name,
+	}
+	assert.True(t, eassert.EqualsIgnoringFields(playerResponse, expected, "Id", "CreatedAt"))
+	assert.True(t, playerResponse.CreatedAt.After(beforeCreation))
+
+	func() {
+		playerFromDb, err := service.Get(context.Background(), playerResponse.Id)
+		require.Nil(t, err)
+
+		assert.True(t, eassert.EqualsIgnoringFields(playerFromDb, playerResponse, "CreatedAt"))
+		assert.True(t, eassert.AreTimeCloserThan(
+			playerFromDb.CreatedAt,
+			playerResponse.CreatedAt,
+			1*time.Second,
+		))
+		assert.True(t, playerFromDb.CreatedAt.After(beforeCreation), "actual: %v, expected: %v", playerFromDb.CreatedAt, beforeCreation)
+	}()
+
+	func() {
+		err = service.Delete(context.Background(), playerResponse.Id)
+		require.Nil(t, err)
+	}()
+
+	assertPlayerDoesNotExist(t, conn, playerResponse.Id)
+	assertHomeworldDoesNotExistForPlayer(t, conn, playerResponse.Id)
+}
+
+func assertPlayerExists(t *testing.T, conn db.Connection, id uuid.UUID) {
+	sqlQuery := `SELECT id FROM player WHERE id = $1`
+	value, err := db.QueryOne[uuid.UUID](context.Background(), conn, sqlQuery, id)
+	require.Nil(t, err)
+	require.Equal(t, id, value)
+}
+
+func assertPlayerDoesNotExist(t *testing.T, conn db.Connection, id uuid.UUID) {
+	sqlQuery := `SELECT COUNT(id) FROM player WHERE id = $1`
+	value, err := db.QueryOne[int](context.Background(), conn, sqlQuery, id)
+	require.Nil(t, err)
+	require.Zero(t, value)
+}
+
+func assertHomeworldExistsForPlayer(t *testing.T, conn db.Connection, player uuid.UUID) {
+	sqlQuery := `SELECT COUNT(id) FROM planet WHERE player = $1`
+	value, err := db.QueryOne[int](context.Background(), conn, sqlQuery, player)
+	require.Nil(t, err)
+	require.Equal(t, 1, value)
+
+	sqlQuery = `SELECT COUNT(planet) FROM homeworld WHERE player = $1`
+	value, err = db.QueryOne[int](context.Background(), conn, sqlQuery, player)
+	require.Nil(t, err)
+	require.Equal(t, 1, value)
+}
+
+func assertHomeworldDoesNotExistForPlayer(t *testing.T, conn db.Connection, player uuid.UUID) {
+	sqlQuery := `SELECT COUNT(planet) FROM homeworld WHERE player = $1`
+	value, err := db.QueryOne[int](context.Background(), conn, sqlQuery, player)
+	require.Nil(t, err)
+	require.Zero(t, value)
+}
+
+func getHomeworldForPlayer(t *testing.T, conn db.Connection, player uuid.UUID) uuid.UUID {
+	sqlQuery := `SELECT planet FROM homeworld WHERE player = $1`
+	planet, err := db.QueryOne[uuid.UUID](context.Background(), conn, sqlQuery, player)
+	require.Nil(t, err)
+	return planet
 }

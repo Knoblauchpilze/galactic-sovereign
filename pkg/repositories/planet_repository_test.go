@@ -2,559 +2,614 @@ package repositories
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
+	"github.com/KnoblauchPilze/backend-toolkit/pkg/db"
+	"github.com/KnoblauchPilze/backend-toolkit/pkg/db/pgx"
 	"github.com/KnoblauchPilze/backend-toolkit/pkg/errors"
-	"github.com/KnoblauchPilze/galactic-sovereign/pkg/db"
+	eassert "github.com/KnoblauchPilze/easy-assert/assert"
 	"github.com/KnoblauchPilze/galactic-sovereign/pkg/persistence"
 	"github.com/google/uuid"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/stretchr/testify/suite"
 )
 
-var defaultPlanetId = uuid.MustParse("0a05c1be-3235-48d6-b0e2-849b8664a515")
-var defaultPlanetName = "my-planet"
-var defaultPlanet = persistence.Planet{
-	Id:        defaultPlanetId,
-	Player:    defaultPlayerId,
-	Name:      defaultPlanetName,
-	Homeworld: true,
-	CreatedAt: time.Date(2024, 7, 9, 20, 11, 21, 651387230, time.UTC),
-	UpdatedAt: time.Date(2024, 7, 9, 20, 11, 21, 651387230, time.UTC),
-}
+func TestIT_PlanetRespository_Create(t *testing.T) {
+	repo, conn, tx := newTestPlanetRepositoryAndTransaction(t)
+	defer conn.Close(context.Background())
 
-func TestUnit_PlanetRepository_Transaction(t *testing.T) {
-	dummyStr := ""
-	dummyBool := false
+	player, _ := insertTestPlayerInUniverse(t, conn)
 
-	s := RepositoryTransactionTestSuite{
-		dbInteractionTestCases: map[string]dbTransactionInteractionTestCase{
-			"create": {
-				sqlMode: ExecBased,
-				handler: func(ctx context.Context, tx db.Transaction) error {
-					s := NewPlanetRepository(&mockConnectionPool{})
-
-					planet := persistence.Planet{
-						Id:        defaultPlanet.Id,
-						Player:    defaultPlanet.Player,
-						Name:      defaultPlanet.Name,
-						Homeworld: false,
-						CreatedAt: defaultPlanet.CreatedAt,
-						UpdatedAt: defaultPlanet.UpdatedAt,
-					}
-
-					_, err := s.Create(ctx, tx, planet)
-					return err
-				},
-				expectedSqlQueries: []string{
-					`INSERT INTO planet (id, player, name, created_at) VALUES($1, $2, $3, $4)`,
-					`
-INSERT INTO
-	planet_resource (planet, resource, amount, created_at)
-SELECT
-	$1,
-	id,
-	start_amount,
-	$2
-FROM
-	resource
-`,
-					`
-INSERT INTO
-	planet_resource_production (planet, resource, production, created_at)
-SELECT
-	$1,
-	id,
-	start_production,
-	$2
-FROM
-	resource
-`,
-					`
-INSERT INTO
-	planet_resource_storage (planet, resource, storage, created_at)
-SELECT
-	$1,
-	id,
-	start_storage,
-	$2
-FROM
-	resource
-`,
-					`
-INSERT INTO
-	planet_building (planet, building, level, created_at)
-SELECT
-	$1,
-	id,
-	0,
-	$2
-FROM
-	building
-`,
-				},
-				expectedArguments: [][]interface{}{
-					{
-						defaultPlanet.Id,
-						defaultPlanet.Player,
-						defaultPlanet.Name,
-						defaultPlanet.CreatedAt,
-					},
-					{
-						defaultPlanet.Id,
-						defaultPlanet.CreatedAt,
-					},
-					{
-						defaultPlanet.Id,
-						defaultPlanet.CreatedAt,
-					},
-					{
-						defaultPlanet.Id,
-						defaultPlanet.CreatedAt,
-					},
-					{
-						defaultPlanet.Id,
-						defaultPlanet.CreatedAt,
-					},
-				},
-			},
-			"create_homeworld": {
-				sqlMode: ExecBased,
-				handler: func(ctx context.Context, tx db.Transaction) error {
-					s := NewPlanetRepository(&mockConnectionPool{})
-					_, err := s.Create(ctx, tx, defaultPlanet)
-					return err
-				},
-				expectedSqlQueries: []string{
-					`INSERT INTO planet (id, player, name, created_at) VALUES($1, $2, $3, $4)`,
-					`INSERT INTO homeworld (player, planet) VALUES($1, $2)`,
-					`
-INSERT INTO
-	planet_resource (planet, resource, amount, created_at)
-SELECT
-	$1,
-	id,
-	start_amount,
-	$2
-FROM
-	resource
-`,
-					`
-INSERT INTO
-	planet_resource_production (planet, resource, production, created_at)
-SELECT
-	$1,
-	id,
-	start_production,
-	$2
-FROM
-	resource
-`,
-					`
-INSERT INTO
-	planet_resource_storage (planet, resource, storage, created_at)
-SELECT
-	$1,
-	id,
-	start_storage,
-	$2
-FROM
-	resource
-`,
-					`
-INSERT INTO
-	planet_building (planet, building, level, created_at)
-SELECT
-	$1,
-	id,
-	0,
-	$2
-FROM
-	building
-`,
-				},
-				expectedArguments: [][]interface{}{
-					{
-						defaultPlanet.Id,
-						defaultPlanet.Player,
-						defaultPlanet.Name,
-						defaultPlanet.CreatedAt,
-					},
-					{
-						defaultPlanet.Player,
-						defaultPlanet.Id,
-					},
-					{
-						defaultPlanet.Id,
-						defaultPlanet.CreatedAt,
-					},
-					{
-						defaultPlanet.Id,
-						defaultPlanet.CreatedAt,
-					},
-					{
-						defaultPlanet.Id,
-						defaultPlanet.CreatedAt,
-					},
-					{
-						defaultPlanet.Id,
-						defaultPlanet.CreatedAt,
-					},
-				},
-			},
-			"get": {
-				handler: func(ctx context.Context, tx db.Transaction) error {
-					s := NewPlanetRepository(&mockConnectionPool{})
-					_, err := s.Get(ctx, tx, defaultPlanetId)
-					return err
-				},
-				expectedSqlQueries: []string{
-					`
-SELECT
-	p.id,
-	p.player,
-	p.name,
-	CASE
-		WHEN h.planet IS NOT NULL THEN true
-		ELSE false
-	END AS homeworld,
-	p.created_at,
-	p.updated_at
-FROM
-	planet AS p
-	LEFT JOIN homeworld AS h ON h.planet = p.id
-WHERE
-	id = $1
-`,
-				},
-				expectedArguments: [][]interface{}{
-					{
-						defaultPlanetId,
-					},
-				},
-			},
-			"list": {
-				handler: func(ctx context.Context, tx db.Transaction) error {
-					s := NewPlanetRepository(&mockConnectionPool{})
-					_, err := s.List(ctx, tx)
-					return err
-				},
-				expectedSqlQueries: []string{
-					`
-SELECT
-	p.id,
-	p.player,
-	p.name,
-	CASE
-		WHEN h.planet IS NOT NULL THEN true
-		ELSE false
-	END AS homeworld,
-	p.created_at,
-	p.updated_at
-FROM
-	planet AS p
-	LEFT JOIN homeworld AS h ON h.planet = p.id
-`,
-				},
-			},
-			"listForPlayer": {
-				handler: func(ctx context.Context, tx db.Transaction) error {
-					s := NewPlanetRepository(&mockConnectionPool{})
-					_, err := s.ListForPlayer(ctx, tx, defaultPlayerId)
-					return err
-				},
-				expectedSqlQueries: []string{
-					`
-SELECT
-	p.id,
-	p.player,
-	p.name,
-	CASE
-		WHEN h.planet IS NOT NULL THEN true
-		ELSE false
-	END AS homeworld,
-	p.created_at,
-	p.updated_at
-FROM
-	planet AS p
-	LEFT JOIN homeworld AS h ON h.planet = p.id
-WHERE
-	p.player = $1
-`,
-				},
-				expectedArguments: [][]interface{}{
-					{
-						defaultPlayerId,
-					},
-				},
-			},
-			"delete": {
-				sqlMode: ExecBased,
-				generateMock: func() db.Transaction {
-					return &mockTransaction{
-						affectedRows: []int{1, 1},
-					}
-				},
-				handler: func(ctx context.Context, tx db.Transaction) error {
-					s := NewPlanetRepository(&mockConnectionPool{})
-					return s.Delete(ctx, tx, defaultPlanetId)
-				},
-				expectedSqlQueries: []string{
-					`DELETE FROM homeworld WHERE planet = $1`,
-					`DELETE FROM planet WHERE id = $1`,
-				},
-				expectedArguments: [][]interface{}{
-					{
-						defaultPlanetId,
-					},
-					{
-						defaultPlanetId,
-					},
-				},
-			},
-		},
-
-		dbSingleValueTestCases: map[string]dbTransactionSingleValueTestCase{
-			"get": {
-				handler: func(ctx context.Context, tx db.Transaction) error {
-					repo := NewPlanetRepository(&mockConnectionPool{})
-					_, err := repo.Get(ctx, tx, defaultPlanetId)
-					return err
-				},
-				expectedGetSingleValueCalls: 1,
-				expectedScanCalls:           1,
-				expectedScannedProps: [][]interface{}{
-					{
-						&uuid.UUID{},
-						&uuid.UUID{},
-						&dummyStr,
-						&dummyBool,
-						&time.Time{},
-						&time.Time{},
-					},
-				},
-			},
-		},
-
-		dbGetAllTestCases: map[string]dbTransactionGetAllTestCase{
-			"list": {
-				handler: func(ctx context.Context, tx db.Transaction) error {
-					repo := NewPlanetRepository(&mockConnectionPool{})
-					_, err := repo.List(ctx, tx)
-					return err
-				},
-				expectedGetAllCalls: 1,
-				expectedScanCalls:   1,
-				expectedScannedProps: [][]interface{}{
-					{
-						&uuid.UUID{},
-						&uuid.UUID{},
-						&dummyStr,
-						&dummyBool,
-						&time.Time{},
-						&time.Time{},
-					},
-				},
-			},
-			"listForPlayer": {
-				handler: func(ctx context.Context, tx db.Transaction) error {
-					repo := NewPlanetRepository(&mockConnectionPool{})
-					_, err := repo.ListForPlayer(ctx, tx, defaultPlayerId)
-					return err
-				},
-				expectedGetAllCalls: 1,
-				expectedScanCalls:   1,
-				expectedScannedProps: [][]interface{}{
-					{
-						&uuid.UUID{},
-						&uuid.UUID{},
-						&dummyStr,
-						&dummyBool,
-						&time.Time{},
-						&time.Time{},
-					},
-				},
-			},
-		},
-
-		dbReturnTestCases: map[string]dbTransactionReturnTestCase{
-			"create": {
-				handler: func(ctx context.Context, tx db.Transaction) interface{} {
-					s := NewPlanetRepository(&mockConnectionPool{})
-					out, _ := s.Create(ctx, tx, defaultPlanet)
-					return out
-				},
-				expectedContent: defaultPlanet,
-			},
-		},
-
-		dbErrorTestCases: map[string]dbTransactionErrorTestCase{
-			"create_homeworld": {
-				generateMock: func() db.Transaction {
-					return &mockTransaction{
-						execErrs: []error{
-							nil,
-							errDefault,
-						},
-					}
-				},
-				handler: func(ctx context.Context, tx db.Transaction) error {
-					s := NewPlanetRepository(&mockConnectionPool{})
-					_, err := s.Create(ctx, tx, defaultPlanet)
-					return err
-				},
-				expectedError: errDefault,
-			},
-			"create_planetResourceFails": {
-				generateMock: func() db.Transaction {
-					return &mockTransaction{
-						execErrs: []error{
-							nil,
-							nil,
-							errDefault,
-						},
-					}
-				},
-				handler: func(ctx context.Context, tx db.Transaction) error {
-					s := NewPlanetRepository(&mockConnectionPool{})
-					_, err := s.Create(ctx, tx, defaultPlanet)
-					return err
-				},
-				expectedError: errDefault,
-			},
-			"create_planetResourceProductionFails": {
-				generateMock: func() db.Transaction {
-					return &mockTransaction{
-						execErrs: []error{
-							nil,
-							nil,
-							nil,
-							errDefault,
-						},
-					}
-				},
-				handler: func(ctx context.Context, tx db.Transaction) error {
-					s := NewPlanetRepository(&mockConnectionPool{})
-					_, err := s.Create(ctx, tx, defaultPlanet)
-					return err
-				},
-				expectedError: errDefault,
-			},
-			"create_planetResourceStorageFails": {
-				generateMock: func() db.Transaction {
-					return &mockTransaction{
-						execErrs: []error{
-							nil,
-							nil,
-							nil,
-							nil,
-							errDefault,
-						},
-					}
-				},
-				handler: func(ctx context.Context, tx db.Transaction) error {
-					s := NewPlanetRepository(&mockConnectionPool{})
-					_, err := s.Create(ctx, tx, defaultPlanet)
-					return err
-				},
-				expectedError: errDefault,
-			},
-			"create_planetBuildingFails": {
-				generateMock: func() db.Transaction {
-					return &mockTransaction{
-						execErrs: []error{
-							nil,
-							nil,
-							nil,
-							nil,
-							nil,
-							errDefault,
-						},
-					}
-				},
-				handler: func(ctx context.Context, tx db.Transaction) error {
-					s := NewPlanetRepository(&mockConnectionPool{})
-					_, err := s.Create(ctx, tx, defaultPlanet)
-					return err
-				},
-				expectedError: errDefault,
-			},
-			"delete_homeworldFails": {
-				generateMock: func() db.Transaction {
-					return &mockTransaction{
-						execErrs: []error{
-							nil,
-							errDefault,
-						},
-					}
-				},
-				handler: func(ctx context.Context, tx db.Transaction) error {
-					s := NewPlanetRepository(&mockConnectionPool{})
-					return s.Delete(ctx, tx, defaultPlanetId)
-				},
-				verifyError: func(err error, assert *require.Assertions) {
-					assert.Equal(errDefault, err)
-				},
-			},
-			"delete_homeworldNoRowsAffected": {
-				generateMock: func() db.Transaction {
-					return &mockTransaction{
-						affectedRows: []int{0},
-					}
-				},
-				handler: func(ctx context.Context, tx db.Transaction) error {
-					s := NewPlanetRepository(&mockConnectionPool{})
-					return s.Delete(ctx, tx, defaultPlanetId)
-				},
-				verifyError: func(err error, assert *require.Assertions) {
-					assert.True(errors.IsErrorWithCode(err, db.NoMatchingSqlRows))
-				},
-			},
-			"delete_homeworldMoreThanOneRowAffected": {
-				generateMock: func() db.Transaction {
-					return &mockTransaction{
-						affectedRows: []int{2},
-					}
-				},
-				handler: func(ctx context.Context, tx db.Transaction) error {
-					s := NewPlanetRepository(&mockConnectionPool{})
-					return s.Delete(ctx, tx, defaultPlanetId)
-				},
-				verifyError: func(err error, assert *require.Assertions) {
-					assert.True(errors.IsErrorWithCode(err, db.MoreThanOneMatchingSqlRows))
-				},
-			},
-			"delete_noRowsAffected": {
-				generateMock: func() db.Transaction {
-					return &mockTransaction{
-						affectedRows: []int{1, 0},
-					}
-				},
-				handler: func(ctx context.Context, tx db.Transaction) error {
-					s := NewPlanetRepository(&mockConnectionPool{})
-					return s.Delete(ctx, tx, defaultPlanetId)
-				},
-				verifyError: func(err error, assert *require.Assertions) {
-					assert.True(errors.IsErrorWithCode(err, db.NoMatchingSqlRows))
-				},
-			},
-			"delete_moreThanOneRowAffected": {
-				generateMock: func() db.Transaction {
-					return &mockTransaction{
-						affectedRows: []int{1, 2},
-					}
-				},
-				handler: func(ctx context.Context, tx db.Transaction) error {
-					s := NewPlanetRepository(&mockConnectionPool{})
-					return s.Delete(ctx, tx, defaultPlanetId)
-				},
-				verifyError: func(err error, assert *require.Assertions) {
-					assert.True(errors.IsErrorWithCode(err, db.NoMatchingSqlRows))
-				},
-			},
-		},
+	planet := persistence.Planet{
+		Id:        uuid.New(),
+		Player:    player.Id,
+		Name:      fmt.Sprintf("my-planet-%s", uuid.NewString()),
+		Homeworld: false,
+		CreatedAt: time.Date(2024, 11, 30, 14, 48, 47, 0, time.UTC),
 	}
 
-	suite.Run(t, &s)
+	actual, err := repo.Create(context.Background(), tx, planet)
+	tx.Close(context.Background())
+	require.Nil(t, err)
+
+	assert.True(t, eassert.EqualsIgnoringFields(actual, planet, "UpdatedAt"))
+	assert.Equal(t, actual.CreatedAt, actual.UpdatedAt)
+	assertPlanetExists(t, conn, planet.Id)
+}
+
+func TestIT_PlanetRespository_Create_WhenHomeworld_ExpectCorrectlyMarkedAsSuch(t *testing.T) {
+	repo, conn, tx := newTestPlanetRepositoryAndTransaction(t)
+	defer conn.Close(context.Background())
+
+	player, _ := insertTestPlayerInUniverse(t, conn)
+
+	planet := persistence.Planet{
+		Id:        uuid.New(),
+		Player:    player.Id,
+		Name:      fmt.Sprintf("my-planet-%s", uuid.NewString()),
+		Homeworld: true,
+		CreatedAt: time.Date(2024, 11, 30, 14, 51, 57, 0, time.UTC),
+	}
+
+	actual, err := repo.Create(context.Background(), tx, planet)
+	tx.Close(context.Background())
+	require.Nil(t, err)
+
+	assert.True(t, eassert.EqualsIgnoringFields(actual, planet, "UpdatedAt"))
+	assert.Equal(t, actual.CreatedAt, actual.UpdatedAt)
+	assertPlanetIsHomeworld(t, conn, planet)
+}
+
+func TestIT_PlanetRespository_Create_WhenHomeworldAlreadyExists_ExpectFailureWhenAddingANewOne(t *testing.T) {
+	repo, conn, tx := newTestPlanetRepositoryAndTransaction(t)
+	defer conn.Close(context.Background())
+
+	_, player, _ := insertTestHomeworldPlanetForPlayer(t, conn)
+
+	planet := persistence.Planet{
+		Id:        uuid.New(),
+		Player:    player.Id,
+		Name:      fmt.Sprintf("my-planet-%s", uuid.NewString()),
+		Homeworld: true,
+		CreatedAt: time.Date(2024, 11, 30, 14, 57, 49, 0, time.UTC),
+	}
+
+	_, err := repo.Create(context.Background(), tx, planet)
+	tx.Close(context.Background())
+	assert.True(t, errors.IsErrorWithCode(err, pgx.UniqueConstraintViolation), "Actual err: %v", err)
+
+	assertPlanetDoesNotExist(t, conn, planet.Id)
+}
+
+func TestIT_PlanetRepository_Create_RegistersBuildingsForPlanet(t *testing.T) {
+	repo, conn, tx := newTestPlanetRepositoryAndTransaction(t)
+	defer conn.Close(context.Background())
+
+	player, _ := insertTestPlayerInUniverse(t, conn)
+	b1 := insertTestBuilding(t, conn)
+	b2 := insertTestBuilding(t, conn)
+
+	planet := persistence.Planet{
+		Id:        uuid.New(),
+		Player:    player.Id,
+		Name:      fmt.Sprintf("my-planet-%s", uuid.NewString()),
+		Homeworld: false,
+		CreatedAt: time.Date(2024, 11, 30, 15, 12, 53, 0, time.UTC),
+	}
+
+	_, err := repo.Create(context.Background(), tx, planet)
+	tx.Close(context.Background())
+	require.Nil(t, err)
+
+	assertPlanetBuildingExists(t, conn, planet.Id, b1.Id)
+	assertPlanetBuildingExists(t, conn, planet.Id, b2.Id)
+}
+
+func TestIT_PlanetRepository_Create_RegistersBuildingWithLevel0(t *testing.T) {
+	repo, conn, tx := newTestPlanetRepositoryAndTransaction(t)
+	defer conn.Close(context.Background())
+
+	player, _ := insertTestPlayerInUniverse(t, conn)
+	building := insertTestBuilding(t, conn)
+
+	planet := persistence.Planet{
+		Id:        uuid.New(),
+		Player:    player.Id,
+		Name:      fmt.Sprintf("my-planet-%s", uuid.NewString()),
+		Homeworld: false,
+		CreatedAt: time.Date(2024, 11, 30, 15, 17, 53, 0, time.UTC),
+	}
+
+	_, err := repo.Create(context.Background(), tx, planet)
+	tx.Close(context.Background())
+	require.Nil(t, err)
+
+	assertPlanetBuildingLevel(t, conn, planet.Id, building.Id, 0)
+}
+
+func TestIT_PlanetRepository_Create_RegistersResourcesForPlanet(t *testing.T) {
+	repo, conn, tx := newTestPlanetRepositoryAndTransaction(t)
+	defer conn.Close(context.Background())
+
+	player, _ := insertTestPlayerInUniverse(t, conn)
+	r1 := insertTestResource(t, conn)
+	r2 := insertTestResource(t, conn)
+
+	planet := persistence.Planet{
+		Id:        uuid.New(),
+		Player:    player.Id,
+		Name:      fmt.Sprintf("my-planet-%s", uuid.NewString()),
+		Homeworld: false,
+		CreatedAt: time.Date(2024, 11, 30, 15, 21, 38, 0, time.UTC),
+	}
+
+	_, err := repo.Create(context.Background(), tx, planet)
+	tx.Close(context.Background())
+	require.Nil(t, err)
+
+	assertPlanetResourceExists(t, conn, planet.Id, r1.Id)
+	assertPlanetResourceExists(t, conn, planet.Id, r2.Id)
+}
+
+func TestIT_PlanetRepository_Create_RegistersResourceWithStartAmount(t *testing.T) {
+	repo, conn, tx := newTestPlanetRepositoryAndTransaction(t)
+	defer conn.Close(context.Background())
+
+	player, _ := insertTestPlayerInUniverse(t, conn)
+	resource := insertTestResource(t, conn)
+
+	planet := persistence.Planet{
+		Id:        uuid.New(),
+		Player:    player.Id,
+		Name:      fmt.Sprintf("my-planet-%s", uuid.NewString()),
+		Homeworld: false,
+		CreatedAt: time.Date(2024, 11, 30, 15, 22, 36, 0, time.UTC),
+	}
+
+	_, err := repo.Create(context.Background(), tx, planet)
+	tx.Close(context.Background())
+	require.Nil(t, err)
+
+	assertPlanetResourceAmount(t, conn, planet.Id, resource.Id, float64(resource.StartAmount))
+}
+
+func TestIT_PlanetRepository_Create_RegistersResourceProductionsForPlanet(t *testing.T) {
+	repo, conn, tx := newTestPlanetRepositoryAndTransaction(t)
+	defer conn.Close(context.Background())
+
+	player, _ := insertTestPlayerInUniverse(t, conn)
+	r1 := insertTestResource(t, conn)
+	r2 := insertTestResource(t, conn)
+
+	planet := persistence.Planet{
+		Id:        uuid.New(),
+		Player:    player.Id,
+		Name:      fmt.Sprintf("my-planet-%s", uuid.NewString()),
+		Homeworld: false,
+		CreatedAt: time.Date(2024, 11, 30, 15, 24, 47, 0, time.UTC),
+	}
+
+	_, err := repo.Create(context.Background(), tx, planet)
+	tx.Close(context.Background())
+	require.Nil(t, err)
+
+	assertPlanetResourceProductionExists(t, conn, planet.Id, r1.Id)
+	assertPlanetResourceProductionExists(t, conn, planet.Id, r2.Id)
+}
+
+func TestIT_PlanetRepository_Create_RegistersResourceWithStartProductionAndNoBuilding(t *testing.T) {
+	repo, conn, tx := newTestPlanetRepositoryAndTransaction(t)
+	defer conn.Close(context.Background())
+
+	player, _ := insertTestPlayerInUniverse(t, conn)
+	resource := insertTestResource(t, conn)
+
+	planet := persistence.Planet{
+		Id:        uuid.New(),
+		Player:    player.Id,
+		Name:      fmt.Sprintf("my-planet-%s", uuid.NewString()),
+		Homeworld: false,
+		CreatedAt: time.Date(2024, 11, 30, 15, 26, 17, 0, time.UTC),
+	}
+
+	_, err := repo.Create(context.Background(), tx, planet)
+	tx.Close(context.Background())
+	require.Nil(t, err)
+
+	assertPlanetResourceProduction(t, conn, planet.Id, resource.Id, resource.StartProduction)
+}
+
+func TestIT_PlanetRepository_Create_RegistersResourceStoragesForPlanet(t *testing.T) {
+	repo, conn, tx := newTestPlanetRepositoryAndTransaction(t)
+	defer conn.Close(context.Background())
+
+	player, _ := insertTestPlayerInUniverse(t, conn)
+	r1 := insertTestResource(t, conn)
+	r2 := insertTestResource(t, conn)
+
+	planet := persistence.Planet{
+		Id:        uuid.New(),
+		Player:    player.Id,
+		Name:      fmt.Sprintf("my-planet-%s", uuid.NewString()),
+		CreatedAt: time.Date(2024, 11, 30, 15, 30, 18, 0, time.UTC),
+		Homeworld: false,
+	}
+
+	_, err := repo.Create(context.Background(), tx, planet)
+	tx.Close(context.Background())
+	require.Nil(t, err)
+
+	assertPlanetResourceStorageExists(t, conn, planet.Id, r1.Id)
+	assertPlanetResourceStorageExists(t, conn, planet.Id, r2.Id)
+}
+
+func TestIT_PlanetRepository_Create_RegistersResourceWithStartStorageAndNoBuilding(t *testing.T) {
+	repo, conn, tx := newTestPlanetRepositoryAndTransaction(t)
+	defer conn.Close(context.Background())
+
+	player, _ := insertTestPlayerInUniverse(t, conn)
+	resource := insertTestResource(t, conn)
+
+	planet := persistence.Planet{
+		Id:        uuid.New(),
+		Player:    player.Id,
+		Name:      fmt.Sprintf("my-planet-%s", uuid.NewString()),
+		Homeworld: false,
+		CreatedAt: time.Date(2024, 11, 30, 15, 33, 03, 0, time.UTC),
+	}
+
+	_, err := repo.Create(context.Background(), tx, planet)
+	tx.Close(context.Background())
+	require.Nil(t, err)
+
+	assertPlanetResourceStorage(t, conn, planet.Id, resource.Id, resource.StartStorage)
+}
+
+func TestIT_PlanetRepository_Get(t *testing.T) {
+	repo, conn, tx := newTestPlanetRepositoryAndTransaction(t)
+	defer conn.Close(context.Background())
+	defer tx.Close(context.Background())
+	planet, _, _ := insertTestPlanetForPlayer(t, conn)
+
+	actual, err := repo.Get(context.Background(), tx, planet.Id)
+	assert.Nil(t, err)
+
+	assert.True(t, eassert.EqualsIgnoringFields(actual, planet))
+}
+
+func TestIT_PlanetRepository_Get_WhenNotFound_ExpectFailure(t *testing.T) {
+	repo, conn, tx := newTestPlanetRepositoryAndTransaction(t)
+	defer conn.Close(context.Background())
+	defer tx.Close(context.Background())
+
+	// Non-existent id
+	id := uuid.MustParse("00000000-1111-2222-1111-000000000000")
+	_, err := repo.Get(context.Background(), tx, id)
+	assert.True(t, errors.IsErrorWithCode(err, db.NoMatchingRows), "Actual err: %v", err)
+}
+
+func TestIT_PlanetRepository_List(t *testing.T) {
+	repo, conn, tx := newTestPlanetRepositoryAndTransaction(t)
+	defer conn.Close(context.Background())
+	defer tx.Close(context.Background())
+	p1, player, _ := insertTestPlanetForPlayer(t, conn)
+	p2 := insertTestPlanet(t, conn, player.Id, false)
+
+	actual, err := repo.List(context.Background(), tx)
+
+	assert.Nil(t, err)
+	assert.GreaterOrEqual(t, len(actual), 2)
+	assert.True(t, eassert.ContainsIgnoringFields(actual, p1))
+	assert.True(t, eassert.ContainsIgnoringFields(actual, p2))
+}
+
+func TestIT_PlanetRepository_ListForPlayer(t *testing.T) {
+	repo, conn, tx := newTestPlanetRepositoryAndTransaction(t)
+	defer conn.Close(context.Background())
+	defer tx.Close(context.Background())
+	p1, player1, _ := insertTestPlanetForPlayer(t, conn)
+	p2 := insertTestPlanet(t, conn, player1.Id, false)
+	p3, _, _ := insertTestPlanetForPlayer(t, conn)
+
+	actual, err := repo.ListForPlayer(context.Background(), tx, player1.Id)
+
+	assert.Nil(t, err)
+	assert.GreaterOrEqual(t, len(actual), 2)
+	assert.True(t, eassert.ContainsIgnoringFields(actual, p1))
+	assert.True(t, eassert.ContainsIgnoringFields(actual, p2))
+	for _, planet := range actual {
+		assert.NotEqual(t, planet.Id, p3.Id)
+	}
+}
+
+func TestIT_PlanetRepository_Delete(t *testing.T) {
+	repo, conn, tx := newTestPlanetRepositoryAndTransaction(t)
+	defer conn.Close(context.Background())
+	planet, _, _ := insertTestPlanetForPlayer(t, conn)
+
+	err := repo.Delete(context.Background(), tx, planet.Id)
+	tx.Close(context.Background())
+
+	assert.Nil(t, err)
+	assertPlanetDoesNotExist(t, conn, planet.Id)
+}
+
+func TestIT_PlanetRepository_Delete_WhenNotFound_ExpectSuccess(t *testing.T) {
+	repo, conn, tx := newTestPlanetRepositoryAndTransaction(t)
+	defer conn.Close(context.Background())
+	nonExistingId := uuid.MustParse("00000000-0000-1221-0000-000000000000")
+
+	err := repo.Delete(context.Background(), tx, nonExistingId)
+	tx.Close(context.Background())
+
+	assert.Nil(t, err)
+}
+
+func TestIT_PlanetRepository_Delete_Homeworld(t *testing.T) {
+	repo, conn, tx := newTestPlanetRepositoryAndTransaction(t)
+	defer conn.Close(context.Background())
+	planet, _, _ := insertTestHomeworldPlanetForPlayer(t, conn)
+
+	err := repo.Delete(context.Background(), tx, planet.Id)
+	tx.Close(context.Background())
+
+	assert.Nil(t, err)
+	assertPlanetDoesNotExist(t, conn, planet.Id)
+	assertPlanetIsNotHomeworld(t, conn, planet.Id)
+}
+
+func TestIT_PlanetRepository_CreationDeletionWorkflow(t *testing.T) {
+	repo, conn := newTestPlanetRepository(t)
+	defer conn.Close(context.Background())
+
+	player, _ := insertTestPlayerInUniverse(t, conn)
+
+	planet := persistence.Planet{
+		Id:        uuid.New(),
+		Player:    player.Id,
+		Name:      fmt.Sprintf("my-planet-%s", uuid.NewString()),
+		Homeworld: false,
+		CreatedAt: time.Date(2024, 11, 30, 15, 50, 30, 0, time.UTC),
+	}
+
+	func() {
+		tx, err := conn.BeginTx(context.Background())
+		require.Nil(t, err)
+
+		defer tx.Close(context.Background())
+
+		_, err = repo.Create(context.Background(), tx, planet)
+		require.Nil(t, err)
+	}()
+
+	func() {
+		tx, err := conn.BeginTx(context.Background())
+		require.Nil(t, err)
+
+		defer tx.Close(context.Background())
+
+		planetFromDb, err := repo.Get(context.Background(), tx, planet.Id)
+		require.Nil(t, err)
+
+		assert.True(t, eassert.EqualsIgnoringFields(planet, planetFromDb, "UpdatedAt"))
+		assert.True(t, eassert.AreTimeCloserThan(planet.CreatedAt, planetFromDb.UpdatedAt, 1*time.Second))
+	}()
+
+	func() {
+		tx, err := conn.BeginTx(context.Background())
+		require.Nil(t, err)
+
+		defer tx.Close(context.Background())
+
+		err = repo.Delete(context.Background(), tx, planet.Id)
+		require.Nil(t, err)
+	}()
+
+	assertPlanetDoesNotExist(t, conn, planet.Id)
+}
+
+func TestIT_PlanetRepository_DeleteForPlayer_ExpectHomeworldToBeDeleted(t *testing.T) {
+	repo, conn, tx := newTestPlanetRepositoryAndTransaction(t)
+	defer conn.Close(context.Background())
+	planet, _, _ := insertTestHomeworldPlanetForPlayer(t, conn)
+
+	err := repo.DeleteForPlayer(context.Background(), tx, planet.Player)
+	tx.Close(context.Background())
+
+	assert.Nil(t, err)
+	assertPlanetDoesNotExist(t, conn, planet.Id)
+	assertPlanetIsNotHomeworld(t, conn, planet.Id)
+}
+
+func TestIT_PlanetRepository_DeleteForPlayer_ExpectBuildingToBeDeleted(t *testing.T) {
+	repo, conn, tx := newTestPlanetRepositoryAndTransaction(t)
+	defer conn.Close(context.Background())
+	planet, _, _ := insertTestHomeworldPlanetForPlayer(t, conn)
+	insertTestPlanetBuildingForPlanet(t, conn, planet.Id)
+
+	err := repo.DeleteForPlayer(context.Background(), tx, planet.Player)
+	tx.Close(context.Background())
+
+	assert.Nil(t, err)
+	assertPlanetDoesNotExist(t, conn, planet.Id)
+	assertPlanetBuildingDoesNotExist(t, conn, planet.Id)
+}
+
+func TestIT_PlanetRepository_DeleteForPlayer_ExpectResourceStorageToBeDeleted(t *testing.T) {
+	repo, conn, tx := newTestPlanetRepositoryAndTransaction(t)
+	defer conn.Close(context.Background())
+	planet, _, _ := insertTestHomeworldPlanetForPlayer(t, conn)
+	insertTestPlanetResourceStorage(t, conn, planet.Id)
+
+	err := repo.DeleteForPlayer(context.Background(), tx, planet.Player)
+	tx.Close(context.Background())
+
+	assert.Nil(t, err)
+	assertPlanetDoesNotExist(t, conn, planet.Id)
+	assertPlanetResourceStorageDoesNotExist(t, conn, planet.Id)
+}
+
+func TestIT_PlanetRepository_DeleteForPlayer_ExpectResourceProductionToBeDeleted(t *testing.T) {
+	repo, conn, tx := newTestPlanetRepositoryAndTransaction(t)
+	defer conn.Close(context.Background())
+	planet, _, _ := insertTestHomeworldPlanetForPlayer(t, conn)
+	insertTestPlanetResourceProduction(t, conn, planet.Id)
+
+	err := repo.DeleteForPlayer(context.Background(), tx, planet.Player)
+	tx.Close(context.Background())
+
+	assert.Nil(t, err)
+	assertPlanetDoesNotExist(t, conn, planet.Id)
+	assertPlanetResourceProductionDoesNotExist(t, conn, planet.Id)
+}
+
+func TestIT_PlanetRepository_DeleteForPlayer_ExpectResourceToBeDeleted(t *testing.T) {
+	repo, conn, tx := newTestPlanetRepositoryAndTransaction(t)
+	defer conn.Close(context.Background())
+	planet, _, _ := insertTestHomeworldPlanetForPlayer(t, conn)
+	insertTestPlanetResource(t, conn, planet.Id)
+
+	err := repo.DeleteForPlayer(context.Background(), tx, planet.Player)
+	tx.Close(context.Background())
+
+	assert.Nil(t, err)
+	assertPlanetDoesNotExist(t, conn, planet.Id)
+	assertPlanetResourceDoesNotExist(t, conn, planet.Id)
+}
+
+func TestIT_PlanetRepository_HomeWorldCreationDeletionWorkflow(t *testing.T) {
+	repo, conn := newTestPlanetRepository(t)
+	defer conn.Close(context.Background())
+
+	player, _ := insertTestPlayerInUniverse(t, conn)
+
+	planet := persistence.Planet{
+		Id:        uuid.New(),
+		Player:    player.Id,
+		Name:      fmt.Sprintf("my-planet-%s", uuid.NewString()),
+		Homeworld: true,
+		CreatedAt: time.Date(2024, 11, 30, 15, 50, 55, 0, time.UTC),
+	}
+
+	func() {
+		tx, err := conn.BeginTx(context.Background())
+		require.Nil(t, err)
+
+		defer tx.Close(context.Background())
+
+		_, err = repo.Create(context.Background(), tx, planet)
+		require.Nil(t, err)
+	}()
+
+	func() {
+		tx, err := conn.BeginTx(context.Background())
+		require.Nil(t, err)
+
+		defer tx.Close(context.Background())
+
+		planetFromDb, err := repo.Get(context.Background(), tx, planet.Id)
+		require.Nil(t, err)
+
+		assert.True(t, eassert.EqualsIgnoringFields(planet, planetFromDb, "UpdatedAt"))
+		assert.True(t, eassert.AreTimeCloserThan(planet.CreatedAt, planetFromDb.UpdatedAt, 1*time.Second))
+	}()
+
+	func() {
+		tx, err := conn.BeginTx(context.Background())
+		require.Nil(t, err)
+
+		defer tx.Close(context.Background())
+
+		err = repo.Delete(context.Background(), tx, planet.Id)
+		require.Nil(t, err)
+	}()
+
+	assertPlanetDoesNotExist(t, conn, planet.Id)
+}
+
+func newTestPlanetRepository(t *testing.T) (PlanetRepository, db.Connection) {
+	conn := newTestConnection(t)
+	return NewPlanetRepository(conn), conn
+}
+
+func newTestPlanetRepositoryAndTransaction(t *testing.T) (PlanetRepository, db.Connection, db.Transaction) {
+	repo, conn := newTestPlanetRepository(t)
+	tx, err := conn.BeginTx(context.Background())
+	require.Nil(t, err)
+	return repo, conn, tx
+}
+
+func insertTestPlanet(t *testing.T, conn db.Connection, player uuid.UUID, homeworld bool) persistence.Planet {
+	someTime := time.Date(2024, 11, 30, 11, 31, 58, 0, time.UTC)
+
+	planet := persistence.Planet{
+		Id:        uuid.New(),
+		Player:    player,
+		Name:      fmt.Sprintf("my-planet-%s", uuid.NewString()),
+		Homeworld: homeworld,
+		CreatedAt: someTime,
+		UpdatedAt: someTime,
+	}
+
+	sqlQuery := `INSERT INTO planet (id, player, name, created_at, updated_at) VALUES ($1, $2, $3, $4, $5)`
+	_, err := conn.Exec(
+		context.Background(),
+		sqlQuery,
+		planet.Id,
+		planet.Player,
+		planet.Name,
+		planet.CreatedAt,
+		planet.UpdatedAt,
+	)
+	require.Nil(t, err)
+
+	if homeworld {
+		sqlQuery := `INSERT INTO homeworld (player, planet) VALUES ($1, $2)`
+		_, err := conn.Exec(context.Background(), sqlQuery, planet.Player, planet.Id)
+		require.Nil(t, err)
+	}
+
+	return planet
+}
+
+func insertTestPlanetForPlayer(t *testing.T, conn db.Connection) (persistence.Planet, persistence.Player, persistence.Universe) {
+	player, universe := insertTestPlayerInUniverse(t, conn)
+	planet := insertTestPlanet(t, conn, player.Id, false)
+	return planet, player, universe
+}
+
+func insertTestHomeworldPlanetForPlayer(t *testing.T, conn db.Connection) (persistence.Planet, persistence.Player, persistence.Universe) {
+	player, universe := insertTestPlayerInUniverse(t, conn)
+	planet := insertTestPlanet(t, conn, player.Id, true)
+	return planet, player, universe
+}
+
+func assertPlanetExists(t *testing.T, conn db.Connection, id uuid.UUID) {
+	sqlQuery := `SELECT id FROM planet WHERE id = $1`
+	value, err := db.QueryOne[uuid.UUID](context.Background(), conn, sqlQuery, id)
+	require.Nil(t, err)
+	require.Equal(t, id, value)
+}
+
+func assertPlanetDoesNotExist(t *testing.T, conn db.Connection, id uuid.UUID) {
+	sqlQuery := `SELECT COUNT(id) FROM planet WHERE id = $1`
+	value, err := db.QueryOne[int](context.Background(), conn, sqlQuery, id)
+	require.Nil(t, err)
+	require.Zero(t, value)
+}
+
+func assertPlanetIsHomeworld(t *testing.T, conn db.Connection, planet persistence.Planet) {
+	sqlQuery := `SELECT COUNT(*) FROM homeworld WHERE planet = $1 AND player = $2`
+	value, err := db.QueryOne[int](context.Background(), conn, sqlQuery, planet.Id, planet.Player)
+	require.Nil(t, err)
+	require.Equal(t, 1, value)
+}
+
+func assertPlanetIsNotHomeworld(t *testing.T, conn db.Connection, planet uuid.UUID) {
+	sqlQuery := `SELECT COUNT(*) FROM homeworld WHERE planet = $1`
+	value, err := db.QueryOne[int](context.Background(), conn, sqlQuery, planet)
+	require.Nil(t, err)
+	require.Equal(t, 0, value)
 }

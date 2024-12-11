@@ -4,21 +4,21 @@ import (
 	"context"
 	"time"
 
-	"github.com/KnoblauchPilze/galactic-sovereign/pkg/db"
+	"github.com/KnoblauchPilze/backend-toolkit/pkg/db"
 	"github.com/KnoblauchPilze/galactic-sovereign/pkg/game"
 	"github.com/KnoblauchPilze/galactic-sovereign/pkg/repositories"
 	"github.com/google/uuid"
 )
 
 type planetResourceServiceImpl struct {
-	conn db.ConnectionPool
+	conn db.Connection
 
 	planetResourceRepo           repositories.PlanetResourceRepository
 	planetResourceProductionRepo repositories.PlanetResourceProductionRepository
 	planetResourceStorageRepo    repositories.PlanetResourceStorageRepository
 }
 
-func NewPlanetResourceService(conn db.ConnectionPool, repos repositories.Repositories) game.PlanetResourceService {
+func NewPlanetResourceService(conn db.Connection, repos repositories.Repositories) game.PlanetResourceService {
 	return &planetResourceServiceImpl{
 		conn: conn,
 
@@ -29,7 +29,7 @@ func NewPlanetResourceService(conn db.ConnectionPool, repos repositories.Reposit
 }
 
 func (s *planetResourceServiceImpl) UpdatePlanetUntil(ctx context.Context, planet uuid.UUID, until time.Time) error {
-	tx, err := s.conn.StartTransaction(ctx)
+	tx, err := s.conn.BeginTx(ctx)
 	if err != nil {
 		return err
 	}

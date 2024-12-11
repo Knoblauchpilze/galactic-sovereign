@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/KnoblauchPilze/backend-toolkit/pkg/db"
 	"github.com/KnoblauchPilze/backend-toolkit/pkg/errors"
-	"github.com/KnoblauchPilze/galactic-sovereign/pkg/db"
 	"github.com/KnoblauchPilze/galactic-sovereign/pkg/persistence"
 	"github.com/KnoblauchPilze/galactic-sovereign/pkg/repositories"
 	"github.com/stretchr/testify/require"
@@ -21,8 +21,8 @@ func TestUnit_ActionService(t *testing.T) {
 
 		repositoryInteractionTestCases: map[string]repositoryInteractionTestCase{
 			"processActionsUntil_listActions": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewActionService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewActionService(conn, repos)
 					return s.ProcessActionsUntil(ctx, defaultPlanetId, someTime)
 				},
 				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
@@ -42,8 +42,8 @@ func TestUnit_ActionService(t *testing.T) {
 
 					return repos
 				},
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewActionService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewActionService(conn, repos)
 					return s.ProcessActionsUntil(ctx, defaultPlanetId, someTime)
 				},
 				expectedError: errDefault,
@@ -54,8 +54,8 @@ func TestUnit_ActionService(t *testing.T) {
 				},
 			},
 			"processActionsUntil_listPlanetResources": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewActionService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewActionService(conn, repos)
 					return s.ProcessActionsUntil(ctx, defaultPlanetId, someTime)
 				},
 				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
@@ -74,8 +74,8 @@ func TestUnit_ActionService(t *testing.T) {
 
 					return repos
 				},
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewActionService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewActionService(conn, repos)
 					return s.ProcessActionsUntil(ctx, defaultPlanetId, someTime)
 				},
 				expectedError: errDefault,
@@ -86,8 +86,8 @@ func TestUnit_ActionService(t *testing.T) {
 				},
 			},
 			"processActionsUntil_listPlanetResourceProductions": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewActionService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewActionService(conn, repos)
 					return s.ProcessActionsUntil(ctx, defaultPlanetId, someTime)
 				},
 				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
@@ -106,8 +106,8 @@ func TestUnit_ActionService(t *testing.T) {
 
 					return repos
 				},
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewActionService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewActionService(conn, repos)
 					return s.ProcessActionsUntil(ctx, defaultPlanetId, someTime)
 				},
 				expectedError: errDefault,
@@ -130,8 +130,8 @@ func TestUnit_ActionService(t *testing.T) {
 
 					return repos
 				},
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewActionService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewActionService(conn, repos)
 					return s.ProcessActionsUntil(ctx, defaultPlanetId, someTime)
 				},
 				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
@@ -161,8 +161,8 @@ func TestUnit_ActionService(t *testing.T) {
 
 					return repos
 				},
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewActionService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewActionService(conn, repos)
 					return s.ProcessActionsUntil(ctx, defaultPlanetId, someTime)
 				},
 				expectedError: errDefault,
@@ -185,8 +185,8 @@ func TestUnit_ActionService(t *testing.T) {
 
 					return repos
 				},
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewActionService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewActionService(conn, repos)
 					return s.ProcessActionsUntil(ctx, defaultPlanetId, someTime)
 				},
 				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
@@ -213,8 +213,8 @@ func TestUnit_ActionService(t *testing.T) {
 
 					return repos
 				},
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewActionService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewActionService(conn, repos)
 					return s.ProcessActionsUntil(ctx, defaultPlanetId, someTime)
 				},
 				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
@@ -258,8 +258,8 @@ func TestUnit_ActionService(t *testing.T) {
 
 					return repos
 				},
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewActionService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewActionService(conn, repos)
 					return s.ProcessActionsUntil(ctx, defaultPlanetId, someTime)
 				},
 				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
@@ -279,8 +279,8 @@ func TestUnit_ActionService(t *testing.T) {
 				},
 			},
 			"processActionsUntil_getBuilding": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewActionService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewActionService(conn, repos)
 					return s.ProcessActionsUntil(ctx, defaultPlanetId, someTime)
 				},
 				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
@@ -300,8 +300,8 @@ func TestUnit_ActionService(t *testing.T) {
 
 					return repos
 				},
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewActionService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewActionService(conn, repos)
 					return s.ProcessActionsUntil(ctx, defaultPlanetId, someTime)
 				},
 				expectedError: errDefault,
@@ -312,8 +312,8 @@ func TestUnit_ActionService(t *testing.T) {
 				},
 			},
 			"processActionsUntil_updateBuilding": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewActionService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewActionService(conn, repos)
 					return s.ProcessActionsUntil(ctx, defaultPlanetId, someTime)
 				},
 				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
@@ -340,8 +340,8 @@ func TestUnit_ActionService(t *testing.T) {
 
 					return repos
 				},
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewActionService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewActionService(conn, repos)
 					return s.ProcessActionsUntil(ctx, defaultPlanetId, someTime)
 				},
 				expectedError: errDefault,
@@ -352,8 +352,8 @@ func TestUnit_ActionService(t *testing.T) {
 				},
 			},
 			"processActionsUntil_getForPlanetAndBuilding": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewActionService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewActionService(conn, repos)
 					return s.ProcessActionsUntil(ctx, defaultPlanetId, someTime)
 				},
 				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
@@ -377,8 +377,8 @@ func TestUnit_ActionService(t *testing.T) {
 
 					return repos
 				},
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewActionService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewActionService(conn, repos)
 					return s.ProcessActionsUntil(ctx, defaultPlanetId, someTime)
 				},
 				expectedError: errDefault,
@@ -389,8 +389,8 @@ func TestUnit_ActionService(t *testing.T) {
 				},
 			},
 			"processActionsUntil_listProductionForAction": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewActionService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewActionService(conn, repos)
 					return s.ProcessActionsUntil(ctx, defaultPlanetId, someTime)
 				},
 				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
@@ -409,8 +409,8 @@ func TestUnit_ActionService(t *testing.T) {
 
 					return repos
 				},
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewActionService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewActionService(conn, repos)
 					return s.ProcessActionsUntil(ctx, defaultPlanetId, someTime)
 				},
 				expectedError: errDefault,
@@ -421,8 +421,8 @@ func TestUnit_ActionService(t *testing.T) {
 				},
 			},
 			"processActionsUntil_getsExistingProductionForPlanetAndBuilding": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewActionService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewActionService(conn, repos)
 					return s.ProcessActionsUntil(ctx, defaultPlanetId, someTime)
 				},
 				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
@@ -445,8 +445,8 @@ func TestUnit_ActionService(t *testing.T) {
 
 					return repos
 				},
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewActionService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewActionService(conn, repos)
 					return s.ProcessActionsUntil(ctx, defaultPlanetId, someTime)
 				},
 				expectedError: errDefault,
@@ -462,15 +462,15 @@ func TestUnit_ActionService(t *testing.T) {
 					repos.PlanetResourceProduction = &mockPlanetResourceProductionRepository{
 						errs: []error{
 							nil,
-							errors.NewCode(db.NoMatchingSqlRows),
+							errors.NewCode(db.NoMatchingRows),
 							nil,
 						},
 					}
 
 					return repos
 				},
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewActionService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewActionService(conn, repos)
 					return s.ProcessActionsUntil(ctx, defaultPlanetId, time.Now())
 				},
 				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
@@ -495,15 +495,15 @@ func TestUnit_ActionService(t *testing.T) {
 					repos.PlanetResourceProduction = &mockPlanetResourceProductionRepository{
 						errs: []error{
 							nil,
-							errors.NewCode(db.NoMatchingSqlRows),
+							errors.NewCode(db.NoMatchingRows),
 							errDefault,
 						},
 					}
 
 					return repos
 				},
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewActionService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewActionService(conn, repos)
 					return s.ProcessActionsUntil(ctx, defaultPlanetId, someTime)
 				},
 				expectedError: errDefault,
@@ -526,8 +526,8 @@ func TestUnit_ActionService(t *testing.T) {
 
 					return repos
 				},
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewActionService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewActionService(conn, repos)
 					return s.ProcessActionsUntil(ctx, defaultPlanetId, someTime)
 				},
 				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
@@ -557,8 +557,8 @@ func TestUnit_ActionService(t *testing.T) {
 
 					return repos
 				},
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewActionService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewActionService(conn, repos)
 					return s.ProcessActionsUntil(ctx, defaultPlanetId, someTime)
 				},
 				expectedError: errDefault,
@@ -568,80 +568,9 @@ func TestUnit_ActionService(t *testing.T) {
 					assert.Equal(1, m.updateCalled)
 				},
 			},
-			"processActionsUntil_deleteActionResourceProduction": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewActionService(pool, repos)
-					return s.ProcessActionsUntil(ctx, defaultPlanetId, someTime)
-				},
-				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
-					m := assertBuildingActionResourceProductionRepoIsAMock(repos, assert)
-
-					assert.Equal(1, m.deleteForActionCalled)
-					assert.Equal(defaultBuildingAction.Id, m.deleteForActionId)
-				},
-			},
-			"processActionsUntil_deleteActionResourceProductionFails": {
-				generateRepositoriesMocks: func() repositories.Repositories {
-					repos := generateActionServiceMocks()
-					repos.BuildingActionResourceProduction = &mockBuildingActionResourceProductionRepository{
-						actionResourceProduction: defaultBuildingActionResourceProduction,
-						errs: []error{
-							nil,
-							errDefault,
-						},
-					}
-
-					return repos
-				},
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewActionService(pool, repos)
-					return s.ProcessActionsUntil(ctx, defaultPlanetId, someTime)
-				},
-				expectedError: errDefault,
-				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
-					m := assertBuildingActionResourceProductionRepoIsAMock(repos, assert)
-
-					assert.Equal(1, m.deleteForActionCalled)
-				},
-			},
-			"processActionsUntil_deleteActionCost": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewActionService(pool, repos)
-					return s.ProcessActionsUntil(ctx, defaultPlanetId, someTime)
-				},
-				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
-					m := assertBuildingActionCostRepoIsAMock(repos, assert)
-
-					assert.Equal(1, m.deleteForActionCalled)
-					assert.Equal(defaultBuildingAction.Id, m.deleteForActionId)
-				},
-			},
-			"processActionsUntil_deleteActionCostFails": {
-				generateRepositoriesMocks: func() repositories.Repositories {
-					repos := generateActionServiceMocks()
-					repos.BuildingActionCost = &mockBuildingActionCostRepository{
-						actionCost: defaultBuildingActionCost,
-						errs: []error{
-							errDefault,
-						},
-					}
-
-					return repos
-				},
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewActionService(pool, repos)
-					return s.ProcessActionsUntil(ctx, defaultPlanetId, someTime)
-				},
-				expectedError: errDefault,
-				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
-					m := assertBuildingActionCostRepoIsAMock(repos, assert)
-
-					assert.Equal(1, m.deleteForActionCalled)
-				},
-			},
 			"processActionsUntil_deleteAction": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewActionService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewActionService(conn, repos)
 					return s.ProcessActionsUntil(ctx, defaultPlanetId, someTime)
 				},
 				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
@@ -664,8 +593,8 @@ func TestUnit_ActionService(t *testing.T) {
 
 					return repos
 				},
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewActionService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewActionService(conn, repos)
 					return s.ProcessActionsUntil(ctx, defaultPlanetId, someTime)
 				},
 				expectedError: errDefault,
@@ -679,12 +608,12 @@ func TestUnit_ActionService(t *testing.T) {
 
 		transactionInteractionTestCases: map[string]transactionInteractionTestCase{
 			"processActionsUntil_createsTwoTransactionAndClosesThem": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewActionService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewActionService(conn, repos)
 					return s.ProcessActionsUntil(ctx, defaultPlanetId, someTime)
 				},
-				verifyInteractions: func(pool db.ConnectionPool, assert *require.Assertions) {
-					m := assertConnectionPoolIsAMock(pool, assert)
+				verifyInteractions: func(conn db.Connection, assert *require.Assertions) {
+					m := assertConnectionIsAMock(conn, assert)
 
 					assert.Equal(2, len(m.txs))
 					for _, tx := range m.txs {
@@ -693,20 +622,20 @@ func TestUnit_ActionService(t *testing.T) {
 				},
 			},
 			"processActionsUntil_whenFirstTransactionFails_returnsError": {
-				generateConnectionPoolMock: func() db.ConnectionPool {
-					return &mockConnectionPool{
+				generateConnectionMock: func() db.Connection {
+					return &mockConnection{
 						errs: []error{
 							errDefault,
 						},
 					}
 				},
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewActionService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewActionService(conn, repos)
 					return s.ProcessActionsUntil(ctx, defaultPlanetId, someTime)
 				},
 				expectedError: errDefault,
-				verifyInteractions: func(pool db.ConnectionPool, assert *require.Assertions) {
-					m := assertConnectionPoolIsAMock(pool, assert)
+				verifyInteractions: func(conn db.Connection, assert *require.Assertions) {
+					m := assertConnectionIsAMock(conn, assert)
 
 					assert.Equal(1, len(m.txs))
 				},
@@ -720,28 +649,28 @@ func TestUnit_ActionService(t *testing.T) {
 
 					return repos
 				},
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewActionService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewActionService(conn, repos)
 					return s.ProcessActionsUntil(ctx, defaultPlanetId, someTime)
 				},
 				expectedError: errDefault,
-				verifyInteractions: func(pool db.ConnectionPool, assert *require.Assertions) {
-					m := assertConnectionPoolIsAMock(pool, assert)
+				verifyInteractions: func(conn db.Connection, assert *require.Assertions) {
+					m := assertConnectionIsAMock(conn, assert)
 
 					assert.Equal(1, len(m.txs))
 				},
 			},
 			"processActionsUntil_whenFailureToCreateTransactionForAction_expectPlanetResourcesNotUpdated": {
-				generateConnectionPoolMock: func() db.ConnectionPool {
-					return &mockConnectionPool{
+				generateConnectionMock: func() db.Connection {
+					return &mockConnection{
 						errs: []error{
 							nil,
 							errDefault,
 						},
 					}
 				},
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewActionService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewActionService(conn, repos)
 					return s.ProcessActionsUntil(ctx, defaultPlanetId, someTime)
 				},
 				expectedError: errDefault,
@@ -783,10 +712,10 @@ func generateActionServiceMocks() repositories.Repositories {
 	}
 }
 
-func assertConnectionPoolIsAMock(pool db.ConnectionPool, assert *require.Assertions) *mockConnectionPool {
-	m, ok := pool.(*mockConnectionPool)
+func assertConnectionIsAMock(conn db.Connection, assert *require.Assertions) *mockConnection {
+	m, ok := conn.(*mockConnection)
 	if !ok {
-		assert.Fail("Provided connection pool is not a mock")
+		assert.Fail("Provided connection is not a mock")
 	}
 	return m
 }
