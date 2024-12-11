@@ -97,11 +97,13 @@ jobs:
 
   tests:
     needs: [analyze-code-changes]
+    if: ${{ needs.analyze-code-changes.outputs.galactic-sovereign-service == 'true' }}
     uses: ./.github/workflows/galactic-sovereign-service-tests.yml
     secrets:
       codecov-token: ${{ secrets.CODECOV_TOKEN }}
   build-galactic-sovereign-service:
     needs: [tests, extract-service-tag]
+    if: ${{ needs.analyze-code-changes.outputs.galactic-sovereign-service == 'true' }}
     uses: ./.github/workflows/galactic-sovereign-service-build-and-push.yml
     with:
       service-tag: ${{ needs.extract-service-tag.outputs.version }}
