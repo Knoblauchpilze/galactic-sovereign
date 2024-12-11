@@ -3,11 +3,12 @@ package controller
 import (
 	"net/http"
 
+	"github.com/KnoblauchPilze/backend-toolkit/pkg/db"
+	"github.com/KnoblauchPilze/backend-toolkit/pkg/db/pgx"
 	"github.com/KnoblauchPilze/backend-toolkit/pkg/errors"
 	"github.com/KnoblauchPilze/backend-toolkit/pkg/rest"
 	"github.com/KnoblauchPilze/galactic-sovereign/internal/service"
 	"github.com/KnoblauchPilze/galactic-sovereign/pkg/communication"
-	"github.com/KnoblauchPilze/galactic-sovereign/pkg/db"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
@@ -43,7 +44,7 @@ func createUniverse(c echo.Context, s service.UniverseService) error {
 
 	out, err := s.Create(c.Request().Context(), universeDtoRequest)
 	if err != nil {
-		if errors.IsErrorWithCode(err, db.DuplicatedKeySqlKey) {
+		if errors.IsErrorWithCode(err, pgx.UniqueConstraintViolation) {
 			return c.JSON(http.StatusConflict, "Name already used")
 		}
 
@@ -62,7 +63,7 @@ func getUniverse(c echo.Context, s service.UniverseService) error {
 
 	out, err := s.Get(c.Request().Context(), id)
 	if err != nil {
-		if errors.IsErrorWithCode(err, db.NoMatchingSqlRows) {
+		if errors.IsErrorWithCode(err, db.NoMatchingRows) {
 			return c.JSON(http.StatusNotFound, "No such universe")
 		}
 
@@ -95,7 +96,7 @@ func deleteUniverse(c echo.Context, s service.UniverseService) error {
 
 	err = s.Delete(c.Request().Context(), id)
 	if err != nil {
-		if errors.IsErrorWithCode(err, db.NoMatchingSqlRows) {
+		if errors.IsErrorWithCode(err, db.NoMatchingRows) {
 			return c.JSON(http.StatusNotFound, "No such universe")
 		}
 

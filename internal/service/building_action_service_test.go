@@ -5,12 +5,14 @@ import (
 	"testing"
 	"time"
 
+	"github.com/KnoblauchPilze/backend-toolkit/pkg/db"
 	"github.com/KnoblauchPilze/backend-toolkit/pkg/errors"
+	eassert "github.com/KnoblauchPilze/easy-assert/assert"
 	"github.com/KnoblauchPilze/galactic-sovereign/pkg/communication"
-	"github.com/KnoblauchPilze/galactic-sovereign/pkg/db"
 	"github.com/KnoblauchPilze/galactic-sovereign/pkg/persistence"
 	"github.com/KnoblauchPilze/galactic-sovereign/pkg/repositories"
 	"github.com/google/uuid"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 )
@@ -61,8 +63,8 @@ func TestUnit_BuildingActionService(t *testing.T) {
 
 		repositoryInteractionTestCases: map[string]repositoryInteractionTestCase{
 			"create_listsResourcesOnPlanet": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewBuildingActionService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewBuildingActionService(conn, repos)
 					_, err := s.Create(ctx, defaultBuildingActionDtoRequest)
 					return err
 				},
@@ -74,8 +76,8 @@ func TestUnit_BuildingActionService(t *testing.T) {
 				},
 			},
 			"create_listsResource": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewBuildingActionService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewBuildingActionService(conn, repos)
 					_, err := s.Create(ctx, defaultBuildingActionDtoRequest)
 					return err
 				},
@@ -86,8 +88,8 @@ func TestUnit_BuildingActionService(t *testing.T) {
 				},
 			},
 			"create_listsBuildingsOnPlanet": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewBuildingActionService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewBuildingActionService(conn, repos)
 					_, err := s.Create(ctx, defaultBuildingActionDtoRequest)
 					return err
 				},
@@ -99,8 +101,8 @@ func TestUnit_BuildingActionService(t *testing.T) {
 				},
 			},
 			"create_listsCostsForBuilding": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewBuildingActionService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewBuildingActionService(conn, repos)
 					_, err := s.Create(ctx, defaultBuildingActionDtoRequest)
 					return err
 				},
@@ -112,8 +114,8 @@ func TestUnit_BuildingActionService(t *testing.T) {
 				},
 			},
 			"create_listsProductionsForBuilding": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewBuildingActionService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewBuildingActionService(conn, repos)
 					_, err := s.Create(ctx, defaultBuildingActionDtoRequest)
 					return err
 				},
@@ -125,8 +127,8 @@ func TestUnit_BuildingActionService(t *testing.T) {
 				},
 			},
 			"create_updatesResourcesOnPlanet": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewBuildingActionService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewBuildingActionService(conn, repos)
 					_, err := s.Create(ctx, defaultBuildingActionDtoRequest)
 					return err
 				},
@@ -145,8 +147,8 @@ func TestUnit_BuildingActionService(t *testing.T) {
 				},
 			},
 			"create_registersActionCosts": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewBuildingActionService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewBuildingActionService(conn, repos)
 					_, err := s.Create(ctx, defaultBuildingActionDtoRequest)
 					return err
 				},
@@ -159,8 +161,8 @@ func TestUnit_BuildingActionService(t *testing.T) {
 				},
 			},
 			"create_registersActionProductions": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewBuildingActionService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewBuildingActionService(conn, repos)
 					_, err := s.Create(ctx, defaultBuildingActionDtoRequest)
 					return err
 				},
@@ -173,8 +175,8 @@ func TestUnit_BuildingActionService(t *testing.T) {
 				},
 			},
 			"create_createsAction": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewBuildingActionService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewBuildingActionService(conn, repos)
 					_, err := s.Create(ctx, defaultBuildingActionDtoRequest)
 					return err
 				},
@@ -205,8 +207,8 @@ func TestUnit_BuildingActionService(t *testing.T) {
 
 					return repos
 				},
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewBuildingActionService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewBuildingActionService(conn, repos)
 					_, err := s.Create(ctx, defaultBuildingActionDtoRequest)
 					return err
 				},
@@ -226,8 +228,8 @@ func TestUnit_BuildingActionService(t *testing.T) {
 
 					return repos
 				},
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewBuildingActionService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewBuildingActionService(conn, repos)
 					_, err := s.Create(ctx, defaultBuildingActionDtoRequest)
 					return err
 				},
@@ -247,8 +249,8 @@ func TestUnit_BuildingActionService(t *testing.T) {
 
 					return repos
 				},
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewBuildingActionService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewBuildingActionService(conn, repos)
 					_, err := s.Create(ctx, defaultBuildingActionDtoRequest)
 					return err
 				},
@@ -268,8 +270,8 @@ func TestUnit_BuildingActionService(t *testing.T) {
 
 					return repos
 				},
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewBuildingActionService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewBuildingActionService(conn, repos)
 					_, err := s.Create(ctx, defaultBuildingActionDtoRequest)
 					return err
 				},
@@ -289,8 +291,8 @@ func TestUnit_BuildingActionService(t *testing.T) {
 
 					return repos
 				},
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewBuildingActionService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewBuildingActionService(conn, repos)
 					_, err := s.Create(ctx, defaultBuildingActionDtoRequest)
 					return err
 				},
@@ -302,28 +304,28 @@ func TestUnit_BuildingActionService(t *testing.T) {
 				},
 			},
 			"create_failure_consolidation": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
 					consolidator := func(action persistence.BuildingAction, _ []persistence.Resource, _ []persistence.BuildingActionCost) (persistence.BuildingAction, error) {
 						return action, errDefault
 					}
 					validator := func(_ persistence.BuildingAction, _ []persistence.PlanetResource, _ []persistence.PlanetBuilding, _ []persistence.BuildingActionCost) error {
 						return nil
 					}
-					s := newBuildingActionService(pool, repos, consolidator, validator)
+					s := newBuildingActionService(conn, repos, consolidator, validator)
 					_, err := s.Create(ctx, defaultBuildingActionDtoRequest)
 					return err
 				},
 				expectedError: errDefault,
 			},
 			"create_failure_validation": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
 					consolidator := func(action persistence.BuildingAction, _ []persistence.Resource, _ []persistence.BuildingActionCost) (persistence.BuildingAction, error) {
 						return action, nil
 					}
 					validator := func(_ persistence.BuildingAction, _ []persistence.PlanetResource, _ []persistence.PlanetBuilding, _ []persistence.BuildingActionCost) error {
 						return errDefault
 					}
-					s := newBuildingActionService(pool, repos, consolidator, validator)
+					s := newBuildingActionService(conn, repos, consolidator, validator)
 					_, err := s.Create(ctx, defaultBuildingActionDtoRequest)
 					return err
 				},
@@ -339,8 +341,8 @@ func TestUnit_BuildingActionService(t *testing.T) {
 
 					return repos
 				},
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewBuildingActionService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewBuildingActionService(conn, repos)
 					_, err := s.Create(ctx, defaultBuildingActionDtoRequest)
 					return err
 				},
@@ -360,8 +362,8 @@ func TestUnit_BuildingActionService(t *testing.T) {
 
 					return repos
 				},
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewBuildingActionService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewBuildingActionService(conn, repos)
 					_, err := s.Create(ctx, defaultBuildingActionDtoRequest)
 					return err
 				},
@@ -381,8 +383,8 @@ func TestUnit_BuildingActionService(t *testing.T) {
 
 					return repos
 				},
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewBuildingActionService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewBuildingActionService(conn, repos)
 					_, err := s.Create(ctx, defaultBuildingActionDtoRequest)
 					return err
 				},
@@ -402,8 +404,8 @@ func TestUnit_BuildingActionService(t *testing.T) {
 
 					return repos
 				},
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewBuildingActionService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewBuildingActionService(conn, repos)
 					_, err := s.Create(ctx, defaultBuildingActionDtoRequest)
 					return err
 				},
@@ -415,8 +417,8 @@ func TestUnit_BuildingActionService(t *testing.T) {
 				},
 			},
 			"delete_getsAction": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewBuildingActionService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewBuildingActionService(conn, repos)
 					return s.Delete(ctx, defaultBuildingAction.Id)
 				},
 				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
@@ -427,8 +429,8 @@ func TestUnit_BuildingActionService(t *testing.T) {
 				},
 			},
 			"delete_listsCostsForAction": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewBuildingActionService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewBuildingActionService(conn, repos)
 					return s.Delete(ctx, defaultBuildingAction.Id)
 				},
 				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
@@ -439,8 +441,8 @@ func TestUnit_BuildingActionService(t *testing.T) {
 				},
 			},
 			"delete_listsResourcesOnPlanet": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewBuildingActionService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewBuildingActionService(conn, repos)
 					return s.Delete(ctx, defaultBuildingAction.Id)
 				},
 				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
@@ -451,8 +453,8 @@ func TestUnit_BuildingActionService(t *testing.T) {
 				},
 			},
 			"delete_updatesResourcesOnPlanet": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewBuildingActionService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewBuildingActionService(conn, repos)
 					return s.Delete(ctx, defaultBuildingAction.Id)
 				},
 				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
@@ -469,33 +471,9 @@ func TestUnit_BuildingActionService(t *testing.T) {
 
 				},
 			},
-			"delete_deletesResourceProductionsForAction": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewBuildingActionService(pool, repos)
-					return s.Delete(ctx, defaultBuildingAction.Id)
-				},
-				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
-					m := assertBuildingActionResourceProductionRepoIsAMock(repos, assert)
-
-					assert.Equal(1, m.deleteForActionCalled)
-					assert.Equal(defaultBuildingAction.Id, m.deleteForActionId)
-				},
-			},
-			"delete_deletesCostsForAction": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewBuildingActionService(pool, repos)
-					return s.Delete(ctx, defaultBuildingAction.Id)
-				},
-				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
-					m := assertBuildingActionCostRepoIsAMock(repos, assert)
-
-					assert.Equal(1, m.deleteForActionCalled)
-					assert.Equal(defaultBuildingAction.Id, m.deleteForActionId)
-				},
-			},
 			"delete_deletesAction": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewBuildingActionService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewBuildingActionService(conn, repos)
 					return s.Delete(ctx, defaultBuildingAction.Id)
 				},
 				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
@@ -514,8 +492,8 @@ func TestUnit_BuildingActionService(t *testing.T) {
 
 					return repos
 				},
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewBuildingActionService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewBuildingActionService(conn, repos)
 					return s.Delete(ctx, defaultBuildingAction.Id)
 				},
 				expectedError: errDefault,
@@ -534,8 +512,8 @@ func TestUnit_BuildingActionService(t *testing.T) {
 
 					return repos
 				},
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewBuildingActionService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewBuildingActionService(conn, repos)
 					return s.Delete(ctx, defaultBuildingAction.Id)
 				},
 				expectedError: errDefault,
@@ -554,8 +532,8 @@ func TestUnit_BuildingActionService(t *testing.T) {
 
 					return repos
 				},
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewBuildingActionService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewBuildingActionService(conn, repos)
 					return s.Delete(ctx, defaultBuildingAction.Id)
 				},
 				expectedError: errDefault,
@@ -575,8 +553,8 @@ func TestUnit_BuildingActionService(t *testing.T) {
 
 					return repos
 				},
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewBuildingActionService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewBuildingActionService(conn, repos)
 					return s.Delete(ctx, defaultBuildingAction.Id)
 				},
 				expectedError: errDefault,
@@ -584,50 +562,6 @@ func TestUnit_BuildingActionService(t *testing.T) {
 					m := assertPlanetResourceRepoIsAMock(repos, assert)
 
 					assert.Equal(1, m.updateCalled)
-				},
-			},
-			"delete_failure_deleteResourceProductionsForAction": {
-				generateRepositoriesMocks: func() repositories.Repositories {
-					repos := generateBuildingActionServiceMocks()
-					repos.BuildingActionResourceProduction = &mockBuildingActionResourceProductionRepository{
-						errs: []error{errDefault},
-					}
-
-					return repos
-				},
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewBuildingActionService(pool, repos)
-					return s.Delete(ctx, defaultBuildingAction.Id)
-				},
-				expectedError: errDefault,
-				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
-					m := assertBuildingActionResourceProductionRepoIsAMock(repos, assert)
-
-					assert.Equal(1, m.deleteForActionCalled)
-				},
-			},
-			"delete_failure_deleteCostsForAction": {
-				generateRepositoriesMocks: func() repositories.Repositories {
-					repos := generateBuildingActionServiceMocks()
-					repos.BuildingActionCost = &mockBuildingActionCostRepository{
-						actionCost: defaultBuildingActionCost,
-						errs: []error{
-							nil,
-							errDefault,
-						},
-					}
-
-					return repos
-				},
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewBuildingActionService(pool, repos)
-					return s.Delete(ctx, defaultBuildingAction.Id)
-				},
-				expectedError: errDefault,
-				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
-					m := assertBuildingActionCostRepoIsAMock(repos, assert)
-
-					assert.Equal(1, m.deleteForActionCalled)
 				},
 			},
 			"delete_failure_deleteAction": {
@@ -642,8 +576,8 @@ func TestUnit_BuildingActionService(t *testing.T) {
 
 					return repos
 				},
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewBuildingActionService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewBuildingActionService(conn, repos)
 					return s.Delete(ctx, defaultBuildingAction.Id)
 				},
 				expectedError: errDefault,
@@ -655,13 +589,13 @@ func TestUnit_BuildingActionService(t *testing.T) {
 				},
 			},
 			"delete_failure_actionCompletedInThePast": {
-				generateConnectionPoolMock: func() db.ConnectionPool {
-					return &mockConnectionPool{
+				generateConnectionMock: func() db.Connection {
+					return &mockConnection{
 						timeStamp: defaultBuildingAction.CompletedAt.Add(2 * time.Minute),
 					}
 				},
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewBuildingActionService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewBuildingActionService(conn, repos)
 					return s.Delete(ctx, defaultBuildingAction.Id)
 				},
 				verifyError: func(err error, assert *require.Assertions) {
@@ -678,8 +612,8 @@ func TestUnit_BuildingActionService(t *testing.T) {
 
 		returnTestCases: map[string]returnTestCase{
 			"create": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) interface{} {
-					s := NewBuildingActionService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) interface{} {
+					s := NewBuildingActionService(conn, repos)
 					out, _ := s.Create(ctx, defaultBuildingActionDtoRequest)
 					return out
 				},
@@ -697,15 +631,15 @@ func TestUnit_BuildingActionService(t *testing.T) {
 
 		transactionTestCases: map[string]transactionTestCase{
 			"create": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewBuildingActionService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewBuildingActionService(conn, repos)
 					_, err := s.Create(ctx, defaultBuildingActionDtoRequest)
 					return err
 				},
 			},
 			"delete": {
-				handler: func(ctx context.Context, pool db.ConnectionPool, repos repositories.Repositories) error {
-					s := NewBuildingActionService(pool, repos)
+				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
+					s := NewBuildingActionService(conn, repos)
 					return s.Delete(ctx, defaultBuildingActionId)
 				},
 			},
@@ -717,11 +651,11 @@ func TestUnit_BuildingActionService(t *testing.T) {
 
 func generateBuildingActionServiceMocks() repositories.Repositories {
 	return repositories.Repositories{
-		PlanetResource: &mockPlanetResourceRepository{
-			planetResource: defaultPlanetResource,
-		},
 		Resource: &mockResourceRepository{
 			resources: defaultResources,
+		},
+		PlanetResource: &mockPlanetResourceRepository{
+			planetResource: defaultPlanetResource,
 		},
 		PlanetBuilding: &mockPlanetBuildingRepository{
 			planetBuilding: defaultPlanetBuilding,
@@ -766,4 +700,77 @@ func assertBuildingActionResourceProductionRepoIsAMock(repos repositories.Reposi
 		assert.Fail("Provided building action resource production repository is not a mock")
 	}
 	return m
+}
+
+func TestIT_BuildingActionService_CreationDeletionWorkflow(t *testing.T) {
+	conn := newTestConnection(t)
+	repos := repositories.Repositories{
+		Resource:                         repositories.NewResourceRepository(),
+		PlanetResource:                   repositories.NewPlanetResourceRepository(),
+		PlanetBuilding:                   repositories.NewPlanetBuildingRepository(),
+		BuildingCost:                     repositories.NewBuildingCostRepository(),
+		BuildingResourceProduction:       repositories.NewBuildingResourceProductionRepository(),
+		BuildingAction:                   repositories.NewBuildingActionRepository(),
+		BuildingActionCost:               repositories.NewBuildingActionCostRepository(),
+		BuildingActionResourceProduction: repositories.NewBuildingActionResourceProductionRepository(),
+	}
+	planet, _, _ := insertTestPlanetForPlayer(t, conn)
+	building, _ := insertTestPlanetBuildingForPlanet(t, conn, planet.Id)
+	_, resource := insertTestBuildingCost(t, conn, building.Building)
+	insertTestPlanetResourceForResource(t, conn, planet.Id, resource.Id)
+
+	var generatedCreatedAt time.Time
+	var returnedCompletionTime time.Time
+	completionTimeFunc := func(action persistence.BuildingAction, resources []persistence.Resource, costs []persistence.BuildingActionCost) (persistence.BuildingAction, error) {
+		generatedCreatedAt = action.CreatedAt
+		returnedCompletionTime = time.Now().Add(1 * time.Hour)
+		action.CompletedAt = returnedCompletionTime
+		return action, nil
+	}
+
+	service := newBuildingActionServiceWithCompletionTime(conn, repos, completionTimeFunc)
+
+	actionRequest := communication.BuildingActionDtoRequest{
+		Planet:   planet.Id,
+		Building: building.Building,
+	}
+
+	var err error
+	var actionResponse communication.BuildingActionDtoResponse
+	func() {
+		actionResponse, err = service.Create(context.Background(), actionRequest)
+		require.Nil(t, err)
+	}()
+
+	assertBuildingActionExists(t, conn, actionResponse.Id)
+	expected := communication.BuildingActionDtoResponse{
+		Planet:       actionRequest.Planet,
+		Building:     actionRequest.Building,
+		CurrentLevel: 4,
+		DesiredLevel: 5,
+		CreatedAt:    generatedCreatedAt,
+		CompletedAt:  returnedCompletionTime,
+	}
+	assert.True(t, eassert.EqualsIgnoringFields(actionResponse, expected, "Id"))
+
+	func() {
+		err = service.Delete(context.Background(), actionResponse.Id)
+		require.Nil(t, err)
+	}()
+
+	assertBuildingActionDoesNotExist(t, conn, actionResponse.Id)
+}
+
+func assertBuildingActionExists(t *testing.T, conn db.Connection, action uuid.UUID) {
+	sqlQuery := `SELECT COUNT(*) FROM building_action WHERE id = $1`
+	value, err := db.QueryOne[int](context.Background(), conn, sqlQuery, action)
+	require.Nil(t, err)
+	require.Equal(t, 1, value)
+}
+
+func assertBuildingActionDoesNotExist(t *testing.T, conn db.Connection, action uuid.UUID) {
+	sqlQuery := `SELECT COUNT(*) FROM building_action WHERE id = $1`
+	value, err := db.QueryOne[int](context.Background(), conn, sqlQuery, action)
+	require.Nil(t, err)
+	require.Zero(t, value)
 }

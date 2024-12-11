@@ -9,11 +9,13 @@ INSERT INTO galactic_sovereign_schema.player ("id", "api_user", "universe", "nam
   );
 
 -- homeworld
-INSERT INTO galactic_sovereign_schema.planet ("id", "player", "name")
+INSERT INTO galactic_sovereign_schema.planet ("id", "player", "name", "created_at", "updated_at")
   VALUES (
     '167bd268-6ae7-4cf4-a359-9534beabfeff',
     '92a686c0-9a0a-4bc3-aa1b-9a57ed7f09d5',
-    'homeworld'
+    'homeworld',
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP
   );
 INSERT INTO galactic_sovereign_schema.homeworld ("player", "planet")
   VALUES (
@@ -21,120 +23,154 @@ INSERT INTO galactic_sovereign_schema.homeworld ("player", "planet")
     '167bd268-6ae7-4cf4-a359-9534beabfeff'
   );
 
-INSERT INTO galactic_sovereign_schema.planet_resource ("planet", "resource", "amount")
+INSERT INTO galactic_sovereign_schema.planet_resource ("planet", "resource", "amount", "created_at", "updated_at")
   VALUES (
     '167bd268-6ae7-4cf4-a359-9534beabfeff',
     'b4419b6b-b3bf-4576-aa92-055283addbc8',
-    514
+    514,
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP
   );
-INSERT INTO galactic_sovereign_schema.planet_resource ("planet", "resource", "amount")
+INSERT INTO galactic_sovereign_schema.planet_resource ("planet", "resource", "amount", "created_at", "updated_at")
   VALUES (
     '167bd268-6ae7-4cf4-a359-9534beabfeff',
     'cd2ac9aa-9968-4ff5-b746-88f1f810fbb3',
-    17
+    17,
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP
   );
 
-INSERT INTO galactic_sovereign_schema.planet_resource_production ("planet", "building", "resource", "production")
+INSERT INTO galactic_sovereign_schema.planet_resource_production ("planet", "building", "resource", "production", "created_at", "updated_at")
   VALUES (
     '167bd268-6ae7-4cf4-a359-9534beabfeff',
     NULL,
     'b4419b6b-b3bf-4576-aa92-055283addbc8',
-    30
+    30,
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP
   );
-INSERT INTO galactic_sovereign_schema.planet_resource_production ("planet", "building", "resource", "production")
+INSERT INTO galactic_sovereign_schema.planet_resource_production ("planet", "building", "resource", "production", "created_at", "updated_at")
   VALUES (
     '167bd268-6ae7-4cf4-a359-9534beabfeff',
     NULL,
     'cd2ac9aa-9968-4ff5-b746-88f1f810fbb3',
-    15
+    15,
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP
   );
 
-INSERT INTO galactic_sovereign_schema.planet_resource_storage ("planet", "resource", "storage")
+INSERT INTO galactic_sovereign_schema.planet_resource_storage ("planet", "resource", "storage", "created_at", "updated_at")
   VALUES (
     '167bd268-6ae7-4cf4-a359-9534beabfeff',
     'b4419b6b-b3bf-4576-aa92-055283addbc8',
-    10000
+    10000,
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP
   );
-INSERT INTO galactic_sovereign_schema.planet_resource_storage ("planet", "resource", "storage")
+INSERT INTO galactic_sovereign_schema.planet_resource_storage ("planet", "resource", "storage", "created_at", "updated_at")
   VALUES (
     '167bd268-6ae7-4cf4-a359-9534beabfeff',
     'cd2ac9aa-9968-4ff5-b746-88f1f810fbb3',
-    9000
+    9000,
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP
   );
 
-INSERT INTO galactic_sovereign_schema.planet_building ("planet", "building", "level")
+INSERT INTO galactic_sovereign_schema.planet_building ("planet", "building", "level", "created_at", "updated_at")
   VALUES (
     '167bd268-6ae7-4cf4-a359-9534beabfeff',
     'd176e82d-f2ca-4611-996b-c4804096caef',
-    0
+    0,
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP
   );
-INSERT INTO galactic_sovereign_schema.planet_building ("planet", "building", "level")
+INSERT INTO galactic_sovereign_schema.planet_building ("planet", "building", "level", "created_at", "updated_at")
   VALUES (
     '167bd268-6ae7-4cf4-a359-9534beabfeff',
     '3904d34d-9a7e-47d4-a332-091700e2c5c3',
-    1
+    1,
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP
   );
 
 -- colony
-INSERT INTO galactic_sovereign_schema.planet ("id", "player", "name")
+INSERT INTO galactic_sovereign_schema.planet ("id", "player", "name", "created_at", "updated_at")
   VALUES (
     '110cdf6f-2103-4e34-924f-fd57eb87ea3e',
     '92a686c0-9a0a-4bc3-aa1b-9a57ed7f09d5',
-    'colony'
+    'colony',
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP
   );
 
-INSERT INTO galactic_sovereign_schema.planet_resource ("planet", "resource", "amount")
+INSERT INTO galactic_sovereign_schema.planet_resource ("planet", "resource", "amount", "created_at", "updated_at")
   VALUES (
     '110cdf6f-2103-4e34-924f-fd57eb87ea3e',
     'b4419b6b-b3bf-4576-aa92-055283addbc8',
-    500
+    500,
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP
   );
-INSERT INTO galactic_sovereign_schema.planet_resource ("planet", "resource", "amount")
+INSERT INTO galactic_sovereign_schema.planet_resource ("planet", "resource", "amount", "created_at", "updated_at")
   VALUES (
     '110cdf6f-2103-4e34-924f-fd57eb87ea3e',
     'cd2ac9aa-9968-4ff5-b746-88f1f810fbb3',
-    500
+    500,
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP
   );
 
-INSERT INTO galactic_sovereign_schema.planet_resource_production ("planet", "building", "resource", "production")
+INSERT INTO galactic_sovereign_schema.planet_resource_production ("planet", "building", "resource", "production", "created_at", "updated_at")
   VALUES (
     '110cdf6f-2103-4e34-924f-fd57eb87ea3e',
     NULL,
     'b4419b6b-b3bf-4576-aa92-055283addbc8',
-    30
+    30,
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP
   );
-INSERT INTO galactic_sovereign_schema.planet_resource_production ("planet", "building", "resource", "production")
+INSERT INTO galactic_sovereign_schema.planet_resource_production ("planet", "building", "resource", "production", "created_at", "updated_at")
   VALUES (
     '110cdf6f-2103-4e34-924f-fd57eb87ea3e',
     NULL,
     'cd2ac9aa-9968-4ff5-b746-88f1f810fbb3',
-    15
+    15,
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP
   );
 
-INSERT INTO galactic_sovereign_schema.planet_resource_storage ("planet", "resource", "storage")
+INSERT INTO galactic_sovereign_schema.planet_resource_storage ("planet", "resource", "storage", "created_at", "updated_at")
   VALUES (
     '110cdf6f-2103-4e34-924f-fd57eb87ea3e',
     'b4419b6b-b3bf-4576-aa92-055283addbc8',
-    10000
+    10000,
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP
   );
-INSERT INTO galactic_sovereign_schema.planet_resource_storage ("planet", "resource", "storage")
+INSERT INTO galactic_sovereign_schema.planet_resource_storage ("planet", "resource", "storage", "created_at", "updated_at")
   VALUES (
     '110cdf6f-2103-4e34-924f-fd57eb87ea3e',
     'cd2ac9aa-9968-4ff5-b746-88f1f810fbb3',
-    9000
+    9000,
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP
   );
 
-INSERT INTO galactic_sovereign_schema.planet_building ("planet", "building", "level")
+INSERT INTO galactic_sovereign_schema.planet_building ("planet", "building", "level", "created_at", "updated_at")
   VALUES (
     '110cdf6f-2103-4e34-924f-fd57eb87ea3e',
     'd176e82d-f2ca-4611-996b-c4804096caef',
-    0
+    0,
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP
   );
-INSERT INTO galactic_sovereign_schema.planet_building ("planet", "building", "level")
+INSERT INTO galactic_sovereign_schema.planet_building ("planet", "building", "level", "created_at", "updated_at")
   VALUES (
     '110cdf6f-2103-4e34-924f-fd57eb87ea3e',
     '3904d34d-9a7e-47d4-a332-091700e2c5c3',
-    0
+    0,
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP
   );
 
 -- user1 -> throwaway-account / aquarius
@@ -147,11 +183,13 @@ INSERT INTO galactic_sovereign_schema.player ("id", "api_user", "universe", "nam
   );
 
 -- a-new-beginning
-INSERT INTO galactic_sovereign_schema.planet ("id", "player", "name")
+INSERT INTO galactic_sovereign_schema.planet ("id", "player", "name", "created_at", "updated_at")
   VALUES (
     'fafd18e9-2db6-439a-aaf3-010771d694c9',
     '04a7477c-a66b-4c47-9c17-ac209183c7a4',
-    'a-new-beginning'
+    'a-new-beginning',
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP
   );
 INSERT INTO galactic_sovereign_schema.homeworld ("player", "planet")
   VALUES (
@@ -159,58 +197,74 @@ INSERT INTO galactic_sovereign_schema.homeworld ("player", "planet")
     'fafd18e9-2db6-439a-aaf3-010771d694c9'
   );
 
-INSERT INTO galactic_sovereign_schema.planet_building ("planet", "building", "level")
+INSERT INTO galactic_sovereign_schema.planet_building ("planet", "building", "level", "created_at", "updated_at")
   VALUES (
     'fafd18e9-2db6-439a-aaf3-010771d694c9',
     'd176e82d-f2ca-4611-996b-c4804096caef',
-    2
+    2,
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP
   );
-INSERT INTO galactic_sovereign_schema.planet_building ("planet", "building", "level")
+INSERT INTO galactic_sovereign_schema.planet_building ("planet", "building", "level", "created_at", "updated_at")
   VALUES (
     'fafd18e9-2db6-439a-aaf3-010771d694c9',
     '3904d34d-9a7e-47d4-a332-091700e2c5c3',
-    1
+    1,
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP
   );
 
-INSERT INTO galactic_sovereign_schema.planet_resource ("planet", "resource", "amount")
+INSERT INTO galactic_sovereign_schema.planet_resource ("planet", "resource", "amount", "created_at", "updated_at")
   VALUES (
     'fafd18e9-2db6-439a-aaf3-010771d694c9',
     'b4419b6b-b3bf-4576-aa92-055283addbc8',
-    50
+    50,
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP
   );
-INSERT INTO galactic_sovereign_schema.planet_resource ("planet", "resource", "amount")
+INSERT INTO galactic_sovereign_schema.planet_resource ("planet", "resource", "amount", "created_at", "updated_at")
   VALUES (
     'fafd18e9-2db6-439a-aaf3-010771d694c9',
     'cd2ac9aa-9968-4ff5-b746-88f1f810fbb3',
-    603
+    603,
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP
   );
 
-INSERT INTO galactic_sovereign_schema.planet_resource_production ("planet", "building", "resource", "production")
+INSERT INTO galactic_sovereign_schema.planet_resource_production ("planet", "building", "resource", "production", "created_at", "updated_at")
   VALUES (
     'fafd18e9-2db6-439a-aaf3-010771d694c9',
     NULL,
     'b4419b6b-b3bf-4576-aa92-055283addbc8',
-    30
+    30,
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP
   );
-INSERT INTO galactic_sovereign_schema.planet_resource_production ("planet", "building", "resource", "production")
+INSERT INTO galactic_sovereign_schema.planet_resource_production ("planet", "building", "resource", "production", "created_at", "updated_at")
   VALUES (
     'fafd18e9-2db6-439a-aaf3-010771d694c9',
     NULL,
     'cd2ac9aa-9968-4ff5-b746-88f1f810fbb3',
-    15
+    15,
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP
   );
 
-INSERT INTO galactic_sovereign_schema.planet_resource_storage ("planet", "resource", "storage")
+INSERT INTO galactic_sovereign_schema.planet_resource_storage ("planet", "resource", "storage", "created_at", "updated_at")
   VALUES (
     'fafd18e9-2db6-439a-aaf3-010771d694c9',
     'b4419b6b-b3bf-4576-aa92-055283addbc8',
-    10000
+    10000,
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP
   );
-INSERT INTO galactic_sovereign_schema.planet_resource_storage ("planet", "resource", "storage")
+INSERT INTO galactic_sovereign_schema.planet_resource_storage ("planet", "resource", "storage", "created_at", "updated_at")
   VALUES (
     'fafd18e9-2db6-439a-aaf3-010771d694c9',
     'cd2ac9aa-9968-4ff5-b746-88f1f810fbb3',
-    9000
+    9000,
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP
   );
 
 -- another-test-user@another-provider.com -> very-nice-pseudo / oberon
@@ -223,11 +277,13 @@ INSERT INTO galactic_sovereign_schema.player ("id", "api_user", "universe", "nam
   );
 
 -- my-awesome-planet
-INSERT INTO galactic_sovereign_schema.planet ("id", "player", "name")
+INSERT INTO galactic_sovereign_schema.planet ("id", "player", "name", "created_at", "updated_at")
   VALUES (
     '00058def-e81d-43bb-aacf-a8402115449d',
     'e8db2006-3e35-49cd-8e1f-726491660a00',
-    'my-awesome-planet'
+    'my-awesome-planet',
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP
   );
 INSERT INTO galactic_sovereign_schema.homeworld ("player", "planet")
   VALUES (
@@ -235,58 +291,74 @@ INSERT INTO galactic_sovereign_schema.homeworld ("player", "planet")
     '00058def-e81d-43bb-aacf-a8402115449d'
   );
 
-INSERT INTO galactic_sovereign_schema.planet_resource ("planet", "resource", "amount")
+INSERT INTO galactic_sovereign_schema.planet_resource ("planet", "resource", "amount", "created_at", "updated_at")
   VALUES (
     '00058def-e81d-43bb-aacf-a8402115449d',
     'b4419b6b-b3bf-4576-aa92-055283addbc8',
-    887
+    887,
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP
   );
-INSERT INTO galactic_sovereign_schema.planet_resource ("planet", "resource", "amount")
+INSERT INTO galactic_sovereign_schema.planet_resource ("planet", "resource", "amount", "created_at", "updated_at")
   VALUES (
     '00058def-e81d-43bb-aacf-a8402115449d',
     'cd2ac9aa-9968-4ff5-b746-88f1f810fbb3',
-    332
+    332,
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP
   );
 
-INSERT INTO galactic_sovereign_schema.planet_resource_production ("planet", "building", "resource", "production")
+INSERT INTO galactic_sovereign_schema.planet_resource_production ("planet", "building", "resource", "production", "created_at", "updated_at")
   VALUES (
     '00058def-e81d-43bb-aacf-a8402115449d',
     NULL,
     'b4419b6b-b3bf-4576-aa92-055283addbc8',
-    30
+    30,
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP
   );
-INSERT INTO galactic_sovereign_schema.planet_resource_production ("planet", "building", "resource", "production")
+INSERT INTO galactic_sovereign_schema.planet_resource_production ("planet", "building", "resource", "production", "created_at", "updated_at")
   VALUES (
     '00058def-e81d-43bb-aacf-a8402115449d',
     NULL,
     'cd2ac9aa-9968-4ff5-b746-88f1f810fbb3',
-    15
+    15,
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP
   );
 
-INSERT INTO galactic_sovereign_schema.planet_resource_storage ("planet", "resource", "storage")
+INSERT INTO galactic_sovereign_schema.planet_resource_storage ("planet", "resource", "storage", "created_at", "updated_at")
   VALUES (
     '00058def-e81d-43bb-aacf-a8402115449d',
     'b4419b6b-b3bf-4576-aa92-055283addbc8',
-    10000
+    10000,
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP
   );
-INSERT INTO galactic_sovereign_schema.planet_resource_storage ("planet", "resource", "storage")
+INSERT INTO galactic_sovereign_schema.planet_resource_storage ("planet", "resource", "storage", "created_at", "updated_at")
   VALUES (
     '00058def-e81d-43bb-aacf-a8402115449d',
     'cd2ac9aa-9968-4ff5-b746-88f1f810fbb3',
-    9000
+    9000,
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP
   );
 
-INSERT INTO galactic_sovereign_schema.planet_building ("planet", "building", "level")
+INSERT INTO galactic_sovereign_schema.planet_building ("planet", "building", "level", "created_at", "updated_at")
   VALUES (
     '00058def-e81d-43bb-aacf-a8402115449d',
     'd176e82d-f2ca-4611-996b-c4804096caef',
-    1
+    1,
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP
   );
-INSERT INTO galactic_sovereign_schema.planet_building ("planet", "building", "level")
+INSERT INTO galactic_sovereign_schema.planet_building ("planet", "building", "level", "created_at", "updated_at")
   VALUES (
     '00058def-e81d-43bb-aacf-a8402115449d',
     '3904d34d-9a7e-47d4-a332-091700e2c5c3',
-    0
+    0,
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP
   );
 
 -- better-test-user@mail-client.org -> vend-deut / aquarius
@@ -299,11 +371,13 @@ INSERT INTO galactic_sovereign_schema.player ("id", "api_user", "universe", "nam
   );
 
 -- deut-factory
-INSERT INTO galactic_sovereign_schema.planet ("id", "player", "name")
+INSERT INTO galactic_sovereign_schema.planet ("id", "player", "name", "created_at", "updated_at")
   VALUES (
     '717ffa52-89bd-42eb-b34d-0f994a032e35',
     '2bab9414-7972-4483-a8b4-fdd169d0b073',
-    'deut-factory'
+    'deut-factory',
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP
   );
 INSERT INTO galactic_sovereign_schema.homeworld ("player", "planet")
   VALUES (
@@ -311,58 +385,74 @@ INSERT INTO galactic_sovereign_schema.homeworld ("player", "planet")
     '717ffa52-89bd-42eb-b34d-0f994a032e35'
   );
 
-INSERT INTO galactic_sovereign_schema.planet_resource ("planet", "resource", "amount")
+INSERT INTO galactic_sovereign_schema.planet_resource ("planet", "resource", "amount", "created_at", "updated_at")
   VALUES (
     '717ffa52-89bd-42eb-b34d-0f994a032e35',
     'b4419b6b-b3bf-4576-aa92-055283addbc8',
-    500
+    500,
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP
   );
-INSERT INTO galactic_sovereign_schema.planet_resource ("planet", "resource", "amount")
+INSERT INTO galactic_sovereign_schema.planet_resource ("planet", "resource", "amount", "created_at", "updated_at")
   VALUES (
     '717ffa52-89bd-42eb-b34d-0f994a032e35',
     'cd2ac9aa-9968-4ff5-b746-88f1f810fbb3',
-    499
+    499,
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP
   );
 
-INSERT INTO galactic_sovereign_schema.planet_resource_production ("planet", "building", "resource", "production")
+INSERT INTO galactic_sovereign_schema.planet_resource_production ("planet", "building", "resource", "production", "created_at", "updated_at")
   VALUES (
     '717ffa52-89bd-42eb-b34d-0f994a032e35',
     NULL,
     'b4419b6b-b3bf-4576-aa92-055283addbc8',
-    30
+    30,
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP
   );
-INSERT INTO galactic_sovereign_schema.planet_resource_production ("planet", "building", "resource", "production")
+INSERT INTO galactic_sovereign_schema.planet_resource_production ("planet", "building", "resource", "production", "created_at", "updated_at")
   VALUES (
     '717ffa52-89bd-42eb-b34d-0f994a032e35',
     NULL,
     'cd2ac9aa-9968-4ff5-b746-88f1f810fbb3',
-    15
+    15,
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP
   );
 
-INSERT INTO galactic_sovereign_schema.planet_resource_storage ("planet", "resource", "storage")
+INSERT INTO galactic_sovereign_schema.planet_resource_storage ("planet", "resource", "storage", "created_at", "updated_at")
   VALUES (
     '717ffa52-89bd-42eb-b34d-0f994a032e35',
     'b4419b6b-b3bf-4576-aa92-055283addbc8',
-    10000
+    10000,
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP
   );
-INSERT INTO galactic_sovereign_schema.planet_resource_storage ("planet", "resource", "storage")
+INSERT INTO galactic_sovereign_schema.planet_resource_storage ("planet", "resource", "storage", "created_at", "updated_at")
   VALUES (
     '717ffa52-89bd-42eb-b34d-0f994a032e35',
     'cd2ac9aa-9968-4ff5-b746-88f1f810fbb3',
-    9000
+    9000,
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP
   );
 
-INSERT INTO galactic_sovereign_schema.planet_building ("planet", "building", "level")
+INSERT INTO galactic_sovereign_schema.planet_building ("planet", "building", "level", "created_at", "updated_at")
   VALUES (
     '717ffa52-89bd-42eb-b34d-0f994a032e35',
     'd176e82d-f2ca-4611-996b-c4804096caef',
-    2
+    2,
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP
   );
-INSERT INTO galactic_sovereign_schema.planet_building ("planet", "building", "level")
+INSERT INTO galactic_sovereign_schema.planet_building ("planet", "building", "level", "created_at", "updated_at")
   VALUES (
     '717ffa52-89bd-42eb-b34d-0f994a032e35',
     '3904d34d-9a7e-47d4-a332-091700e2c5c3',
-    3
+    3,
+    CURRENT_TIMESTAMP,
+    CURRENT_TIMESTAMP
   );
 
 

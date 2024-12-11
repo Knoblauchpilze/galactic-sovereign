@@ -1,8 +1,8 @@
 package controller
 
 import (
+	"github.com/KnoblauchPilze/backend-toolkit/pkg/db"
 	"github.com/KnoblauchPilze/galactic-sovereign/internal/service"
-	"github.com/KnoblauchPilze/galactic-sovereign/pkg/db"
 	"github.com/labstack/echo/v4"
 )
 
@@ -14,11 +14,11 @@ func fromBuildingActionServiceAwareHttpHandler(handler buildingActionServiceAwar
 	}
 }
 
-type dbAwareHttpHandler func(echo.Context, db.ConnectionPool) error
+type dbAwareHttpHandler func(echo.Context, db.Connection) error
 
-func fromDbAwareHttpHandler(handler dbAwareHttpHandler, pool db.ConnectionPool) echo.HandlerFunc {
+func fromDbAwareHttpHandler(handler dbAwareHttpHandler, conn db.Connection) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		return handler(c, pool)
+		return handler(c, conn)
 	}
 }
 

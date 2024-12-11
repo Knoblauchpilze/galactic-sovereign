@@ -6,209 +6,158 @@ import (
 	"testing"
 	"time"
 
+	"github.com/KnoblauchPilze/backend-toolkit/pkg/db"
+	"github.com/KnoblauchPilze/backend-toolkit/pkg/db/pgx"
 	"github.com/KnoblauchPilze/backend-toolkit/pkg/errors"
-	"github.com/KnoblauchPilze/galactic-sovereign/pkg/db"
+	eassert "github.com/KnoblauchPilze/easy-assert/assert"
 	"github.com/KnoblauchPilze/galactic-sovereign/pkg/persistence"
 	"github.com/google/uuid"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/stretchr/testify/suite"
 )
 
-var defaultUniverseId = uuid.MustParse("80a18e0d-bf9c-4021-8986-4685f8a62601")
-var defaultUniverseName = "my-universe"
-var defaultUniverse = persistence.Universe{
-	Id:        defaultUniverseId,
-	Name:      defaultUniverseName,
-	CreatedAt: time.Date(2024, 7, 8, 21, 20, 15, 651387239, time.UTC),
-	UpdatedAt: time.Date(2024, 7, 8, 21, 20, 15, 651387239, time.UTC),
-	Version:   5,
-}
+func TestIT_UniverseRepository_Create(t *testing.T) {
+	repo, conn := newTestUniverseRepository(t)
+	defer conn.Close(context.Background())
 
-func TestUnit_UniverseRepository(t *testing.T) {
-	dummyStr := ""
-	dummyInt := 0
-
-	s := RepositoryPoolTestSuite{
-		dbInteractionTestCases: map[string]dbPoolInteractionTestCase{
-			"create": {
-				sqlMode: ExecBased,
-				handler: func(ctx context.Context, pool db.ConnectionPool) error {
-					s := NewUniverseRepository(pool)
-					_, err := s.Create(ctx, defaultUniverse)
-					return err
-				},
-				expectedSqlQueries: []string{
-					`INSERT INTO universe (id, name, created_at) VALUES($1, $2, $3)`,
-				},
-				expectedArguments: [][]interface{}{
-					{
-						defaultUniverse.Id,
-						defaultUniverse.Name,
-						defaultUniverse.CreatedAt,
-					},
-				},
-			},
-			"list": {
-				handler: func(ctx context.Context, pool db.ConnectionPool) error {
-					s := NewUniverseRepository(pool)
-					_, err := s.List(ctx)
-					return err
-				},
-				expectedSqlQueries: []string{
-					`SELECT id, name, created_at, updated_at, version FROM universe`,
-				},
-			},
-		},
-
-		dbGetAllTestCases: map[string]dbPoolGetAllTestCase{
-			"list": {
-				handler: func(ctx context.Context, pool db.ConnectionPool) error {
-					repo := NewUniverseRepository(pool)
-					_, err := repo.List(ctx)
-					return err
-				},
-				expectedGetAllCalls: 1,
-				expectedScanCalls:   1,
-				expectedScannedProps: [][]interface{}{
-					{
-						&uuid.UUID{},
-						&dummyStr,
-						&time.Time{},
-						&time.Time{},
-						&dummyInt,
-					},
-				},
-			},
-		},
-
-		dbReturnTestCases: map[string]dbPoolReturnTestCase{
-			"create": {
-				handler: func(ctx context.Context, pool db.ConnectionPool) interface{} {
-					s := NewUniverseRepository(pool)
-					out, _ := s.Create(ctx, defaultUniverse)
-					return out
-				},
-				expectedContent: defaultUniverse,
-			},
-		},
-
-		dbErrorTestCases: map[string]dbPoolErrorTestCase{
-			"create_duplicatedKey": {
-				generateMock: func() db.ConnectionPool {
-					return &mockConnectionPool{
-						execErr: fmt.Errorf(`duplicate key value violates unique constraint "universe_name_key" (SQLSTATE 23505)`),
-					}
-				},
-				handler: func(ctx context.Context, pool db.ConnectionPool) error {
-					s := NewUniverseRepository(pool)
-					_, err := s.Create(ctx, defaultUniverse)
-					return err
-				},
-				verifyError: func(err error, assert *require.Assertions) {
-					assert.True(errors.IsErrorWithCode(err, db.DuplicatedKeySqlKey))
-				},
-			},
-		},
+	universe := persistence.Universe{
+		Id:        uuid.New(),
+		Name:      fmt.Sprintf("universe-%s", uuid.NewString()),
+		CreatedAt: time.Now(),
 	}
 
-	suite.Run(t, &s)
+	actual, err := repo.Create(context.Background(), universe)
+	assert.Nil(t, err)
+
+	assert.True(t, eassert.EqualsIgnoringFields(actual, universe, "UpdatedAt"))
+	assert.True(t, eassert.AreTimeCloserThan(actual.UpdatedAt, actual.CreatedAt, 1*time.Second))
+	assertUniverseExists(t, conn, universe.Id)
 }
 
-func TestUnit_UniverseRepository_Transaction(t *testing.T) {
-	dummyStr := ""
-	dummyInt := 0
+func TestIT_UniverseRepository_Create_WhenDuplicateName_ExpectFailure(t *testing.T) {
+	repo, conn := newTestUniverseRepository(t)
+	defer conn.Close(context.Background())
+	universe := insertTestUniverse(t, conn)
 
-	s := RepositoryTransactionTestSuite{
-		dbInteractionTestCases: map[string]dbTransactionInteractionTestCase{
-			"get": {
-				handler: func(ctx context.Context, tx db.Transaction) error {
-					s := NewUniverseRepository(&mockConnectionPool{})
-					_, err := s.Get(ctx, tx, defaultUniverseId)
-					return err
-				},
-				expectedSqlQueries: []string{
-					`SELECT id, name, created_at, updated_at, version FROM universe WHERE id = $1`,
-				},
-				expectedArguments: [][]interface{}{
-					{
-						defaultUniverseId,
-					},
-				},
-			},
-			"delete": {
-				sqlMode: ExecBased,
-				generateMock: func() db.Transaction {
-					return &mockTransaction{
-						affectedRows: []int{1},
-					}
-				},
-				handler: func(ctx context.Context, tx db.Transaction) error {
-					s := NewUniverseRepository(&mockConnectionPool{})
-					return s.Delete(ctx, tx, defaultUniverseId)
-				},
-				expectedSqlQueries: []string{
-					`DELETE FROM universe WHERE id = $1`,
-				},
-				expectedArguments: [][]interface{}{
-					{
-						defaultUniverseId,
-					},
-				},
-			},
-		},
-
-		dbSingleValueTestCases: map[string]dbTransactionSingleValueTestCase{
-			"get": {
-				handler: func(ctx context.Context, tx db.Transaction) error {
-					repo := NewUniverseRepository(&mockConnectionPool{})
-					_, err := repo.Get(ctx, tx, defaultUniverseId)
-					return err
-				},
-				expectedGetSingleValueCalls: 1,
-				expectedScanCalls:           1,
-				expectedScannedProps: [][]interface{}{
-					{
-						&uuid.UUID{},
-						&dummyStr,
-						&time.Time{},
-						&time.Time{},
-						&dummyInt,
-					},
-				},
-			},
-		},
-
-		dbErrorTestCases: map[string]dbTransactionErrorTestCase{
-			"delete_noRowsAffected": {
-				generateMock: func() db.Transaction {
-					return &mockTransaction{
-						affectedRows: []int{0},
-					}
-				},
-				handler: func(ctx context.Context, tx db.Transaction) error {
-					s := NewUniverseRepository(&mockConnectionPool{})
-					return s.Delete(ctx, tx, defaultUniverseId)
-				},
-				verifyError: func(err error, assert *require.Assertions) {
-					assert.True(errors.IsErrorWithCode(err, db.NoMatchingSqlRows))
-				},
-			},
-			"delete_moreThanOneRowAffected": {
-				generateMock: func() db.Transaction {
-					return &mockTransaction{
-						affectedRows: []int{2},
-					}
-				},
-				handler: func(ctx context.Context, tx db.Transaction) error {
-					s := NewUniverseRepository(&mockConnectionPool{})
-					return s.Delete(ctx, tx, defaultUniverseId)
-				},
-				verifyError: func(err error, assert *require.Assertions) {
-					assert.True(errors.IsErrorWithCode(err, db.NoMatchingSqlRows))
-				},
-			},
-		},
+	newUniverse := persistence.Universe{
+		Id:        uuid.New(),
+		Name:      universe.Name,
+		CreatedAt: time.Now(),
 	}
 
-	suite.Run(t, &s)
+	_, err := repo.Create(context.Background(), newUniverse)
+
+	assert.True(t, errors.IsErrorWithCode(err, pgx.UniqueConstraintViolation), "Actual err: %v", err)
+	assertUniverseDoesNotExist(t, conn, newUniverse.Id)
+}
+
+func TestIT_UniverseRepository_Get(t *testing.T) {
+	repo, conn, tx := newTestUniverseRepositoryAndTransaction(t)
+	defer conn.Close(context.Background())
+	defer tx.Close(context.Background())
+	universe := insertTestUniverse(t, conn)
+
+	actual, err := repo.Get(context.Background(), tx, universe.Id)
+	assert.Nil(t, err)
+
+	assert.True(t, eassert.EqualsIgnoringFields(actual, universe))
+}
+
+func TestIT_UniverseRepository_Get_WhenNotFound_ExpectFailure(t *testing.T) {
+	repo, conn, tx := newTestUniverseRepositoryAndTransaction(t)
+	defer conn.Close(context.Background())
+	defer tx.Close(context.Background())
+
+	// Non-existent id
+	id := uuid.MustParse("00000000-1111-2222-1111-000000000000")
+	_, err := repo.Get(context.Background(), tx, id)
+	assert.True(t, errors.IsErrorWithCode(err, db.NoMatchingRows), "Actual err: %v", err)
+}
+
+func TestIT_UniverseRepository_List(t *testing.T) {
+	repo, conn := newTestUniverseRepository(t)
+	defer conn.Close(context.Background())
+	u1 := insertTestUniverse(t, conn)
+	u2 := insertTestUniverse(t, conn)
+
+	actual, err := repo.List(context.Background())
+
+	assert.Nil(t, err)
+	assert.GreaterOrEqual(t, len(actual), 2)
+	assert.True(t, eassert.ContainsIgnoringFields(actual, u1))
+	assert.True(t, eassert.ContainsIgnoringFields(actual, u2))
+}
+
+func TestIT_UniverseRepository_Delete(t *testing.T) {
+	repo, conn, tx := newTestUniverseRepositoryAndTransaction(t)
+	defer conn.Close(context.Background())
+	universe := insertTestUniverse(t, conn)
+
+	err := repo.Delete(context.Background(), tx, universe.Id)
+	tx.Close(context.Background())
+
+	assert.Nil(t, err)
+	assertUniverseDoesNotExist(t, conn, universe.Id)
+}
+
+func TestIT_UniverseRepository_Delete_WhenNotFound_ExpectSuccess(t *testing.T) {
+	repo, conn, tx := newTestUniverseRepositoryAndTransaction(t)
+	defer conn.Close(context.Background())
+	nonExistingId := uuid.MustParse("00000000-0000-1221-0000-000000000000")
+
+	err := repo.Delete(context.Background(), tx, nonExistingId)
+	tx.Close(context.Background())
+
+	assert.Nil(t, err)
+}
+
+func newTestUniverseRepository(t *testing.T) (UniverseRepository, db.Connection) {
+	conn := newTestConnection(t)
+	return NewUniverseRepository(conn), conn
+}
+
+func newTestUniverseRepositoryAndTransaction(t *testing.T) (UniverseRepository, db.Connection, db.Transaction) {
+	repo, conn := newTestUniverseRepository(t)
+	tx, err := conn.BeginTx(context.Background())
+	require.Nil(t, err)
+	return repo, conn, tx
+}
+
+func insertTestUniverse(t *testing.T, conn db.Connection) persistence.Universe {
+	someTime := time.Date(2024, 11, 29, 17, 53, 29, 0, time.UTC)
+
+	universe := persistence.Universe{
+		Id:        uuid.New(),
+		Name:      fmt.Sprintf("my-universe-%s", uuid.NewString()),
+		CreatedAt: someTime,
+	}
+
+	sqlQuery := `INSERT INTO universe (id, name, created_at) VALUES ($1, $2, $3) RETURNING updated_at`
+	updatedAt, err := db.QueryOne[time.Time](
+		context.Background(),
+		conn,
+		sqlQuery,
+		universe.Id,
+		universe.Name,
+		universe.CreatedAt,
+	)
+	require.Nil(t, err)
+
+	universe.UpdatedAt = updatedAt
+
+	return universe
+}
+
+func assertUniverseExists(t *testing.T, conn db.Connection, id uuid.UUID) {
+	sqlQuery := `SELECT id FROM universe WHERE id = $1`
+	value, err := db.QueryOne[uuid.UUID](context.Background(), conn, sqlQuery, id)
+	require.Nil(t, err)
+	require.Equal(t, id, value)
+}
+
+func assertUniverseDoesNotExist(t *testing.T, conn db.Connection, id uuid.UUID) {
+	sqlQuery := `SELECT COUNT(id) FROM universe WHERE id = $1`
+	value, err := db.QueryOne[int](context.Background(), conn, sqlQuery, id)
+	require.Nil(t, err)
+	require.Zero(t, value)
 }
