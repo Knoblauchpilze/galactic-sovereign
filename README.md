@@ -62,7 +62,7 @@ The CI workflows define several secrets that are expected to be created for the 
 
 ## Process to install
 
-The following sections describe how to setup the local postgre server to be able to host the databases needed by the project. This includes:
+The following sections describe how to setup the local postgres server to be able to host the databases needed by the project. This includes:
 
 - altering the postgres password if needed
 - setting up the database
@@ -96,7 +96,7 @@ After exiting the shells, you should know the password for the `postgres` passwo
 
 ## Creating the database
 
-⚠️ In this section we will focus on setting up the users database but this approach can be extended to the other databases needed by the project.
+⚠️ In this section we will focus on setting up the galactic-sovereign database but this approach can be extended to the other databases needed by the project.
 
 In both remote and local case, the configuration of the database happens in 3 steps:
 
@@ -121,10 +121,10 @@ export MANAGER_PASSWORD='manager-password'
 export USER_PASSWORD='user-password'
 
 cd database
-./create_user.sh users
-./create_database.sh users
+./create_user.sh galactic-sovereign
+./create_database.sh galactic-sovereign
 
-DB_PATH=users DB_PORT=5000 DB_PASSWORD='admin-password' make migrate
+DB_PATH=galactic-sovereign DB_PORT=5000 DB_PASSWORD='admin-password' make migrate
 ```
 
 If everything goes well for the migration, you should obtain something like this:
