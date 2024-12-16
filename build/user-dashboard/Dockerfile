@@ -14,7 +14,7 @@ ARG NODE_PORT=3001
 ENV GIT_COMMIT_HASH=$GIT_COMMIT_HASH
 # https://stackoverflow.com/questions/13333221/how-to-change-value-of-process-env-port-in-node-js
 ENV PORT=$NODE_PORT
-# # https://stackoverflow.com/questions/73790956/cross-site-post-form-submissions-are-forbidden
+# https://stackoverflow.com/questions/73790956/cross-site-post-form-submissions-are-forbidden
 ENV ORIGIN=$SERVER_ORIGIN
 WORKDIR /app
 COPY --from=builder build/build bin/
