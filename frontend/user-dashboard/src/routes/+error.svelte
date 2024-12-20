@@ -1,10 +1,10 @@
 <script lang="ts">
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { FlexContainer, StyledLink, StyledTitle } from '$lib/components';
 
 	let errorMessage: string = 'Unexpected error happened';
-	if ($page.error !== null) {
-		errorMessage = $page.error.message;
+	if (page.error !== null) {
+		errorMessage = page.error.message;
 	}
 </script>
 
