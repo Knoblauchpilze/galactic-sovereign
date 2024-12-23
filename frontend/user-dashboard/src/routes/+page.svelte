@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { FlexContainer, StyledLink, StyledTitle } from '$lib/components';
+	import { FlexContainer, StyledLink, StyledTitle } from '@totocorpsoftwareinc/frontend-toolkit';
 </script>
 
 <FlexContainer>

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import { FlexContainer, StyledLink, StyledTitle } from '$lib/components';
+	import { FlexContainer, StyledLink, StyledTitle } from '@totocorpsoftwareinc/frontend-toolkit';
 
 	let errorMessage: string = 'Unexpected error happened';
 	if (page.error !== null) {
