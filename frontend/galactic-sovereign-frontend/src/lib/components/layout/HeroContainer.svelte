@@ -4,7 +4,7 @@
 	import heroImage from '$lib/stores/ui/heroImage';
 	import heroContainer from '$lib/stores/ui/heroContainer';
 
-	import { FlexContainer } from '$lib/components';
+	import { FlexContainer } from '@totocorpsoftwareinc/frontend-toolkit';
 
 	interface Props {
 		children?: Snippet;

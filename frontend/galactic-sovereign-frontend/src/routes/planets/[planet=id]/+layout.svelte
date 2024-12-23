@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { type Snippet } from 'svelte';
 
-	import { FlexContainer, Footer, StyledLink } from '$lib/components';
+	import { FlexContainer, StyledLink } from '@totocorpsoftwareinc/frontend-toolkit';
+	import { Footer } from '$lib/components';
 
 	import activeScreen from '$lib/stores/activeScreen';
 	interface Props {

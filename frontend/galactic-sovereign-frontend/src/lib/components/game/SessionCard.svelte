@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { FlexContainer, ConfirmationButton } from '$lib/components';
+	import { FlexContainer } from '@totocorpsoftwareinc/frontend-toolkit';
+	import { ConfirmationButton } from '$lib/components';
 
 	import { type UiPlayer } from '$lib/game/players';
 

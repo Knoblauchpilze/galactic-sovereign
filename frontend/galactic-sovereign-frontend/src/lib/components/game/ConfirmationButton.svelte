@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { StyledActionButton } from '$lib/components';
+	import { StyledActionButton } from '@totocorpsoftwareinc/frontend-toolkit';
 
 	interface Props {
 		text?: string;

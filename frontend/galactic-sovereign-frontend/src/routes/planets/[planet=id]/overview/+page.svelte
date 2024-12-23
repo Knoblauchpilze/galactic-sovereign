@@ -4,7 +4,8 @@
 	import pageTitle from '$lib/stores/ui/pageTitle';
 	import activeScreen from '$lib/stores/activeScreen';
 
-	import { BuildingAction, FlexContainer, GamePageWrapper, StyledTitle } from '$lib/components';
+	import { FlexContainer, StyledTitle } from '@totocorpsoftwareinc/frontend-toolkit';
+	import { BuildingAction, GamePageWrapper } from '$lib/components';
 
 	import { invalidate } from '$app/navigation';
 
