@@ -1,13 +1,6 @@
 <script lang="ts">
-	import {
-		FlexContainer,
-		FormField,
-		StyledButton,
-		StyledError,
-		StyledLink,
-		StyledText,
-		StyledTitle
-	} from '$lib/components';
+	import { FlexContainer, StyledLink, StyledTitle } from '@totocorpsoftwareinc/frontend-toolkit';
+	import { FormField, StyledButton, StyledError, StyledText } from '$lib/components';
 
 	interface Props {
 		form: HTMLFormElement;
