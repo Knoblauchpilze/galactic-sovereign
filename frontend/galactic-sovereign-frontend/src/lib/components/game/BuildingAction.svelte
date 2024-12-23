@@ -1,6 +1,4 @@
 <script lang="ts">
-	import activeScreen from '$lib/stores/activeScreen';
-
 	import { NegativeConfirmationButton, StyledText, Timer } from '$lib/components';
 
 	import { type UiBuildingAction } from '$lib/game/actions';

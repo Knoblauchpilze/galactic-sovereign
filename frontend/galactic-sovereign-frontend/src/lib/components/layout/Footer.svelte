@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { type Snippet } from 'svelte';
 
-	import { FlexContainer } from '$lib/components';
+	import { FlexContainer } from '@totocorpsoftwareinc/frontend-toolkit';
 
 	interface Props {
 		height?: string;

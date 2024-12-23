@@ -1,9 +1,9 @@
 <script lang="ts">
-	import { FlexContainer, StyledError, StyledLink, StyledText, StyledTitle } from '$lib/components';
+	import { FlexContainer, StyledLink, StyledTitle } from '@totocorpsoftwareinc/frontend-toolkit';
+	import { SessionCard, StyledError, StyledText } from '$lib/components';
 
 	import heroImage, { HOMEPAGE_HERO_IMAGE } from '$lib/stores/ui/heroImage';
 	import heroContainer, { HOMEPAGE_HERO_CONTAINER_PROPS } from '$lib/stores/ui/heroContainer';
-	import { SessionCard } from '$lib/components';
 
 	let { data } = $props();
 

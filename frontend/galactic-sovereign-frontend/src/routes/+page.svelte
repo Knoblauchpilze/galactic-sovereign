@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { FlexContainer, StyledLink, StyledText, StyledTitle } from '$lib/components';
+	import { FlexContainer, StyledLink, StyledTitle } from '@totocorpsoftwareinc/frontend-toolkit';
+	import { StyledText } from '$lib/components';
 
 	import heroImage, { HOMEPAGE_HERO_IMAGE } from '$lib/stores/ui/heroImage';
 	import heroContainer, { HOMEPAGE_HERO_CONTAINER_PROPS } from '$lib/stores/ui/heroContainer';
