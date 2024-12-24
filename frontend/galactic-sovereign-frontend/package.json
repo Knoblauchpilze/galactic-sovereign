@@ -13,9 +13,10 @@
 		"format": "prettier --write ."
 	},
 	"dependencies": {
-		"@totocorpsoftwareinc/frontend-toolkit": "^0.0.8"
+		"@totocorpsoftwareinc/frontend-toolkit": "^0.0.9"
 	},
 	"devDependencies": {
+		"@eslint/compat": "^1.2.3",
 		"@sveltejs/adapter-auto": "^3.0.0",
 		"@sveltejs/adapter-node": "^5.2.10",
 		"@sveltejs/enhanced-img": "^0.4.4",
