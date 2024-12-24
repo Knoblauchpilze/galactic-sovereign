@@ -42,17 +42,14 @@ jobs:
               - 'internal/**'
               - 'cmd/galactic-sovereign/**'
               - '.github/workflows/galactic-sovereign-service**'
-              - '.github/workflows/services**'
               - 'build/galactic-sovereign-service/Dockerfile'
             user-dashboard:
               - 'frontend/user-dashboard/**'
               - '.github/workflows/user-dashboard**'
-              - '.github/workflows/services**'
               - 'build/user-dashboard/Dockerfile'
             galactic-sovereign-frontend:
               - 'frontend/galactic-sovereign-frontend/**'
               - '.github/workflows/galactic-sovereign-frontend-build-and-push.yml'
-              - '.github/workflows/services**'
               - 'build/galactic-sovereign-frontend/Dockerfile'
   analyze-code-changes:
     runs-on: ubuntu-latest
