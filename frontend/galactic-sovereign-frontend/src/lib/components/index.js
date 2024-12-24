@@ -3,7 +3,6 @@ export { default as StyledError } from '$lib/components/core/StyledError.svelte'
 export { default as StyledText } from '$lib/components/core/StyledText.svelte';
 export { default as StyledButton } from '$lib/components/core/StyledButton.svelte';
 
-export { default as HeroContainer } from '$lib/components/layout/HeroContainer.svelte';
 export { default as Header } from '$lib/components/layout/Header.svelte';
 export { default as Footer } from '$lib/components/layout/Footer.svelte';
 

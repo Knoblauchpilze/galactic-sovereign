@@ -3,8 +3,10 @@
 	import { type Snippet } from 'svelte';
 
 	import pageTitle from '$lib/stores/ui/pageTitle';
+	import heroImage from '$lib/stores/ui/heroImage';
+	import heroContainer from '$lib/stores/ui/heroContainer';
 
-	import { HeroContainer } from '$lib/components';
+	import { HeroContainer } from '@totocorpsoftwareinc/frontend-toolkit';
 
 	interface Props {
 		children?: Snippet;
@@ -17,6 +19,11 @@
 <svelte:head>
 	<title>{$pageTitle}</title>
 </svelte:head>
-<HeroContainer>
+<HeroContainer
+	width={$heroContainer.width}
+	height={$heroContainer.height}
+	bgColor={$heroImage}
+	bgOverlay={$heroContainer.color}
+>
 	{@render children?.()}
 </HeroContainer>
