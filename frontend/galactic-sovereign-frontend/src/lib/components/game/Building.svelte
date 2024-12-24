@@ -45,7 +45,7 @@
 				building: imagePath
 					.replace(/^.*[\\/]/, '')
 					.replace(/\..*$/, '')
-					.replace(/\_/, ' '),
+					.replace(/_/, ' '),
 				data: modules[imagePath].default
 			};
 		})

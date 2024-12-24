@@ -5,12 +5,7 @@
 	import heroImage, { HOMEPAGE_HERO_IMAGE } from '$lib/stores/ui/heroImage';
 	import heroContainer, { HOMEPAGE_HERO_CONTAINER_PROPS } from '$lib/stores/ui/heroContainer';
 
-	interface Props {
-		form: HTMLFormElement;
-		data: any;
-	}
-
-	let { form = $bindable(), data }: Props = $props();
+	let { form = $bindable(), data } = $props();
 
 	function resetFormError() {
 		if (!form) {
