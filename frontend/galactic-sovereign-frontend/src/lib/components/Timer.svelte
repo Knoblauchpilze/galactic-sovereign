@@ -7,7 +7,7 @@
 	// https://svelte.dev/repl/5f4a327999cd49e5a79e91f6fbe994c8?version=3.59.2
 
 	interface Props {
-		durationMs: any;
+		durationMs: number;
 		// https://stackoverflow.com/questions/29689966/how-to-define-type-for-a-function-callback-as-any-function-type-not-universal
 		onFinished: () => void;
 	}

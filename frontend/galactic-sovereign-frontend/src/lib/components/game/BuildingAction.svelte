@@ -40,7 +40,7 @@
 					// this removes anything before the last '/' character (keeping only the building name)
 					.replace(/\..*$/, '')
 					// this replaces the '_' by a space to match the action name
-					.replace(/\_/, ' '),
+					.replace(/_/, ' '),
 				data: modules[imagePath].default
 			};
 		})
