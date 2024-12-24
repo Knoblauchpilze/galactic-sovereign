@@ -22,11 +22,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Install modules
-        run: |
-          npm ci
       - name: Check code style with linter
         run: |
+          cd frontend/user-dashboard
+          npm ci
           npm run lint
 
   build-and-push-docker-image:
