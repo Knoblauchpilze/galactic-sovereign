@@ -1,6 +1,5 @@
 <script lang="ts">
-	import { FlexContainer, StyledTitle } from '@totocorpsoftwareinc/frontend-toolkit';
-	import { StyledButton } from '$lib/components';
+	import { FlexContainer, StyledButton, StyledTitle } from '@totocorpsoftwareinc/frontend-toolkit';
 
 	let { data } = $props();
 
