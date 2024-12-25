@@ -1,6 +1,13 @@
 <script lang="ts">
-	import { FlexContainer, StyledLink, StyledTitle } from '@totocorpsoftwareinc/frontend-toolkit';
-	import { FormField, StyledButton, StyledError, StyledText } from '$lib/components';
+	import {
+		FlexContainer,
+		FormField,
+		StyledButton,
+		StyledError,
+		StyledLink,
+		StyledText,
+		StyledTitle
+	} from '@totocorpsoftwareinc/frontend-toolkit';
 
 	import heroImage, { HOMEPAGE_HERO_IMAGE } from '$lib/stores/ui/heroImage';
 	import heroContainer, { HOMEPAGE_HERO_CONTAINER_PROPS } from '$lib/stores/ui/heroContainer';
@@ -34,7 +41,7 @@
 	<FlexContainer extensible={false} styling="h-3/5">
 		<StyledText text="Sign up" />
 		<form method="POST" action="?/signup" class="flex flex-col flex-1 justify-evenly">
-			<FormField label="email:" labelId="email">
+			<FormField label="email:" labelId="email" labelStyling={'text-secondary'}>
 				<input
 					id="email"
 					type="text"
@@ -45,7 +52,7 @@
 					oninput={resetFormError}
 				/>
 			</FormField>
-			<FormField label="password:" labelId="password">
+			<FormField label="password:" labelId="password" labelStyling={'text-secondary'}>
 				<input
 					id="password"
 					type="text"

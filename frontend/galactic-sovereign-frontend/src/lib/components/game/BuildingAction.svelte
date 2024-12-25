@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { NegativeConfirmationButton, StyledText, Timer } from '$lib/components';
+	import { StyledText } from '@totocorpsoftwareinc/frontend-toolkit';
+	import { NegativeConfirmationButton, Timer } from '$lib/components';
 
 	import { type UiBuildingAction } from '$lib/game/actions';
 

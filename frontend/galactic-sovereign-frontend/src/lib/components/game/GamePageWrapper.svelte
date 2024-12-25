@@ -1,8 +1,7 @@
 <script lang="ts">
 	import { type Snippet } from 'svelte';
 
-	import { FlexContainer } from '@totocorpsoftwareinc/frontend-toolkit';
-	import { Header, StyledText } from '$lib/components';
+	import { FlexContainer, Header, StyledText } from '@totocorpsoftwareinc/frontend-toolkit';
 
 	import { type UiResource } from '$lib/game/resources';
 	import { floorToInteger, toFlooredShortString } from '$lib/displayUtils';
