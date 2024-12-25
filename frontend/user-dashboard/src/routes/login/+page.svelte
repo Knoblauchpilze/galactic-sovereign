@@ -1,6 +1,13 @@
 <script lang="ts">
-	import { FlexContainer, StyledLink, StyledTitle } from '@totocorpsoftwareinc/frontend-toolkit';
-	import { FormField, StyledButton, StyledError, StyledText } from '$lib/components';
+	import {
+		FlexContainer,
+		FormField,
+		StyledButton,
+		StyledError,
+		StyledLink,
+		StyledText,
+		StyledTitle
+	} from '@totocorpsoftwareinc/frontend-toolkit';
 
 	interface Props {
 		form: HTMLFormElement;
@@ -29,7 +36,7 @@
 	<FlexContainer extensible={false} styling="h-3/5">
 		<form method="POST" action="?/login" class="flex flex-col flex-1 justify-evenly">
 			<!-- https://stackoverflow.com/questions/62278480/add-onchange-handler-to-input-in-svelte -->
-			<FormField label="email:" labelId="email">
+			<FormField label="email:" labelId="email" labelStyling="text-secondary">
 				<input
 					id="email"
 					type="text"
@@ -38,9 +45,10 @@
 					required
 					value={form?.email ?? ''}
 					oninput={resetFormError}
+					class="text-primary"
 				/>
 			</FormField>
-			<FormField label="password:" labelId="password">
+			<FormField label="password:" labelId="password" labelStyling="text-secondary">
 				<input
 					id="password"
 					type="text"
