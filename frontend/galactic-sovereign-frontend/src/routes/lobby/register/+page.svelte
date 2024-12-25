@@ -1,6 +1,13 @@
 <script lang="ts">
-	import { FlexContainer, StyledLink, StyledTitle } from '@totocorpsoftwareinc/frontend-toolkit';
-	import { FormField, StyledButton, StyledError, StyledText } from '$lib/components';
+	import {
+		FlexContainer,
+		FormField,
+		StyledButton,
+		StyledError,
+		StyledLink,
+		StyledText,
+		StyledTitle
+	} from '@totocorpsoftwareinc/frontend-toolkit';
 
 	import heroImage, { HOMEPAGE_HERO_IMAGE } from '$lib/stores/ui/heroImage';
 	import heroContainer, { HOMEPAGE_HERO_CONTAINER_PROPS } from '$lib/stores/ui/heroContainer';
@@ -33,14 +40,14 @@
 	<FlexContainer extensible={false} styling="h-3/5">
 		{#if data.universes.length > 0}
 			<form method="POST" action="?/register" class="flex flex-col flex-1 justify-evenly">
-				<FormField label="universe:" labelId="universe">
+				<FormField label="universe:" labelId="universe" labelStyling={'text-secondary'}>
 					<select id="universe" name="universe">
 						{#each data.universes as universe}
 							<option value={universe.id}>{universe.name}</option>
 						{/each}
 					</select>
 				</FormField>
-				<FormField label="player:" labelId="player">
+				<FormField label="player:" labelId="player" labelStyling={'text-secondary'}>
 					<input
 						id="player"
 						type="text"

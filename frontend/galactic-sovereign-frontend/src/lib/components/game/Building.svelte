@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { ConfirmationButton, StyledText } from '$lib/components';
+	import { StyledText } from '@totocorpsoftwareinc/frontend-toolkit';
+	import { ConfirmationButton } from '$lib/components';
 
 	import { type UiBuilding, type UiBuildingCost } from '$lib/game/buildings';
 	import { type UiResource } from '$lib/game/resources';

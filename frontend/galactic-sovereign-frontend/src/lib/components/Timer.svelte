@@ -1,7 +1,7 @@
 <script lang="ts">
-	// https://svelte.dev/repl/aa6c438ff6c04851b63328e3eb54466c?version=3.32.3
+	// https://svelte.dev/playground/545e4431b32b41cdaa468ea9613281f3?version=5.16.0
 	import { onMount, onDestroy } from 'svelte';
-	import { StyledText } from '$lib/components';
+	import { StyledText } from '@totocorpsoftwareinc/frontend-toolkit';
 	import { msToTimeStringOrFinished } from '$lib/time';
 
 	// https://svelte.dev/repl/5f4a327999cd49e5a79e91f6fbe994c8?version=3.59.2
