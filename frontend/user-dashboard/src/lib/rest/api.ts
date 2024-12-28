@@ -17,7 +17,7 @@ export function buildUserUrl(url: string): string {
 	return out + '/' + url;
 }
 
-export function analyzeApiResponseAndRedirectIfNeeded(response: ApiResponse) {
+export function redirectToLoginIfNeeded(response: ApiResponse) {
 	if (!response.isError()) {
 		return;
 	}
@@ -32,4 +32,24 @@ export function analyzeApiResponseAndRedirectIfNeeded(response: ApiResponse) {
 
 	// https://kit.svelte.dev/docs/errors
 	error(HttpStatus.NOT_FOUND, { message: 'Request failed with code: ' + reason });
+}
+
+export function getErrorMessageFromApiResponse(response: ApiResponse): string {
+	if (!response.isError()) {
+		return '';
+	}
+
+	const reason = tryGetFailureReason(response);
+
+	switch (reason) {
+		case ApiFailure.SERVICE_UNAVAILABLE:
+			return 'Service is currently unavailable, please try again later';
+		case ApiFailure.INVALID_REGISTRATION_DATA:
+			return 'The registration data is invalid, please provide a valid email and password';
+		case ApiFailure.INVALID_CREDENTIALS:
+		case ApiFailure.NO_SUCH_USER:
+			return 'The email and/or password are invalid';
+		default:
+			return 'An unexpected error occurred';
+	}
 }
