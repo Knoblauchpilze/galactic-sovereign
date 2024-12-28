@@ -1,18 +1,19 @@
 import { type RequestEvent, redirect } from '@sveltejs/kit';
-import { logoutUser } from '$lib/sessions';
+import { logoutUser } from '$lib/service/sessions';
 import { loadSessionCookiesOrRedirectToLogin } from '$lib/cookies';
+import { HttpStatus, tryGetFailureReason } from '@totocorpsoftwareinc/frontend-toolkit';
 
 export const logout = async ({ cookies }: RequestEvent) => {
 	const sessionCookies = loadSessionCookiesOrRedirectToLogin(cookies);
 
-	const logoutResponse = await logoutUser(sessionCookies.apiKey, sessionCookies.apiUser);
+	const apiResponse = await logoutUser(sessionCookies.apiKey, sessionCookies.apiUser);
 
-	if (logoutResponse.error()) {
+	if (apiResponse.isError()) {
 		return {
 			success: false,
-			message: logoutResponse.failureMessage()
+			message: tryGetFailureReason(apiResponse)
 		};
 	}
 
-	redirect(303, '/login');
+	redirect(HttpStatus.SEE_OTHER, '/login');
 };

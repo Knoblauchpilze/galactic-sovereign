@@ -1,7 +1,13 @@
-import { redirect } from '@sveltejs/kit';
+import { error, redirect } from '@sveltejs/kit';
 // https://learn.svelte.dev/tutorial/lib
 import { resetSessionCookies, setSessionCookies } from '$lib/cookies';
-import { ApiKey, loginUser } from '$lib/sessions';
+import { loginUser } from '$lib/service/sessions';
+import { ApiKeyResponseDto } from '$lib/communication/api/apiKeyResponseDto';
+import {
+	HttpStatus,
+	parseApiResponseAsSingleValue,
+	tryGetFailureReason
+} from '@totocorpsoftwareinc/frontend-toolkit';
 
 export async function load({ cookies }) {
 	resetSessionCookies(cookies);
@@ -26,18 +32,21 @@ export const actions = {
 			};
 		}
 
-		const loginResponse = await loginUser(email as string, password as string);
-		if (loginResponse.error()) {
+		const apiResponse = await loginUser(email as string, password as string);
+		if (apiResponse.isError()) {
 			return {
-				message: loginResponse.failureMessage(),
+				message: tryGetFailureReason(apiResponse),
 				email: email
 			};
 		}
 
-		const apiKey = new ApiKey(loginResponse);
+		const apiKeyDto = parseApiResponseAsSingleValue(apiResponse, ApiKeyResponseDto);
+		if (apiKeyDto === undefined) {
+			error(HttpStatus.NOT_FOUND, 'Failed to get login data');
+		}
 
-		setSessionCookies(cookies, apiKey);
+		setSessionCookies(cookies, apiKeyDto);
 
-		redirect(303, '/overview');
+		redirect(HttpStatus.SEE_OTHER, '/overview');
 	}
 };

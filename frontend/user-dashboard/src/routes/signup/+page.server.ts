@@ -1,6 +1,7 @@
 import { redirect } from '@sveltejs/kit';
 import { resetSessionCookies } from '$lib/cookies';
-import { createUser } from '$lib/users';
+import { createUser } from '$lib/service/users';
+import { HttpStatus, tryGetFailureReason } from '@totocorpsoftwareinc/frontend-toolkit';
 
 export async function load({ cookies }) {
 	resetSessionCookies(cookies);
@@ -25,16 +26,16 @@ export const actions = {
 			};
 		}
 
-		const signupResponse = await createUser(email as string, password as string);
-		if (signupResponse.error()) {
+		const apiResponse = await createUser(email as string, password as string);
+		if (apiResponse.isError()) {
 			return {
-				message: signupResponse.failureMessage(),
+				message: tryGetFailureReason(apiResponse),
 				email: email
 			};
 		}
 
 		resetSessionCookies(cookies);
 
-		redirect(303, '/login');
+		redirect(HttpStatus.SEE_OTHER, '/login');
 	}
 };

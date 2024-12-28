@@ -1,18 +1,26 @@
 import { logout } from '$lib/actions/logout';
 
-import { User, getUser } from '$lib/users';
-import { analayzeResponseEnvelopAndRedirectIfNeeded } from '$lib/responseEnvelope.js';
-import { loadSessionCookiesOrRedirectToLogin } from '$lib/cookies.js';
+import { getUser } from '$lib/service/users';
+import { analyzeApiResponseAndRedirectIfNeeded } from '$lib/rest/api';
+import { loadSessionCookiesOrRedirectToLogin } from '$lib/cookies';
+import { HttpStatus, parseApiResponseAsSingleValue } from '@totocorpsoftwareinc/frontend-toolkit';
+import { UserResponseDto } from '$lib/communication/api/userResponseDto';
+import { userResponseDtoToUserUiDto } from '$lib/converter/userConverter';
+import { error } from '@sveltejs/kit';
 
 export async function load({ cookies }) {
 	const sessionCookies = loadSessionCookiesOrRedirectToLogin(cookies);
 
-	const userResponse = await getUser(sessionCookies.apiKey, sessionCookies.apiUser);
-	analayzeResponseEnvelopAndRedirectIfNeeded(userResponse);
+	const apiResponse = await getUser(sessionCookies.apiKey, sessionCookies.apiUser);
+	analyzeApiResponseAndRedirectIfNeeded(apiResponse);
 
-	const user = new User(userResponse);
+	const apiUserDto = parseApiResponseAsSingleValue(apiResponse, UserResponseDto);
+	if (apiUserDto === undefined) {
+		error(HttpStatus.NOT_FOUND, 'Failed to get user data');
+	}
+
 	return {
-		user: user.toJson(),
+		user: userResponseDtoToUserUiDto(apiUserDto),
 		apiKey: sessionCookies.apiKey
 	};
 }

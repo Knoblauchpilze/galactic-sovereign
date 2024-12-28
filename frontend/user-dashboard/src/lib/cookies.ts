@@ -1,5 +1,6 @@
 import { type Cookies, redirect } from '@sveltejs/kit';
-import { ApiKey } from '$lib/sessions';
+import { ApiKeyResponseDto } from '$lib/communication/api/apiKeyResponseDto';
+import { HttpStatus } from '@totocorpsoftwareinc/frontend-toolkit';
 
 const DEFAULT_COOKIES_OPT = {
 	path: '/'
@@ -19,7 +20,7 @@ export interface SessionCookies {
 	readonly apiKey: string;
 }
 
-export function setSessionCookies(cookies: Cookies, apiKey: ApiKey) {
+export function setSessionCookies(cookies: Cookies, apiKey: ApiKeyResponseDto) {
 	cookies.set(COOKIE_KEY_API_USER, apiKey.user, DEFAULT_COOKIES_OPT);
 	cookies.set(COOKIE_KEY_API_KEY, apiKey.key, DEFAULT_COOKIES_OPT);
 }
@@ -48,7 +49,7 @@ export function loadSessionCookies(cookies: Cookies): [boolean, SessionCookies] 
 export function loadSessionCookiesOrRedirectToLogin(cookies: Cookies): SessionCookies {
 	const [valid, sessionCookies] = loadSessionCookies(cookies);
 	if (!valid) {
-		redirect(303, '/login');
+		redirect(HttpStatus.SEE_OTHER, '/login');
 	}
 
 	return sessionCookies;
