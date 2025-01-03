@@ -5,7 +5,8 @@ import {
 	ApiResponse,
 	HttpStatus,
 	trimTrailingSlash,
-	tryGetFailureReason
+	tryGetFailureReason,
+	getHttpStatusCodeFromApiFailure
 } from '@totocorpsoftwareinc/frontend-toolkit';
 
 export function buildUserUrl(url: string): string {
@@ -29,19 +30,10 @@ export function redirectToLoginIfNeeded(response: ApiResponse) {
 		case ApiFailure.API_KEY_EXPIRED:
 			redirect(HttpStatus.SEE_OTHER, '/login');
 	}
-
-	// https://kit.svelte.dev/docs/errors
-	error(HttpStatus.NOT_FOUND, { message: 'Request failed with code: ' + reason });
 }
 
-export function getErrorMessageFromApiResponse(response: ApiResponse): string {
-	if (!response.isError()) {
-		return '';
-	}
-
-	const reason = tryGetFailureReason(response);
-
-	switch (reason) {
+function getErrorMessageFromApiFailure(failure: ApiFailure): string {
+	switch (failure) {
 		case ApiFailure.SERVICE_UNAVAILABLE:
 			return 'Service is currently unavailable, please try again later';
 		case ApiFailure.INVALID_REGISTRATION_DATA:
@@ -52,4 +44,26 @@ export function getErrorMessageFromApiResponse(response: ApiResponse): string {
 		default:
 			return 'An unexpected error occurred';
 	}
+}
+
+export function getErrorMessageFromApiResponse(response: ApiResponse): string {
+	if (!response.isError()) {
+		return '';
+	}
+
+	const reason = tryGetFailureReason(response);
+	return getErrorMessageFromApiFailure(reason);
+}
+
+export function handleApiError(response: ApiResponse) {
+	if (!response.isError()) {
+		return '';
+	}
+
+	const reason = tryGetFailureReason(response);
+	const message = getErrorMessageFromApiFailure(reason);
+	const code = getHttpStatusCodeFromApiFailure(reason);
+
+	// https://kit.svelte.dev/docs/errors
+	error(code, { message: message });
 }

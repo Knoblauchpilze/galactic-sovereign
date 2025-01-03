@@ -13,7 +13,7 @@
 		"format": "prettier --write ."
 	},
 	"dependencies": {
-		"@totocorpsoftwareinc/frontend-toolkit": "^0.0.18"
+		"@totocorpsoftwareinc/frontend-toolkit": "^0.0.20"
 	},
 	"devDependencies": {
 		"@eslint/compat": "^1.2.3",

@@ -1,7 +1,11 @@
 import { fail, redirect } from '@sveltejs/kit';
 import { resetSessionCookies } from '$lib/cookies';
 import { createUser } from '$lib/service/users';
-import { HttpStatus } from '@totocorpsoftwareinc/frontend-toolkit';
+import {
+	getHttpStatusCodeFromApiFailure,
+	HttpStatus,
+	tryGetFailureReason
+} from '@totocorpsoftwareinc/frontend-toolkit';
 import { getErrorMessageFromApiResponse } from '$lib/rest/api';
 
 export async function load({ cookies }) {
@@ -29,7 +33,10 @@ export const actions = {
 
 		const apiResponse = await createUser(email as string, password as string);
 		if (apiResponse.isError()) {
-			return fail(HttpStatus.UNPROCESSABLE_ENTITY, {
+			const failure = tryGetFailureReason(apiResponse);
+			const code = getHttpStatusCodeFromApiFailure(failure);
+
+			return fail(code, {
 				message: getErrorMessageFromApiResponse(apiResponse),
 				email: email
 			});
