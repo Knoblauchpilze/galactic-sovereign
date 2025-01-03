@@ -61,7 +61,7 @@
 
 		{#if form?.message}
 			<div class="fixed bottom-4">
-				<StyledError text="Failed to sign up: {form.message}" />
+				<StyledError text={form.message} />
 			</div>
 		{/if}
 	</FlexContainer>
