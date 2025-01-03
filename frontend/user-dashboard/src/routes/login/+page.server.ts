@@ -39,7 +39,6 @@ export const actions = {
 			const failure = tryGetFailureReason(apiResponse);
 			const code = getHttpStatusCodeFromApiFailure(failure);
 
-			// TODO: We should use fail when the code is able to be used by fail.
 			return fail(code, {
 				message: getErrorMessageFromApiResponse(apiResponse),
 				email: email
@@ -47,13 +46,13 @@ export const actions = {
 		}
 
 		const apiKeyDto = parseApiResponseAsSingleValue(apiResponse, ApiKeyResponseDto);
-		if (apiKeyDto === undefined) {
+		if (apiKeyDto !== undefined) {
+			setSessionCookies(cookies, apiKeyDto);
+		} else {
 			fail(HttpStatus.INTERNAL_SERVER_ERROR, {
 				message: 'Failed to get login data',
 				email: email
 			});
-		} else {
-			setSessionCookies(cookies, apiKeyDto);
 		}
 
 		redirect(HttpStatus.SEE_OTHER, '/overview');
