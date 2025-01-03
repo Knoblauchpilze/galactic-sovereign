@@ -64,7 +64,7 @@
 		{#if form?.message}
 			<!-- https://www.w3schools.com/howto/howto_js_snackbar.asp -->
 			<div class="fixed bottom-4">
-				<StyledError text="Failed to login: {form.message}" />
+				<StyledError text={form.message} />
 			</div>
 		{/if}
 	</FlexContainer>

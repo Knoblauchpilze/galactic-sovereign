@@ -1,22 +1,37 @@
-import { logout } from '$lib/actions/logout';
-
-import { User, getUser } from '$lib/users';
-import { analayzeResponseEnvelopAndRedirectIfNeeded } from '$lib/responseEnvelope.js';
-import { loadSessionCookiesOrRedirectToLogin } from '$lib/cookies.js';
+import { logoutUser } from '$lib/service/sessions';
+import { getUser } from '$lib/service/users';
+import { handleApiError, redirectToLoginIfNeeded } from '$lib/rest/api';
+import { loadSessionCookiesOrRedirectToLogin } from '$lib/cookies';
+import { HttpStatus, parseApiResponseAsSingleValue } from '@totocorpsoftwareinc/frontend-toolkit';
+import { UserResponseDto } from '$lib/communication/api/userResponseDto';
+import { userResponseDtoToUserUiDto } from '$lib/converter/userConverter';
+import { error, redirect } from '@sveltejs/kit';
 
 export async function load({ cookies }) {
 	const sessionCookies = loadSessionCookiesOrRedirectToLogin(cookies);
 
-	const userResponse = await getUser(sessionCookies.apiKey, sessionCookies.apiUser);
-	analayzeResponseEnvelopAndRedirectIfNeeded(userResponse);
+	const apiResponse = await getUser(sessionCookies.apiKey, sessionCookies.apiUser);
+	redirectToLoginIfNeeded(apiResponse);
+	handleApiError(apiResponse);
 
-	const user = new User(userResponse);
+	const apiUserDto = parseApiResponseAsSingleValue(apiResponse, UserResponseDto);
+	if (apiUserDto === undefined) {
+		error(HttpStatus.INTERNAL_SERVER_ERROR, 'Failed to get server data');
+	}
+
 	return {
-		user: user.toJson(),
+		user: userResponseDtoToUserUiDto(apiUserDto),
 		apiKey: sessionCookies.apiKey
 	};
 }
 
 export const actions = {
-	logout: logout
+	logout: async ({ cookies }) => {
+		const sessionCookies = loadSessionCookiesOrRedirectToLogin(cookies);
+
+		const apiResponse = await logoutUser(sessionCookies.apiKey, sessionCookies.apiUser);
+		handleApiError(apiResponse);
+
+		redirect(HttpStatus.SEE_OTHER, '/login');
+	}
 };
