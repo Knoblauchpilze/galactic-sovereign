@@ -1,42 +1,56 @@
-import { redirect } from '@sveltejs/kit';
+import { error, fail, redirect } from '@sveltejs/kit';
 import {
 	resetGameCookies,
 	setGameCookies,
 	loadSessionCookiesOrRedirectToLogin
 } from '$lib/cookies';
-import { analayzeResponseEnvelopAndRedirectIfNeeded } from '$lib/responseEnvelope';
 import {
-	Player,
-	createPlayer,
-	fetchPlayerFromApiUser,
-	responseToPlayerArray
-} from '$lib/game/players';
-import { getUniverses, responseToUniverseArray } from '$lib/game/universes';
-import { fetchPlanetsFromPlayer, responseToPlanetArray } from '$lib/game/planets';
+	HttpStatus,
+	parseApiResponseAsArray,
+	parseApiResponseAsSingleValue
+} from '@totocorpsoftwareinc/frontend-toolkit';
+import { getUniverses } from '$lib/service/universes';
+import { createPlayer } from '$lib/service/players';
+import {
+	getErrorMessageFromApiResponse,
+	handleApiError,
+	redirectToLoginIfNeeded
+} from '$lib/rest/api';
+import { UniverseResponseDto } from '$lib/communication/api/universeResponseDto';
+import { PlayerResponseDto } from '$lib/communication/api/playerResponseDto';
+import { universeResponseDtoToUniverseUiDto } from '$lib/converter/universeConverter';
+import { fetchPlayerFromApiUser } from '$lib/service/players';
+import {
+	tryGetFailureReason,
+	getHttpStatusCodeFromApiFailure
+} from '@totocorpsoftwareinc/frontend-toolkit';
+import { fetchPlanetsFromPlayer } from '$lib/service/planets';
+import { PlanetResponseDto } from '$lib/communication/api/planetResponseDto';
 
 export async function load({ cookies }) {
 	resetGameCookies(cookies);
 
 	const sessionCookies = loadSessionCookiesOrRedirectToLogin(cookies);
 
-	const universesResponse = await getUniverses(sessionCookies.apiKey);
-	analayzeResponseEnvelopAndRedirectIfNeeded(universesResponse);
-	const universes = responseToUniverseArray(universesResponse);
+	let apiResponse = await getUniverses(sessionCookies.apiKey);
+	redirectToLoginIfNeeded(apiResponse);
+	handleApiError(apiResponse);
 
-	const playerResponse = await fetchPlayerFromApiUser(
-		sessionCookies.apiUser,
-		sessionCookies.apiKey
-	);
-	analayzeResponseEnvelopAndRedirectIfNeeded(playerResponse);
-	const players = responseToPlayerArray(playerResponse);
+	const universes = parseApiResponseAsArray(apiResponse, UniverseResponseDto);
+	if (universes.length === 0) {
+		error(HttpStatus.INTERNAL_SERVER_ERROR, 'Failed to get server data');
+	}
+
+	apiResponse = await fetchPlayerFromApiUser(sessionCookies.apiUser, sessionCookies.apiKey);
+	handleApiError(apiResponse);
+	const players = parseApiResponseAsArray(apiResponse, PlayerResponseDto);
 
 	const universesWithAccount = players.map((p) => p.universe);
-
 	// https://stackoverflow.com/questions/33577868/filter-array-not-in-another-array
 	const universesWithoutAccount = universes.filter((u) => !universesWithAccount.includes(u.id));
 
 	return {
-		universes: universesWithoutAccount.map((u) => u.toJson())
+		universes: universesWithoutAccount.map((u) => universeResponseDtoToUniverseUiDto(u))
 	};
 }
 
@@ -49,39 +63,51 @@ export const actions = {
 		const universeId = data.get('universe');
 		const playerName = data.get('player');
 		if (!universeId) {
-			return {
-				message: 'Please select a universe'
-			};
+			return fail(HttpStatus.UNPROCESSABLE_ENTITY, {
+				message: 'Please select a universe',
+				player: playerName
+			});
 		}
 		if (!playerName) {
-			return {
-				message: 'Please choose a name'
-			};
+			return fail(HttpStatus.UNPROCESSABLE_ENTITY, {
+				message: 'Please choose a name',
+				player: ''
+			});
 		}
 
-		const playerResponse = await createPlayer(
+		let apiResponse = await createPlayer(
 			sessionCookies.apiUser,
 			universeId as string,
 			playerName as string,
 			sessionCookies.apiKey
 		);
-		analayzeResponseEnvelopAndRedirectIfNeeded(playerResponse);
-		const player = new Player(playerResponse.details);
+		if (apiResponse.isError()) {
+			const failure = tryGetFailureReason(apiResponse);
+			const code = getHttpStatusCodeFromApiFailure(failure);
 
-		const planetsResponse = await fetchPlanetsFromPlayer(player.id, sessionCookies.apiKey);
-		analayzeResponseEnvelopAndRedirectIfNeeded(planetsResponse);
-		const planets = responseToPlanetArray(planetsResponse);
-
-		const [maybePlanet] = planets;
-
-		if (maybePlanet === undefined) {
-			return {
-				message: 'Player does not have any planet'
-			};
+			return fail(code, {
+				message: getErrorMessageFromApiResponse(apiResponse),
+				player: playerName
+			});
 		}
 
-		setGameCookies(cookies, player);
+		const playerDto = parseApiResponseAsSingleValue(apiResponse, PlayerResponseDto);
+		if (playerDto === undefined) {
+			error(HttpStatus.INTERNAL_SERVER_ERROR, 'Failed to get server data');
+		}
 
-		redirect(303, '/planets/' + maybePlanet.id + '/overview');
+		apiResponse = await fetchPlanetsFromPlayer(playerDto.id, sessionCookies.apiKey);
+		handleApiError(apiResponse);
+		const planets = parseApiResponseAsArray(apiResponse, PlanetResponseDto);
+
+		if (planets.length === 0) {
+			error(HttpStatus.INTERNAL_SERVER_ERROR, {
+				message: 'Player does not have any planet'
+			});
+		}
+
+		setGameCookies(cookies, playerDto);
+
+		redirect(HttpStatus.SEE_OTHER, '/planets/' + planets[0].id + '/overview');
 	}
 };

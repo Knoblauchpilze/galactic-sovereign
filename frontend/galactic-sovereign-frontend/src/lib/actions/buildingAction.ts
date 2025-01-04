@@ -1,43 +1,41 @@
-import { type RequestEvent } from '@sveltejs/kit';
+import { fail, type RequestEvent } from '@sveltejs/kit';
 import { loadSessionCookiesOrRedirectToLogin } from '$lib/cookies';
-import { createBuildingAction, deleteBuildingAction } from '$lib/game/planets';
+import { createBuildingAction, deleteBuildingAction } from '$lib/service/actions';
+import { HttpStatus } from '@totocorpsoftwareinc/frontend-toolkit';
+import { getErrorMessageFromApiResponse } from '$lib/rest/api';
 
 export const requestCreateBuildingAction = async ({ cookies, request }: RequestEvent) => {
 	const sessionCookies = loadSessionCookiesOrRedirectToLogin(cookies);
 
 	const data = await request.formData();
 
-	const buildingId = data.get('building');
-	if (!buildingId) {
-		return {
-			success: false,
-			missing: true,
+	const building = data.get('building');
+	const planet = data.get('planet');
+
+	if (!building) {
+		return fail(HttpStatus.UNPROCESSABLE_ENTITY, {
 			message: 'Please select a building',
-
-			buildingId
-		};
+			building: '',
+			planet: planet
+		});
 	}
 
-	const planetId = data.get('planet');
-	if (!planetId) {
-		return {
-			success: false,
-			missing: true,
+	if (!planet) {
+		return fail(HttpStatus.UNPROCESSABLE_ENTITY, {
 			message: 'Please select a planet',
-
-			planetId
-		};
+			building: building,
+			planet: ''
+		});
 	}
 
-	const actionResponse = await createBuildingAction(
+	const apiResponse = await createBuildingAction(
 		sessionCookies.apiKey,
-		planetId as string,
-		buildingId as string
+		planet as string,
+		building as string
 	);
-	if (actionResponse.error()) {
+	if (apiResponse.isError()) {
 		return {
-			success: false,
-			message: actionResponse.failureMessage()
+			message: getErrorMessageFromApiResponse(apiResponse)
 		};
 	}
 };
@@ -49,20 +47,15 @@ export const requestDeleteBuildingAction = async ({ cookies, request }: RequestE
 
 	const actionId = data.get('action');
 	if (!actionId) {
-		return {
-			success: false,
-			missing: true,
-			message: 'Please select an action',
-
-			actionId
-		};
+		return fail(HttpStatus.UNPROCESSABLE_ENTITY, {
+			message: 'Please select an action'
+		});
 	}
 
-	const actionResponse = await deleteBuildingAction(sessionCookies.apiKey, actionId as string);
-	if (actionResponse.error()) {
+	const apiResponse = await deleteBuildingAction(sessionCookies.apiKey, actionId as string);
+	if (apiResponse.isError()) {
 		return {
-			success: false,
-			message: actionResponse.failureMessage()
+			message: getErrorMessageFromApiResponse(apiResponse)
 		};
 	}
 };

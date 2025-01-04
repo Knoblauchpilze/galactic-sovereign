@@ -1,13 +1,15 @@
 <script lang="ts">
 	import { StyledText } from '@totocorpsoftwareinc/frontend-toolkit';
 	import { ConfirmationButton } from '$lib/components';
-
-	import { type UiBuilding, type UiBuildingCost } from '$lib/game/buildings';
-	import { type UiResource } from '$lib/game/resources';
+	import type {
+		PlanetBuildingUiDto,
+		PlanetBuildingCostUiDto
+	} from '$lib/communication/ui/planetBuildingUiDto';
+	import type { PlanetResourceUiDto } from '$lib/communication/ui/planetResourceUiDto';
 
 	interface Props {
-		building: UiBuilding;
-		availableResources: UiResource[];
+		building: PlanetBuildingUiDto;
+		availableResources: PlanetResourceUiDto[];
 		buildingActionAlreadyRunning: boolean;
 	}
 
@@ -22,12 +24,18 @@
 		}
 	});
 
-	function canAfford(cost: UiBuildingCost, availableResources: UiResource[]): boolean {
+	function canAfford(
+		cost: PlanetBuildingCostUiDto,
+		availableResources: PlanetResourceUiDto[]
+	): boolean {
 		const maybeResource = availableResources.find((r) => r.name === cost.resource);
 		return maybeResource === undefined || maybeResource.amount >= cost.cost;
 	}
 
-	function textColor(cost: UiBuildingCost, availableResources: UiResource[]): string {
+	function textColor(
+		cost: PlanetBuildingCostUiDto,
+		availableResources: PlanetResourceUiDto[]
+	): string {
 		const affordable = canAfford(cost, availableResources);
 		if (affordable) {
 			return 'text-enabled';

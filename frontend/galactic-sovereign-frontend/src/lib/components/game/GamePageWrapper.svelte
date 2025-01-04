@@ -3,26 +3,26 @@
 
 	import { FlexContainer, Header, StyledText } from '@totocorpsoftwareinc/frontend-toolkit';
 
-	import { type UiResource } from '$lib/game/resources';
 	import { floorToInteger, toFlooredShortString } from '$lib/displayUtils';
+	import type { PlanetResourceUiDto } from '$lib/communication/ui/planetResourceUiDto';
 
 	interface Props {
 		universeName: string;
 		planetName: string;
 		playerName: string;
-		resources: UiResource[];
+		resources: PlanetResourceUiDto[];
 		children?: Snippet;
 	}
 
 	let { universeName, planetName, playerName, resources, children }: Props = $props();
 
-	function resourceTextColor(resource: UiResource): string {
+	function resourceTextColor(resource: PlanetResourceUiDto): string {
 		if (resource.amount < resource.storage) {
 			return 'text-white';
 		}
 		return 'text-disabled';
 	}
-	function productionTextColor(resource: UiResource): string {
+	function productionTextColor(resource: PlanetResourceUiDto): string {
 		if (resource.amount < resource.storage) {
 			return 'text-enabled';
 		}

@@ -1,10 +1,9 @@
 <script lang="ts">
 	import { FlexContainer } from '@totocorpsoftwareinc/frontend-toolkit';
 	import { ConfirmationButton } from '$lib/components';
+	import type { PlayerUiDto } from '$lib/communication/ui/playerUiDto';
 
-	import { type UiPlayer } from '$lib/game/players';
-
-	export let player: UiPlayer;
+	export let player: PlayerUiDto;
 </script>
 
 <FlexContainer
