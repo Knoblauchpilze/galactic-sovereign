@@ -1,11 +1,10 @@
 <script lang="ts">
 	import { StyledText } from '@totocorpsoftwareinc/frontend-toolkit';
 	import { NegativeConfirmationButton, Timer } from '$lib/components';
-
-	import { type UiBuildingAction } from '$lib/game/actions';
+	import type { BuildingActionUiDto } from '$lib/communication/ui/buildingActionUiDto';
 
 	interface Props {
-		action: UiBuildingAction;
+		action: BuildingActionUiDto;
 		onCompleted: () => void;
 	}
 
