@@ -1,46 +1,68 @@
 import { loadAllCookiesOrRedirectToLogin } from '$lib/cookies';
-import { analayzeResponseEnvelopAndRedirectIfNeeded } from '$lib/responseEnvelope.js';
 
 import { HOMEPAGE_TITLE } from '$lib/stores/ui/pageTitle';
 
 import { logout } from '$lib/actions/logout';
 import { backToLobby } from '$lib/actions/backToLobby';
 import { requestDeleteBuildingAction } from '$lib/actions/buildingAction';
-
-import { Universe, getUniverse } from '$lib/game/universes';
-import { Planet, getPlanet } from '$lib/game/planets';
-import { mapPlanetResourcesToUiResources } from '$lib/game/resources';
-import { mapPlanetBuildingsToUiBuildings } from '$lib/game/buildings';
-import { mapBuildingActionsToUiActions } from '$lib/game/actions.js';
+import { getPlanet } from '$lib/service/planets';
+import { handleApiError, redirectToLoginIfNeeded } from '$lib/rest/api';
+import { PlanetResponseDto } from '$lib/communication/api/planetResponseDto';
+import { error } from '@sveltejs/kit';
+import { HttpStatus, parseApiResponseAsSingleValue } from '@totocorpsoftwareinc/frontend-toolkit';
+import { getUniverse } from '$lib/service/universes';
+import { UniverseResponseDto } from '$lib/communication/api/universeResponseDto';
+import { planetResourceResponseDtoToPlanetResourceUiDto } from '$lib/converter/resourceConverter';
+import { buildingResponseDtoToPlanetResourceUiDto } from '$lib/converter/buildingConverter';
+import { buildingActionResponseDtoToBuildingActionUiDto } from '$lib/converter/buildingActionConverter';
 
 export async function load({ params, cookies, depends }) {
 	const allCookies = loadAllCookiesOrRedirectToLogin(cookies);
 
 	depends('data:planet');
 
-	const planetResponse = await getPlanet(allCookies.session.apiKey, params.planet);
-	analayzeResponseEnvelopAndRedirectIfNeeded(planetResponse);
+	let apiResponse = await getUniverse(allCookies.game.universeId, allCookies.session.apiKey);
+	redirectToLoginIfNeeded(apiResponse);
+	handleApiError(apiResponse);
+
 	// https://www.okupter.com/blog/sveltekit-cannot-stringify-arbitrary-non-pojos-error
-	const planet = new Planet(planetResponse.getDetails());
+	const universeDto = parseApiResponseAsSingleValue(apiResponse, UniverseResponseDto);
+	if (universeDto === undefined) {
+		error(HttpStatus.INTERNAL_SERVER_ERROR, 'Failed to get server data');
+	}
 
-	const universeResponse = await getUniverse(allCookies.game.universeId);
-	analayzeResponseEnvelopAndRedirectIfNeeded(universeResponse);
-	const universe = new Universe(universeResponse.getDetails());
+	apiResponse = await getPlanet(allCookies.session.apiKey, params.planet);
+	redirectToLoginIfNeeded(apiResponse);
+	handleApiError(apiResponse);
 
-	const out = {
-		wepageTitle: HOMEPAGE_TITLE + ' - ' + planet.name,
+	const planetDto = parseApiResponseAsSingleValue(apiResponse, PlanetResponseDto);
+	if (planetDto === undefined) {
+		error(HttpStatus.INTERNAL_SERVER_ERROR, 'Failed to get server data');
+	}
 
-		universeName: universe.name,
+	const resources = universeDto.resources.map((r) =>
+		planetResourceResponseDtoToPlanetResourceUiDto(r, planetDto)
+	);
+	const buildings = universeDto.buildings.map((b) =>
+		buildingResponseDtoToPlanetResourceUiDto(b, universeDto.resources, planetDto)
+	);
+	const actions = planetDto.buildingActions.map((a) => {
+		const building = universeDto.buildings.find((b) => b.id === a.building);
+		return buildingActionResponseDtoToBuildingActionUiDto(a, building);
+	});
+
+	return {
+		wepageTitle: HOMEPAGE_TITLE + ' - ' + planetDto.name,
+
+		universeName: universeDto.name,
 		playerName: allCookies.game.playerName,
-		planetName: planet.name,
-		planetCreationTime: planet.createdAt,
+		planetName: planetDto.name,
+		planetCreationTime: planetDto.createdAt,
 
-		resources: mapPlanetResourcesToUiResources(planet, universe.resources),
-		buildings: mapPlanetBuildingsToUiBuildings(planet, universe.buildings, universe.resources),
-		buildingActions: mapBuildingActionsToUiActions(planet.buildingActions, universe.buildings)
+		resources: resources,
+		buildings: buildings,
+		buildingActions: actions
 	};
-
-	return out;
 }
 
 export const actions = {

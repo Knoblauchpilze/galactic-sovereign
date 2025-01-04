@@ -1,6 +1,12 @@
-import { redirect } from '@sveltejs/kit';
+import { fail, redirect } from '@sveltejs/kit';
 import { resetAllCookies } from '$lib/cookies';
-import { createUser } from '$lib/users';
+import { createUser } from '$lib/service/users';
+import {
+	getHttpStatusCodeFromApiFailure,
+	HttpStatus,
+	tryGetFailureReason
+} from '@totocorpsoftwareinc/frontend-toolkit';
+import { getErrorMessageFromApiResponse } from '$lib/rest/api';
 
 export async function load({ cookies }) {
 	resetAllCookies(cookies);
@@ -13,28 +19,31 @@ export const actions = {
 		const email = data.get('email');
 		const password = data.get('password');
 		if (!email) {
-			return {
+			return fail(HttpStatus.UNPROCESSABLE_ENTITY, {
 				message: 'Please fill in the email',
 				email: email
-			};
+			});
 		}
 		if (!password) {
-			return {
+			return fail(HttpStatus.UNPROCESSABLE_ENTITY, {
 				message: 'Please fill in the password',
 				email: email
-			};
+			});
 		}
 
-		const signupResponse = await createUser(email as string, password as string);
-		if (signupResponse.error()) {
-			return {
-				message: signupResponse.failureMessage(),
+		const apiResponse = await createUser(email as string, password as string);
+		if (apiResponse.isError()) {
+			const failure = tryGetFailureReason(apiResponse);
+			const code = getHttpStatusCodeFromApiFailure(failure);
+
+			return fail(code, {
+				message: getErrorMessageFromApiResponse(apiResponse),
 				email: email
-			};
+			});
 		}
 
 		resetAllCookies(cookies);
 
-		redirect(303, '/login');
+		redirect(HttpStatus.SEE_OTHER, '/login');
 	}
 };

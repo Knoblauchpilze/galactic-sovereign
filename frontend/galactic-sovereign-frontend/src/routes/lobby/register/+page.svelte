@@ -54,6 +54,7 @@
 						name="player"
 						placeholder="Choose a name"
 						required
+						value={form?.player ?? ''}
 						oninput={resetFormError}
 					/></FormField
 				>
