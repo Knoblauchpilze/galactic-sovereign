@@ -41,12 +41,6 @@ export class PlanetResponseDto {
 
 		if ('productions' in data && Array.isArray(data.productions)) {
 			this.productions = parseObjectAsArray(data.productions, PlanetResourceProductionResponseDto);
-			console.log(
-				'generated productions: ',
-				JSON.stringify(this.productions),
-				' from input: ',
-				JSON.stringify(data.productions)
-			);
 		}
 
 		if ('storages' in data && Array.isArray(data.storages)) {

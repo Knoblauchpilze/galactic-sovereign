@@ -17,13 +17,6 @@ export function planetResourceResponseDtoToPlanetResourceUiDto(
 	const maybePlanetResource = planetDto.resources.find((r) => r.resource === resourceDto.id);
 	const amount = maybePlanetResource === undefined ? 0 : maybePlanetResource.amount;
 
-	console.log(
-		'converting resource :',
-		JSON.stringify(resourceDto),
-		' with planet: ',
-		JSON.stringify(planetDto)
-	);
-
 	const production = planetDto.productions.reduce((currentProduction, resource) => {
 		if (resource.resource === resourceDto.id) {
 			return currentProduction + resource.production;
