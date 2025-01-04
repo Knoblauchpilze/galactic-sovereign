@@ -54,7 +54,7 @@ export async function load({ params, cookies, depends }) {
 		return buildingActionResponseDtoToBuildingActionUiDto(a, building);
 	});
 
-	console.log("resources: ", JSON.stringify(resources));
+	console.log('resources: ', JSON.stringify(resources));
 
 	return {
 		wepageTitle: HOMEPAGE_TITLE + ' - ' + planetDto.name,

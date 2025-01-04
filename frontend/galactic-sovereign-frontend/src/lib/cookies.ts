@@ -107,7 +107,11 @@ export interface AllCookies {
 	readonly game: GameCookies;
 }
 
-export function setAllCookies(cookies: Cookies, apiKey: ApiKeyResponseDto, player: PlayerResponseDto) {
+export function setAllCookies(
+	cookies: Cookies,
+	apiKey: ApiKeyResponseDto,
+	player: PlayerResponseDto
+) {
 	setSessionCookies(cookies, apiKey);
 	setGameCookies(cookies, player);
 }

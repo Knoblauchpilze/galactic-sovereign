@@ -1,7 +1,11 @@
 import { fail, redirect } from '@sveltejs/kit';
 import { resetAllCookies } from '$lib/cookies';
 import { createUser } from '$lib/service/users';
-import { getHttpStatusCodeFromApiFailure, HttpStatus, tryGetFailureReason } from '@totocorpsoftwareinc/frontend-toolkit';
+import {
+	getHttpStatusCodeFromApiFailure,
+	HttpStatus,
+	tryGetFailureReason
+} from '@totocorpsoftwareinc/frontend-toolkit';
 import { getErrorMessageFromApiResponse } from '$lib/rest/api';
 
 export async function load({ cookies }) {

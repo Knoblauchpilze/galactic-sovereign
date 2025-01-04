@@ -24,12 +24,18 @@
 		}
 	});
 
-	function canAfford(cost: PlanetBuildingCostUiDto, availableResources: PlanetResourceUiDto[]): boolean {
+	function canAfford(
+		cost: PlanetBuildingCostUiDto,
+		availableResources: PlanetResourceUiDto[]
+	): boolean {
 		const maybeResource = availableResources.find((r) => r.name === cost.resource);
 		return maybeResource === undefined || maybeResource.amount >= cost.cost;
 	}
 
-	function textColor(cost: PlanetBuildingCostUiDto, availableResources: PlanetResourceUiDto[]): string {
+	function textColor(
+		cost: PlanetBuildingCostUiDto,
+		availableResources: PlanetResourceUiDto[]
+	): string {
 		const affordable = canAfford(cost, availableResources);
 		if (affordable) {
 			return 'text-enabled';

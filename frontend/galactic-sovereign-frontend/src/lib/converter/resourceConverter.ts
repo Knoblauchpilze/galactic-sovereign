@@ -12,26 +12,32 @@ export function resourceResponseDtoToResourceUiDto(apiDto: ResourceResponseDto):
 
 export function planetResourceResponseDtoToPlanetResourceUiDto(
 	resourceDto: ResourceResponseDto,
-	planetDto: PlanetResponseDto): PlanetResourceUiDto {
-		const maybePlanetResource = planetDto.resources.find((r) => r.resource === resourceDto.id);
-		const amount = maybePlanetResource === undefined ? 0 : maybePlanetResource.amount;
+	planetDto: PlanetResponseDto
+): PlanetResourceUiDto {
+	const maybePlanetResource = planetDto.resources.find((r) => r.resource === resourceDto.id);
+	const amount = maybePlanetResource === undefined ? 0 : maybePlanetResource.amount;
 
-		console.log("converting resource :", JSON.stringify(resourceDto), " with planet: ", JSON.stringify(planetDto));
+	console.log(
+		'converting resource :',
+		JSON.stringify(resourceDto),
+		' with planet: ',
+		JSON.stringify(planetDto)
+	);
 
-		const production = planetDto.productions.reduce((currentProduction, resource) => {
-			if (resource.resource === resourceDto.id) {
-				return currentProduction + resource.production;
-			}
-			return currentProduction;
-		}, 0);
+	const production = planetDto.productions.reduce((currentProduction, resource) => {
+		if (resource.resource === resourceDto.id) {
+			return currentProduction + resource.production;
+		}
+		return currentProduction;
+	}, 0);
 
-		const maybePlanetStorage = planetDto.storages.find((s) => s.resource === resourceDto.id);
-		const storage = maybePlanetStorage === undefined ? 0 : maybePlanetStorage.storage;
+	const maybePlanetStorage = planetDto.storages.find((s) => s.resource === resourceDto.id);
+	const storage = maybePlanetStorage === undefined ? 0 : maybePlanetStorage.storage;
 
 	return {
 		name: resourceDto.name,
 		amount: amount,
 		production: production,
-		storage: storage,
+		storage: storage
 	};
 }
