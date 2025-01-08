@@ -29,7 +29,7 @@ To start the website locally, the [installation instructions](https://kit.svelte
 npm run dev -- --open
 ```
 
-Alternatively a [Makefile](user-dashboard/Makefile) is provided with a `make dev` target.
+Alternatively a [Makefile](galactic-sovereign-frontend-dashboard/Makefile) is provided with a `make dev` target.
 
 This usecase is interesting when developing a new feature: svelte handles a local server and opens a tab in the browser to present the website as it will look like for users.
 
@@ -58,7 +58,7 @@ ORIGIN=http://localhost:3000 node /path/to/the/build/folder
 
 The first part corresponds to the problem described in this [SO post](https://stackoverflow.com/questions/73790956/cross-site-post-form-submissions-are-forbidden). With this, the website can be accessed locally on the browser by going to `http://localhost:3000/dashboard/login`.
 
-For convenience, the [Makefile](user-dashboard/Makefile) defines a `build` target to handle the build. Most likely though it is better to use the root [Makefile](/Makefile) and build the docker images for the user dashboard: this handles everything and allows to predictably setup the associated web server.
+For convenience, the [Makefile](galactic-sovereign-frontend/Makefile) defines a `build` target to handle the build. Most likely though it is better to use the root [Makefile](/Makefile) and build the docker images for the user dashboard: this handles everything and allows to predictably setup the associated web server.
 
 # The website
 

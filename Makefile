@@ -20,16 +20,6 @@ galactic-sovereign-service-build:
 		-f build/galactic-sovereign-service/Dockerfile \
 		.
 
-user-dashboard-build:
-	docker build \
-		--build-arg GIT_COMMIT_HASH=${GIT_COMMIT_HASH} \
-		--build-arg SERVER_ORIGIN=${SERVER_ORIGIN} \
-		--build-arg NODE_PORT=${NODE_PORT} \
-		--build-arg API_BASE_URL=${USER_API_BASE_URL} \
-		--tag totocorpsoftwareinc/user-dashboard:${GIT_COMMIT_HASH} \
-		-f build/user-dashboard/Dockerfile \
-		.
-
 galactic-sovereign-frontend-build:
 	docker build \
 		--build-arg GIT_COMMIT_HASH=${GIT_COMMIT_HASH} \
