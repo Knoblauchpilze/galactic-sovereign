@@ -119,7 +119,7 @@ jobs:
           git pull
           git config --global user.name 'totocorpbot'
           git config --global user.email 'totocorpbot@users.noreply.github.com'
-          git commit -am "infra: Bumped galactic-sovereign-service version to latest revision"
+          git commit -am "infra: Bumped galactic-sovereign-service version to ${{ needs.extract-service-tag.outputs.version }}"
           git push
 
   finish:
