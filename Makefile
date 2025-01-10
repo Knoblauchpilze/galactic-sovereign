@@ -1,17 +1,9 @@
 
-# Provide tag as:
-# GIT_COMMIT_HASH=$(git rev-parse --short HEAD)
+GIT_COMMIT_HASH=$(shell git rev-parse --short HEAD)
 NODE_PORT ?= 3001
 SERVER_ORIGIN ?= "http://localhost:3001"
 USER_API_BASE_URL ?= "http://user-service:80/v1/users"
 GALACTIC_SOVEREIGN_API_BASE_URL ?= "http://galactic-sovereign-service:80/v1/galactic-sovereign"
-
-user-service-build:
-	docker build \
-		--build-arg GIT_COMMIT_HASH=${GIT_COMMIT_HASH} \
-		--tag totocorpsoftwareinc/user-service:${GIT_COMMIT_HASH} \
-		-f build/user-service/Dockerfile \
-		.
 
 galactic-sovereign-service-build:
 	docker build \
