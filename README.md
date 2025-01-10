@@ -1,6 +1,6 @@
 # galactic-sovereign
 
-This repository is a monorepo containing the services needed to power the [gasteropo.de](https://gasteropo.de) website.
+This repository contains the backend service powering the is [galactic-sovereign.gasteropo.de](https://galactic-sovereign.gasteropo.de) website.
 
 On this website you can find an online multiplayer web-browser game titled **Galactic Sovereign**. This is a strategy game where the players can mine resources on their respective planets and improve the infrastructure to do so by upgrading their mines. It is largely inspired by the basics of [OGame](https://en.wikipedia.org/wiki/OGame), a famous strategy game.
 
@@ -24,11 +24,8 @@ This project uses the following technologies:
 
 - [postgres](https://www.postgresql.org/) for the databases.
 - [go](https://go.dev/) as the server backend language.
-- [sveltekit](https://kit.svelte.dev/) as the frontend development framework.
 - [docker](https://www.docker.com/) as the containerization tool to deploy services.
 - [dockerhub](https://hub.docker.com/) to host the images of services and make them available.
-
-As this is a project to learn things without being a money sink, some aspects of the management of the website are handled with in-house solutions when they could use existing commercial software.
 
 # Badges
 
@@ -48,7 +45,6 @@ See the following links:
 - [golang migrate](https://github.com/golang-migrate/migrate/blob/master/cmd/migrate/README.md): following the instructions there should be enough.
 - [postgresql](https://www.postgresql.org/) which can be taken from the packages with `sudo apt-get install postgresql-14` for example.
 - [docker](https://docs.docker.com/engine/install/ubuntu/#install-using-the-repository) which can be installed following the instructions of the previous link.
-- [node and npm](https://nodejs.org/en/download/package-manager) which can be installed using the instructions in the previous link.
 
 We also assume that this repository is cloned locally and available to use. To achieve this, just use the following command:
 
@@ -63,7 +59,6 @@ The CI workflows define several secrets that are expected to be created for the 
 ## Process to install
 
 The following sections describe how to setup the local postgres server to be able to host the databases needed by the project. This includes:
-
 - altering the postgres password if needed
 - setting up the database
 - connecting to the database
@@ -99,7 +94,6 @@ After exiting the shells, you should know the password for the `postgres` passwo
 ⚠️ In this section we will focus on setting up the galactic-sovereign database but this approach can be extended to the other databases needed by the project.
 
 In both remote and local case, the configuration of the database happens in 3 steps:
-
 - creation of the users to manage the database
 - creation of the database
 - creating the schema of the database and the relations
@@ -137,7 +131,3 @@ If you want to connect to the database to inspect its content, you can use the `
 ```bash
 DB_PORT=5000 DB_PASSWORD='admin-password' make connect
 ```
-
-# The website
-
-Along with the backend to handle the users and their authentication, this project also created a small toy website to access the features offered by the service. More information can be found in the dedicated [README](frontend/README.md) document.
