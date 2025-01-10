@@ -58,7 +58,7 @@ jobs:
       - name: Detect if service tags should be persisted
         id: persist-tags
         run: |
-          echo 'persist=${{ (github.ref == 'refs/heads/master') && (needs.analyze-code-changes.outputs.galactic-sovereign-service == 'true' }}' >> $GITHUB_OUTPUT
+          echo 'persist=${{ (github.ref == 'refs/heads/master') && (needs.analyze-code-changes.outputs.galactic-sovereign-service == 'true') }}' >> $GITHUB_OUTPUT
   extract-service-tag:
     runs-on: ubuntu-latest
     # https://docs.github.com/en/actions/using-jobs/defining-outputs-for-jobs
