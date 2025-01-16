@@ -1,3 +1,5 @@
+Server:
+  Port: 80
 Database:
   User: galactic_sovereign_manager
   Password: comes-from-the-environment
