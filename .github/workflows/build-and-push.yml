@@ -1,4 +1,4 @@
-name: Build and push services
+name: Build services
 
 on:
   push:
@@ -6,6 +6,7 @@ on:
       - "go.mod"
       - ".github/workflows/**"
       - "build/**"
+      - "database/**"
       - "pkg/**"
       - "internal/**"
       - "cmd/**"
@@ -17,48 +18,108 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # https://github.com/dorny/paths-filter
-  detect-code-changes:
+  check-test-names:
     runs-on: ubuntu-latest
-    outputs:
-      ci: ${{ steps.filter.outputs.ci }}
-      galactic-sovereign-service: ${{ steps.filter.outputs.galactic-sovereign-service }}
     steps:
       - uses: actions/checkout@v4
-      - uses: dorny/paths-filter@v3
-        id: filter
+      - name: Detect tests not matching naming pattern
+        id: matching
+        # https://unix.stackexchange.com/questions/330660/preventing-grep-from-causing-premature-termination-of-bash-e-script
+        run: |
+          grep -rh 'func Test' --include *_test.go > all_tests.txt
+          sed -i 's/func //g' all_tests.txt
+          cat all_tests.txt | cut -d'(' -f1 > test_names.txt
+          grep -v TestMain test_names.txt > test_without_main.txt
+          grep -vE '^Test(Unit|IT|)_' test_without_main.txt > not_matching.txt || [[ $? == 1 ]]
+          FAILURES=$(wc -l < not_matching.txt)
+          if [[ ${FAILURES} -ne 0 ]]; then
+            echo 'failed=true' >> $GITHUB_OUTPUT
+          fi
+      - name: Fail if some do not match
+        if: ${{ steps.matching.outputs.failed == 'true' }}
+        # https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/workflow-commands-for-github-actions#example-setting-an-error-message
+        run: |
+          echo "::error ::Detected at least one test not matching the naming convention!"
+          exit 1
+
+  tests:
+    runs-on: ubuntu-latest
+    needs: [check-test-names]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Go
+        uses: actions/setup-go@v5
         with:
-          base: ${{ github.ref_name }}
-          filters: |
-            ci:
-              - '.github/workflows/build-and-push.yml'
-            galactic-sovereign-service:
-              - 'go.mod'
-              - 'pkg/**'
-              - 'internal/**'
-              - 'cmd/galactic-sovereign/**'
-              - '.github/workflows/galactic-sovereign-service**'
-              - 'build/galactic-sovereign-service/Dockerfile'
-  analyze-code-changes:
+          go-version: "1.23.2"
+      - name: Run tests with coverage
+        run: go test -run='^TestUnit_.*' ./... -coverpkg=./... -race -covermode=atomic -coverprofile=coverage.out
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          fail_ci_if_error: true
+          files: ./coverage.out
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+  it-tests:
     runs-on: ubuntu-latest
-    needs: [detect-code-changes]
-    outputs:
-      galactic-sovereign-service: ${{ steps.galactic-sovereign-service.outputs.rebuild }}
+    needs: [check-test-names]
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
-      - name: Determine galactic-sovereign-service rebuild status
-        id: galactic-sovereign-service
+      - uses: actions/checkout@v4
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.23.2"
+      - name: Install migrate tool
+        run: go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
+      - name: Setup galactic-sovereign database
         run: |
-          echo 'rebuild=${{ needs.detect-code-changes.outputs.galactic-sovereign-service == 'true' || needs.detect-code-changes.outputs.ci == 'true' }}' >> $GITHUB_OUTPUT
-  analyze-persist-tags-status:
-    runs-on: ubuntu-latest
-    needs: [detect-code-changes, analyze-code-changes]
-    outputs:
-      persist: ${{ steps.persist-tags.outputs.persist }}
-    steps:
-      - name: Detect if service tags should be persisted
-        id: persist-tags
+          psql \
+            postgresql://postgres@localhost \
+            -v admin_password=$ADMIN_PASSWORD \
+            -v manager_password=$MANAGER_PASSWORD \
+            -v user_password=$USER_PASSWORD \
+            -f galactic-sovereign/db_user_create.sql
+          psql \
+            postgresql://postgres@localhost \
+            -f galactic-sovereign/db_create.sql
+        working-directory: ./database
+        env:
+          PGPASSWORD: postgres
+          ADMIN_PASSWORD: admin_password
+          MANAGER_PASSWORD: manager_password
+          USER_PASSWORD: user_password
+      - name: Migrate schema up
         run: |
-          echo 'persist=${{ (github.ref == 'refs/heads/master') && (needs.analyze-code-changes.outputs.galactic-sovereign-service == 'true') }}' >> $GITHUB_OUTPUT
+          migrate \
+            -path galactic-sovereign/migrations \
+            -database postgresql://galactic_sovereign_admin@localhost/db_galactic_sovereign?sslmode=disable \
+            up
+        working-directory: ./database
+        env:
+          PGPASSWORD: admin_password
+      - name: Run tests with coverage
+        run: go test -run='^TestIT_.*' ./... -coverpkg=./... -race -covermode=atomic -coverprofile=coverage.out
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          fail_ci_if_error: true
+          files: ./coverage.out
+          token: ${{ secrets.CODECOV_TOKEN }}
+
   extract-service-tag:
     runs-on: ubuntu-latest
     # https://docs.github.com/en/actions/using-jobs/defining-outputs-for-jobs
@@ -71,73 +132,140 @@ jobs:
         # https://stackoverflow.com/questions/58886293/getting-current-branch-and-commit-hash-in-github-action
         run: echo "tag=$(git rev-parse --short $GITHUB_SHA)" >> $GITHUB_OUTPUT
 
-  tests:
-    needs: [analyze-code-changes]
-    if: ${{ needs.analyze-code-changes.outputs.galactic-sovereign-service == 'true' }}
-    uses: ./.github/workflows/galactic-sovereign-service-tests.yml
-    secrets:
-      codecov-token: ${{ secrets.CODECOV_TOKEN }}
-  build-galactic-sovereign-service:
-    needs: [tests, extract-service-tag]
-    if: ${{ needs.analyze-code-changes.outputs.galactic-sovereign-service == 'true' }}
-    uses: ./.github/workflows/galactic-sovereign-service-build-and-push.yml
-    with:
-      service-tag: ${{ needs.extract-service-tag.outputs.version }}
-    secrets:
-      dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
-      dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
-
-  persist-service-tags:
+  build-and-push-docker-image:
     runs-on: ubuntu-latest
-    needs:
-      [
-        analyze-code-changes,
-        analyze-persist-tags-status,
-        build-galactic-sovereign-service,
-        extract-service-tag,
-      ]
-    # https://github.com/actions/runner/issues/491
-    if: |
-      always() &&
-      !contains(needs.*.result, 'failure') &&
-      !contains(needs.*.result, 'cancelled') &&
-      github.ref == 'refs/heads/master' &&
-      needs.analyze-persist-tags-status.outputs.persist == 'true'
-    permissions:
-      contents: write
+    needs: [extract-service-tag, tests, it-tests]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      # https://docs.github.com/en/actions/publishing-packages/publishing-docker-images#publishing-images-to-docker-hub
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./build/galactic-sovereign-service/Dockerfile
+          build-args: GIT_COMMIT_HASH=${{ needs.extract-service-tag.outputs.version }}
+          push: true
+          tags: totocorpsoftwareinc/galactic-sovereign-service:${{ needs.extract-service-tag.outputs.version }}
+
+  e2e-tests:
+    runs-on: ubuntu-latest
+    needs: [build-and-push-docker-image, extract-service-tag]
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.23.2"
+      - name: Install migrate tool
+        run: go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
+      - name: Setup galactic-sovereign database
+        run: |
+          psql \
+            postgresql://postgres@localhost \
+            -v admin_password=$ADMIN_PASSWORD \
+            -v manager_password=$MANAGER_PASSWORD \
+            -v user_password=$USER_PASSWORD \
+            -f galactic-sovereign/db_user_create.sql
+          psql \
+            postgresql://postgres@localhost \
+            -f galactic-sovereign/db_create.sql
+        working-directory: ./database
+        env:
+          PGPASSWORD: postgres
+          ADMIN_PASSWORD: admin_password
+          MANAGER_PASSWORD: manager_password
+          USER_PASSWORD: user_password
+      - name: Migrate schema up
+        run: |
+          migrate \
+            -path galactic-sovereign/migrations \
+            -database postgresql://galactic_sovereign_admin@localhost/db_galactic_sovereign?sslmode=disable \
+            up
+        working-directory: ./database
+        env:
+          PGPASSWORD: admin_password
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Pull latest docker image
+        run: |
+          docker pull totocorpsoftwareinc/galactic-sovereign-service:${{ needs.extract-service-tag.outputs.version }}
+      - name: Test docker image
+        # https://superuser.com/questions/272265/getting-curl-to-output-http-status-code
+        # https://stackoverflow.com/questions/24254064/how-to-get-curl-to-output-only-http-response-body-json-and-no-other-headers-et
+        # https://docs.github.com/en/actions/use-cases-and-examples/using-containerized-services/about-service-containers#running-jobs-on-the-runner-machine
+        run: |
+          docker run \
+            -d \
+            --name galactic-sovereign-service-test \
+            -e ENV_SERVER_PORT=$PORT \
+            -e ENV_DATABASE_PASSWORD=$DATABASE_PASSWORD \
+            -p 1234:1234 \
+            totocorpsoftwareinc/galactic-sovereign-service:${{ needs.extract-service-tag.outputs.version }}
+          echo "status_code=$(curl -s -o /dev/null -w %{http_code} localhost:1234/v1/galactic-sovereign/universes)" >> $GITHUB_OUTPUT
+          echo "response_body=$(curl -s localhost:1234/v1/galactic-sovereign/universes)" >> $GITHUB_OUTPUT
+          docker stop galactic-sovereign-service-test
+        id: test-results
+        env:
+          PORT: 1234
+          DATABASE_PASSWORD: manager_password
+      - name: Print test results
+        run: |
+          echo ${{ steps.test-results.outputs.status_code }}
+          echo ${{ steps.test-results.outputs.response_body }}
+      - name: Verify status code
+        run: |
+          if [[ ${{ steps.test-results.outputs.status_code }} != '200' ]]; then
+            echo "::error ::Expected http status code to be 200 but it was ${{ steps.test-results.outputs.status_code }}!"
+            exit 1
+          fi
+      - name: Verify response body
+        # https://stackoverflow.com/questions/58862864/github-actions-ci-conditional-regex
+        # https://stackoverflow.com/questions/4542732/how-do-i-negate-a-test-with-regular-expressions-in-a-bash-script
+        run: |
+          if ! [[ '${{ steps.test-results.outputs.response_body }}' =~ ^\{\"requestId\":\"[0-9a-f-]+\",\"status\":\"SUCCESS\",\"details\":\[[^]]+\]\}$ ]]; then
+            echo "::error ::Expected http response to match expected syntax but it did not: ${{ steps.test-results.outputs.response_body }}!"
+            exit 1
+          fi
+
+  update-deployment:
+    runs-on: ubuntu-latest
+    needs: [extract-service-tag, e2e-tests]
+    if: github.ref == 'refs/heads/master'
     steps:
       - uses: actions/checkout@v4
         with:
           repository: "Knoblauchpilze/ec2-deployment"
+          # https://stackoverflow.com/questions/64374179/how-to-push-to-another-repository-in-github-actions
           token: ${{ secrets.DEPLOYMENT_TOKEN }}
-      - name: Save galactic-sovereign-service tag
-        if: ${{ needs.analyze-code-changes.outputs.galactic-sovereign-service == 'true' }}
+      - name: Update service tag
         run: |
           echo "${{ needs.extract-service-tag.outputs.version }}" > ./build/galactic-sovereign-service/version.txt
-      - name: Commit changes
+      - name: "Commit changes"
         run: |
           git pull
           git config --global user.name 'totocorpbot'
           git config --global user.email 'totocorpbot@users.noreply.github.com'
           git commit -am "infra: Bumped galactic-sovereign-service version to ${{ needs.extract-service-tag.outputs.version }}"
           git push
-
-  finish:
-    runs-on: ubuntu-latest
-    needs:
-      [
-        analyze-code-changes,
-        build-galactic-sovereign-service,
-        persist-service-tags,
-        extract-service-tag,
-      ]
-    if: |
-      always() &&
-      !contains(needs.*.result, 'failure') &&
-      !contains(needs.*.result, 'cancelled')
-    steps:
-      - uses: actions/checkout@v4
-      - name: galactic-sovereign-service tag
-        if: ${{ needs.analyze-code-changes.outputs.galactic-sovereign-service == 'true' }}
-        run: |
-          echo "Tag is now ${{ needs.extract-service-tag.outputs.version }}"
