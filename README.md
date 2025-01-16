@@ -31,7 +31,9 @@ This project uses the following technologies:
 
 [![codecov](https://codecov.io/gh/Knoblauchpilze/galactic-sovereign/branch/master/badge.svg?token=WNLIZF0FBL)](https://codecov.io/gh/Knoblauchpilze/galactic-sovereign)
 
-[![Build and push services](https://github.com/KnoblauchPilze/galactic-sovereign/actions/workflows/build-and-push.yml/badge.svg)](https://github.com/KnoblauchPilze/galactic-sovereign/actions/workflows/build-and-push.yml)
+[![Build services](https://github.com/Knoblauchpilze/galactic-sovereign/actions/workflows/build-and-push.yml/badge.svg)](https://github.com/Knoblauchpilze/galactic-sovereign/actions/workflows/build-and-push.yml)
+
+[![Database migration tests](https://github.com/Knoblauchpilze/galactic-sovereign/actions/workflows/database-migration-tests.yml/badge.svg)](https://github.com/Knoblauchpilze/galactic-sovereign/actions/workflows/database-migration-tests.yml)
 
 # Installation
 
