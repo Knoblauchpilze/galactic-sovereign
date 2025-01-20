@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/KnoblauchPilze/backend-toolkit/pkg/errors"
+	"github.com/Knoblauchpilze/backend-toolkit/pkg/errors"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )

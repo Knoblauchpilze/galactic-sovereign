@@ -3,12 +3,12 @@ package controller
 import (
 	"net/http"
 
-	"github.com/KnoblauchPilze/backend-toolkit/pkg/db"
-	"github.com/KnoblauchPilze/backend-toolkit/pkg/db/pgx"
-	"github.com/KnoblauchPilze/backend-toolkit/pkg/errors"
-	"github.com/KnoblauchPilze/backend-toolkit/pkg/rest"
-	"github.com/KnoblauchPilze/galactic-sovereign/internal/service"
-	"github.com/KnoblauchPilze/galactic-sovereign/pkg/communication"
+	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
+	"github.com/Knoblauchpilze/backend-toolkit/pkg/db/pgx"
+	"github.com/Knoblauchpilze/backend-toolkit/pkg/errors"
+	"github.com/Knoblauchpilze/backend-toolkit/pkg/rest"
+	"github.com/Knoblauchpilze/galactic-sovereign/internal/service"
+	"github.com/Knoblauchpilze/galactic-sovereign/pkg/communication"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )

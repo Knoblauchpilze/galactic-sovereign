@@ -1,8 +1,8 @@
 package controller
 
 import (
-	"github.com/KnoblauchPilze/backend-toolkit/pkg/db"
-	"github.com/KnoblauchPilze/galactic-sovereign/internal/service"
+	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
+	"github.com/Knoblauchpilze/galactic-sovereign/internal/service"
 	"github.com/labstack/echo/v4"
 )
 

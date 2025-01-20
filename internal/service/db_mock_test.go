@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/KnoblauchPilze/backend-toolkit/pkg/db"
+	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
 )
 
 type mockConnection struct {

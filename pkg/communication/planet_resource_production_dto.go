@@ -1,7 +1,7 @@
 package communication
 
 import (
-	"github.com/KnoblauchPilze/galactic-sovereign/pkg/persistence"
+	"github.com/Knoblauchpilze/galactic-sovereign/pkg/persistence"
 	"github.com/google/uuid"
 )
 

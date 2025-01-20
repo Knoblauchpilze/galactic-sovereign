@@ -4,14 +4,14 @@ import (
 	"context"
 	"os"
 
-	"github.com/KnoblauchPilze/backend-toolkit/pkg/config"
-	"github.com/KnoblauchPilze/backend-toolkit/pkg/db"
-	"github.com/KnoblauchPilze/backend-toolkit/pkg/logger"
-	"github.com/KnoblauchPilze/backend-toolkit/pkg/server"
-	"github.com/KnoblauchPilze/galactic-sovereign/cmd/galactic-sovereign/internal"
-	"github.com/KnoblauchPilze/galactic-sovereign/internal/controller"
-	"github.com/KnoblauchPilze/galactic-sovereign/internal/service"
-	"github.com/KnoblauchPilze/galactic-sovereign/pkg/repositories"
+	"github.com/Knoblauchpilze/backend-toolkit/pkg/config"
+	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
+	"github.com/Knoblauchpilze/backend-toolkit/pkg/logger"
+	"github.com/Knoblauchpilze/backend-toolkit/pkg/server"
+	"github.com/Knoblauchpilze/galactic-sovereign/cmd/galactic-sovereign/internal"
+	"github.com/Knoblauchpilze/galactic-sovereign/internal/controller"
+	"github.com/Knoblauchpilze/galactic-sovereign/internal/service"
+	"github.com/Knoblauchpilze/galactic-sovereign/pkg/repositories"
 )
 
 func determineConfigName() string {

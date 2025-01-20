@@ -5,10 +5,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/KnoblauchPilze/backend-toolkit/pkg/db"
-	"github.com/KnoblauchPilze/backend-toolkit/pkg/errors"
-	"github.com/KnoblauchPilze/galactic-sovereign/pkg/persistence"
-	"github.com/KnoblauchPilze/galactic-sovereign/pkg/repositories"
+	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
+	"github.com/Knoblauchpilze/backend-toolkit/pkg/errors"
+	"github.com/Knoblauchpilze/galactic-sovereign/pkg/persistence"
+	"github.com/Knoblauchpilze/galactic-sovereign/pkg/repositories"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 )

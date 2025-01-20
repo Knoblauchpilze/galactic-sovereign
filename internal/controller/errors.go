@@ -1,7 +1,7 @@
 package controller
 
 import (
-	"github.com/KnoblauchPilze/backend-toolkit/pkg/errors"
+	"github.com/Knoblauchpilze/backend-toolkit/pkg/errors"
 )
 
 const (

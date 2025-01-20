@@ -3,8 +3,8 @@ package game
 import (
 	"math"
 
-	"github.com/KnoblauchPilze/backend-toolkit/pkg/errors"
-	"github.com/KnoblauchPilze/galactic-sovereign/pkg/persistence"
+	"github.com/Knoblauchpilze/backend-toolkit/pkg/errors"
+	"github.com/Knoblauchpilze/galactic-sovereign/pkg/persistence"
 	"github.com/google/uuid"
 )
 

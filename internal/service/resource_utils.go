@@ -3,10 +3,10 @@ package service
 import (
 	"context"
 
-	"github.com/KnoblauchPilze/backend-toolkit/pkg/db"
-	"github.com/KnoblauchPilze/backend-toolkit/pkg/errors"
-	"github.com/KnoblauchPilze/galactic-sovereign/pkg/persistence"
-	"github.com/KnoblauchPilze/galactic-sovereign/pkg/repositories"
+	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
+	"github.com/Knoblauchpilze/backend-toolkit/pkg/errors"
+	"github.com/Knoblauchpilze/galactic-sovereign/pkg/persistence"
+	"github.com/Knoblauchpilze/galactic-sovereign/pkg/repositories"
 )
 
 type updateFunc func(existing float64, change float64) float64
