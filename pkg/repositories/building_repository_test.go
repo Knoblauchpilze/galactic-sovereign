@@ -6,9 +6,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/KnoblauchPilze/backend-toolkit/pkg/db"
-	eassert "github.com/KnoblauchPilze/easy-assert/assert"
-	"github.com/KnoblauchPilze/galactic-sovereign/pkg/persistence"
+	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
+	eassert "github.com/Knoblauchpilze/easy-assert/assert"
+	"github.com/Knoblauchpilze/galactic-sovereign/pkg/persistence"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

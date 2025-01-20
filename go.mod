@@ -1,4 +1,4 @@
-module github.com/KnoblauchPilze/galactic-sovereign
+module github.com/Knoblauchpilze/galactic-sovereign
 
 go 1.23.2
 
@@ -20,12 +20,12 @@ require (
 )
 
 require (
-	github.com/KnoblauchPilze/backend-toolkit v0.2.1
-	github.com/KnoblauchPilze/easy-assert v0.3.0
+	github.com/Knoblauchpilze/backend-toolkit v0.3.0
+	github.com/Knoblauchpilze/easy-assert v0.4.0
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/fsnotify/fsnotify v1.8.0 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
-	github.com/jackc/pgx/v5 v5.7.1 // indirect
+	github.com/jackc/pgx/v5 v5.7.2 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect

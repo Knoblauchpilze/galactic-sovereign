@@ -1,6 +1,6 @@
 package game
 
-import "github.com/KnoblauchPilze/backend-toolkit/pkg/errors"
+import "github.com/Knoblauchpilze/backend-toolkit/pkg/errors"
 
 const (
 	NoSuchBuilding     errors.ErrorCode = 270

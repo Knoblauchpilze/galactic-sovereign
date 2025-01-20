@@ -3,7 +3,7 @@ package game
 import (
 	"strings"
 
-	"github.com/KnoblauchPilze/backend-toolkit/pkg/rest"
+	"github.com/Knoblauchpilze/backend-toolkit/pkg/rest"
 	"github.com/labstack/echo/v4"
 )
 

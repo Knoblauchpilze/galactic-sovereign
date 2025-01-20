@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/KnoblauchPilze/galactic-sovereign/pkg/persistence"
-	"github.com/KnoblauchPilze/galactic-sovereign/pkg/repositories"
+	"github.com/Knoblauchpilze/galactic-sovereign/pkg/persistence"
+	"github.com/Knoblauchpilze/galactic-sovereign/pkg/repositories"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 )
