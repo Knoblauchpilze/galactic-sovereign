@@ -56,7 +56,7 @@ func TestUnit_DetermineBuildingActionResourceProduction(t *testing.T) {
 
 	action := persistence.BuildingAction{
 		Id:           uuid.MustParse("7f548f48-2bac-46f0-b655-56487472b5db"),
-		DesiredLevel: 5,
+		DesiredLevel: 10,
 	}
 	baseProductions := []persistence.BuildingResourceProduction{
 		{
@@ -79,13 +79,13 @@ func TestUnit_DetermineBuildingActionResourceProduction(t *testing.T) {
 	expectedResourceProduction := persistence.BuildingActionResourceProduction{
 		Action:     action.Id,
 		Resource:   defaultMetalId,
-		Production: 43,
+		Production: 975,
 	}
 	assert.Equal(expectedResourceProduction, productions[0])
 	expectedResourceProduction = persistence.BuildingActionResourceProduction{
 		Action:     action.Id,
 		Resource:   defaultCrystalId,
-		Production: 77,
+		Production: 2576,
 	}
 	assert.Equal(expectedResourceProduction, productions[1])
 }
