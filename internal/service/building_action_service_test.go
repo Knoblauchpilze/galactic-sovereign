@@ -171,7 +171,7 @@ func TestUnit_BuildingActionService(t *testing.T) {
 
 					assert.Equal(1, m.createCalled)
 					assert.Equal(defaultBuildingActionResourceProduction.Resource, m.createdBuildingActionResourceProduction.Resource)
-					assert.Equal(72, m.createdBuildingActionResourceProduction.Production)
+					assert.Equal(119, m.createdBuildingActionResourceProduction.Production)
 				},
 			},
 			"create_createsAction": {
