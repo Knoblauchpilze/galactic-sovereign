@@ -79,13 +79,13 @@ func TestUnit_DetermineBuildingActionResourceProduction(t *testing.T) {
 	expectedResourceProduction := persistence.BuildingActionResourceProduction{
 		Action:     action.Id,
 		Resource:   defaultMetalId,
-		Production: 975,
+		Production: 1300,
 	}
 	assert.Equal(expectedResourceProduction, productions[0])
 	expectedResourceProduction = persistence.BuildingActionResourceProduction{
 		Action:     action.Id,
 		Resource:   defaultCrystalId,
-		Production: 2576,
+		Production: 3722,
 	}
 	assert.Equal(expectedResourceProduction, productions[1])
 }

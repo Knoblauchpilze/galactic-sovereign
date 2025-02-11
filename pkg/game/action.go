@@ -29,7 +29,7 @@ func DetermineBuildingActionResourceProduction(action persistence.BuildingAction
 
 	// https://ogame.fandom.com/wiki/Metal_Mine#Production
 	// https://ogame.fandom.com/wiki/Crystal_Mine#Production
-	levelAsFloat := float64(action.DesiredLevel - 1)
+	levelAsFloat := float64(action.DesiredLevel)
 
 	for _, baseProduction := range baseProductions {
 		resourceProduction := math.Floor(float64(baseProduction.Base) * levelAsFloat * math.Pow(baseProduction.Progress, levelAsFloat))
