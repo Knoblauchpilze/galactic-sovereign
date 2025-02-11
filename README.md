@@ -1,6 +1,6 @@
 # galactic-sovereign
 
-This repository contains the backend service powering the is [galactic-sovereign.gasteropo.de](https://galactic-sovereign.gasteropo.de) website.
+This repository contains the backend service powering the is [galactic-sovereign.gasteropo.de](https://galactic-sovereign.gasteropo.de) website. The frontend for this project is defined in the [galactic-sovereign-frontend](https://github.com/Knoblauchpilze/galactic-sovereign-frontend) repository.
 
 On this website you can find an online multiplayer web-browser game titled **Galactic Sovereign**. This is a strategy game where the players can mine resources on their respective planets and improve the infrastructure to do so by upgrading their mines. It is largely inspired by the basics of [OGame](https://en.wikipedia.org/wiki/OGame), a famous strategy game.
 
@@ -15,8 +15,6 @@ Here is a view of the lobby:
 And a screenshot of the actual game:
 
 ![In-game view for the Galactic Sovereign website](resources/galactic-sovereign-game-view.png)
-
-The goal of this project is to progressively migrate to a unique game concept, building the services needed for it and learning how to do it along the way.
 
 # Overview
 
@@ -61,6 +59,7 @@ The CI workflows define several secrets that are expected to be created for the 
 ## Process to install
 
 The following sections describe how to setup the local postgres server to be able to host the databases needed by the project. This includes:
+
 - altering the postgres password if needed
 - setting up the database
 - connecting to the database
@@ -96,6 +95,7 @@ After exiting the shells, you should know the password for the `postgres` passwo
 ⚠️ In this section we will focus on setting up the galactic-sovereign database but this approach can be extended to the other databases needed by the project.
 
 In both remote and local case, the configuration of the database happens in 3 steps:
+
 - creation of the users to manage the database
 - creation of the database
 - creating the schema of the database and the relations
