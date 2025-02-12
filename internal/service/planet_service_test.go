@@ -21,6 +21,16 @@ var defaultPlanetId = uuid.MustParse("5b0efd85-8817-4454-b8f3-7af5d93253a1")
 var defaultPlanetName = "my-planet"
 var defaultBuildingActionId = uuid.MustParse("38a739bd-79db-453e-ab03-44f9f300c3c8")
 
+var defaultBuildingId = uuid.MustParse("5ec0f2cb-adc9-4f09-bb77-61d0ccdbcc52")
+var defaultBuildingName = "my-building"
+var defaultBuilding = persistence.Building{
+	Id:   defaultBuildingId,
+	Name: defaultBuildingName,
+
+	CreatedAt: testDate,
+	UpdatedAt: testDate,
+}
+
 var defaultPlanetDtoRequest = communication.PlanetDtoRequest{
 	Player: defaultPlayerId,
 	Name:   defaultPlanetName,

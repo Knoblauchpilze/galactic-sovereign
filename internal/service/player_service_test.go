@@ -18,6 +18,7 @@ import (
 )
 
 var defaultUserId = uuid.MustParse("08ce96a3-3430-48a8-a3b2-b1c987a207ca")
+var defaultUniverseId = uuid.MustParse("3e7fde5c-ac70-4e5d-bd09-73029725048d")
 var defaultPlayerId = uuid.MustParse("f16455b7-514c-44b1-847f-ba2cf99c765b")
 var defaultPlayerName = "my-player"
 

@@ -14,20 +14,6 @@ import (
 var errDefault = fmt.Errorf("some error")
 var testDate = time.Date(2024, 04, 01, 11, 8, 47, 651387237, time.UTC)
 
-type mockBuildingRepository struct {
-	repositories.BuildingRepository
-
-	building persistence.Building
-	err      error
-
-	listCalled int
-}
-
-func (m *mockBuildingRepository) List(ctx context.Context, tx db.Transaction) ([]persistence.Building, error) {
-	m.listCalled++
-	return []persistence.Building{m.building}, m.err
-}
-
 type mockBuildingActionRepository struct {
 	repositories.BuildingActionRepository
 
@@ -494,44 +480,6 @@ type mockResourceRepository struct {
 func (m *mockResourceRepository) List(ctx context.Context, tx db.Transaction) ([]persistence.Resource, error) {
 	m.listCalled++
 	return m.resources, m.err
-}
-
-type mockUniverseRepository struct {
-	repositories.UniverseRepository
-
-	universe persistence.Universe
-	err      error
-
-	createCalled    int
-	createdUniverse persistence.Universe
-	getCalled       int
-	getId           uuid.UUID
-	listCalled      int
-	deleteCalled    int
-	deleteId        uuid.UUID
-}
-
-func (m *mockUniverseRepository) Create(ctx context.Context, universe persistence.Universe) (persistence.Universe, error) {
-	m.createCalled++
-	m.createdUniverse = universe
-	return m.universe, m.err
-}
-
-func (m *mockUniverseRepository) Get(ctx context.Context, tx db.Transaction, id uuid.UUID) (persistence.Universe, error) {
-	m.getCalled++
-	m.getId = id
-	return m.universe, m.err
-}
-
-func (m *mockUniverseRepository) List(ctx context.Context) ([]persistence.Universe, error) {
-	m.listCalled++
-	return []persistence.Universe{m.universe}, m.err
-}
-
-func (m *mockUniverseRepository) Delete(ctx context.Context, tx db.Transaction, id uuid.UUID) error {
-	m.deleteCalled++
-	m.deleteId = id
-	return m.err
 }
 
 func getValueToReturnOr[T any](count int, values []T, value T) *T {

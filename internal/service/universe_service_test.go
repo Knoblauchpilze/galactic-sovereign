@@ -2,428 +2,273 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"testing"
+	"time"
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
+	"github.com/Knoblauchpilze/backend-toolkit/pkg/db/pgx"
+	"github.com/Knoblauchpilze/backend-toolkit/pkg/errors"
+	eassert "github.com/Knoblauchpilze/easy-assert/assert"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/communication"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/persistence"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/repositories"
 	"github.com/google/uuid"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/stretchr/testify/suite"
 )
 
-var defaultUniverseId = uuid.MustParse("3e7fde5c-ac70-4e5d-bd09-73029725048d")
-var defaultUniverseName = "my-universe"
-var defaultUniverseDtoRequest = communication.UniverseDtoRequest{
-	Name: defaultUniverseName,
-}
-var defaultUniverse = persistence.Universe{
-	Id:   defaultUniverseId,
-	Name: defaultUniverseName,
+func TestIT_UniverseService_Create(t *testing.T) {
+	id := uuid.New()
+	universeDtoRequest := communication.UniverseDtoRequest{
+		Name: fmt.Sprintf("my-universe-%s", id),
+	}
+	beforeInsertion := time.Now()
 
-	CreatedAt: testDate,
-	UpdatedAt: testDate,
-}
-var defaultResourceName = "my-resource"
-var defaultResource = persistence.Resource{
-	Id:   metalResourceId,
-	Name: defaultResourceName,
+	service, conn := newTestUniverseService(t)
+	out, err := service.Create(context.Background(), universeDtoRequest)
 
-	CreatedAt: testDate,
-	UpdatedAt: testDate,
-}
-var defaultBuildingId = uuid.MustParse("5ec0f2cb-adc9-4f09-bb77-61d0ccdbcc52")
-var defaultBuildingName = "my-building"
-var defaultBuilding = persistence.Building{
-	Id:   defaultBuildingId,
-	Name: defaultBuildingName,
+	assert.Nil(t, err)
 
-	CreatedAt: testDate,
-	UpdatedAt: testDate,
-}
-var defaultBuildingCost = persistence.BuildingCost{
-	Building: defaultBuildingId,
-	Resource: metalResourceId,
-	Cost:     250,
-	Progress: 1.5,
-}
-var defaultBuildingResourceProduction = persistence.BuildingResourceProduction{
-	Building: defaultBuildingId,
-	Resource: metalResourceId,
-	Base:     30,
-	Progress: 1.1,
+	assert.Equal(t, universeDtoRequest.Name, out.Name)
+	eassert.AreTimeCloserThan(beforeInsertion, out.CreatedAt, 1*time.Second)
+	assertUniverseExists(t, conn, out.Id)
 }
 
-func TestUnit_UniverseService(t *testing.T) {
-	s := ServicePoolTestSuite{
-		generateRepositoriesMocks:      generateUniverseServiceMocks,
-		generateErrorRepositoriesMocks: generateErrorUniverseServiceMocks,
+func TestIT_UniverseService_Create_WhenNameAlreadyExists_ExpectFailure(t *testing.T) {
+	service, conn := newTestUniverseService(t)
+	universe := insertTestUniverse(t, conn)
+	universeDtoRequest := communication.UniverseDtoRequest{
+		Name: universe.Name,
+	}
 
-		repositoryInteractionTestCases: map[string]repositoryInteractionTestCase{
-			"create": {
-				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
-					s := NewUniverseService(conn, repos)
-					_, err := s.Create(ctx, defaultUniverseDtoRequest)
-					return err
-				},
-				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
-					m := assertUniverseRepoIsAMock(repos, assert)
+	_, err := service.Create(context.Background(), universeDtoRequest)
 
-					assert.Equal(1, m.createCalled)
-					assert.Equal(defaultUniverseDtoRequest.Name, m.createdUniverse.Name)
-				},
-			},
-			"create_repositoryFails": {
-				generateRepositoriesMocks: generateErrorUniverseServiceMocks,
-				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
-					s := NewUniverseService(conn, repos)
-					_, err := s.Create(ctx, defaultUniverseDtoRequest)
-					return err
-				},
-				expectedError: errDefault,
-			},
-			"get": {
-				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
-					s := NewUniverseService(conn, repos)
-					_, err := s.Get(ctx, defaultUniverseId)
-					return err
-				},
-				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
-					m := assertUniverseRepoIsAMock(repos, assert)
+	assert.True(t, errors.IsErrorWithCode(err, pgx.UniqueConstraintViolation), "Actual err: %v", err)
+}
 
-					assert.Equal(1, m.getCalled)
-					assert.Equal(defaultUniverseId, m.getId)
-				},
-			},
-			"get_universeRepositoryFails": {
-				generateRepositoriesMocks: generateErrorUniverseServiceMocks,
-				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
-					s := NewUniverseService(conn, repos)
-					_, err := s.Get(ctx, defaultUniverseId)
-					return err
-				},
-				expectedError: errDefault,
-			},
-			"get_resourceRepository": {
-				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
-					s := NewUniverseService(conn, repos)
-					_, err := s.Get(ctx, defaultUniverseId)
-					return err
-				},
-				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
-					m := assertResourceRepoIsAMock(repos, assert)
+func TestIT_UniverseService_Get_WithNoDataRegistered(t *testing.T) {
+	service, conn := newTestUniverseService(t)
+	universe := insertTestUniverse(t, conn)
 
-					assert.Equal(1, m.listCalled)
-				},
-			},
-			"get_resourceRepositoryFails": {
-				generateRepositoriesMocks: func() repositories.Repositories {
-					repos := generateUniverseServiceMocks()
-					repos.Resource = &mockResourceRepository{
-						err: errDefault,
-					}
+	actual, err := service.Get(context.Background(), universe.Id)
 
-					return repos
-				},
-				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
-					s := NewUniverseService(conn, repos)
-					_, err := s.Get(ctx, defaultUniverseId)
-					return err
-				},
-				expectedError: errDefault,
-			},
-			"get_buildingRepository": {
-				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
-					s := NewUniverseService(conn, repos)
-					_, err := s.Get(ctx, defaultUniverseId)
-					return err
-				},
-				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
-					m := assertBuildingRepoIsAMock(repos, assert)
+	assert.Nil(t, err)
+	assert.Equal(t, universe.Id, actual.Id)
+	assert.Equal(t, universe.Name, actual.Name)
+	assert.True(t, eassert.AreTimeCloserThan(universe.CreatedAt, actual.CreatedAt, 1*time.Second))
+}
 
-					assert.Equal(1, m.listCalled)
-				},
-			},
-			"get_buildingRepositoryFails": {
-				generateRepositoriesMocks: func() repositories.Repositories {
-					repos := generateUniverseServiceMocks()
-					repos.Building = &mockBuildingRepository{
-						err: errDefault,
-					}
+func TestIT_UniverseService_Get_WithResources(t *testing.T) {
+	service, conn := newTestUniverseService(t)
+	universe := insertTestUniverse(t, conn)
+	resource := insertTestResource(t, conn)
 
-					return repos
-				},
-				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
-					s := NewUniverseService(conn, repos)
-					_, err := s.Get(ctx, defaultUniverseId)
-					return err
-				},
-				expectedError: errDefault,
-			},
-			"get_buildingCostRepository": {
-				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
-					s := NewUniverseService(conn, repos)
-					_, err := s.Get(ctx, defaultUniverseId)
-					return err
-				},
-				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
-					m := assertBuildingCostRepoIsAMock(repos, assert)
+	actual, err := service.Get(context.Background(), universe.Id)
 
-					assert.Equal(1, m.listForBuildingCalled)
-				},
-			},
-			"get_buildingCostRepositoryFails": {
-				generateRepositoriesMocks: func() repositories.Repositories {
-					repos := generateUniverseServiceMocks()
-					repos.BuildingCost = &mockBuildingCostRepository{
-						err: errDefault,
-					}
+	assert.Nil(t, err)
+	assert.Equal(t, universe.Id, actual.Id)
 
-					return repos
-				},
-				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
-					s := NewUniverseService(conn, repos)
-					_, err := s.Get(ctx, defaultUniverseId)
-					return err
-				},
-				expectedError: errDefault,
-			},
-			"get_buildingResourceProductionRepository": {
-				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
-					s := NewUniverseService(conn, repos)
-					_, err := s.Get(ctx, defaultUniverseId)
-					return err
-				},
-				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
-					m := assertBuildingResourceProductionRepoIsAMock(repos, assert)
+	expected := communication.ResourceDtoResponse{
+		Id:   resource.Id,
+		Name: resource.Name,
+	}
+	assert.True(t, eassert.ContainsIgnoringFields(actual.Resources, expected, "CreatedAt"))
+}
 
-					assert.Equal(1, m.listForBuildingCalled)
-				},
-			},
-			"get_buildingResourceProductionRepositoryFails": {
-				generateRepositoriesMocks: func() repositories.Repositories {
-					repos := generateUniverseServiceMocks()
-					repos.BuildingResourceProduction = &mockBuildingResourceProductionRepository{
-						err: errDefault,
-					}
+func TestIT_UniverseService_Get_WithBuildings(t *testing.T) {
+	service, conn := newTestUniverseService(t)
+	universe := insertTestUniverse(t, conn)
+	building := insertTestBuilding(t, conn)
 
-					return repos
-				},
-				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
-					s := NewUniverseService(conn, repos)
-					_, err := s.Get(ctx, defaultUniverseId)
-					return err
-				},
-				expectedError: errDefault,
-			},
-			"list": {
-				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
-					s := NewUniverseService(conn, repos)
-					_, err := s.List(ctx)
-					return err
-				},
-				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
-					m := assertUniverseRepoIsAMock(repos, assert)
+	actual, err := service.Get(context.Background(), universe.Id)
 
-					assert.Equal(1, m.listCalled)
-				},
-			},
-			"list_repositoryFails": {
-				generateRepositoriesMocks: generateErrorUniverseServiceMocks,
-				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
-					s := NewUniverseService(conn, repos)
-					_, err := s.List(ctx)
-					return err
-				},
-				expectedError: errDefault,
-			},
-			"delete": {
-				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
-					s := NewUniverseService(conn, repos)
-					return s.Delete(ctx, defaultUniverseId)
-				},
-				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
-					m := assertUniverseRepoIsAMock(repos, assert)
+	assert.Nil(t, err)
+	assert.Equal(t, universe.Id, actual.Id)
 
-					assert.Equal(1, m.deleteCalled)
-					assert.Equal(defaultUniverseId, m.deleteId)
-				},
-			},
-			"delete_repositoryFails": {
-				generateRepositoriesMocks: generateErrorUniverseServiceMocks,
-				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
-					s := NewUniverseService(conn, repos)
-					return s.Delete(ctx, defaultUniverseId)
-				},
-				expectedError: errDefault,
-			},
+	expected := communication.FullBuildingDtoResponse{
+		BuildingDtoResponse: communication.BuildingDtoResponse{
+			Id:   building.Id,
+			Name: building.Name,
 		},
+	}
+	assert.True(t, eassert.ContainsIgnoringFields(actual.Buildings, expected, "CreatedAt"))
+}
 
-		returnTestCases: map[string]returnTestCase{
-			"create": {
-				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) interface{} {
-					s := NewUniverseService(conn, repos)
-					out, _ := s.Create(ctx, defaultUniverseDtoRequest)
-					return out
-				},
-				expectedContent: communication.UniverseDtoResponse{
-					Id:   defaultUniverse.Id,
-					Name: defaultUniverse.Name,
+func TestIT_UniverseService_Get_WhenBuildingHasCosts_ExpectThemToBeReturned(t *testing.T) {
+	service, conn := newTestUniverseService(t)
+	universe := insertTestUniverse(t, conn)
+	building := insertTestBuilding(t, conn)
+	cost, resource := insertTestBuildingCost(t, conn, building.Id)
 
-					CreatedAt: defaultUniverse.CreatedAt,
-				},
-			},
-			"get": {
-				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) interface{} {
-					s := NewUniverseService(conn, repos)
-					out, _ := s.Get(ctx, defaultUniverseId)
-					return out
-				},
-				expectedContent: communication.FullUniverseDtoResponse{
-					UniverseDtoResponse: communication.UniverseDtoResponse{
-						Id:   defaultUniverse.Id,
-						Name: defaultUniverse.Name,
+	actual, err := service.Get(context.Background(), universe.Id)
 
-						CreatedAt: defaultUniverse.CreatedAt,
-					},
-					Resources: []communication.ResourceDtoResponse{
-						{
-							Id:   defaultResource.Id,
-							Name: defaultResource.Name,
+	assert.Nil(t, err)
+	assert.Equal(t, universe.Id, actual.Id)
 
-							CreatedAt: defaultResource.CreatedAt,
-						},
-					},
-					Buildings: []communication.FullBuildingDtoResponse{
-						{
-							BuildingDtoResponse: communication.BuildingDtoResponse{
-								Id:   defaultBuilding.Id,
-								Name: defaultBuilding.Name,
-
-								CreatedAt: defaultBuilding.CreatedAt,
-							},
-							Costs: []communication.BuildingCostDtoResponse{
-								{
-									Building: defaultBuilding.Id,
-									Resource: metalResourceId,
-									Cost:     250,
-									Progress: 1.5,
-								},
-							},
-							Productions: []communication.BuildingResourceProductionDtoResponse{
-								{
-									Building: defaultBuilding.Id,
-									Resource: metalResourceId,
-									Base:     30,
-									Progress: 1.1,
-								},
-							},
-						},
-					},
-				},
-			},
-			"list": {
-				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) interface{} {
-					s := NewUniverseService(conn, repos)
-					out, _ := s.List(ctx)
-					return out
-				},
-				expectedContent: []communication.UniverseDtoResponse{
-					{
-						Id:   defaultUniverse.Id,
-						Name: defaultUniverse.Name,
-
-						CreatedAt: defaultUniverse.CreatedAt,
-					},
-				},
-			},
+	expected := communication.FullBuildingDtoResponse{
+		BuildingDtoResponse: communication.BuildingDtoResponse{
+			Id:   building.Id,
+			Name: building.Name,
 		},
-
-		transactionTestCases: map[string]transactionTestCase{
-			"get": {
-				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
-					s := NewUniverseService(conn, repos)
-					_, err := s.Get(ctx, defaultUniverseId)
-					return err
-				},
-			},
-			"delete": {
-				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
-					s := NewUniverseService(conn, repos)
-					return s.Delete(ctx, defaultUniverseId)
-				},
+		Costs: []communication.BuildingCostDtoResponse{
+			{
+				Building: building.Id,
+				Resource: resource.Id,
+				Cost:     cost.Cost,
+				Progress: cost.Progress,
 			},
 		},
 	}
-
-	suite.Run(t, &s)
+	assert.True(t, eassert.ContainsIgnoringFields(actual.Buildings, expected, "CreatedAt"))
 }
 
-func generateUniverseServiceMocks() repositories.Repositories {
-	return repositories.Repositories{
-		Building: &mockBuildingRepository{
-			building: defaultBuilding,
+func TestIT_UniverseService_Get_WhenBuildingHasProductions_ExpectThemToBeReturned(t *testing.T) {
+	service, conn := newTestUniverseService(t)
+	universe := insertTestUniverse(t, conn)
+	building := insertTestBuilding(t, conn)
+	prod, resource := insertTestBuildingResourceProduction(t, conn, building.Id)
+
+	actual, err := service.Get(context.Background(), universe.Id)
+
+	assert.Nil(t, err)
+	assert.Equal(t, universe.Id, actual.Id)
+
+	expected := communication.FullBuildingDtoResponse{
+		BuildingDtoResponse: communication.BuildingDtoResponse{
+			Id:   building.Id,
+			Name: building.Name,
 		},
-		BuildingCost: &mockBuildingCostRepository{
-			buildingCost: defaultBuildingCost,
-		},
-		BuildingResourceProduction: &mockBuildingResourceProductionRepository{
-			buildingResourceProduction: defaultBuildingResourceProduction,
-		},
-		Resource: &mockResourceRepository{
-			resources: []persistence.Resource{defaultResource},
-		},
-		Universe: &mockUniverseRepository{
-			universe: defaultUniverse,
+		Productions: []communication.BuildingResourceProductionDtoResponse{
+			{
+				Building: building.Id,
+				Resource: resource.Id,
+				Base:     prod.Base,
+				Progress: prod.Progress,
+			},
 		},
 	}
+	assert.True(t, eassert.ContainsIgnoringFields(actual.Buildings, expected, "CreatedAt"))
 }
 
-func generateErrorUniverseServiceMocks() repositories.Repositories {
-	return repositories.Repositories{
-		Universe: &mockUniverseRepository{
-			err: errDefault,
+func TestIT_UniverseService_Get_WhenBuildingHasStorages_ExpectThemToBeReturned(t *testing.T) {
+	service, conn := newTestUniverseService(t)
+	universe := insertTestUniverse(t, conn)
+	building := insertTestBuilding(t, conn)
+	storage, resource := insertTestBuildingResourceStorage(t, conn, building.Id)
+
+	actual, err := service.Get(context.Background(), universe.Id)
+
+	assert.Nil(t, err)
+	assert.Equal(t, universe.Id, actual.Id)
+
+	expected := communication.FullBuildingDtoResponse{
+		BuildingDtoResponse: communication.BuildingDtoResponse{
+			Id:   building.Id,
+			Name: building.Name,
+		},
+		Storages: []communication.BuildingResourceStorageDtoResponse{
+			{
+				Building: building.Id,
+				Resource: resource.Id,
+				Base:     storage.Base,
+				Scale:    storage.Scale,
+				Progress: storage.Progress,
+			},
 		},
 	}
+	assert.True(t, eassert.ContainsIgnoringFields(actual.Buildings, expected, "CreatedAt"))
 }
 
-func assertUniverseRepoIsAMock(repos repositories.Repositories, assert *require.Assertions) *mockUniverseRepository {
-	m, ok := repos.Universe.(*mockUniverseRepository)
-	if !ok {
-		assert.Fail("Provided universe repository is not a mock")
+func TestIT_UniverseService_List(t *testing.T) {
+	service, conn := newTestUniverseService(t)
+	universe := insertTestUniverse(t, conn)
+
+	out, err := service.List(context.Background())
+
+	assert.Nil(t, err)
+	expected := communication.UniverseDtoResponse{
+		Id:   universe.Id,
+		Name: universe.Name,
 	}
-	return m
+	assert.True(t, eassert.ContainsIgnoringFields(out, expected, "CreatedAt"))
+}
+
+func TestIT_UniverseService_Delete(t *testing.T) {
+	service, conn := newTestUniverseService(t)
+	universe := insertTestUniverse(t, conn)
+
+	err := service.Delete(context.Background(), universe.Id)
+
+	assert.Nil(t, err)
+	assertUniverseDoesNotExist(t, conn, universe.Id)
+}
+
+func TestIT_UniverseService_Delete_WhenUniverseDoesNotExist_ExpectSuccess(t *testing.T) {
+	nonExistingId := uuid.MustParse("00000000-0000-1221-0000-000000000000")
+
+	service, _ := newTestUniverseService(t)
+	err := service.Delete(context.Background(), nonExistingId)
+
+	assert.Nil(t, err)
+}
+
+func newTestUniverseService(t *testing.T) (UniverseService, db.Connection) {
+	conn := newTestConnection(t)
+
+	repos := repositories.Repositories{
+		Universe:                   repositories.NewUniverseRepository(conn),
+		Resource:                   repositories.NewResourceRepository(),
+		Building:                   repositories.NewBuildingRepository(),
+		BuildingCost:               repositories.NewBuildingCostRepository(),
+		BuildingResourceProduction: repositories.NewBuildingResourceProductionRepository(),
+		BuildingResourceStorage:    repositories.NewBuildingResourceStorageRepository(),
+	}
+
+	return NewUniverseService(conn, repos), conn
+}
+
+func assertUniverseExists(t *testing.T, conn db.Connection, id uuid.UUID) {
+	value, err := db.QueryOne[uuid.UUID](context.Background(), conn, "SELECT id FROM universe WHERE id = $1", id)
+	require.Nil(t, err)
+	require.Equal(t, id, value)
+}
+
+func assertUniverseDoesNotExist(t *testing.T, conn db.Connection, id uuid.UUID) {
+	value, err := db.QueryOne[int](context.Background(), conn, "SELECT COUNT(id) FROM universe WHERE id = $1", id)
+	require.Nil(t, err)
+	require.Zero(t, value)
+}
+
+func insertTestUniverse(t *testing.T, conn db.Connection) persistence.Universe {
+	someTime := time.Date(2024, 12, 8, 10, 10, 22, 0, time.UTC)
+
+	universe := persistence.Universe{
+		Id:        uuid.New(),
+		Name:      fmt.Sprintf("my-universe-%s", uuid.NewString()),
+		CreatedAt: someTime,
+	}
+
+	sqlQuery := `INSERT INTO universe (id, name, created_at) VALUES ($1, $2, $3) RETURNING updated_at`
+	updatedAt, err := db.QueryOne[time.Time](
+		context.Background(),
+		conn,
+		sqlQuery,
+		universe.Id,
+		universe.Name,
+		universe.CreatedAt,
+	)
+	require.Nil(t, err)
+
+	universe.UpdatedAt = updatedAt
+
+	return universe
 }
 
 func assertResourceRepoIsAMock(repos repositories.Repositories, assert *require.Assertions) *mockResourceRepository {
 	m, ok := repos.Resource.(*mockResourceRepository)
 	if !ok {
 		assert.Fail("Provided resource repository is not a mock")
-	}
-	return m
-}
-
-func assertBuildingRepoIsAMock(repos repositories.Repositories, assert *require.Assertions) *mockBuildingRepository {
-	m, ok := repos.Building.(*mockBuildingRepository)
-	if !ok {
-		assert.Fail("Provided building repository is not a mock")
-	}
-	return m
-}
-
-func assertBuildingCostRepoIsAMock(repos repositories.Repositories, assert *require.Assertions) *mockBuildingCostRepository {
-	m, ok := repos.BuildingCost.(*mockBuildingCostRepository)
-	if !ok {
-		assert.Fail("Provided building cost repository is not a mock")
-	}
-	return m
-}
-
-func assertBuildingResourceProductionRepoIsAMock(repos repositories.Repositories, assert *require.Assertions) *mockBuildingResourceProductionRepository {
-	m, ok := repos.BuildingResourceProduction.(*mockBuildingResourceProductionRepository)
-	if !ok {
-		assert.Fail("Provided building resiyrce production repository is not a mock")
 	}
 	return m
 }

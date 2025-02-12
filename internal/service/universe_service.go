@@ -25,6 +25,7 @@ type universeServiceImpl struct {
 	buildingRepo                   repositories.BuildingRepository
 	buildingCostRepo               repositories.BuildingCostRepository
 	buildingResourceProductionRepo repositories.BuildingResourceProductionRepository
+	buildingResourceStorageRepo    repositories.BuildingResourceStorageRepository
 }
 
 func NewUniverseService(conn db.Connection, repos repositories.Repositories) UniverseService {
@@ -35,6 +36,7 @@ func NewUniverseService(conn db.Connection, repos repositories.Repositories) Uni
 		buildingRepo:                   repos.Building,
 		buildingCostRepo:               repos.BuildingCost,
 		buildingResourceProductionRepo: repos.BuildingResourceProduction,
+		buildingResourceStorageRepo:    repos.BuildingResourceStorage,
 	}
 }
 
@@ -92,7 +94,24 @@ func (s *universeServiceImpl) Get(ctx context.Context, id uuid.UUID) (communicat
 		productions[building.Id] = buildingProductions
 	}
 
-	out := communication.ToFullUniverseDtoResponse(universe, resources, buildings, costs, productions)
+	storages := make(map[uuid.UUID][]persistence.BuildingResourceStorage)
+	for _, building := range buildings {
+		buildingStorages, err := s.buildingResourceStorageRepo.ListForBuilding(ctx, tx, building.Id)
+		if err != nil {
+			return communication.FullUniverseDtoResponse{}, err
+		}
+
+		storages[building.Id] = buildingStorages
+	}
+
+	out := communication.ToFullUniverseDtoResponse(
+		universe,
+		resources,
+		buildings,
+		costs,
+		productions,
+		storages,
+	)
 
 	return out, nil
 }
