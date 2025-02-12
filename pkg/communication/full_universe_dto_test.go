@@ -17,6 +17,9 @@ var defaultFullBuildingDtoResponse = FullBuildingDtoResponse{
 	Productions: []BuildingResourceProductionDtoResponse{
 		defaultBuildingResourceProductionDtoResponse,
 	},
+	Storages: []BuildingResourceStorageDtoResponse{
+		defaultBuildingResourceStorageDtoResponse,
+	},
 }
 
 func TestUnit_ToFullUniverseDtoResponse(t *testing.T) {
@@ -25,8 +28,16 @@ func TestUnit_ToFullUniverseDtoResponse(t *testing.T) {
 	actual := ToFullUniverseDtoResponse(defaultUniverse,
 		[]persistence.Resource{defaultResource},
 		[]persistence.Building{defaultBuilding},
-		map[uuid.UUID][]persistence.BuildingCost{defaultBuilding.Id: {defaultBuildingCost}},
-		map[uuid.UUID][]persistence.BuildingResourceProduction{defaultBuilding.Id: {defaultBuildingResourceProduction}})
+		map[uuid.UUID][]persistence.BuildingCost{
+			defaultBuilding.Id: {defaultBuildingCost},
+		},
+		map[uuid.UUID][]persistence.BuildingResourceProduction{
+			defaultBuilding.Id: {defaultBuildingResourceProduction},
+		},
+		map[uuid.UUID][]persistence.BuildingResourceStorage{
+			defaultBuilding.Id: {defaultBuildingResourceStorage},
+		},
+	)
 
 	assert.Equal(defaultUniverseId, actual.Id)
 	assert.Equal("my-universe", actual.Name)
@@ -87,6 +98,15 @@ func TestUnit_FullUniverseDtoResponse_MarshalsToCamelCase(t *testing.T) {
 						"base": 54,
 						"progress": 1.3
 					}
+				],
+				"storages": [
+					{
+						"building": "461ba465-86e6-4234-94b8-fc8fab03fa74",
+						"resource": "97ddca58-8eee-41af-8bda-f37a3080f618",
+						"base": 74,
+						"scale": 1.08,
+						"progress": 2.97
+					}
 				]
 			}
 		]
@@ -133,6 +153,15 @@ func TestUnit_FullUniverseDtoResponse_WhenResourcesAreEmpty_MarshalsToEmptyArray
 						"resource": "97ddca58-8eee-41af-8bda-f37a3080f618",
 						"base": 54,
 						"progress": 1.3
+					}
+				],
+				"storages": [
+					{
+						"building": "461ba465-86e6-4234-94b8-fc8fab03fa74",
+						"resource": "97ddca58-8eee-41af-8bda-f37a3080f618",
+						"base": 74,
+						"scale": 1.08,
+						"progress": 2.97
 					}
 				]
 			}

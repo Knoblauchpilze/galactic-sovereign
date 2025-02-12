@@ -18,7 +18,8 @@ func ToFullUniverseDtoResponse(universe persistence.Universe,
 	resources []persistence.Resource,
 	buildings []persistence.Building,
 	buildingCosts map[uuid.UUID][]persistence.BuildingCost,
-	buildingProductions map[uuid.UUID][]persistence.BuildingResourceProduction) FullUniverseDtoResponse {
+	buildingProductions map[uuid.UUID][]persistence.BuildingResourceProduction,
+	buildingStorages map[uuid.UUID][]persistence.BuildingResourceStorage) FullUniverseDtoResponse {
 	out := FullUniverseDtoResponse{
 		UniverseDtoResponse: ToUniverseDtoResponse(universe),
 	}
@@ -29,7 +30,12 @@ func ToFullUniverseDtoResponse(universe persistence.Universe,
 	}
 
 	for _, building := range buildings {
-		buildingDto := ToFullBuildingDtoResponse(building, buildingCosts[building.Id], buildingProductions[building.Id])
+		buildingDto := ToFullBuildingDtoResponse(
+			building,
+			buildingCosts[building.Id],
+			buildingProductions[building.Id],
+			buildingStorages[building.Id],
+		)
 		out.Buildings = append(out.Buildings, buildingDto)
 	}
 
