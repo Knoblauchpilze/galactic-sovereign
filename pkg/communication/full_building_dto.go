@@ -11,9 +11,14 @@ type FullBuildingDtoResponse struct {
 
 	Costs       []BuildingCostDtoResponse
 	Productions []BuildingResourceProductionDtoResponse
+	Storages    []BuildingResourceStorageDtoResponse
 }
 
-func ToFullBuildingDtoResponse(building persistence.Building, costs []persistence.BuildingCost, productions []persistence.BuildingResourceProduction) FullBuildingDtoResponse {
+func ToFullBuildingDtoResponse(
+	building persistence.Building,
+	costs []persistence.BuildingCost,
+	productions []persistence.BuildingResourceProduction,
+	storages []persistence.BuildingResourceStorage) FullBuildingDtoResponse {
 	out := FullBuildingDtoResponse{
 		BuildingDtoResponse: ToBuildingDtoResponse(building),
 	}
@@ -28,6 +33,11 @@ func ToFullBuildingDtoResponse(building persistence.Building, costs []persistenc
 		out.Productions = append(out.Productions, productionDto)
 	}
 
+	for _, storage := range storages {
+		storageDto := ToBuildingResourceStorageDtoResponse(storage)
+		out.Storages = append(out.Storages, storageDto)
+	}
+
 	return out
 }
 
@@ -36,10 +46,12 @@ func (dto FullBuildingDtoResponse) MarshalJSON() ([]byte, error) {
 		BuildingDtoResponse
 		Costs       []BuildingCostDtoResponse               `json:"costs"`
 		Productions []BuildingResourceProductionDtoResponse `json:"productions"`
+		Storages    []BuildingResourceStorageDtoResponse    `json:"storages"`
 	}{
 		BuildingDtoResponse: dto.BuildingDtoResponse,
 		Costs:               dto.Costs,
 		Productions:         dto.Productions,
+		Storages:            dto.Storages,
 	}
 
 	if out.Costs == nil {
@@ -48,6 +60,10 @@ func (dto FullBuildingDtoResponse) MarshalJSON() ([]byte, error) {
 
 	if out.Productions == nil {
 		out.Productions = make([]BuildingResourceProductionDtoResponse, 0)
+	}
+
+	if out.Storages == nil {
+		out.Storages = make([]BuildingResourceStorageDtoResponse, 0)
 	}
 
 	return json.Marshal(out)
