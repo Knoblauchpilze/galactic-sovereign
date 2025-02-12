@@ -93,6 +93,7 @@ func (r *buildingActionRepositoryImpl) ListBeforeCompletionTime(ctx context.Cont
 
 const deleteBuildingActionCostsSqlTemplate = `DELETE FROM building_action_cost WHERE action = $1`
 const deleteBuildingActionResourceProductionSqlTemplate = `DELETE FROM building_action_resource_production WHERE action = $1`
+const deleteBuildingActionResourceStorageSqlTemplate = `DELETE FROM building_action_resource_storage WHERE action = $1`
 const deleteBuildingActionSqlTemplate = `DELETE FROM building_action WHERE id = $1`
 
 func (r *buildingActionRepositoryImpl) Delete(ctx context.Context, tx db.Transaction, action uuid.UUID) error {
@@ -102,6 +103,11 @@ func (r *buildingActionRepositoryImpl) Delete(ctx context.Context, tx db.Transac
 	}
 
 	_, err = tx.Exec(ctx, deleteBuildingActionResourceProductionSqlTemplate, action)
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.Exec(ctx, deleteBuildingActionResourceStorageSqlTemplate, action)
 	if err != nil {
 		return err
 	}
@@ -129,6 +135,15 @@ USING
 WHERE
 	barpd.action = barp.action
 	AND ba.planet = $1`
+const deleteBuildingActionResourceStorageForPlanetSqlTemplate = `
+DELETE FROM
+	building_action_resource_storage AS barsd
+USING
+	building_action_resource_storage AS bars
+	LEFT JOIN building_action AS ba ON ba.id = bars.action
+WHERE
+	barsd.action = bars.action
+	AND ba.planet = $1`
 const deleteBuildingActionForPlanetSqlTemplate = `DELETE FROM building_action WHERE planet = $1`
 
 func (r *buildingActionRepositoryImpl) DeleteForPlanet(ctx context.Context, tx db.Transaction, planet uuid.UUID) error {
@@ -138,6 +153,11 @@ func (r *buildingActionRepositoryImpl) DeleteForPlanet(ctx context.Context, tx d
 	}
 
 	_, err = tx.Exec(ctx, deleteBuildingActionResourceProductionForPlanetSqlTemplate, planet)
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.Exec(ctx, deleteBuildingActionResourceStorageForPlanetSqlTemplate, planet)
 	if err != nil {
 		return err
 	}
@@ -166,6 +186,16 @@ USING
 WHERE
 	barpd.action = barp.action
 	AND p.player = $1`
+const deleteBuildingActionResourceStorageForPlayerSqlTemplate = `
+DELETE FROM
+	building_action_resource_storage AS barsd
+USING
+	building_action_resource_storage AS bars
+	LEFT JOIN building_action AS ba ON ba.id = bars.action
+	LEFT JOIN planet AS p ON p.id = ba.planet
+WHERE
+	barsd.action = bars.action
+	AND p.player = $1`
 const deleteBuildingActionForPlayerSqlTemplate = `
 DELETE FROM
 	building_action AS bad
@@ -183,6 +213,11 @@ func (r *buildingActionRepositoryImpl) DeleteForPlayer(ctx context.Context, tx d
 	}
 
 	_, err = tx.Exec(ctx, deleteBuildingActionResourceProductionForPlayerSqlTemplate, player)
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.Exec(ctx, deleteBuildingActionResourceStorageForPlayerSqlTemplate, player)
 	if err != nil {
 		return err
 	}

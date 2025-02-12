@@ -151,7 +151,7 @@ func TestIT_BuildingActionRepository_Delete_WhenNotFound_ExpectSuccess(t *testin
 	assert.Nil(t, err)
 }
 
-func TestIT_BuildingActionProductionRepository_Delete_ExpectProductionShouldBeDeleted(t *testing.T) {
+func TestIT_BuildingActionRepository_Delete_ExpectProductionShouldBeDeleted(t *testing.T) {
 	repo, conn, tx := newTestBuildingActionRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
 	action1, _ := insertTestBuildingAction(t, conn)
@@ -169,7 +169,25 @@ func TestIT_BuildingActionProductionRepository_Delete_ExpectProductionShouldBeDe
 	assertBuildingActionResourceProductionForResource(t, conn, action2.Id, production2.Resource, production2.Production)
 }
 
-func TestIT_BuildingActionProductionRepository_Delete_ExpectCostShouldBeDeleted(t *testing.T) {
+func TestIT_BuildingActionRepository_Delete_ExpectStorageShouldBeDeleted(t *testing.T) {
+	repo, conn, tx := newTestBuildingActionRepositoryAndTransaction(t)
+	defer conn.Close(context.Background())
+	action1, _ := insertTestBuildingAction(t, conn)
+	insertTestBuildingActionResourceStorageForAction(t, conn, action1.Id)
+
+	action2, _ := insertTestBuildingAction(t, conn)
+	storage2, _ := insertTestBuildingActionResourceStorageForAction(t, conn, action2.Id)
+
+	err := repo.Delete(context.Background(), tx, action1.Id)
+	tx.Close(context.Background())
+
+	assert.Nil(t, err)
+	assertBuildingActionDoesNotExist(t, conn, action1.Id)
+	assertBuildingActionResourceStorageDoesNotExist(t, conn, action1.Id)
+	assertBuildingActionResourceStorageForResource(t, conn, action2.Id, storage2.Resource, storage2.Storage)
+}
+
+func TestIT_BuildingActionRepository_Delete_ExpectCostShouldBeDeleted(t *testing.T) {
 	repo, conn, tx := newTestBuildingActionRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
 	action1, _ := insertTestBuildingAction(t, conn)
@@ -199,7 +217,7 @@ func TestIT_BuildingActionRepository_DeleteForPlanet(t *testing.T) {
 	assertBuildingActionDoesNotExist(t, conn, action.Id)
 }
 
-func TestIT_BuildingActionProductionRepository_DeleteForPlanet_ExpectProductionShouldBeDeleted(t *testing.T) {
+func TestIT_BuildingActionRepository_DeleteForPlanet_ExpectProductionShouldBeDeleted(t *testing.T) {
 	repo, conn, tx := newTestBuildingActionRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
 	action1, _ := insertTestBuildingAction(t, conn)
@@ -217,7 +235,25 @@ func TestIT_BuildingActionProductionRepository_DeleteForPlanet_ExpectProductionS
 	assertBuildingActionResourceProductionForResource(t, conn, action2.Id, production2.Resource, production2.Production)
 }
 
-func TestIT_BuildingActionProductionRepository_DeleteForPlanet_ExpectCostShouldBeDeleted(t *testing.T) {
+func TestIT_BuildingActionRepository_DeleteForPlanet_ExpectStorageShouldBeDeleted(t *testing.T) {
+	repo, conn, tx := newTestBuildingActionRepositoryAndTransaction(t)
+	defer conn.Close(context.Background())
+	action1, _ := insertTestBuildingAction(t, conn)
+	insertTestBuildingActionResourceStorageForAction(t, conn, action1.Id)
+
+	action2, _ := insertTestBuildingAction(t, conn)
+	storage2, _ := insertTestBuildingActionResourceStorageForAction(t, conn, action2.Id)
+
+	err := repo.DeleteForPlanet(context.Background(), tx, action1.Planet)
+	tx.Close(context.Background())
+
+	assert.Nil(t, err)
+	assertBuildingActionDoesNotExist(t, conn, action1.Id)
+	assertBuildingActionResourceStorageDoesNotExist(t, conn, action1.Id)
+	assertBuildingActionResourceStorageForResource(t, conn, action2.Id, storage2.Resource, storage2.Storage)
+}
+
+func TestIT_BuildingActionRepository_DeleteForPlanet_ExpectCostShouldBeDeleted(t *testing.T) {
 	repo, conn, tx := newTestBuildingActionRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
 	action1, _ := insertTestBuildingAction(t, conn)
@@ -247,7 +283,7 @@ func TestIT_BuildingActionRepository_DeleteForPlayer(t *testing.T) {
 	assertBuildingActionDoesNotExist(t, conn, action.Id)
 }
 
-func TestIT_BuildingActionProductionRepository_DeleteForPlayer_ExpectProductionShouldBeDeleted(t *testing.T) {
+func TestIT_BuildingActionRepository_DeleteForPlayer_ExpectProductionShouldBeDeleted(t *testing.T) {
 	repo, conn, tx := newTestBuildingActionRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
 	action1, planet1 := insertTestBuildingAction(t, conn)
@@ -265,7 +301,25 @@ func TestIT_BuildingActionProductionRepository_DeleteForPlayer_ExpectProductionS
 	assertBuildingActionResourceProductionForResource(t, conn, action2.Id, production2.Resource, production2.Production)
 }
 
-func TestIT_BuildingActionProductionRepository_DeleteForPlayer_ExpectCostShouldBeDeleted(t *testing.T) {
+func TestIT_BuildingActionRepository_DeleteForPlayer_ExpectStorageShouldBeDeleted(t *testing.T) {
+	repo, conn, tx := newTestBuildingActionRepositoryAndTransaction(t)
+	defer conn.Close(context.Background())
+	action1, planet1 := insertTestBuildingAction(t, conn)
+	insertTestBuildingActionResourceStorageForAction(t, conn, action1.Id)
+
+	action2, _ := insertTestBuildingAction(t, conn)
+	storage2, _ := insertTestBuildingActionResourceStorageForAction(t, conn, action2.Id)
+
+	err := repo.DeleteForPlayer(context.Background(), tx, planet1.Player)
+	tx.Close(context.Background())
+
+	assert.Nil(t, err)
+	assertBuildingActionDoesNotExist(t, conn, action1.Id)
+	assertBuildingActionResourceStorageDoesNotExist(t, conn, action1.Id)
+	assertBuildingActionResourceStorageForResource(t, conn, action2.Id, storage2.Resource, storage2.Storage)
+}
+
+func TestIT_BuildingActionRepository_DeleteForPlayer_ExpectCostShouldBeDeleted(t *testing.T) {
 	repo, conn, tx := newTestBuildingActionRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
 	action1, planet1 := insertTestBuildingAction(t, conn)
@@ -396,6 +450,13 @@ func assertBuildingActionDoesNotExist(t *testing.T, conn db.Connection, action u
 
 func assertBuildingActionResourceProductionDoesNotExist(t *testing.T, conn db.Connection, action uuid.UUID) {
 	sqlQuery := `SELECT COUNT(*) FROM building_action_resource_production WHERE action = $1`
+	value, err := db.QueryOne[int](context.Background(), conn, sqlQuery, action)
+	require.Nil(t, err)
+	require.Zero(t, value)
+}
+
+func assertBuildingActionResourceStorageDoesNotExist(t *testing.T, conn db.Connection, action uuid.UUID) {
+	sqlQuery := `SELECT COUNT(*) FROM building_action_resource_storage WHERE action = $1`
 	value, err := db.QueryOne[int](context.Background(), conn, sqlQuery, action)
 	require.Nil(t, err)
 	require.Zero(t, value)
