@@ -43,7 +43,7 @@ func TestIT_BuildingActionResourceProductionRepository_Create_WhenDuplicatedReso
 	newProduction := persistence.BuildingActionResourceProduction{
 		Action:     action.Id,
 		Resource:   resource.Id,
-		Production: 34,
+		Production: production.Production + 54,
 	}
 
 	_, err := repo.Create(context.Background(), tx, newProduction)
@@ -118,13 +118,6 @@ func assertBuildingActionResourceProductionExists(t *testing.T, conn db.Connecti
 	value, err := db.QueryOne[int](context.Background(), conn, sqlQuery, action, resource)
 	require.Nil(t, err)
 	require.Equal(t, 1, value)
-}
-
-func assertBuildingActionResourceProductionDoesNotExist(t *testing.T, conn db.Connection, action uuid.UUID) {
-	sqlQuery := `SELECT COUNT(*) FROM building_action_resource_production WHERE action = $1`
-	value, err := db.QueryOne[int](context.Background(), conn, sqlQuery, action)
-	require.Nil(t, err)
-	require.Zero(t, value)
 }
 
 func assertBuildingActionResourceProductionForResource(t *testing.T, conn db.Connection, action uuid.UUID, resource uuid.UUID, production int) {

@@ -393,3 +393,10 @@ func assertBuildingActionDoesNotExist(t *testing.T, conn db.Connection, action u
 	require.Nil(t, err)
 	require.Zero(t, value)
 }
+
+func assertBuildingActionResourceProductionDoesNotExist(t *testing.T, conn db.Connection, action uuid.UUID) {
+	sqlQuery := `SELECT COUNT(*) FROM building_action_resource_production WHERE action = $1`
+	value, err := db.QueryOne[int](context.Background(), conn, sqlQuery, action)
+	require.Nil(t, err)
+	require.Zero(t, value)
+}
