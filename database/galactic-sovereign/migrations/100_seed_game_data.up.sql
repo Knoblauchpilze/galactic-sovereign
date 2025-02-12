@@ -14,6 +14,7 @@ INSERT INTO galactic_sovereign_schema.resource ("id", "name", "start_amount", "s
   VALUES ('cd2ac9aa-9968-4ff5-b746-88f1f810fbb3', 'crystal', 500, 15, 10000);
 
 -- Buildings
+-- metal mine
 INSERT INTO galactic_sovereign_schema.building ("id", "name")
   VALUES ('d176e82d-f2ca-4611-996b-c4804096caef', 'metal mine');
 
@@ -40,7 +41,7 @@ INSERT INTO galactic_sovereign_schema.building_resource_production ("building", 
     1.1
   );
 
-
+-- crystal mine
 INSERT INTO galactic_sovereign_schema.building ("id", "name")
   VALUES ('3904d34d-9a7e-47d4-a332-091700e2c5c3', 'crystal mine');
 
@@ -65,4 +66,53 @@ INSERT INTO galactic_sovereign_schema.building_resource_production ("building", 
     'cd2ac9aa-9968-4ff5-b746-88f1f810fbb3',
     20,
     1.1
+  );
+
+-- metal storage
+INSERT INTO galactic_sovereign_schema.building ("id", "name")
+  VALUES ('22b4c0c3-c8e5-4493-89fc-522fdbb0beee', 'metal storage');
+
+INSERT INTO galactic_sovereign_schema.building_cost ("building", "resource", "cost", "progress")
+  VALUES (
+    '22b4c0c3-c8e5-4493-89fc-522fdbb0beee',
+    'b4419b6b-b3bf-4576-aa92-055283addbc8',
+    500,
+    2.0
+  );
+
+INSERT INTO galactic_sovereign_schema.building_resource_storage ("building", "resource", "base", "scale", "progress")
+  VALUES (
+    '22b4c0c3-c8e5-4493-89fc-522fdbb0beee',
+    'b4419b6b-b3bf-4576-aa92-055283addbc8',
+    5000,
+    2.5,
+    1.833195476
+  );
+
+-- crystal storage
+INSERT INTO galactic_sovereign_schema.building ("id", "name")
+  VALUES ('d9c8df28-bb71-4be4-8702-ce2bea8bd943', 'crystal storage');
+
+INSERT INTO galactic_sovereign_schema.building_cost ("building", "resource", "cost", "progress")
+  VALUES (
+    'd9c8df28-bb71-4be4-8702-ce2bea8bd943',
+    'b4419b6b-b3bf-4576-aa92-055283addbc8',
+    500,
+    2.0
+  );
+INSERT INTO galactic_sovereign_schema.building_cost ("building", "resource", "cost", "progress")
+  VALUES (
+    'd9c8df28-bb71-4be4-8702-ce2bea8bd943',
+    'cd2ac9aa-9968-4ff5-b746-88f1f810fbb3',
+    250,
+    2.0
+  );
+
+INSERT INTO galactic_sovereign_schema.building_resource_storage ("building", "resource", "base", "scale", "progress")
+  VALUES (
+    'd9c8df28-bb71-4be4-8702-ce2bea8bd943',
+    'cd2ac9aa-9968-4ff5-b746-88f1f810fbb3',
+    5000,
+    2.5,
+    1.833195476
   );

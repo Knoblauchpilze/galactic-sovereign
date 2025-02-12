@@ -16,7 +16,7 @@ CREATE TABLE building_cost (
   building uuid NOT NULL,
   resource uuid NOT NULL,
   cost INTEGER NOT NULL,
-  progress numeric(15, 5) NOT NULL,
+  progress NUMERIC(15, 5) NOT NULL,
   FOREIGN KEY (building) REFERENCES building(id),
   FOREIGN KEY (resource) REFERENCES resource(id),
   UNIQUE (building, resource)
@@ -26,7 +26,18 @@ CREATE TABLE building_resource_production (
   building uuid NOT NULL,
   resource uuid NOT NULL,
   base INTEGER NOT NULL,
-  progress numeric(15, 5) NOT NULL,
+  progress NUMERIC(15, 5) NOT NULL,
+  FOREIGN KEY (building) REFERENCES building(id),
+  FOREIGN KEY (resource) REFERENCES resource(id),
+  UNIQUE (building, resource)
+);
+
+CREATE TABLE building_resource_storage (
+  building uuid NOT NULL,
+  resource uuid NOT NULL,
+  base INTEGER NOT NULL,
+  scale NUMERIC(15, 5) NOT NULL,
+  progress NUMERIC(15, 5) NOT NULL,
   FOREIGN KEY (building) REFERENCES building(id),
   FOREIGN KEY (resource) REFERENCES resource(id),
   UNIQUE (building, resource)
