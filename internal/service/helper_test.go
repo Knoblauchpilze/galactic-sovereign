@@ -277,9 +277,29 @@ func insertTestPlanetResourceForResource(t *testing.T, conn db.Connection, plane
 	return planetResource
 }
 
-func insertTestBuildingActionForPlanet(t *testing.T, conn db.Connection, planet uuid.UUID) (persistence.BuildingAction, persistence.Building) {
-	someTime := time.Date(2024, 12, 10, 19, 38, 15, 0, time.UTC)
+func insertTestBuildingActionForPlanet(
+	t *testing.T,
+	conn db.Connection,
+	planet uuid.UUID,
+) (persistence.BuildingAction, persistence.Building) {
+	createdAt := time.Date(2024, 12, 10, 19, 38, 15, 0, time.UTC)
+	completedAt := createdAt.Add(1*time.Hour + 2*time.Minute)
+	return insertTestBuildingActionForPlanetWithTimes(
+		t,
+		conn,
+		planet,
+		createdAt,
+		completedAt,
+	)
+}
 
+func insertTestBuildingActionForPlanetWithTimes(
+	t *testing.T,
+	conn db.Connection,
+	planet uuid.UUID,
+	createdAt time.Time,
+	completedAt time.Time,
+) (persistence.BuildingAction, persistence.Building) {
 	building := insertTestBuilding(t, conn)
 
 	action := persistence.BuildingAction{
@@ -288,8 +308,8 @@ func insertTestBuildingActionForPlanet(t *testing.T, conn db.Connection, planet 
 		Building:     building.Id,
 		CurrentLevel: 4,
 		DesiredLevel: 5,
-		CreatedAt:    someTime,
-		CompletedAt:  someTime.Add(1*time.Hour + 2*time.Minute),
+		CreatedAt:    createdAt,
+		CompletedAt:  completedAt,
 	}
 
 	sqlQuery := `INSERT INTO building_action (id, planet, building, current_level, desired_level, created_at, completed_at) VALUES ($1, $2, $3, $4, $5, $6, $7)`
@@ -307,4 +327,82 @@ func insertTestBuildingActionForPlanet(t *testing.T, conn db.Connection, planet 
 	require.Nil(t, err)
 
 	return action, building
+}
+
+func insertTestBuildingActionCostForAction(
+	t *testing.T,
+	conn db.Connection,
+	action uuid.UUID,
+) (persistence.BuildingActionCost, persistence.Resource) {
+	resource := insertTestResource(t, conn)
+
+	cost := persistence.BuildingActionCost{
+		Action:   action,
+		Resource: resource.Id,
+		Amount:   56,
+	}
+
+	sqlQuery := `INSERT INTO building_action_cost (action, resource, amount) VALUES ($1, $2, $3)`
+	_, err := conn.Exec(
+		context.Background(),
+		sqlQuery,
+		cost.Action,
+		cost.Resource,
+		cost.Amount,
+	)
+	require.Nil(t, err)
+
+	return cost, resource
+}
+
+func insertTestBuildingActionResourceProductionForAction(
+	t *testing.T,
+	conn db.Connection,
+	action uuid.UUID,
+) (persistence.BuildingActionResourceProduction, persistence.Resource) {
+	resource := insertTestResource(t, conn)
+
+	production := persistence.BuildingActionResourceProduction{
+		Action:     action,
+		Resource:   resource.Id,
+		Production: 741,
+	}
+
+	sqlQuery := `INSERT INTO building_action_resource_production (action, resource, production) VALUES ($1, $2, $3)`
+	_, err := conn.Exec(
+		context.Background(),
+		sqlQuery,
+		production.Action,
+		production.Resource,
+		production.Production,
+	)
+	require.Nil(t, err)
+
+	return production, resource
+}
+
+func insertTestBuildingActionResourceStorageForAction(
+	t *testing.T,
+	conn db.Connection,
+	action uuid.UUID,
+) (persistence.BuildingActionResourceStorage, persistence.Resource) {
+	resource := insertTestResource(t, conn)
+
+	storage := persistence.BuildingActionResourceStorage{
+		Action:   action,
+		Resource: resource.Id,
+		Storage:  546,
+	}
+
+	sqlQuery := `INSERT INTO building_action_resource_storage (action, resource, storage) VALUES ($1, $2, $3)`
+	_, err := conn.Exec(
+		context.Background(),
+		sqlQuery,
+		storage.Action,
+		storage.Resource,
+		storage.Storage,
+	)
+	require.Nil(t, err)
+
+	return storage, resource
 }

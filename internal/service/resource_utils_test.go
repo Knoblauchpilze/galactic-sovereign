@@ -67,7 +67,7 @@ func TestUnit_UpdatePlanetResourceWithCosts_ResourceNotFound(t *testing.T) {
 
 	err := updatePlanetResourceWithCosts(context.Background(), nil, &mockPlanetResourceRepository{}, defaultPlanetResources, costs, addResource)
 
-	assert.True(errors.IsErrorWithCode(err, FailedToCreateAction))
+	assert.True(errors.IsErrorWithCode(err, ActionUsesUnknownResource))
 }
 
 func TestUnit_UpdatePlanetResourceWithCosts_UpdateResourceInDb(t *testing.T) {

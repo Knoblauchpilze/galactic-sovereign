@@ -264,11 +264,3 @@ func insertTestUniverse(t *testing.T, conn db.Connection) persistence.Universe {
 
 	return universe
 }
-
-func assertResourceRepoIsAMock(repos repositories.Repositories, assert *require.Assertions) *mockResourceRepository {
-	m, ok := repos.Resource.(*mockResourceRepository)
-	if !ok {
-		assert.Fail("Provided resource repository is not a mock")
-	}
-	return m
-}

@@ -33,7 +33,7 @@ func updatePlanetResourceWithCosts(ctx context.Context, tx db.Transaction, repo 
 		resource, err := findResourceForCost(resources, cost)
 		if err != nil {
 			if errors.IsErrorWithCode(err, noSuchResource) {
-				return errors.NewCode(FailedToCreateAction)
+				return errors.NewCode(ActionUsesUnknownResource)
 			}
 
 			return err
