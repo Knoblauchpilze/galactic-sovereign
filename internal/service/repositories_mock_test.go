@@ -170,38 +170,6 @@ func (m *mockBuildingActionResourceProductionRepository) ListForAction(ctx conte
 	return []persistence.BuildingActionResourceProduction{m.actionResourceProduction}, *err
 }
 
-type mockBuildingCostRepository struct {
-	repositories.BuildingCostRepository
-
-	buildingCost persistence.BuildingCost
-	err          error
-
-	listForBuildingId     uuid.UUID
-	listForBuildingCalled int
-}
-
-func (m *mockBuildingCostRepository) ListForBuilding(ctx context.Context, tx db.Transaction, building uuid.UUID) ([]persistence.BuildingCost, error) {
-	m.listForBuildingCalled++
-	m.listForBuildingId = building
-	return []persistence.BuildingCost{m.buildingCost}, m.err
-}
-
-type mockBuildingResourceProductionRepository struct {
-	repositories.BuildingResourceProductionRepository
-
-	buildingResourceProduction persistence.BuildingResourceProduction
-	err                        error
-
-	listForBuildingId     uuid.UUID
-	listForBuildingCalled int
-}
-
-func (m *mockBuildingResourceProductionRepository) ListForBuilding(ctx context.Context, tx db.Transaction, building uuid.UUID) ([]persistence.BuildingResourceProduction, error) {
-	m.listForBuildingCalled++
-	m.listForBuildingId = building
-	return []persistence.BuildingResourceProduction{m.buildingResourceProduction}, m.err
-}
-
 type mockPlanetBuildingRepository struct {
 	repositories.PlanetBuildingRepository
 
@@ -466,20 +434,6 @@ func (m *mockPlayerRepository) Delete(ctx context.Context, tx db.Transaction, id
 	m.deleteCalled++
 	m.deleteId = id
 	return m.err
-}
-
-type mockResourceRepository struct {
-	repositories.ResourceRepository
-
-	resources []persistence.Resource
-	err       error
-
-	listCalled int
-}
-
-func (m *mockResourceRepository) List(ctx context.Context, tx db.Transaction) ([]persistence.Resource, error) {
-	m.listCalled++
-	return m.resources, m.err
 }
 
 func getValueToReturnOr[T any](count int, values []T, value T) *T {
