@@ -43,6 +43,7 @@ func main() {
 		BuildingAction:                   repositories.NewBuildingActionRepository(),
 		BuildingActionCost:               repositories.NewBuildingActionCostRepository(),
 		BuildingActionResourceProduction: repositories.NewBuildingActionResourceProductionRepository(),
+		BuildingActionResourceStorage:    repositories.NewBuildingActionResourceStorageRepository(),
 		BuildingCost:                     repositories.NewBuildingCostRepository(),
 		BuildingResourceProduction:       repositories.NewBuildingResourceProductionRepository(),
 		BuildingResourceStorage:          repositories.NewBuildingResourceStorageRepository(),

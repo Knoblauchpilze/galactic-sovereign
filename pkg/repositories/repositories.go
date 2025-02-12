@@ -5,6 +5,7 @@ type Repositories struct {
 	BuildingAction                   BuildingActionRepository
 	BuildingActionCost               BuildingActionCostRepository
 	BuildingActionResourceProduction BuildingActionResourceProductionRepository
+	BuildingActionResourceStorage    BuildingActionResourceStorageRepository
 	BuildingCost                     BuildingCostRepository
 	BuildingResourceProduction       BuildingResourceProductionRepository
 	BuildingResourceStorage          BuildingResourceStorageRepository
