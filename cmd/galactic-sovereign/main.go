@@ -45,6 +45,7 @@ func main() {
 		BuildingActionResourceProduction: repositories.NewBuildingActionResourceProductionRepository(),
 		BuildingCost:                     repositories.NewBuildingCostRepository(),
 		BuildingResourceProduction:       repositories.NewBuildingResourceProductionRepository(),
+		BuildingResourceStorage:          repositories.NewBuildingResourceStorageRepository(),
 		Planet:                           repositories.NewPlanetRepository(conn),
 		PlanetBuilding:                   repositories.NewPlanetBuildingRepository(),
 		PlanetResource:                   repositories.NewPlanetResourceRepository(),
