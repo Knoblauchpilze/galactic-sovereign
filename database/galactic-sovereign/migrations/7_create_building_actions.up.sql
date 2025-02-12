@@ -32,3 +32,12 @@ CREATE TABLE building_action_resource_production (
   FOREIGN KEY (resource) REFERENCES resource(id),
   UNIQUE (action, resource)
 );
+
+CREATE TABLE building_action_resource_storage (
+  action uuid NOT NULL,
+  resource uuid NOT NULL,
+  storage INTEGER NOT NULL,
+  FOREIGN KEY (action) REFERENCES building_action(id),
+  FOREIGN KEY (resource) REFERENCES resource(id),
+  UNIQUE (action, resource)
+);

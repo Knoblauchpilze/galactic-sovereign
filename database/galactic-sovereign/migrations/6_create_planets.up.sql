@@ -21,7 +21,7 @@ CREATE TABLE homeworld (
 CREATE TABLE planet_resource (
   planet uuid NOT NULL,
   resource uuid NOT NULL,
-  amount numeric(15, 5) NOT NULL,
+  amount NUMERIC(15, 5) NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
   updated_at TIMESTAMP WITH TIME ZONE NOT NULL,
   version INTEGER DEFAULT 0,
