@@ -40,6 +40,18 @@ var defaultBuildingActionResourceProduction = persistence.BuildingActionResource
 	Resource:   metalResourceId,
 	Production: 380,
 }
+var defaultBuildingCost = persistence.BuildingCost{
+	Building: defaultBuildingId,
+	Resource: metalResourceId,
+	Cost:     250,
+	Progress: 1.5,
+}
+var defaultBuildingResourceProduction = persistence.BuildingResourceProduction{
+	Building: defaultBuildingId,
+	Resource: metalResourceId,
+	Base:     30,
+	Progress: 1.1,
+}
 
 var metalResourceId = uuid.MustParse("8ed8d1f2-f39a-404b-96e1-9805ae6cd175")
 var crystalResourceId = uuid.MustParse("5caf0c30-3417-49d3-94ac-8476aaf460c2")
@@ -684,6 +696,22 @@ func generateErrorBuildingActionServiceMocks() repositories.Repositories {
 			err: errDefault,
 		},
 	}
+}
+
+func assertBuildingCostRepoIsAMock(repos repositories.Repositories, assert *require.Assertions) *mockBuildingCostRepository {
+	m, ok := repos.BuildingCost.(*mockBuildingCostRepository)
+	if !ok {
+		assert.Fail("Provided building cost repository is not a mock")
+	}
+	return m
+}
+
+func assertBuildingResourceProductionRepoIsAMock(repos repositories.Repositories, assert *require.Assertions) *mockBuildingResourceProductionRepository {
+	m, ok := repos.BuildingResourceProduction.(*mockBuildingResourceProductionRepository)
+	if !ok {
+		assert.Fail("Provided building resiyrce production repository is not a mock")
+	}
+	return m
 }
 
 func assertBuildingActionCostRepoIsAMock(repos repositories.Repositories, assert *require.Assertions) *mockBuildingActionCostRepository {

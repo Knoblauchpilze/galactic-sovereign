@@ -21,31 +21,6 @@ func newTestConnection(t *testing.T) db.Connection {
 	return conn
 }
 
-func insertTestUniverse(t *testing.T, conn db.Connection) persistence.Universe {
-	someTime := time.Date(2024, 12, 8, 10, 10, 22, 0, time.UTC)
-
-	universe := persistence.Universe{
-		Id:        uuid.New(),
-		Name:      fmt.Sprintf("my-universe-%s", uuid.NewString()),
-		CreatedAt: someTime,
-	}
-
-	sqlQuery := `INSERT INTO universe (id, name, created_at) VALUES ($1, $2, $3) RETURNING updated_at`
-	updatedAt, err := db.QueryOne[time.Time](
-		context.Background(),
-		conn,
-		sqlQuery,
-		universe.Id,
-		universe.Name,
-		universe.CreatedAt,
-	)
-	require.Nil(t, err)
-
-	universe.UpdatedAt = updatedAt
-
-	return universe
-}
-
 func insertTestResource(t *testing.T, conn db.Connection) persistence.Resource {
 	someTime := time.Date(2024, 12, 8, 10, 26, 57, 0, time.UTC)
 
@@ -124,6 +99,56 @@ func insertTestBuildingCost(t *testing.T, conn db.Connection, building uuid.UUID
 	require.Nil(t, err)
 
 	return cost, resource
+}
+
+func insertTestBuildingResourceProduction(t *testing.T, conn db.Connection, building uuid.UUID) (persistence.BuildingResourceProduction, persistence.Resource) {
+	resource := insertTestResource(t, conn)
+
+	prod := persistence.BuildingResourceProduction{
+		Building: building,
+		Resource: resource.Id,
+		Base:     26,
+		Progress: 9.87,
+	}
+
+	sqlQuery := `INSERT INTO building_resource_production (building, resource, base, progress) VALUES ($1, $2, $3, $4)`
+	_, err := conn.Exec(
+		context.Background(),
+		sqlQuery,
+		prod.Building,
+		prod.Resource,
+		prod.Base,
+		prod.Progress,
+	)
+	require.Nil(t, err)
+
+	return prod, resource
+}
+
+func insertTestBuildingResourceStorage(t *testing.T, conn db.Connection, building uuid.UUID) (persistence.BuildingResourceStorage, persistence.Resource) {
+	resource := insertTestResource(t, conn)
+
+	storage := persistence.BuildingResourceStorage{
+		Building: building,
+		Resource: resource.Id,
+		Base:     26,
+		Scale:    147.52,
+		Progress: 9.87,
+	}
+
+	sqlQuery := `INSERT INTO building_resource_storage (building, resource, base, scale, progress) VALUES ($1, $2, $3, $4, $5)`
+	_, err := conn.Exec(
+		context.Background(),
+		sqlQuery,
+		storage.Building,
+		storage.Resource,
+		storage.Base,
+		storage.Scale,
+		storage.Progress,
+	)
+	require.Nil(t, err)
+
+	return storage, resource
 }
 
 func insertTestPlayer(t *testing.T, conn db.Connection, universe uuid.UUID) persistence.Player {
