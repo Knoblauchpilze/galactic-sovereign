@@ -7,6 +7,7 @@ type Repositories struct {
 	BuildingActionResourceProduction BuildingActionResourceProductionRepository
 	BuildingCost                     BuildingCostRepository
 	BuildingResourceProduction       BuildingResourceProductionRepository
+	BuildingResourceStorage          BuildingResourceStorageRepository
 	Planet                           PlanetRepository
 	PlanetBuilding                   PlanetBuildingRepository
 	PlanetResource                   PlanetResourceRepository
