@@ -12,11 +12,11 @@ type BuildingResourceProductionDtoResponse struct {
 	Progress float64   `json:"progress"`
 }
 
-func ToBuildingResourceProductionDtoResponse(cost persistence.BuildingResourceProduction) BuildingResourceProductionDtoResponse {
+func ToBuildingResourceProductionDtoResponse(prod persistence.BuildingResourceProduction) BuildingResourceProductionDtoResponse {
 	return BuildingResourceProductionDtoResponse{
-		Building: cost.Building,
-		Resource: cost.Resource,
-		Base:     cost.Base,
-		Progress: cost.Progress,
+		Building: prod.Building,
+		Resource: prod.Resource,
+		Base:     prod.Base,
+		Progress: prod.Progress,
 	}
 }
