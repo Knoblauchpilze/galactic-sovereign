@@ -90,6 +90,47 @@ func TestUnit_DetermineBuildingActionResourceProduction(t *testing.T) {
 	assert.Equal(expectedResourceProduction, productions[1])
 }
 
+func TestUnit_DetermineBuildingActionResourceStorage(t *testing.T) {
+	assert := assert.New(t)
+
+	action := persistence.BuildingAction{
+		Id:           uuid.MustParse("7f548f48-2bac-46f0-b655-56487472b5db"),
+		DesiredLevel: 10,
+	}
+	baseStorages := []persistence.BuildingResourceStorage{
+		{
+			Building: defaultId,
+			Resource: defaultMetalId,
+			Base:     25,
+			Scale:    527.78,
+			Progress: 3.174,
+		},
+		{
+			Building: defaultId,
+			Resource: defaultCrystalId,
+			Base:     1736,
+			Scale:    1045.78,
+			Progress: 1.995,
+		},
+	}
+
+	storages := DetermineBuildingActionResourceStorage(action, baseStorages)
+
+	assert.Equal(2, len(storages))
+	expectedResourceStorage := persistence.BuildingActionResourceStorage{
+		Action:   action.Id,
+		Resource: defaultMetalId,
+		Storage:  1_369_185_075,
+	}
+	assert.Equal(expectedResourceStorage, storages[0])
+	expectedResourceStorage = persistence.BuildingActionResourceStorage{
+		Action:   action.Id,
+		Resource: defaultCrystalId,
+		Storage:  1_813_087_080,
+	}
+	assert.Equal(expectedResourceStorage, storages[1])
+}
+
 func TestUnit_ConsolidateBuildingActionLevel_WhenNoBuilding_SetsDefault(t *testing.T) {
 	assert := assert.New(t)
 
