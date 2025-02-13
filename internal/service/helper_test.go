@@ -382,6 +382,22 @@ func insertTestPlanetResourceStorageForResource(
 	return planetResourceStorage
 }
 
+func insertTestPlanetResourceStorage(
+	t *testing.T,
+	conn db.Connection,
+	planet uuid.UUID,
+) (persistence.PlanetResourceStorage, persistence.Resource) {
+	resource := insertTestResource(t, conn)
+	storage := insertTestPlanetResourceStorageForResource(
+		t,
+		conn,
+		planet,
+		resource.Id,
+		7_481,
+	)
+	return storage, resource
+}
+
 func insertTestBuildingActionForPlanet(
 	t *testing.T,
 	conn db.Connection,

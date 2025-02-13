@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
+	"github.com/Knoblauchpilze/backend-toolkit/pkg/errors"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/game"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/repositories"
 	"github.com/google/uuid"
@@ -14,7 +15,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestIT_ActionService_ProcessActionUntil_WheNoAction_ExpectSuccess(t *testing.T) {
+func TestIT_ActionService_ProcessActionUntil_WhenNoAction_ExpectSuccess(t *testing.T) {
 	service, conn := newTestActionService(t)
 	planet, _, _ := insertTestPlanetForPlayer(t, conn)
 
@@ -42,6 +43,27 @@ func TestIT_ActionService_ProcessActionUntil_WhenActionIsNotCompleted_ExpectNotP
 	err := service.ProcessActionsUntil(context.Background(), planet.Id, beforeActionCompletes)
 
 	assert.Nil(t, err)
+	assertBuildingActionExists(t, conn, action.Id)
+}
+
+func TestIT_ActionService_ProcessActionUntil_WhenProcessingFail_ExpectActionIsNotRemoved(t *testing.T) {
+	service, conn := newTestActionService(t)
+	planet, _, _ := insertTestPlanetForPlayer(t, conn)
+	createdAt := time.Now().Add(-2 * time.Hour)
+	completedAt := createdAt.Add(1 * time.Hour)
+	action, _ := insertTestBuildingActionForPlanetWithTimes(
+		t,
+		conn,
+		planet.Id,
+		createdAt,
+		completedAt,
+	)
+
+	err := service.ProcessActionsUntil(context.Background(), planet.Id, time.Now())
+
+	// Processing this action fails because the building associated with
+	// it does not exist on the planet.
+	assert.True(t, errors.IsErrorWithCode(err, db.NoMatchingRows))
 	assertBuildingActionExists(t, conn, action.Id)
 }
 
@@ -326,6 +348,67 @@ func TestIT_ActionService_ProcessActionUntil_WhenResourceIsNotProduced_ExpectRes
 	)
 }
 
+func TestIT_ActionService_ProcessActionUntil_ExpectResourceStorageToBeUpdated(t *testing.T) {
+	service, conn := newTestActionService(t)
+	planet, _, _ := insertTestPlanetForPlayer(t, conn)
+	planetBuilding, _ := insertTestPlanetBuildingForPlanet(t, conn, planet.Id)
+	_, res1 := insertTestPlanetResourceStorage(t, conn, planet.Id)
+	prs2, res2 := insertTestPlanetResourceStorage(t, conn, planet.Id)
+	createdAt := time.Now().Add(-3 * time.Hour)
+	completedAt := createdAt.Add(2 * time.Hour)
+	action := insertTestBuildingActionForPlanetAndBuildingWithTimes(
+		t,
+		conn,
+		planet.Id,
+		planetBuilding.Building,
+		createdAt,
+		completedAt,
+	)
+	actionStorage := insertTestBuildingActionResourceStorageForActionAndResource(
+		t,
+		conn,
+		action.Id,
+		res1.Id,
+	)
+
+	afterActionCompletes := completedAt.Add(1 * time.Second)
+	err := service.ProcessActionsUntil(context.Background(), planet.Id, afterActionCompletes)
+
+	assert.Nil(t, err)
+	assertBuildingActionDoesNotExist(t, conn, action.Id)
+	// TODO: This fails because it is not implemented.
+	assertPlanetResourceStorage(t, conn, planet.Id, res1.Id, actionStorage.Storage)
+	assertPlanetResourceStorage(t, conn, planet.Id, res2.Id, prs2.Storage)
+}
+
+func TestIT_ActionService_ProcessActionUntil_WhenResourceIsNotStorable_ExpectFailure(t *testing.T) {
+	service, conn := newTestActionService(t)
+	planet, _, _ := insertTestPlanetForPlayer(t, conn)
+	planetBuilding, _ := insertTestPlanetBuildingForPlanet(t, conn, planet.Id)
+	res := insertTestResource(t, conn)
+	createdAt := time.Now().Add(-3 * time.Hour)
+	completedAt := createdAt.Add(2 * time.Hour)
+	action := insertTestBuildingActionForPlanetAndBuildingWithTimes(
+		t,
+		conn,
+		planet.Id,
+		planetBuilding.Building,
+		createdAt,
+		completedAt,
+	)
+	insertTestBuildingActionResourceStorageForActionAndResource(
+		t,
+		conn,
+		action.Id,
+		res.Id,
+	)
+
+	afterActionCompletes := completedAt.Add(1 * time.Second)
+	err := service.ProcessActionsUntil(context.Background(), planet.Id, afterActionCompletes)
+
+	assert.True(t, errors.IsErrorWithCode(err, ActionUpdatesUnknownResource))
+}
+
 func newTestActionService(t *testing.T) (game.ActionService, db.Connection) {
 	conn := newTestConnection(t)
 	repos := repositories.Repositories{
@@ -362,4 +445,11 @@ func assertPlanetResourceProductionWithoutBuilding(t *testing.T, conn db.Connect
 	value, err := db.QueryOne[int](context.Background(), conn, sqlQuery, planet, resource)
 	require.Nil(t, err)
 	require.Equal(t, prod, value)
+}
+
+func assertPlanetResourceStorage(t *testing.T, conn db.Connection, planet uuid.UUID, resource uuid.UUID, storage int) {
+	sqlQuery := `SELECT storage FROM planet_resource_storage WHERE planet = $1 AND resource = $2`
+	value, err := db.QueryOne[int](context.Background(), conn, sqlQuery, planet, resource)
+	require.Nil(t, err)
+	require.Equal(t, storage, value)
 }
