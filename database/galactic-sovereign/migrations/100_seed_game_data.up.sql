@@ -76,7 +76,7 @@ INSERT INTO galactic_sovereign_schema.building_cost ("building", "resource", "co
   VALUES (
     '22b4c0c3-c8e5-4493-89fc-522fdbb0beee',
     'b4419b6b-b3bf-4576-aa92-055283addbc8',
-    500,
+    1000,
     2.0
   );
 
@@ -97,14 +97,14 @@ INSERT INTO galactic_sovereign_schema.building_cost ("building", "resource", "co
   VALUES (
     'd9c8df28-bb71-4be4-8702-ce2bea8bd943',
     'b4419b6b-b3bf-4576-aa92-055283addbc8',
-    500,
+    1000,
     2.0
   );
 INSERT INTO galactic_sovereign_schema.building_cost ("building", "resource", "cost", "progress")
   VALUES (
     'd9c8df28-bb71-4be4-8702-ce2bea8bd943',
     'cd2ac9aa-9968-4ff5-b746-88f1f810fbb3',
-    250,
+    500,
     2.0
   );
 
