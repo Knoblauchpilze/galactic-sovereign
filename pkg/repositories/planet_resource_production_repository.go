@@ -27,13 +27,17 @@ INSERT INTO
 	planet_resource_production (planet, building, resource, production, created_at, updated_at)
 	VALUES($1, $2, $3, $4, $5, $6)`
 
-func (r *planetResourceProductionRepositoryImpl) Create(ctx context.Context, tx db.Transaction, production persistence.PlanetResourceProduction) (persistence.PlanetResourceProduction, error) {
+func (r *planetResourceProductionRepositoryImpl) Create(
+	ctx context.Context,
+	tx db.Transaction,
+	production persistence.PlanetResourceProduction,
+) (persistence.PlanetResourceProduction, error) {
 	_, err := tx.Exec(ctx, createPlanetResourceProductionSqlTemplate, production.Planet, production.Building, production.Resource, production.Production, production.CreatedAt, production.CreatedAt)
 	production.UpdatedAt = production.CreatedAt
 	return production, err
 }
 
-const listPlanetResourceProductionForPlanetAndBuildingSqlTemplate = `
+const getPlanetResourceProductionForPlanetAndBuildingSqlTemplate = `
 SELECT
 	planet,
 	building,
@@ -48,7 +52,7 @@ WHERE
 	planet = $1
 	AND building = $2`
 
-const listPlanetResourceProductionForPlanetAndBuildingWithoutBuildingSqlTemplate = `
+const getPlanetResourceProductionForPlanetAndBuildingWithoutBuildingSqlTemplate = `
 SELECT
 	planet,
 	building,
@@ -63,11 +67,16 @@ WHERE
 	planet = $1
 	AND building IS NULL`
 
-func (r *planetResourceProductionRepositoryImpl) GetForPlanetAndBuilding(ctx context.Context, tx db.Transaction, planet uuid.UUID, building *uuid.UUID) (persistence.PlanetResourceProduction, error) {
+func (r *planetResourceProductionRepositoryImpl) GetForPlanetAndBuilding(
+	ctx context.Context,
+	tx db.Transaction,
+	planet uuid.UUID,
+	building *uuid.UUID,
+) (persistence.PlanetResourceProduction, error) {
 	if building == nil {
-		return db.QueryOneTx[persistence.PlanetResourceProduction](ctx, tx, listPlanetResourceProductionForPlanetAndBuildingWithoutBuildingSqlTemplate, planet)
+		return db.QueryOneTx[persistence.PlanetResourceProduction](ctx, tx, getPlanetResourceProductionForPlanetAndBuildingWithoutBuildingSqlTemplate, planet)
 	} else {
-		return db.QueryOneTx[persistence.PlanetResourceProduction](ctx, tx, listPlanetResourceProductionForPlanetAndBuildingSqlTemplate, planet, building)
+		return db.QueryOneTx[persistence.PlanetResourceProduction](ctx, tx, getPlanetResourceProductionForPlanetAndBuildingSqlTemplate, planet, building)
 	}
 }
 
@@ -85,7 +94,11 @@ FROM
 WHERE
 	planet = $1`
 
-func (r *planetResourceProductionRepositoryImpl) ListForPlanet(ctx context.Context, tx db.Transaction, planet uuid.UUID) ([]persistence.PlanetResourceProduction, error) {
+func (r *planetResourceProductionRepositoryImpl) ListForPlanet(
+	ctx context.Context,
+	tx db.Transaction,
+	planet uuid.UUID,
+) ([]persistence.PlanetResourceProduction, error) {
 	return db.QueryAllTx[persistence.PlanetResourceProduction](ctx, tx, listPlanetResourceProductionForPlanetSqlTemplate, planet)
 }
 
@@ -115,7 +128,11 @@ WHERE
 	AND resource = $5
 	AND version = $6`
 
-func (r *planetResourceProductionRepositoryImpl) Update(ctx context.Context, tx db.Transaction, production persistence.PlanetResourceProduction) (persistence.PlanetResourceProduction, error) {
+func (r *planetResourceProductionRepositoryImpl) Update(
+	ctx context.Context,
+	tx db.Transaction,
+	production persistence.PlanetResourceProduction,
+) (persistence.PlanetResourceProduction, error) {
 	version := production.Version + 1
 
 	var affectedRows int64

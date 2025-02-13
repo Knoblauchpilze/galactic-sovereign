@@ -11,6 +11,7 @@ import (
 
 type PlanetResourceStorageRepository interface {
 	Create(ctx context.Context, tx db.Transaction, storage persistence.PlanetResourceStorage) (persistence.PlanetResourceStorage, error)
+	GetForPlanetAndResource(ctx context.Context, tx db.Transaction, planet uuid.UUID, resource uuid.UUID) (persistence.PlanetResourceStorage, error)
 	ListForPlanet(ctx context.Context, tx db.Transaction, planet uuid.UUID) ([]persistence.PlanetResourceStorage, error)
 	Update(ctx context.Context, tx db.Transaction, storage persistence.PlanetResourceStorage) (persistence.PlanetResourceStorage, error)
 }
@@ -26,10 +27,43 @@ INSERT INTO
 	planet_resource_storage (planet, resource, storage, created_at, updated_at)
 	VALUES($1, $2, $3, $4, $5)`
 
-func (r *planetResourceStorageRepositoryImpl) Create(ctx context.Context, tx db.Transaction, storage persistence.PlanetResourceStorage) (persistence.PlanetResourceStorage, error) {
+func (r *planetResourceStorageRepositoryImpl) Create(
+	ctx context.Context,
+	tx db.Transaction,
+	storage persistence.PlanetResourceStorage,
+) (persistence.PlanetResourceStorage, error) {
 	_, err := tx.Exec(ctx, createPlanetResourceStorageSqlTemplate, storage.Planet, storage.Resource, storage.Storage, storage.CreatedAt, storage.CreatedAt)
 	storage.UpdatedAt = storage.CreatedAt
 	return storage, err
+}
+
+const getPlanetResourceStorageForPlanetAndResourceSqlTemplate = `
+SELECT
+	planet,
+	resource,
+	storage,
+	created_at,
+	updated_at,
+	version
+FROM
+	planet_resource_storage
+WHERE
+	planet = $1
+	AND resource = $2`
+
+func (r *planetResourceStorageRepositoryImpl) GetForPlanetAndResource(
+	ctx context.Context,
+	tx db.Transaction,
+	planet uuid.UUID,
+	resource uuid.UUID,
+) (persistence.PlanetResourceStorage, error) {
+	return db.QueryOneTx[persistence.PlanetResourceStorage](
+		ctx,
+		tx,
+		getPlanetResourceStorageForPlanetAndResourceSqlTemplate,
+		planet,
+		resource,
+	)
 }
 
 const listPlanetResourceStorageForPlanetSqlTemplate = `
@@ -45,7 +79,11 @@ FROM
 WHERE
 	planet = $1`
 
-func (r *planetResourceStorageRepositoryImpl) ListForPlanet(ctx context.Context, tx db.Transaction, planet uuid.UUID) ([]persistence.PlanetResourceStorage, error) {
+func (r *planetResourceStorageRepositoryImpl) ListForPlanet(
+	ctx context.Context,
+	tx db.Transaction,
+	planet uuid.UUID,
+) ([]persistence.PlanetResourceStorage, error) {
 	return db.QueryAllTx[persistence.PlanetResourceStorage](ctx, tx, listPlanetResourceStorageForPlanetSqlTemplate, planet)
 }
 
@@ -61,7 +99,11 @@ WHERE
 	AND resource = $5
 	AND version = $6`
 
-func (r *planetResourceStorageRepositoryImpl) Update(ctx context.Context, tx db.Transaction, storage persistence.PlanetResourceStorage) (persistence.PlanetResourceStorage, error) {
+func (r *planetResourceStorageRepositoryImpl) Update(
+	ctx context.Context,
+	tx db.Transaction,
+	storage persistence.PlanetResourceStorage,
+) (persistence.PlanetResourceStorage, error) {
 	version := storage.Version + 1
 	affectedRows, err := tx.Exec(
 		ctx,
