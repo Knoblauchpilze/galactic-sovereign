@@ -95,8 +95,12 @@ func (s *actionServiceImpl) processAction(ctx context.Context, action persistenc
 		return err
 	}
 
-	// TODO: We should do the same for the storage.
 	err = s.updateResourcesProductionForPlanet(ctx, tx, action)
+	if err != nil {
+		return err
+	}
+
+	err = s.updateResourcesStorageForPlanet(ctx, tx, action)
 	if err != nil {
 		return err
 	}
@@ -150,6 +154,49 @@ func (s *actionServiceImpl) createPlanetProductionForResourceAndBuilding(ctx con
 	planetProduction := persistence.ToPlanetResourceProduction(newProduction, action)
 
 	_, err := s.planetResourceProductionRepo.Create(ctx, tx, planetProduction)
+
+	return err
+}
+
+func (s *actionServiceImpl) updateResourcesStorageForPlanet(ctx context.Context, tx db.Transaction, action persistence.BuildingAction) error {
+	newStorages, err := s.buildingActionResourceStorageRepo.ListForAction(ctx, tx, action.Id)
+	if err != nil {
+		return err
+	}
+
+	for _, newStorage := range newStorages {
+		err = s.updatePlanetStorageForResource(
+			ctx, tx, action, newStorage)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (s *actionServiceImpl) updatePlanetStorageForResource(
+	ctx context.Context,
+	tx db.Transaction,
+	action persistence.BuildingAction,
+	newStorage persistence.BuildingActionResourceStorage) error {
+
+	storage, err := s.planetResourceStorageRepo.GetForPlanetAndResource(
+		ctx,
+		tx,
+		action.Planet,
+		newStorage.Resource,
+	)
+	if err != nil {
+		if errors.IsErrorWithCode(err, db.NoMatchingRows) {
+			return errors.WrapCode(err, ActionUpdatesUnknownResource)
+		}
+		return err
+	}
+
+	updatedStorage := persistence.MergeWithPlanetResourceStorage(newStorage, storage)
+	updatedStorage.UpdatedAt = action.CompletedAt
+	_, err = s.planetResourceStorageRepo.Update(ctx, tx, updatedStorage)
 
 	return err
 }
