@@ -57,6 +57,28 @@ func TestIT_PlanetResourceStorageRepository_Create_WhenDuplicateResource_ExpectF
 	assertPlanetResourceStorage(t, conn, planet.Id, resource.Id, storage.Storage)
 }
 
+func TestIT_PlanetResourceStorageRepository_GetForPlanetAndResource(t *testing.T) {
+	repo, conn, tx := newTestPlanetResourceStorageRepositoryAndTransaction(t)
+	defer conn.Close(context.Background())
+	planet1, _, _ := insertTestPlanetForPlayer(t, conn)
+	prs1, res1 := insertTestPlanetResourceStorage(t, conn, planet1.Id)
+	insertTestPlanetResourceStorage(t, conn, planet1.Id)
+
+	planet2, _, _ := insertTestPlanetForPlayer(t, conn)
+	insertTestPlanetResourceStorage(t, conn, planet2.Id)
+
+	actual, err := repo.GetForPlanetAndResource(
+		context.Background(),
+		tx,
+		planet1.Id,
+		res1.Id,
+	)
+	tx.Close(context.Background())
+
+	assert.Nil(t, err)
+	assert.True(t, eassert.EqualsIgnoringFields(actual, prs1))
+}
+
 func TestIT_PlanetResourceStorageRepository_ListForPlanet(t *testing.T) {
 	repo, conn, tx := newTestPlanetResourceStorageRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
