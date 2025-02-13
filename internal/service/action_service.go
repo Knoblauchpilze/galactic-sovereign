@@ -17,6 +17,7 @@ type actionServiceImpl struct {
 
 	buildingActionRepo                   repositories.BuildingActionRepository
 	buildingActionResourceProductionRepo repositories.BuildingActionResourceProductionRepository
+	buildingActionResourceStorageRepo    repositories.BuildingActionResourceStorageRepository
 	planetBuildingRepo                   repositories.PlanetBuildingRepository
 	planetResourceRepo                   repositories.PlanetResourceRepository
 	planetResourceProductionRepo         repositories.PlanetResourceProductionRepository
@@ -29,6 +30,7 @@ func NewActionService(conn db.Connection, repos repositories.Repositories) game.
 
 		buildingActionRepo:                   repos.BuildingAction,
 		buildingActionResourceProductionRepo: repos.BuildingActionResourceProduction,
+		buildingActionResourceStorageRepo:    repos.BuildingActionResourceStorage,
 		planetBuildingRepo:                   repos.PlanetBuilding,
 		planetResourceRepo:                   repos.PlanetResource,
 		planetResourceProductionRepo:         repos.PlanetResourceProduction,
@@ -93,6 +95,7 @@ func (s *actionServiceImpl) processAction(ctx context.Context, action persistenc
 		return err
 	}
 
+	// TODO: We should do the same for the storage.
 	err = s.updateResourcesProductionForPlanet(ctx, tx, action)
 	if err != nil {
 		return err

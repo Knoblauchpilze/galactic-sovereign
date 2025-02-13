@@ -2,752 +2,364 @@ package service
 
 import (
 	"context"
+	"math"
 	"testing"
 	"time"
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
-	"github.com/Knoblauchpilze/backend-toolkit/pkg/errors"
-	"github.com/Knoblauchpilze/galactic-sovereign/pkg/persistence"
+	"github.com/Knoblauchpilze/galactic-sovereign/pkg/game"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/repositories"
 	"github.com/google/uuid"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/stretchr/testify/suite"
 )
 
-var someTime = time.Date(2024, 8, 17, 14, 31, 13, 651387247, time.UTC)
+func TestIT_ActionService_ProcessActionUntil_WheNoAction_ExpectSuccess(t *testing.T) {
+	service, conn := newTestActionService(t)
+	planet, _, _ := insertTestPlanetForPlayer(t, conn)
 
-var metalResourceId = uuid.MustParse("8ed8d1f2-f39a-404b-96e1-9805ae6cd175")
-var crystalResourceId = uuid.MustParse("5caf0c30-3417-49d3-94ac-8476aaf460c2")
+	veryFarInThePast := time.Now().Add(-800 * time.Hour)
 
-var defaultBuildingAction = persistence.BuildingAction{
-	Id:           defaultBuildingActionId,
-	Planet:       defaultPlanetId,
-	Building:     defaultBuildingId,
-	CurrentLevel: defaultPlanetBuilding.Level,
-	DesiredLevel: defaultPlanetBuilding.Level + 1,
-	CreatedAt:    testDate,
-	CompletedAt:  testDate,
-}
-var defaultBuildingActionCost = persistence.BuildingActionCost{
-	Action:   defaultBuildingActionId,
-	Resource: metalResourceId,
-	Amount:   250,
-}
-var defaultBuildingActionResourceProduction = persistence.BuildingActionResourceProduction{
-	Action:     defaultBuildingActionId,
-	Resource:   metalResourceId,
-	Production: 380,
+	err := service.ProcessActionsUntil(context.Background(), planet.Id, veryFarInThePast)
+
+	assert.Nil(t, err)
 }
 
-func TestUnit_ActionService(t *testing.T) {
-	s := ServicePoolTestSuite{
-		generateRepositoriesMocks: generateActionServiceMocks,
-
-		repositoryInteractionTestCases: map[string]repositoryInteractionTestCase{
-			"processActionsUntil_listActions": {
-				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
-					s := NewActionService(conn, repos)
-					return s.ProcessActionsUntil(ctx, defaultPlanetId, someTime)
-				},
-				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
-					m := assertBuildingActionRepoIsAMock(repos, assert)
-
-					assert.Equal(defaultPlanetId, m.listBeforeCompletionTimePlanet)
-					assert.Equal(1, m.listBeforeCompletionTimeCalled)
-					assert.Equal(someTime, m.listBeforeCompletionTime)
-				},
-			},
-			"processActionsUntil_listActionsFails": {
-				generateRepositoriesMocks: func() repositories.Repositories {
-					repos := generateActionServiceMocks()
-					repos.BuildingAction = &mockBuildingActionRepository{
-						errs: []error{errDefault},
-					}
-
-					return repos
-				},
-				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
-					s := NewActionService(conn, repos)
-					return s.ProcessActionsUntil(ctx, defaultPlanetId, someTime)
-				},
-				expectedError: errDefault,
-				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
-					m := assertBuildingActionRepoIsAMock(repos, assert)
-
-					assert.Equal(1, m.listBeforeCompletionTimeCalled)
-				},
-			},
-			"processActionsUntil_listPlanetResources": {
-				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
-					s := NewActionService(conn, repos)
-					return s.ProcessActionsUntil(ctx, defaultPlanetId, someTime)
-				},
-				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
-					m := assertPlanetResourceRepoIsAMock(repos, assert)
-
-					assert.Equal(1, m.listForPlanetCalled)
-					assert.Equal(defaultBuildingAction.Planet, m.listForPlanetIds[0])
-				},
-			},
-			"processActionsUntil_listPlanetResourcesFails": {
-				generateRepositoriesMocks: func() repositories.Repositories {
-					repos := generateActionServiceMocks()
-					repos.PlanetResource = &mockPlanetResourceRepository{
-						err: errDefault,
-					}
-
-					return repos
-				},
-				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
-					s := NewActionService(conn, repos)
-					return s.ProcessActionsUntil(ctx, defaultPlanetId, someTime)
-				},
-				expectedError: errDefault,
-				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
-					m := assertPlanetResourceRepoIsAMock(repos, assert)
-
-					assert.Equal(1, m.listForPlanetCalled)
-				},
-			},
-			"processActionsUntil_listPlanetResourceProductions": {
-				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
-					s := NewActionService(conn, repos)
-					return s.ProcessActionsUntil(ctx, defaultPlanetId, someTime)
-				},
-				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
-					m := assertPlanetResourceProductionRepoIsAMock(repos, assert)
-
-					assert.Equal(1, m.listForPlanetCalled)
-					assert.Equal(defaultBuildingAction.Planet, m.listForPlanetIds[0])
-				},
-			},
-			"processActionsUntil_listPlanetResourceProductionsFails": {
-				generateRepositoriesMocks: func() repositories.Repositories {
-					repos := generateActionServiceMocks()
-					repos.PlanetResourceProduction = &mockPlanetResourceProductionRepository{
-						errs: []error{errDefault},
-					}
-
-					return repos
-				},
-				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
-					s := NewActionService(conn, repos)
-					return s.ProcessActionsUntil(ctx, defaultPlanetId, someTime)
-				},
-				expectedError: errDefault,
-				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
-					m := assertPlanetResourceProductionRepoIsAMock(repos, assert)
-
-					assert.Equal(1, m.listForPlanetCalled)
-				},
-			},
-			"processActionsUntil_updatePlanetResources": {
-				generateRepositoriesMocks: func() repositories.Repositories {
-					repos := generateActionServiceMocks()
-
-					resource := defaultPlanetResource
-					resource.UpdatedAt = defaultBuildingAction.CompletedAt.Add(-2 * time.Minute)
-
-					repos.PlanetResource = &mockPlanetResourceRepository{
-						planetResource: resource,
-					}
-
-					return repos
-				},
-				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
-					s := NewActionService(conn, repos)
-					return s.ProcessActionsUntil(ctx, defaultPlanetId, someTime)
-				},
-				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
-					m := assertPlanetResourceRepoIsAMock(repos, assert)
-
-					assert.Equal(1, m.updateCalled)
-					assert.Equal(1, len(m.updatedPlanetResources))
-
-					actual := m.updatedPlanetResources[0]
-
-					assert.Equal(defaultPlanetResource.Planet, actual.Planet)
-					assert.Equal(defaultPlanetResource.Resource, actual.Resource)
-					expectedAmount := defaultPlanetResource.Amount + 2.0/60.0*float64(defaultPlanetResourceProduction.Production)
-					assert.Equal(expectedAmount, actual.Amount)
-					assert.Equal(defaultPlanetResource.CreatedAt, actual.CreatedAt)
-					assert.Equal(defaultBuildingAction.CompletedAt, actual.UpdatedAt)
-					assert.Equal(defaultPlanetResource.Version, actual.Version)
-				},
-			},
-			"processActionsUntil_updatePlanetResourcesFails": {
-				generateRepositoriesMocks: func() repositories.Repositories {
-					repos := generateActionServiceMocks()
-					repos.PlanetResource = &mockPlanetResourceRepository{
-						planetResource: defaultPlanetResource,
-						updateErr:      errDefault,
-					}
-
-					return repos
-				},
-				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
-					s := NewActionService(conn, repos)
-					return s.ProcessActionsUntil(ctx, defaultPlanetId, someTime)
-				},
-				expectedError: errDefault,
-				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
-					m := assertPlanetResourceRepoIsAMock(repos, assert)
-
-					assert.Equal(1, m.updateCalled)
-				},
-			},
-			"processActionsUntil_updatePlanetResources_whenResourceIsNotProduced_expectNoUpdate": {
-				generateRepositoriesMocks: func() repositories.Repositories {
-					repos := generateActionServiceMocks()
-
-					production := defaultPlanetResourceProduction
-					production.Resource = crystalResourceId
-
-					repos.PlanetResourceProduction = &mockPlanetResourceProductionRepository{
-						planetResourceProduction: production,
-					}
-
-					return repos
-				},
-				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
-					s := NewActionService(conn, repos)
-					return s.ProcessActionsUntil(ctx, defaultPlanetId, someTime)
-				},
-				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
-					m := assertPlanetResourceRepoIsAMock(repos, assert)
-
-					assert.Equal(0, m.updateCalled)
-				},
-			},
-			"processActionsUntil_updatePlanetResources_whenStorageIsAlreadyFull_expectNoUpdate": {
-				generateRepositoriesMocks: func() repositories.Repositories {
-					repos := generateActionServiceMocks()
-
-					resource := defaultPlanetResource
-					resource.UpdatedAt = defaultBuildingAction.CompletedAt.Add(-2 * time.Minute)
-					repos.PlanetResource = &mockPlanetResourceRepository{
-						planetResource: resource,
-					}
-
-					storage := defaultPlanetResourceStorage
-					storage.Storage = int(defaultPlanetResource.Amount) - 10
-					repos.PlanetResourceStorage = &mockPlanetResourceStorageRepository{
-						planetResourceStorage: storage,
-					}
-
-					return repos
-				},
-				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
-					s := NewActionService(conn, repos)
-					return s.ProcessActionsUntil(ctx, defaultPlanetId, someTime)
-				},
-				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
-					m := assertPlanetResourceRepoIsAMock(repos, assert)
-
-					assert.Equal(1, m.updateCalled)
-					assert.Equal(1, len(m.updatedPlanetResources))
-					actual := m.updatedPlanetResources[0]
-
-					assert.Equal(defaultPlanetId, actual.Planet)
-					assert.Equal(defaultPlanetResource.Resource, actual.Resource)
-					assert.Equal(defaultPlanetResource.Amount, actual.Amount)
-
-					assert.Equal(defaultPlanetResource.CreatedAt, actual.CreatedAt)
-					assert.Equal(defaultBuildingAction.CompletedAt, actual.UpdatedAt)
-					assert.Equal(defaultPlanetResource.Version, actual.Version)
-				},
-			},
-			"whenUpdatingPlanetResources_whenStorageIsNotEnoughToAbsorbAllProduction_expectPartialUpdate": {
-				generateRepositoriesMocks: func() repositories.Repositories {
-					repos := generateActionServiceMocks()
-
-					resource := defaultPlanetResource
-					resource.Amount = 60.0
-					resource.UpdatedAt = defaultBuildingAction.CompletedAt.Add(-2 * time.Minute)
-					repos.PlanetResource = &mockPlanetResourceRepository{
-						planetResource: resource,
-					}
-
-					production := defaultPlanetResourceProduction
-					production.Production = 60
-					repos.PlanetResourceProduction = &mockPlanetResourceProductionRepository{
-						planetResourceProduction: production,
-					}
-
-					storage := defaultPlanetResourceStorage
-					storage.Storage = 62
-					repos.PlanetResourceStorage = &mockPlanetResourceStorageRepository{
-						planetResourceStorage: storage,
-					}
-
-					return repos
-				},
-				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
-					s := NewActionService(conn, repos)
-					return s.ProcessActionsUntil(ctx, defaultPlanetId, someTime)
-				},
-				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
-					m := assertPlanetResourceRepoIsAMock(repos, assert)
-
-					assert.Equal(1, m.updateCalled)
-					assert.Equal(1, len(m.updatedPlanetResources))
-					actual := m.updatedPlanetResources[0]
-
-					assert.Equal(defaultPlanetId, actual.Planet)
-					assert.Equal(defaultPlanetResource.Resource, actual.Resource)
-					assert.Equal(62.0, actual.Amount)
-
-					assert.Equal(defaultPlanetResource.CreatedAt, actual.CreatedAt)
-					assert.Equal(defaultBuildingAction.CompletedAt, actual.UpdatedAt)
-					assert.Equal(defaultPlanetResource.Version, actual.Version)
-				},
-			},
-			"processActionsUntil_getBuilding": {
-				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
-					s := NewActionService(conn, repos)
-					return s.ProcessActionsUntil(ctx, defaultPlanetId, someTime)
-				},
-				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
-					m := assertPlanetBuildingRepoIsAMock(repos, assert)
-
-					assert.Equal(1, m.getForPlanetAndBuildingCalled)
-					assert.Equal(defaultBuildingAction.Planet, m.getForPlanetAndBuildingPlanet)
-					assert.Equal(defaultBuildingAction.Building, m.getForPlanetAndBuildingBuilding)
-				},
-			},
-			"processActionsUntil_getBuildingFails": {
-				generateRepositoriesMocks: func() repositories.Repositories {
-					repos := generateActionServiceMocks()
-					repos.PlanetBuilding = &mockPlanetBuildingRepository{
-						err: errDefault,
-					}
-
-					return repos
-				},
-				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
-					s := NewActionService(conn, repos)
-					return s.ProcessActionsUntil(ctx, defaultPlanetId, someTime)
-				},
-				expectedError: errDefault,
-				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
-					m := assertPlanetBuildingRepoIsAMock(repos, assert)
-
-					assert.Equal(1, m.getForPlanetAndBuildingCalled)
-				},
-			},
-			"processActionsUntil_updateBuilding": {
-				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
-					s := NewActionService(conn, repos)
-					return s.ProcessActionsUntil(ctx, defaultPlanetId, someTime)
-				},
-				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
-					m := assertPlanetBuildingRepoIsAMock(repos, assert)
-
-					assert.Equal(1, m.updateCalled)
-					expectedBuilding := persistence.PlanetBuilding{
-						Planet:    defaultPlanetId,
-						Building:  defaultBuildingId,
-						Level:     defaultBuildingAction.DesiredLevel,
-						CreatedAt: defaultBuilding.CreatedAt,
-						UpdatedAt: defaultBuildingAction.CompletedAt,
-					}
-					assert.Equal(expectedBuilding, m.updateBuilding)
-				},
-			},
-			"processActionsUntil_updateBuildingFails": {
-				generateRepositoriesMocks: func() repositories.Repositories {
-					repos := generateActionServiceMocks()
-					repos.PlanetBuilding = &mockPlanetBuildingRepository{
-						planetBuilding: defaultPlanetBuilding,
-						updateErr:      errDefault,
-					}
-
-					return repos
-				},
-				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
-					s := NewActionService(conn, repos)
-					return s.ProcessActionsUntil(ctx, defaultPlanetId, someTime)
-				},
-				expectedError: errDefault,
-				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
-					m := assertPlanetBuildingRepoIsAMock(repos, assert)
-
-					assert.Equal(1, m.updateCalled)
-				},
-			},
-			"processActionsUntil_getForPlanetAndBuilding": {
-				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
-					s := NewActionService(conn, repos)
-					return s.ProcessActionsUntil(ctx, defaultPlanetId, someTime)
-				},
-				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
-					m := assertPlanetResourceProductionRepoIsAMock(repos, assert)
-
-					assert.Equal(1, m.getForPlanetAndBuildingCalled)
-					assert.Equal(defaultBuildingAction.Planet, m.getForPlanetAndBuildingPlanet)
-					assert.Equal(&defaultBuildingAction.Building, m.getForPlanetAndBuildingBuilding)
-				},
-			},
-			"processActionsUntil_getForPlanetAndBuildingFails": {
-				generateRepositoriesMocks: func() repositories.Repositories {
-					repos := generateActionServiceMocks()
-					repos.PlanetResourceProduction = &mockPlanetResourceProductionRepository{
-						planetResourceProduction: defaultPlanetResourceProduction,
-						errs: []error{
-							nil,
-							errDefault,
-						},
-					}
-
-					return repos
-				},
-				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
-					s := NewActionService(conn, repos)
-					return s.ProcessActionsUntil(ctx, defaultPlanetId, someTime)
-				},
-				expectedError: errDefault,
-				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
-					m := assertPlanetResourceProductionRepoIsAMock(repos, assert)
-
-					assert.Equal(1, m.getForPlanetAndBuildingCalled)
-				},
-			},
-			"processActionsUntil_listProductionForAction": {
-				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
-					s := NewActionService(conn, repos)
-					return s.ProcessActionsUntil(ctx, defaultPlanetId, someTime)
-				},
-				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
-					m := assertBuildingActionResourceProductionRepoIsAMock(repos, assert)
-
-					assert.Equal(1, m.listForActionCalled)
-					assert.Equal(defaultBuildingAction.Id, m.listForActionId)
-				},
-			},
-			"processActionsUntil_listProductionForActionFails": {
-				generateRepositoriesMocks: func() repositories.Repositories {
-					repos := generateActionServiceMocks()
-					repos.BuildingActionResourceProduction = &mockBuildingActionResourceProductionRepository{
-						errs: []error{errDefault},
-					}
-
-					return repos
-				},
-				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
-					s := NewActionService(conn, repos)
-					return s.ProcessActionsUntil(ctx, defaultPlanetId, someTime)
-				},
-				expectedError: errDefault,
-				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
-					m := assertBuildingActionResourceProductionRepoIsAMock(repos, assert)
-
-					assert.Equal(1, m.listForActionCalled)
-				},
-			},
-			"processActionsUntil_getsExistingProductionForPlanetAndBuilding": {
-				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
-					s := NewActionService(conn, repos)
-					return s.ProcessActionsUntil(ctx, defaultPlanetId, someTime)
-				},
-				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
-					m := assertPlanetResourceProductionRepoIsAMock(repos, assert)
-
-					assert.Equal(1, m.getForPlanetAndBuildingCalled)
-					assert.Equal(defaultBuildingAction.Planet, m.getForPlanetAndBuildingPlanet)
-					assert.Equal(&defaultBuildingAction.Building, m.getForPlanetAndBuildingBuilding)
-				},
-			},
-			"processActionsUntil_getsExistingProductionForPlanetAndBuildingFails": {
-				generateRepositoriesMocks: func() repositories.Repositories {
-					repos := generateActionServiceMocks()
-					repos.PlanetResourceProduction = &mockPlanetResourceProductionRepository{
-						errs: []error{
-							nil,
-							errDefault,
-						},
-					}
-
-					return repos
-				},
-				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
-					s := NewActionService(conn, repos)
-					return s.ProcessActionsUntil(ctx, defaultPlanetId, someTime)
-				},
-				expectedError: errDefault,
-				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
-					m := assertPlanetResourceProductionRepoIsAMock(repos, assert)
-
-					assert.Equal(1, m.getForPlanetAndBuildingCalled)
-				},
-			},
-			"processActionsUntil_whenResourceIsNotProduced_createsResourceProduction": {
-				generateRepositoriesMocks: func() repositories.Repositories {
-					repos := generateActionServiceMocks()
-					repos.PlanetResourceProduction = &mockPlanetResourceProductionRepository{
-						errs: []error{
-							nil,
-							errors.NewCode(db.NoMatchingRows),
-							nil,
-						},
-					}
-
-					return repos
-				},
-				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
-					s := NewActionService(conn, repos)
-					return s.ProcessActionsUntil(ctx, defaultPlanetId, time.Now())
-				},
-				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
-					m := assertPlanetResourceProductionRepoIsAMock(repos, assert)
-
-					assert.Equal(1, m.createCalled)
-
-					actual := m.createdPlanetResourceProduction
-
-					assert.Equal(defaultBuildingAction.Planet, actual.Planet)
-					assert.Equal(defaultBuildingActionResourceProduction.Resource, actual.Resource)
-					assert.Equal(&defaultBuildingAction.Building, actual.Building)
-					assert.Equal(defaultBuildingActionResourceProduction.Production, actual.Production)
-					assert.Equal(defaultBuildingAction.CompletedAt, actual.CreatedAt)
-					assert.Equal(defaultBuildingAction.CompletedAt, actual.UpdatedAt)
-					assert.Equal(0, actual.Version)
-				},
-			},
-			"processActionsUntil_whenResourceIsNotProducedAndResourceProductionCreationFails_expectError": {
-				generateRepositoriesMocks: func() repositories.Repositories {
-					repos := generateActionServiceMocks()
-					repos.PlanetResourceProduction = &mockPlanetResourceProductionRepository{
-						errs: []error{
-							nil,
-							errors.NewCode(db.NoMatchingRows),
-							errDefault,
-						},
-					}
-
-					return repos
-				},
-				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
-					s := NewActionService(conn, repos)
-					return s.ProcessActionsUntil(ctx, defaultPlanetId, someTime)
-				},
-				expectedError: errDefault,
-				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
-					m := assertPlanetResourceProductionRepoIsAMock(repos, assert)
-
-					assert.Equal(1, m.createCalled)
-				},
-			},
-			"processActionsUntil_whenResourceIsAlreadyProduced_updatesResourceProduction": {
-				generateRepositoriesMocks: func() repositories.Repositories {
-					repos := generateActionServiceMocks()
-
-					production := defaultPlanetResourceProduction
-					production.UpdatedAt = time.Now().Add(-1 * time.Minute)
-
-					repos.PlanetResourceProduction = &mockPlanetResourceProductionRepository{
-						planetResourceProduction: production,
-					}
-
-					return repos
-				},
-				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
-					s := NewActionService(conn, repos)
-					return s.ProcessActionsUntil(ctx, defaultPlanetId, someTime)
-				},
-				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
-					m := assertPlanetResourceProductionRepoIsAMock(repos, assert)
-
-					assert.Equal(1, m.updateCalled)
-
-					actual := m.updatedPlanetResourceProductions[0]
-
-					assert.Equal(defaultPlanetResourceProduction.Planet, actual.Planet)
-					assert.Equal(defaultPlanetResourceProduction.Building, actual.Building)
-					assert.Equal(defaultPlanetResourceProduction.Resource, actual.Resource)
-					assert.Equal(defaultBuildingActionResourceProduction.Production, actual.Production)
-					assert.Equal(defaultPlanetResourceProduction.CreatedAt, actual.CreatedAt)
-					assert.Equal(defaultBuildingAction.CompletedAt, actual.UpdatedAt)
-					assert.Equal(defaultPlanetResourceProduction.Version, actual.Version)
-				},
-			},
-			"processActionsUntil_whenResourceIsAlreadyProducedAndResourceProductionUpdateFails_expectError": {
-				generateRepositoriesMocks: func() repositories.Repositories {
-					repos := generateActionServiceMocks()
-
-					repos.PlanetResourceProduction = &mockPlanetResourceProductionRepository{
-						planetResourceProduction: defaultPlanetResourceProduction,
-						updateErr:                errDefault,
-					}
-
-					return repos
-				},
-				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
-					s := NewActionService(conn, repos)
-					return s.ProcessActionsUntil(ctx, defaultPlanetId, someTime)
-				},
-				expectedError: errDefault,
-				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
-					m := assertPlanetResourceProductionRepoIsAMock(repos, assert)
-
-					assert.Equal(1, m.updateCalled)
-				},
-			},
-			"processActionsUntil_deleteAction": {
-				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
-					s := NewActionService(conn, repos)
-					return s.ProcessActionsUntil(ctx, defaultPlanetId, someTime)
-				},
-				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
-					m := assertBuildingActionRepoIsAMock(repos, assert)
-
-					assert.Equal(1, m.deleteCalled)
-					assert.Equal(defaultBuildingAction.Id, m.deleteId)
-				},
-			},
-			"processActionsUntil_deleteActionFails": {
-				generateRepositoriesMocks: func() repositories.Repositories {
-					repos := generateActionServiceMocks()
-					repos.BuildingAction = &mockBuildingActionRepository{
-						action: defaultBuildingAction,
-						errs: []error{
-							nil,
-							errDefault,
-						},
-					}
-
-					return repos
-				},
-				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
-					s := NewActionService(conn, repos)
-					return s.ProcessActionsUntil(ctx, defaultPlanetId, someTime)
-				},
-				expectedError: errDefault,
-				verifyInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
-					m := assertBuildingActionRepoIsAMock(repos, assert)
-
-					assert.Equal(1, m.deleteCalled)
-				},
-			},
-		},
-
-		transactionInteractionTestCases: map[string]transactionInteractionTestCase{
-			"processActionsUntil_createsTwoTransactionAndClosesThem": {
-				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
-					s := NewActionService(conn, repos)
-					return s.ProcessActionsUntil(ctx, defaultPlanetId, someTime)
-				},
-				verifyInteractions: func(conn db.Connection, assert *require.Assertions) {
-					m := assertConnectionIsAMock(conn, assert)
-
-					assert.Equal(2, len(m.txs))
-					for _, tx := range m.txs {
-						assert.Equal(1, tx.closeCalled)
-					}
-				},
-			},
-			"processActionsUntil_whenFirstTransactionFails_returnsError": {
-				generateConnectionMock: func() db.Connection {
-					return &mockConnection{
-						errs: []error{
-							errDefault,
-						},
-					}
-				},
-				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
-					s := NewActionService(conn, repos)
-					return s.ProcessActionsUntil(ctx, defaultPlanetId, someTime)
-				},
-				expectedError: errDefault,
-				verifyInteractions: func(conn db.Connection, assert *require.Assertions) {
-					m := assertConnectionIsAMock(conn, assert)
-
-					assert.Equal(1, len(m.txs))
-				},
-			},
-			"processActionsUntil_whenFetchingActionsFail_expectSingleTransactionToBCreated": {
-				generateRepositoriesMocks: func() repositories.Repositories {
-					repos := generateActionServiceMocks()
-					repos.BuildingAction = &mockBuildingActionRepository{
-						errs: []error{errDefault},
-					}
-
-					return repos
-				},
-				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
-					s := NewActionService(conn, repos)
-					return s.ProcessActionsUntil(ctx, defaultPlanetId, someTime)
-				},
-				expectedError: errDefault,
-				verifyInteractions: func(conn db.Connection, assert *require.Assertions) {
-					m := assertConnectionIsAMock(conn, assert)
-
-					assert.Equal(1, len(m.txs))
-				},
-			},
-			"processActionsUntil_whenFailureToCreateTransactionForAction_expectPlanetResourcesNotUpdated": {
-				generateConnectionMock: func() db.Connection {
-					return &mockConnection{
-						errs: []error{
-							nil,
-							errDefault,
-						},
-					}
-				},
-				handler: func(ctx context.Context, conn db.Connection, repos repositories.Repositories) error {
-					s := NewActionService(conn, repos)
-					return s.ProcessActionsUntil(ctx, defaultPlanetId, someTime)
-				},
-				expectedError: errDefault,
-				verifyMockInteractions: func(repos repositories.Repositories, assert *require.Assertions) {
-					m := assertPlanetResourceRepoIsAMock(repos, assert)
-
-					assert.Equal(0, m.listForPlanetCalled)
-				},
-			},
-		},
+func TestIT_ActionService_ProcessActionUntil_WhenActionIsNotCompleted_ExpectNotProcessed(t *testing.T) {
+	service, conn := newTestActionService(t)
+	planet, _, _ := insertTestPlanetForPlayer(t, conn)
+	createdAt := time.Now().Add(-2 * time.Hour)
+	completedAt := createdAt.Add(8 * time.Hour)
+	action, _ := insertTestBuildingActionForPlanetWithTimes(
+		t,
+		conn,
+		planet.Id,
+		createdAt,
+		completedAt,
+	)
+	beforeActionCompletes := completedAt.Add(-1 * time.Hour)
+
+	err := service.ProcessActionsUntil(context.Background(), planet.Id, beforeActionCompletes)
+
+	assert.Nil(t, err)
+	assertBuildingActionExists(t, conn, action.Id)
+}
+
+func TestIT_ActionService_ProcessActionUntil_WhenActionIsCompleted_ExpectRemoval(t *testing.T) {
+	service, conn := newTestActionService(t)
+	planet, _, _ := insertTestPlanetForPlayer(t, conn)
+	planetBuilding, _ := insertTestPlanetBuildingForPlanet(t, conn, planet.Id)
+	createdAt := time.Now().Add(-2 * time.Hour)
+	completedAt := createdAt.Add(-1 * time.Hour)
+	action := insertTestBuildingActionForPlanetAndBuildingWithTimes(
+		t,
+		conn,
+		planet.Id,
+		planetBuilding.Building,
+		createdAt,
+		completedAt,
+	)
+	afterActionCompletes := completedAt.Add(1 * time.Second)
+
+	err := service.ProcessActionsUntil(context.Background(), planet.Id, afterActionCompletes)
+
+	assert.Nil(t, err)
+	assertBuildingActionDoesNotExist(t, conn, action.Id)
+}
+
+func TestIT_ActionService_ProcessActionUntil_ExpectResourcesToBeUpdatedToCompletionTime(t *testing.T) {
+	service, conn := newTestActionService(t)
+	planet, _, _ := insertTestPlanetForPlayer(t, conn)
+	planetBuilding, _ := insertTestPlanetBuildingForPlanet(t, conn, planet.Id)
+	planetResourceProd, res := insertTestPlanetResourceProductionForBuilding(t, conn, planet.Id, planetBuilding.Building)
+	insertTestPlanetResourceStorageForResource(t, conn, planet.Id, res.Id, 50_000)
+	createdAt := time.Now().Add(-3 * time.Hour)
+	completedAt := createdAt.Add(2 * time.Hour)
+	action := insertTestBuildingActionForPlanetAndBuildingWithTimes(
+		t,
+		conn,
+		planet.Id,
+		planetBuilding.Building,
+		createdAt,
+		completedAt,
+	)
+	updatedAt := createdAt.Add(1 * time.Hour)
+	planetResource := insertTestPlanetResourceForResource(t, conn, planet.Id, res.Id, updatedAt)
+
+	afterActionCompletes := completedAt.Add(1 * time.Second)
+	err := service.ProcessActionsUntil(context.Background(), planet.Id, afterActionCompletes)
+
+	assert.Nil(t, err)
+	assertBuildingActionDoesNotExist(t, conn, action.Id)
+	elapsed := completedAt.Sub(updatedAt)
+	expectedAmount := math.Floor(float64(planetResource.Amount) + elapsed.Hours()*float64(planetResourceProd.Production))
+	assertPlanetResourceAmount(
+		t,
+		conn,
+		planetResourceProd.Planet,
+		planetResourceProd.Resource,
+		expectedAmount,
+	)
+}
+
+func TestIT_ActionService_ProcessActionUntil_WhenResourceIsNotProduced_ExpectResourceToStayTheSame(t *testing.T) {
+	service, conn := newTestActionService(t)
+	planet, _, _ := insertTestPlanetForPlayer(t, conn)
+	planetBuilding, _ := insertTestPlanetBuildingForPlanet(t, conn, planet.Id)
+	res := insertTestResource(t, conn)
+	insertTestPlanetResourceStorageForResource(t, conn, planet.Id, res.Id, 50_000)
+	createdAt := time.Now().Add(-3 * time.Hour)
+	completedAt := createdAt.Add(2 * time.Hour)
+	action := insertTestBuildingActionForPlanetAndBuildingWithTimes(
+		t,
+		conn,
+		planet.Id,
+		planetBuilding.Building,
+		createdAt,
+		completedAt,
+	)
+	updatedAt := createdAt.Add(1 * time.Hour)
+	planetResource := insertTestPlanetResourceForResource(t, conn, planet.Id, res.Id, updatedAt)
+
+	afterActionCompletes := completedAt.Add(1 * time.Second)
+	err := service.ProcessActionsUntil(context.Background(), planet.Id, afterActionCompletes)
+
+	assert.Nil(t, err)
+	assertBuildingActionDoesNotExist(t, conn, action.Id)
+	assertPlanetResourceAmount(
+		t,
+		conn,
+		planet.Id,
+		res.Id,
+		planetResource.Amount,
+	)
+}
+
+func TestIT_ActionService_ProcessActionUntil_WhenStorageIsAlreadyFull_ExpectResourceToStayTheSame(t *testing.T) {
+	service, conn := newTestActionService(t)
+	planet, _, _ := insertTestPlanetForPlayer(t, conn)
+	planetBuilding, _ := insertTestPlanetBuildingForPlanet(t, conn, planet.Id)
+	planetResourceProd, res := insertTestPlanetResourceProductionForBuilding(t, conn, planet.Id, planetBuilding.Building)
+	createdAt := time.Now().Add(-3 * time.Hour)
+	completedAt := createdAt.Add(2 * time.Hour)
+	action := insertTestBuildingActionForPlanetAndBuildingWithTimes(
+		t,
+		conn,
+		planet.Id,
+		planetBuilding.Building,
+		createdAt,
+		completedAt,
+	)
+	updatedAt := createdAt.Add(1 * time.Hour)
+	planetResource := insertTestPlanetResourceForResource(t, conn, planet.Id, res.Id, updatedAt)
+	lowerStorageThanWhatAlreadyExists := int(planetResource.Amount - 100)
+	insertTestPlanetResourceStorageForResource(
+		t,
+		conn,
+		planet.Id,
+		res.Id,
+		lowerStorageThanWhatAlreadyExists,
+	)
+
+	afterActionCompletes := completedAt.Add(1 * time.Second)
+	err := service.ProcessActionsUntil(context.Background(), planet.Id, afterActionCompletes)
+
+	assert.Nil(t, err)
+	assertBuildingActionDoesNotExist(t, conn, action.Id)
+	assertPlanetResourceAmount(
+		t,
+		conn,
+		planetResourceProd.Planet,
+		planetResourceProd.Resource,
+		planetResource.Amount,
+	)
+}
+
+func TestIT_ActionService_ProcessActionUntil_WhenStorageCanNotHoldAllProduction_ExpectResourceToFillStorage(t *testing.T) {
+	service, conn := newTestActionService(t)
+	planet, _, _ := insertTestPlanetForPlayer(t, conn)
+	planetBuilding, _ := insertTestPlanetBuildingForPlanet(t, conn, planet.Id)
+	planetResourceProd, res := insertTestPlanetResourceProductionForBuilding(t, conn, planet.Id, planetBuilding.Building)
+	createdAt := time.Now().Add(-3 * time.Hour)
+	completedAt := createdAt.Add(2 * time.Hour)
+	action := insertTestBuildingActionForPlanetAndBuildingWithTimes(
+		t,
+		conn,
+		planet.Id,
+		planetBuilding.Building,
+		createdAt,
+		completedAt,
+	)
+	updatedAt := createdAt.Add(1 * time.Hour)
+	planetResource := insertTestPlanetResourceForResource(t, conn, planet.Id, res.Id, updatedAt)
+
+	elapsed := completedAt.Sub(updatedAt)
+	expectedProduction := elapsed.Hours() * float64(planetResourceProd.Production)
+	fullAmount := float64(planetResource.Amount) + expectedProduction
+	lowerStorageThanNeeded := fullAmount - 500
+	insertTestPlanetResourceStorageForResource(
+		t,
+		conn,
+		planet.Id,
+		res.Id,
+		int(lowerStorageThanNeeded),
+	)
+
+	afterActionCompletes := completedAt.Add(1 * time.Second)
+	err := service.ProcessActionsUntil(context.Background(), planet.Id, afterActionCompletes)
+
+	assert.Nil(t, err)
+	assertBuildingActionDoesNotExist(t, conn, action.Id)
+	expectedAmount := lowerStorageThanNeeded
+	assertPlanetResourceAmount(
+		t,
+		conn,
+		planetResourceProd.Planet,
+		planetResourceProd.Resource,
+		expectedAmount,
+	)
+}
+
+func TestIT_ActionService_ProcessActionUntil_ExpectBuildingToBeUpdated(t *testing.T) {
+	service, conn := newTestActionService(t)
+	planet, _, _ := insertTestPlanetForPlayer(t, conn)
+	planetBuilding, _ := insertTestPlanetBuildingForPlanet(t, conn, planet.Id)
+	createdAt := time.Now().Add(-3 * time.Hour)
+	completedAt := createdAt.Add(2 * time.Hour)
+	action := insertTestBuildingActionForPlanetAndBuildingWithTimes(
+		t,
+		conn,
+		planet.Id,
+		planetBuilding.Building,
+		createdAt,
+		completedAt,
+	)
+
+	afterActionCompletes := completedAt.Add(1 * time.Second)
+	err := service.ProcessActionsUntil(context.Background(), planet.Id, afterActionCompletes)
+
+	assert.Nil(t, err)
+	assertBuildingActionDoesNotExist(t, conn, action.Id)
+	expectedLevel := action.DesiredLevel
+	assertPlanetBuildingLevel(t, conn, planet.Id, planetBuilding.Building, expectedLevel)
+}
+
+func TestIT_ActionService_ProcessActionUntil_ExpectResourceProductionToBeUpdated(t *testing.T) {
+	service, conn := newTestActionService(t)
+	planet, _, _ := insertTestPlanetForPlayer(t, conn)
+	planetBuilding, _ := insertTestPlanetBuildingForPlanet(t, conn, planet.Id)
+	prp1, res1 := insertTestPlanetResourceProductionForBuilding(t, conn, planet.Id, planetBuilding.Building)
+	prp2, res2 := insertTestPlanetResourceProduction(t, conn, planet.Id)
+	createdAt := time.Now().Add(-3 * time.Hour)
+	completedAt := createdAt.Add(2 * time.Hour)
+	action := insertTestBuildingActionForPlanetAndBuildingWithTimes(
+		t,
+		conn,
+		planet.Id,
+		planetBuilding.Building,
+		createdAt,
+		completedAt,
+	)
+	actionProduction := insertTestBuildingActionResourceProductionForActionAndResource(
+		t,
+		conn,
+		action.Id,
+		res1.Id,
+	)
+
+	afterActionCompletes := completedAt.Add(1 * time.Second)
+	err := service.ProcessActionsUntil(context.Background(), planet.Id, afterActionCompletes)
+
+	assert.Nil(t, err)
+	assertBuildingActionDoesNotExist(t, conn, action.Id)
+	assertPlanetResourceProductionForBuilding(
+		t,
+		conn,
+		planet.Id,
+		res1.Id,
+		*prp1.Building,
+		actionProduction.Production,
+	)
+	assertPlanetResourceProductionWithoutBuilding(
+		t,
+		conn,
+		planet.Id,
+		res2.Id,
+		prp2.Production,
+	)
+}
+
+func TestIT_ActionService_ProcessActionUntil_WhenResourceIsNotProduced_ExpectResourceProductionCreatedToNewValue(t *testing.T) {
+	service, conn := newTestActionService(t)
+	planet, _, _ := insertTestPlanetForPlayer(t, conn)
+	planetBuilding, _ := insertTestPlanetBuildingForPlanet(t, conn, planet.Id)
+	res := insertTestResource(t, conn)
+	createdAt := time.Now().Add(-3 * time.Hour)
+	completedAt := createdAt.Add(2 * time.Hour)
+	action := insertTestBuildingActionForPlanetAndBuildingWithTimes(
+		t,
+		conn,
+		planet.Id,
+		planetBuilding.Building,
+		createdAt,
+		completedAt,
+	)
+	actionProduction := insertTestBuildingActionResourceProductionForActionAndResource(
+		t,
+		conn,
+		action.Id,
+		res.Id,
+	)
+
+	afterActionCompletes := completedAt.Add(1 * time.Second)
+	err := service.ProcessActionsUntil(context.Background(), planet.Id, afterActionCompletes)
+
+	assert.Nil(t, err)
+	assertBuildingActionDoesNotExist(t, conn, action.Id)
+	assertPlanetResourceProductionForBuilding(
+		t,
+		conn,
+		planet.Id,
+		res.Id,
+		planetBuilding.Building,
+		actionProduction.Production,
+	)
+}
+
+func newTestActionService(t *testing.T) (game.ActionService, db.Connection) {
+	conn := newTestConnection(t)
+	repos := repositories.Repositories{
+		BuildingAction:                   repositories.NewBuildingActionRepository(),
+		BuildingActionResourceProduction: repositories.NewBuildingActionResourceProductionRepository(),
+		BuildingActionResourceStorage:    repositories.NewBuildingActionResourceStorageRepository(),
+		PlanetBuilding:                   repositories.NewPlanetBuildingRepository(),
+		PlanetResource:                   repositories.NewPlanetResourceRepository(),
+		PlanetResourceProduction:         repositories.NewPlanetResourceProductionRepository(),
+		PlanetResourceStorage:            repositories.NewPlanetResourceStorageRepository(),
 	}
 
-	suite.Run(t, &s)
+	service := NewActionService(conn, repos)
+
+	return service, conn
 }
 
-func generateActionServiceMocks() repositories.Repositories {
-	return repositories.Repositories{
-		BuildingAction: &mockBuildingActionRepository{
-			action: defaultBuildingAction,
-		},
-		BuildingActionCost: &mockBuildingActionCostRepository{
-			actionCost: defaultBuildingActionCost,
-		},
-		BuildingActionResourceProduction: &mockBuildingActionResourceProductionRepository{
-			actionResourceProduction: defaultBuildingActionResourceProduction,
-		},
-		PlanetBuilding: &mockPlanetBuildingRepository{
-			planetBuilding: defaultPlanetBuilding,
-		},
-		PlanetResource: &mockPlanetResourceRepository{
-			planetResource: defaultPlanetResource,
-		},
-		PlanetResourceProduction: &mockPlanetResourceProductionRepository{
-			planetResourceProduction: defaultPlanetResourceProduction,
-		},
-		PlanetResourceStorage: &mockPlanetResourceStorageRepository{
-			planetResourceStorage: defaultPlanetResourceStorage,
-		},
-	}
+func assertPlanetBuildingLevel(t *testing.T, conn db.Connection, planet uuid.UUID, building uuid.UUID, level int) {
+	sqlQuery := `SELECT level FROM planet_building WHERE planet = $1 AND building = $2`
+	value, err := db.QueryOne[int](context.Background(), conn, sqlQuery, planet, building)
+	require.Nil(t, err)
+	require.Equal(t, level, value)
 }
 
-func assertConnectionIsAMock(conn db.Connection, assert *require.Assertions) *mockConnection {
-	m, ok := conn.(*mockConnection)
-	if !ok {
-		assert.Fail("Provided connection is not a mock")
-	}
-	return m
+func assertPlanetResourceProductionForBuilding(t *testing.T, conn db.Connection, planet uuid.UUID, resource uuid.UUID, building uuid.UUID, prod int) {
+	sqlQuery := `SELECT production FROM planet_resource_production WHERE planet = $1 AND resource = $2 AND building = $3`
+	value, err := db.QueryOne[int](context.Background(), conn, sqlQuery, planet, resource, building)
+	require.Nil(t, err)
+	require.Equal(t, prod, value)
 }
 
-func assertBuildingActionResourceProductionRepoIsAMock(repos repositories.Repositories, assert *require.Assertions) *mockBuildingActionResourceProductionRepository {
-	m, ok := repos.BuildingActionResourceProduction.(*mockBuildingActionResourceProductionRepository)
-	if !ok {
-		assert.Fail("Provided building action resource production repository is not a mock")
-	}
-	return m
+func assertPlanetResourceProductionWithoutBuilding(t *testing.T, conn db.Connection, planet uuid.UUID, resource uuid.UUID, prod int) {
+	sqlQuery := `SELECT production FROM planet_resource_production WHERE planet = $1 AND resource = $2 AND building IS NULL`
+	value, err := db.QueryOne[int](context.Background(), conn, sqlQuery, planet, resource)
+	require.Nil(t, err)
+	require.Equal(t, prod, value)
 }
