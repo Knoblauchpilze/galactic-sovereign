@@ -78,7 +78,7 @@ func TestIT_BuildingActionService_Create_WithCost_ExpectCostToBeRegistered(t *te
 	planet, _, _ := insertTestPlanetForPlayer(t, conn)
 	building, _ := insertTestPlanetBuildingForPlanet(t, conn, planet.Id)
 	cost, _ := insertTestBuildingCost(t, conn, building.Building)
-	insertTestPlanetResourceForResource(t, conn, planet.Id, cost.Resource)
+	insertTestPlanetResourceForResource(t, conn, planet.Id, cost.Resource, time.Now())
 
 	actionRequest := communication.BuildingActionDtoRequest{
 		Planet:   planet.Id,
@@ -97,7 +97,9 @@ func TestIT_BuildingActionService_Create_WithCost_ExpectCostToBeTakenFromResourc
 	planet, _, _ := insertTestPlanetForPlayer(t, conn)
 	building, _ := insertTestPlanetBuildingForPlanet(t, conn, planet.Id)
 	cost, _ := insertTestBuildingCost(t, conn, building.Building)
-	planetResource := insertTestPlanetResourceForResource(t, conn, planet.Id, cost.Resource)
+	planetResource := insertTestPlanetResourceForResource(
+		t, conn, planet.Id, cost.Resource, time.Now(),
+	)
 
 	actionRequest := communication.BuildingActionDtoRequest{
 		Planet:   planet.Id,
@@ -187,7 +189,7 @@ func TestIT_BuildingActionService_Delete_ExpectCostsToBeDeleted(t *testing.T) {
 	completedAt := createdAt.Add(2 * time.Hour)
 	action, _ := insertTestBuildingActionForPlanetWithTimes(t, conn, planet.Id, createdAt, completedAt)
 	_, res := insertTestBuildingActionCostForAction(t, conn, action.Id)
-	insertTestPlanetResourceForResource(t, conn, planet.Id, res.Id)
+	insertTestPlanetResourceForResource(t, conn, planet.Id, res.Id, time.Now())
 
 	err := service.Delete(context.Background(), action.Id)
 
@@ -204,7 +206,9 @@ func TestIT_BuildingActionService_Delete_ExpectResourcesToBeRestored(t *testing.
 	completedAt := createdAt.Add(2 * time.Hour)
 	action, _ := insertTestBuildingActionForPlanetWithTimes(t, conn, planet.Id, createdAt, completedAt)
 	cost, _ := insertTestBuildingActionCostForAction(t, conn, action.Id)
-	planetResource := insertTestPlanetResourceForResource(t, conn, planet.Id, cost.Resource)
+	planetResource := insertTestPlanetResourceForResource(
+		t, conn, planet.Id, cost.Resource, time.Now(),
+	)
 
 	err := service.Delete(context.Background(), action.Id)
 
@@ -274,7 +278,7 @@ func TestIT_BuildingActionService_CreationDeletionWorkflow(t *testing.T) {
 	planet, _, _ := insertTestPlanetForPlayer(t, conn)
 	building, _ := insertTestPlanetBuildingForPlanet(t, conn, planet.Id)
 	_, resource := insertTestBuildingCost(t, conn, building.Building)
-	insertTestPlanetResourceForResource(t, conn, planet.Id, resource.Id)
+	insertTestPlanetResourceForResource(t, conn, planet.Id, resource.Id, time.Now())
 
 	actionRequest := communication.BuildingActionDtoRequest{
 		Planet:   planet.Id,
