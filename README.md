@@ -133,3 +133,28 @@ If you want to connect to the database to inspect its content, you can use the `
 ```bash
 DB_PORT=5000 DB_PASSWORD='admin-password' make connect
 ```
+
+## Local development
+
+In case you're using Visual Studio Code as an IDE you can copy the following template in `.vscode/launch.json`:
+
+```json
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Launch server",
+      "type": "go",
+      "request": "launch",
+      "mode": "debug",
+      "program": "${workspaceFolder}/cmd/galactic-sovereign/main.go",
+      "args": ["galactic-sovereign-dev"]
+    }
+  ]
+}
+```
+
+This will allow you to debug the galactic-sovereign server directly in your IDE.
