@@ -140,9 +140,6 @@ In case you're using Visual Studio Code as an IDE you can copy the following tem
 
 ```json
 {
-  // Use IntelliSense to learn about possible attributes.
-  // Hover to view descriptions of existing attributes.
-  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
   "version": "0.2.0",
   "configurations": [
     {
@@ -158,3 +155,5 @@ In case you're using Visual Studio Code as an IDE you can copy the following tem
 ```
 
 This will allow you to debug the galactic-sovereign server directly in your IDE.
+
+The documentation from VS code indicates that you can just hover over existing attributes to get a description of their purpose. You can also use `Ctrl + Space` to ask Intellisense to give you information about other arguments.
