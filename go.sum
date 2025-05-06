@@ -1,5 +1,5 @@
-github.com/Knoblauchpilze/backend-toolkit v0.4.0 h1:ahrgCUJiuIb1wjohHZLThf4ejETfgjqeMurlpjLEz/M=
-github.com/Knoblauchpilze/backend-toolkit v0.4.0/go.mod h1:V5FM0Ux2/4q64/VR2jOt9r233oz9tH+o6uYqdQISXKQ=
+github.com/Knoblauchpilze/backend-toolkit v0.4.2 h1:tx38evVu21mkkaFhwo8pud9hvEUvjR+OakpQ+rd5i6U=
+github.com/Knoblauchpilze/backend-toolkit v0.4.2/go.mod h1:V5FM0Ux2/4q64/VR2jOt9r233oz9tH+o6uYqdQISXKQ=
 github.com/Knoblauchpilze/easy-assert v0.4.0 h1:+Eanp7k3nnaHPP3eLbif3qkTNx0rb/qq0lLCL0zO06E=
 github.com/Knoblauchpilze/easy-assert v0.4.0/go.mod h1:vFiqu9yxaa2pEFoz4eXp2tst7sn8U+CkT2dgppiEYTI=
 github.com/coreos/go-systemd/v22 v22.5.0/go.mod h1:Y58oyj3AT4RCenI/lSvhwexgC+NSVTIJ3seZv2GcEnc=
