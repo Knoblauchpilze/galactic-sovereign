@@ -23,7 +23,7 @@ require (
 )
 
 require (
-	github.com/Knoblauchpilze/backend-toolkit v0.4.2
+	github.com/Knoblauchpilze/backend-toolkit v0.4.3
 	github.com/Knoblauchpilze/easy-assert v0.4.0
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/fsnotify/fsnotify v1.8.0 // indirect
