@@ -1,5 +1,5 @@
-github.com/Knoblauchpilze/backend-toolkit v0.4.4 h1:mNN+Wx4waQf70mUVdJSiORI2tJaSBYLL1+sZQjp9MSs=
-github.com/Knoblauchpilze/backend-toolkit v0.4.4/go.mod h1:ea2MveWrSp5AaetBMwO7bZ9WuT92POjh4X4A538FRwA=
+github.com/Knoblauchpilze/backend-toolkit v0.4.5 h1:IrTdEWwmYGRlBuBooAj1qR5u6IaVQqQpFcHXBknH4Eo=
+github.com/Knoblauchpilze/backend-toolkit v0.4.5/go.mod h1:1hTdiPxclDEIWuqXAXtWGcpfCmCdI6ZUQ6cAeToKtSU=
 github.com/Knoblauchpilze/easy-assert v0.4.0 h1:+Eanp7k3nnaHPP3eLbif3qkTNx0rb/qq0lLCL0zO06E=
 github.com/Knoblauchpilze/easy-assert v0.4.0/go.mod h1:vFiqu9yxaa2pEFoz4eXp2tst7sn8U+CkT2dgppiEYTI=
 github.com/coreos/go-systemd/v22 v22.5.0/go.mod h1:Y58oyj3AT4RCenI/lSvhwexgC+NSVTIJ3seZv2GcEnc=
@@ -10,8 +10,8 @@ github.com/frankban/quicktest v1.14.6 h1:7Xjx+VpznH+oBnejlPUj8oUpdxnVs4f8XU8WnHk
 github.com/frankban/quicktest v1.14.6/go.mod h1:4ptaffx2x8+WTWXmUCuVU6aPUX1/Mz7zb5vbUoiM6w0=
 github.com/fsnotify/fsnotify v1.9.0 h1:2Ml+OJNzbYCTzsxtv8vKSFD9PbJjmhYF14k/jKC7S9k=
 github.com/fsnotify/fsnotify v1.9.0/go.mod h1:8jBTzvmWwFyi3Pb8djgCCO5IBqzKJ/Jwo8TRcHyHii0=
-github.com/go-viper/mapstructure/v2 v2.4.0 h1:EBsztssimR/CONLSZZ04E8qAkxNYq4Qp9LvH92wZUgs=
-github.com/go-viper/mapstructure/v2 v2.4.0/go.mod h1:oJDH3BJKyqBA2TXFhDsKDGDTlndYOZ6rGS0BRZIxGhM=
+github.com/go-viper/mapstructure/v2 v2.5.0 h1:vM5IJoUAy3d7zRSVtIwQgBj7BiWtMPfmPEgAXnvj1Ro=
+github.com/go-viper/mapstructure/v2 v2.5.0/go.mod h1:oJDH3BJKyqBA2TXFhDsKDGDTlndYOZ6rGS0BRZIxGhM=
 github.com/godbus/dbus/v5 v5.0.4/go.mod h1:xhWf0FNVPg57R7Z0UbKHbJfkEywrmjJnf7w5xrFpKfA=
 github.com/google/go-cmp v0.6.0 h1:ofyhxvXcZhMsU5ulbFiLKl/XBFqE1GSq7atu8tAmTRI=
 github.com/google/go-cmp v0.6.0/go.mod h1:17dUlkBOakJ0+DkrSSNjCkIjxS6bF9zb3elmeNGIjoY=

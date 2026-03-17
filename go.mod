@@ -9,7 +9,7 @@ require (
 )
 
 require (
-	github.com/go-viper/mapstructure/v2 v2.4.0 // indirect
+	github.com/go-viper/mapstructure/v2 v2.5.0 // indirect
 	github.com/google/go-cmp v0.6.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
@@ -22,7 +22,7 @@ require (
 )
 
 require (
-	github.com/Knoblauchpilze/backend-toolkit v0.4.4
+	github.com/Knoblauchpilze/backend-toolkit v0.4.5
 	github.com/Knoblauchpilze/easy-assert v0.4.0
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
