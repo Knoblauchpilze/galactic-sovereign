@@ -219,13 +219,32 @@ jobs:
           docker run \
             -d \
             --name galactic-sovereign-service-test \
+            --add-host host.docker.internal:host-gateway \
             -e ENV_SERVER_PORT=$PORT \
+            -e ENV_DATABASE_HOST=host.docker.internal \
             -e ENV_DATABASE_PASSWORD=$DATABASE_PASSWORD \
             -p 1234:1234 \
             totocorpsoftwareinc/galactic-sovereign-service:${{ needs.extract-service-tag.outputs.version }}
+
+          echo "Waiting for service to become ready..."
+          for i in $(seq 1 15); do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" localhost:1234/v1/healthcheck 2>/dev/null || echo "000")
+            if [ "$STATUS" = "200" ]; then
+              echo "Service is ready"
+              break
+            fi
+            if [ "$i" = "15" ]; then
+              echo "Service did not become ready in time"
+              docker logs galactic-sovereign-service-test
+              exit 1
+            fi
+            echo "Not ready yet (status: $STATUS), retrying in 2s... ($i/15)"
+            sleep 2
+          done
+
           echo "status_code=$(curl -s -o /dev/null -w %{http_code} localhost:1234/v1/galactic-sovereign/universes)" >> $GITHUB_OUTPUT
           echo "response_body=$(curl -s localhost:1234/v1/galactic-sovereign/universes)" >> $GITHUB_OUTPUT
-          docker stop galactic-sovereign-service-test
+          docker stop template-go-test
         id: test-results
         env:
           PORT: 1234
@@ -234,6 +253,10 @@ jobs:
         run: |
           echo ${{ steps.test-results.outputs.status_code }}
           echo ${{ steps.test-results.outputs.response_body }}
+      - name: Print service logs
+        # https://github.com/orgs/community/discussions/26097
+        if: failure() && steps.test-results.outcome == 'failure'
+        run: docker logs galactic-sovereign-service-test 2>/dev/null || true
       - name: Verify status code
         run: |
           if [[ ${{ steps.test-results.outputs.status_code }} != '200' ]]; then
