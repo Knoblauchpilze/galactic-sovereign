@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -17,7 +17,7 @@ func TestUnit_GameUpdateWatcher_CallsNextMiddleware(t *testing.T) {
 	assert := assert.New(t)
 
 	called := false
-	call := func(c echo.Context) error {
+	call := func(c *echo.Context) error {
 		called = true
 		return nil
 	}
@@ -91,7 +91,7 @@ func TestUnit_GameUpdateWatcher_WhenActionServiceFails_DoesNotCallHandler(t *tes
 	assert := assert.New(t)
 
 	called := false
-	call := func(c echo.Context) error {
+	call := func(c *echo.Context) error {
 		called = true
 		return nil
 	}
@@ -167,7 +167,7 @@ func TestUnit_GameUpdateWatcher_WhenPlanetResourceServiceFails_DoesNotCallHandle
 	assert := assert.New(t)
 
 	called := false
-	call := func(c echo.Context) error {
+	call := func(c *echo.Context) error {
 		called = true
 		return nil
 	}
@@ -184,7 +184,7 @@ func TestUnit_GameUpdateWatcher_WhenPlanetResourceServiceFails_DoesNotCallHandle
 	assert.False(called)
 }
 
-func generateTestEchoContext() (echo.Context, *http.Request, *httptest.ResponseRecorder) {
+func generateTestEchoContext() (*echo.Context, *http.Request, *httptest.ResponseRecorder) {
 	e := echo.New()
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
 	rw := httptest.NewRecorder()
@@ -194,15 +194,14 @@ func generateTestEchoContext() (echo.Context, *http.Request, *httptest.ResponseR
 	return ctx, req, rw
 }
 
-func generateTestEchoContextWithPlanetId() (echo.Context, *http.Request, *httptest.ResponseRecorder) {
+func generateTestEchoContextWithPlanetId() (*echo.Context, *http.Request, *httptest.ResponseRecorder) {
 	e := echo.New()
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
 	rw := httptest.NewRecorder()
 
 	ctx := e.NewContext(req, rw)
 
-	ctx.SetParamNames("id")
-	ctx.SetParamValues(someUuid.String())
+	ctx.SetPathValues([]echo.PathValue{{Name: "id", Value: someUuid.String()}})
 
 	return ctx, req, rw
 }

@@ -8,7 +8,7 @@ import (
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
 	"github.com/Knoblauchpilze/galactic-sovereign/internal/service"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
@@ -18,14 +18,14 @@ var errDefault = fmt.Errorf("some error")
 type HandlerTestSuite[Service any] struct {
 	suite.Suite
 
-	generateTestFunc func(func(echo.Context, Service) error) echo.HandlerFunc
+	generateTestFunc func(func(*echo.Context, Service) error) echo.HandlerFunc
 }
 
 func (s *HandlerTestSuite[any]) TestCallsHandler() {
 	assert := assert.New(s.T())
 
 	handlerCalled := false
-	in := func(_ echo.Context, _ any) error {
+	in := func(_ *echo.Context, _ any) error {
 		handlerCalled = true
 		return nil
 	}
@@ -41,7 +41,7 @@ func (s *HandlerTestSuite[any]) TestCallsHandler() {
 func (s *HandlerTestSuite[any]) TestPropagatesError() {
 	assert := assert.New(s.T())
 
-	in := func(_ echo.Context, _ any) error {
+	in := func(_ *echo.Context, _ any) error {
 		return errDefault
 	}
 
@@ -54,7 +54,7 @@ func (s *HandlerTestSuite[any]) TestPropagatesError() {
 
 func TestUnit_FromBuildingActionServiceAwareHttpHandler(t *testing.T) {
 	s := HandlerTestSuite[service.BuildingActionService]{
-		generateTestFunc: func(in func(echo.Context, service.BuildingActionService) error) echo.HandlerFunc {
+		generateTestFunc: func(in func(*echo.Context, service.BuildingActionService) error) echo.HandlerFunc {
 			return fromBuildingActionServiceAwareHttpHandler(in, &mockBuildingActionService{})
 		},
 	}
@@ -64,7 +64,7 @@ func TestUnit_FromBuildingActionServiceAwareHttpHandler(t *testing.T) {
 
 func TestUnit_FromDbAwareHttpHandler(t *testing.T) {
 	s := HandlerTestSuite[db.Connection]{
-		generateTestFunc: func(in func(echo.Context, db.Connection) error) echo.HandlerFunc {
+		generateTestFunc: func(in func(*echo.Context, db.Connection) error) echo.HandlerFunc {
 			return fromDbAwareHttpHandler(in, &mockConnection{})
 		},
 	}
@@ -74,7 +74,7 @@ func TestUnit_FromDbAwareHttpHandler(t *testing.T) {
 
 func TestUnit_FromPlanetServiceAwareHttpHandler(t *testing.T) {
 	s := HandlerTestSuite[service.PlanetService]{
-		generateTestFunc: func(in func(echo.Context, service.PlanetService) error) echo.HandlerFunc {
+		generateTestFunc: func(in func(*echo.Context, service.PlanetService) error) echo.HandlerFunc {
 			return fromPlanetServiceAwareHttpHandler(in, &mockPlanetService{})
 		},
 	}
@@ -84,7 +84,7 @@ func TestUnit_FromPlanetServiceAwareHttpHandler(t *testing.T) {
 
 func TestUnit_FromPlayerServiceAwareHttpHandler(t *testing.T) {
 	s := HandlerTestSuite[service.PlayerService]{
-		generateTestFunc: func(in func(echo.Context, service.PlayerService) error) echo.HandlerFunc {
+		generateTestFunc: func(in func(*echo.Context, service.PlayerService) error) echo.HandlerFunc {
 			return fromPlayerServiceAwareHttpHandler(in, &mockPlayerService{})
 		},
 	}
@@ -94,7 +94,7 @@ func TestUnit_FromPlayerServiceAwareHttpHandler(t *testing.T) {
 
 func TestUnit_FromUniverseServiceAwareHttpHandler(t *testing.T) {
 	s := HandlerTestSuite[service.UniverseService]{
-		generateTestFunc: func(in func(echo.Context, service.UniverseService) error) echo.HandlerFunc {
+		generateTestFunc: func(in func(*echo.Context, service.UniverseService) error) echo.HandlerFunc {
 			return fromUniverseServiceAwareHttpHandler(in, &mockUniverseService{})
 		},
 	}
@@ -102,27 +102,26 @@ func TestUnit_FromUniverseServiceAwareHttpHandler(t *testing.T) {
 	suite.Run(t, &s)
 }
 
-func dummyEchoContext() echo.Context {
+func dummyEchoContext() *echo.Context {
 	ctx, _ := generateTestEchoContextWithMethod(http.MethodGet)
 	return ctx
 }
 
-func generateTestEchoContextWithMethod(method string) (echo.Context, *httptest.ResponseRecorder) {
+func generateTestEchoContextWithMethod(method string) (*echo.Context, *httptest.ResponseRecorder) {
 	req := httptest.NewRequest(method, "/", nil)
 	return generateTestEchoContextFromRequest(req)
 }
 
-func generateTestEchoContextWithMethodAndId(method string) (echo.Context, *httptest.ResponseRecorder) {
+func generateTestEchoContextWithMethodAndId(method string) (*echo.Context, *httptest.ResponseRecorder) {
 	req := httptest.NewRequest(method, "/", nil)
 	ctx, rw := generateTestEchoContextFromRequest(req)
 
-	ctx.SetParamNames("id")
-	ctx.SetParamValues(defaultUuid.String())
+	ctx.SetPathValues([]echo.PathValue{{Name: "id", Value: defaultUuid.String()}})
 
 	return ctx, rw
 }
 
-func generateTestEchoContextFromRequest(req *http.Request) (echo.Context, *httptest.ResponseRecorder) {
+func generateTestEchoContextFromRequest(req *http.Request) (*echo.Context, *httptest.ResponseRecorder) {
 	e := echo.New()
 	rw := httptest.NewRecorder()
 

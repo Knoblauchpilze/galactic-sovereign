@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 
 	"github.com/google/uuid"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 )
 
 func marshalNilToEmptySlice[T any](in []T) ([]byte, error) {
@@ -16,7 +16,7 @@ func marshalNilToEmptySlice[T any](in []T) ([]byte, error) {
 	return json.Marshal(toMarshal)
 }
 
-func fetchIdFromQueryParam(key string, c echo.Context) (exists bool, id uuid.UUID, err error) {
+func fetchIdFromQueryParam(key string, c *echo.Context) (exists bool, id uuid.UUID, err error) {
 	maybeId := c.QueryParam(key)
 	exists = (maybeId != "")
 	if maybeId == "" {

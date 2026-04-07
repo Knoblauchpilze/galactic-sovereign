@@ -6,6 +6,7 @@ import (
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/rest"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/game"
+	"github.com/labstack/echo/v5"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -150,8 +151,7 @@ func (s *RouteTestSuite) Test_WhenPlanetIdIsInvalid_ExpectNoSchedulingOfActions(
 			s.T().Run("whenPlanetIdIsInvalid_"+route.Method(), func(t *testing.T) {
 				m.processActionsCalled = 0
 				ctx, _ := generateTestEchoContextWithMethod(route.Method())
-				ctx.SetParamNames("id")
-				ctx.SetParamValues("not-a-uuid")
+				ctx.SetPathValues([]echo.PathValue{{Name: "id", Value: "not-a-uuid"}})
 
 				handler := route.Handler()
 				err := handler(ctx)
@@ -243,8 +243,7 @@ func (s *RouteTestSuite) Test_WhenPlanetIdIsInvalid_ExpectNoUpdateOfResources() 
 			s.T().Run("whenPlanetIdIsInvalid_"+route.Method(), func(t *testing.T) {
 				m.updatePlanetUntilCalled = 0
 				ctx, _ := generateTestEchoContextWithMethod(route.Method())
-				ctx.SetParamNames("id")
-				ctx.SetParamValues("not-a-uuid")
+				ctx.SetPathValues([]echo.PathValue{{Name: "id", Value: "not-a-uuid"}})
 
 				handler := route.Handler()
 				err := handler(ctx)
