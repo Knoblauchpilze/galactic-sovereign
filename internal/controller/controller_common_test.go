@@ -7,12 +7,12 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 )
 
-type handlerFunc[Service any] func(echo.Context, Service) error
+type handlerFunc[Service any] func(*echo.Context, Service) error
 type generateServiceMock[Service any] func() Service
 type generateErrorServiceMock[Service any] func(err error) Service
 
@@ -99,8 +99,7 @@ func (s *ControllerTestSuite[Service]) TestWhenBadInputProvided_Expect400Status(
 		s.T().Run(name, func(t *testing.T) {
 			ctx, rw := generateTestEchoContextFromRequest(testCase.req)
 			if testCase.idAsRouteParam {
-				ctx.SetParamNames("id")
-				ctx.SetParamValues(defaultUuid.String())
+				ctx.SetPathValues([]echo.PathValue{{Name: "id", Value: defaultUuid.String()}})
 			}
 
 			m := s.generateServiceMock()
@@ -132,8 +131,7 @@ func (s *ControllerTestSuite[Service]) TestIdSyntaxIsWrong_Expect400Status() {
 	for name, testCase := range s.badIdTestCases {
 		s.T().Run(name, func(t *testing.T) {
 			ctx, rw := generateTestEchoContextFromRequest(testCase.req)
-			ctx.SetParamNames("id")
-			ctx.SetParamValues("not-a-uuid")
+			ctx.SetPathValues([]echo.PathValue{{Name: "id", Value: "not-a-uuid"}})
 
 			m := s.generateServiceMock()
 			err := testCase.handler(ctx, m)
@@ -150,8 +148,7 @@ func (s *ControllerTestSuite[Service]) TestWhenServiceFails_ExpectCorrectStatus(
 		s.T().Run(name, func(t *testing.T) {
 			ctx, rw := generateTestEchoContextFromRequest(testCase.req)
 			if testCase.idAsRouteParam {
-				ctx.SetParamNames("id")
-				ctx.SetParamValues(defaultUuid.String())
+				ctx.SetPathValues([]echo.PathValue{{Name: "id", Value: defaultUuid.String()}})
 			}
 
 			m := s.generateErrorServiceMock(testCase.err)
@@ -168,8 +165,7 @@ func (s *ControllerTestSuite[Service]) TestWhenServiceSucceeds_ExpectCorrectStat
 		s.T().Run(name, func(t *testing.T) {
 			ctx, rw := generateTestEchoContextFromRequest(testCase.req)
 			if testCase.idAsRouteParam {
-				ctx.SetParamNames("id")
-				ctx.SetParamValues(defaultUuid.String())
+				ctx.SetPathValues([]echo.PathValue{{Name: "id", Value: defaultUuid.String()}})
 			}
 
 			m := s.generateServiceMock()
@@ -186,8 +182,7 @@ func (s *ControllerTestSuite[Service]) TestWhenServiceSucceeds_ReturnsExpectedVa
 		s.T().Run(name, func(t *testing.T) {
 			ctx, rw := generateTestEchoContextFromRequest(testCase.req)
 			if testCase.idAsRouteParam {
-				ctx.SetParamNames("id")
-				ctx.SetParamValues(defaultUuid.String())
+				ctx.SetPathValues([]echo.PathValue{{Name: "id", Value: defaultUuid.String()}})
 			}
 
 			var m Service
@@ -213,8 +208,7 @@ func (s *ControllerTestSuite[Service]) TestWhenServiceSucceeds_ReturnsExpectedRe
 		s.T().Run(name, func(t *testing.T) {
 			ctx, rw := generateTestEchoContextFromRequest(testCase.req)
 			if testCase.idAsRouteParam {
-				ctx.SetParamNames("id")
-				ctx.SetParamValues(defaultUuid.String())
+				ctx.SetPathValues([]echo.PathValue{{Name: "id", Value: defaultUuid.String()}})
 			}
 
 			m := s.generateServiceMock()
@@ -231,8 +225,7 @@ func (s *ControllerTestSuite[Service]) TestWhenServiceSucceeds_ExpectCorrectInte
 		s.T().Run(name, func(t *testing.T) {
 			ctx, _ := generateTestEchoContextFromRequest(testCase.req)
 			if testCase.idAsRouteParam {
-				ctx.SetParamNames("id")
-				ctx.SetParamValues(defaultUuid.String())
+				ctx.SetPathValues([]echo.PathValue{{Name: "id", Value: defaultUuid.String()}})
 			}
 
 			var m Service

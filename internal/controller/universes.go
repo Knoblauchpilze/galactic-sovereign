@@ -10,7 +10,7 @@ import (
 	"github.com/Knoblauchpilze/galactic-sovereign/internal/service"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/communication"
 	"github.com/google/uuid"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 )
 
 func UniverseEndpoints(service service.UniverseService) rest.Routes {
@@ -35,7 +35,7 @@ func UniverseEndpoints(service service.UniverseService) rest.Routes {
 	return out
 }
 
-func createUniverse(c echo.Context, s service.UniverseService) error {
+func createUniverse(c *echo.Context, s service.UniverseService) error {
 	var universeDtoRequest communication.UniverseDtoRequest
 	err := c.Bind(&universeDtoRequest)
 	if err != nil {
@@ -54,7 +54,7 @@ func createUniverse(c echo.Context, s service.UniverseService) error {
 	return c.JSON(http.StatusCreated, out)
 }
 
-func getUniverse(c echo.Context, s service.UniverseService) error {
+func getUniverse(c *echo.Context, s service.UniverseService) error {
 	maybeId := c.Param("id")
 	id, err := uuid.Parse(maybeId)
 	if err != nil {
@@ -73,7 +73,7 @@ func getUniverse(c echo.Context, s service.UniverseService) error {
 	return c.JSON(http.StatusOK, out)
 }
 
-func listUniverses(c echo.Context, s service.UniverseService) error {
+func listUniverses(c *echo.Context, s service.UniverseService) error {
 	universes, err := s.List(c.Request().Context())
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err)
@@ -87,7 +87,7 @@ func listUniverses(c echo.Context, s service.UniverseService) error {
 	return c.JSONBlob(http.StatusOK, out)
 }
 
-func deleteUniverse(c echo.Context, s service.UniverseService) error {
+func deleteUniverse(c *echo.Context, s service.UniverseService) error {
 	maybeId := c.Param("id")
 	id, err := uuid.Parse(maybeId)
 	if err != nil {

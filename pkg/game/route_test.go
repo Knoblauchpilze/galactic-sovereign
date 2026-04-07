@@ -8,12 +8,12 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"github.com/stretchr/testify/assert"
 )
 
 var errDefault = fmt.Errorf("some error")
-var defaultHandler = func(c echo.Context) error { return nil }
+var defaultHandler = func(c *echo.Context) error { return nil }
 
 type mockActionService struct {
 	ActionService
@@ -53,7 +53,7 @@ func TestUnit_Route_Handler(t *testing.T) {
 	assert := assert.New(t)
 
 	handlerCalled := false
-	handler := func(c echo.Context) error {
+	handler := func(c *echo.Context) error {
 		handlerCalled = true
 		return nil
 	}
@@ -70,7 +70,7 @@ func TestUnit_Route_WithResource_Handler(t *testing.T) {
 	assert := assert.New(t)
 
 	handlerCalled := false
-	handler := func(c echo.Context) error {
+	handler := func(c *echo.Context) error {
 		handlerCalled = true
 		return nil
 	}
@@ -86,7 +86,7 @@ func TestUnit_Route_WithResource_Handler(t *testing.T) {
 func TestUnit_Route_WhenNoPlanetId_DoesNotScheduleActions(t *testing.T) {
 	assert := assert.New(t)
 
-	handler := func(c echo.Context) error {
+	handler := func(c *echo.Context) error {
 		return nil
 	}
 
@@ -104,7 +104,7 @@ func TestUnit_Route_WhenNoPlanetId_DoesNotScheduleActions(t *testing.T) {
 func TestUnit_Route_CallsActionService(t *testing.T) {
 	assert := assert.New(t)
 
-	handler := func(c echo.Context) error {
+	handler := func(c *echo.Context) error {
 		return nil
 	}
 
@@ -123,7 +123,7 @@ func TestUnit_Route_CallsActionService(t *testing.T) {
 func TestUnit_Route_ScheduleActionsIsAtTheRightTime(t *testing.T) {
 	assert := assert.New(t)
 
-	handler := func(c echo.Context) error {
+	handler := func(c *echo.Context) error {
 		return nil
 	}
 
@@ -144,7 +144,7 @@ func TestUnit_Route_WhenActionServiceFails_DoesNotCallHandler(t *testing.T) {
 	assert := assert.New(t)
 
 	handlerCalled := false
-	handler := func(c echo.Context) error {
+	handler := func(c *echo.Context) error {
 		handlerCalled = true
 		return nil
 	}
@@ -182,7 +182,7 @@ func TestUnit_Route_WhenActionServiceFails_SetsStatusToInternalError(t *testing.
 func TestUnit_Route_WhenNoPlanetId_DoesNotUpdatePlanetResourceService(t *testing.T) {
 	assert := assert.New(t)
 
-	handler := func(c echo.Context) error {
+	handler := func(c *echo.Context) error {
 		return nil
 	}
 
@@ -200,7 +200,7 @@ func TestUnit_Route_WhenNoPlanetId_DoesNotUpdatePlanetResourceService(t *testing
 func TestUnit_Route_CallsPlanetResourceService(t *testing.T) {
 	assert := assert.New(t)
 
-	handler := func(c echo.Context) error {
+	handler := func(c *echo.Context) error {
 		return nil
 	}
 
@@ -219,7 +219,7 @@ func TestUnit_Route_CallsPlanetResourceService(t *testing.T) {
 func TestUnit_Route_UpdateResourcesIsAtTheRightTime(t *testing.T) {
 	assert := assert.New(t)
 
-	handler := func(c echo.Context) error {
+	handler := func(c *echo.Context) error {
 		return nil
 	}
 
@@ -240,7 +240,7 @@ func TestUnit_Route_WhenPlanetResourceServiceFails_DoesNotCallHandler(t *testing
 	assert := assert.New(t)
 
 	handlerCalled := false
-	handler := func(c echo.Context) error {
+	handler := func(c *echo.Context) error {
 		handlerCalled = true
 		return nil
 	}
@@ -328,7 +328,7 @@ func TestUnit_Route_WithResource_WhenIdPlaceHolderAlreadyExists_DoNotGeneratePat
 	assert.Equal(path, r.Path())
 }
 
-func dummyEchoContext() echo.Context {
+func dummyEchoContext() *echo.Context {
 	e, _, _ := generateTestEchoContext()
 	return e
 }

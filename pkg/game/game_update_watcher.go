@@ -2,13 +2,14 @@ package game
 
 import (
 	"context"
+	"log/slog"
 	"net/http"
 	"sync"
 	"time"
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/errors"
 	"github.com/google/uuid"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 )
 
 type ActionService interface {
@@ -31,7 +32,7 @@ func GameUpdateWatcher(actionService ActionService, planetResourceService Planet
 		planetResourceService: planetResourceService,
 	}
 
-	return func(c echo.Context) error {
+	return func(c *echo.Context) error {
 		timeStamp := time.Now()
 
 		maybeId := c.Param("id")
@@ -47,17 +48,17 @@ func GameUpdateWatcher(actionService ActionService, planetResourceService Planet
 	}
 }
 
-func handleError(err error, c echo.Context) error {
+func handleError(err error, c *echo.Context) error {
 	if errors.IsErrorWithCode(err, actionSchedulingFailed) {
-		c.Logger().Errorf("Failed to scheduled pending actions %v", err)
+		c.Logger().Error("Failed to scheduled pending actions", slog.Any("error", err))
 		return c.JSON(http.StatusInternalServerError, "Failed to process actions")
 	}
 	if errors.IsErrorWithCode(err, planetResourceUpdateFailed) {
-		c.Logger().Errorf("Failed to update planet resources %v", err)
+		c.Logger().Error("Failed to update planet resources", slog.Any("error", err))
 		return c.JSON(http.StatusInternalServerError, "Failed to update resources")
 	}
 
-	c.Logger().Errorf("Failed to update game to current time %v", err)
+	c.Logger().Error("Failed to update game to current time", slog.Any("error", err))
 	return c.JSON(http.StatusInternalServerError, "Failed to update game")
 }
 

@@ -11,7 +11,7 @@ import (
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/communication"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/game"
 	"github.com/google/uuid"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 )
 
 func BuildingActionEndpoints(buildingActionService service.BuildingActionService,
@@ -30,7 +30,7 @@ func BuildingActionEndpoints(buildingActionService service.BuildingActionService
 	return out
 }
 
-func createBuildingAction(c echo.Context, s service.BuildingActionService) error {
+func createBuildingAction(c *echo.Context, s service.BuildingActionService) error {
 	maybeId := c.Param("id")
 	id, err := uuid.Parse(maybeId)
 	if err != nil {
@@ -60,7 +60,7 @@ func createBuildingAction(c echo.Context, s service.BuildingActionService) error
 	return c.JSON(http.StatusCreated, out)
 }
 
-func deleteBuildingAction(c echo.Context, s service.BuildingActionService) error {
+func deleteBuildingAction(c *echo.Context, s service.BuildingActionService) error {
 	maybeId := c.Param("id")
 	id, err := uuid.Parse(maybeId)
 	if err != nil {

@@ -4,7 +4,7 @@ import (
 	"strings"
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/rest"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 )
 
 func NewRoute(method string,

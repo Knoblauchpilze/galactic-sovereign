@@ -10,7 +10,7 @@ import (
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/communication"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/game"
 	"github.com/google/uuid"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 )
 
 func PlanetEndpoints(planetService service.PlanetService,
@@ -37,7 +37,7 @@ func PlanetEndpoints(planetService service.PlanetService,
 	return out
 }
 
-func createPlanet(c echo.Context, s service.PlanetService) error {
+func createPlanet(c *echo.Context, s service.PlanetService) error {
 	var planetDtoRequest communication.PlanetDtoRequest
 	err := c.Bind(&planetDtoRequest)
 	if err != nil {
@@ -52,7 +52,7 @@ func createPlanet(c echo.Context, s service.PlanetService) error {
 	return c.JSON(http.StatusCreated, out)
 }
 
-func getPlanet(c echo.Context, s service.PlanetService) error {
+func getPlanet(c *echo.Context, s service.PlanetService) error {
 	maybeId := c.Param("id")
 	id, err := uuid.Parse(maybeId)
 	if err != nil {
@@ -71,7 +71,7 @@ func getPlanet(c echo.Context, s service.PlanetService) error {
 	return c.JSON(http.StatusOK, out)
 }
 
-func listPlanets(c echo.Context, s service.PlanetService) error {
+func listPlanets(c *echo.Context, s service.PlanetService) error {
 	exists, playerId, err := fetchIdFromQueryParam("player", c)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, "Invalid id syntax")
@@ -97,7 +97,7 @@ func listPlanets(c echo.Context, s service.PlanetService) error {
 	return c.JSONBlob(http.StatusOK, out)
 }
 
-func deletePlanet(c echo.Context, s service.PlanetService) error {
+func deletePlanet(c *echo.Context, s service.PlanetService) error {
 	maybeId := c.Param("id")
 	id, err := uuid.Parse(maybeId)
 	if err != nil {

@@ -10,7 +10,7 @@ import (
 	"github.com/Knoblauchpilze/galactic-sovereign/internal/service"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/communication"
 	"github.com/google/uuid"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 )
 
 func PlayerEndpoints(service service.PlayerService) rest.Routes {
@@ -35,7 +35,7 @@ func PlayerEndpoints(service service.PlayerService) rest.Routes {
 	return out
 }
 
-func createPlayer(c echo.Context, s service.PlayerService) error {
+func createPlayer(c *echo.Context, s service.PlayerService) error {
 	var playerDtoRequest communication.PlayerDtoRequest
 	err := c.Bind(&playerDtoRequest)
 	if err != nil {
@@ -54,7 +54,7 @@ func createPlayer(c echo.Context, s service.PlayerService) error {
 	return c.JSON(http.StatusCreated, out)
 }
 
-func getPlayer(c echo.Context, s service.PlayerService) error {
+func getPlayer(c *echo.Context, s service.PlayerService) error {
 	maybeId := c.Param("id")
 	id, err := uuid.Parse(maybeId)
 	if err != nil {
@@ -73,7 +73,7 @@ func getPlayer(c echo.Context, s service.PlayerService) error {
 	return c.JSON(http.StatusOK, out)
 }
 
-func listPlayers(c echo.Context, s service.PlayerService) error {
+func listPlayers(c *echo.Context, s service.PlayerService) error {
 	exists, apiUser, err := fetchIdFromQueryParam("api_user", c)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, "Invalid id syntax")
@@ -99,7 +99,7 @@ func listPlayers(c echo.Context, s service.PlayerService) error {
 	return c.JSONBlob(http.StatusOK, out)
 }
 
-func deletePlayer(c echo.Context, s service.PlayerService) error {
+func deletePlayer(c *echo.Context, s service.PlayerService) error {
 	maybeId := c.Param("id")
 	id, err := uuid.Parse(maybeId)
 	if err != nil {
