@@ -228,7 +228,7 @@ jobs:
 
           echo "Waiting for service to become ready..."
           for i in $(seq 1 15); do
-            STATUS=$(curl -s -o /dev/null -w "%{http_code}" localhost:1234/v1/healthcheck 2>/dev/null || echo "000")
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" localhost:1234/v1/galactic-sovereign/universes 2>/dev/null || echo "000")
             if [ "$STATUS" = "200" ]; then
               echo "Service is ready"
               break
@@ -244,7 +244,7 @@ jobs:
 
           echo "status_code=$(curl -s -o /dev/null -w %{http_code} localhost:1234/v1/galactic-sovereign/universes)" >> $GITHUB_OUTPUT
           echo "response_body=$(curl -s localhost:1234/v1/galactic-sovereign/universes)" >> $GITHUB_OUTPUT
-          docker stop template-go-test
+          docker stop galactic-sovereign-service-test
         id: test-results
         env:
           PORT: 1234
@@ -253,10 +253,6 @@ jobs:
         run: |
           echo ${{ steps.test-results.outputs.status_code }}
           echo ${{ steps.test-results.outputs.response_body }}
-      - name: Print service logs
-        # https://github.com/orgs/community/discussions/26097
-        if: failure() && steps.test-results.outcome == 'failure'
-        run: docker logs galactic-sovereign-service-test 2>/dev/null || true
       - name: Verify status code
         run: |
           if [[ ${{ steps.test-results.outputs.status_code }} != '200' ]]; then
