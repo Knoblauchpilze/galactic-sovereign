@@ -1,0 +1,699 @@
+basePath: /
+definitions:
+  controller.BuildingActionRequestDoc:
+    properties:
+      building:
+        type: string
+      planet:
+        type: string
+    type: object
+  controller.BuildingActionResponseDoc:
+    properties:
+      building:
+        type: string
+      completedAt:
+        type: string
+      createdAt:
+        type: string
+      currentLevel:
+        type: integer
+      desiredLevel:
+        type: integer
+      id:
+        type: string
+      planet:
+        type: string
+    type: object
+  controller.BuildingCostResponseDoc:
+    properties:
+      building:
+        type: string
+      cost:
+        type: integer
+      progress:
+        type: number
+      resource:
+        type: string
+    type: object
+  controller.BuildingResourceProductionResponseDoc:
+    properties:
+      base:
+        type: integer
+      building:
+        type: string
+      progress:
+        type: number
+      resource:
+        type: string
+    type: object
+  controller.BuildingResourceStorageResponseDoc:
+    properties:
+      base:
+        type: integer
+      building:
+        type: string
+      progress:
+        type: number
+      resource:
+        type: string
+      scale:
+        type: number
+    type: object
+  controller.FullBuildingResponseDoc:
+    properties:
+      costs:
+        items:
+          $ref: '#/definitions/controller.BuildingCostResponseDoc'
+        type: array
+      createdAt:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      productions:
+        items:
+          $ref: '#/definitions/controller.BuildingResourceProductionResponseDoc'
+        type: array
+      storages:
+        items:
+          $ref: '#/definitions/controller.BuildingResourceStorageResponseDoc'
+        type: array
+    type: object
+  controller.FullPlanetResponseDoc:
+    properties:
+      buildingActions:
+        items:
+          $ref: '#/definitions/controller.BuildingActionResponseDoc'
+        type: array
+      buildings:
+        items:
+          $ref: '#/definitions/controller.PlanetBuildingResponseDoc'
+        type: array
+      createdAt:
+        type: string
+      homeworld:
+        type: boolean
+      id:
+        type: string
+      name:
+        type: string
+      player:
+        type: string
+      productions:
+        items:
+          $ref: '#/definitions/controller.PlanetResourceProductionResponseDoc'
+        type: array
+      resources:
+        items:
+          $ref: '#/definitions/controller.PlanetResourceResponseDoc'
+        type: array
+      storages:
+        items:
+          $ref: '#/definitions/controller.PlanetResourceStorageResponseDoc'
+        type: array
+    type: object
+  controller.FullUniverseResponseDoc:
+    properties:
+      buildings:
+        items:
+          $ref: '#/definitions/controller.FullBuildingResponseDoc'
+        type: array
+      createdAt:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      resources:
+        items:
+          $ref: '#/definitions/controller.ResourceResponseDoc'
+        type: array
+    type: object
+  controller.PlanetBuildingResponseDoc:
+    properties:
+      building:
+        type: string
+      createdAt:
+        type: string
+      level:
+        type: integer
+      planet:
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  controller.PlanetRequestDoc:
+    properties:
+      name:
+        type: string
+      player:
+        type: string
+    type: object
+  controller.PlanetResourceProductionResponseDoc:
+    properties:
+      building:
+        type: string
+      planet:
+        type: string
+      production:
+        type: integer
+      resource:
+        type: string
+    type: object
+  controller.PlanetResourceResponseDoc:
+    properties:
+      amount:
+        type: number
+      createdAt:
+        type: string
+      planet:
+        type: string
+      resource:
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  controller.PlanetResourceStorageResponseDoc:
+    properties:
+      planet:
+        type: string
+      resource:
+        type: string
+      storage:
+        type: integer
+    type: object
+  controller.PlanetResponseDoc:
+    properties:
+      createdAt:
+        type: string
+      homeworld:
+        type: boolean
+      id:
+        type: string
+      name:
+        type: string
+      player:
+        type: string
+    type: object
+  controller.PlayerRequestDoc:
+    properties:
+      api_user:
+        type: string
+      name:
+        type: string
+      universe:
+        type: string
+    type: object
+  controller.PlayerResponseDoc:
+    properties:
+      api_user:
+        type: string
+      createdAt:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      universe:
+        type: string
+    type: object
+  controller.ResourceResponseDoc:
+    properties:
+      createdAt:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+    type: object
+  controller.ToolkitErrorDoc:
+    properties:
+      Cause: {}
+      Message:
+        type: string
+      Value:
+        type: integer
+    type: object
+  controller.UniverseRequestDoc:
+    properties:
+      name:
+        type: string
+    type: object
+  controller.UniverseResponseDoc:
+    properties:
+      createdAt:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+    type: object
+info:
+  contact: {}
+  description: REST API for the Galactic Sovereign backend service.
+  title: Galactic Sovereign API
+  version: "1.0"
+paths:
+  /actions/{id}:
+    delete:
+      description: Deletes an existing building action.
+      parameters:
+      - description: Action id (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+          schema:
+            type: string
+        "400":
+          description: Invalid id syntax
+          schema:
+            type: string
+        "404":
+          description: No such action
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controller.ToolkitErrorDoc'
+      summary: Delete building action
+      tags:
+      - actions
+  /healthcheck:
+    get:
+      description: Returns service health based on database connectivity.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "503":
+          description: Service Unavailable
+          schema:
+            $ref: '#/definitions/controller.ToolkitErrorDoc'
+      summary: Health check
+      tags:
+      - healthcheck
+  /planets:
+    get:
+      description: Returns planets, optionally filtered by player id.
+      parameters:
+      - description: Player id (UUID)
+        in: query
+        name: player
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/controller.PlanetResponseDoc'
+            type: array
+        "400":
+          description: Invalid id syntax
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controller.ToolkitErrorDoc'
+      summary: List planets
+      tags:
+      - planets
+    post:
+      consumes:
+      - application/json
+      description: Creates a planet from the provided payload.
+      parameters:
+      - description: Planet payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/controller.PlanetRequestDoc'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/controller.PlanetResponseDoc'
+        "400":
+          description: Invalid planet syntax
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controller.ToolkitErrorDoc'
+      summary: Create planet
+      tags:
+      - planets
+  /planets/{id}:
+    delete:
+      description: Deletes a planet by id.
+      parameters:
+      - description: Planet id (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+          schema:
+            type: string
+        "400":
+          description: Invalid id syntax
+          schema:
+            type: string
+        "404":
+          description: No such planet
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controller.ToolkitErrorDoc'
+      summary: Delete planet
+      tags:
+      - planets
+    get:
+      description: Returns a planet and all related game data.
+      parameters:
+      - description: Planet id (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controller.FullPlanetResponseDoc'
+        "400":
+          description: Invalid id syntax
+          schema:
+            type: string
+        "404":
+          description: No such planet
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controller.ToolkitErrorDoc'
+      summary: Get planet
+      tags:
+      - planets
+  /planets/{id}/actions:
+    post:
+      consumes:
+      - application/json
+      description: Creates a building action for the planet provided in path parameter.
+        The planet field in the body is ignored and replaced with this path value.
+      parameters:
+      - description: Planet id (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Building action payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/controller.BuildingActionRequestDoc'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/controller.BuildingActionResponseDoc'
+        "400":
+          description: Invalid id syntax, invalid payload syntax or not enough resources
+          schema:
+            type: string
+        "409":
+          description: Building action already exists
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controller.ToolkitErrorDoc'
+      summary: Create building action
+      tags:
+      - actions
+  /players:
+    get:
+      description: Returns players, optionally filtered by api_user.
+      parameters:
+      - description: API user id (UUID)
+        in: query
+        name: api_user
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/controller.PlayerResponseDoc'
+            type: array
+        "400":
+          description: Invalid id syntax
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controller.ToolkitErrorDoc'
+      summary: List players
+      tags:
+      - players
+    post:
+      consumes:
+      - application/json
+      description: Creates a player and its homeworld.
+      parameters:
+      - description: Player payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/controller.PlayerRequestDoc'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/controller.PlayerResponseDoc'
+        "400":
+          description: Invalid player syntax
+          schema:
+            type: string
+        "409":
+          description: Name already used
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controller.ToolkitErrorDoc'
+      summary: Create player
+      tags:
+      - players
+  /players/{id}:
+    delete:
+      description: Deletes a player by id.
+      parameters:
+      - description: Player id (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+          schema:
+            type: string
+        "400":
+          description: Invalid id syntax
+          schema:
+            type: string
+        "404":
+          description: No such player
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controller.ToolkitErrorDoc'
+      summary: Delete player
+      tags:
+      - players
+    get:
+      description: Returns a player by id.
+      parameters:
+      - description: Player id (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controller.PlayerResponseDoc'
+        "400":
+          description: Invalid id syntax
+          schema:
+            type: string
+        "404":
+          description: No such player
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controller.ToolkitErrorDoc'
+      summary: Get player
+      tags:
+      - players
+  /universes:
+    get:
+      description: Returns all universes.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/controller.UniverseResponseDoc'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controller.ToolkitErrorDoc'
+      summary: List universes
+      tags:
+      - universes
+    post:
+      consumes:
+      - application/json
+      description: Creates a universe.
+      parameters:
+      - description: Universe payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/controller.UniverseRequestDoc'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/controller.UniverseResponseDoc'
+        "400":
+          description: Invalid universe syntax
+          schema:
+            type: string
+        "409":
+          description: Name already used
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controller.ToolkitErrorDoc'
+      summary: Create universe
+      tags:
+      - universes
+  /universes/{id}:
+    delete:
+      description: Deletes a universe by id.
+      parameters:
+      - description: Universe id (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+          schema:
+            type: string
+        "400":
+          description: Invalid id syntax
+          schema:
+            type: string
+        "404":
+          description: No such universe
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controller.ToolkitErrorDoc'
+      summary: Delete universe
+      tags:
+      - universes
+    get:
+      description: Returns a universe and related resources/buildings.
+      parameters:
+      - description: Universe id (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controller.FullUniverseResponseDoc'
+        "400":
+          description: Invalid id syntax
+          schema:
+            type: string
+        "404":
+          description: No such universe
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/controller.ToolkitErrorDoc'
+      summary: Get universe
+      tags:
+      - universes
+swagger: "2.0"

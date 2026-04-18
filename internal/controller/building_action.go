@@ -30,6 +30,20 @@ func BuildingActionEndpoints(buildingActionService service.BuildingActionService
 	return out
 }
 
+// createBuildingAction godoc
+//
+//	@Summary		Create building action
+//	@Description	Creates a building action for the planet provided in path parameter. The planet field in the body is ignored and replaced with this path value.
+//	@Tags			actions
+//	@Accept			json
+//	@Produce		json
+//	@Param			id		path		string					true	"Planet id (UUID)"
+//	@Param			request	body		BuildingActionRequestDoc	true	"Building action payload"
+//	@Success		201		{object}	BuildingActionResponseDoc
+//	@Failure		400		{string}	string	"Invalid id syntax, invalid payload syntax or not enough resources"
+//	@Failure		409		{string}	string	"Building action already exists"
+//	@Failure		500		{object}	ToolkitErrorDoc
+//	@Router			/planets/{id}/actions [post]
 func createBuildingAction(c *echo.Context, s service.BuildingActionService) error {
 	maybeId := c.Param("id")
 	id, err := uuid.Parse(maybeId)
@@ -60,6 +74,18 @@ func createBuildingAction(c *echo.Context, s service.BuildingActionService) erro
 	return c.JSON(http.StatusCreated, out)
 }
 
+// deleteBuildingAction godoc
+//
+//	@Summary		Delete building action
+//	@Description	Deletes an existing building action.
+//	@Tags			actions
+//	@Produce		json
+//	@Param			id	path		string	true	"Action id (UUID)"
+//	@Success		204	{string}	string
+//	@Failure		400	{string}	string	"Invalid id syntax"
+//	@Failure		404	{string}	string	"No such action"
+//	@Failure		500	{object}	ToolkitErrorDoc
+//	@Router			/actions/{id} [delete]
 func deleteBuildingAction(c *echo.Context, s service.BuildingActionService) error {
 	maybeId := c.Param("id")
 	id, err := uuid.Parse(maybeId)

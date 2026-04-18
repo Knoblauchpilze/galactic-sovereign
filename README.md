@@ -157,3 +157,13 @@ In case you're using Visual Studio Code as an IDE you can copy the following tem
 This will allow you to debug the galactic-sovereign server directly in your IDE.
 
 The documentation from VS code indicates that you can just hover over existing attributes to get a description of their purpose. You can also use `Ctrl + Space` to ask Intellisense to give you information about other arguments.
+
+## Generate API specification
+
+You can generate the Swagger specification from the annotated handlers with:
+
+```bash
+make generate-api-spec
+```
+
+This creates `api/swagger.yaml`.

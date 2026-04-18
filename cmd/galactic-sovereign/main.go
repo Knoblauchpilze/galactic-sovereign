@@ -24,6 +24,10 @@ func determineConfigName() string {
 	return os.Args[1]
 }
 
+// @title			Galactic Sovereign API
+// @version		1.0
+// @description	REST API for the Galactic Sovereign backend service.
+// @BasePath		/
 func main() {
 	log := logger.New(os.Stdout)
 
