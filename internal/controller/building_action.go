@@ -40,7 +40,7 @@ func BuildingActionEndpoints(buildingActionService service.BuildingActionService
 //	@Param			id		path		string					true	"Planet id (UUID)"
 //	@Param			request	body		BuildingActionRequestDoc	true	"Building action payload"
 //	@Success		201		{object}	BuildingActionResponseDoc
-//	@Failure		400		{string}	string	"Invalid id syntax, invalid payload syntax or not enough resources"
+//	@Failure		401		{string}	string	"Invalid id syntax, invalid payload syntax or not enough resources"
 //	@Failure		409		{string}	string	"Building action already exists"
 //	@Failure		500		{object}	ToolkitErrorDoc
 //	@Router			/planets/{id}/actions [post]
@@ -54,7 +54,7 @@ func createBuildingAction(c *echo.Context, s service.BuildingActionService) erro
 	var actionDtoRequest communication.BuildingActionDtoRequest
 	err = c.Bind(&actionDtoRequest)
 	if err != nil {
-		return c.JSON(http.StatusBadGateway, "Invalid action syntax")
+		return c.JSON(http.StatusBadRequest, "Invalid action syntax")
 	}
 
 	actionDtoRequest.Planet = id
