@@ -1,6 +1,6 @@
 # galactic-sovereign
 
-This repository contains the backend service powering the is [galactic-sovereign.gasteropo.de](https://galactic-sovereign.gasteropo.de) website. The frontend for this project is defined in the [galactic-sovereign-frontend](https://github.com/Knoblauchpilze/galactic-sovereign-frontend) repository.
+This repository contains the backend service powering the [galactic-sovereign.gasteropo.de](https://galactic-sovereign.gasteropo.de) website. The frontend for this project is defined in the [galactic-sovereign-frontend](https://github.com/Knoblauchpilze/galactic-sovereign-frontend) repository.
 
 On this website you can find an online multiplayer web-browser game titled **Galactic Sovereign**. This is a strategy game where the players can mine resources on their respective planets and improve the infrastructure to do so by upgrading their mines. It is largely inspired by the basics of [OGame](https://en.wikipedia.org/wiki/OGame), a famous strategy game.
 
