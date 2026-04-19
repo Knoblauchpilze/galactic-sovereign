@@ -1,9 +1,17 @@
 #!/bin/bash
 
+if [[ $# -le 1 ]]; then
+  echo "Usage: creates the users needed for the database defined in the provided folder"
+  echo "Examples:"
+  echo "./create_user.sh /path/to/database/folder"
+  exit 1
+fi
+
 DB_PATH=$1
 DB_HOST=${DATABASE_HOST:-localhost}
 DB_PORT=${DATABASE_PORT:-5432}
 DB_USER=${DATABASE_USER:-postgres}
+
 
 # Password should be provided as environment variables.
 if [[ -z "${ADMIN_PASSWORD}" ]]; then
