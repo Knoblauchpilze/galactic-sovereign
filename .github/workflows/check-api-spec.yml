@@ -1,0 +1,33 @@
+name: Check API specifications
+
+on:
+  push:
+    paths:
+      - "go.mod"
+      - "cmd/galactic-sovereign/main.go"
+      - "internal/controller/**"
+      - "Makefile"
+      - ".github/workflows/check-api-spec.yml"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check-api-spec:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Setup Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: "1.26.0"
+      - name: Run generate-api-spec
+        run: make generate-api-spec
+      - name: Check for uncommitted changes
+        run: |
+          if ! git diff --quiet; then
+            echo "::error ::Swagger spec is out of date. Please run 'make generate-api-spec' and commit the changes."
+            git diff
+            exit 1
+          fi
