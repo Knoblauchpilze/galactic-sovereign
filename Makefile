@@ -18,3 +18,6 @@ generate-api-spec:
 		--outputTypes go \
 		--parseInternal \
 		--generatedTime=false
+
+publish-release:
+	./scripts/create-release.sh
