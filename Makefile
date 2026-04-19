@@ -15,6 +15,6 @@ generate-api-spec:
 		--generalInfo main.go \
 		--dir .,../../internal/controller \
 		--output ../../api \
-		--outputTypes yaml \
+		--outputTypes go,yaml \
 		--parseInternal \
 		--generatedTime=false

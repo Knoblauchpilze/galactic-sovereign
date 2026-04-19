@@ -1,4 +1,4 @@
-basePath: /
+basePath: /v1/galactic-sovereign
 definitions:
   controller.BuildingActionRequestDoc:
     properties:
