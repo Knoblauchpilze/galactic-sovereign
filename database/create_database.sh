@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [[ $# -le 1 ]]; then
+if [[ $# -lt 1 ]]; then
   echo "Usage: creates the database defined in the provided folder"
   echo "Examples:"
   echo "./create_database.sh /path/to/database/folder"

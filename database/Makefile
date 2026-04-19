@@ -4,7 +4,7 @@ DB_NAME ?= db_galactic_sovereign
 DB_HOST ?= localhost
 DB_PORT ?= 5432
 DB_USER ?= galactic_sovereign_admin
-DB_PASSWORD ?= "comes-this-from-environment"
+DB_PASSWORD ?= admin_password
 MIGRATION_STEPS ?= 1
 
 URL_ENCODED_PASSWORD=$(shell urlencode '${DB_PASSWORD}')

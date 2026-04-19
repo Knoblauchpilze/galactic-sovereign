@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [[ $# -le 1 ]]; then
+if [[ $# -lt 1 ]]; then
   echo "Usage: drops the database defined in the provided folder"
   echo "Examples:"
   echo "./drop_database.sh /path/to/database/folder"
