@@ -19,6 +19,15 @@ func HealthCheckEndpoints(conn db.Connection) rest.Routes {
 	return out
 }
 
+// healthcheck godoc
+//
+//	@Summary		Health check
+//	@Description	Returns service health based on database connectivity.
+//	@Tags			healthcheck
+//	@Produce		json
+//	@Success		200	{string}	string	"OK"
+//	@Failure		503	{object}	ToolkitErrorDoc
+//	@Router			/healthcheck [get]
 func healthcheck(c *echo.Context, conn db.Connection) error {
 	err := conn.Ping(c.Request().Context())
 	if err != nil {

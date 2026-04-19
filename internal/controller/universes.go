@@ -35,6 +35,19 @@ func UniverseEndpoints(service service.UniverseService) rest.Routes {
 	return out
 }
 
+// createUniverse godoc
+//
+//	@Summary		Create universe
+//	@Description	Creates a universe.
+//	@Tags			universes
+//	@Accept			json
+//	@Produce		json
+//	@Param			request	body		UniverseRequestDoc	true	"Universe payload"
+//	@Success		201		{object}	UniverseResponseDoc
+//	@Failure		400		{string}	string	"Invalid universe syntax"
+//	@Failure		409		{string}	string	"Name already used"
+//	@Failure		500		{object}	ToolkitErrorDoc
+//	@Router			/universes [post]
 func createUniverse(c *echo.Context, s service.UniverseService) error {
 	var universeDtoRequest communication.UniverseDtoRequest
 	err := c.Bind(&universeDtoRequest)
@@ -54,6 +67,18 @@ func createUniverse(c *echo.Context, s service.UniverseService) error {
 	return c.JSON(http.StatusCreated, out)
 }
 
+// getUniverse godoc
+//
+//	@Summary		Get universe
+//	@Description	Returns a universe and related resources/buildings.
+//	@Tags			universes
+//	@Produce		json
+//	@Param			id	path		string	true	"Universe id (UUID)"
+//	@Success		200	{object}	FullUniverseResponseDoc
+//	@Failure		400	{string}	string	"Invalid id syntax"
+//	@Failure		404	{string}	string	"No such universe"
+//	@Failure		500	{object}	ToolkitErrorDoc
+//	@Router			/universes/{id} [get]
 func getUniverse(c *echo.Context, s service.UniverseService) error {
 	maybeId := c.Param("id")
 	id, err := uuid.Parse(maybeId)
@@ -73,6 +98,15 @@ func getUniverse(c *echo.Context, s service.UniverseService) error {
 	return c.JSON(http.StatusOK, out)
 }
 
+// listUniverses godoc
+//
+//	@Summary		List universes
+//	@Description	Returns all universes.
+//	@Tags			universes
+//	@Produce		json
+//	@Success		200	{array}		UniverseResponseDoc
+//	@Failure		500	{object}	ToolkitErrorDoc
+//	@Router			/universes [get]
 func listUniverses(c *echo.Context, s service.UniverseService) error {
 	universes, err := s.List(c.Request().Context())
 	if err != nil {
@@ -87,6 +121,18 @@ func listUniverses(c *echo.Context, s service.UniverseService) error {
 	return c.JSONBlob(http.StatusOK, out)
 }
 
+// deleteUniverse godoc
+//
+//	@Summary		Delete universe
+//	@Description	Deletes a universe by id.
+//	@Tags			universes
+//	@Produce		json
+//	@Param			id	path		string	true	"Universe id (UUID)"
+//	@Success		204	{string}	string
+//	@Failure		400	{string}	string	"Invalid id syntax"
+//	@Failure		404	{string}	string	"No such universe"
+//	@Failure		500	{object}	ToolkitErrorDoc
+//	@Router			/universes/{id} [delete]
 func deleteUniverse(c *echo.Context, s service.UniverseService) error {
 	maybeId := c.Param("id")
 	id, err := uuid.Parse(maybeId)
