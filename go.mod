@@ -7,7 +7,7 @@ require (
 	github.com/labstack/echo/v5 v5.1.0
 	github.com/stretchr/testify v1.11.1
 	github.com/swaggo/echo-swagger/v2 v2.0.1
-	github.com/swaggo/swag v1.16.2
+	github.com/swaggo/swag v1.16.6
 )
 
 require (
@@ -29,6 +29,7 @@ require (
 	github.com/swaggo/files/v2 v2.0.0 // indirect
 	github.com/swaggo/swag/v2 v2.0.0-rc4 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
+	golang.org/x/mod v0.31.0 // indirect
 	golang.org/x/sync v0.19.0 // indirect
 	golang.org/x/time v0.14.0 // indirect
 	golang.org/x/tools v0.40.0 // indirect
