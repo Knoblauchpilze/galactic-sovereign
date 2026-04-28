@@ -6,8 +6,8 @@ import (
 )
 
 type BuildingCostDtoResponse struct {
-	Building uuid.UUID `json:"building"`
-	Resource uuid.UUID `json:"resource"`
+	Building uuid.UUID `json:"building" format:"uuid"`
+	Resource uuid.UUID `json:"resource" format:"uuid"`
 	Cost     int       `json:"cost"`
 	Progress float64   `json:"progress"`
 }

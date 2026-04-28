@@ -42,12 +42,11 @@ func PlayerEndpoints(service service.PlayerService) rest.Routes {
 //	@Tags			players
 //	@Accept			json
 //	@Produce		json
-//	@Param			request	body		PlayerRequestDoc	true	"Player payload"
-//	@Success		201		{object}	PlayerResponseDoc
-//	@Failure		400		{string}	string	"Invalid player syntax"
-//	@Failure		409		{string}	string	"Name already used"
-//	@Failure		500		{object}	ToolkitErrorDoc
-//	@Router			/players [post]
+//	@Param			request	body		communication.PlayerDtoRequest	true	"Player payload"
+//	@Success		201		{object}	rest.ResponseEnvelope[communication.PlayerDtoResponse]
+//	@Failure		400		{object}	rest.ResponseEnvelope[string]
+//	@Failure		409		{object}	rest.ResponseEnvelope[string]
+//	@Failure		500		{object}	rest.ResponseEnvelope[string]
 func createPlayer(c *echo.Context, s service.PlayerService) error {
 	var playerDtoRequest communication.PlayerDtoRequest
 	err := c.Bind(&playerDtoRequest)
@@ -73,11 +72,11 @@ func createPlayer(c *echo.Context, s service.PlayerService) error {
 //	@Description	Returns a player by id.
 //	@Tags			players
 //	@Produce		json
-//	@Param			id	path		string	true	"Player id (UUID)"
-//	@Success		200	{object}	PlayerResponseDoc
-//	@Failure		400	{string}	string	"Invalid id syntax"
-//	@Failure		404	{string}	string	"No such player"
-//	@Failure		500	{object}	ToolkitErrorDoc
+//	@Param			id	path		string	true	"Player id (UUID)"	Format(uuid)
+//	@Success		200	{object}	rest.ResponseEnvelope[communication.PlayerDtoResponse]
+//	@Failure		400	{object}	rest.ResponseEnvelope[string]
+//	@Failure		404	{object}	rest.ResponseEnvelope[string]
+//	@Failure		500	{object}	rest.ResponseEnvelope[string]
 //	@Router			/players/{id} [get]
 func getPlayer(c *echo.Context, s service.PlayerService) error {
 	maybeId := c.Param("id")
@@ -105,9 +104,9 @@ func getPlayer(c *echo.Context, s service.PlayerService) error {
 //	@Tags			players
 //	@Produce		json
 //	@Param			api_user	query		string	false	"API user id (UUID)"
-//	@Success		200			{array}		PlayerResponseDoc
-//	@Failure		400			{string}	string	"Invalid id syntax"
-//	@Failure		500			{object}	ToolkitErrorDoc
+//	@Success		200			{object}	rest.ResponseEnvelope[[]communication.PlayerDtoResponse]
+//	@Failure		400			{object}	rest.ResponseEnvelope[string]
+//	@Failure		500			{object}	rest.ResponseEnvelope[string]
 //	@Router			/players [get]
 func listPlayers(c *echo.Context, s service.PlayerService) error {
 	exists, apiUser, err := fetchIdFromQueryParam("api_user", c)
@@ -141,11 +140,11 @@ func listPlayers(c *echo.Context, s service.PlayerService) error {
 //	@Description	Deletes a player by id.
 //	@Tags			players
 //	@Produce		json
-//	@Param			id	path		string	true	"Player id (UUID)"
+//	@Param			id	path		string	true	"Player id (UUID)"	Format(uuid)
 //	@Success		204	{string}	string
-//	@Failure		400	{string}	string	"Invalid id syntax"
-//	@Failure		404	{string}	string	"No such player"
-//	@Failure		500	{object}	ToolkitErrorDoc
+//	@Failure		400	{object}	rest.ResponseEnvelope[string]
+//	@Failure		404	{object}	rest.ResponseEnvelope[string]
+//	@Failure		500	{object}	rest.ResponseEnvelope[string]
 //	@Router			/players/{id} [delete]
 func deletePlayer(c *echo.Context, s service.PlayerService) error {
 	maybeId := c.Param("id")

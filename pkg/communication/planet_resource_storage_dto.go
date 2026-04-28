@@ -6,8 +6,8 @@ import (
 )
 
 type PlanetResourceStorageDtoResponse struct {
-	Planet   uuid.UUID `json:"planet"`
-	Resource uuid.UUID `json:"resource"`
+	Planet   uuid.UUID `json:"planet" format:"uuid"`
+	Resource uuid.UUID `json:"resource" format:"uuid"`
 	Storage  int       `json:"storage"`
 }
 

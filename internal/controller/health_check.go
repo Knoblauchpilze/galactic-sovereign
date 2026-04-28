@@ -26,7 +26,7 @@ func HealthCheckEndpoints(conn db.Connection) rest.Routes {
 //	@Tags			healthcheck
 //	@Produce		json
 //	@Success		200	{string}	string	"OK"
-//	@Failure		503	{object}	ToolkitErrorDoc
+//	@Failure		503	{object}	rest.ResponseEnvelope[string]
 //	@Router			/healthcheck [get]
 func healthcheck(c *echo.Context, conn db.Connection) error {
 	err := conn.Ping(c.Request().Context())

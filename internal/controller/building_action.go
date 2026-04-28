@@ -37,12 +37,12 @@ func BuildingActionEndpoints(buildingActionService service.BuildingActionService
 //	@Tags			actions
 //	@Accept			json
 //	@Produce		json
-//	@Param			id		path		string					true	"Planet id (UUID)"
-//	@Param			request	body		BuildingActionRequestDoc	true	"Building action payload"
-//	@Success		201		{object}	BuildingActionResponseDoc
-//	@Failure		400		{string}	string	"Invalid id syntax, invalid payload syntax or not enough resources"
-//	@Failure		409		{string}	string	"Building action already exists"
-//	@Failure		500		{object}	ToolkitErrorDoc
+//	@Param			id		path		string					true	"Planet id (UUID)"	Format(uuid)
+//	@Param			request	body		communication.BuildingActionDtoRequest	true	"Building action payload"
+//	@Success		201		{object}	rest.ResponseEnvelope[communication.BuildingActionDtoResponse]
+//	@Failure		400		{object}	rest.ResponseEnvelope[string]
+//	@Failure		409		{object}	rest.ResponseEnvelope[string]
+//	@Failure		500		{object}	rest.ResponseEnvelope[string]
 //	@Router			/planets/{id}/actions [post]
 func createBuildingAction(c *echo.Context, s service.BuildingActionService) error {
 	maybeId := c.Param("id")
@@ -80,11 +80,11 @@ func createBuildingAction(c *echo.Context, s service.BuildingActionService) erro
 //	@Description	Deletes an existing building action.
 //	@Tags			actions
 //	@Produce		json
-//	@Param			id	path		string	true	"Action id (UUID)"
+//	@Param			id	path		string	true	"Action id (UUID)"	Format(uuid)
 //	@Success		204	{string}	string
-//	@Failure		400	{string}	string	"Invalid id syntax"
-//	@Failure		404	{string}	string	"No such action"
-//	@Failure		500	{object}	ToolkitErrorDoc
+//	@Failure		400	{object}	rest.ResponseEnvelope[string]
+//	@Failure		404	{object}	rest.ResponseEnvelope[string]
+//	@Failure		500	{object}	rest.ResponseEnvelope[string]
 //	@Router			/actions/{id} [delete]
 func deleteBuildingAction(c *echo.Context, s service.BuildingActionService) error {
 	maybeId := c.Param("id")

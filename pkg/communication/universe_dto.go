@@ -12,10 +12,10 @@ type UniverseDtoRequest struct {
 }
 
 type UniverseDtoResponse struct {
-	Id   uuid.UUID `json:"id"`
+	Id   uuid.UUID `json:"id" format:"uuid"`
 	Name string    `json:"name"`
 
-	CreatedAt time.Time `json:"createdAt"`
+	CreatedAt time.Time `json:"createdAt" format:"date-time"`
 }
 
 func FromUniverseDtoRequest(universe UniverseDtoRequest) persistence.Universe {

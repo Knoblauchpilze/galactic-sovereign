@@ -13,9 +13,10 @@ generate-api-spec:
 	cd cmd/galactic-sovereign && \
 	go run github.com/swaggo/swag/cmd/swag@${SWAG_VERSION} init \
 		--generalInfo main.go \
-		--dir .,../../internal/controller \
+		--dir .,../../internal/controller,../../pkg/communication \
 		--output ../../api \
 		--outputTypes go \
+		--parseDependencyLevel 1 \
 		--parseInternal \
 		--generatedTime=false
 

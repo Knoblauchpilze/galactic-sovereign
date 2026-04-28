@@ -8,10 +8,10 @@ import (
 )
 
 type BuildingDtoResponse struct {
-	Id   uuid.UUID `json:"id"`
+	Id   uuid.UUID `json:"id" format:"uuid"`
 	Name string    `json:"name"`
 
-	CreatedAt time.Time `json:"createdAt"`
+	CreatedAt time.Time `json:"createdAt" format:"date-time"`
 }
 
 func ToBuildingDtoResponse(building persistence.Building) BuildingDtoResponse {

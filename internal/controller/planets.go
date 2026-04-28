@@ -44,10 +44,10 @@ func PlanetEndpoints(planetService service.PlanetService,
 //	@Tags			planets
 //	@Accept			json
 //	@Produce		json
-//	@Param			request	body		PlanetRequestDoc	true	"Planet payload"
-//	@Success		201		{object}	PlanetResponseDoc
-//	@Failure		400		{string}	string	"Invalid planet syntax"
-//	@Failure		500		{object}	ToolkitErrorDoc
+//	@Param			request	body		communication.PlanetDtoRequest	true	"Planet payload"
+//	@Success		201		{object}	rest.ResponseEnvelope[communication.PlanetDtoResponse]
+//	@Failure		400		{object}	rest.ResponseEnvelope[string]
+//	@Failure		500		{object}	rest.ResponseEnvelope[string]
 //	@Router			/planets [post]
 func createPlanet(c *echo.Context, s service.PlanetService) error {
 	var planetDtoRequest communication.PlanetDtoRequest
@@ -70,11 +70,11 @@ func createPlanet(c *echo.Context, s service.PlanetService) error {
 //	@Description	Returns a planet and all related game data.
 //	@Tags			planets
 //	@Produce		json
-//	@Param			id	path		string	true	"Planet id (UUID)"
-//	@Success		200	{object}	FullPlanetResponseDoc
-//	@Failure		400	{string}	string	"Invalid id syntax"
-//	@Failure		404	{string}	string	"No such planet"
-//	@Failure		500	{object}	ToolkitErrorDoc
+//	@Param			id	path		string	true	"Planet id (UUID)"	Format(uuid)
+//	@Success		200	{object}	rest.ResponseEnvelope[communication.FullPlanetDtoResponse]
+//	@Failure		400	{object}	rest.ResponseEnvelope[string]
+//	@Failure		404	{object}	rest.ResponseEnvelope[string]
+//	@Failure		500	{object}	rest.ResponseEnvelope[string]
 //	@Router			/planets/{id} [get]
 func getPlanet(c *echo.Context, s service.PlanetService) error {
 	maybeId := c.Param("id")
@@ -102,9 +102,9 @@ func getPlanet(c *echo.Context, s service.PlanetService) error {
 //	@Tags			planets
 //	@Produce		json
 //	@Param			player	query		string	false	"Player id (UUID)"
-//	@Success		200		{array}		PlanetResponseDoc
-//	@Failure		400		{string}	string	"Invalid id syntax"
-//	@Failure		500		{object}	ToolkitErrorDoc
+//	@Success		200		{object}	rest.ResponseEnvelope[[]communication.PlanetDtoResponse]
+//	@Failure		400		{object}	rest.ResponseEnvelope[string]
+//	@Failure		500		{object}	rest.ResponseEnvelope[string]
 //	@Router			/planets [get]
 func listPlanets(c *echo.Context, s service.PlanetService) error {
 	exists, playerId, err := fetchIdFromQueryParam("player", c)
@@ -138,11 +138,11 @@ func listPlanets(c *echo.Context, s service.PlanetService) error {
 //	@Description	Deletes a planet by id.
 //	@Tags			planets
 //	@Produce		json
-//	@Param			id	path		string	true	"Planet id (UUID)"
+//	@Param			id	path		string	true	"Planet id (UUID)"	Format(uuid)
 //	@Success		204	{string}	string
-//	@Failure		400	{string}	string	"Invalid id syntax"
-//	@Failure		404	{string}	string	"No such planet"
-//	@Failure		500	{object}	ToolkitErrorDoc
+//	@Failure		400	{object}	rest.ResponseEnvelope[string]
+//	@Failure		404	{object}	rest.ResponseEnvelope[string]
+//	@Failure		500	{object}	rest.ResponseEnvelope[string]
 //	@Router			/planets/{id} [delete]
 func deletePlanet(c *echo.Context, s service.PlanetService) error {
 	maybeId := c.Param("id")

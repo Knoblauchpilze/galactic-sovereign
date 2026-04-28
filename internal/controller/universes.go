@@ -42,12 +42,11 @@ func UniverseEndpoints(service service.UniverseService) rest.Routes {
 //	@Tags			universes
 //	@Accept			json
 //	@Produce		json
-//	@Param			request	body		UniverseRequestDoc	true	"Universe payload"
-//	@Success		201		{object}	UniverseResponseDoc
-//	@Failure		400		{string}	string	"Invalid universe syntax"
-//	@Failure		409		{string}	string	"Name already used"
-//	@Failure		500		{object}	ToolkitErrorDoc
-//	@Router			/universes [post]
+//	@Param			request	body		communication.UniverseDtoRequest	true	"Universe payload"
+//	@Success		201		{object}	rest.ResponseEnvelope[communication.UniverseDtoResponse]
+//	@Failure		400		{object}	rest.ResponseEnvelope[string]
+//	@Failure		409		{object}	rest.ResponseEnvelope[string]
+//	@Failure		500		{object}	rest.ResponseEnvelope[string]
 func createUniverse(c *echo.Context, s service.UniverseService) error {
 	var universeDtoRequest communication.UniverseDtoRequest
 	err := c.Bind(&universeDtoRequest)
@@ -73,11 +72,11 @@ func createUniverse(c *echo.Context, s service.UniverseService) error {
 //	@Description	Returns a universe and related resources/buildings.
 //	@Tags			universes
 //	@Produce		json
-//	@Param			id	path		string	true	"Universe id (UUID)"
-//	@Success		200	{object}	FullUniverseResponseDoc
-//	@Failure		400	{string}	string	"Invalid id syntax"
-//	@Failure		404	{string}	string	"No such universe"
-//	@Failure		500	{object}	ToolkitErrorDoc
+//	@Param			id	path		string	true	"Universe id (UUID)"	Format(uuid)
+//	@Success		200	{object}	rest.ResponseEnvelope[communication.FullUniverseDtoResponse]
+//	@Failure		400	{object}	rest.ResponseEnvelope[string]
+//	@Failure		404	{object}	rest.ResponseEnvelope[string]
+//	@Failure		500	{object}	rest.ResponseEnvelope[string]
 //	@Router			/universes/{id} [get]
 func getUniverse(c *echo.Context, s service.UniverseService) error {
 	maybeId := c.Param("id")
@@ -104,8 +103,8 @@ func getUniverse(c *echo.Context, s service.UniverseService) error {
 //	@Description	Returns all universes.
 //	@Tags			universes
 //	@Produce		json
-//	@Success		200	{array}		UniverseResponseDoc
-//	@Failure		500	{object}	ToolkitErrorDoc
+//	@Success		200	{object}	rest.ResponseEnvelope[[]communication.UniverseDtoResponse]
+//	@Failure		500	{object}	rest.ResponseEnvelope[string]
 //	@Router			/universes [get]
 func listUniverses(c *echo.Context, s service.UniverseService) error {
 	universes, err := s.List(c.Request().Context())
@@ -127,11 +126,11 @@ func listUniverses(c *echo.Context, s service.UniverseService) error {
 //	@Description	Deletes a universe by id.
 //	@Tags			universes
 //	@Produce		json
-//	@Param			id	path		string	true	"Universe id (UUID)"
+//	@Param			id	path		string	true	"Universe id (UUID)"	Format(uuid)
 //	@Success		204	{string}	string
-//	@Failure		400	{string}	string	"Invalid id syntax"
-//	@Failure		404	{string}	string	"No such universe"
-//	@Failure		500	{object}	ToolkitErrorDoc
+//	@Failure		400	{object}	rest.ResponseEnvelope[string]
+//	@Failure		404	{object}	rest.ResponseEnvelope[string]
+//	@Failure		500	{object}	rest.ResponseEnvelope[string]
 //	@Router			/universes/{id} [delete]
 func deleteUniverse(c *echo.Context, s service.UniverseService) error {
 	maybeId := c.Param("id")

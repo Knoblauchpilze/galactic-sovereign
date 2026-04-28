@@ -6,8 +6,8 @@ import (
 )
 
 type BuildingResourceProductionDtoResponse struct {
-	Building uuid.UUID `json:"building"`
-	Resource uuid.UUID `json:"resource"`
+	Building uuid.UUID `json:"building" format:"uuid"`
+	Resource uuid.UUID `json:"resource" format:"uuid"`
 	Base     int       `json:"base"`
 	Progress float64   `json:"progress"`
 }

@@ -28,6 +28,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
+                        "format": "uuid",
                         "description": "Action id (UUID)",
                         "name": "id",
                         "in": "path",
@@ -42,21 +43,21 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Invalid id syntax",
+                        "description": "Bad Request",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rest.ResponseEnvelope-string"
                         }
                     },
                     "404": {
-                        "description": "No such action",
+                        "description": "Not Found",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rest.ResponseEnvelope-string"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/controller.ToolkitErrorDoc"
+                            "$ref": "#/definitions/rest.ResponseEnvelope-string"
                         }
                     }
                 }
@@ -82,7 +83,7 @@ const docTemplate = `{
                     "503": {
                         "description": "Service Unavailable",
                         "schema": {
-                            "$ref": "#/definitions/controller.ToolkitErrorDoc"
+                            "$ref": "#/definitions/rest.ResponseEnvelope-string"
                         }
                     }
                 }
@@ -110,22 +111,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/controller.PlanetResponseDoc"
-                            }
+                            "$ref": "#/definitions/rest.ResponseEnvelope-array_communication_PlanetDtoResponse"
                         }
                     },
                     "400": {
-                        "description": "Invalid id syntax",
+                        "description": "Bad Request",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rest.ResponseEnvelope-string"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/controller.ToolkitErrorDoc"
+                            "$ref": "#/definitions/rest.ResponseEnvelope-string"
                         }
                     }
                 }
@@ -149,7 +147,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/controller.PlanetRequestDoc"
+                            "$ref": "#/definitions/communication.PlanetDtoRequest"
                         }
                     }
                 ],
@@ -157,19 +155,19 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/controller.PlanetResponseDoc"
+                            "$ref": "#/definitions/rest.ResponseEnvelope-communication_PlanetDtoResponse"
                         }
                     },
                     "400": {
-                        "description": "Invalid planet syntax",
+                        "description": "Bad Request",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rest.ResponseEnvelope-string"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/controller.ToolkitErrorDoc"
+                            "$ref": "#/definitions/rest.ResponseEnvelope-string"
                         }
                     }
                 }
@@ -188,6 +186,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
+                        "format": "uuid",
                         "description": "Planet id (UUID)",
                         "name": "id",
                         "in": "path",
@@ -198,25 +197,25 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/controller.FullPlanetResponseDoc"
+                            "$ref": "#/definitions/rest.ResponseEnvelope-communication_FullPlanetDtoResponse"
                         }
                     },
                     "400": {
-                        "description": "Invalid id syntax",
+                        "description": "Bad Request",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rest.ResponseEnvelope-string"
                         }
                     },
                     "404": {
-                        "description": "No such planet",
+                        "description": "Not Found",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rest.ResponseEnvelope-string"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/controller.ToolkitErrorDoc"
+                            "$ref": "#/definitions/rest.ResponseEnvelope-string"
                         }
                     }
                 }
@@ -233,6 +232,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
+                        "format": "uuid",
                         "description": "Planet id (UUID)",
                         "name": "id",
                         "in": "path",
@@ -247,21 +247,21 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Invalid id syntax",
+                        "description": "Bad Request",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rest.ResponseEnvelope-string"
                         }
                     },
                     "404": {
-                        "description": "No such planet",
+                        "description": "Not Found",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rest.ResponseEnvelope-string"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/controller.ToolkitErrorDoc"
+                            "$ref": "#/definitions/rest.ResponseEnvelope-string"
                         }
                     }
                 }
@@ -283,6 +283,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
+                        "format": "uuid",
                         "description": "Planet id (UUID)",
                         "name": "id",
                         "in": "path",
@@ -294,7 +295,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/controller.BuildingActionRequestDoc"
+                            "$ref": "#/definitions/communication.BuildingActionDtoRequest"
                         }
                     }
                 ],
@@ -302,25 +303,25 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/controller.BuildingActionResponseDoc"
+                            "$ref": "#/definitions/rest.ResponseEnvelope-communication_BuildingActionDtoResponse"
                         }
                     },
                     "400": {
-                        "description": "Invalid id syntax, invalid payload syntax or not enough resources",
+                        "description": "Bad Request",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rest.ResponseEnvelope-string"
                         }
                     },
                     "409": {
-                        "description": "Building action already exists",
+                        "description": "Conflict",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rest.ResponseEnvelope-string"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/controller.ToolkitErrorDoc"
+                            "$ref": "#/definitions/rest.ResponseEnvelope-string"
                         }
                     }
                 }
@@ -348,72 +349,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/controller.PlayerResponseDoc"
-                            }
+                            "$ref": "#/definitions/rest.ResponseEnvelope-array_communication_PlayerDtoResponse"
                         }
                     },
                     "400": {
-                        "description": "Invalid id syntax",
+                        "description": "Bad Request",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rest.ResponseEnvelope-string"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/controller.ToolkitErrorDoc"
-                        }
-                    }
-                }
-            },
-            "post": {
-                "description": "Creates a player and its homeworld.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "players"
-                ],
-                "summary": "Create player",
-                "parameters": [
-                    {
-                        "description": "Player payload",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/controller.PlayerRequestDoc"
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Created",
-                        "schema": {
-                            "$ref": "#/definitions/controller.PlayerResponseDoc"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid player syntax",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "409": {
-                        "description": "Name already used",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/controller.ToolkitErrorDoc"
+                            "$ref": "#/definitions/rest.ResponseEnvelope-string"
                         }
                     }
                 }
@@ -432,6 +380,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
+                        "format": "uuid",
                         "description": "Player id (UUID)",
                         "name": "id",
                         "in": "path",
@@ -442,25 +391,25 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/controller.PlayerResponseDoc"
+                            "$ref": "#/definitions/rest.ResponseEnvelope-communication_PlayerDtoResponse"
                         }
                     },
                     "400": {
-                        "description": "Invalid id syntax",
+                        "description": "Bad Request",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rest.ResponseEnvelope-string"
                         }
                     },
                     "404": {
-                        "description": "No such player",
+                        "description": "Not Found",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rest.ResponseEnvelope-string"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/controller.ToolkitErrorDoc"
+                            "$ref": "#/definitions/rest.ResponseEnvelope-string"
                         }
                     }
                 }
@@ -477,6 +426,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
+                        "format": "uuid",
                         "description": "Player id (UUID)",
                         "name": "id",
                         "in": "path",
@@ -491,21 +441,21 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Invalid id syntax",
+                        "description": "Bad Request",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rest.ResponseEnvelope-string"
                         }
                     },
                     "404": {
-                        "description": "No such player",
+                        "description": "Not Found",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rest.ResponseEnvelope-string"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/controller.ToolkitErrorDoc"
+                            "$ref": "#/definitions/rest.ResponseEnvelope-string"
                         }
                     }
                 }
@@ -525,66 +475,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/controller.UniverseResponseDoc"
-                            }
+                            "$ref": "#/definitions/rest.ResponseEnvelope-array_communication_UniverseDtoResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/controller.ToolkitErrorDoc"
-                        }
-                    }
-                }
-            },
-            "post": {
-                "description": "Creates a universe.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "universes"
-                ],
-                "summary": "Create universe",
-                "parameters": [
-                    {
-                        "description": "Universe payload",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/controller.UniverseRequestDoc"
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Created",
-                        "schema": {
-                            "$ref": "#/definitions/controller.UniverseResponseDoc"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid universe syntax",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "409": {
-                        "description": "Name already used",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/controller.ToolkitErrorDoc"
+                            "$ref": "#/definitions/rest.ResponseEnvelope-string"
                         }
                     }
                 }
@@ -603,6 +500,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
+                        "format": "uuid",
                         "description": "Universe id (UUID)",
                         "name": "id",
                         "in": "path",
@@ -613,25 +511,25 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/controller.FullUniverseResponseDoc"
+                            "$ref": "#/definitions/rest.ResponseEnvelope-communication_FullUniverseDtoResponse"
                         }
                     },
                     "400": {
-                        "description": "Invalid id syntax",
+                        "description": "Bad Request",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rest.ResponseEnvelope-string"
                         }
                     },
                     "404": {
-                        "description": "No such universe",
+                        "description": "Not Found",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rest.ResponseEnvelope-string"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/controller.ToolkitErrorDoc"
+                            "$ref": "#/definitions/rest.ResponseEnvelope-string"
                         }
                     }
                 }
@@ -648,6 +546,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
+                        "format": "uuid",
                         "description": "Universe id (UUID)",
                         "name": "id",
                         "in": "path",
@@ -662,21 +561,21 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Invalid id syntax",
+                        "description": "Bad Request",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rest.ResponseEnvelope-string"
                         }
                     },
                     "404": {
-                        "description": "No such universe",
+                        "description": "Not Found",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/rest.ResponseEnvelope-string"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/controller.ToolkitErrorDoc"
+                            "$ref": "#/definitions/rest.ResponseEnvelope-string"
                         }
                     }
                 }
@@ -684,28 +583,33 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "controller.BuildingActionRequestDoc": {
+        "communication.BuildingActionDtoRequest": {
             "type": "object",
             "properties": {
                 "building": {
-                    "type": "string"
+                    "type": "string",
+                    "format": "uuid"
                 },
                 "planet": {
-                    "type": "string"
+                    "type": "string",
+                    "format": "uuid"
                 }
             }
         },
-        "controller.BuildingActionResponseDoc": {
+        "communication.BuildingActionDtoResponse": {
             "type": "object",
             "properties": {
                 "building": {
-                    "type": "string"
+                    "type": "string",
+                    "format": "uuid"
                 },
                 "completedAt": {
-                    "type": "string"
+                    "type": "string",
+                    "format": "date-time"
                 },
                 "createdAt": {
-                    "type": "string"
+                    "type": "string",
+                    "format": "date-time"
                 },
                 "currentLevel": {
                     "type": "integer"
@@ -714,18 +618,21 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "id": {
-                    "type": "string"
+                    "type": "string",
+                    "format": "uuid"
                 },
                 "planet": {
-                    "type": "string"
+                    "type": "string",
+                    "format": "uuid"
                 }
             }
         },
-        "controller.BuildingCostResponseDoc": {
+        "communication.BuildingCostDtoResponse": {
             "type": "object",
             "properties": {
                 "building": {
-                    "type": "string"
+                    "type": "string",
+                    "format": "uuid"
                 },
                 "cost": {
                     "type": "integer"
@@ -734,61 +641,68 @@ const docTemplate = `{
                     "type": "number"
                 },
                 "resource": {
-                    "type": "string"
+                    "type": "string",
+                    "format": "uuid"
                 }
             }
         },
-        "controller.BuildingResourceProductionResponseDoc": {
+        "communication.BuildingResourceProductionDtoResponse": {
             "type": "object",
             "properties": {
                 "base": {
                     "type": "integer"
                 },
                 "building": {
-                    "type": "string"
+                    "type": "string",
+                    "format": "uuid"
                 },
                 "progress": {
                     "type": "number"
                 },
                 "resource": {
-                    "type": "string"
+                    "type": "string",
+                    "format": "uuid"
                 }
             }
         },
-        "controller.BuildingResourceStorageResponseDoc": {
+        "communication.BuildingResourceStorageDtoResponse": {
             "type": "object",
             "properties": {
                 "base": {
                     "type": "integer"
                 },
                 "building": {
-                    "type": "string"
+                    "type": "string",
+                    "format": "uuid"
                 },
                 "progress": {
                     "type": "number"
                 },
                 "resource": {
-                    "type": "string"
+                    "type": "string",
+                    "format": "uuid"
                 },
                 "scale": {
                     "type": "number"
                 }
             }
         },
-        "controller.FullBuildingResponseDoc": {
+        "communication.FullBuildingDtoResponse": {
             "type": "object",
             "properties": {
                 "costs": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/controller.BuildingCostResponseDoc"
+                        "$ref": "#/definitions/communication.BuildingCostDtoResponse"
                     }
                 },
                 "createdAt": {
-                    "type": "string"
+                    "type": "string",
+                    "format": "date-time"
                 },
                 "id": {
-                    "type": "string"
+                    "type": "string",
+                    "format": "uuid"
                 },
                 "name": {
                     "type": "string"
@@ -796,81 +710,86 @@ const docTemplate = `{
                 "productions": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/controller.BuildingResourceProductionResponseDoc"
+                        "$ref": "#/definitions/communication.BuildingResourceProductionDtoResponse"
                     }
                 },
                 "storages": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/controller.BuildingResourceStorageResponseDoc"
+                        "$ref": "#/definitions/communication.BuildingResourceStorageDtoResponse"
                     }
                 }
             }
         },
-        "controller.FullPlanetResponseDoc": {
+        "communication.FullPlanetDtoResponse": {
             "type": "object",
             "properties": {
                 "buildingActions": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/controller.BuildingActionResponseDoc"
+                        "$ref": "#/definitions/communication.BuildingActionDtoResponse"
                     }
                 },
                 "buildings": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/controller.PlanetBuildingResponseDoc"
+                        "$ref": "#/definitions/communication.PlanetBuildingDtoResponse"
                     }
                 },
                 "createdAt": {
-                    "type": "string"
+                    "type": "string",
+                    "format": "date-time"
                 },
                 "homeworld": {
                     "type": "boolean"
                 },
                 "id": {
-                    "type": "string"
+                    "type": "string",
+                    "format": "uuid"
                 },
                 "name": {
                     "type": "string"
                 },
                 "player": {
-                    "type": "string"
+                    "type": "string",
+                    "format": "uuid"
                 },
                 "productions": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/controller.PlanetResourceProductionResponseDoc"
+                        "$ref": "#/definitions/communication.PlanetResourceProductionDtoResponse"
                     }
                 },
                 "resources": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/controller.PlanetResourceResponseDoc"
+                        "$ref": "#/definitions/communication.PlanetResourceDtoResponse"
                     }
                 },
                 "storages": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/controller.PlanetResourceStorageResponseDoc"
+                        "$ref": "#/definitions/communication.PlanetResourceStorageDtoResponse"
                     }
                 }
             }
         },
-        "controller.FullUniverseResponseDoc": {
+        "communication.FullUniverseDtoResponse": {
             "type": "object",
             "properties": {
                 "buildings": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/controller.FullBuildingResponseDoc"
+                        "$ref": "#/definitions/communication.FullBuildingDtoResponse"
                     }
                 },
                 "createdAt": {
-                    "type": "string"
+                    "type": "string",
+                    "format": "date-time"
                 },
                 "id": {
-                    "type": "string"
+                    "type": "string",
+                    "format": "uuid"
                 },
                 "name": {
                     "type": "string"
@@ -878,174 +797,187 @@ const docTemplate = `{
                 "resources": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/controller.ResourceResponseDoc"
+                        "$ref": "#/definitions/communication.ResourceDtoResponse"
                     }
                 }
             }
         },
-        "controller.PlanetBuildingResponseDoc": {
+        "communication.PlanetBuildingDtoResponse": {
             "type": "object",
             "properties": {
                 "building": {
-                    "type": "string"
+                    "type": "string",
+                    "format": "uuid"
                 },
                 "createdAt": {
-                    "type": "string"
+                    "type": "string",
+                    "format": "date-time"
                 },
                 "level": {
                     "type": "integer"
                 },
                 "planet": {
-                    "type": "string"
+                    "type": "string",
+                    "format": "uuid"
                 },
                 "updatedAt": {
-                    "type": "string"
+                    "type": "string",
+                    "format": "date-time"
                 }
             }
         },
-        "controller.PlanetRequestDoc": {
+        "communication.PlanetDtoRequest": {
             "type": "object",
             "properties": {
                 "name": {
                     "type": "string"
                 },
                 "player": {
-                    "type": "string"
+                    "type": "string",
+                    "format": "uuid"
                 }
             }
         },
-        "controller.PlanetResourceProductionResponseDoc": {
+        "communication.PlanetDtoResponse": {
             "type": "object",
             "properties": {
-                "building": {
+                "createdAt": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "homeworld": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "string",
+                    "format": "uuid"
+                },
+                "name": {
                     "type": "string"
                 },
-                "planet": {
-                    "type": "string"
-                },
-                "production": {
-                    "type": "integer"
-                },
-                "resource": {
-                    "type": "string"
+                "player": {
+                    "type": "string",
+                    "format": "uuid"
                 }
             }
         },
-        "controller.PlanetResourceResponseDoc": {
+        "communication.PlanetResourceDtoResponse": {
             "type": "object",
             "properties": {
                 "amount": {
                     "type": "number"
                 },
                 "createdAt": {
-                    "type": "string"
+                    "type": "string",
+                    "format": "date-time"
                 },
                 "planet": {
-                    "type": "string"
+                    "type": "string",
+                    "format": "uuid"
                 },
                 "resource": {
-                    "type": "string"
+                    "type": "string",
+                    "format": "uuid"
                 },
                 "updatedAt": {
-                    "type": "string"
+                    "type": "string",
+                    "format": "date-time"
                 }
             }
         },
-        "controller.PlanetResourceStorageResponseDoc": {
+        "communication.PlanetResourceProductionDtoResponse": {
+            "type": "object",
+            "properties": {
+                "building": {
+                    "type": "string",
+                    "format": "uuid"
+                },
+                "planet": {
+                    "type": "string",
+                    "format": "uuid"
+                },
+                "production": {
+                    "type": "integer"
+                },
+                "resource": {
+                    "type": "string",
+                    "format": "uuid"
+                }
+            }
+        },
+        "communication.PlanetResourceStorageDtoResponse": {
             "type": "object",
             "properties": {
                 "planet": {
-                    "type": "string"
+                    "type": "string",
+                    "format": "uuid"
                 },
                 "resource": {
-                    "type": "string"
+                    "type": "string",
+                    "format": "uuid"
                 },
                 "storage": {
                     "type": "integer"
                 }
             }
         },
-        "controller.PlanetResponseDoc": {
-            "type": "object",
-            "properties": {
-                "createdAt": {
-                    "type": "string"
-                },
-                "homeworld": {
-                    "type": "boolean"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "player": {
-                    "type": "string"
-                }
-            }
-        },
-        "controller.PlayerRequestDoc": {
+        "communication.PlayerDtoRequest": {
             "type": "object",
             "properties": {
                 "api_user": {
-                    "type": "string"
+                    "type": "string",
+                    "format": "uuid"
                 },
                 "name": {
                     "type": "string"
                 },
                 "universe": {
-                    "type": "string"
+                    "type": "string",
+                    "format": "uuid"
                 }
             }
         },
-        "controller.PlayerResponseDoc": {
+        "communication.PlayerDtoResponse": {
             "type": "object",
             "properties": {
                 "api_user": {
-                    "type": "string"
+                    "type": "string",
+                    "format": "uuid"
                 },
                 "createdAt": {
-                    "type": "string"
+                    "type": "string",
+                    "format": "date-time"
                 },
                 "id": {
-                    "type": "string"
+                    "type": "string",
+                    "format": "uuid"
                 },
                 "name": {
                     "type": "string"
                 },
                 "universe": {
-                    "type": "string"
+                    "type": "string",
+                    "format": "uuid"
                 }
             }
         },
-        "controller.ResourceResponseDoc": {
+        "communication.ResourceDtoResponse": {
             "type": "object",
             "properties": {
                 "createdAt": {
-                    "type": "string"
+                    "type": "string",
+                    "format": "date-time"
                 },
                 "id": {
-                    "type": "string"
+                    "type": "string",
+                    "format": "uuid"
                 },
                 "name": {
                     "type": "string"
                 }
             }
         },
-        "controller.ToolkitErrorDoc": {
-            "type": "object",
-            "properties": {
-                "Cause": {},
-                "Message": {
-                    "type": "string"
-                },
-                "Value": {
-                    "type": "integer"
-                }
-            }
-        },
-        "controller.UniverseRequestDoc": {
+        "communication.UniverseDtoRequest": {
             "type": "object",
             "properties": {
                 "name": {
@@ -1053,19 +985,251 @@ const docTemplate = `{
                 }
             }
         },
-        "controller.UniverseResponseDoc": {
+        "communication.UniverseDtoResponse": {
             "type": "object",
             "properties": {
                 "createdAt": {
-                    "type": "string"
+                    "type": "string",
+                    "format": "date-time"
                 },
                 "id": {
-                    "type": "string"
+                    "type": "string",
+                    "format": "uuid"
                 },
                 "name": {
                     "type": "string"
                 }
             }
+        },
+        "rest.ResponseEnvelope-array_communication_PlanetDtoResponse": {
+            "type": "object",
+            "properties": {
+                "details": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/communication.PlanetDtoResponse"
+                    }
+                },
+                "requestId": {
+                    "type": "string",
+                    "format": "uuid",
+                    "example": "669cd40f-ea15-40a8-ab03-81e704a3ecf9"
+                },
+                "status": {
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/rest.Status"
+                        }
+                    ],
+                    "example": "SUCCESS"
+                }
+            }
+        },
+        "rest.ResponseEnvelope-array_communication_PlayerDtoResponse": {
+            "type": "object",
+            "properties": {
+                "details": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/communication.PlayerDtoResponse"
+                    }
+                },
+                "requestId": {
+                    "type": "string",
+                    "format": "uuid",
+                    "example": "669cd40f-ea15-40a8-ab03-81e704a3ecf9"
+                },
+                "status": {
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/rest.Status"
+                        }
+                    ],
+                    "example": "SUCCESS"
+                }
+            }
+        },
+        "rest.ResponseEnvelope-array_communication_UniverseDtoResponse": {
+            "type": "object",
+            "properties": {
+                "details": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/communication.UniverseDtoResponse"
+                    }
+                },
+                "requestId": {
+                    "type": "string",
+                    "format": "uuid",
+                    "example": "669cd40f-ea15-40a8-ab03-81e704a3ecf9"
+                },
+                "status": {
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/rest.Status"
+                        }
+                    ],
+                    "example": "SUCCESS"
+                }
+            }
+        },
+        "rest.ResponseEnvelope-communication_BuildingActionDtoResponse": {
+            "type": "object",
+            "properties": {
+                "details": {
+                    "$ref": "#/definitions/communication.BuildingActionDtoResponse"
+                },
+                "requestId": {
+                    "type": "string",
+                    "format": "uuid",
+                    "example": "669cd40f-ea15-40a8-ab03-81e704a3ecf9"
+                },
+                "status": {
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/rest.Status"
+                        }
+                    ],
+                    "example": "SUCCESS"
+                }
+            }
+        },
+        "rest.ResponseEnvelope-communication_FullPlanetDtoResponse": {
+            "type": "object",
+            "properties": {
+                "details": {
+                    "$ref": "#/definitions/communication.FullPlanetDtoResponse"
+                },
+                "requestId": {
+                    "type": "string",
+                    "format": "uuid",
+                    "example": "669cd40f-ea15-40a8-ab03-81e704a3ecf9"
+                },
+                "status": {
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/rest.Status"
+                        }
+                    ],
+                    "example": "SUCCESS"
+                }
+            }
+        },
+        "rest.ResponseEnvelope-communication_FullUniverseDtoResponse": {
+            "type": "object",
+            "properties": {
+                "details": {
+                    "$ref": "#/definitions/communication.FullUniverseDtoResponse"
+                },
+                "requestId": {
+                    "type": "string",
+                    "format": "uuid",
+                    "example": "669cd40f-ea15-40a8-ab03-81e704a3ecf9"
+                },
+                "status": {
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/rest.Status"
+                        }
+                    ],
+                    "example": "SUCCESS"
+                }
+            }
+        },
+        "rest.ResponseEnvelope-communication_PlanetDtoResponse": {
+            "type": "object",
+            "properties": {
+                "details": {
+                    "$ref": "#/definitions/communication.PlanetDtoResponse"
+                },
+                "requestId": {
+                    "type": "string",
+                    "format": "uuid",
+                    "example": "669cd40f-ea15-40a8-ab03-81e704a3ecf9"
+                },
+                "status": {
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/rest.Status"
+                        }
+                    ],
+                    "example": "SUCCESS"
+                }
+            }
+        },
+        "rest.ResponseEnvelope-communication_PlayerDtoResponse": {
+            "type": "object",
+            "properties": {
+                "details": {
+                    "$ref": "#/definitions/communication.PlayerDtoResponse"
+                },
+                "requestId": {
+                    "type": "string",
+                    "format": "uuid",
+                    "example": "669cd40f-ea15-40a8-ab03-81e704a3ecf9"
+                },
+                "status": {
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/rest.Status"
+                        }
+                    ],
+                    "example": "SUCCESS"
+                }
+            }
+        },
+        "rest.ResponseEnvelope-communication_UniverseDtoResponse": {
+            "type": "object",
+            "properties": {
+                "details": {
+                    "$ref": "#/definitions/communication.UniverseDtoResponse"
+                },
+                "requestId": {
+                    "type": "string",
+                    "format": "uuid",
+                    "example": "669cd40f-ea15-40a8-ab03-81e704a3ecf9"
+                },
+                "status": {
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/rest.Status"
+                        }
+                    ],
+                    "example": "SUCCESS"
+                }
+            }
+        },
+        "rest.ResponseEnvelope-string": {
+            "type": "object",
+            "properties": {
+                "details": {
+                    "type": "string"
+                },
+                "requestId": {
+                    "type": "string",
+                    "format": "uuid",
+                    "example": "669cd40f-ea15-40a8-ab03-81e704a3ecf9"
+                },
+                "status": {
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/rest.Status"
+                        }
+                    ],
+                    "example": "SUCCESS"
+                }
+            }
+        },
+        "rest.Status": {
+            "type": "string",
+            "enum": [
+                "SUCCESS",
+                "ERROR"
+            ],
+            "x-enum-varnames": [
+                "StatusSuccess",
+                "StatusError"
+            ]
         }
     }
 }`

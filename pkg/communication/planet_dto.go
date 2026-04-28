@@ -8,17 +8,17 @@ import (
 )
 
 type PlanetDtoRequest struct {
-	Player uuid.UUID `json:"player"`
+	Player uuid.UUID `json:"player" format:"uuid"`
 	Name   string    `json:"name" form:"name"`
 }
 
 type PlanetDtoResponse struct {
-	Id        uuid.UUID `json:"id"`
-	Player    uuid.UUID `json:"player"`
+	Id        uuid.UUID `json:"id" format:"uuid"`
+	Player    uuid.UUID `json:"player" format:"uuid"`
 	Name      string    `json:"name"`
 	Homeworld bool      `json:"homeworld"`
 
-	CreatedAt time.Time `json:"createdAt"`
+	CreatedAt time.Time `json:"createdAt" format:"date-time"`
 }
 
 func FromPlanetDtoRequest(planet PlanetDtoRequest) persistence.Planet {

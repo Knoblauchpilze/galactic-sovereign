@@ -8,11 +8,11 @@ import (
 )
 
 type ResourceDtoResponse struct {
-	Id   uuid.UUID `json:"id"`
+	Id   uuid.UUID `json:"id" format:"uuid"`
 	Name string    `json:"name"`
 	// TODO: Should include start_production and other props
 
-	CreatedAt time.Time `json:"createdAt"`
+	CreatedAt time.Time `json:"createdAt" format:"date-time"`
 }
 
 func ToResourceDtoResponse(resource persistence.Resource) ResourceDtoResponse {
