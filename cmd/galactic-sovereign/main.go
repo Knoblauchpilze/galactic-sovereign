@@ -12,7 +12,7 @@ import (
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/process"
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/rest"
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/server"
-	docs "github.com/Knoblauchpilze/galactic-sovereign/api"
+	_ "github.com/Knoblauchpilze/galactic-sovereign/api"
 	"github.com/Knoblauchpilze/galactic-sovereign/cmd/galactic-sovereign/internal"
 	"github.com/Knoblauchpilze/galactic-sovereign/internal/controller"
 	"github.com/Knoblauchpilze/galactic-sovereign/internal/service"
@@ -31,7 +31,8 @@ func determineConfigName() string {
 // @title			Galactic Sovereign API
 // @version		1.0
 // @description	REST API for the Galactic Sovereign backend service.
-// @BasePath		/v1/galactic-sovereign
+// @servers.url /v1
+// @servers.description Base path for the galactic-sovereign API
 func main() {
 	log := logger.New(os.Stdout)
 
@@ -112,8 +113,7 @@ func main() {
 		}
 	}
 
-	docs.SwaggerInfo.BasePath = conf.Server.BasePath
-	swaggerUi := rest.NewRawRoute(http.MethodGet, "/swagger/*", echoSwagger.WrapHandler)
+	swaggerUi := rest.NewRawRoute(http.MethodGet, "/swagger/*", echoSwagger.WrapHandlerV3)
 	if err := s.AddRoute(swaggerUi); err != nil {
 		log.Error("Failed to register route", slog.String("route", swaggerUi.Path()), slog.Any("error", err))
 		os.Exit(1)

@@ -1,6 +1,6 @@
 
 GIT_COMMIT_HASH=$(shell git rev-parse --short HEAD)
-SWAG_VERSION ?= v1.16.6
+SWAG_VERSION ?= v2.0.0-rc5
 
 galactic-sovereign-service-build:
 	docker build \
@@ -11,7 +11,8 @@ galactic-sovereign-service-build:
 
 generate-api-spec:
 	cd cmd/galactic-sovereign && \
-	go run github.com/swaggo/swag/cmd/swag@${SWAG_VERSION} init \
+	go run github.com/swaggo/swag/v2/cmd/swag@${SWAG_VERSION} init \
+		--v3.1 \
 		--generalInfo main.go \
 		--dir .,../../internal/controller,../../pkg/communication \
 		--output ../../api \

@@ -1,489 +1,488 @@
-basePath: /v1/galactic-sovereign
-definitions:
-  communication.BuildingActionDtoRequest:
-    properties:
-      building:
-        format: uuid
-        type: string
-      planet:
-        format: uuid
-        type: string
-    type: object
-  communication.BuildingActionDtoResponse:
-    properties:
-      building:
-        format: uuid
-        type: string
-      completedAt:
-        format: date-time
-        type: string
-      createdAt:
-        format: date-time
-        type: string
-      currentLevel:
-        type: integer
-      desiredLevel:
-        type: integer
-      id:
-        format: uuid
-        type: string
-      planet:
-        format: uuid
-        type: string
-    type: object
-  communication.BuildingCostDtoResponse:
-    properties:
-      building:
-        format: uuid
-        type: string
-      cost:
-        type: integer
-      progress:
-        type: number
-      resource:
-        format: uuid
-        type: string
-    type: object
-  communication.BuildingResourceProductionDtoResponse:
-    properties:
-      base:
-        type: integer
-      building:
-        format: uuid
-        type: string
-      progress:
-        type: number
-      resource:
-        format: uuid
-        type: string
-    type: object
-  communication.BuildingResourceStorageDtoResponse:
-    properties:
-      base:
-        type: integer
-      building:
-        format: uuid
-        type: string
-      progress:
-        type: number
-      resource:
-        format: uuid
-        type: string
-      scale:
-        type: number
-    type: object
-  communication.FullBuildingDtoResponse:
-    properties:
-      costs:
-        items:
-          $ref: '#/definitions/communication.BuildingCostDtoResponse'
-        type: array
-      createdAt:
-        format: date-time
-        type: string
-      id:
-        format: uuid
-        type: string
-      name:
-        type: string
-      productions:
-        items:
-          $ref: '#/definitions/communication.BuildingResourceProductionDtoResponse'
-        type: array
-      storages:
-        items:
-          $ref: '#/definitions/communication.BuildingResourceStorageDtoResponse'
-        type: array
-    type: object
-  communication.FullPlanetDtoResponse:
-    properties:
-      buildingActions:
-        items:
-          $ref: '#/definitions/communication.BuildingActionDtoResponse'
-        type: array
-      buildings:
-        items:
-          $ref: '#/definitions/communication.PlanetBuildingDtoResponse'
-        type: array
-      createdAt:
-        format: date-time
-        type: string
-      homeworld:
-        type: boolean
-      id:
-        format: uuid
-        type: string
-      name:
-        type: string
-      player:
-        format: uuid
-        type: string
-      productions:
-        items:
-          $ref: '#/definitions/communication.PlanetResourceProductionDtoResponse'
-        type: array
-      resources:
-        items:
-          $ref: '#/definitions/communication.PlanetResourceDtoResponse'
-        type: array
-      storages:
-        items:
-          $ref: '#/definitions/communication.PlanetResourceStorageDtoResponse'
-        type: array
-    type: object
-  communication.FullUniverseDtoResponse:
-    properties:
-      buildings:
-        items:
-          $ref: '#/definitions/communication.FullBuildingDtoResponse'
-        type: array
-      createdAt:
-        format: date-time
-        type: string
-      id:
-        format: uuid
-        type: string
-      name:
-        type: string
-      resources:
-        items:
-          $ref: '#/definitions/communication.ResourceDtoResponse'
-        type: array
-    type: object
-  communication.PlanetBuildingDtoResponse:
-    properties:
-      building:
-        format: uuid
-        type: string
-      createdAt:
-        format: date-time
-        type: string
-      level:
-        type: integer
-      planet:
-        format: uuid
-        type: string
-      updatedAt:
-        format: date-time
-        type: string
-    type: object
-  communication.PlanetDtoRequest:
-    properties:
-      name:
-        type: string
-      player:
-        format: uuid
-        type: string
-    type: object
-  communication.PlanetDtoResponse:
-    properties:
-      createdAt:
-        format: date-time
-        type: string
-      homeworld:
-        type: boolean
-      id:
-        format: uuid
-        type: string
-      name:
-        type: string
-      player:
-        format: uuid
-        type: string
-    type: object
-  communication.PlanetResourceDtoResponse:
-    properties:
-      amount:
-        type: number
-      createdAt:
-        format: date-time
-        type: string
-      planet:
-        format: uuid
-        type: string
-      resource:
-        format: uuid
-        type: string
-      updatedAt:
-        format: date-time
-        type: string
-    type: object
-  communication.PlanetResourceProductionDtoResponse:
-    properties:
-      building:
-        format: uuid
-        type: string
-      planet:
-        format: uuid
-        type: string
-      production:
-        type: integer
-      resource:
-        format: uuid
-        type: string
-    type: object
-  communication.PlanetResourceStorageDtoResponse:
-    properties:
-      planet:
-        format: uuid
-        type: string
-      resource:
-        format: uuid
-        type: string
-      storage:
-        type: integer
-    type: object
-  communication.PlayerDtoRequest:
-    properties:
-      api_user:
-        format: uuid
-        type: string
-      name:
-        type: string
-      universe:
-        format: uuid
-        type: string
-    type: object
-  communication.PlayerDtoResponse:
-    properties:
-      api_user:
-        format: uuid
-        type: string
-      createdAt:
-        format: date-time
-        type: string
-      id:
-        format: uuid
-        type: string
-      name:
-        type: string
-      universe:
-        format: uuid
-        type: string
-    type: object
-  communication.ResourceDtoResponse:
-    properties:
-      createdAt:
-        format: date-time
-        type: string
-      id:
-        format: uuid
-        type: string
-      name:
-        type: string
-    type: object
-  communication.UniverseDtoRequest:
-    properties:
-      name:
-        type: string
-    type: object
-  communication.UniverseDtoResponse:
-    properties:
-      createdAt:
-        format: date-time
-        type: string
-      id:
-        format: uuid
-        type: string
-      name:
-        type: string
-    type: object
-  rest.ResponseEnvelope-array_communication_PlanetDtoResponse:
-    properties:
-      details:
-        items:
-          $ref: '#/definitions/communication.PlanetDtoResponse'
-        type: array
-      requestId:
-        example: 669cd40f-ea15-40a8-ab03-81e704a3ecf9
-        format: uuid
-        type: string
-      status:
-        allOf:
-        - $ref: '#/definitions/rest.Status'
-        example: SUCCESS
-    type: object
-  rest.ResponseEnvelope-array_communication_PlayerDtoResponse:
-    properties:
-      details:
-        items:
-          $ref: '#/definitions/communication.PlayerDtoResponse'
-        type: array
-      requestId:
-        example: 669cd40f-ea15-40a8-ab03-81e704a3ecf9
-        format: uuid
-        type: string
-      status:
-        allOf:
-        - $ref: '#/definitions/rest.Status'
-        example: SUCCESS
-    type: object
-  rest.ResponseEnvelope-array_communication_UniverseDtoResponse:
-    properties:
-      details:
-        items:
-          $ref: '#/definitions/communication.UniverseDtoResponse'
-        type: array
-      requestId:
-        example: 669cd40f-ea15-40a8-ab03-81e704a3ecf9
-        format: uuid
-        type: string
-      status:
-        allOf:
-        - $ref: '#/definitions/rest.Status'
-        example: SUCCESS
-    type: object
-  rest.ResponseEnvelope-communication_BuildingActionDtoResponse:
-    properties:
-      details:
-        $ref: '#/definitions/communication.BuildingActionDtoResponse'
-      requestId:
-        example: 669cd40f-ea15-40a8-ab03-81e704a3ecf9
-        format: uuid
-        type: string
-      status:
-        allOf:
-        - $ref: '#/definitions/rest.Status'
-        example: SUCCESS
-    type: object
-  rest.ResponseEnvelope-communication_FullPlanetDtoResponse:
-    properties:
-      details:
-        $ref: '#/definitions/communication.FullPlanetDtoResponse'
-      requestId:
-        example: 669cd40f-ea15-40a8-ab03-81e704a3ecf9
-        format: uuid
-        type: string
-      status:
-        allOf:
-        - $ref: '#/definitions/rest.Status'
-        example: SUCCESS
-    type: object
-  rest.ResponseEnvelope-communication_FullUniverseDtoResponse:
-    properties:
-      details:
-        $ref: '#/definitions/communication.FullUniverseDtoResponse'
-      requestId:
-        example: 669cd40f-ea15-40a8-ab03-81e704a3ecf9
-        format: uuid
-        type: string
-      status:
-        allOf:
-        - $ref: '#/definitions/rest.Status'
-        example: SUCCESS
-    type: object
-  rest.ResponseEnvelope-communication_PlanetDtoResponse:
-    properties:
-      details:
-        $ref: '#/definitions/communication.PlanetDtoResponse'
-      requestId:
-        example: 669cd40f-ea15-40a8-ab03-81e704a3ecf9
-        format: uuid
-        type: string
-      status:
-        allOf:
-        - $ref: '#/definitions/rest.Status'
-        example: SUCCESS
-    type: object
-  rest.ResponseEnvelope-communication_PlayerDtoResponse:
-    properties:
-      details:
-        $ref: '#/definitions/communication.PlayerDtoResponse'
-      requestId:
-        example: 669cd40f-ea15-40a8-ab03-81e704a3ecf9
-        format: uuid
-        type: string
-      status:
-        allOf:
-        - $ref: '#/definitions/rest.Status'
-        example: SUCCESS
-    type: object
-  rest.ResponseEnvelope-communication_UniverseDtoResponse:
-    properties:
-      details:
-        $ref: '#/definitions/communication.UniverseDtoResponse'
-      requestId:
-        example: 669cd40f-ea15-40a8-ab03-81e704a3ecf9
-        format: uuid
-        type: string
-      status:
-        allOf:
-        - $ref: '#/definitions/rest.Status'
-        example: SUCCESS
-    type: object
-  rest.ResponseEnvelope-string:
-    properties:
-      details:
-        type: string
-      requestId:
-        example: 669cd40f-ea15-40a8-ab03-81e704a3ecf9
-        format: uuid
-        type: string
-      status:
-        allOf:
-        - $ref: '#/definitions/rest.Status'
-        example: SUCCESS
-    type: object
-  rest.Status:
-    enum:
-    - SUCCESS
-    - ERROR
-    type: string
-    x-enum-varnames:
-    - StatusSuccess
-    - StatusError
+components:
+  schemas:
+    communication.BuildingActionDtoRequest:
+      properties:
+        building:
+          format: uuid
+          type: string
+        planet:
+          format: uuid
+          type: string
+      type: object
+    communication.BuildingActionDtoResponse:
+      properties:
+        building:
+          format: uuid
+          type: string
+        completedAt:
+          format: date-time
+          type: string
+        createdAt:
+          format: date-time
+          type: string
+        currentLevel:
+          type: integer
+        desiredLevel:
+          type: integer
+        id:
+          format: uuid
+          type: string
+        planet:
+          format: uuid
+          type: string
+      type: object
+    communication.BuildingCostDtoResponse:
+      properties:
+        building:
+          format: uuid
+          type: string
+        cost:
+          type: integer
+        progress:
+          type: number
+        resource:
+          format: uuid
+          type: string
+      type: object
+    communication.BuildingResourceProductionDtoResponse:
+      properties:
+        base:
+          type: integer
+        building:
+          format: uuid
+          type: string
+        progress:
+          type: number
+        resource:
+          format: uuid
+          type: string
+      type: object
+    communication.BuildingResourceStorageDtoResponse:
+      properties:
+        base:
+          type: integer
+        building:
+          format: uuid
+          type: string
+        progress:
+          type: number
+        resource:
+          format: uuid
+          type: string
+        scale:
+          type: number
+      type: object
+    communication.FullBuildingDtoResponse:
+      properties:
+        costs:
+          items:
+            $ref: '#/components/schemas/communication.BuildingCostDtoResponse'
+          type: array
+        createdAt:
+          format: date-time
+          type: string
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+        productions:
+          items:
+            $ref: '#/components/schemas/communication.BuildingResourceProductionDtoResponse'
+          type: array
+        storages:
+          items:
+            $ref: '#/components/schemas/communication.BuildingResourceStorageDtoResponse'
+          type: array
+      type: object
+    communication.FullPlanetDtoResponse:
+      properties:
+        buildingActions:
+          items:
+            $ref: '#/components/schemas/communication.BuildingActionDtoResponse'
+          type: array
+        buildings:
+          items:
+            $ref: '#/components/schemas/communication.PlanetBuildingDtoResponse'
+          type: array
+        createdAt:
+          format: date-time
+          type: string
+        homeworld:
+          type: boolean
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+        player:
+          format: uuid
+          type: string
+        productions:
+          items:
+            $ref: '#/components/schemas/communication.PlanetResourceProductionDtoResponse'
+          type: array
+        resources:
+          items:
+            $ref: '#/components/schemas/communication.PlanetResourceDtoResponse'
+          type: array
+        storages:
+          items:
+            $ref: '#/components/schemas/communication.PlanetResourceStorageDtoResponse'
+          type: array
+      type: object
+    communication.FullUniverseDtoResponse:
+      properties:
+        buildings:
+          items:
+            $ref: '#/components/schemas/communication.FullBuildingDtoResponse'
+          type: array
+        createdAt:
+          format: date-time
+          type: string
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+        resources:
+          items:
+            $ref: '#/components/schemas/communication.ResourceDtoResponse'
+          type: array
+      type: object
+    communication.PlanetBuildingDtoResponse:
+      properties:
+        building:
+          format: uuid
+          type: string
+        createdAt:
+          format: date-time
+          type: string
+        level:
+          type: integer
+        planet:
+          format: uuid
+          type: string
+        updatedAt:
+          format: date-time
+          type: string
+      type: object
+    communication.PlanetDtoRequest:
+      properties:
+        name:
+          form: name
+          type: string
+        player:
+          format: uuid
+          type: string
+      type: object
+    communication.PlanetDtoResponse:
+      properties:
+        createdAt:
+          format: date-time
+          type: string
+        homeworld:
+          type: boolean
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+        player:
+          format: uuid
+          type: string
+      type: object
+    communication.PlanetResourceDtoResponse:
+      properties:
+        amount:
+          type: number
+        createdAt:
+          format: date-time
+          type: string
+        planet:
+          format: uuid
+          type: string
+        resource:
+          format: uuid
+          type: string
+        updatedAt:
+          format: date-time
+          type: string
+      type: object
+    communication.PlanetResourceProductionDtoResponse:
+      properties:
+        building:
+          format: uuid
+          type: string
+        planet:
+          format: uuid
+          type: string
+        production:
+          type: integer
+        resource:
+          format: uuid
+          type: string
+      type: object
+    communication.PlanetResourceStorageDtoResponse:
+      properties:
+        planet:
+          format: uuid
+          type: string
+        resource:
+          format: uuid
+          type: string
+        storage:
+          type: integer
+      type: object
+    communication.PlayerDtoRequest:
+      properties:
+        api_user:
+          format: uuid
+          type: string
+        name:
+          form: name
+          type: string
+        universe:
+          format: uuid
+          type: string
+      type: object
+    communication.PlayerDtoResponse:
+      properties:
+        api_user:
+          format: uuid
+          type: string
+        createdAt:
+          format: date-time
+          type: string
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+        universe:
+          format: uuid
+          type: string
+      type: object
+    communication.ResourceDtoResponse:
+      properties:
+        createdAt:
+          format: date-time
+          type: string
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+      type: object
+    communication.UniverseDtoRequest:
+      properties:
+        name:
+          form: name
+          type: string
+      type: object
+    communication.UniverseDtoResponse:
+      properties:
+        createdAt:
+          format: date-time
+          type: string
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+      type: object
+    rest.ResponseEnvelope-array_communication_PlanetDtoResponse:
+      properties:
+        details:
+          items:
+            $ref: '#/components/schemas/communication.PlanetDtoResponse'
+          type: array
+          uniqueItems: false
+        requestId:
+          example: 669cd40f-ea15-40a8-ab03-81e704a3ecf9
+          format: uuid
+          type: string
+        status:
+          $ref: '#/components/schemas/rest.Status'
+      type: object
+    rest.ResponseEnvelope-array_communication_PlayerDtoResponse:
+      properties:
+        details:
+          items:
+            $ref: '#/components/schemas/communication.PlayerDtoResponse'
+          type: array
+          uniqueItems: false
+        requestId:
+          example: 669cd40f-ea15-40a8-ab03-81e704a3ecf9
+          format: uuid
+          type: string
+        status:
+          $ref: '#/components/schemas/rest.Status'
+      type: object
+    rest.ResponseEnvelope-array_communication_UniverseDtoResponse:
+      properties:
+        details:
+          items:
+            $ref: '#/components/schemas/communication.UniverseDtoResponse'
+          type: array
+          uniqueItems: false
+        requestId:
+          example: 669cd40f-ea15-40a8-ab03-81e704a3ecf9
+          format: uuid
+          type: string
+        status:
+          $ref: '#/components/schemas/rest.Status'
+      type: object
+    rest.ResponseEnvelope-communication_BuildingActionDtoResponse:
+      properties:
+        details:
+          $ref: '#/components/schemas/communication.BuildingActionDtoResponse'
+        requestId:
+          example: 669cd40f-ea15-40a8-ab03-81e704a3ecf9
+          format: uuid
+          type: string
+        status:
+          $ref: '#/components/schemas/rest.Status'
+      type: object
+    rest.ResponseEnvelope-communication_FullPlanetDtoResponse:
+      properties:
+        details:
+          $ref: '#/components/schemas/communication.FullPlanetDtoResponse'
+        requestId:
+          example: 669cd40f-ea15-40a8-ab03-81e704a3ecf9
+          format: uuid
+          type: string
+        status:
+          $ref: '#/components/schemas/rest.Status'
+      type: object
+    rest.ResponseEnvelope-communication_FullUniverseDtoResponse:
+      properties:
+        details:
+          $ref: '#/components/schemas/communication.FullUniverseDtoResponse'
+        requestId:
+          example: 669cd40f-ea15-40a8-ab03-81e704a3ecf9
+          format: uuid
+          type: string
+        status:
+          $ref: '#/components/schemas/rest.Status'
+      type: object
+    rest.ResponseEnvelope-communication_PlanetDtoResponse:
+      properties:
+        details:
+          $ref: '#/components/schemas/communication.PlanetDtoResponse'
+        requestId:
+          example: 669cd40f-ea15-40a8-ab03-81e704a3ecf9
+          format: uuid
+          type: string
+        status:
+          $ref: '#/components/schemas/rest.Status'
+      type: object
+    rest.ResponseEnvelope-communication_PlayerDtoResponse:
+      properties:
+        details:
+          $ref: '#/components/schemas/communication.PlayerDtoResponse'
+        requestId:
+          example: 669cd40f-ea15-40a8-ab03-81e704a3ecf9
+          format: uuid
+          type: string
+        status:
+          $ref: '#/components/schemas/rest.Status'
+      type: object
+    rest.ResponseEnvelope-communication_UniverseDtoResponse:
+      properties:
+        details:
+          $ref: '#/components/schemas/communication.UniverseDtoResponse'
+        requestId:
+          example: 669cd40f-ea15-40a8-ab03-81e704a3ecf9
+          format: uuid
+          type: string
+        status:
+          $ref: '#/components/schemas/rest.Status'
+      type: object
+    rest.ResponseEnvelope-string:
+      properties:
+        details:
+          type: string
+        requestId:
+          example: 669cd40f-ea15-40a8-ab03-81e704a3ecf9
+          format: uuid
+          type: string
+        status:
+          $ref: '#/components/schemas/rest.Status'
+      type: object
+    rest.Status:
+      enum:
+      - SUCCESS
+      - ERROR
+      example: SUCCESS
+      type: string
+      x-enum-varnames:
+      - StatusSuccess
+      - StatusError
+externalDocs:
+  description: ""
+  url: ""
 info:
-  contact: {}
   description: REST API for the Galactic Sovereign backend service.
   title: Galactic Sovereign API
   version: "1.0"
+openapi: 3.1.0
 paths:
   /actions/{id}:
     delete:
       description: Deletes an existing building action.
       parameters:
       - description: Action id (UUID)
-        format: uuid
         in: path
         name: id
         required: true
-        type: string
-      produces:
-      - application/json
+        schema:
+          format: uuid
+          type: string
       responses:
         "204":
+          content:
+            application/json:
+              schema:
+                type: string
           description: No Content
-          schema:
-            type: string
         "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/rest.ResponseEnvelope-string'
           description: Bad Request
-          schema:
-            $ref: '#/definitions/rest.ResponseEnvelope-string'
         "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/rest.ResponseEnvelope-string'
           description: Not Found
-          schema:
-            $ref: '#/definitions/rest.ResponseEnvelope-string'
         "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/rest.ResponseEnvelope-string'
           description: Internal Server Error
-          schema:
-            $ref: '#/definitions/rest.ResponseEnvelope-string'
       summary: Delete building action
       tags:
       - actions
   /healthcheck:
     get:
       description: Returns service health based on database connectivity.
-      produces:
-      - application/json
       responses:
         "200":
+          content:
+            application/json:
+              schema:
+                type: string
           description: OK
-          schema:
-            type: string
         "503":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/rest.ResponseEnvelope-string'
           description: Service Unavailable
-          schema:
-            $ref: '#/definitions/rest.ResponseEnvelope-string'
       summary: Health check
       tags:
       - healthcheck
@@ -494,51 +493,62 @@ paths:
       - description: Player id (UUID)
         in: query
         name: player
-        type: string
-      produces:
-      - application/json
+        schema:
+          type: string
       responses:
         "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/rest.ResponseEnvelope-array_communication_PlanetDtoResponse'
           description: OK
-          schema:
-            $ref: '#/definitions/rest.ResponseEnvelope-array_communication_PlanetDtoResponse'
         "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/rest.ResponseEnvelope-string'
           description: Bad Request
-          schema:
-            $ref: '#/definitions/rest.ResponseEnvelope-string'
         "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/rest.ResponseEnvelope-string'
           description: Internal Server Error
-          schema:
-            $ref: '#/definitions/rest.ResponseEnvelope-string'
       summary: List planets
       tags:
       - planets
     post:
-      consumes:
-      - application/json
       description: Creates a planet from the provided payload.
-      parameters:
-      - description: Planet payload
-        in: body
-        name: request
+      requestBody:
+        content:
+          application/json:
+            schema:
+              oneOf:
+              - type: object
+              - $ref: '#/components/schemas/communication.PlanetDtoRequest'
+                description: Planet payload
+                summary: request
+        description: Planet payload
         required: true
-        schema:
-          $ref: '#/definitions/communication.PlanetDtoRequest'
-      produces:
-      - application/json
       responses:
         "201":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/rest.ResponseEnvelope-communication_PlanetDtoResponse'
           description: Created
-          schema:
-            $ref: '#/definitions/rest.ResponseEnvelope-communication_PlanetDtoResponse'
         "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/rest.ResponseEnvelope-string'
           description: Bad Request
-          schema:
-            $ref: '#/definitions/rest.ResponseEnvelope-string'
         "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/rest.ResponseEnvelope-string'
           description: Internal Server Error
-          schema:
-            $ref: '#/definitions/rest.ResponseEnvelope-string'
       summary: Create planet
       tags:
       - planets
@@ -547,30 +557,37 @@ paths:
       description: Deletes a planet by id.
       parameters:
       - description: Planet id (UUID)
-        format: uuid
         in: path
         name: id
         required: true
-        type: string
-      produces:
-      - application/json
+        schema:
+          format: uuid
+          type: string
       responses:
         "204":
+          content:
+            application/json:
+              schema:
+                type: string
           description: No Content
-          schema:
-            type: string
         "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/rest.ResponseEnvelope-string'
           description: Bad Request
-          schema:
-            $ref: '#/definitions/rest.ResponseEnvelope-string'
         "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/rest.ResponseEnvelope-string'
           description: Not Found
-          schema:
-            $ref: '#/definitions/rest.ResponseEnvelope-string'
         "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/rest.ResponseEnvelope-string'
           description: Internal Server Error
-          schema:
-            $ref: '#/definitions/rest.ResponseEnvelope-string'
       summary: Delete planet
       tags:
       - planets
@@ -578,71 +595,88 @@ paths:
       description: Returns a planet and all related game data.
       parameters:
       - description: Planet id (UUID)
-        format: uuid
         in: path
         name: id
         required: true
-        type: string
-      produces:
-      - application/json
+        schema:
+          format: uuid
+          type: string
       responses:
         "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/rest.ResponseEnvelope-communication_FullPlanetDtoResponse'
           description: OK
-          schema:
-            $ref: '#/definitions/rest.ResponseEnvelope-communication_FullPlanetDtoResponse'
         "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/rest.ResponseEnvelope-string'
           description: Bad Request
-          schema:
-            $ref: '#/definitions/rest.ResponseEnvelope-string'
         "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/rest.ResponseEnvelope-string'
           description: Not Found
-          schema:
-            $ref: '#/definitions/rest.ResponseEnvelope-string'
         "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/rest.ResponseEnvelope-string'
           description: Internal Server Error
-          schema:
-            $ref: '#/definitions/rest.ResponseEnvelope-string'
       summary: Get planet
       tags:
       - planets
   /planets/{id}/actions:
     post:
-      consumes:
-      - application/json
       description: Creates a building action for the planet provided in path parameter.
         The planet field in the body is ignored and replaced with this path value.
       parameters:
       - description: Planet id (UUID)
-        format: uuid
         in: path
         name: id
         required: true
-        type: string
-      - description: Building action payload
-        in: body
-        name: request
-        required: true
         schema:
-          $ref: '#/definitions/communication.BuildingActionDtoRequest'
-      produces:
-      - application/json
+          format: uuid
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              oneOf:
+              - type: object
+              - $ref: '#/components/schemas/communication.BuildingActionDtoRequest'
+                description: Building action payload
+                summary: request
+        description: Building action payload
+        required: true
       responses:
         "201":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/rest.ResponseEnvelope-communication_BuildingActionDtoResponse'
           description: Created
-          schema:
-            $ref: '#/definitions/rest.ResponseEnvelope-communication_BuildingActionDtoResponse'
         "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/rest.ResponseEnvelope-string'
           description: Bad Request
-          schema:
-            $ref: '#/definitions/rest.ResponseEnvelope-string'
         "409":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/rest.ResponseEnvelope-string'
           description: Conflict
-          schema:
-            $ref: '#/definitions/rest.ResponseEnvelope-string'
         "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/rest.ResponseEnvelope-string'
           description: Internal Server Error
-          schema:
-            $ref: '#/definitions/rest.ResponseEnvelope-string'
       summary: Create building action
       tags:
       - actions
@@ -653,22 +687,27 @@ paths:
       - description: API user id (UUID)
         in: query
         name: api_user
-        type: string
-      produces:
-      - application/json
+        schema:
+          type: string
       responses:
         "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/rest.ResponseEnvelope-array_communication_PlayerDtoResponse'
           description: OK
-          schema:
-            $ref: '#/definitions/rest.ResponseEnvelope-array_communication_PlayerDtoResponse'
         "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/rest.ResponseEnvelope-string'
           description: Bad Request
-          schema:
-            $ref: '#/definitions/rest.ResponseEnvelope-string'
         "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/rest.ResponseEnvelope-string'
           description: Internal Server Error
-          schema:
-            $ref: '#/definitions/rest.ResponseEnvelope-string'
       summary: List players
       tags:
       - players
@@ -677,30 +716,37 @@ paths:
       description: Deletes a player by id.
       parameters:
       - description: Player id (UUID)
-        format: uuid
         in: path
         name: id
         required: true
-        type: string
-      produces:
-      - application/json
+        schema:
+          format: uuid
+          type: string
       responses:
         "204":
+          content:
+            application/json:
+              schema:
+                type: string
           description: No Content
-          schema:
-            type: string
         "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/rest.ResponseEnvelope-string'
           description: Bad Request
-          schema:
-            $ref: '#/definitions/rest.ResponseEnvelope-string'
         "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/rest.ResponseEnvelope-string'
           description: Not Found
-          schema:
-            $ref: '#/definitions/rest.ResponseEnvelope-string'
         "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/rest.ResponseEnvelope-string'
           description: Internal Server Error
-          schema:
-            $ref: '#/definitions/rest.ResponseEnvelope-string'
       summary: Delete player
       tags:
       - players
@@ -708,47 +754,56 @@ paths:
       description: Returns a player by id.
       parameters:
       - description: Player id (UUID)
-        format: uuid
         in: path
         name: id
         required: true
-        type: string
-      produces:
-      - application/json
+        schema:
+          format: uuid
+          type: string
       responses:
         "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/rest.ResponseEnvelope-communication_PlayerDtoResponse'
           description: OK
-          schema:
-            $ref: '#/definitions/rest.ResponseEnvelope-communication_PlayerDtoResponse'
         "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/rest.ResponseEnvelope-string'
           description: Bad Request
-          schema:
-            $ref: '#/definitions/rest.ResponseEnvelope-string'
         "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/rest.ResponseEnvelope-string'
           description: Not Found
-          schema:
-            $ref: '#/definitions/rest.ResponseEnvelope-string'
         "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/rest.ResponseEnvelope-string'
           description: Internal Server Error
-          schema:
-            $ref: '#/definitions/rest.ResponseEnvelope-string'
       summary: Get player
       tags:
       - players
   /universes:
     get:
       description: Returns all universes.
-      produces:
-      - application/json
       responses:
         "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/rest.ResponseEnvelope-array_communication_UniverseDtoResponse'
           description: OK
-          schema:
-            $ref: '#/definitions/rest.ResponseEnvelope-array_communication_UniverseDtoResponse'
         "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/rest.ResponseEnvelope-string'
           description: Internal Server Error
-          schema:
-            $ref: '#/definitions/rest.ResponseEnvelope-string'
       summary: List universes
       tags:
       - universes
@@ -757,30 +812,37 @@ paths:
       description: Deletes a universe by id.
       parameters:
       - description: Universe id (UUID)
-        format: uuid
         in: path
         name: id
         required: true
-        type: string
-      produces:
-      - application/json
+        schema:
+          format: uuid
+          type: string
       responses:
         "204":
+          content:
+            application/json:
+              schema:
+                type: string
           description: No Content
-          schema:
-            type: string
         "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/rest.ResponseEnvelope-string'
           description: Bad Request
-          schema:
-            $ref: '#/definitions/rest.ResponseEnvelope-string'
         "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/rest.ResponseEnvelope-string'
           description: Not Found
-          schema:
-            $ref: '#/definitions/rest.ResponseEnvelope-string'
         "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/rest.ResponseEnvelope-string'
           description: Internal Server Error
-          schema:
-            $ref: '#/definitions/rest.ResponseEnvelope-string'
       summary: Delete universe
       tags:
       - universes
@@ -788,31 +850,40 @@ paths:
       description: Returns a universe and related resources/buildings.
       parameters:
       - description: Universe id (UUID)
-        format: uuid
         in: path
         name: id
         required: true
-        type: string
-      produces:
-      - application/json
+        schema:
+          format: uuid
+          type: string
       responses:
         "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/rest.ResponseEnvelope-communication_FullUniverseDtoResponse'
           description: OK
-          schema:
-            $ref: '#/definitions/rest.ResponseEnvelope-communication_FullUniverseDtoResponse'
         "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/rest.ResponseEnvelope-string'
           description: Bad Request
-          schema:
-            $ref: '#/definitions/rest.ResponseEnvelope-string'
         "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/rest.ResponseEnvelope-string'
           description: Not Found
-          schema:
-            $ref: '#/definitions/rest.ResponseEnvelope-string'
         "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/rest.ResponseEnvelope-string'
           description: Internal Server Error
-          schema:
-            $ref: '#/definitions/rest.ResponseEnvelope-string'
       summary: Get universe
       tags:
       - universes
-swagger: "2.0"
+servers:
+- description: Base path for the galactic-sovereign API
+  url: /v1
