@@ -304,6 +304,10 @@ components:
           type: string
         status:
           $ref: '#/components/schemas/rest.Status'
+      required:
+      - details
+      - requestId
+      - status
       type: object
     rest.ResponseEnvelope-array_communication_PlayerDtoResponse:
       properties:
@@ -318,6 +322,10 @@ components:
           type: string
         status:
           $ref: '#/components/schemas/rest.Status'
+      required:
+      - details
+      - requestId
+      - status
       type: object
     rest.ResponseEnvelope-array_communication_UniverseDtoResponse:
       properties:
@@ -332,6 +340,10 @@ components:
           type: string
         status:
           $ref: '#/components/schemas/rest.Status'
+      required:
+      - details
+      - requestId
+      - status
       type: object
     rest.ResponseEnvelope-communication_BuildingActionDtoResponse:
       properties:
@@ -343,6 +355,10 @@ components:
           type: string
         status:
           $ref: '#/components/schemas/rest.Status'
+      required:
+      - details
+      - requestId
+      - status
       type: object
     rest.ResponseEnvelope-communication_FullPlanetDtoResponse:
       properties:
@@ -354,6 +370,10 @@ components:
           type: string
         status:
           $ref: '#/components/schemas/rest.Status'
+      required:
+      - details
+      - requestId
+      - status
       type: object
     rest.ResponseEnvelope-communication_FullUniverseDtoResponse:
       properties:
@@ -365,6 +385,10 @@ components:
           type: string
         status:
           $ref: '#/components/schemas/rest.Status'
+      required:
+      - details
+      - requestId
+      - status
       type: object
     rest.ResponseEnvelope-communication_PlanetDtoResponse:
       properties:
@@ -376,6 +400,10 @@ components:
           type: string
         status:
           $ref: '#/components/schemas/rest.Status'
+      required:
+      - details
+      - requestId
+      - status
       type: object
     rest.ResponseEnvelope-communication_PlayerDtoResponse:
       properties:
@@ -387,6 +415,10 @@ components:
           type: string
         status:
           $ref: '#/components/schemas/rest.Status'
+      required:
+      - details
+      - requestId
+      - status
       type: object
     rest.ResponseEnvelope-communication_UniverseDtoResponse:
       properties:
@@ -398,6 +430,10 @@ components:
           type: string
         status:
           $ref: '#/components/schemas/rest.Status'
+      required:
+      - details
+      - requestId
+      - status
       type: object
     rest.ResponseEnvelope-string:
       properties:
@@ -409,6 +445,10 @@ components:
           type: string
         status:
           $ref: '#/components/schemas/rest.Status'
+      required:
+      - details
+      - requestId
+      - status
       type: object
     rest.Status:
       enum:
