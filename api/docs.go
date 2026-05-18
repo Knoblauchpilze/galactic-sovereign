@@ -447,6 +447,11 @@ const docTemplate = `{
                         "$ref": "#/components/schemas/rest.Status"
                     }
                 },
+                "required": [
+                    "details",
+                    "requestId",
+                    "status"
+                ],
                 "type": "object"
             },
             "rest.ResponseEnvelope-array_communication_PlayerDtoResponse": {
@@ -467,6 +472,11 @@ const docTemplate = `{
                         "$ref": "#/components/schemas/rest.Status"
                     }
                 },
+                "required": [
+                    "details",
+                    "requestId",
+                    "status"
+                ],
                 "type": "object"
             },
             "rest.ResponseEnvelope-array_communication_UniverseDtoResponse": {
@@ -487,6 +497,11 @@ const docTemplate = `{
                         "$ref": "#/components/schemas/rest.Status"
                     }
                 },
+                "required": [
+                    "details",
+                    "requestId",
+                    "status"
+                ],
                 "type": "object"
             },
             "rest.ResponseEnvelope-communication_BuildingActionDtoResponse": {
@@ -503,6 +518,11 @@ const docTemplate = `{
                         "$ref": "#/components/schemas/rest.Status"
                     }
                 },
+                "required": [
+                    "details",
+                    "requestId",
+                    "status"
+                ],
                 "type": "object"
             },
             "rest.ResponseEnvelope-communication_FullPlanetDtoResponse": {
@@ -519,6 +539,11 @@ const docTemplate = `{
                         "$ref": "#/components/schemas/rest.Status"
                     }
                 },
+                "required": [
+                    "details",
+                    "requestId",
+                    "status"
+                ],
                 "type": "object"
             },
             "rest.ResponseEnvelope-communication_FullUniverseDtoResponse": {
@@ -535,6 +560,11 @@ const docTemplate = `{
                         "$ref": "#/components/schemas/rest.Status"
                     }
                 },
+                "required": [
+                    "details",
+                    "requestId",
+                    "status"
+                ],
                 "type": "object"
             },
             "rest.ResponseEnvelope-communication_PlanetDtoResponse": {
@@ -551,6 +581,11 @@ const docTemplate = `{
                         "$ref": "#/components/schemas/rest.Status"
                     }
                 },
+                "required": [
+                    "details",
+                    "requestId",
+                    "status"
+                ],
                 "type": "object"
             },
             "rest.ResponseEnvelope-communication_PlayerDtoResponse": {
@@ -567,6 +602,11 @@ const docTemplate = `{
                         "$ref": "#/components/schemas/rest.Status"
                     }
                 },
+                "required": [
+                    "details",
+                    "requestId",
+                    "status"
+                ],
                 "type": "object"
             },
             "rest.ResponseEnvelope-communication_UniverseDtoResponse": {
@@ -583,6 +623,11 @@ const docTemplate = `{
                         "$ref": "#/components/schemas/rest.Status"
                     }
                 },
+                "required": [
+                    "details",
+                    "requestId",
+                    "status"
+                ],
                 "type": "object"
             },
             "rest.ResponseEnvelope-string": {
@@ -599,6 +644,11 @@ const docTemplate = `{
                         "$ref": "#/components/schemas/rest.Status"
                     }
                 },
+                "required": [
+                    "details",
+                    "requestId",
+                    "status"
+                ],
                 "type": "object"
             },
             "rest.Status": {
