@@ -1,0 +1,150 @@
+package driven
+
+import (
+	"context"
+	"fmt"
+	"testing"
+
+	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
+	"github.com/Knoblauchpilze/backend-toolkit/pkg/db/pgx"
+	"github.com/Knoblauchpilze/backend-toolkit/pkg/errors"
+	eassert "github.com/Knoblauchpilze/easy-assert/assert"
+	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
+	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driven"
+	"github.com/google/uuid"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+)
+
+func TestIT_UniverseRepository_Create(t *testing.T) {
+	repo, conn := newTestUniverseRepository(t)
+	defer conn.Close(context.Background())
+
+	universe := models.Universe{
+		Id:        uuid.New(),
+		Name:      fmt.Sprintf("universe-%s", uuid.NewString()),
+		CreatedAt: someTime,
+	}
+
+	err := repo.Create(context.Background(), universe)
+	require.Nil(t, err)
+
+	assertUniverseExists(t, conn, universe.Id)
+	actual, err := repo.Get(context.Background(), universe.Id)
+	require.NoError(t, err)
+	assert.Equal(t, universe, actual)
+}
+
+func TestIT_UniverseRepository_Create_WhenDuplicateName_ExpectFailure(t *testing.T) {
+	repo, conn := newTestUniverseRepository(t)
+	defer conn.Close(context.Background())
+	universe := insertTestUniverse(t, conn)
+
+	newUniverse := models.Universe{
+		Id:        uuid.New(),
+		Name:      universe.Name,
+		CreatedAt: someTime,
+	}
+
+	err := repo.Create(context.Background(), newUniverse)
+
+	assert.True(t, errors.IsErrorWithCode(err, pgx.UniqueConstraintViolation), "Actual err: %v", err)
+	assertUniverseDoesNotExist(t, conn, newUniverse.Id)
+}
+
+func TestIT_UniverseRepository_Get(t *testing.T) {
+	repo, conn := newTestUniverseRepository(t)
+	defer conn.Close(context.Background())
+	universe := insertTestUniverse(t, conn)
+
+	actual, err := repo.Get(context.Background(), universe.Id)
+	assert.Nil(t, err)
+
+	assert.True(t, eassert.EqualsIgnoringFields(actual, universe))
+}
+
+func TestIT_UniverseRepository_Get_WhenNotFound_ExpectFailure(t *testing.T) {
+	repo, conn := newTestUniverseRepository(t)
+	defer conn.Close(context.Background())
+
+	// Non-existent id
+	id := uuid.MustParse("00000000-1111-2222-1111-000000000000")
+	_, err := repo.Get(context.Background(), id)
+
+	assert.True(t, errors.IsErrorWithCode(err, db.NoMatchingRows), "Actual err: %v", err)
+}
+
+func TestIT_UniverseRepository_List(t *testing.T) {
+	repo, conn := newTestUniverseRepository(t)
+	defer conn.Close(context.Background())
+	u1 := insertTestUniverse(t, conn)
+	u2 := insertTestUniverse(t, conn)
+
+	actual, err := repo.List(context.Background())
+
+	assert.Nil(t, err)
+	assert.GreaterOrEqual(t, len(actual), 2)
+	assert.True(t, eassert.ContainsIgnoringFields(actual, u1))
+	assert.True(t, eassert.ContainsIgnoringFields(actual, u2))
+}
+
+func TestIT_UniverseRepository_Delete(t *testing.T) {
+	repo, conn := newTestUniverseRepository(t)
+	defer conn.Close(context.Background())
+	universe := insertTestUniverse(t, conn)
+
+	err := repo.Delete(context.Background(), universe.Id)
+
+	assert.Nil(t, err)
+	assertUniverseDoesNotExist(t, conn, universe.Id)
+}
+
+func TestIT_UniverseRepository_Delete_WhenNotFound_ExpectSuccess(t *testing.T) {
+	repo, conn := newTestUniverseRepository(t)
+	defer conn.Close(context.Background())
+	nonExistingId := uuid.MustParse("00000000-0000-1221-0000-000000000000")
+
+	err := repo.Delete(context.Background(), nonExistingId)
+
+	assert.Nil(t, err)
+}
+
+func newTestUniverseRepository(t *testing.T) (driven.ForManagingUniverses, db.Connection) {
+	conn := newTestConnection(t)
+	return NewUniverseRepository(conn), conn
+}
+
+func insertTestUniverse(t *testing.T, conn db.Connection) models.Universe {
+
+	universe := models.Universe{
+		Id:        uuid.New(),
+		Name:      fmt.Sprintf("my-universe-%s", uuid.NewString()),
+		CreatedAt: someTime,
+	}
+
+	sqlQuery := `INSERT INTO universe (id, name, created_at) VALUES ($1, $2, $3)`
+	_, err := conn.Exec(
+		context.Background(),
+		sqlQuery,
+		universe.Id,
+		universe.Name,
+		universe.CreatedAt,
+	)
+	require.Nil(t, err)
+
+	return universe
+}
+
+func assertUniverseExists(t *testing.T, conn db.Connection, id uuid.UUID) {
+	sqlQuery := `SELECT id FROM universe WHERE id = $1`
+	value, err := db.QueryOne[uuid.UUID](context.Background(), conn, sqlQuery, id)
+	require.Nil(t, err)
+	require.Equal(t, id, value)
+}
+
+func assertUniverseDoesNotExist(t *testing.T, conn db.Connection, id uuid.UUID) {
+	sqlQuery := `SELECT COUNT(id) FROM universe WHERE id = $1`
+	value, err := db.QueryOne[int](context.Background(), conn, sqlQuery, id)
+	require.Nil(t, err)
+	require.Zero(t, value)
+}
