@@ -131,7 +131,7 @@ func insertTestUniverse(t *testing.T, conn db.Connection) models.Universe {
 		universe.Name,
 		universe.CreatedAt,
 	)
-	require.Nil(t, err)
+	require.NoError(t, err, "Actual err: %v", err)
 
 	return universe
 }
@@ -141,7 +141,7 @@ func assertUniverseExists(t *testing.T, conn db.Connection, id uuid.UUID) {
 
 	sqlQuery := `SELECT id FROM universe WHERE id = $1`
 	value, err := db.QueryOne[uuid.UUID](context.Background(), conn, sqlQuery, id)
-	require.Nil(t, err)
+	require.NoError(t, err, "Actual err: %v", err)
 	require.Equal(t, id, value)
 }
 
@@ -150,6 +150,6 @@ func assertUniverseDoesNotExist(t *testing.T, conn db.Connection, id uuid.UUID) 
 
 	sqlQuery := `SELECT COUNT(id) FROM universe WHERE id = $1`
 	value, err := db.QueryOne[int](context.Background(), conn, sqlQuery, id)
-	require.Nil(t, err)
+	require.NoError(t, err, "Actual err: %v", err)
 	require.Zero(t, value)
 }

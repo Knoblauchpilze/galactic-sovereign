@@ -20,7 +20,7 @@ var (
 
 func newTestConnection(t *testing.T) db.Connection {
 	conn, err := db.New(context.Background(), dbTestConfig)
-	require.Nil(t, err)
+	require.NoError(t, err, "Actual err: %v", err)
 	return conn
 }
 

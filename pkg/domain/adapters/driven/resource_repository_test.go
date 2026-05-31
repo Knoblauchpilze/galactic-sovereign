@@ -59,7 +59,7 @@ func insertTestResource(t *testing.T, conn db.Connection) models.Resource {
 		resource.StartStorage,
 		resource.CreatedAt,
 	)
-	require.Nil(t, err)
+	require.NoError(t, err, "Actual err: %v", err)
 
 	return resource
 }
