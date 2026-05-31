@@ -27,11 +27,12 @@ func TestIT_UniverseRepository_Create(t *testing.T) {
 	}
 
 	err := repo.Create(context.Background(), universe)
-	require.Nil(t, err)
-
+	require.NoError(t, err, "Actual err: %v", err)
 	assertUniverseExists(t, conn, universe.Id)
+
 	actual, err := repo.Get(context.Background(), universe.Id)
-	require.NoError(t, err)
+	require.NoError(t, err, "Actual err: %v", err)
+
 	assert.Equal(t, universe, actual)
 }
 
@@ -58,7 +59,7 @@ func TestIT_UniverseRepository_Get(t *testing.T) {
 	universe := insertTestUniverse(t, conn)
 
 	actual, err := repo.Get(context.Background(), universe.Id)
-	assert.Nil(t, err)
+	require.NoError(t, err, "Actual err: %v", err)
 
 	assert.True(t, eassert.EqualsIgnoringFields(actual, universe))
 }
@@ -81,8 +82,8 @@ func TestIT_UniverseRepository_List(t *testing.T) {
 	u2 := insertTestUniverse(t, conn)
 
 	actual, err := repo.List(context.Background())
+	require.NoError(t, err, "Actual err: %v", err)
 
-	assert.Nil(t, err)
 	assert.GreaterOrEqual(t, len(actual), 2)
 	assert.True(t, eassert.ContainsIgnoringFields(actual, u1))
 	assert.True(t, eassert.ContainsIgnoringFields(actual, u2))
@@ -94,8 +95,8 @@ func TestIT_UniverseRepository_Delete(t *testing.T) {
 	universe := insertTestUniverse(t, conn)
 
 	err := repo.Delete(context.Background(), universe.Id)
+	require.NoError(t, err, "Actual err: %v", err)
 
-	assert.Nil(t, err)
 	assertUniverseDoesNotExist(t, conn, universe.Id)
 }
 
@@ -105,8 +106,7 @@ func TestIT_UniverseRepository_Delete_WhenNotFound_ExpectSuccess(t *testing.T) {
 	nonExistingId := uuid.MustParse("00000000-0000-1221-0000-000000000000")
 
 	err := repo.Delete(context.Background(), nonExistingId)
-
-	assert.Nil(t, err)
+	require.NoError(t, err, "Actual err: %v", err)
 }
 
 func newTestUniverseRepository(t *testing.T) (driven.ForManagingUniverses, db.Connection) {
@@ -115,6 +115,7 @@ func newTestUniverseRepository(t *testing.T) (driven.ForManagingUniverses, db.Co
 }
 
 func insertTestUniverse(t *testing.T, conn db.Connection) models.Universe {
+	t.Helper()
 
 	universe := models.Universe{
 		Id:        uuid.New(),
@@ -136,6 +137,8 @@ func insertTestUniverse(t *testing.T, conn db.Connection) models.Universe {
 }
 
 func assertUniverseExists(t *testing.T, conn db.Connection, id uuid.UUID) {
+	t.Helper()
+
 	sqlQuery := `SELECT id FROM universe WHERE id = $1`
 	value, err := db.QueryOne[uuid.UUID](context.Background(), conn, sqlQuery, id)
 	require.Nil(t, err)
@@ -143,6 +146,8 @@ func assertUniverseExists(t *testing.T, conn db.Connection, id uuid.UUID) {
 }
 
 func assertUniverseDoesNotExist(t *testing.T, conn db.Connection, id uuid.UUID) {
+	t.Helper()
+
 	sqlQuery := `SELECT COUNT(id) FROM universe WHERE id = $1`
 	value, err := db.QueryOne[int](context.Background(), conn, sqlQuery, id)
 	require.Nil(t, err)

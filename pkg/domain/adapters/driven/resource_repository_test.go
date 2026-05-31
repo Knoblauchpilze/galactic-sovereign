@@ -21,8 +21,8 @@ func TestIT_ResourceRepository_List(t *testing.T) {
 	r2 := insertTestResource(t, conn)
 
 	actual, err := repo.List(context.Background())
+	require.NoError(t, err, "Actual err: %v", err)
 
-	assert.Nil(t, err)
 	assert.GreaterOrEqual(t, len(actual), 2)
 	assert.Contains(t, actual, r1)
 	assert.Contains(t, actual, r2)
@@ -34,6 +34,8 @@ func newTestResourceRepository(t *testing.T) (driven.ForListingResources, db.Con
 }
 
 func insertTestResource(t *testing.T, conn db.Connection) models.Resource {
+	t.Helper()
+
 	someTime := time.Date(2024, 11, 30, 9, 23, 53, 0, time.UTC)
 
 	resource := models.Resource{
