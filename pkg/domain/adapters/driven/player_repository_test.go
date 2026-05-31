@@ -1,0 +1,188 @@
+package driven
+
+import (
+	"context"
+	"fmt"
+	"testing"
+
+	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
+	"github.com/Knoblauchpilze/backend-toolkit/pkg/db/pgx"
+	"github.com/Knoblauchpilze/backend-toolkit/pkg/errors"
+	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
+	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driven"
+	"github.com/google/uuid"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+)
+
+func TestIT_PlayerRepository_Create(t *testing.T) {
+	repo, conn := newTestPlayerRepository(t)
+	defer conn.Close(context.Background())
+	universe := insertTestUniverse(t, conn)
+
+	player := models.Player{
+		Id:        uuid.New(),
+		ApiUser:   uuid.New(),
+		Universe:  universe.Id,
+		Name:      fmt.Sprintf("player-%s", uuid.NewString()),
+		CreatedAt: someTime,
+	}
+
+	err := repo.Create(context.Background(), player)
+	require.NoError(t, err, "Actual err: %v", err)
+	assertPlayerExists(t, conn, player.Id)
+
+	actual, err := repo.Get(context.Background(), player.Id)
+	require.NoError(t, err, "Actual err: %v", err)
+
+	assert.Equal(t, player, actual)
+}
+
+func TestIT_PlayerRepository_Create_WhenDuplicateName_ExpectFailure(t *testing.T) {
+	repo, conn := newTestPlayerRepository(t)
+	defer conn.Close(context.Background())
+	player, universe := insertTestPlayerInUniverse(t, conn)
+
+	newPlayer := models.Player{
+		Id:        uuid.New(),
+		ApiUser:   uuid.New(),
+		Universe:  universe.Id,
+		Name:      player.Name,
+		CreatedAt: someTime,
+	}
+
+	err := repo.Create(context.Background(), newPlayer)
+
+	assert.True(t, errors.IsErrorWithCode(err, pgx.UniqueConstraintViolation), "Actual err: %v", err)
+	assertPlayerDoesNotExist(t, conn, newPlayer.Id)
+}
+
+func TestIT_PlayerRepository_Get(t *testing.T) {
+	repo, conn := newTestPlayerRepository(t)
+	defer conn.Close(context.Background())
+	player, _ := insertTestPlayerInUniverse(t, conn)
+
+	actual, err := repo.Get(context.Background(), player.Id)
+	require.NoError(t, err, "Actual err: %v", err)
+
+	assert.Equal(t, actual, player)
+}
+
+func TestIT_PlayerRepository_Get_WhenNotFound_ExpectFailure(t *testing.T) {
+	repo, conn := newTestPlayerRepository(t)
+	defer conn.Close(context.Background())
+
+	// Non-existent id
+	id := uuid.MustParse("00000000-1111-2222-1111-000000000000")
+	_, err := repo.Get(context.Background(), id)
+
+	assert.True(t, errors.IsErrorWithCode(err, db.NoMatchingRows), "Actual err: %v", err)
+}
+
+func TestIT_PlayerRepository_List(t *testing.T) {
+	repo, conn := newTestPlayerRepository(t)
+	defer conn.Close(context.Background())
+	p1, universe := insertTestPlayerInUniverse(t, conn)
+	p2 := insertTestPlayer(t, conn, universe.Id)
+
+	actual, err := repo.List(context.Background())
+	require.NoError(t, err, "Actual err: %v", err)
+
+	assert.GreaterOrEqual(t, len(actual), 2)
+	assert.Contains(t, actual, p1)
+	assert.Contains(t, actual, p2)
+}
+
+func TestIT_PlayerRepository_ListForApiUser(t *testing.T) {
+	repo, conn := newTestPlayerRepository(t)
+	defer conn.Close(context.Background())
+	p1, universe := insertTestPlayerInUniverse(t, conn)
+	insertTestPlayer(t, conn, universe.Id)
+
+	actual, err := repo.ListForApiUser(context.Background(), p1.ApiUser)
+	require.NoError(t, err, "Actual err: %v", err)
+
+	assert.Equal(t, []models.Player{p1}, actual)
+}
+
+func TestIT_PlayerRepository_Delete(t *testing.T) {
+	repo, conn := newTestPlayerRepository(t)
+	defer conn.Close(context.Background())
+	player, _ := insertTestPlayerInUniverse(t, conn)
+
+	err := repo.Delete(context.Background(), player.Id)
+	require.NoError(t, err, "Actual err: %v", err)
+
+	assert.Nil(t, err)
+	assertPlayerDoesNotExist(t, conn, player.Id)
+}
+
+func TestIT_PlayerRepository_Delete_WhenNotFound_ExpectSuccess(t *testing.T) {
+	repo, conn := newTestPlayerRepository(t)
+	defer conn.Close(context.Background())
+	nonExistingId := uuid.MustParse("00000000-0000-1221-0000-000000000000")
+
+	err := repo.Delete(context.Background(), nonExistingId)
+	require.NoError(t, err, "Actual err: %v", err)
+}
+
+func newTestPlayerRepository(t *testing.T) (driven.ForManagingPlayers, db.Connection) {
+	t.Helper()
+	conn := newTestConnection(t)
+	return NewPlayerRepository(conn), conn
+}
+
+func insertTestPlayer(
+	t *testing.T,
+	conn db.Connection,
+	universe uuid.UUID,
+) models.Player {
+	t.Helper()
+
+	player := models.Player{
+		Id:        uuid.New(),
+		ApiUser:   uuid.New(),
+		Universe:  universe,
+		Name:      fmt.Sprintf("my-player-%s", uuid.NewString()),
+		CreatedAt: someTime,
+	}
+
+	sqlQuery := `INSERT INTO player (id, api_user, universe, name, created_at)
+		VALUES ($1, $2, $3, $4, $5)`
+	_, err := conn.Exec(
+		context.Background(),
+		sqlQuery,
+		player.Id,
+		player.ApiUser,
+		player.Universe,
+		player.Name,
+		player.CreatedAt,
+	)
+	require.NoError(t, err, "Actual err: %v", err)
+
+	return player
+}
+
+func insertTestPlayerInUniverse(t *testing.T, conn db.Connection) (models.Player, models.Universe) {
+	universe := insertTestUniverse(t, conn)
+	player := insertTestPlayer(t, conn, universe.Id)
+	return player, universe
+}
+
+func assertPlayerExists(t *testing.T, conn db.Connection, id uuid.UUID) {
+	t.Helper()
+
+	sqlQuery := `SELECT id FROM player WHERE id = $1`
+	value, err := db.QueryOne[uuid.UUID](context.Background(), conn, sqlQuery, id)
+	require.NoError(t, err, "Actual err: %v", err)
+	require.Equal(t, id, value)
+}
+
+func assertPlayerDoesNotExist(t *testing.T, conn db.Connection, id uuid.UUID) {
+	t.Helper()
+
+	sqlQuery := `SELECT COUNT(id) FROM player WHERE id = $1`
+	value, err := db.QueryOne[int](context.Background(), conn, sqlQuery, id)
+	require.NoError(t, err, "Actual err: %v", err)
+	require.Zero(t, value)
+}
