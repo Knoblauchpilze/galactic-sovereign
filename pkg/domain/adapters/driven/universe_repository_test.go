@@ -8,7 +8,6 @@ import (
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db/pgx"
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/errors"
-	eassert "github.com/Knoblauchpilze/easy-assert/assert"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driven"
 	"github.com/google/uuid"
@@ -61,7 +60,7 @@ func TestIT_UniverseRepository_Get(t *testing.T) {
 	actual, err := repo.Get(context.Background(), universe.Id)
 	require.NoError(t, err, "Actual err: %v", err)
 
-	assert.True(t, eassert.EqualsIgnoringFields(actual, universe))
+	assert.Equal(t, actual, universe)
 }
 
 func TestIT_UniverseRepository_Get_WhenNotFound_ExpectFailure(t *testing.T) {
@@ -85,8 +84,8 @@ func TestIT_UniverseRepository_List(t *testing.T) {
 	require.NoError(t, err, "Actual err: %v", err)
 
 	assert.GreaterOrEqual(t, len(actual), 2)
-	assert.True(t, eassert.ContainsIgnoringFields(actual, u1))
-	assert.True(t, eassert.ContainsIgnoringFields(actual, u2))
+	assert.Contains(t, actual, u1)
+	assert.Contains(t, actual, u2)
 }
 
 func TestIT_UniverseRepository_Delete(t *testing.T) {
