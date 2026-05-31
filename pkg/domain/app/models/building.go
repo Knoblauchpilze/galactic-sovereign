@@ -7,8 +7,9 @@ import (
 )
 
 type Building struct {
-	Id   uuid.UUID
-	Name string
-
+	Id        uuid.UUID
+	Name      string
 	CreatedAt time.Time
+
+	BaseCosts []BuildingCost
 }

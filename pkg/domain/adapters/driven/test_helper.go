@@ -2,6 +2,8 @@ package driven
 
 import (
 	"context"
+	"math"
+	"math/rand/v2"
 	"testing"
 	"time"
 
@@ -20,4 +22,9 @@ func newTestConnection(t *testing.T) db.Connection {
 	conn, err := db.New(context.Background(), dbTestConfig)
 	require.Nil(t, err)
 	return conn
+}
+
+func randFloat(precision int) float64 {
+	rounder := math.Pow(10, float64(precision))
+	return math.Round(rand.Float64()*rounder) / rounder
 }
