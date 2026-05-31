@@ -11,5 +11,6 @@ type Building struct {
 	Name      string
 	CreatedAt time.Time
 
-	BaseCosts []BuildingCost
+	Costs       []BuildingCost
+	Productions []BuildingResourceProduction
 }

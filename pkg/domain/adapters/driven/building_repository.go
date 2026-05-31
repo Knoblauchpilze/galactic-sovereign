@@ -2,7 +2,6 @@ package driven
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driven/mappers"
@@ -26,6 +25,16 @@ SELECT
 	progress
 FROM
 	building_cost
+WHERE
+	building = $1`
+
+	listBuildingResourceProductionForBuildingQuery = `
+SELECT
+	resource,
+	base,
+	progress
+FROM
+	building_resource_production
 WHERE
 	building = $1`
 )
@@ -54,16 +63,40 @@ func (r *buildingRepositoryImpl) List(ctx context.Context) ([]models.Building, e
 
 	buildings := make([]models.Building, 0, len(dbBuildings))
 	for id := range dbBuildings {
-		building := dbBuildings[id].ToDomain()
-		building.BaseCosts, err = db.QueryAllTx[models.BuildingCost](ctx, tx, listBuildingCostForBuildingQuery, dbBuildings[id].Id)
+		building, err := loadBuildingDetails(ctx, tx, dbBuildings[id])
 		if err != nil {
 			return nil, err
 		}
-
-		fmt.Printf("found %d costs for %s\n", len(building.BaseCosts), building.Id)
 
 		buildings = append(buildings, building)
 	}
 
 	return buildings, nil
+}
+
+func loadBuildingDetails(ctx context.Context, tx db.Transaction, dbBuilding mappers.DbBuilding) (models.Building, error) {
+	building := dbBuilding.ToDomain()
+
+	var err error
+	building.Costs, err = db.QueryAllTx[models.BuildingCost](
+		ctx,
+		tx,
+		listBuildingCostForBuildingQuery,
+		dbBuilding.Id,
+	)
+	if err != nil {
+		return building, err
+	}
+
+	building.Productions, err = db.QueryAllTx[models.BuildingResourceProduction](
+		ctx,
+		tx,
+		listBuildingResourceProductionForBuildingQuery,
+		dbBuilding.Id,
+	)
+	if err != nil {
+		return building, err
+	}
+
+	return building, err
 }
