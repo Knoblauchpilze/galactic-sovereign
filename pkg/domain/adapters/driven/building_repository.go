@@ -22,7 +22,7 @@ type buildingRepositoryImpl struct {
 	conn db.Connection
 }
 
-func NewBuildingRepository(conn db.Connection) driven.ForManagingBuildings {
+func NewBuildingRepository(conn db.Connection) driven.ForListingBuildings {
 	return &buildingRepositoryImpl{
 		conn: conn,
 	}

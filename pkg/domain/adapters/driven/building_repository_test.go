@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
-	eassert "github.com/Knoblauchpilze/easy-assert/assert"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driven"
 	"github.com/google/uuid"
@@ -25,11 +24,11 @@ func TestIT_BuildingRepository_List(t *testing.T) {
 
 	assert.Nil(t, err)
 	assert.GreaterOrEqual(t, len(actual), 2)
-	assert.True(t, eassert.ContainsIgnoringFields(actual, b1))
-	assert.True(t, eassert.ContainsIgnoringFields(actual, b2))
+	assert.Contains(t, actual, b1)
+	assert.Contains(t, actual, b2)
 }
 
-func newTestBuildingRepository(t *testing.T) (driven.ForManagingBuildings, db.Connection) {
+func newTestBuildingRepository(t *testing.T) (driven.ForListingBuildings, db.Connection) {
 	conn := newTestConnection(t)
 	return NewBuildingRepository(conn), conn
 }
