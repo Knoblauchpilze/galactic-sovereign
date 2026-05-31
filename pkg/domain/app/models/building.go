@@ -13,4 +13,5 @@ type Building struct {
 
 	Costs       []BuildingCost
 	Productions []BuildingResourceProduction
+	Storages    []BuildingResourceStorage
 }

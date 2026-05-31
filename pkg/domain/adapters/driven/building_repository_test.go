@@ -24,7 +24,11 @@ func TestIT_BuildingRepository_List(t *testing.T) {
 	defer conn.Close(context.Background())
 	b1 := insertTestBuilding(t, conn, addBuildingCost)
 	b2 := insertTestBuilding(t, conn, addBuildingProduction)
-	b3 := insertTestBuilding(t, conn, addBuildingCost, addBuildingProduction)
+	b3 := insertTestBuilding(t, conn, addBuildingStorage)
+
+	mineLikeBuilding := insertTestBuilding(t, conn, addBuildingCost, addBuildingProduction)
+	hangarLikeBuilding := insertTestBuilding(t, conn, addBuildingCost, addBuildingStorage)
+	fullCheckBuilding := insertTestBuilding(t, conn, addBuildingCost, addBuildingProduction, addBuildingStorage)
 
 	actual, err := repo.List(context.Background())
 	require.NoError(t, err, "Actual err: %v", err)
@@ -33,6 +37,9 @@ func TestIT_BuildingRepository_List(t *testing.T) {
 	assert.Contains(t, actual, b1)
 	assert.Contains(t, actual, b2)
 	assert.Contains(t, actual, b3)
+	assert.Contains(t, actual, mineLikeBuilding)
+	assert.Contains(t, actual, hangarLikeBuilding)
+	assert.Contains(t, actual, fullCheckBuilding)
 }
 
 func newTestBuildingRepository(t *testing.T) (driven.ForListingBuildings, db.Connection) {
@@ -53,6 +60,7 @@ func insertTestBuilding(t *testing.T, conn db.Connection, modifiers ...func(*tes
 		// slices by the adapter
 		Costs:       []models.BuildingCost{},
 		Productions: []models.BuildingResourceProduction{},
+		Storages:    []models.BuildingResourceStorage{},
 	}
 
 	sqlQuery := `INSERT INTO building (id, name, created_at) VALUES ($1, $2, $3)`
@@ -82,7 +90,8 @@ func addBuildingCost(t *testing.T, conn db.Connection, b *models.Building) {
 		Progress: randFloat(5),
 	}
 
-	sqlQuery := `INSERT INTO building_cost (building, resource, cost, progress) VALUES ($1, $2, $3, $4)`
+	sqlQuery := `INSERT INTO building_cost (building, resource, cost, progress)
+		VALUES ($1, $2, $3, $4)`
 	_, err := conn.Exec(
 		context.Background(),
 		sqlQuery,
@@ -106,7 +115,8 @@ func addBuildingProduction(t *testing.T, conn db.Connection, b *models.Building)
 		Progress: randFloat(5),
 	}
 
-	sqlQuery := `INSERT INTO building_resource_production (building, resource, base, progress) VALUES ($1, $2, $3, $4)`
+	sqlQuery := `INSERT INTO building_resource_production (building, resource, base, progress)
+		VALUES ($1, $2, $3, $4)`
 	_, err := conn.Exec(
 		context.Background(),
 		sqlQuery,
@@ -118,4 +128,31 @@ func addBuildingProduction(t *testing.T, conn db.Connection, b *models.Building)
 	require.Nil(t, err)
 
 	b.Productions = append(b.Productions, production)
+}
+
+func addBuildingStorage(t *testing.T, conn db.Connection, b *models.Building) {
+	t.Helper()
+
+	storage := models.BuildingResourceStorage{
+		Resource: metalResourceId,
+		Base:     rand.Intn(1748),
+		// Scale and progress are stored with 5 decimals in the DB
+		Scale:    randFloat(5),
+		Progress: randFloat(5),
+	}
+
+	sqlQuery := `INSERT INTO building_resource_storage (building, resource, base, scale, progress)
+		VALUES ($1, $2, $3, $4, $5)`
+	_, err := conn.Exec(
+		context.Background(),
+		sqlQuery,
+		b.Id,
+		storage.Resource,
+		storage.Base,
+		storage.Scale,
+		storage.Progress,
+	)
+	require.NoError(t, err, "Actual err: %v", err)
+
+	b.Storages = append(b.Storages, storage)
 }

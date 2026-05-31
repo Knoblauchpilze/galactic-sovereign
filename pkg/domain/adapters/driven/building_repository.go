@@ -37,6 +37,17 @@ FROM
 	building_resource_production
 WHERE
 	building = $1`
+
+	listBuildingResourceStorageForBuildingQuery = `
+SELECT
+	resource,
+	base,
+	scale,
+	progress
+FROM
+	building_resource_storage
+WHERE
+	building = $1`
 )
 
 type buildingRepositoryImpl struct {
@@ -92,6 +103,16 @@ func loadBuildingDetails(ctx context.Context, tx db.Transaction, dbBuilding mapp
 		ctx,
 		tx,
 		listBuildingResourceProductionForBuildingQuery,
+		dbBuilding.Id,
+	)
+	if err != nil {
+		return building, err
+	}
+
+	building.Storages, err = db.QueryAllTx[models.BuildingResourceStorage](
+		ctx,
+		tx,
+		listBuildingResourceStorageForBuildingQuery,
 		dbBuilding.Id,
 	)
 	if err != nil {
