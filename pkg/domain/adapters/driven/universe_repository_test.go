@@ -110,6 +110,7 @@ func TestIT_UniverseRepository_Delete_WhenNotFound_ExpectSuccess(t *testing.T) {
 }
 
 func newTestUniverseRepository(t *testing.T) (driven.ForManagingUniverses, db.Connection) {
+	t.Helper()
 	conn := newTestConnection(t)
 	return NewUniverseRepository(conn), conn
 }

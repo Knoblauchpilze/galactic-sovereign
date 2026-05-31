@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"testing"
-	"time"
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
@@ -29,14 +28,13 @@ func TestIT_ResourceRepository_List(t *testing.T) {
 }
 
 func newTestResourceRepository(t *testing.T) (driven.ForListingResources, db.Connection) {
+	t.Helper()
 	conn := newTestConnection(t)
 	return NewResourceRepository(conn), conn
 }
 
 func insertTestResource(t *testing.T, conn db.Connection) models.Resource {
 	t.Helper()
-
-	someTime := time.Date(2024, 11, 30, 9, 23, 53, 0, time.UTC)
 
 	resource := models.Resource{
 		Id:              uuid.New(),

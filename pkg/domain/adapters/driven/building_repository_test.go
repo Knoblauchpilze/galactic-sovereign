@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"math/rand"
 	"testing"
-	"time"
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
@@ -43,14 +42,17 @@ func TestIT_BuildingRepository_List(t *testing.T) {
 }
 
 func newTestBuildingRepository(t *testing.T) (driven.ForListingBuildings, db.Connection) {
+	t.Helper()
 	conn := newTestConnection(t)
 	return NewBuildingRepository(conn), conn
 }
 
-func insertTestBuilding(t *testing.T, conn db.Connection, modifiers ...func(*testing.T, db.Connection, *models.Building)) models.Building {
+func insertTestBuilding(
+	t *testing.T,
+	conn db.Connection,
+	modifiers ...func(*testing.T, db.Connection, *models.Building),
+) models.Building {
 	t.Helper()
-
-	someTime := time.Date(2024, 11, 30, 9, 12, 03, 0, time.UTC)
 
 	building := models.Building{
 		Id:        uuid.New(),
@@ -71,7 +73,7 @@ func insertTestBuilding(t *testing.T, conn db.Connection, modifiers ...func(*tes
 		building.Name,
 		building.CreatedAt,
 	)
-	require.Nil(t, err)
+	require.NoError(t, err, "Actual err: %v", err)
 
 	for _, modifier := range modifiers {
 		modifier(t, conn, &building)
@@ -100,7 +102,7 @@ func addBuildingCost(t *testing.T, conn db.Connection, b *models.Building) {
 		cost.Cost,
 		cost.Progress,
 	)
-	require.Nil(t, err)
+	require.NoError(t, err, "Actual err: %v", err)
 
 	b.Costs = append(b.Costs, cost)
 }
@@ -125,7 +127,7 @@ func addBuildingProduction(t *testing.T, conn db.Connection, b *models.Building)
 		production.Base,
 		production.Progress,
 	)
-	require.Nil(t, err)
+	require.NoError(t, err, "Actual err: %v", err)
 
 	b.Productions = append(b.Productions, production)
 }
