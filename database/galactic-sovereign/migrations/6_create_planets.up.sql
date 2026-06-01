@@ -25,6 +25,7 @@ CREATE TABLE planet_resource (
   amount NUMERIC(15, 5) NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
   updated_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  version INTEGER DEFAULT 0,
   FOREIGN KEY (planet) REFERENCES planet(id),
   FOREIGN KEY (resource) REFERENCES resource(id),
   UNIQUE (planet, resource)
@@ -39,6 +40,7 @@ CREATE TABLE planet_resource_production (
   production INTEGER NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
   updated_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  version INTEGER DEFAULT 0,
   FOREIGN KEY (planet) REFERENCES planet(id),
   FOREIGN KEY (building) REFERENCES building(id),
   FOREIGN KEY (resource) REFERENCES resource(id),
@@ -56,6 +58,7 @@ CREATE TABLE planet_resource_storage (
   storage INTEGER NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
   updated_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  version INTEGER DEFAULT 0,
   FOREIGN KEY (planet) REFERENCES planet(id),
   FOREIGN KEY (resource) REFERENCES resource(id),
   UNIQUE (planet, resource)
@@ -69,6 +72,7 @@ CREATE TABLE planet_building (
   level INTEGER NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
   updated_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  version INTEGER DEFAULT 0,
   FOREIGN KEY (planet) REFERENCES planet(id),
   FOREIGN KEY (building) REFERENCES building(id),
   UNIQUE (planet, building)
