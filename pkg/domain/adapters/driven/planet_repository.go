@@ -2,8 +2,10 @@ package driven
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
+	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driven/mappers"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driven"
 	"github.com/google/uuid"
@@ -34,6 +36,17 @@ FROM
 	LEFT JOIN homeworld AS h ON h.planet = p.id
 WHERE
 	id = $1`
+
+	listPlanetResourceForPlanetQuery = `
+SELECT
+	resource,
+	amount,
+	created_at,
+	updated_at
+FROM
+	planet_resource
+WHERE
+	building = $1`
 
 	listPlanetQuery = `
 SELECT
@@ -119,15 +132,63 @@ func (r *planetRepositoryImpl) Create(ctx context.Context, planet models.Planet)
 }
 
 func (r *planetRepositoryImpl) Get(ctx context.Context, id uuid.UUID) (models.Planet, error) {
-	return db.QueryOne[models.Planet](ctx, r.conn, getPlanetQuery, id)
+	dbPlanet, err := db.QueryOne[mappers.DbPlanet](ctx, r.conn, getPlanetQuery, id)
+	if err != nil {
+		return models.Planet{}, err
+	}
+
+	return dbPlanet.ToDomain(), nil
 }
 
 func (r *planetRepositoryImpl) List(ctx context.Context) ([]models.Planet, error) {
-	return db.QueryAll[models.Planet](ctx, r.conn, listPlanetQuery)
+	tx, err := r.conn.BeginTx(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Close(ctx)
+
+	dbPlanets, err := db.QueryAllTx[mappers.DbPlanet](ctx, tx, listPlanetQuery)
+	if err != nil {
+		return nil, err
+	}
+
+	planets := make([]models.Planet, 0, len(dbPlanets))
+	for id := range dbPlanets {
+		planet, err := loadPlanetDetails(ctx, tx, dbPlanets[id])
+		if err != nil {
+			return nil, err
+		}
+
+		planets = append(planets, planet)
+	}
+
+	return planets, nil
 }
 
 func (r *planetRepositoryImpl) ListForPlayer(ctx context.Context, player uuid.UUID) ([]models.Planet, error) {
-	return db.QueryAll[models.Planet](ctx, r.conn, listPlanetForPlayerQuery, player)
+	tx, err := r.conn.BeginTx(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Close(ctx)
+
+	dbPlanets, err := db.QueryAllTx[mappers.DbPlanet](ctx, tx, listPlanetForPlayerQuery, player)
+	if err != nil {
+		return nil, err
+	}
+	fmt.Printf("hehe\n")
+
+	planets := make([]models.Planet, 0, len(dbPlanets))
+	for id := range dbPlanets {
+		planet, err := loadPlanetDetails(ctx, tx, dbPlanets[id])
+		if err != nil {
+			return nil, err
+		}
+
+		planets = append(planets, planet)
+	}
+
+	return planets, nil
 }
 
 func (r *planetRepositoryImpl) Delete(ctx context.Context, id uuid.UUID) error {
@@ -160,4 +221,8 @@ func (r *planetRepositoryImpl) DeleteForPlayer(ctx context.Context, player uuid.
 
 	_, err = tx.Exec(ctx, deletePlanetSqlForQuery, player)
 	return err
+}
+
+func loadPlanetDetails(ctx context.Context, tx db.Transaction, dbPlanet mappers.DbPlanet) (models.Planet, error) {
+	return dbPlanet.ToDomain(), nil
 }
