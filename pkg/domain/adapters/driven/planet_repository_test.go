@@ -27,6 +27,8 @@ func TestIT_PlanetRespository_Create(t *testing.T) {
 		Name:      fmt.Sprintf("my-planet-%s", uuid.NewString()),
 		Homeworld: false,
 		CreatedAt: someTime,
+		UpdatedAt: someOtherTime,
+		Version:   3,
 	}
 
 	err := repo.Create(context.Background(), planet)
@@ -37,6 +39,25 @@ func TestIT_PlanetRespository_Create(t *testing.T) {
 	require.NoError(t, err, "Actual err: %v", err)
 
 	assert.Equal(t, planet, actual)
+}
+
+func TestIT_PlanetRespository_Create_ExpectErrorWhenPlanetWithSameIdAlreadyExists(t *testing.T) {
+	repo, conn := newTestPlanetRepository(t)
+
+	planet, player, _ := insertTestPlanetForPlayer(t, conn)
+
+	duplicatedPlanet := models.Planet{
+		Id:        planet.Id,
+		Player:    player.Id,
+		Name:      fmt.Sprintf("my-planet-%s", uuid.NewString()),
+		Homeworld: false,
+		CreatedAt: someTime,
+		UpdatedAt: someOtherTime,
+		Version:   4,
+	}
+
+	err := repo.Create(context.Background(), duplicatedPlanet)
+	assert.True(t, errors.IsErrorWithCode(err, pgx.UniqueConstraintViolation), "Actual err: %v", err)
 }
 
 func TestIT_PlanetRespository_Create_WhenHomeworld_ExpectCorrectlyMarkedAsSuch(t *testing.T) {
@@ -51,6 +72,7 @@ func TestIT_PlanetRespository_Create_WhenHomeworld_ExpectCorrectlyMarkedAsSuch(t
 		Name:      fmt.Sprintf("my-planet-%s", uuid.NewString()),
 		Homeworld: true,
 		CreatedAt: someTime,
+		UpdatedAt: someOtherTime,
 	}
 
 	err := repo.Create(context.Background(), planet)
@@ -75,6 +97,7 @@ func TestIT_PlanetRespository_Create_WhenHomeworldAlreadyExists_ExpectFailureWhe
 		Name:      fmt.Sprintf("my-planet-%s", uuid.NewString()),
 		Homeworld: true,
 		CreatedAt: someTime,
+		UpdatedAt: someOtherTime,
 	}
 
 	err := repo.Create(context.Background(), planet)
@@ -184,6 +207,8 @@ func TestIT_PlanetRepository_CreationDeletionWorkflow(t *testing.T) {
 		Name:      fmt.Sprintf("my-planet-%s", uuid.NewString()),
 		Homeworld: false,
 		CreatedAt: someTime,
+		UpdatedAt: someOtherTime,
+		Version:   4,
 	}
 
 	func() {
@@ -218,6 +243,8 @@ func TestIT_PlanetRepository_HomeWorldCreationDeletionWorkflow(t *testing.T) {
 		Name:      fmt.Sprintf("my-planet-%s", uuid.NewString()),
 		Homeworld: true,
 		CreatedAt: someTime,
+		UpdatedAt: someOtherTime,
+		Version:   6,
 	}
 
 	func() {
@@ -260,10 +287,12 @@ func insertTestPlanet(
 		Name:      fmt.Sprintf("my-planet-%s", uuid.NewString()),
 		Homeworld: false,
 		CreatedAt: someTime,
+		UpdatedAt: someOtherTime,
+		Version:   7,
 	}
 
-	sqlQuery := `INSERT INTO planet (id, player, name, created_at)
-		VALUES ($1, $2, $3, $4)`
+	sqlQuery := `INSERT INTO planet (id, player, name, created_at, updated_at, version)
+		VALUES ($1, $2, $3, $4, $5, $6)`
 	_, err := conn.Exec(
 		context.Background(),
 		sqlQuery,
@@ -271,6 +300,8 @@ func insertTestPlanet(
 		planet.Player,
 		planet.Name,
 		planet.CreatedAt,
+		planet.UpdatedAt,
+		planet.Version,
 	)
 	require.NoError(t, err, "Actual err: %v", err)
 

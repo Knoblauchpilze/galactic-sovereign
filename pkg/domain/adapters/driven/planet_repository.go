@@ -12,8 +12,8 @@ import (
 const (
 	createPlanetQuery = `
 INSERT INTO
-	planet (id, player, name, created_at)
-	VALUES($1, $2, $3, $4)`
+	planet (id, player, name, created_at, updated_at, version)
+	VALUES($1, $2, $3, $4, $5, $6)`
 
 	createPlanetHomeworldQuery = `INSERT INTO homeworld (player, planet) VALUES($1, $2)`
 
@@ -26,7 +26,9 @@ SELECT
 		WHEN h.planet IS NOT NULL THEN true
 		ELSE false
 	END AS homeworld,
-	p.created_at
+	p.created_at,
+	p.updated_at,
+	p.version
 FROM
 	planet AS p
 	LEFT JOIN homeworld AS h ON h.planet = p.id
@@ -42,7 +44,9 @@ SELECT
 		WHEN h.planet IS NOT NULL THEN true
 		ELSE false
 	END AS homeworld,
-	p.created_at
+	p.created_at,
+	p.updated_at,
+	p.version
 FROM
 	planet AS p
 	LEFT JOIN homeworld AS h ON h.planet = p.id`
@@ -56,7 +60,9 @@ SELECT
 		WHEN h.planet IS NOT NULL THEN true
 		ELSE false
 	END AS homeworld,
-	p.created_at
+	p.created_at,
+	p.updated_at,
+	p.version
 FROM
 	planet AS p
 	LEFT JOIN homeworld AS h ON h.planet = p.id
@@ -89,7 +95,16 @@ func (r *planetRepositoryImpl) Create(ctx context.Context, planet models.Planet)
 	}
 	defer tx.Close(ctx)
 
-	_, err = tx.Exec(ctx, createPlanetQuery, planet.Id, planet.Player, planet.Name, planet.CreatedAt)
+	_, err = tx.Exec(
+		ctx,
+		createPlanetQuery,
+		planet.Id,
+		planet.Player,
+		planet.Name,
+		planet.CreatedAt,
+		planet.UpdatedAt,
+		planet.Version,
+	)
 	if err != nil {
 		return err
 	}

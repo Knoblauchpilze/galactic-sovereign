@@ -13,7 +13,8 @@ import (
 )
 
 var (
-	someTime = time.Date(2024, 11, 29, 17, 53, 29, 0, time.UTC)
+	someTime      = time.Date(2024, 11, 29, 17, 53, 29, 0, time.UTC)
+	someOtherTime = time.Date(2026, 6, 1, 8, 20, 15, 0, time.UTC)
 
 	dbTestConfig = postgresql.NewConfigForLocalhost("db_galactic_sovereign", "galactic_sovereign_manager", "manager_password")
 )

@@ -13,4 +13,7 @@ type Planet struct {
 	Homeworld bool
 
 	CreatedAt time.Time
+	UpdatedAt time.Time
+
+	Version int
 }
