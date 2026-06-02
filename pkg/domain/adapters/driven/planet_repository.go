@@ -2,7 +2,6 @@ package driven
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driven/mappers"
@@ -46,7 +45,7 @@ SELECT
 FROM
 	planet_resource
 WHERE
-	building = $1`
+	planet = $1`
 
 	listPlanetQuery = `
 SELECT
@@ -82,13 +81,22 @@ FROM
 WHERE
 	p.player = $1`
 
+	deletePlanetResourcesQuery = `DELETE FROM planet_resource WHERE planet = $1`
 	deletePlanetHomeworldQuery = `DELETE FROM homeworld WHERE planet = $1`
+	deletePlanetQuery          = `DELETE FROM planet WHERE id = $1`
 
-	deletePlanetQuery = `DELETE FROM planet WHERE id = $1`
-
+	deletePlanetResourcesForPlayerQuery = `
+DELETE FROM
+	planet_resource AS prd
+USING
+	planet_resource AS pr
+	LEFT JOIN planet AS p ON pr.planet = p.id
+WHERE
+	prd.planet = pr.planet
+	AND prd.resource = pr.resource
+	AND p.player = $1`
 	deletePlanetHomeworldForPlayerQuery = `DELETE FROM homeworld WHERE player = $1`
-
-	deletePlanetSqlForQuery = `DELETE FROM planet WHERE player = $1`
+	deletePlanetSqlForQuery             = `DELETE FROM planet WHERE player = $1`
 )
 
 type planetRepositoryImpl struct {
@@ -132,12 +140,18 @@ func (r *planetRepositoryImpl) Create(ctx context.Context, planet models.Planet)
 }
 
 func (r *planetRepositoryImpl) Get(ctx context.Context, id uuid.UUID) (models.Planet, error) {
-	dbPlanet, err := db.QueryOne[mappers.DbPlanet](ctx, r.conn, getPlanetQuery, id)
+	tx, err := r.conn.BeginTx(ctx)
+	if err != nil {
+		return models.Planet{}, err
+	}
+	defer tx.Close(ctx)
+
+	dbPlanet, err := db.QueryOneTx[mappers.DbPlanet](ctx, tx, getPlanetQuery, id)
 	if err != nil {
 		return models.Planet{}, err
 	}
 
-	return dbPlanet.ToDomain(), nil
+	return loadPlanetDetails(ctx, tx, dbPlanet)
 }
 
 func (r *planetRepositoryImpl) List(ctx context.Context) ([]models.Planet, error) {
@@ -176,7 +190,6 @@ func (r *planetRepositoryImpl) ListForPlayer(ctx context.Context, player uuid.UU
 	if err != nil {
 		return nil, err
 	}
-	fmt.Printf("hehe\n")
 
 	planets := make([]models.Planet, 0, len(dbPlanets))
 	for id := range dbPlanets {
@@ -198,6 +211,11 @@ func (r *planetRepositoryImpl) Delete(ctx context.Context, id uuid.UUID) error {
 	}
 	defer tx.Close(ctx)
 
+	_, err = tx.Exec(ctx, deletePlanetResourcesQuery, id)
+	if err != nil {
+		return err
+	}
+
 	_, err = tx.Exec(ctx, deletePlanetHomeworldQuery, id)
 	if err != nil {
 		return err
@@ -214,6 +232,11 @@ func (r *planetRepositoryImpl) DeleteForPlayer(ctx context.Context, player uuid.
 	}
 	defer tx.Close(ctx)
 
+	_, err = tx.Exec(ctx, deletePlanetResourcesForPlayerQuery, player)
+	if err != nil {
+		return err
+	}
+
 	_, err = tx.Exec(ctx, deletePlanetHomeworldForPlayerQuery, player)
 	if err != nil {
 		return err
@@ -224,5 +247,18 @@ func (r *planetRepositoryImpl) DeleteForPlayer(ctx context.Context, player uuid.
 }
 
 func loadPlanetDetails(ctx context.Context, tx db.Transaction, dbPlanet mappers.DbPlanet) (models.Planet, error) {
-	return dbPlanet.ToDomain(), nil
+	planet := dbPlanet.ToDomain()
+
+	var err error
+	planet.Resources, err = db.QueryAllTx[models.PlanetResource](
+		ctx,
+		tx,
+		listPlanetResourceForPlanetQuery,
+		dbPlanet.Id,
+	)
+	if err != nil {
+		return planet, err
+	}
+
+	return planet, nil
 }

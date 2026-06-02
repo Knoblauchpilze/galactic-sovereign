@@ -10,10 +10,13 @@ import (
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/errors"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driven"
-	"github.com/Knoblauchpilze/galactic-sovereign/pkg/persistence"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+)
+
+var (
+	crystalResourceId = uuid.MustParse("cd2ac9aa-9968-4ff5-b746-88f1f810fbb3")
 )
 
 func TestIT_PlanetRespository_Create(t *testing.T) {
@@ -29,6 +32,7 @@ func TestIT_PlanetRespository_Create(t *testing.T) {
 		CreatedAt: someTime,
 		UpdatedAt: someOtherTime,
 		Version:   3,
+		Resources: []models.PlanetResource{},
 	}
 
 	err := repo.Create(context.Background(), planet)
@@ -73,11 +77,13 @@ func TestIT_PlanetRespository_Create_WhenHomeworld_ExpectCorrectlyMarkedAsSuch(t
 		Homeworld: true,
 		CreatedAt: someTime,
 		UpdatedAt: someOtherTime,
+		Resources: []models.PlanetResource{},
 	}
 
 	err := repo.Create(context.Background(), planet)
 	require.NoError(t, err, "Actual err: %v", err)
 	assertPlanetExists(t, conn, planet.Id)
+	assertPlanetIsHomeworld(t, conn, planet.Id, planet.Player)
 
 	actual, err := repo.Get(context.Background(), planet.Id)
 	require.NoError(t, err, "Actual err: %v", err)
@@ -108,12 +114,24 @@ func TestIT_PlanetRespository_Create_WhenHomeworldAlreadyExists_ExpectFailureWhe
 func TestIT_PlanetRepository_Get(t *testing.T) {
 	repo, conn := newTestPlanetRepository(t)
 	defer conn.Close(context.Background())
-	planet, _, _ := insertTestPlanetForPlayer(t, conn)
 
-	actual, err := repo.Get(context.Background(), planet.Id)
-	require.NoError(t, err, "Actual err: %v", err)
+	t.Run("get planet", func(t *testing.T) {
+		planet, _, _ := insertTestPlanetForPlayer(t, conn)
 
-	assert.Equal(t, actual, planet)
+		actual, err := repo.Get(context.Background(), planet.Id)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.Equal(t, actual, planet)
+	})
+
+	t.Run("get planet with resources", func(t *testing.T) {
+		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetResource)
+
+		actual, err := repo.Get(context.Background(), planet.Id)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.Equal(t, actual, planet)
+	})
 }
 
 func TestIT_PlanetRepository_Get_WhenNotFound_ExpectFailure(t *testing.T) {
@@ -134,22 +152,24 @@ func TestIT_PlanetRepository_List(t *testing.T) {
 	p2 := insertTestPlanet(t, conn, player1.Id)
 	p3, player2, _ := insertTestPlanetForPlayer(t, conn)
 	p4 := insertTestPlanet(t, conn, player2.Id)
+	p5 := insertTestPlanet(t, conn, player2.Id, addPlanetResource)
 
 	actual, err := repo.List(context.Background())
 	require.NoError(t, err, "Actual err: %v", err)
 
-	assert.GreaterOrEqual(t, len(actual), 4)
+	assert.GreaterOrEqual(t, len(actual), 5)
 	assert.Contains(t, actual, p1)
 	assert.Contains(t, actual, p2)
 	assert.Contains(t, actual, p3)
 	assert.Contains(t, actual, p4)
+	assert.Contains(t, actual, p5)
 }
 
 func TestIT_PlanetRepository_ListForPlayer(t *testing.T) {
 	repo, conn := newTestPlanetRepository(t)
 	defer conn.Close(context.Background())
 	p1, player1, _ := insertTestPlanetForPlayer(t, conn)
-	p2 := insertTestPlanet(t, conn, player1.Id)
+	p2 := insertTestPlanet(t, conn, player1.Id, addPlanetResource)
 	p3, _, _ := insertTestPlanetForPlayer(t, conn)
 
 	actual, err := repo.ListForPlayer(context.Background(), player1.Id)
@@ -166,12 +186,46 @@ func TestIT_PlanetRepository_ListForPlayer(t *testing.T) {
 func TestIT_PlanetRepository_Delete(t *testing.T) {
 	repo, conn := newTestPlanetRepository(t)
 	defer conn.Close(context.Background())
-	planet, _, _ := insertTestPlanetForPlayer(t, conn)
 
-	err := repo.Delete(context.Background(), planet.Id)
-	require.NoError(t, err, "Actual err: %v", err)
+	t.Run("delete planet", func(t *testing.T) {
+		planet, _, _ := insertTestPlanetForPlayer(t, conn)
 
-	assertPlanetDoesNotExist(t, conn, planet.Id)
+		err := repo.Delete(context.Background(), planet.Id)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assertPlanetDoesNotExist(t, conn, planet.Id)
+	})
+
+	t.Run("delete homeworld", func(t *testing.T) {
+		planet, _, _ := insertTestHomeworldPlanetForPlayer(t, conn)
+
+		err := repo.Delete(context.Background(), planet.Id)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assertPlanetDoesNotExist(t, conn, planet.Id)
+		assertPlanetIsNotHomeworld(t, conn, planet.Id)
+	})
+
+	t.Run("delete planet with resources", func(t *testing.T) {
+		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetResource)
+
+		err := repo.Delete(context.Background(), planet.Id)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assertPlanetDoesNotExist(t, conn, planet.Id)
+		assertPlanetResourceDoesNotExist(t, conn, planet.Id)
+	})
+
+	t.Run("delete homeworld with resources", func(t *testing.T) {
+		planet, _, _ := insertTestHomeworldPlanetForPlayer(t, conn, addPlanetResource)
+
+		err := repo.Delete(context.Background(), planet.Id)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assertPlanetDoesNotExist(t, conn, planet.Id)
+		assertPlanetIsNotHomeworld(t, conn, planet.Id)
+		assertPlanetResourceDoesNotExist(t, conn, planet.Id)
+	})
 }
 
 func TestIT_PlanetRepository_Delete_WhenNotFound_ExpectSuccess(t *testing.T) {
@@ -181,18 +235,6 @@ func TestIT_PlanetRepository_Delete_WhenNotFound_ExpectSuccess(t *testing.T) {
 
 	err := repo.Delete(context.Background(), nonExistingId)
 	require.NoError(t, err, "Actual err: %v", err)
-}
-
-func TestIT_PlanetRepository_Delete_Homeworld(t *testing.T) {
-	repo, conn := newTestPlanetRepository(t)
-	defer conn.Close(context.Background())
-	planet, _, _ := insertTestHomeworldPlanetForPlayer(t, conn)
-
-	err := repo.Delete(context.Background(), planet.Id)
-	require.NoError(t, err, "Actual err: %v", err)
-
-	assertPlanetDoesNotExist(t, conn, planet.Id)
-	assertPlanetIsNotHomeworld(t, conn, planet.Id)
 }
 
 func TestIT_PlanetRepository_CreationDeletionWorkflow(t *testing.T) {
@@ -209,6 +251,7 @@ func TestIT_PlanetRepository_CreationDeletionWorkflow(t *testing.T) {
 		CreatedAt: someTime,
 		UpdatedAt: someOtherTime,
 		Version:   4,
+		Resources: []models.PlanetResource{},
 	}
 
 	func() {
@@ -245,6 +288,7 @@ func TestIT_PlanetRepository_HomeWorldCreationDeletionWorkflow(t *testing.T) {
 		CreatedAt: someTime,
 		UpdatedAt: someOtherTime,
 		Version:   6,
+		Resources: []models.PlanetResource{},
 	}
 
 	func() {
@@ -265,6 +309,31 @@ func TestIT_PlanetRepository_HomeWorldCreationDeletionWorkflow(t *testing.T) {
 	}()
 
 	assertPlanetDoesNotExist(t, conn, planet.Id)
+}
+
+func TestIT_PlanetRepository_DeleteForPlayer_ExpectHomeworldToBeDeleted(t *testing.T) {
+	repo, conn := newTestPlanetRepository(t)
+	defer conn.Close(context.Background())
+
+	t.Run("delete homeworld", func(t *testing.T) {
+		planet, _, _ := insertTestHomeworldPlanetForPlayer(t, conn)
+
+		err := repo.DeleteForPlayer(context.Background(), planet.Player)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assertPlanetDoesNotExist(t, conn, planet.Id)
+		assertPlanetIsNotHomeworld(t, conn, planet.Id)
+	})
+
+	t.Run("delete planet with resources", func(t *testing.T) {
+		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetResource)
+
+		err := repo.DeleteForPlayer(context.Background(), planet.Player)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assertPlanetDoesNotExist(t, conn, planet.Id)
+		assertPlanetResourceDoesNotExist(t, conn, planet.Id)
+	})
 }
 
 func newTestPlanetRepository(t *testing.T) (driven.ForManagingPlanets, db.Connection) {
@@ -289,6 +358,9 @@ func insertTestPlanet(
 		CreatedAt: someTime,
 		UpdatedAt: someOtherTime,
 		Version:   7,
+		// This is intentional: the details (e.g. resoruces, etc.) are returned as empty
+		// slices by the adapter
+		Resources: []models.PlanetResource{},
 	}
 
 	sqlQuery := `INSERT INTO planet (id, player, name, created_at, updated_at, version)
@@ -322,19 +394,55 @@ func addPlanetHomeworld(t *testing.T, conn db.Connection, p *models.Planet) {
 	p.Homeworld = true
 }
 
-func insertTestPlanetForPlayer(t *testing.T, conn db.Connection) (models.Planet, models.Player, models.Universe) {
+func addPlanetResource(t *testing.T, conn db.Connection, p *models.Planet) {
+	t.Helper()
+
+	resource := models.PlanetResource{
+		Resource: crystalResourceId,
+		// Amount is stored with 5 decimals in the DB
+		Amount:    randFloat(5),
+		CreatedAt: someTime,
+		UpdatedAt: someOtherTime,
+	}
+
+	sqlQuery := `INSERT INTO planet_resource (planet, resource, amount, created_at, updated_at)
+		VALUES ($1, $2, $3, $4, $5)`
+	_, err := conn.Exec(
+		context.Background(),
+		sqlQuery,
+		p.Id,
+		resource.Resource,
+		resource.Amount,
+		resource.CreatedAt,
+		resource.UpdatedAt,
+	)
+	require.NoError(t, err, "Actual err: %v", err)
+
+	p.Resources = append(p.Resources, resource)
+}
+
+func insertTestPlanetForPlayer(
+	t *testing.T,
+	conn db.Connection,
+	modifiers ...func(*testing.T, db.Connection, *models.Planet),
+) (models.Planet, models.Player, models.Universe) {
 	t.Helper()
 
 	player, universe := insertTestPlayerInUniverse(t, conn)
-	planet := insertTestPlanet(t, conn, player.Id)
+	planet := insertTestPlanet(t, conn, player.Id, modifiers...)
 	return planet, player, universe
 }
 
-func insertTestHomeworldPlanetForPlayer(t *testing.T, conn db.Connection) (models.Planet, models.Player, models.Universe) {
+func insertTestHomeworldPlanetForPlayer(
+	t *testing.T,
+	conn db.Connection,
+	modifiers ...func(*testing.T, db.Connection, *models.Planet),
+) (models.Planet, models.Player, models.Universe) {
 	t.Helper()
 
 	player, universe := insertTestPlayerInUniverse(t, conn)
-	planet := insertTestPlanet(t, conn, player.Id, addPlanetHomeworld)
+	modifiers = append(modifiers, addPlanetHomeworld)
+	planet := insertTestPlanet(t, conn, player.Id, modifiers...)
 	return planet, player, universe
 }
 
@@ -356,11 +464,11 @@ func assertPlanetDoesNotExist(t *testing.T, conn db.Connection, id uuid.UUID) {
 	require.Zero(t, value)
 }
 
-func assertPlanetIsHomeworld(t *testing.T, conn db.Connection, planet persistence.Planet) {
+func assertPlanetIsHomeworld(t *testing.T, conn db.Connection, planet uuid.UUID, player uuid.UUID) {
 	t.Helper()
 
 	sqlQuery := `SELECT COUNT(*) FROM homeworld WHERE planet = $1 AND player = $2`
-	value, err := db.QueryOne[int](context.Background(), conn, sqlQuery, planet.Id, planet.Player)
+	value, err := db.QueryOne[int](context.Background(), conn, sqlQuery, planet, player)
 	require.NoError(t, err, "Actual err: %v", err)
 	require.Equal(t, 1, value)
 }
@@ -372,4 +480,11 @@ func assertPlanetIsNotHomeworld(t *testing.T, conn db.Connection, planet uuid.UU
 	value, err := db.QueryOne[int](context.Background(), conn, sqlQuery, planet)
 	require.NoError(t, err, "Actual err: %v", err)
 	require.Equal(t, 0, value)
+}
+
+func assertPlanetResourceDoesNotExist(t *testing.T, conn db.Connection, planet uuid.UUID) {
+	sqlQuery := `SELECT COUNT(resource) FROM planet_resource WHERE planet = $1`
+	value, err := db.QueryOne[int](context.Background(), conn, sqlQuery, planet)
+	require.Nil(t, err)
+	require.Zero(t, value)
 }

@@ -16,4 +16,6 @@ type Planet struct {
 	UpdatedAt time.Time
 
 	Version int
+
+	Resources []PlanetResource
 }

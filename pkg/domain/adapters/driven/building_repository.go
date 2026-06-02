@@ -119,5 +119,5 @@ func loadBuildingDetails(ctx context.Context, tx db.Transaction, dbBuilding mapp
 		return building, err
 	}
 
-	return building, err
+	return building, nil
 }
