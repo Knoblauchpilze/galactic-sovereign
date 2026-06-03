@@ -24,97 +24,92 @@ var (
 func TestIT_PlanetRespository_Create(t *testing.T) {
 	repo, conn := newTestPlanetRepository(t)
 
-	player, _ := insertTestPlayerInUniverse(t, conn)
+	t.Run("create", func(t *testing.T) {
+		player, _ := insertTestPlayerInUniverse(t, conn)
 
-	planet := models.Planet{
-		Id:          uuid.New(),
-		Player:      player.Id,
-		Name:        fmt.Sprintf("my-planet-%s", uuid.NewString()),
-		Homeworld:   false,
-		CreatedAt:   someTime,
-		UpdatedAt:   someOtherTime,
-		Version:     3,
-		Resources:   []models.PlanetResource{},
-		Storages:    []models.PlanetResourceStorage{},
-		Productions: []models.PlanetResourceProduction{},
-	}
+		planet := models.Planet{
+			Id:          uuid.New(),
+			Player:      player.Id,
+			Name:        fmt.Sprintf("my-planet-%s", uuid.NewString()),
+			Homeworld:   false,
+			CreatedAt:   someTime,
+			UpdatedAt:   someOtherTime,
+			Version:     3,
+			Resources:   []models.PlanetResource{},
+			Storages:    []models.PlanetResourceStorage{},
+			Productions: []models.PlanetResourceProduction{},
+		}
 
-	err := repo.Create(context.Background(), planet)
-	require.NoError(t, err, "Actual err: %v", err)
-	assertPlanetExists(t, conn, planet.Id)
+		err := repo.Create(context.Background(), planet)
+		require.NoError(t, err, "Actual err: %v", err)
+		assertPlanetExists(t, conn, planet.Id)
 
-	actual, err := repo.Get(context.Background(), planet.Id)
-	require.NoError(t, err, "Actual err: %v", err)
+		actual, err := repo.Get(context.Background(), planet.Id)
+		require.NoError(t, err, "Actual err: %v", err)
 
-	assert.Equal(t, planet, actual)
-}
+		assert.Equal(t, planet, actual)
+	})
 
-func TestIT_PlanetRespository_Create_ExpectErrorWhenPlanetWithSameIdAlreadyExists(t *testing.T) {
-	repo, conn := newTestPlanetRepository(t)
+	t.Run("expect error when planet with same id already exists", func(t *testing.T) {
+		planet, player, _ := insertTestPlanetForPlayer(t, conn)
 
-	planet, player, _ := insertTestPlanetForPlayer(t, conn)
+		duplicatedPlanet := models.Planet{
+			Id:        planet.Id,
+			Player:    player.Id,
+			Name:      fmt.Sprintf("my-planet-%s", uuid.NewString()),
+			Homeworld: false,
+			CreatedAt: someTime,
+			UpdatedAt: someOtherTime,
+			Version:   4,
+		}
 
-	duplicatedPlanet := models.Planet{
-		Id:        planet.Id,
-		Player:    player.Id,
-		Name:      fmt.Sprintf("my-planet-%s", uuid.NewString()),
-		Homeworld: false,
-		CreatedAt: someTime,
-		UpdatedAt: someOtherTime,
-		Version:   4,
-	}
+		err := repo.Create(context.Background(), duplicatedPlanet)
+		assert.True(t, errors.IsErrorWithCode(err, pgx.UniqueConstraintViolation), "Actual err: %v", err)
+	})
 
-	err := repo.Create(context.Background(), duplicatedPlanet)
-	assert.True(t, errors.IsErrorWithCode(err, pgx.UniqueConstraintViolation), "Actual err: %v", err)
-}
+	t.Run("creates homeworld and marks it as such", func(t *testing.T) {
 
-func TestIT_PlanetRespository_Create_WhenHomeworld_ExpectCorrectlyMarkedAsSuch(t *testing.T) {
-	repo, conn := newTestPlanetRepository(t)
-	defer conn.Close(context.Background())
+		player, _ := insertTestPlayerInUniverse(t, conn)
 
-	player, _ := insertTestPlayerInUniverse(t, conn)
+		planet := models.Planet{
+			Id:          uuid.New(),
+			Player:      player.Id,
+			Name:        fmt.Sprintf("my-planet-%s", uuid.NewString()),
+			Homeworld:   true,
+			CreatedAt:   someTime,
+			UpdatedAt:   someOtherTime,
+			Resources:   []models.PlanetResource{},
+			Storages:    []models.PlanetResourceStorage{},
+			Productions: []models.PlanetResourceProduction{},
+		}
 
-	planet := models.Planet{
-		Id:          uuid.New(),
-		Player:      player.Id,
-		Name:        fmt.Sprintf("my-planet-%s", uuid.NewString()),
-		Homeworld:   true,
-		CreatedAt:   someTime,
-		UpdatedAt:   someOtherTime,
-		Resources:   []models.PlanetResource{},
-		Storages:    []models.PlanetResourceStorage{},
-		Productions: []models.PlanetResourceProduction{},
-	}
+		err := repo.Create(context.Background(), planet)
+		require.NoError(t, err, "Actual err: %v", err)
+		assertPlanetExists(t, conn, planet.Id)
+		assertPlanetIsHomeworld(t, conn, planet.Id, planet.Player)
 
-	err := repo.Create(context.Background(), planet)
-	require.NoError(t, err, "Actual err: %v", err)
-	assertPlanetExists(t, conn, planet.Id)
-	assertPlanetIsHomeworld(t, conn, planet.Id, planet.Player)
+		actual, err := repo.Get(context.Background(), planet.Id)
+		require.NoError(t, err, "Actual err: %v", err)
 
-	actual, err := repo.Get(context.Background(), planet.Id)
-	require.NoError(t, err, "Actual err: %v", err)
+		assert.Equal(t, planet, actual)
+	})
 
-	assert.Equal(t, planet, actual)
-}
+	t.Run("expect error when player already has a homeworld", func(t *testing.T) {
+		_, player, _ := insertTestHomeworldPlanetForPlayer(t, conn)
 
-func TestIT_PlanetRespository_Create_WhenHomeworldAlreadyExists_ExpectFailureWhenAddingANewOne(t *testing.T) {
-	repo, conn := newTestPlanetRepository(t)
-	defer conn.Close(context.Background())
+		planet := models.Planet{
+			Id:        uuid.New(),
+			Player:    player.Id,
+			Name:      fmt.Sprintf("my-planet-%s", uuid.NewString()),
+			Homeworld: true,
+			CreatedAt: someTime,
+			UpdatedAt: someOtherTime,
+		}
 
-	_, player, _ := insertTestHomeworldPlanetForPlayer(t, conn)
-
-	planet := models.Planet{
-		Id:        uuid.New(),
-		Player:    player.Id,
-		Name:      fmt.Sprintf("my-planet-%s", uuid.NewString()),
-		Homeworld: true,
-		CreatedAt: someTime,
-		UpdatedAt: someOtherTime,
-	}
-
-	err := repo.Create(context.Background(), planet)
-	assert.True(t, errors.IsErrorWithCode(err, pgx.UniqueConstraintViolation), "Actual err: %v", err)
-	assertPlanetDoesNotExist(t, conn, planet.Id)
+		err := repo.Create(context.Background(), planet)
+		assert.True(t, errors.IsErrorWithCode(err, pgx.UniqueConstraintViolation), "Actual err: %v", err)
+		assertPlanetDoesNotExist(t, conn, planet.Id)
+	})
 }
 
 func TestIT_PlanetRepository_Get(t *testing.T) {
@@ -147,17 +142,14 @@ func TestIT_PlanetRepository_Get(t *testing.T) {
 
 		assert.Equal(t, actual, planet)
 	})
-}
 
-func TestIT_PlanetRepository_Get_WhenNotFound_ExpectFailure(t *testing.T) {
-	repo, conn := newTestPlanetRepository(t)
-	defer conn.Close(context.Background())
+	t.Run("returns error when planet does not exist", func(t *testing.T) {
+		// Non-existent id
+		id := uuid.MustParse("00000000-1111-2222-1111-000000000000")
+		_, err := repo.Get(context.Background(), id)
 
-	// Non-existent id
-	id := uuid.MustParse("00000000-1111-2222-1111-000000000000")
-	_, err := repo.Get(context.Background(), id)
-
-	assert.True(t, errors.IsErrorWithCode(err, db.NoMatchingRows), "Actual err: %v", err)
+		assert.True(t, errors.IsErrorWithCode(err, db.NoMatchingRows), "Actual err: %v", err)
+	})
 }
 
 func TestIT_PlanetRepository_List(t *testing.T) {
