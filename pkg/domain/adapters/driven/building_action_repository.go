@@ -41,6 +41,15 @@ FROM
 WHERE
 	action = $1`
 
+	listBuildingActionResourceStorageForActionQuery = `
+SELECT
+	resource,
+	storage
+FROM
+	building_action_resource_storage
+WHERE
+	action = $1`
+
 	listBuildingActionForPlanetQuery = `
 SELECT
 	id,
@@ -72,9 +81,19 @@ WHERE
 	planet = $1
 	AND completed_at <= $2`
 
-	deleteBuildingActionCostsQuery = `DELETE FROM building_action_cost WHERE action = $1`
-	deleteBuildingActionQuery      = `DELETE FROM building_action WHERE id = $1`
+	deleteBuildingActionResourceStorageQuery = `DELETE FROM building_action_resource_storage WHERE action = $1`
+	deleteBuildingActionCostsQuery           = `DELETE FROM building_action_cost WHERE action = $1`
+	deleteBuildingActionQuery                = `DELETE FROM building_action WHERE id = $1`
 
+	deleteBuildingActionResourceStorageForPlanetQuery = `
+DELETE FROM
+	building_action_resource_storage AS barsd
+USING
+	building_action_resource_storage AS bars
+	LEFT JOIN building_action AS ba ON ba.id = bars.action
+WHERE
+	barsd.action = bars.action
+	AND ba.planet = $1`
 	// https://stackoverflow.com/questions/21662726/delete-using-left-outer-join-in-postgres
 	deleteBuildingActionCostForPlanetQuery = `
 DELETE FROM
@@ -87,6 +106,16 @@ WHERE
 	AND ba.planet = $1`
 	deleteBuildingActionForPlanetQuery = `DELETE FROM building_action WHERE planet = $1`
 
+	deleteBuildingActionResourceStorageForPlayerQuery = `
+DELETE FROM
+	building_action_resource_storage AS barsd
+USING
+	building_action_resource_storage AS bars
+	LEFT JOIN building_action AS ba ON ba.id = bars.action
+	LEFT JOIN planet AS p ON p.id = ba.planet
+WHERE
+	barsd.action = bars.action
+	AND p.player = $1`
 	deleteBuildingActionCostForPlayerQuery = `
 DELETE FROM
 	building_action_cost AS bacd
@@ -235,6 +264,11 @@ func (r *buildingActionRepositoryImpl) Delete(ctx context.Context, id uuid.UUID)
 	}
 	defer tx.Close(ctx)
 
+	_, err = tx.Exec(ctx, deleteBuildingActionResourceStorageQuery, id)
+	if err != nil {
+		return err
+	}
+
 	_, err = tx.Exec(ctx, deleteBuildingActionCostsQuery, id)
 	if err != nil {
 		return err
@@ -255,6 +289,11 @@ func (r *buildingActionRepositoryImpl) DeleteForPlanet(ctx context.Context, plan
 	}
 	defer tx.Close(ctx)
 
+	_, err = tx.Exec(ctx, deleteBuildingActionResourceStorageForPlanetQuery, planet)
+	if err != nil {
+		return err
+	}
+
 	_, err = tx.Exec(ctx, deleteBuildingActionCostForPlanetQuery, planet)
 	if err != nil {
 		return err
@@ -274,6 +313,11 @@ func (r *buildingActionRepositoryImpl) DeleteForPlayer(ctx context.Context, play
 		return err
 	}
 	defer tx.Close(ctx)
+
+	_, err = tx.Exec(ctx, deleteBuildingActionResourceStorageForPlayerQuery, player)
+	if err != nil {
+		return err
+	}
 
 	_, err = tx.Exec(ctx, deleteBuildingActionCostForPlayerQuery, player)
 	if err != nil {
@@ -300,6 +344,16 @@ func loadBuildingActionDetails(
 		ctx,
 		tx,
 		listBuildingActionCostForActionQuery,
+		dbAction.Id,
+	)
+	if err != nil {
+		return action, err
+	}
+
+	action.Storages, err = db.QueryAllTx[models.BuildingActionResourceStorage](
+		ctx,
+		tx,
+		listBuildingActionResourceStorageForActionQuery,
 		dbAction.Id,
 	)
 	if err != nil {
