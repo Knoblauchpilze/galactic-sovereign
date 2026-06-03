@@ -7,6 +7,7 @@ CREATE TABLE building_action (
   desired_level INTEGER NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
   completed_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  version INTEGER DEFAULT 0,
   PRIMARY KEY (id),
   FOREIGN KEY (planet) REFERENCES planet(id),
   FOREIGN KEY (building) REFERENCES building(id),

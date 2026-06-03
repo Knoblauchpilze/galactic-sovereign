@@ -34,6 +34,7 @@ func TestIT_BuildingActionRepository_Create(t *testing.T) {
 			DesiredLevel: 3,
 			CreatedAt:    someTime,
 			CompletedAt:  someTime.Add(1 * time.Hour),
+			Version:      9,
 		}
 
 		err := repo.Create(context.Background(), action)
@@ -57,6 +58,7 @@ func TestIT_BuildingActionRepository_Create(t *testing.T) {
 			DesiredLevel: 5,
 			CreatedAt:    someTime,
 			CompletedAt:  someTime.Add(1 * time.Minute),
+			Version:      14,
 		}
 
 		err := repo.Create(context.Background(), newAction)
@@ -207,6 +209,7 @@ func TestIT_BuildingActionRepository_CreationDeletionWorkflow(t *testing.T) {
 				DesiredLevel: 27,
 				CreatedAt:    time.Date(2024, 12, 7, 20, 26, 47, 0, time.UTC),
 				CompletedAt:  time.Date(2024, 12, 7, 21, 26, 47, 0, time.UTC),
+				Version:      17,
 			},
 		},
 	}
@@ -260,11 +263,12 @@ func insertTestBuildingAction(
 		DesiredLevel: 5,
 		CreatedAt:    someTime,
 		CompletedAt:  someTime.Add(1*time.Hour + 2*time.Minute),
+		Version:      3,
 	}
 
 	sqlQuery := `INSERT INTO building_action
-		(id, planet, building, current_level, desired_level, created_at, completed_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7)`
+		(id, planet, building, current_level, desired_level, created_at, completed_at, version)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
 	_, err := conn.Exec(
 		context.Background(),
 		sqlQuery,
@@ -275,6 +279,7 @@ func insertTestBuildingAction(
 		action.DesiredLevel,
 		action.CreatedAt,
 		action.CompletedAt,
+		action.Version,
 	)
 	require.NoError(t, err, "Actual err: %v", err)
 

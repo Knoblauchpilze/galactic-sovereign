@@ -12,6 +12,9 @@ type BuildingAction struct {
 	Building     uuid.UUID
 	CurrentLevel int
 	DesiredLevel int
-	CreatedAt    time.Time
-	CompletedAt  time.Time
+
+	CreatedAt   time.Time
+	CompletedAt time.Time
+
+	Version int
 }

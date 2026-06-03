@@ -13,8 +13,8 @@ import (
 const (
 	createBuildingActionQuery = `
 INSERT INTO
-	building_action (id, planet, building, current_level, desired_level, created_at, completed_at)
-	VALUES($1, $2, $3, $4, $5, $6, $7)
+	building_action (id, planet, building, current_level, desired_level, created_at, completed_at, version)
+	VALUES($1, $2, $3, $4, $5, $6, $7, $8)
 `
 
 	getBuildingActionQuery = `
@@ -25,7 +25,8 @@ SELECT
 	current_level,
 	desired_level,
 	created_at,
-	completed_at
+	completed_at,
+	version
 FROM
 	building_action
 WHERE
@@ -39,7 +40,8 @@ SELECT
 	current_level,
 	desired_level,
 	created_at,
-	completed_at
+	completed_at,
+	version
 FROM
 	building_action
 WHERE
@@ -53,7 +55,8 @@ SELECT
 	current_level,
 	desired_level,
 	created_at,
-	completed_at
+	completed_at,
+	version
 FROM
 	building_action
 WHERE
@@ -99,6 +102,7 @@ func (r *buildingActionRepositoryImpl) Create(
 		action.DesiredLevel,
 		action.CreatedAt,
 		action.CompletedAt,
+		action.Version,
 	)
 	return err
 }
