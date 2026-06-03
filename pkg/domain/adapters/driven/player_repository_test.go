@@ -72,7 +72,6 @@ func TestIT_PlayerRepository_Get_WhenNotFound_ExpectFailure(t *testing.T) {
 	repo, conn := newTestPlayerRepository(t)
 	defer conn.Close(context.Background())
 
-	// Non-existent id
 	id := uuid.MustParse("00000000-1111-2222-1111-000000000000")
 	_, err := repo.Get(context.Background(), id)
 

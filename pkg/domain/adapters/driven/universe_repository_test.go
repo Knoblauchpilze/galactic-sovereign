@@ -19,59 +19,59 @@ func TestIT_UniverseRepository_Create(t *testing.T) {
 	repo, conn := newTestUniverseRepository(t)
 	defer conn.Close(context.Background())
 
-	universe := models.Universe{
-		Id:        uuid.New(),
-		Name:      fmt.Sprintf("universe-%s", uuid.NewString()),
-		CreatedAt: someTime,
-	}
+	t.Run("creates a universe", func(t *testing.T) {
+		universe := models.Universe{
+			Id:        uuid.New(),
+			Name:      fmt.Sprintf("universe-%s", uuid.NewString()),
+			CreatedAt: someTime,
+		}
 
-	err := repo.Create(context.Background(), universe)
-	require.NoError(t, err, "Actual err: %v", err)
-	assertUniverseExists(t, conn, universe.Id)
+		err := repo.Create(context.Background(), universe)
+		require.NoError(t, err, "Actual err: %v", err)
+		assertUniverseExists(t, conn, universe.Id)
 
-	actual, err := repo.Get(context.Background(), universe.Id)
-	require.NoError(t, err, "Actual err: %v", err)
+		actual, err := repo.Get(context.Background(), universe.Id)
+		require.NoError(t, err, "Actual err: %v", err)
 
-	assert.Equal(t, universe, actual)
-}
+		assert.Equal(t, universe, actual)
+	})
 
-func TestIT_UniverseRepository_Create_WhenDuplicateName_ExpectFailure(t *testing.T) {
-	repo, conn := newTestUniverseRepository(t)
-	defer conn.Close(context.Background())
-	universe := insertTestUniverse(t, conn)
+	t.Run("returns error when universe with same name already exists", func(t *testing.T) {
+		universe := insertTestUniverse(t, conn)
 
-	newUniverse := models.Universe{
-		Id:        uuid.New(),
-		Name:      universe.Name,
-		CreatedAt: someTime,
-	}
+		newUniverse := models.Universe{
+			Id:        uuid.New(),
+			Name:      universe.Name,
+			CreatedAt: someTime,
+		}
 
-	err := repo.Create(context.Background(), newUniverse)
+		err := repo.Create(context.Background(), newUniverse)
 
-	assert.True(t, errors.IsErrorWithCode(err, pgx.UniqueConstraintViolation), "Actual err: %v", err)
-	assertUniverseDoesNotExist(t, conn, newUniverse.Id)
+		assert.True(t, errors.IsErrorWithCode(err, pgx.UniqueConstraintViolation), "Actual err: %v", err)
+		assertUniverseDoesNotExist(t, conn, newUniverse.Id)
+	})
+
 }
 
 func TestIT_UniverseRepository_Get(t *testing.T) {
 	repo, conn := newTestUniverseRepository(t)
 	defer conn.Close(context.Background())
-	universe := insertTestUniverse(t, conn)
 
-	actual, err := repo.Get(context.Background(), universe.Id)
-	require.NoError(t, err, "Actual err: %v", err)
+	t.Run("gets a universe", func(t *testing.T) {
+		universe := insertTestUniverse(t, conn)
 
-	assert.Equal(t, actual, universe)
-}
+		actual, err := repo.Get(context.Background(), universe.Id)
+		require.NoError(t, err, "Actual err: %v", err)
 
-func TestIT_UniverseRepository_Get_WhenNotFound_ExpectFailure(t *testing.T) {
-	repo, conn := newTestUniverseRepository(t)
-	defer conn.Close(context.Background())
+		assert.Equal(t, actual, universe)
+	})
 
-	// Non-existent id
-	id := uuid.MustParse("00000000-1111-2222-1111-000000000000")
-	_, err := repo.Get(context.Background(), id)
+	t.Run("returns error when universe does not exist", func(t *testing.T) {
+		id := uuid.MustParse("00000000-1111-2222-1111-000000000000")
+		_, err := repo.Get(context.Background(), id)
 
-	assert.True(t, errors.IsErrorWithCode(err, db.NoMatchingRows), "Actual err: %v", err)
+		assert.True(t, errors.IsErrorWithCode(err, db.NoMatchingRows), "Actual err: %v", err)
+	})
 }
 
 func TestIT_UniverseRepository_List(t *testing.T) {
@@ -91,21 +91,22 @@ func TestIT_UniverseRepository_List(t *testing.T) {
 func TestIT_UniverseRepository_Delete(t *testing.T) {
 	repo, conn := newTestUniverseRepository(t)
 	defer conn.Close(context.Background())
-	universe := insertTestUniverse(t, conn)
 
-	err := repo.Delete(context.Background(), universe.Id)
-	require.NoError(t, err, "Actual err: %v", err)
+	t.Run("deletes universe", func(t *testing.T) {
+		universe := insertTestUniverse(t, conn)
 
-	assertUniverseDoesNotExist(t, conn, universe.Id)
-}
+		err := repo.Delete(context.Background(), universe.Id)
+		require.NoError(t, err, "Actual err: %v", err)
 
-func TestIT_UniverseRepository_Delete_WhenNotFound_ExpectSuccess(t *testing.T) {
-	repo, conn := newTestUniverseRepository(t)
-	defer conn.Close(context.Background())
-	nonExistingId := uuid.MustParse("00000000-0000-1221-0000-000000000000")
+		assertUniverseDoesNotExist(t, conn, universe.Id)
+	})
 
-	err := repo.Delete(context.Background(), nonExistingId)
-	require.NoError(t, err, "Actual err: %v", err)
+	t.Run("succeeds when the universe does not exist", func(t *testing.T) {
+		nonExistingId := uuid.MustParse("00000000-0000-1221-0000-000000000000")
+
+		err := repo.Delete(context.Background(), nonExistingId)
+		require.NoError(t, err, "Actual err: %v", err)
+	})
 }
 
 func newTestUniverseRepository(t *testing.T) (driven.ForManagingUniverses, db.Connection) {

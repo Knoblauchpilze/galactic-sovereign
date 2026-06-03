@@ -162,7 +162,6 @@ func TestIT_PlanetRepository_Get(t *testing.T) {
 	})
 
 	t.Run("returns error when planet does not exist", func(t *testing.T) {
-		// Non-existent id
 		id := uuid.MustParse("00000000-1111-2222-1111-000000000000")
 		_, err := repo.Get(context.Background(), id)
 
