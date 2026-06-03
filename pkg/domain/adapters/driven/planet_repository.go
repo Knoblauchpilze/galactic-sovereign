@@ -302,5 +302,7 @@ func loadPlanetDetails(ctx context.Context, tx db.Transaction, dbPlanet mappers.
 		return planet, err
 	}
 
+	planet.Productions = []models.PlanetResourceProduction{}
+
 	return planet, nil
 }

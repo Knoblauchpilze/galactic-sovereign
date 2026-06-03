@@ -17,6 +17,7 @@ type Planet struct {
 
 	Version int
 
-	Resources []PlanetResource
-	Storages  []PlanetResourceStorage
+	Resources   []PlanetResource
+	Storages    []PlanetResourceStorage
+	Productions []PlanetResourceProduction
 }

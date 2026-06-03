@@ -3,6 +3,7 @@ package driven
 import (
 	"context"
 	"fmt"
+	"math/rand"
 	"testing"
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
@@ -17,6 +18,7 @@ import (
 
 var (
 	crystalResourceId = uuid.MustParse("cd2ac9aa-9968-4ff5-b746-88f1f810fbb3")
+	crystalMineId     = uuid.MustParse("3904d34d-9a7e-47d4-a332-091700e2c5c3")
 )
 
 func TestIT_PlanetRespository_Create(t *testing.T) {
@@ -25,15 +27,16 @@ func TestIT_PlanetRespository_Create(t *testing.T) {
 	player, _ := insertTestPlayerInUniverse(t, conn)
 
 	planet := models.Planet{
-		Id:        uuid.New(),
-		Player:    player.Id,
-		Name:      fmt.Sprintf("my-planet-%s", uuid.NewString()),
-		Homeworld: false,
-		CreatedAt: someTime,
-		UpdatedAt: someOtherTime,
-		Version:   3,
-		Resources: []models.PlanetResource{},
-		Storages:  []models.PlanetResourceStorage{},
+		Id:          uuid.New(),
+		Player:      player.Id,
+		Name:        fmt.Sprintf("my-planet-%s", uuid.NewString()),
+		Homeworld:   false,
+		CreatedAt:   someTime,
+		UpdatedAt:   someOtherTime,
+		Version:     3,
+		Resources:   []models.PlanetResource{},
+		Storages:    []models.PlanetResourceStorage{},
+		Productions: []models.PlanetResourceProduction{},
 	}
 
 	err := repo.Create(context.Background(), planet)
@@ -72,14 +75,15 @@ func TestIT_PlanetRespository_Create_WhenHomeworld_ExpectCorrectlyMarkedAsSuch(t
 	player, _ := insertTestPlayerInUniverse(t, conn)
 
 	planet := models.Planet{
-		Id:        uuid.New(),
-		Player:    player.Id,
-		Name:      fmt.Sprintf("my-planet-%s", uuid.NewString()),
-		Homeworld: true,
-		CreatedAt: someTime,
-		UpdatedAt: someOtherTime,
-		Resources: []models.PlanetResource{},
-		Storages:  []models.PlanetResourceStorage{},
+		Id:          uuid.New(),
+		Player:      player.Id,
+		Name:        fmt.Sprintf("my-planet-%s", uuid.NewString()),
+		Homeworld:   true,
+		CreatedAt:   someTime,
+		UpdatedAt:   someOtherTime,
+		Resources:   []models.PlanetResource{},
+		Storages:    []models.PlanetResourceStorage{},
+		Productions: []models.PlanetResourceProduction{},
 	}
 
 	err := repo.Create(context.Background(), planet)
@@ -280,15 +284,16 @@ func TestIT_PlanetRepository_CreationDeletionWorkflow(t *testing.T) {
 	player, _ := insertTestPlayerInUniverse(t, conn)
 
 	planet := models.Planet{
-		Id:        uuid.New(),
-		Player:    player.Id,
-		Name:      fmt.Sprintf("my-planet-%s", uuid.NewString()),
-		Homeworld: false,
-		CreatedAt: someTime,
-		UpdatedAt: someOtherTime,
-		Version:   4,
-		Resources: []models.PlanetResource{},
-		Storages:  []models.PlanetResourceStorage{},
+		Id:          uuid.New(),
+		Player:      player.Id,
+		Name:        fmt.Sprintf("my-planet-%s", uuid.NewString()),
+		Homeworld:   false,
+		CreatedAt:   someTime,
+		UpdatedAt:   someOtherTime,
+		Version:     4,
+		Resources:   []models.PlanetResource{},
+		Storages:    []models.PlanetResourceStorage{},
+		Productions: []models.PlanetResourceProduction{},
 	}
 
 	func() {
@@ -318,15 +323,16 @@ func TestIT_PlanetRepository_HomeWorldCreationDeletionWorkflow(t *testing.T) {
 	player, _ := insertTestPlayerInUniverse(t, conn)
 
 	planet := models.Planet{
-		Id:        uuid.New(),
-		Player:    player.Id,
-		Name:      fmt.Sprintf("my-planet-%s", uuid.NewString()),
-		Homeworld: true,
-		CreatedAt: someTime,
-		UpdatedAt: someOtherTime,
-		Version:   6,
-		Resources: []models.PlanetResource{},
-		Storages:  []models.PlanetResourceStorage{},
+		Id:          uuid.New(),
+		Player:      player.Id,
+		Name:        fmt.Sprintf("my-planet-%s", uuid.NewString()),
+		Homeworld:   true,
+		CreatedAt:   someTime,
+		UpdatedAt:   someOtherTime,
+		Version:     6,
+		Resources:   []models.PlanetResource{},
+		Storages:    []models.PlanetResourceStorage{},
+		Productions: []models.PlanetResourceProduction{},
 	}
 
 	func() {
@@ -406,10 +412,11 @@ func insertTestPlanet(
 		CreatedAt: someTime,
 		UpdatedAt: someOtherTime,
 		Version:   7,
-		// This is intentional: the details (e.g. resoruces, etc.) are returned as empty
+		// This is intentional: the details (e.g. resources, etc.) are returned as empty
 		// slices by the adapter
-		Resources: []models.PlanetResource{},
-		Storages:  []models.PlanetResourceStorage{},
+		Resources:   []models.PlanetResource{},
+		Storages:    []models.PlanetResourceStorage{},
+		Productions: []models.PlanetResourceProduction{},
 	}
 
 	sqlQuery := `INSERT INTO planet (id, player, name, created_at, updated_at, version)
@@ -473,10 +480,8 @@ func addPlanetResource(t *testing.T, conn db.Connection, p *models.Planet) {
 func addPlanetStorage(t *testing.T, conn db.Connection, p *models.Planet) {
 	t.Helper()
 
-	resource := insertTestResource(t, conn)
-
 	storage := models.PlanetResourceStorage{
-		Resource:  resource.Id,
+		Resource:  crystalResourceId,
 		Storage:   6233,
 		CreatedAt: someTime,
 		UpdatedAt: someTime,
@@ -496,6 +501,64 @@ func addPlanetStorage(t *testing.T, conn db.Connection, p *models.Planet) {
 	require.NoError(t, err, "Actual err: %v", err)
 
 	p.Storages = append(p.Storages, storage)
+}
+
+func addPlanetProductionForBuilding(t *testing.T, conn db.Connection, p *models.Planet) {
+	t.Helper()
+
+	production := models.PlanetResourceProduction{
+		Building:   &crystalMineId,
+		Resource:   metalResourceId,
+		Production: rand.Intn(784152),
+		CreatedAt:  someTime,
+		UpdatedAt:  someOtherTime,
+	}
+
+	sqlQuery := `INSERT INTO planet_resource_production
+		(planet, building, resource, production, created_at, updated_at)
+		VALUES ($1, $2, $3, $4, $5, $6)`
+	_, err := conn.Exec(
+		context.Background(),
+		sqlQuery,
+		p.Id,
+		production.Building,
+		production.Resource,
+		production.Production,
+		production.CreatedAt,
+		production.UpdatedAt,
+	)
+	require.NoError(t, err, "Actual err: %v", err)
+
+	p.Productions = append(p.Productions, production)
+}
+
+func addPlanetProduction(t *testing.T, conn db.Connection, p *models.Planet) {
+	t.Helper()
+
+	production := models.PlanetResourceProduction{
+		Building:   nil,
+		Resource:   metalResourceId,
+		Production: rand.Intn(6589),
+		CreatedAt:  someTime,
+		UpdatedAt:  someOtherTime,
+	}
+
+	sqlQuery := `INSERT INTO planet_resource_production
+		(planet, building, resource, production, created_at, updated_at)
+		VALUES ($1, $2, $3, $4, $5, $6)`
+	_, err := conn.Exec(
+		context.Background(),
+		sqlQuery,
+		p.Id,
+		production.Building,
+		production.Resource,
+		production.Production,
+		production.CreatedAt,
+		production.UpdatedAt,
+	)
+	require.NoError(t, err, "Actual err: %v", err)
+
+	p.Productions = append(p.Productions, production)
 }
 
 func insertTestPlanetForPlayer(
