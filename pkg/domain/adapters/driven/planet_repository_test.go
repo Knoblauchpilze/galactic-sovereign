@@ -122,7 +122,7 @@ func TestIT_PlanetRepository_Get(t *testing.T) {
 		actual, err := repo.Get(context.Background(), planet.Id)
 		require.NoError(t, err, "Actual err: %v", err)
 
-		assert.Equal(t, actual, planet)
+		assert.Equal(t, planet, actual)
 	})
 
 	t.Run("gets planet with resources", func(t *testing.T) {
@@ -702,6 +702,8 @@ func assertPlanetIsNotHomeworld(t *testing.T, conn db.Connection, planet uuid.UU
 }
 
 func assertPlanetResourceDoesNotExist(t *testing.T, conn db.Connection, planet uuid.UUID) {
+	t.Helper()
+
 	sqlQuery := `SELECT COUNT(resource) FROM planet_resource WHERE planet = $1`
 	value, err := db.QueryOne[int](context.Background(), conn, sqlQuery, planet)
 	require.NoError(t, err, "Actual err: %v", err)
@@ -709,6 +711,8 @@ func assertPlanetResourceDoesNotExist(t *testing.T, conn db.Connection, planet u
 }
 
 func assertPlanetStorageDoesNotExist(t *testing.T, conn db.Connection, planet uuid.UUID) {
+	t.Helper()
+
 	sqlQuery := `SELECT COUNT(resource) FROM planet_resource_storage WHERE planet = $1`
 	value, err := db.QueryOne[int](context.Background(), conn, sqlQuery, planet)
 	require.NoError(t, err, "Actual err: %v", err)
