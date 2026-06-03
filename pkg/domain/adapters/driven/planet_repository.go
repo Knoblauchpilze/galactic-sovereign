@@ -58,6 +58,18 @@ FROM
 WHERE
 	planet = $1`
 
+	listPlanetResourceProductionForPlanetQuery = `
+SELECT
+	building,
+	resource,
+	production,
+	created_at,
+	updated_at
+FROM
+	planet_resource_production
+WHERE
+	planet = $1`
+
 	listPlanetQuery = `
 SELECT
 	p.id,
@@ -92,11 +104,22 @@ FROM
 WHERE
 	p.player = $1`
 
-	deletePlanetResourceStoragesQuery = `DELETE FROM planet_resource_storage WHERE planet = $1`
-	deletePlanetResourcesQuery        = `DELETE FROM planet_resource WHERE planet = $1`
-	deletePlanetHomeworldQuery        = `DELETE FROM homeworld WHERE planet = $1`
-	deletePlanetQuery                 = `DELETE FROM planet WHERE id = $1`
+	deletePlanetResourceProductionsQuery = `DELETE FROM planet_resource_production WHERE planet = $1`
+	deletePlanetResourceStoragesQuery    = `DELETE FROM planet_resource_storage WHERE planet = $1`
+	deletePlanetResourcesQuery           = `DELETE FROM planet_resource WHERE planet = $1`
+	deletePlanetHomeworldQuery           = `DELETE FROM homeworld WHERE planet = $1`
+	deletePlanetQuery                    = `DELETE FROM planet WHERE id = $1`
 
+	deletePlanetResourceProductionForPlayerQuery = `
+DELETE FROM
+	planet_resource_production AS prpd
+USING
+	planet_resource_production AS prp
+	LEFT JOIN planet AS p ON prp.planet = p.id
+WHERE
+	prpd.planet = prp.planet
+	AND prpd.resource = prp.resource
+	AND p.player = $1`
 	deletePlanetResourceStorageForPlayerQuery = `
 DELETE FROM
 	planet_resource_storage AS prsd
@@ -233,6 +256,11 @@ func (r *planetRepositoryImpl) Delete(ctx context.Context, id uuid.UUID) error {
 	}
 	defer tx.Close(ctx)
 
+	_, err = tx.Exec(ctx, deletePlanetResourceProductionsQuery, id)
+	if err != nil {
+		return err
+	}
+
 	_, err = tx.Exec(ctx, deletePlanetResourceStoragesQuery, id)
 	if err != nil {
 		return err
@@ -258,6 +286,11 @@ func (r *planetRepositoryImpl) DeleteForPlayer(ctx context.Context, player uuid.
 		return err
 	}
 	defer tx.Close(ctx)
+
+	_, err = tx.Exec(ctx, deletePlanetResourceProductionForPlayerQuery, player)
+	if err != nil {
+		return err
+	}
 
 	_, err = tx.Exec(ctx, deletePlanetResourceStorageForPlayerQuery, player)
 	if err != nil {
@@ -302,7 +335,13 @@ func loadPlanetDetails(ctx context.Context, tx db.Transaction, dbPlanet mappers.
 		return planet, err
 	}
 
-	planet.Productions = []models.PlanetResourceProduction{}
+	planet.Productions, err = db.QueryAllTx[models.PlanetResourceProduction](
+		ctx, tx, listPlanetResourceProductionForPlanetQuery,
+		dbPlanet.Id,
+	)
+	if err != nil {
+		return planet, err
+	}
 
 	return planet, nil
 }
