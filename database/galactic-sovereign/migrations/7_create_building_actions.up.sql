@@ -5,7 +5,7 @@ CREATE TABLE building_action (
   building uuid NOT NULL,
   current_level INTEGER NOT NULL,
   desired_level INTEGER NOT NULL,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL,
   completed_at TIMESTAMP WITH TIME ZONE NOT NULL,
   PRIMARY KEY (id),
   FOREIGN KEY (planet) REFERENCES planet(id),
