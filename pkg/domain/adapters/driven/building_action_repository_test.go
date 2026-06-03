@@ -38,6 +38,7 @@ func TestIT_BuildingActionRepository_Create(t *testing.T) {
 			Version:      9,
 			Costs:        []models.BuildingActionCost{},
 			Storages:     []models.BuildingActionResourceStorage{},
+			Productions:  []models.BuildingActionResourceProduction{},
 		}
 
 		err := repo.Create(context.Background(), action)
@@ -107,6 +108,15 @@ func TestIT_BuildingActionRepository_Get(t *testing.T) {
 		assert.Equal(t, action, actual)
 	})
 
+	t.Run("gets an action with productions", func(t *testing.T) {
+		action, _ := insertTestBuildingAction(t, conn, addBuildingActionProduction)
+
+		actual, err := repo.Get(context.Background(), action.Id)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.Equal(t, action, actual)
+	})
+
 	t.Run("returns error when action does not exist", func(t *testing.T) {
 		id := uuid.MustParse("00000000-1111-2222-1111-000000000000")
 		_, err := repo.Get(context.Background(), id)
@@ -159,9 +169,21 @@ func TestIT_BuildingActionRepository_ListForPlanet(t *testing.T) {
 		assert.Contains(t, actual, action1)
 		assert.NotContains(t, actual, action2)
 	})
+
+	t.Run("lists an action with productions for a planet", func(t *testing.T) {
+		action1, planet1 := insertTestBuildingAction(t, conn, addBuildingActionProduction)
+		action2, _ := insertTestBuildingAction(t, conn)
+
+		actual, err := repo.ListForPlanet(context.Background(), planet1.Id)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.GreaterOrEqual(t, len(actual), 1)
+		assert.Contains(t, actual, action1)
+		assert.NotContains(t, actual, action2)
+	})
 }
 
-func TestIT_BuildingActionRepository_ListBeforeCompletionTime_WhenCompletionTimeBeforeQueriedTime_ExpectActionReturned(t *testing.T) {
+func TestIT_BuildingActionRepository_ListBeforeCompletionTime(t *testing.T) {
 	repo, conn := newTestBuildingActionRepository(t)
 	defer conn.Close(context.Background())
 
@@ -222,6 +244,16 @@ func TestIT_BuildingActionRepository_Delete(t *testing.T) {
 		assertBuildingActionStorageDoesNotExist(t, conn, action.Id)
 	})
 
+	t.Run("deletes action with productions", func(t *testing.T) {
+		action, _ := insertTestBuildingAction(t, conn, addBuildingActionProduction)
+
+		err := repo.Delete(context.Background(), action.Id)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assertBuildingActionDoesNotExist(t, conn, action.Id)
+		assertBuildingActionProductionDoesNotExist(t, conn, action.Id)
+	})
+
 	t.Run("succeeds when the action does not exist", func(t *testing.T) {
 		nonExistingId := uuid.MustParse("00000000-0000-1221-0000-000000000000")
 
@@ -262,6 +294,16 @@ func TestIT_BuildingActionRepository_DeleteForPlanet(t *testing.T) {
 		assertBuildingActionDoesNotExist(t, conn, action.Id)
 		assertBuildingActionStorageDoesNotExist(t, conn, planet.Id)
 	})
+
+	t.Run("deletes action with productions", func(t *testing.T) {
+		action, planet := insertTestBuildingAction(t, conn, addBuildingActionProduction)
+
+		err := repo.DeleteForPlanet(context.Background(), planet.Id)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assertBuildingActionDoesNotExist(t, conn, action.Id)
+		assertBuildingActionProductionDoesNotExist(t, conn, planet.Id)
+	})
 }
 
 func TestIT_BuildingActionRepository_DeleteForPlayer(t *testing.T) {
@@ -287,7 +329,7 @@ func TestIT_BuildingActionRepository_DeleteForPlayer(t *testing.T) {
 		assertBuildingActionCostDoesNotExist(t, conn, planet.Id)
 	})
 
-	t.Run("deletes action with stroages", func(t *testing.T) {
+	t.Run("deletes action with storages", func(t *testing.T) {
 		action, planet := insertTestBuildingAction(t, conn, addBuildingActionStorage)
 
 		err := repo.DeleteForPlayer(context.Background(), planet.Player)
@@ -295,6 +337,16 @@ func TestIT_BuildingActionRepository_DeleteForPlayer(t *testing.T) {
 
 		assertBuildingActionDoesNotExist(t, conn, action.Id)
 		assertBuildingActionStorageDoesNotExist(t, conn, planet.Id)
+	})
+
+	t.Run("deletes action with productions", func(t *testing.T) {
+		action, planet := insertTestBuildingAction(t, conn, addBuildingActionProduction)
+
+		err := repo.DeleteForPlayer(context.Background(), planet.Player)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assertBuildingActionDoesNotExist(t, conn, action.Id)
+		assertBuildingActionProductionDoesNotExist(t, conn, planet.Id)
 	})
 }
 
@@ -319,6 +371,7 @@ func TestIT_BuildingActionRepository_CreationDeletionWorkflow(t *testing.T) {
 				Version:      17,
 				Costs:        []models.BuildingActionCost{},
 				Storages:     []models.BuildingActionResourceStorage{},
+				Productions:  []models.BuildingActionResourceProduction{},
 			},
 		},
 	}
@@ -377,8 +430,9 @@ func insertTestBuildingAction(
 		Version:      3,
 		// This is intentional: the details (e.g. costs, productions, etc.) are returned as empty
 		// slices by the adapter
-		Costs:    []models.BuildingActionCost{},
-		Storages: []models.BuildingActionResourceStorage{},
+		Costs:       []models.BuildingActionCost{},
+		Storages:    []models.BuildingActionResourceStorage{},
+		Productions: []models.BuildingActionResourceProduction{},
 	}
 
 	sqlQuery := `INSERT INTO building_action
@@ -449,6 +503,28 @@ func addBuildingActionStorage(t *testing.T, conn db.Connection, a *models.Buildi
 	a.Storages = append(a.Storages, storage)
 }
 
+func addBuildingActionProduction(t *testing.T, conn db.Connection, a *models.BuildingAction) {
+	t.Helper()
+
+	production := models.BuildingActionResourceProduction{
+		Resource:   crystalResourceId,
+		Production: rand.Intn(7451),
+	}
+
+	sqlQuery := `INSERT INTO building_action_resource_production (action, resource, production)
+		VALUES ($1, $2, $3)`
+	_, err := conn.Exec(
+		context.Background(),
+		sqlQuery,
+		a.Id,
+		production.Resource,
+		production.Production,
+	)
+	require.NoError(t, err, "Actual err: %v", err)
+
+	a.Productions = append(a.Productions, production)
+}
+
 func assertBuildingActionExists(t *testing.T, conn db.Connection, id uuid.UUID) {
 	t.Helper()
 
@@ -480,6 +556,15 @@ func assertBuildingActionStorageDoesNotExist(t *testing.T, conn db.Connection, a
 	t.Helper()
 
 	sqlQuery := `SELECT COUNT(*) FROM building_action_resource_storage WHERE action = $1`
+	value, err := db.QueryOne[int](context.Background(), conn, sqlQuery, action)
+	require.NoError(t, err, "Actual err: %v", err)
+	require.Zero(t, value)
+}
+
+func assertBuildingActionProductionDoesNotExist(t *testing.T, conn db.Connection, action uuid.UUID) {
+	t.Helper()
+
+	sqlQuery := `SELECT COUNT(*) FROM building_action_resource_production WHERE action = $1`
 	value, err := db.QueryOne[int](context.Background(), conn, sqlQuery, action)
 	require.NoError(t, err, "Actual err: %v", err)
 	require.Zero(t, value)

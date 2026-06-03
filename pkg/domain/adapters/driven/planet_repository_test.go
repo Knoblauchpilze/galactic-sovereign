@@ -387,7 +387,7 @@ func TestIT_PlanetRepository_DeleteForPlayer(t *testing.T) {
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assertPlanetDoesNotExist(t, conn, planet.Id)
-		assertPlanetStorageDoesNotExist(t, conn, planet.Id)
+		assertPlanetProductionDoesNotExist(t, conn, planet.Id)
 	})
 
 	t.Run("deletes planet with productions for building", func(t *testing.T) {
@@ -397,7 +397,7 @@ func TestIT_PlanetRepository_DeleteForPlayer(t *testing.T) {
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assertPlanetDoesNotExist(t, conn, planet.Id)
-		assertPlanetStorageDoesNotExist(t, conn, planet.Id)
+		assertPlanetProductionDoesNotExist(t, conn, planet.Id)
 	})
 }
 

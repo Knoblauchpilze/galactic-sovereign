@@ -50,6 +50,15 @@ FROM
 WHERE
 	action = $1`
 
+	listBuildingActionResourceProductionForActionQuery = `
+SELECT
+	resource,
+	production
+FROM
+	building_action_resource_production
+WHERE
+	action = $1`
+
 	listBuildingActionForPlanetQuery = `
 SELECT
 	id,
@@ -81,10 +90,20 @@ WHERE
 	planet = $1
 	AND completed_at <= $2`
 
-	deleteBuildingActionResourceStorageQuery = `DELETE FROM building_action_resource_storage WHERE action = $1`
-	deleteBuildingActionCostsQuery           = `DELETE FROM building_action_cost WHERE action = $1`
-	deleteBuildingActionQuery                = `DELETE FROM building_action WHERE id = $1`
+	deleteBuildingActionResourceProductionQuery = `DELETE FROM building_action_resource_production WHERE action = $1`
+	deleteBuildingActionResourceStorageQuery    = `DELETE FROM building_action_resource_storage WHERE action = $1`
+	deleteBuildingActionCostsQuery              = `DELETE FROM building_action_cost WHERE action = $1`
+	deleteBuildingActionQuery                   = `DELETE FROM building_action WHERE id = $1`
 
+	deleteBuildingActionResourceProductionForPlanetQuery = `
+DELETE FROM
+	building_action_resource_production AS barpd
+USING
+	building_action_resource_production AS barp
+	LEFT JOIN building_action AS ba ON ba.id = barp.action
+WHERE
+	barpd.action = barp.action
+	AND ba.planet = $1`
 	deleteBuildingActionResourceStorageForPlanetQuery = `
 DELETE FROM
 	building_action_resource_storage AS barsd
@@ -106,6 +125,16 @@ WHERE
 	AND ba.planet = $1`
 	deleteBuildingActionForPlanetQuery = `DELETE FROM building_action WHERE planet = $1`
 
+	deleteBuildingActionResourceProductionForPlayerQuery = `
+DELETE FROM
+	building_action_resource_production AS barpd
+USING
+	building_action_resource_production AS barp
+	LEFT JOIN building_action AS ba ON ba.id = barp.action
+	LEFT JOIN planet AS p ON p.id = ba.planet
+WHERE
+	barpd.action = barp.action
+	AND p.player = $1`
 	deleteBuildingActionResourceStorageForPlayerQuery = `
 DELETE FROM
 	building_action_resource_storage AS barsd
@@ -264,6 +293,11 @@ func (r *buildingActionRepositoryImpl) Delete(ctx context.Context, id uuid.UUID)
 	}
 	defer tx.Close(ctx)
 
+	_, err = tx.Exec(ctx, deleteBuildingActionResourceProductionQuery, id)
+	if err != nil {
+		return err
+	}
+
 	_, err = tx.Exec(ctx, deleteBuildingActionResourceStorageQuery, id)
 	if err != nil {
 		return err
@@ -289,6 +323,11 @@ func (r *buildingActionRepositoryImpl) DeleteForPlanet(ctx context.Context, plan
 	}
 	defer tx.Close(ctx)
 
+	_, err = tx.Exec(ctx, deleteBuildingActionResourceProductionForPlanetQuery, planet)
+	if err != nil {
+		return err
+	}
+
 	_, err = tx.Exec(ctx, deleteBuildingActionResourceStorageForPlanetQuery, planet)
 	if err != nil {
 		return err
@@ -313,6 +352,11 @@ func (r *buildingActionRepositoryImpl) DeleteForPlayer(ctx context.Context, play
 		return err
 	}
 	defer tx.Close(ctx)
+
+	_, err = tx.Exec(ctx, deleteBuildingActionResourceProductionForPlayerQuery, player)
+	if err != nil {
+		return err
+	}
 
 	_, err = tx.Exec(ctx, deleteBuildingActionResourceStorageForPlayerQuery, player)
 	if err != nil {
@@ -354,6 +398,16 @@ func loadBuildingActionDetails(
 		ctx,
 		tx,
 		listBuildingActionResourceStorageForActionQuery,
+		dbAction.Id,
+	)
+	if err != nil {
+		return action, err
+	}
+
+	action.Productions, err = db.QueryAllTx[models.BuildingActionResourceProduction](
+		ctx,
+		tx,
+		listBuildingActionResourceProductionForActionQuery,
 		dbAction.Id,
 	)
 	if err != nil {

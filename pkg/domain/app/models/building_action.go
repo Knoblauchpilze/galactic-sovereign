@@ -18,6 +18,7 @@ type BuildingAction struct {
 
 	Version int
 
-	Costs    []BuildingActionCost
-	Storages []BuildingActionResourceStorage
+	Costs       []BuildingActionCost
+	Storages    []BuildingActionResourceStorage
+	Productions []BuildingActionResourceProduction
 }
