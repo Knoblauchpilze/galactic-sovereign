@@ -318,78 +318,68 @@ func TestIT_PlanetRepository_CreationDeletionWorkflow(t *testing.T) {
 	repo, conn := newTestPlanetRepository(t)
 	defer conn.Close(context.Background())
 
-	player, _ := insertTestPlayerInUniverse(t, conn)
-
-	planet := models.Planet{
-		Id:          uuid.New(),
-		Player:      player.Id,
-		Name:        fmt.Sprintf("my-planet-%s", uuid.NewString()),
-		Homeworld:   false,
-		CreatedAt:   someTime,
-		UpdatedAt:   someOtherTime,
-		Version:     4,
-		Resources:   []models.PlanetResource{},
-		Storages:    []models.PlanetResourceStorage{},
-		Productions: []models.PlanetResourceProduction{},
+	type testCase struct {
+		name   string
+		planet models.Planet
 	}
 
-	func() {
-		err := repo.Create(context.Background(), planet)
-		require.NoError(t, err, "Actual err: %v", err)
-	}()
-
-	func() {
-		planetFromDb, err := repo.Get(context.Background(), planet.Id)
-		require.NoError(t, err, "Actual err: %v", err)
-
-		assert.Equal(t, planet, planetFromDb)
-	}()
-
-	func() {
-		err := repo.Delete(context.Background(), planet.Id)
-		require.NoError(t, err, "Actual err: %v", err)
-	}()
-
-	assertPlanetDoesNotExist(t, conn, planet.Id)
-}
-
-func TestIT_PlanetRepository_HomeWorldCreationDeletionWorkflow(t *testing.T) {
-	repo, conn := newTestPlanetRepository(t)
-	defer conn.Close(context.Background())
-
-	player, _ := insertTestPlayerInUniverse(t, conn)
-
-	planet := models.Planet{
-		Id:          uuid.New(),
-		Player:      player.Id,
-		Name:        fmt.Sprintf("my-planet-%s", uuid.NewString()),
-		Homeworld:   true,
-		CreatedAt:   someTime,
-		UpdatedAt:   someOtherTime,
-		Version:     6,
-		Resources:   []models.PlanetResource{},
-		Storages:    []models.PlanetResourceStorage{},
-		Productions: []models.PlanetResourceProduction{},
+	testCases := []testCase{
+		{
+			name: "planet",
+			planet: models.Planet{
+				Id:          uuid.New(),
+				Name:        fmt.Sprintf("my-planet-%s", uuid.NewString()),
+				Homeworld:   false,
+				CreatedAt:   someTime,
+				UpdatedAt:   someOtherTime,
+				Version:     4,
+				Resources:   []models.PlanetResource{},
+				Storages:    []models.PlanetResourceStorage{},
+				Productions: []models.PlanetResourceProduction{},
+			},
+		},
+		{
+			name: "homeworld",
+			planet: models.Planet{
+				Id:          uuid.New(),
+				Name:        fmt.Sprintf("my-homeworld-%s", uuid.NewString()),
+				Homeworld:   true,
+				CreatedAt:   someTime,
+				UpdatedAt:   someOtherTime,
+				Version:     6,
+				Resources:   []models.PlanetResource{},
+				Storages:    []models.PlanetResourceStorage{},
+				Productions: []models.PlanetResourceProduction{},
+			},
+		},
 	}
 
-	func() {
-		err := repo.Create(context.Background(), planet)
-		require.NoError(t, err, "Actual err: %v", err)
-	}()
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			player, _ := insertTestPlayerInUniverse(t, conn)
 
-	func() {
-		planetFromDb, err := repo.Get(context.Background(), planet.Id)
-		require.NoError(t, err, "Actual err: %v", err)
+			tc.planet.Player = player.Id
 
-		assert.Equal(t, planet, planetFromDb)
-	}()
+			func() {
+				err := repo.Create(context.Background(), tc.planet)
+				require.NoError(t, err, "Actual err: %v", err)
+			}()
 
-	func() {
-		err := repo.Delete(context.Background(), planet.Id)
-		require.NoError(t, err, "Actual err: %v", err)
-	}()
+			func() {
+				planetFromDb, err := repo.Get(context.Background(), tc.planet.Id)
+				require.NoError(t, err, "Actual err: %v", err)
 
-	assertPlanetDoesNotExist(t, conn, planet.Id)
+				assert.Equal(t, tc.planet, planetFromDb)
+			}()
+
+			func() {
+				err := repo.Delete(context.Background(), tc.planet.Id)
+				require.NoError(t, err, "Actual err: %v", err)
+			}()
+
+			assertPlanetDoesNotExist(t, conn, tc.planet.Id)
+		})
+	}
 }
 
 func newTestPlanetRepository(t *testing.T) (driven.ForManagingPlanets, db.Connection) {
