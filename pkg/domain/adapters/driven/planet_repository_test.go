@@ -291,7 +291,7 @@ func TestIT_PlanetRepository_Delete(t *testing.T) {
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assertPlanetDoesNotExist(t, conn, planet.Id)
-		assertPlanetStorageDoesNotExist(t, conn, planet.Id)
+		assertPlanetProductionDoesNotExist(t, conn, planet.Id)
 	})
 
 	t.Run("deletes homeworld with productions", func(t *testing.T) {
@@ -302,7 +302,7 @@ func TestIT_PlanetRepository_Delete(t *testing.T) {
 
 		assertPlanetDoesNotExist(t, conn, planet.Id)
 		assertPlanetIsNotHomeworld(t, conn, planet.Id)
-		assertPlanetStorageDoesNotExist(t, conn, planet.Id)
+		assertPlanetProductionDoesNotExist(t, conn, planet.Id)
 	})
 
 	t.Run("deletes planet with productions for building", func(t *testing.T) {
@@ -312,7 +312,7 @@ func TestIT_PlanetRepository_Delete(t *testing.T) {
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assertPlanetDoesNotExist(t, conn, planet.Id)
-		assertPlanetStorageDoesNotExist(t, conn, planet.Id)
+		assertPlanetProductionDoesNotExist(t, conn, planet.Id)
 	})
 
 	t.Run("deletes homeworld with productions for building", func(t *testing.T) {
@@ -323,7 +323,7 @@ func TestIT_PlanetRepository_Delete(t *testing.T) {
 
 		assertPlanetDoesNotExist(t, conn, planet.Id)
 		assertPlanetIsNotHomeworld(t, conn, planet.Id)
-		assertPlanetStorageDoesNotExist(t, conn, planet.Id)
+		assertPlanetProductionDoesNotExist(t, conn, planet.Id)
 	})
 
 	t.Run("succeeds when the planet does not exist", func(t *testing.T) {
@@ -714,6 +714,13 @@ func assertPlanetStorageDoesNotExist(t *testing.T, conn db.Connection, planet uu
 	t.Helper()
 
 	sqlQuery := `SELECT COUNT(resource) FROM planet_resource_storage WHERE planet = $1`
+	value, err := db.QueryOne[int](context.Background(), conn, sqlQuery, planet)
+	require.NoError(t, err, "Actual err: %v", err)
+	require.Zero(t, value)
+}
+
+func assertPlanetProductionDoesNotExist(t *testing.T, conn db.Connection, planet uuid.UUID) {
+	sqlQuery := `SELECT COUNT(resource) FROM planet_resource_production WHERE planet = $1`
 	value, err := db.QueryOne[int](context.Background(), conn, sqlQuery, planet)
 	require.NoError(t, err, "Actual err: %v", err)
 	require.Zero(t, value)

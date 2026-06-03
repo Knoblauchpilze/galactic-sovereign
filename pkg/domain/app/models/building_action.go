@@ -17,4 +17,6 @@ type BuildingAction struct {
 	CompletedAt time.Time
 
 	Version int
+
+	Costs []BuildingActionCost
 }
