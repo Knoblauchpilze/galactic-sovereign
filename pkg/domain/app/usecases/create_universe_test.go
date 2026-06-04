@@ -8,7 +8,7 @@ import (
 
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/request"
-	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/usecases/drivenadapterstest"
+	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/usecases/drivenportstest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
@@ -16,7 +16,7 @@ import (
 
 func TestUnit_CreateUniverse_Create(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	mockRepo := drivenadapterstest.NewMockForManagingUniverses(ctrl)
+	mockRepo := drivenportstest.NewMockForManagingUniverses(ctrl)
 
 	request := request.UniverseCreationRequest{
 		Name: "the-best-universe",

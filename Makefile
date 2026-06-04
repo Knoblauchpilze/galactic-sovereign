@@ -26,3 +26,6 @@ generate-api-spec:
 
 publish-release:
 	./scripts/create-release.sh
+
+tests:
+	go test ./...
