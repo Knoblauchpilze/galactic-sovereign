@@ -1,0 +1,31 @@
+name: Check generated mocks
+
+on:
+  push:
+    paths:
+      - "go.mod"
+      - "**/*.go"
+      - ".github/workflows/check-generated-mocks.yml"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check-generated-mocks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Setup Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: "1.26.0"
+      - name: Run go generate
+        run: go generate ./...
+      - name: Check for uncommitted changes
+        run: |
+          if ! git diff --quiet; then
+            echo "::error ::Generated mocks are out of date. Please run 'go generate ./...' and commit the changes."
+            git diff
+            exit 1
+          fi

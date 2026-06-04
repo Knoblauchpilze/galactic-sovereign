@@ -9,6 +9,9 @@ galactic-sovereign-service-build:
 		-f build/galactic-sovereign-service/Dockerfile \
 		.
 
+generate-mocks:
+	go generate ./...
+
 generate-api-spec:
 	cd cmd/galactic-sovereign && \
 	go run github.com/swaggo/swag/v2/cmd/swag@${SWAG_VERSION} init \
