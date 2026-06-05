@@ -4,6 +4,7 @@ import (
 	"log/slog"
 	"net/http"
 
+	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db/pgx"
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/errors"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driving/dtos"
@@ -45,6 +46,39 @@ func CreateUniverse(c *echo.Context, usecase driving.ForManagingUniverse) error 
 
 	out := mappers.ToUniverseResponse(universe)
 	return c.JSON(http.StatusCreated, out)
+}
+
+// GetUniverse godoc
+//
+//	@Summary		Get universe
+//	@Description	Returns a universe and related resources/buildings.
+//	@Tags			universes
+//	@Produce		json
+//	@Param			id	path		string	true	"Universe id (UUID)"	Format(uuid)
+//	@Success		200	{object}	rest.ResponseEnvelope[communication.FullUniverseDtoResponse]
+//	@Failure		400	{object}	rest.ResponseEnvelope[string]
+//	@Failure		404	{object}	rest.ResponseEnvelope[string]
+//	@Failure		500	{object}	rest.ResponseEnvelope[string]
+//	@Router			/universes/{id} [get]
+func GetUniverse(c *echo.Context, usecase driving.ForManagingUniverse) error {
+	maybeId := c.Param("id")
+	id, err := uuid.Parse(maybeId)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, "invalid id syntax")
+	}
+
+	universe, err := usecase.Get(c.Request().Context(), id)
+	if err != nil {
+		if errors.IsErrorWithCode(err, db.NoMatchingRows) {
+			return c.JSON(http.StatusNotFound, "no such universe")
+		}
+
+		c.Logger().Error("Failed to get universe", slog.Any("error", err))
+		return c.JSON(http.StatusInternalServerError, "failed to get universe")
+	}
+
+	out := mappers.ToUniverseResponse(universe)
+	return c.JSON(http.StatusOK, out)
 }
 
 // ListUniverses godoc
