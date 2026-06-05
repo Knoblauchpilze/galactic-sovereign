@@ -16,6 +16,8 @@ import (
 	"github.com/Knoblauchpilze/galactic-sovereign/cmd/galactic-sovereign/internal"
 	"github.com/Knoblauchpilze/galactic-sovereign/internal/controller"
 	"github.com/Knoblauchpilze/galactic-sovereign/internal/service"
+	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driven"
+	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/usecases"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/repositories"
 	echoSwagger "github.com/swaggo/echo-swagger/v2"
 )
@@ -70,7 +72,6 @@ func main() {
 
 	planetService := service.NewPlanetService(conn, repos)
 	playerService := service.NewPlayerService(conn, repos)
-	universeService := service.NewUniverseService(conn, repos)
 	buildingActionService := service.NewBuildingActionService(conn, repos)
 
 	actionService := service.NewActionService(conn, repos)
@@ -92,13 +93,6 @@ func main() {
 		}
 	}
 
-	for _, route := range controller.UniverseEndpoints(universeService) {
-		if err := s.AddRoute(route); err != nil {
-			log.Error("Failed to register route", slog.String("route", route.Path()), slog.Any("error", err))
-			os.Exit(1)
-		}
-	}
-
 	for _, route := range controller.BuildingActionEndpoints(buildingActionService, actionService, planetResourceService) {
 		if err := s.AddRoute(route); err != nil {
 			log.Error("Failed to register route", slog.String("route", route.Path()), slog.Any("error", err))
@@ -112,6 +106,19 @@ func main() {
 			os.Exit(1)
 		}
 	}
+
+	// New logic using DDD
+	repo := driven.NewUniverseRepository(conn)
+	usecase := usecases.NewUniverseUseCase(repo)
+
+	for _, route := range controller.UniverseEndpoints(usecase) {
+		if err := s.AddRoute(route); err != nil {
+			log.Error("Failed to register route", slog.String("route", route.Path()), slog.Any("error", err))
+			os.Exit(1)
+		}
+	}
+
+	// End new logic using DDD
 
 	swaggerUi := rest.NewRawRoute(http.MethodGet, "/swagger/*", echoSwagger.WrapHandlerV3)
 	if err := s.AddRoute(swaggerUi); err != nil {
