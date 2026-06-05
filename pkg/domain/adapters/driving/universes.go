@@ -9,6 +9,7 @@ import (
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driving/dtos"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driving/mappers"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driving"
+	"github.com/google/uuid"
 	"github.com/labstack/echo/v5"
 )
 
@@ -24,7 +25,7 @@ import (
 //	@Failure		400		{object}	rest.ResponseEnvelope[string]
 //	@Failure		409		{object}	rest.ResponseEnvelope[string]
 //	@Failure		500		{object}	rest.ResponseEnvelope[string]
-func CreateUniverse(c *echo.Context, usecase driving.ForCreatingUniverse) error {
+func CreateUniverse(c *echo.Context, usecase driving.ForManagingUniverse) error {
 	var inputDto dtos.UniverseDtoRequest
 	err := c.Bind(&inputDto)
 	if err != nil {
@@ -44,4 +45,32 @@ func CreateUniverse(c *echo.Context, usecase driving.ForCreatingUniverse) error 
 
 	out := mappers.ToUniverseCreationResponse(universe)
 	return c.JSON(http.StatusCreated, out)
+}
+
+// DeleteUniverse godoc
+//
+//	@Summary		Delete universe
+//	@Description	Deletes a universe by id.
+//	@Tags			universes
+//	@Produce		json
+//	@Param			id	path		string	true	"Universe id (UUID)"	Format(uuid)
+//	@Success		204	{string}	string
+//	@Failure		400	{object}	rest.ResponseEnvelope[string]
+//	@Failure		404	{object}	rest.ResponseEnvelope[string]
+//	@Failure		500	{object}	rest.ResponseEnvelope[string]
+//	@Router			/universes/{id} [delete]
+func DeleteUniverse(c *echo.Context, usecase driving.ForManagingUniverse) error {
+	maybeId := c.Param("id")
+	id, err := uuid.Parse(maybeId)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, "invalid id syntax")
+	}
+
+	err = usecase.Delete(c.Request().Context(), id)
+	if err != nil {
+		c.Logger().Error("Failed to delete universe", slog.Any("error", err))
+		return c.JSON(http.StatusInternalServerError, "failed to delete universe")
+	}
+
+	return c.NoContent(http.StatusNoContent)
 }

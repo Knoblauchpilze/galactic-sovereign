@@ -7,13 +7,14 @@ import (
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/request"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driven"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driving"
+	"github.com/google/uuid"
 )
 
 type universeUseCase struct {
 	repo driven.ForManagingUniverses
 }
 
-func NewUniverseUseCase(repo driven.ForManagingUniverses) driving.ForCreatingUniverse {
+func NewUniverseUseCase(repo driven.ForManagingUniverses) driving.ForManagingUniverse {
 	return &universeUseCase{
 		repo: repo,
 	}
@@ -28,4 +29,13 @@ func (u *universeUseCase) Create(ctx context.Context, req request.UniverseCreati
 	}
 
 	return universe, nil
+}
+
+func (u *universeUseCase) Delete(ctx context.Context, id uuid.UUID) error {
+	err := u.repo.Delete(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

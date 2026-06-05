@@ -19,6 +19,13 @@ var (
 	sampleUuid = uuid.New()
 )
 
+func generateTestRequest(t *testing.T, method string) *http.Request {
+	t.Helper()
+
+	req := httptest.NewRequest(method, "/", nil)
+	return req
+}
+
 func generateTestRequestWithJsonBody[T any](
 	t *testing.T,
 	method string,
@@ -29,9 +36,10 @@ func generateTestRequestWithJsonBody[T any](
 	return req
 }
 
-func generateTestEchoContextFromRequest(
+func generateTestContextFromRequest(
 	t *testing.T,
 	req *http.Request,
+	modifiers ...func(*testing.T, *echo.Context),
 ) (*echo.Context, *httptest.ResponseRecorder) {
 	t.Helper()
 
@@ -39,7 +47,18 @@ func generateTestEchoContextFromRequest(
 	rw := httptest.NewRecorder()
 
 	ctx := e.NewContext(req, rw)
+
+	for _, modifier := range modifiers {
+		modifier(t, ctx)
+	}
+
 	return ctx, rw
+}
+
+func addIdPathParam(t *testing.T, c *echo.Context) {
+	t.Helper()
+
+	c.SetPathValues([]echo.PathValue{{Name: "id", Value: sampleUuid.String()}})
 }
 
 func decodeResponseBody[T any](t *testing.T, w *httptest.ResponseRecorder) T {

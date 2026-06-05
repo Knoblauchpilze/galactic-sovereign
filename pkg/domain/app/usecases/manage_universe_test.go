@@ -9,12 +9,13 @@ import (
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/request"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/usecases/drivenportstest"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 )
 
-func TestUnit_CreateUniverse_Create(t *testing.T) {
+func TestUnit_ManageUniverse_Create(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	mockRepo := drivenportstest.NewMockForManagingUniverses(ctrl)
 
@@ -55,6 +56,38 @@ func TestUnit_CreateUniverse_Create(t *testing.T) {
 
 		usecase := NewUniverseUseCase(mockRepo)
 		_, err := usecase.Create(context.Background(), request)
+
+		assert.ErrorIs(t, expectedErr, err, "Actual err: %v", err)
+	})
+}
+
+func TestUnit_ManageUniverse_Delete(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	mockRepo := drivenportstest.NewMockForManagingUniverses(ctrl)
+
+	t.Run("deletes existing universe", func(t *testing.T) {
+		id := uuid.New()
+
+		mockRepo.EXPECT().
+			Delete(gomock.Any(), gomock.Eq(id)).
+			Times(1).
+			Return(nil)
+
+		usecase := NewUniverseUseCase(mockRepo)
+		err := usecase.Delete(context.Background(), id)
+		require.NoError(t, err, "Actual err: %v", err)
+	})
+
+	t.Run("returns error when repository fails", func(t *testing.T) {
+		expectedErr := errors.New("stubbed error")
+		mockRepo.EXPECT().
+			Delete(gomock.Any(), gomock.Any()).
+			Times(1).
+			Return(expectedErr)
+
+		usecase := NewUniverseUseCase(mockRepo)
+		err := usecase.Delete(context.Background(), uuid.New())
+
 		assert.ErrorIs(t, expectedErr, err, "Actual err: %v", err)
 	})
 }

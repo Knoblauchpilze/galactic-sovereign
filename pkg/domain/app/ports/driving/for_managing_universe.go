@@ -5,8 +5,10 @@ import (
 
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/request"
+	"github.com/google/uuid"
 )
 
-type ForCreatingUniverse interface {
+type ForManagingUniverse interface {
 	Create(ctx context.Context, req request.UniverseCreationRequest) (models.Universe, error)
+	Delete(ctx context.Context, id uuid.UUID) error
 }
