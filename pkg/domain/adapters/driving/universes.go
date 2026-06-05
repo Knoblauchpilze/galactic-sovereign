@@ -43,8 +43,29 @@ func CreateUniverse(c *echo.Context, usecase driving.ForManagingUniverse) error 
 		return c.JSON(http.StatusInternalServerError, "failed to create universe")
 	}
 
-	out := mappers.ToUniverseCreationResponse(universe)
+	out := mappers.ToUniverseResponse(universe)
 	return c.JSON(http.StatusCreated, out)
+}
+
+// ListUniverses godoc
+//
+//	@Summary		List universes
+//	@Description	Returns all universes.
+//	@Tags			universes
+//	@Produce		json
+//	@Success		200	{object}	rest.ResponseEnvelope[[]communication.UniverseDtoResponse]
+//	@Failure		500	{object}	rest.ResponseEnvelope[string]
+//	@Router			/universes [get]
+func ListUniverses(c *echo.Context, usecase driving.ForManagingUniverse) error {
+	universes, err := usecase.List(c.Request().Context())
+	if err != nil {
+		c.Logger().Error("Failed to list universes", slog.Any("error", err))
+		return c.JSON(http.StatusInternalServerError, "failed to list universes")
+	}
+
+	out := mappers.ToUniversesResponse(universes)
+
+	return c.JSON(http.StatusOK, out)
 }
 
 // DeleteUniverse godoc

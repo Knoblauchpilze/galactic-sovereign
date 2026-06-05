@@ -12,10 +12,21 @@ func ToUniverseCreationRequest(dto dtos.UniverseDtoRequest) request.UniverseCrea
 	}
 }
 
-func ToUniverseCreationResponse(universe models.Universe) dtos.UniverseDtoResponse {
+func ToUniverseResponse(universe models.Universe) dtos.UniverseDtoResponse {
 	return dtos.UniverseDtoResponse{
 		Id:        universe.Id,
 		Name:      universe.Name,
 		CreatedAt: universe.CreatedAt,
 	}
+}
+
+func ToUniversesResponse(universes []models.Universe) []dtos.UniverseDtoResponse {
+	out := make([]dtos.UniverseDtoResponse, 0, len(universes))
+
+	for _, u := range universes {
+		dto := ToUniverseResponse(u)
+		out = append(out, dto)
+	}
+
+	return out
 }

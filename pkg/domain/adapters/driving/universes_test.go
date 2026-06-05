@@ -9,6 +9,7 @@ import (
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driving/dtos"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/request"
+	"github.com/google/uuid"
 	"github.com/labstack/echo/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -76,6 +77,87 @@ func TestUnit_Universes_CreateUniverse(t *testing.T) {
 		assert.Equal(t, http.StatusInternalServerError, rw.Code)
 		actual := decodeResponseBody[string](t, rw)
 		assert.Equal(t, "failed to create universe", actual)
+	})
+}
+
+func TestUnit_Universes_ListUniverses(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	mockUsecase := drivingportstest.NewMockForManagingUniverse(ctrl)
+
+	t.Run("forwards listing to use case", func(t *testing.T) {
+		req := generateTestRequest(t, http.MethodGet)
+		ctx, rw := generateTestContextFromRequest(t, req)
+
+		universes := []models.Universe{
+			{Id: uuid.New(), Name: "universe-1", CreatedAt: someTime},
+			{Id: uuid.New(), Name: "universe-2", CreatedAt: someOtherTime},
+		}
+		mockUsecase.EXPECT().
+			List(gomock.Any()).
+			Times(1).
+			Return(universes, nil)
+
+		err := ListUniverses(ctx, mockUsecase)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.Equal(t, http.StatusOK, rw.Code)
+		actual := decodeResponseBody[[]dtos.UniverseDtoResponse](t, rw)
+		expected := []dtos.UniverseDtoResponse{
+			{Id: universes[0].Id, Name: universes[0].Name, CreatedAt: universes[0].CreatedAt},
+			{Id: universes[1].Id, Name: universes[1].Name, CreatedAt: universes[1].CreatedAt},
+		}
+		assert.Equal(t, expected, actual)
+	})
+
+	t.Run("return empty slice when use case returns no universe", func(t *testing.T) {
+		req := generateTestRequest(t, http.MethodGet)
+		ctx, rw := generateTestContextFromRequest(t, req)
+
+		mockUsecase.EXPECT().
+			List(gomock.Any()).
+			Times(1).
+			Return([]models.Universe{}, nil)
+
+		err := ListUniverses(ctx, mockUsecase)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.Equal(t, http.StatusOK, rw.Code)
+		actual := decodeResponseBody[[]dtos.UniverseDtoResponse](t, rw)
+		assert.Equal(t, []dtos.UniverseDtoResponse{}, actual)
+	})
+
+	t.Run("return empty slice when use case returns nil response", func(t *testing.T) {
+		req := generateTestRequest(t, http.MethodGet)
+		ctx, rw := generateTestContextFromRequest(t, req)
+
+		mockUsecase.EXPECT().
+			List(gomock.Any()).
+			Times(1).
+			Return(nil, nil)
+
+		err := ListUniverses(ctx, mockUsecase)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.Equal(t, http.StatusOK, rw.Code)
+		actual := decodeResponseBody[[]dtos.UniverseDtoResponse](t, rw)
+		assert.Equal(t, []dtos.UniverseDtoResponse{}, actual)
+	})
+
+	t.Run("returns 500 when use cas fails", func(t *testing.T) {
+		req := generateTestRequest(t, http.MethodGet)
+		ctx, rw := generateTestContextFromRequest(t, req)
+
+		mockUsecase.EXPECT().
+			List(gomock.Any()).
+			Times(1).
+			Return([]models.Universe{}, errors.New("stubbed error"))
+
+		err := ListUniverses(ctx, mockUsecase)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.Equal(t, http.StatusInternalServerError, rw.Code)
+		actual := decodeResponseBody[string](t, rw)
+		assert.Equal(t, "failed to list universes", actual)
 	})
 }
 
