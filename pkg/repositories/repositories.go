@@ -16,5 +16,4 @@ type Repositories struct {
 	PlanetResourceStorage            PlanetResourceStorageRepository
 	Player                           PlayerRepository
 	Resource                         ResourceRepository
-	Universe                         UniverseRepository
 }

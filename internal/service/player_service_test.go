@@ -320,7 +320,6 @@ func TestIT_PlayerService_Create_ExpectHomeworldRegisteredForPlayer(t *testing.T
 		Planet: repositories.NewPlanetRepository(conn),
 		Player: repositories.NewPlayerRepository(conn),
 	}
-	universe := insertTestUniverse(t, conn)
 
 	service := NewPlayerService(conn, repos)
 
@@ -329,7 +328,7 @@ func TestIT_PlayerService_Create_ExpectHomeworldRegisteredForPlayer(t *testing.T
 	func() {
 		playerRequest := communication.PlayerDtoRequest{
 			ApiUser:  uuid.New(),
-			Universe: universe.Id,
+			Universe: oberonUniverseId,
 			Name:     fmt.Sprintf("my-player-%s", uuid.NewString()),
 		}
 
@@ -348,13 +347,12 @@ func TestIT_PlayerService_Delete_ExpectBuildingActionToBeDeleted(t *testing.T) {
 		Player:         repositories.NewPlayerRepository(conn),
 		BuildingAction: repositories.NewBuildingActionRepository(),
 	}
-	universe := insertTestUniverse(t, conn)
 
 	service := NewPlayerService(conn, repos)
 
 	playerRequest := communication.PlayerDtoRequest{
 		ApiUser:  uuid.New(),
-		Universe: universe.Id,
+		Universe: oberonUniverseId,
 		Name:     fmt.Sprintf("my-player-%s", uuid.NewString()),
 	}
 
@@ -386,13 +384,12 @@ func TestIT_PlayerService_CreationDeletionWorkflow(t *testing.T) {
 		Player:         repositories.NewPlayerRepository(conn),
 		BuildingAction: repositories.NewBuildingActionRepository(),
 	}
-	universe := insertTestUniverse(t, conn)
 
 	service := NewPlayerService(conn, repos)
 
 	playerRequest := communication.PlayerDtoRequest{
 		ApiUser:  uuid.New(),
-		Universe: universe.Id,
+		Universe: oberonUniverseId,
 		Name:     fmt.Sprintf("my-player-%s", uuid.NewString()),
 	}
 

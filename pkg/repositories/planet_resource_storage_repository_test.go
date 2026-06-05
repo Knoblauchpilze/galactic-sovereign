@@ -18,7 +18,7 @@ import (
 func TestIT_PlanetResourceStorageRepository_Create(t *testing.T) {
 	repo, conn, tx := newTestPlanetResourceStorageRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
-	planet, _, _ := insertTestPlanetForPlayer(t, conn)
+	planet, _ := insertTestPlanetForPlayer(t, conn)
 	resource := insertTestResource(t, conn)
 
 	storage := persistence.PlanetResourceStorage{
@@ -40,7 +40,7 @@ func TestIT_PlanetResourceStorageRepository_Create(t *testing.T) {
 func TestIT_PlanetResourceStorageRepository_Create_WhenDuplicateResource_ExpectFailure(t *testing.T) {
 	repo, conn, tx := newTestPlanetResourceStorageRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
-	planet, _, _ := insertTestPlanetForPlayer(t, conn)
+	planet, _ := insertTestPlanetForPlayer(t, conn)
 	storage, resource := insertTestPlanetResourceStorage(t, conn, planet.Id)
 
 	newStorage := persistence.PlanetResourceStorage{
@@ -60,11 +60,11 @@ func TestIT_PlanetResourceStorageRepository_Create_WhenDuplicateResource_ExpectF
 func TestIT_PlanetResourceStorageRepository_GetForPlanetAndResource(t *testing.T) {
 	repo, conn, tx := newTestPlanetResourceStorageRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
-	planet1, _, _ := insertTestPlanetForPlayer(t, conn)
+	planet1, _ := insertTestPlanetForPlayer(t, conn)
 	prs1, res1 := insertTestPlanetResourceStorage(t, conn, planet1.Id)
 	insertTestPlanetResourceStorage(t, conn, planet1.Id)
 
-	planet2, _, _ := insertTestPlanetForPlayer(t, conn)
+	planet2, _ := insertTestPlanetForPlayer(t, conn)
 	insertTestPlanetResourceStorage(t, conn, planet2.Id)
 
 	actual, err := repo.GetForPlanetAndResource(
@@ -82,10 +82,10 @@ func TestIT_PlanetResourceStorageRepository_GetForPlanetAndResource(t *testing.T
 func TestIT_PlanetResourceStorageRepository_ListForPlanet(t *testing.T) {
 	repo, conn, tx := newTestPlanetResourceStorageRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
-	planet1, _, _ := insertTestPlanetForPlayer(t, conn)
+	planet1, _ := insertTestPlanetForPlayer(t, conn)
 	ps1, _ := insertTestPlanetResourceStorage(t, conn, planet1.Id)
 	ps2, _ := insertTestPlanetResourceStorage(t, conn, planet1.Id)
-	planet2, _, _ := insertTestPlanetForPlayer(t, conn)
+	planet2, _ := insertTestPlanetForPlayer(t, conn)
 	_, r3 := insertTestPlanetResourceStorage(t, conn, planet2.Id)
 
 	actual, err := repo.ListForPlanet(context.Background(), tx, planet1.Id)
@@ -104,7 +104,7 @@ func TestIT_PlanetResourceStorageRepository_ListForPlanet(t *testing.T) {
 func TestIT_PlanetResourceStorageRepository_Update(t *testing.T) {
 	repo, conn, tx := newTestPlanetResourceStorageRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
-	planet, _, _ := insertTestPlanetForPlayer(t, conn)
+	planet, _ := insertTestPlanetForPlayer(t, conn)
 	storage, resource := insertTestPlanetResourceStorage(t, conn, planet.Id)
 
 	updatedStorage := storage
@@ -130,7 +130,7 @@ func TestIT_PlanetResourceStorageRepository_Update(t *testing.T) {
 func TestIT_PlanetResourceStorageRepository_Update_WhenVersionIsWrong_ExpectOptimisticLockException(t *testing.T) {
 	repo, conn, tx := newTestPlanetResourceStorageRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
-	planet, _, _ := insertTestPlanetForPlayer(t, conn)
+	planet, _ := insertTestPlanetForPlayer(t, conn)
 	storage, _ := insertTestPlanetResourceStorage(t, conn, planet.Id)
 
 	updatedStorage := storage
@@ -146,7 +146,7 @@ func TestIT_PlanetResourceStorageRepository_Update_WhenVersionIsWrong_ExpectOpti
 func TestIT_PlanetResourceStorageRepository_Update_BumpsUpdatedAt(t *testing.T) {
 	repo, conn := newTestPlanetResourceStorageRepository(t)
 	defer conn.Close(context.Background())
-	planet, _, _ := insertTestPlanetForPlayer(t, conn)
+	planet, _ := insertTestPlanetForPlayer(t, conn)
 	storage, _ := insertTestPlanetResourceStorage(t, conn, planet.Id)
 
 	updatedStorage := storage
@@ -181,7 +181,7 @@ func TestIT_PlanetResourceStorageRepository_Update_BumpsUpdatedAt(t *testing.T) 
 func TestIT_PlanetResourceStorageRepository_Update_BumpsVersion(t *testing.T) {
 	repo, conn := newTestPlanetResourceStorageRepository(t)
 	defer conn.Close(context.Background())
-	planet, _, _ := insertTestPlanetForPlayer(t, conn)
+	planet, _ := insertTestPlanetForPlayer(t, conn)
 	storage, _ := insertTestPlanetResourceStorage(t, conn, planet.Id)
 
 	updatedStorage := storage

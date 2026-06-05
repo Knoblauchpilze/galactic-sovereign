@@ -67,7 +67,6 @@ func main() {
 		PlanetResourceStorage:            repositories.NewPlanetResourceStorageRepository(),
 		Player:                           repositories.NewPlayerRepository(conn),
 		Resource:                         repositories.NewResourceRepository(),
-		Universe:                         repositories.NewUniverseRepository(conn),
 	}
 
 	planetService := service.NewPlanetService(conn, repos)

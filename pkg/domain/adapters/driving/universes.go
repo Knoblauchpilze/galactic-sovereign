@@ -7,6 +7,7 @@ import (
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db/pgx"
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/errors"
+	"github.com/Knoblauchpilze/backend-toolkit/pkg/rest"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driving/dtos"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driving/mappers"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driving"
@@ -14,18 +15,41 @@ import (
 	"github.com/labstack/echo/v5"
 )
 
-// createUniverse godoc
+func UniverseEndpoints(usecase driving.ForManagingUniverse) rest.Routes {
+	var out rest.Routes
+
+	handler := generateHandler(CreateUniverse, usecase)
+	post := rest.NewRoute(http.MethodPost, "/universes", handler)
+	out = append(out, post)
+
+	handler = generateHandler(GetUniverse, usecase)
+	get := rest.NewRoute(http.MethodGet, "/universes/:id", handler)
+	out = append(out, get)
+
+	handler = generateHandler(ListUniverses, usecase)
+	list := rest.NewRoute(http.MethodGet, "/universes", handler)
+	out = append(out, list)
+
+	handler = generateHandler(DeleteUniverse, usecase)
+	delete := rest.NewRoute(http.MethodDelete, "/universes/:id", handler)
+	out = append(out, delete)
+
+	return out
+}
+
+// CreateUniverse godoc
 //
 //	@Summary		Create universe
 //	@Description	Creates a universe.
 //	@Tags			universes
 //	@Accept			json
 //	@Produce		json
-//	@Param			request	body		communication.UniverseDtoRequest	true	"Universe payload"
-//	@Success		201		{object}	rest.ResponseEnvelope[communication.UniverseDtoResponse]
+//	@Param			request	body		dtos.UniverseDtoRequest	true	"Universe payload"
+//	@Success		201		{object}	rest.ResponseEnvelope[dtos.UniverseDtoResponse]
 //	@Failure		400		{object}	rest.ResponseEnvelope[string]
 //	@Failure		409		{object}	rest.ResponseEnvelope[string]
 //	@Failure		500		{object}	rest.ResponseEnvelope[string]
+//	@Router			/universes [post]
 func CreateUniverse(c *echo.Context, usecase driving.ForManagingUniverse) error {
 	var inputDto dtos.UniverseDtoRequest
 	err := c.Bind(&inputDto)
@@ -55,7 +79,7 @@ func CreateUniverse(c *echo.Context, usecase driving.ForManagingUniverse) error 
 //	@Tags			universes
 //	@Produce		json
 //	@Param			id	path		string	true	"Universe id (UUID)"	Format(uuid)
-//	@Success		200	{object}	rest.ResponseEnvelope[communication.FullUniverseDtoResponse]
+//	@Success		200	{object}	rest.ResponseEnvelope[dtos.UniverseDtoResponse]
 //	@Failure		400	{object}	rest.ResponseEnvelope[string]
 //	@Failure		404	{object}	rest.ResponseEnvelope[string]
 //	@Failure		500	{object}	rest.ResponseEnvelope[string]
@@ -87,7 +111,7 @@ func GetUniverse(c *echo.Context, usecase driving.ForManagingUniverse) error {
 //	@Description	Returns all universes.
 //	@Tags			universes
 //	@Produce		json
-//	@Success		200	{object}	rest.ResponseEnvelope[[]communication.UniverseDtoResponse]
+//	@Success		200	{object}	rest.ResponseEnvelope[[]dtos.UniverseDtoResponse]
 //	@Failure		500	{object}	rest.ResponseEnvelope[string]
 //	@Router			/universes [get]
 func ListUniverses(c *echo.Context, usecase driving.ForManagingUniverse) error {

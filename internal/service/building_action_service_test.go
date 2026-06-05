@@ -20,7 +20,7 @@ import (
 func TestIT_BuildingActionService_Create(t *testing.T) {
 	service, conn := newTestBuildingActionService(t)
 
-	planet, _, _ := insertTestPlanetForPlayer(t, conn)
+	planet, _ := insertTestPlanetForPlayer(t, conn)
 	building, _ := insertTestPlanetBuildingForPlanet(t, conn, planet.Id)
 
 	actionRequest := communication.BuildingActionDtoRequest{
@@ -43,7 +43,7 @@ func TestIT_BuildingActionService_Create(t *testing.T) {
 func TestIT_BuildingActionService_Create_WhenNotEnoughResources_ExpectFailure(t *testing.T) {
 	service, conn := newTestBuildingActionService(t)
 
-	planet, _, _ := insertTestPlanetForPlayer(t, conn)
+	planet, _ := insertTestPlanetForPlayer(t, conn)
 	building, _ := insertTestPlanetBuildingForPlanet(t, conn, planet.Id)
 	insertTestBuildingCost(t, conn, building.Building)
 
@@ -59,7 +59,7 @@ func TestIT_BuildingActionService_Create_WhenNotEnoughResources_ExpectFailure(t 
 func TestIT_BuildingActionService_Create_WhenBuildingDoesNotExist_ExpectFailure(t *testing.T) {
 	service, conn := newTestBuildingActionService(t)
 
-	planet, _, _ := insertTestPlanetForPlayer(t, conn)
+	planet, _ := insertTestPlanetForPlayer(t, conn)
 	building := insertTestBuilding(t, conn)
 	insertTestBuildingCost(t, conn, building.Id)
 
@@ -75,7 +75,7 @@ func TestIT_BuildingActionService_Create_WhenBuildingDoesNotExist_ExpectFailure(
 func TestIT_BuildingActionService_Create_WithCost_ExpectCostToBeRegistered(t *testing.T) {
 	service, conn := newTestBuildingActionService(t)
 
-	planet, _, _ := insertTestPlanetForPlayer(t, conn)
+	planet, _ := insertTestPlanetForPlayer(t, conn)
 	building, _ := insertTestPlanetBuildingForPlanet(t, conn, planet.Id)
 	cost, _ := insertTestBuildingCost(t, conn, building.Building)
 	insertTestPlanetResourceForResource(t, conn, planet.Id, cost.Resource, time.Now())
@@ -94,7 +94,7 @@ func TestIT_BuildingActionService_Create_WithCost_ExpectCostToBeRegistered(t *te
 func TestIT_BuildingActionService_Create_WithCost_ExpectCostToBeTakenFromResources(t *testing.T) {
 	service, conn := newTestBuildingActionService(t)
 
-	planet, _, _ := insertTestPlanetForPlayer(t, conn)
+	planet, _ := insertTestPlanetForPlayer(t, conn)
 	building, _ := insertTestPlanetBuildingForPlanet(t, conn, planet.Id)
 	cost, _ := insertTestBuildingCost(t, conn, building.Building)
 	planetResource := insertTestPlanetResourceForResource(
@@ -116,7 +116,7 @@ func TestIT_BuildingActionService_Create_WithCost_ExpectCostToBeTakenFromResourc
 func TestIT_BuildingActionService_Create_WithResourceProduction_ExpectProductionToBeRegistered(t *testing.T) {
 	service, conn := newTestBuildingActionService(t)
 
-	planet, _, _ := insertTestPlanetForPlayer(t, conn)
+	planet, _ := insertTestPlanetForPlayer(t, conn)
 	building, _ := insertTestPlanetBuildingForPlanet(t, conn, planet.Id)
 	production, _ := insertTestBuildingResourceProduction(t, conn, building.Building)
 
@@ -140,7 +140,7 @@ func TestIT_BuildingActionService_Create_WithResourceProduction_ExpectProduction
 func TestIT_BuildingActionService_Create_WithResourceStorage_ExpectStorageToBeRegistered(t *testing.T) {
 	service, conn := newTestBuildingActionService(t)
 
-	planet, _, _ := insertTestPlanetForPlayer(t, conn)
+	planet, _ := insertTestPlanetForPlayer(t, conn)
 	building, _ := insertTestPlanetBuildingForPlanet(t, conn, planet.Id)
 	storage, _ := insertTestBuildingResourceStorage(t, conn, building.Building)
 
@@ -164,7 +164,7 @@ func TestIT_BuildingActionService_Create_WithResourceStorage_ExpectStorageToBeRe
 func TestIT_BuildingActionService_Delete(t *testing.T) {
 	service, conn := newTestBuildingActionService(t)
 
-	planet, _, _ := insertTestPlanetForPlayer(t, conn)
+	planet, _ := insertTestPlanetForPlayer(t, conn)
 	createdAt := time.Now()
 	completedAt := createdAt.Add(2 * time.Hour)
 	action, _ := insertTestBuildingActionForPlanetWithTimes(
@@ -184,7 +184,7 @@ func TestIT_BuildingActionService_Delete(t *testing.T) {
 func TestIT_BuildingActionService_Delete_ExpectCostsToBeDeleted(t *testing.T) {
 	service, conn := newTestBuildingActionService(t)
 
-	planet, _, _ := insertTestPlanetForPlayer(t, conn)
+	planet, _ := insertTestPlanetForPlayer(t, conn)
 	createdAt := time.Now()
 	completedAt := createdAt.Add(2 * time.Hour)
 	action, _ := insertTestBuildingActionForPlanetWithTimes(t, conn, planet.Id, createdAt, completedAt)
@@ -201,7 +201,7 @@ func TestIT_BuildingActionService_Delete_ExpectCostsToBeDeleted(t *testing.T) {
 func TestIT_BuildingActionService_Delete_ExpectResourcesToBeRestored(t *testing.T) {
 	service, conn := newTestBuildingActionService(t)
 
-	planet, _, _ := insertTestPlanetForPlayer(t, conn)
+	planet, _ := insertTestPlanetForPlayer(t, conn)
 	createdAt := time.Now()
 	completedAt := createdAt.Add(2 * time.Hour)
 	action, _ := insertTestBuildingActionForPlanetWithTimes(t, conn, planet.Id, createdAt, completedAt)
@@ -221,7 +221,7 @@ func TestIT_BuildingActionService_Delete_ExpectResourcesToBeRestored(t *testing.
 func TestIT_BuildingActionService_Delete_ExpectResourceProductionToBeDeleted(t *testing.T) {
 	service, conn := newTestBuildingActionService(t)
 
-	planet, _, _ := insertTestPlanetForPlayer(t, conn)
+	planet, _ := insertTestPlanetForPlayer(t, conn)
 	createdAt := time.Now()
 	completedAt := createdAt.Add(2 * time.Hour)
 	action, _ := insertTestBuildingActionForPlanetWithTimes(t, conn, planet.Id, createdAt, completedAt)
@@ -237,7 +237,7 @@ func TestIT_BuildingActionService_Delete_ExpectResourceProductionToBeDeleted(t *
 func TestIT_BuildingActionService_Delete_ExpectResourceStorageToBeDeleted(t *testing.T) {
 	service, conn := newTestBuildingActionService(t)
 
-	planet, _, _ := insertTestPlanetForPlayer(t, conn)
+	planet, _ := insertTestPlanetForPlayer(t, conn)
 	createdAt := time.Now()
 	completedAt := createdAt.Add(2 * time.Hour)
 	action, _ := insertTestBuildingActionForPlanetWithTimes(t, conn, planet.Id, createdAt, completedAt)
@@ -253,7 +253,7 @@ func TestIT_BuildingActionService_Delete_ExpectResourceStorageToBeDeleted(t *tes
 func TestIT_BuildingActionService_Delete_WhenActionAlreadyCompleted_ExpectFailure(t *testing.T) {
 	service, conn := newTestBuildingActionService(t)
 
-	planet, _, _ := insertTestPlanetForPlayer(t, conn)
+	planet, _ := insertTestPlanetForPlayer(t, conn)
 	createdAt := time.Now().Add(-23 * time.Hour)
 	completedAt := createdAt.Add(30 * time.Minute)
 	action, _ := insertTestBuildingActionForPlanetWithTimes(t, conn, planet.Id, createdAt, completedAt)
@@ -275,7 +275,7 @@ func TestIT_BuildingActionService_CreationDeletionWorkflow(t *testing.T) {
 
 	service, conn := newTestBuildingActionServiceWithCompletionTime(t, completionTimeFunc)
 
-	planet, _, _ := insertTestPlanetForPlayer(t, conn)
+	planet, _ := insertTestPlanetForPlayer(t, conn)
 	building, _ := insertTestPlanetBuildingForPlanet(t, conn, planet.Id)
 	_, resource := insertTestBuildingCost(t, conn, building.Building)
 	insertTestPlanetResourceForResource(t, conn, planet.Id, resource.Id, time.Now())

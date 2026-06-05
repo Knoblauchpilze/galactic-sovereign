@@ -19,12 +19,11 @@ import (
 func TestIT_PlayerRepository_Create(t *testing.T) {
 	repo, conn, tx := newTestPlayerRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
-	universe := insertTestUniverse(t, conn)
 
 	player := persistence.Player{
 		Id:        uuid.New(),
 		ApiUser:   uuid.New(),
-		Universe:  universe.Id,
+		Universe:  oberonUniverseId,
 		Name:      fmt.Sprintf("player-%s", uuid.NewString()),
 		CreatedAt: time.Now(),
 	}
@@ -42,12 +41,12 @@ func TestIT_PlayerRepository_Create_WhenDuplicateName_ExpectFailure(t *testing.T
 	repo, conn, tx := newTestPlayerRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
 	defer tx.Close(context.Background())
-	player, universe := insertTestPlayerInUniverse(t, conn)
+	player := insertTestPlayer(t, conn)
 
 	newPlayer := persistence.Player{
 		Id:        uuid.New(),
 		ApiUser:   uuid.New(),
-		Universe:  universe.Id,
+		Universe:  oberonUniverseId,
 		Name:      player.Name,
 		CreatedAt: time.Now(),
 	}
@@ -61,7 +60,7 @@ func TestIT_PlayerRepository_Create_WhenDuplicateName_ExpectFailure(t *testing.T
 func TestIT_PlayerRepository_Get(t *testing.T) {
 	repo, conn := newTestPlayerRepository(t)
 	defer conn.Close(context.Background())
-	player, _ := insertTestPlayerInUniverse(t, conn)
+	player := insertTestPlayer(t, conn)
 
 	actual, err := repo.Get(context.Background(), player.Id)
 	assert.Nil(t, err)
@@ -82,8 +81,8 @@ func TestIT_PlayerRepository_Get_WhenNotFound_ExpectFailure(t *testing.T) {
 func TestIT_PlayerRepository_List(t *testing.T) {
 	repo, conn := newTestPlayerRepository(t)
 	defer conn.Close(context.Background())
-	p1, universe := insertTestPlayerInUniverse(t, conn)
-	p2 := insertTestPlayer(t, conn, universe.Id)
+	p1 := insertTestPlayer(t, conn)
+	p2 := insertTestPlayer(t, conn)
 
 	actual, err := repo.List(context.Background())
 
@@ -96,8 +95,8 @@ func TestIT_PlayerRepository_List(t *testing.T) {
 func TestIT_PlayerRepository_ListForApiUser(t *testing.T) {
 	repo, conn := newTestPlayerRepository(t)
 	defer conn.Close(context.Background())
-	p1, universe := insertTestPlayerInUniverse(t, conn)
-	insertTestPlayer(t, conn, universe.Id)
+	p1 := insertTestPlayer(t, conn)
+	insertTestPlayer(t, conn)
 
 	actual, err := repo.ListForApiUser(context.Background(), p1.ApiUser)
 
@@ -109,7 +108,7 @@ func TestIT_PlayerRepository_ListForApiUser(t *testing.T) {
 func TestIT_PlayerRepository_Delete(t *testing.T) {
 	repo, conn, tx := newTestPlayerRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
-	player, _ := insertTestPlayerInUniverse(t, conn)
+	player := insertTestPlayer(t, conn)
 
 	err := repo.Delete(context.Background(), tx, player.Id)
 	tx.Close(context.Background())
@@ -141,13 +140,13 @@ func newTestPlayerRepositoryAndTransaction(t *testing.T) (PlayerRepository, db.C
 	return repo, conn, tx
 }
 
-func insertTestPlayer(t *testing.T, conn db.Connection, universe uuid.UUID) persistence.Player {
+func insertTestPlayer(t *testing.T, conn db.Connection) persistence.Player {
 	someTime := time.Date(2024, 11, 29, 17, 56, 02, 0, time.UTC)
 
 	player := persistence.Player{
 		Id:        uuid.New(),
 		ApiUser:   uuid.New(),
-		Universe:  universe,
+		Universe:  oberonUniverseId,
 		Name:      fmt.Sprintf("my-player-%s", uuid.NewString()),
 		CreatedAt: someTime,
 	}
@@ -170,10 +169,9 @@ func insertTestPlayer(t *testing.T, conn db.Connection, universe uuid.UUID) pers
 	return player
 }
 
-func insertTestPlayerInUniverse(t *testing.T, conn db.Connection) (persistence.Player, persistence.Universe) {
-	universe := insertTestUniverse(t, conn)
-	player := insertTestPlayer(t, conn, universe.Id)
-	return player, universe
+func insertTestPlayerInUniverse(t *testing.T, conn db.Connection) persistence.Player {
+	player := insertTestPlayer(t, conn)
+	return player
 }
 
 func assertPlayerExists(t *testing.T, conn db.Connection, id uuid.UUID) {

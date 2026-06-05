@@ -37,11 +37,3 @@ func fromPlayerServiceAwareHttpHandler(handler playerServiceAwareHttpHandler, se
 		return handler(c, service)
 	}
 }
-
-type universeServiceAwareHttpHandler func(*echo.Context, service.UniverseService) error
-
-func fromUniverseServiceAwareHttpHandler(handler universeServiceAwareHttpHandler, service service.UniverseService) echo.HandlerFunc {
-	return func(c *echo.Context) error {
-		return handler(c, service)
-	}
-}

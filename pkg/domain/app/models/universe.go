@@ -6,6 +6,7 @@ import (
 	"github.com/google/uuid"
 )
 
+// TODO: This should include the buildings and their effects
 type Universe struct {
 	Id   uuid.UUID
 	Name string

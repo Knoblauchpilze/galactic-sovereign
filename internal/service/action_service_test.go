@@ -17,7 +17,7 @@ import (
 
 func TestIT_ActionService_ProcessActionUntil_WhenNoAction_ExpectSuccess(t *testing.T) {
 	service, conn := newTestActionService(t)
-	planet, _, _ := insertTestPlanetForPlayer(t, conn)
+	planet, _ := insertTestPlanetForPlayer(t, conn)
 
 	veryFarInThePast := time.Now().Add(-800 * time.Hour)
 
@@ -28,7 +28,7 @@ func TestIT_ActionService_ProcessActionUntil_WhenNoAction_ExpectSuccess(t *testi
 
 func TestIT_ActionService_ProcessActionUntil_WhenActionIsNotCompleted_ExpectNotProcessed(t *testing.T) {
 	service, conn := newTestActionService(t)
-	planet, _, _ := insertTestPlanetForPlayer(t, conn)
+	planet, _ := insertTestPlanetForPlayer(t, conn)
 	createdAt := time.Now().Add(-2 * time.Hour)
 	completedAt := createdAt.Add(8 * time.Hour)
 	action, _ := insertTestBuildingActionForPlanetWithTimes(
@@ -48,7 +48,7 @@ func TestIT_ActionService_ProcessActionUntil_WhenActionIsNotCompleted_ExpectNotP
 
 func TestIT_ActionService_ProcessActionUntil_WhenProcessingFail_ExpectActionIsNotRemoved(t *testing.T) {
 	service, conn := newTestActionService(t)
-	planet, _, _ := insertTestPlanetForPlayer(t, conn)
+	planet, _ := insertTestPlanetForPlayer(t, conn)
 	createdAt := time.Now().Add(-2 * time.Hour)
 	completedAt := createdAt.Add(1 * time.Hour)
 	action, _ := insertTestBuildingActionForPlanetWithTimes(
@@ -69,7 +69,7 @@ func TestIT_ActionService_ProcessActionUntil_WhenProcessingFail_ExpectActionIsNo
 
 func TestIT_ActionService_ProcessActionUntil_WhenActionIsCompleted_ExpectRemoval(t *testing.T) {
 	service, conn := newTestActionService(t)
-	planet, _, _ := insertTestPlanetForPlayer(t, conn)
+	planet, _ := insertTestPlanetForPlayer(t, conn)
 	planetBuilding, _ := insertTestPlanetBuildingForPlanet(t, conn, planet.Id)
 	createdAt := time.Now().Add(-2 * time.Hour)
 	completedAt := createdAt.Add(-1 * time.Hour)
@@ -91,7 +91,7 @@ func TestIT_ActionService_ProcessActionUntil_WhenActionIsCompleted_ExpectRemoval
 
 func TestIT_ActionService_ProcessActionUntil_ExpectResourcesToBeUpdatedToCompletionTime(t *testing.T) {
 	service, conn := newTestActionService(t)
-	planet, _, _ := insertTestPlanetForPlayer(t, conn)
+	planet, _ := insertTestPlanetForPlayer(t, conn)
 	planetBuilding, _ := insertTestPlanetBuildingForPlanet(t, conn, planet.Id)
 	planetResourceProd, res := insertTestPlanetResourceProductionForBuilding(t, conn, planet.Id, planetBuilding.Building)
 	insertTestPlanetResourceStorageForResource(t, conn, planet.Id, res.Id, 50_000)
@@ -126,7 +126,7 @@ func TestIT_ActionService_ProcessActionUntil_ExpectResourcesToBeUpdatedToComplet
 
 func TestIT_ActionService_ProcessActionUntil_WhenResourceIsNotProduced_ExpectResourceToStayTheSame(t *testing.T) {
 	service, conn := newTestActionService(t)
-	planet, _, _ := insertTestPlanetForPlayer(t, conn)
+	planet, _ := insertTestPlanetForPlayer(t, conn)
 	planetBuilding, _ := insertTestPlanetBuildingForPlanet(t, conn, planet.Id)
 	res := insertTestResource(t, conn)
 	insertTestPlanetResourceStorageForResource(t, conn, planet.Id, res.Id, 50_000)
@@ -159,7 +159,7 @@ func TestIT_ActionService_ProcessActionUntil_WhenResourceIsNotProduced_ExpectRes
 
 func TestIT_ActionService_ProcessActionUntil_WhenStorageIsAlreadyFull_ExpectResourceToStayTheSame(t *testing.T) {
 	service, conn := newTestActionService(t)
-	planet, _, _ := insertTestPlanetForPlayer(t, conn)
+	planet, _ := insertTestPlanetForPlayer(t, conn)
 	planetBuilding, _ := insertTestPlanetBuildingForPlanet(t, conn, planet.Id)
 	planetResourceProd, res := insertTestPlanetResourceProductionForBuilding(t, conn, planet.Id, planetBuilding.Building)
 	createdAt := time.Now().Add(-3 * time.Hour)
@@ -199,7 +199,7 @@ func TestIT_ActionService_ProcessActionUntil_WhenStorageIsAlreadyFull_ExpectReso
 
 func TestIT_ActionService_ProcessActionUntil_WhenStorageCanNotHoldAllProduction_ExpectResourceToFillStorage(t *testing.T) {
 	service, conn := newTestActionService(t)
-	planet, _, _ := insertTestPlanetForPlayer(t, conn)
+	planet, _ := insertTestPlanetForPlayer(t, conn)
 	planetBuilding, _ := insertTestPlanetBuildingForPlanet(t, conn, planet.Id)
 	planetResourceProd, res := insertTestPlanetResourceProductionForBuilding(t, conn, planet.Id, planetBuilding.Building)
 	createdAt := time.Now().Add(-3 * time.Hour)
@@ -244,7 +244,7 @@ func TestIT_ActionService_ProcessActionUntil_WhenStorageCanNotHoldAllProduction_
 
 func TestIT_ActionService_ProcessActionUntil_ExpectBuildingToBeUpdated(t *testing.T) {
 	service, conn := newTestActionService(t)
-	planet, _, _ := insertTestPlanetForPlayer(t, conn)
+	planet, _ := insertTestPlanetForPlayer(t, conn)
 	planetBuilding, _ := insertTestPlanetBuildingForPlanet(t, conn, planet.Id)
 	createdAt := time.Now().Add(-3 * time.Hour)
 	completedAt := createdAt.Add(2 * time.Hour)
@@ -268,7 +268,7 @@ func TestIT_ActionService_ProcessActionUntil_ExpectBuildingToBeUpdated(t *testin
 
 func TestIT_ActionService_ProcessActionUntil_ExpectResourceProductionToBeUpdated(t *testing.T) {
 	service, conn := newTestActionService(t)
-	planet, _, _ := insertTestPlanetForPlayer(t, conn)
+	planet, _ := insertTestPlanetForPlayer(t, conn)
 	planetBuilding, _ := insertTestPlanetBuildingForPlanet(t, conn, planet.Id)
 	prp1, res1 := insertTestPlanetResourceProductionForBuilding(t, conn, planet.Id, planetBuilding.Building)
 	prp2, res2 := insertTestPlanetResourceProduction(t, conn, planet.Id)
@@ -313,7 +313,7 @@ func TestIT_ActionService_ProcessActionUntil_ExpectResourceProductionToBeUpdated
 
 func TestIT_ActionService_ProcessActionUntil_WhenResourceIsNotProduced_ExpectResourceProductionCreatedToNewValue(t *testing.T) {
 	service, conn := newTestActionService(t)
-	planet, _, _ := insertTestPlanetForPlayer(t, conn)
+	planet, _ := insertTestPlanetForPlayer(t, conn)
 	planetBuilding, _ := insertTestPlanetBuildingForPlanet(t, conn, planet.Id)
 	res := insertTestResource(t, conn)
 	createdAt := time.Now().Add(-3 * time.Hour)
@@ -350,7 +350,7 @@ func TestIT_ActionService_ProcessActionUntil_WhenResourceIsNotProduced_ExpectRes
 
 func TestIT_ActionService_ProcessActionUntil_ExpectResourceStorageToBeUpdated(t *testing.T) {
 	service, conn := newTestActionService(t)
-	planet, _, _ := insertTestPlanetForPlayer(t, conn)
+	planet, _ := insertTestPlanetForPlayer(t, conn)
 	planetBuilding, _ := insertTestPlanetBuildingForPlanet(t, conn, planet.Id)
 	_, res1 := insertTestPlanetResourceStorage(t, conn, planet.Id)
 	prs2, res2 := insertTestPlanetResourceStorage(t, conn, planet.Id)
@@ -383,7 +383,7 @@ func TestIT_ActionService_ProcessActionUntil_ExpectResourceStorageToBeUpdated(t 
 
 func TestIT_ActionService_ProcessActionUntil_WhenResourceIsNotStorable_ExpectFailure(t *testing.T) {
 	service, conn := newTestActionService(t)
-	planet, _, _ := insertTestPlanetForPlayer(t, conn)
+	planet, _ := insertTestPlanetForPlayer(t, conn)
 	planetBuilding, _ := insertTestPlanetBuildingForPlanet(t, conn, planet.Id)
 	res := insertTestResource(t, conn)
 	createdAt := time.Now().Add(-3 * time.Hour)

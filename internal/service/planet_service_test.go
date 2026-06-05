@@ -629,7 +629,7 @@ func TestIT_PlanetService_CreationDeletionWorkflow(t *testing.T) {
 		PlanetResourceStorage:    repositories.NewPlanetResourceStorageRepository(),
 		BuildingAction:           repositories.NewBuildingActionRepository(),
 	}
-	player, _ := insertTestPlayerInUniverse(t, conn)
+	player := insertTestPlayer(t, conn)
 
 	service := NewPlanetService(conn, repos)
 

@@ -18,7 +18,7 @@ import (
 func TestIT_PlanetResourceRepository_Create(t *testing.T) {
 	repo, conn, tx := newTestPlanetResourceRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
-	planet, _, _ := insertTestPlanetForPlayer(t, conn)
+	planet, _ := insertTestPlanetForPlayer(t, conn)
 	resource := insertTestResource(t, conn)
 
 	planetResource := persistence.PlanetResource{
@@ -40,7 +40,7 @@ func TestIT_PlanetResourceRepository_Create(t *testing.T) {
 func TestIT_PlanetResourceRepository_Create_WhenDuplicateResource_ExpectFailure(t *testing.T) {
 	repo, conn, tx := newTestPlanetResourceRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
-	planet, _, _ := insertTestPlanetForPlayer(t, conn)
+	planet, _ := insertTestPlanetForPlayer(t, conn)
 	planetResource, resource := insertTestPlanetResource(t, conn, planet.Id)
 
 	newResource := persistence.PlanetResource{
@@ -60,10 +60,10 @@ func TestIT_PlanetResourceRepository_Create_WhenDuplicateResource_ExpectFailure(
 func TestIT_PlanetResourceRepository_ListForPlanet(t *testing.T) {
 	repo, conn, tx := newTestPlanetResourceRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
-	planet1, _, _ := insertTestPlanetForPlayer(t, conn)
+	planet1, _ := insertTestPlanetForPlayer(t, conn)
 	pr1, _ := insertTestPlanetResource(t, conn, planet1.Id)
 	pr2, _ := insertTestPlanetResource(t, conn, planet1.Id)
-	planet2, _, _ := insertTestPlanetForPlayer(t, conn)
+	planet2, _ := insertTestPlanetForPlayer(t, conn)
 	_, r3 := insertTestPlanetResource(t, conn, planet2.Id)
 
 	actual, err := repo.ListForPlanet(context.Background(), tx, planet1.Id)
@@ -82,7 +82,7 @@ func TestIT_PlanetResourceRepository_ListForPlanet(t *testing.T) {
 func TestIT_PlanetResourceRepository_Update(t *testing.T) {
 	repo, conn, tx := newTestPlanetResourceRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
-	planet, _, _ := insertTestPlanetForPlayer(t, conn)
+	planet, _ := insertTestPlanetForPlayer(t, conn)
 	planetResource, resource := insertTestPlanetResource(t, conn, planet.Id)
 
 	updatedPlanetResource := planetResource
@@ -108,7 +108,7 @@ func TestIT_PlanetResourceRepository_Update(t *testing.T) {
 func TestIT_PlanetResourceRepository_Update_WhenVersionIsWrong_ExpectOptimisticLockException(t *testing.T) {
 	repo, conn, tx := newTestPlanetResourceRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
-	planet, _, _ := insertTestPlanetForPlayer(t, conn)
+	planet, _ := insertTestPlanetForPlayer(t, conn)
 	planetResource, _ := insertTestPlanetResource(t, conn, planet.Id)
 
 	updatedPlanetResource := planetResource
@@ -124,7 +124,7 @@ func TestIT_PlanetResourceRepository_Update_WhenVersionIsWrong_ExpectOptimisticL
 func TestIT_PlanetResourceRepository_Update_BumpsUpdatedAt(t *testing.T) {
 	repo, conn := newTestPlanetResourceRepository(t)
 	defer conn.Close(context.Background())
-	planet, _, _ := insertTestPlanetForPlayer(t, conn)
+	planet, _ := insertTestPlanetForPlayer(t, conn)
 	planetResource, _ := insertTestPlanetResource(t, conn, planet.Id)
 
 	updatedPlanetResource := planetResource
@@ -159,7 +159,7 @@ func TestIT_PlanetResourceRepository_Update_BumpsUpdatedAt(t *testing.T) {
 func TestIT_PlanetResourceRepository_Update_BumpsVersion(t *testing.T) {
 	repo, conn := newTestPlanetResourceRepository(t)
 	defer conn.Close(context.Background())
-	planet, _, _ := insertTestPlanetForPlayer(t, conn)
+	planet, _ := insertTestPlanetForPlayer(t, conn)
 	planetResource, _ := insertTestPlanetResource(t, conn, planet.Id)
 
 	updatedPlanetResource := planetResource

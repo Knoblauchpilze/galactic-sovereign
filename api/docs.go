@@ -52,100 +52,6 @@ const docTemplate = `{
                 },
                 "type": "object"
             },
-            "communication.BuildingCostDtoResponse": {
-                "properties": {
-                    "building": {
-                        "format": "uuid",
-                        "type": "string"
-                    },
-                    "cost": {
-                        "type": "integer"
-                    },
-                    "progress": {
-                        "type": "number"
-                    },
-                    "resource": {
-                        "format": "uuid",
-                        "type": "string"
-                    }
-                },
-                "type": "object"
-            },
-            "communication.BuildingResourceProductionDtoResponse": {
-                "properties": {
-                    "base": {
-                        "type": "integer"
-                    },
-                    "building": {
-                        "format": "uuid",
-                        "type": "string"
-                    },
-                    "progress": {
-                        "type": "number"
-                    },
-                    "resource": {
-                        "format": "uuid",
-                        "type": "string"
-                    }
-                },
-                "type": "object"
-            },
-            "communication.BuildingResourceStorageDtoResponse": {
-                "properties": {
-                    "base": {
-                        "type": "integer"
-                    },
-                    "building": {
-                        "format": "uuid",
-                        "type": "string"
-                    },
-                    "progress": {
-                        "type": "number"
-                    },
-                    "resource": {
-                        "format": "uuid",
-                        "type": "string"
-                    },
-                    "scale": {
-                        "type": "number"
-                    }
-                },
-                "type": "object"
-            },
-            "communication.FullBuildingDtoResponse": {
-                "properties": {
-                    "costs": {
-                        "items": {
-                            "$ref": "#/components/schemas/communication.BuildingCostDtoResponse"
-                        },
-                        "type": "array"
-                    },
-                    "createdAt": {
-                        "format": "date-time",
-                        "type": "string"
-                    },
-                    "id": {
-                        "format": "uuid",
-                        "type": "string"
-                    },
-                    "name": {
-                        "type": "string"
-                    },
-                    "productions": {
-                        "items": {
-                            "$ref": "#/components/schemas/communication.BuildingResourceProductionDtoResponse"
-                        },
-                        "type": "array"
-                    },
-                    "storages": {
-                        "items": {
-                            "$ref": "#/components/schemas/communication.BuildingResourceStorageDtoResponse"
-                        },
-                        "type": "array"
-                    }
-                },
-                "type": "object"
-            },
             "communication.FullPlanetDtoResponse": {
                 "properties": {
                     "buildingActions": {
@@ -193,34 +99,6 @@ const docTemplate = `{
                     "storages": {
                         "items": {
                             "$ref": "#/components/schemas/communication.PlanetResourceStorageDtoResponse"
-                        },
-                        "type": "array"
-                    }
-                },
-                "type": "object"
-            },
-            "communication.FullUniverseDtoResponse": {
-                "properties": {
-                    "buildings": {
-                        "items": {
-                            "$ref": "#/components/schemas/communication.FullBuildingDtoResponse"
-                        },
-                        "type": "array"
-                    },
-                    "createdAt": {
-                        "format": "date-time",
-                        "type": "string"
-                    },
-                    "id": {
-                        "format": "uuid",
-                        "type": "string"
-                    },
-                    "name": {
-                        "type": "string"
-                    },
-                    "resources": {
-                        "items": {
-                            "$ref": "#/components/schemas/communication.ResourceDtoResponse"
                         },
                         "type": "array"
                     }
@@ -388,32 +266,15 @@ const docTemplate = `{
                 },
                 "type": "object"
             },
-            "communication.ResourceDtoResponse": {
+            "dtos.UniverseDtoRequest": {
                 "properties": {
-                    "createdAt": {
-                        "format": "date-time",
-                        "type": "string"
-                    },
-                    "id": {
-                        "format": "uuid",
-                        "type": "string"
-                    },
                     "name": {
                         "type": "string"
                     }
                 },
                 "type": "object"
             },
-            "communication.UniverseDtoRequest": {
-                "properties": {
-                    "name": {
-                        "form": "name",
-                        "type": "string"
-                    }
-                },
-                "type": "object"
-            },
-            "communication.UniverseDtoResponse": {
+            "dtos.UniverseDtoResponse": {
                 "properties": {
                     "createdAt": {
                         "format": "date-time",
@@ -479,11 +340,11 @@ const docTemplate = `{
                 ],
                 "type": "object"
             },
-            "rest.ResponseEnvelope-array_communication_UniverseDtoResponse": {
+            "rest.ResponseEnvelope-array_dtos_UniverseDtoResponse": {
                 "properties": {
                     "details": {
                         "items": {
-                            "$ref": "#/components/schemas/communication.UniverseDtoResponse"
+                            "$ref": "#/components/schemas/dtos.UniverseDtoResponse"
                         },
                         "type": "array",
                         "uniqueItems": false
@@ -546,27 +407,6 @@ const docTemplate = `{
                 ],
                 "type": "object"
             },
-            "rest.ResponseEnvelope-communication_FullUniverseDtoResponse": {
-                "properties": {
-                    "details": {
-                        "$ref": "#/components/schemas/communication.FullUniverseDtoResponse"
-                    },
-                    "requestId": {
-                        "example": "669cd40f-ea15-40a8-ab03-81e704a3ecf9",
-                        "format": "uuid",
-                        "type": "string"
-                    },
-                    "status": {
-                        "$ref": "#/components/schemas/rest.Status"
-                    }
-                },
-                "required": [
-                    "details",
-                    "requestId",
-                    "status"
-                ],
-                "type": "object"
-            },
             "rest.ResponseEnvelope-communication_PlanetDtoResponse": {
                 "properties": {
                     "details": {
@@ -609,10 +449,10 @@ const docTemplate = `{
                 ],
                 "type": "object"
             },
-            "rest.ResponseEnvelope-communication_UniverseDtoResponse": {
+            "rest.ResponseEnvelope-dtos_UniverseDtoResponse": {
                 "properties": {
                     "details": {
-                        "$ref": "#/components/schemas/communication.UniverseDtoResponse"
+                        "$ref": "#/components/schemas/dtos.UniverseDtoResponse"
                     },
                     "requestId": {
                         "example": "669cd40f-ea15-40a8-ab03-81e704a3ecf9",
@@ -1269,7 +1109,7 @@ const docTemplate = `{
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/rest.ResponseEnvelope-array_communication_UniverseDtoResponse"
+                                    "$ref": "#/components/schemas/rest.ResponseEnvelope-array_dtos_UniverseDtoResponse"
                                 }
                             }
                         },
@@ -1287,6 +1127,75 @@ const docTemplate = `{
                     }
                 },
                 "summary": "List universes",
+                "tags": [
+                    "universes"
+                ]
+            },
+            "post": {
+                "description": "Creates a universe.",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "oneOf": [
+                                    {
+                                        "type": "object"
+                                    },
+                                    {
+                                        "$ref": "#/components/schemas/dtos.UniverseDtoRequest",
+                                        "summary": "request",
+                                        "description": "Universe payload"
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    "description": "Universe payload",
+                    "required": true
+                },
+                "responses": {
+                    "201": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/rest.ResponseEnvelope-dtos_UniverseDtoResponse"
+                                }
+                            }
+                        },
+                        "description": "Created"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/rest.ResponseEnvelope-string"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "409": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/rest.ResponseEnvelope-string"
+                                }
+                            }
+                        },
+                        "description": "Conflict"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/rest.ResponseEnvelope-string"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "summary": "Create universe",
                 "tags": [
                     "universes"
                 ]
@@ -1373,7 +1282,7 @@ const docTemplate = `{
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/rest.ResponseEnvelope-communication_FullUniverseDtoResponse"
+                                    "$ref": "#/components/schemas/rest.ResponseEnvelope-dtos_UniverseDtoResponse"
                                 }
                             }
                         },

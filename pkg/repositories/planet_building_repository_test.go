@@ -17,7 +17,7 @@ import (
 func TestIT_PlanetBuildingRepository_GetForPlanetAndBuilding(t *testing.T) {
 	repo, conn, tx := newTestPlanetBuildingRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
-	planet, _, _ := insertTestPlanetForPlayer(t, conn)
+	planet, _ := insertTestPlanetForPlayer(t, conn)
 	pb, building := insertTestPlanetBuildingForPlanet(t, conn, planet.Id)
 
 	actual, err := repo.GetForPlanetAndBuilding(context.Background(), tx, planet.Id, building.Id)
@@ -30,10 +30,10 @@ func TestIT_PlanetBuildingRepository_GetForPlanetAndBuilding(t *testing.T) {
 func TestIT_PlanetBuildingRepository_ListForPlanet(t *testing.T) {
 	repo, conn, tx := newTestPlanetBuildingRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
-	planet1, _, _ := insertTestPlanetForPlayer(t, conn)
+	planet1, _ := insertTestPlanetForPlayer(t, conn)
 	pb1, _ := insertTestPlanetBuildingForPlanet(t, conn, planet1.Id)
 	pb2, _ := insertTestPlanetBuildingForPlanet(t, conn, planet1.Id)
-	planet2, _, _ := insertTestPlanetForPlayer(t, conn)
+	planet2, _ := insertTestPlanetForPlayer(t, conn)
 	_, b3 := insertTestPlanetBuildingForPlanet(t, conn, planet2.Id)
 
 	actual, err := repo.ListForPlanet(context.Background(), tx, planet1.Id)
@@ -52,7 +52,7 @@ func TestIT_PlanetBuildingRepository_ListForPlanet(t *testing.T) {
 func TestIT_PlanetBuildingRepository_Update(t *testing.T) {
 	repo, conn, tx := newTestPlanetBuildingRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
-	planet, _, _ := insertTestPlanetForPlayer(t, conn)
+	planet, _ := insertTestPlanetForPlayer(t, conn)
 	planetBuilding, building := insertTestPlanetBuildingForPlanet(t, conn, planet.Id)
 
 	updatedBuilding := planetBuilding
@@ -79,7 +79,7 @@ func TestIT_PlanetBuildingRepository_Update(t *testing.T) {
 func TestIT_PlanetBuildingRepository_Update_WhenVersionIsWrong_ExpectOptimisticLockException(t *testing.T) {
 	repo, conn, tx := newTestPlanetBuildingRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
-	planet, _, _ := insertTestPlanetForPlayer(t, conn)
+	planet, _ := insertTestPlanetForPlayer(t, conn)
 	planetBuilding, _ := insertTestPlanetBuildingForPlanet(t, conn, planet.Id)
 
 	updatedBuilding := planetBuilding
@@ -95,7 +95,7 @@ func TestIT_PlanetBuildingRepository_Update_WhenVersionIsWrong_ExpectOptimisticL
 func TestIT_PlanetBuildingRepository_Update_BumpsUpdatedAt(t *testing.T) {
 	repo, conn := newTestPlanetBuildingRepository(t)
 	defer conn.Close(context.Background())
-	planet, _, _ := insertTestPlanetForPlayer(t, conn)
+	planet, _ := insertTestPlanetForPlayer(t, conn)
 	planetBuilding, _ := insertTestPlanetBuildingForPlanet(t, conn, planet.Id)
 
 	updatedBuilding := planetBuilding
@@ -130,7 +130,7 @@ func TestIT_PlanetBuildingRepository_Update_BumpsUpdatedAt(t *testing.T) {
 func TestIT_PlanetBuildingRepository_Update_BumpsVersion(t *testing.T) {
 	repo, conn := newTestPlanetBuildingRepository(t)
 	defer conn.Close(context.Background())
-	planet, _, _ := insertTestPlanetForPlayer(t, conn)
+	planet, _ := insertTestPlanetForPlayer(t, conn)
 	planetBuilding, _ := insertTestPlanetBuildingForPlanet(t, conn, planet.Id)
 
 	updatedBuilding := planetBuilding

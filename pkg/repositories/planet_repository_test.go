@@ -20,7 +20,7 @@ func TestIT_PlanetRespository_Create(t *testing.T) {
 	repo, conn, tx := newTestPlanetRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
 
-	player, _ := insertTestPlayerInUniverse(t, conn)
+	player := insertTestPlayer(t, conn)
 
 	planet := persistence.Planet{
 		Id:        uuid.New(),
@@ -43,7 +43,7 @@ func TestIT_PlanetRespository_Create_WhenHomeworld_ExpectCorrectlyMarkedAsSuch(t
 	repo, conn, tx := newTestPlanetRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
 
-	player, _ := insertTestPlayerInUniverse(t, conn)
+	player := insertTestPlayer(t, conn)
 
 	planet := persistence.Planet{
 		Id:        uuid.New(),
@@ -66,7 +66,7 @@ func TestIT_PlanetRespository_Create_WhenHomeworldAlreadyExists_ExpectFailureWhe
 	repo, conn, tx := newTestPlanetRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
 
-	_, player, _ := insertTestHomeworldPlanetForPlayer(t, conn)
+	_, player := insertTestHomeworldPlanetForPlayer(t, conn)
 
 	planet := persistence.Planet{
 		Id:        uuid.New(),
@@ -87,7 +87,7 @@ func TestIT_PlanetRepository_Create_RegistersBuildingsForPlanet(t *testing.T) {
 	repo, conn, tx := newTestPlanetRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
 
-	player, _ := insertTestPlayerInUniverse(t, conn)
+	player := insertTestPlayer(t, conn)
 	b1 := insertTestBuilding(t, conn)
 	b2 := insertTestBuilding(t, conn)
 
@@ -111,7 +111,7 @@ func TestIT_PlanetRepository_Create_RegistersBuildingWithLevel0(t *testing.T) {
 	repo, conn, tx := newTestPlanetRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
 
-	player, _ := insertTestPlayerInUniverse(t, conn)
+	player := insertTestPlayer(t, conn)
 	building := insertTestBuilding(t, conn)
 
 	planet := persistence.Planet{
@@ -133,7 +133,7 @@ func TestIT_PlanetRepository_Create_RegistersResourcesForPlanet(t *testing.T) {
 	repo, conn, tx := newTestPlanetRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
 
-	player, _ := insertTestPlayerInUniverse(t, conn)
+	player := insertTestPlayer(t, conn)
 	r1 := insertTestResource(t, conn)
 	r2 := insertTestResource(t, conn)
 
@@ -157,7 +157,7 @@ func TestIT_PlanetRepository_Create_RegistersResourceWithStartAmount(t *testing.
 	repo, conn, tx := newTestPlanetRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
 
-	player, _ := insertTestPlayerInUniverse(t, conn)
+	player := insertTestPlayer(t, conn)
 	resource := insertTestResource(t, conn)
 
 	planet := persistence.Planet{
@@ -179,7 +179,7 @@ func TestIT_PlanetRepository_Create_RegistersResourceProductionsForPlanet(t *tes
 	repo, conn, tx := newTestPlanetRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
 
-	player, _ := insertTestPlayerInUniverse(t, conn)
+	player := insertTestPlayer(t, conn)
 	r1 := insertTestResource(t, conn)
 	r2 := insertTestResource(t, conn)
 
@@ -203,7 +203,7 @@ func TestIT_PlanetRepository_Create_RegistersResourceWithStartProductionAndNoBui
 	repo, conn, tx := newTestPlanetRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
 
-	player, _ := insertTestPlayerInUniverse(t, conn)
+	player := insertTestPlayer(t, conn)
 	resource := insertTestResource(t, conn)
 
 	planet := persistence.Planet{
@@ -225,7 +225,7 @@ func TestIT_PlanetRepository_Create_RegistersResourceStoragesForPlanet(t *testin
 	repo, conn, tx := newTestPlanetRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
 
-	player, _ := insertTestPlayerInUniverse(t, conn)
+	player := insertTestPlayer(t, conn)
 	r1 := insertTestResource(t, conn)
 	r2 := insertTestResource(t, conn)
 
@@ -249,7 +249,7 @@ func TestIT_PlanetRepository_Create_RegistersResourceWithStartStorageAndNoBuildi
 	repo, conn, tx := newTestPlanetRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
 
-	player, _ := insertTestPlayerInUniverse(t, conn)
+	player := insertTestPlayer(t, conn)
 	resource := insertTestResource(t, conn)
 
 	planet := persistence.Planet{
@@ -271,7 +271,7 @@ func TestIT_PlanetRepository_Get(t *testing.T) {
 	repo, conn, tx := newTestPlanetRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
 	defer tx.Close(context.Background())
-	planet, _, _ := insertTestPlanetForPlayer(t, conn)
+	planet, _ := insertTestPlanetForPlayer(t, conn)
 
 	actual, err := repo.Get(context.Background(), tx, planet.Id)
 	assert.Nil(t, err)
@@ -294,7 +294,7 @@ func TestIT_PlanetRepository_List(t *testing.T) {
 	repo, conn, tx := newTestPlanetRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
 	defer tx.Close(context.Background())
-	p1, player, _ := insertTestPlanetForPlayer(t, conn)
+	p1, player := insertTestPlanetForPlayer(t, conn)
 	p2 := insertTestPlanet(t, conn, player.Id, false)
 
 	actual, err := repo.List(context.Background(), tx)
@@ -309,9 +309,9 @@ func TestIT_PlanetRepository_ListForPlayer(t *testing.T) {
 	repo, conn, tx := newTestPlanetRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
 	defer tx.Close(context.Background())
-	p1, player1, _ := insertTestPlanetForPlayer(t, conn)
+	p1, player1 := insertTestPlanetForPlayer(t, conn)
 	p2 := insertTestPlanet(t, conn, player1.Id, false)
-	p3, _, _ := insertTestPlanetForPlayer(t, conn)
+	p3, _ := insertTestPlanetForPlayer(t, conn)
 
 	actual, err := repo.ListForPlayer(context.Background(), tx, player1.Id)
 
@@ -327,7 +327,7 @@ func TestIT_PlanetRepository_ListForPlayer(t *testing.T) {
 func TestIT_PlanetRepository_Delete(t *testing.T) {
 	repo, conn, tx := newTestPlanetRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
-	planet, _, _ := insertTestPlanetForPlayer(t, conn)
+	planet, _ := insertTestPlanetForPlayer(t, conn)
 
 	err := repo.Delete(context.Background(), tx, planet.Id)
 	tx.Close(context.Background())
@@ -350,7 +350,7 @@ func TestIT_PlanetRepository_Delete_WhenNotFound_ExpectSuccess(t *testing.T) {
 func TestIT_PlanetRepository_Delete_Homeworld(t *testing.T) {
 	repo, conn, tx := newTestPlanetRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
-	planet, _, _ := insertTestHomeworldPlanetForPlayer(t, conn)
+	planet, _ := insertTestHomeworldPlanetForPlayer(t, conn)
 
 	err := repo.Delete(context.Background(), tx, planet.Id)
 	tx.Close(context.Background())
@@ -364,7 +364,7 @@ func TestIT_PlanetRepository_CreationDeletionWorkflow(t *testing.T) {
 	repo, conn := newTestPlanetRepository(t)
 	defer conn.Close(context.Background())
 
-	player, _ := insertTestPlayerInUniverse(t, conn)
+	player := insertTestPlayer(t, conn)
 
 	planet := persistence.Planet{
 		Id:        uuid.New(),
@@ -413,7 +413,7 @@ func TestIT_PlanetRepository_CreationDeletionWorkflow(t *testing.T) {
 func TestIT_PlanetRepository_DeleteForPlayer_ExpectHomeworldToBeDeleted(t *testing.T) {
 	repo, conn, tx := newTestPlanetRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
-	planet, _, _ := insertTestHomeworldPlanetForPlayer(t, conn)
+	planet, _ := insertTestHomeworldPlanetForPlayer(t, conn)
 
 	err := repo.DeleteForPlayer(context.Background(), tx, planet.Player)
 	tx.Close(context.Background())
@@ -426,7 +426,7 @@ func TestIT_PlanetRepository_DeleteForPlayer_ExpectHomeworldToBeDeleted(t *testi
 func TestIT_PlanetRepository_DeleteForPlayer_ExpectBuildingToBeDeleted(t *testing.T) {
 	repo, conn, tx := newTestPlanetRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
-	planet, _, _ := insertTestHomeworldPlanetForPlayer(t, conn)
+	planet, _ := insertTestHomeworldPlanetForPlayer(t, conn)
 	insertTestPlanetBuildingForPlanet(t, conn, planet.Id)
 
 	err := repo.DeleteForPlayer(context.Background(), tx, planet.Player)
@@ -440,7 +440,7 @@ func TestIT_PlanetRepository_DeleteForPlayer_ExpectBuildingToBeDeleted(t *testin
 func TestIT_PlanetRepository_DeleteForPlayer_ExpectResourceStorageToBeDeleted(t *testing.T) {
 	repo, conn, tx := newTestPlanetRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
-	planet, _, _ := insertTestHomeworldPlanetForPlayer(t, conn)
+	planet, _ := insertTestHomeworldPlanetForPlayer(t, conn)
 	insertTestPlanetResourceStorage(t, conn, planet.Id)
 
 	err := repo.DeleteForPlayer(context.Background(), tx, planet.Player)
@@ -454,7 +454,7 @@ func TestIT_PlanetRepository_DeleteForPlayer_ExpectResourceStorageToBeDeleted(t 
 func TestIT_PlanetRepository_DeleteForPlayer_ExpectResourceProductionToBeDeleted(t *testing.T) {
 	repo, conn, tx := newTestPlanetRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
-	planet, _, _ := insertTestHomeworldPlanetForPlayer(t, conn)
+	planet, _ := insertTestHomeworldPlanetForPlayer(t, conn)
 	insertTestPlanetResourceProduction(t, conn, planet.Id)
 
 	err := repo.DeleteForPlayer(context.Background(), tx, planet.Player)
@@ -468,7 +468,7 @@ func TestIT_PlanetRepository_DeleteForPlayer_ExpectResourceProductionToBeDeleted
 func TestIT_PlanetRepository_DeleteForPlayer_ExpectResourceToBeDeleted(t *testing.T) {
 	repo, conn, tx := newTestPlanetRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
-	planet, _, _ := insertTestHomeworldPlanetForPlayer(t, conn)
+	planet, _ := insertTestHomeworldPlanetForPlayer(t, conn)
 	insertTestPlanetResource(t, conn, planet.Id)
 
 	err := repo.DeleteForPlayer(context.Background(), tx, planet.Player)
@@ -483,7 +483,7 @@ func TestIT_PlanetRepository_HomeWorldCreationDeletionWorkflow(t *testing.T) {
 	repo, conn := newTestPlanetRepository(t)
 	defer conn.Close(context.Background())
 
-	player, _ := insertTestPlayerInUniverse(t, conn)
+	player := insertTestPlayer(t, conn)
 
 	planet := persistence.Planet{
 		Id:        uuid.New(),
@@ -574,16 +574,16 @@ func insertTestPlanet(t *testing.T, conn db.Connection, player uuid.UUID, homewo
 	return planet
 }
 
-func insertTestPlanetForPlayer(t *testing.T, conn db.Connection) (persistence.Planet, persistence.Player, persistence.Universe) {
-	player, universe := insertTestPlayerInUniverse(t, conn)
+func insertTestPlanetForPlayer(t *testing.T, conn db.Connection) (persistence.Planet, persistence.Player) {
+	player := insertTestPlayer(t, conn)
 	planet := insertTestPlanet(t, conn, player.Id, false)
-	return planet, player, universe
+	return planet, player
 }
 
-func insertTestHomeworldPlanetForPlayer(t *testing.T, conn db.Connection) (persistence.Planet, persistence.Player, persistence.Universe) {
-	player, universe := insertTestPlayerInUniverse(t, conn)
+func insertTestHomeworldPlanetForPlayer(t *testing.T, conn db.Connection) (persistence.Planet, persistence.Player) {
+	player := insertTestPlayer(t, conn)
 	planet := insertTestPlanet(t, conn, player.Id, true)
-	return planet, player, universe
+	return planet, player
 }
 
 func assertPlanetExists(t *testing.T, conn db.Connection, id uuid.UUID) {

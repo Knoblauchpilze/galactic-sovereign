@@ -18,7 +18,7 @@ import (
 func TestIT_BuildingActionRepository_Create(t *testing.T) {
 	repo, conn, tx := newTestBuildingActionRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
-	planet, _, _ := insertTestPlanetForPlayer(t, conn)
+	planet, _ := insertTestPlanetForPlayer(t, conn)
 	building := insertTestBuilding(t, conn)
 
 	action := persistence.BuildingAction{
@@ -341,7 +341,7 @@ func TestIT_BuildingActionRepository_CreationDeletionWorkflow(t *testing.T) {
 	repo, conn := newTestBuildingActionRepository(t)
 	defer conn.Close(context.Background())
 
-	planet, _, _ := insertTestPlanetForPlayer(t, conn)
+	planet, _ := insertTestPlanetForPlayer(t, conn)
 	building := insertTestBuilding(t, conn)
 
 	action := persistence.BuildingAction{
@@ -404,7 +404,7 @@ func newTestBuildingActionRepositoryAndTransaction(t *testing.T) (BuildingAction
 func insertTestBuildingAction(t *testing.T, conn db.Connection) (persistence.BuildingAction, persistence.Planet) {
 	someTime := time.Date(2024, 12, 7, 20, 8, 48, 0, time.UTC)
 
-	planet, _, _ := insertTestPlanetForPlayer(t, conn)
+	planet, _ := insertTestPlanetForPlayer(t, conn)
 	building := insertTestBuilding(t, conn)
 
 	action := persistence.BuildingAction{

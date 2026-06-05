@@ -17,7 +17,7 @@ generate-api-spec:
 	go run github.com/swaggo/swag/v2/cmd/swag@${SWAG_VERSION} init \
 		--v3.1 \
 		--generalInfo main.go \
-		--dir .,../../internal/controller,../../pkg/communication \
+		--dir .,../../internal/controller,../../pkg/communication,../../pkg/domain/adapters/driving,../../pkg/domain/adapters/driving/dtos \
 		--output ../../api \
 		--outputTypes go,yaml \
 		--parseDependencyLevel 1 \

@@ -13,7 +13,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-var dbTestConfig = postgresql.NewConfigForLocalhost("db_galactic_sovereign", "galactic_sovereign_manager", "manager_password")
+var (
+	dbTestConfig     = postgresql.NewConfigForLocalhost("db_galactic_sovereign", "galactic_sovereign_manager", "manager_password")
+	oberonUniverseId = uuid.MustParse("9682f17b-f5f0-4eda-a747-2537d2151837")
+)
 
 func newTestConnection(t *testing.T) db.Connection {
 	conn, err := db.New(context.Background(), dbTestConfig)
@@ -151,13 +154,13 @@ func insertTestBuildingResourceStorage(t *testing.T, conn db.Connection, buildin
 	return storage, resource
 }
 
-func insertTestPlayer(t *testing.T, conn db.Connection, universe uuid.UUID) persistence.Player {
+func insertTestPlayer(t *testing.T, conn db.Connection) persistence.Player {
 	someTime := time.Date(2024, 12, 8, 10, 9, 48, 0, time.UTC)
 
 	player := persistence.Player{
 		Id:        uuid.New(),
 		ApiUser:   uuid.New(),
-		Universe:  universe,
+		Universe:  oberonUniverseId,
 		Name:      fmt.Sprintf("my-player-%s", uuid.NewString()),
 		CreatedAt: someTime,
 	}
@@ -178,12 +181,6 @@ func insertTestPlayer(t *testing.T, conn db.Connection, universe uuid.UUID) pers
 	player.UpdatedAt = updatedAt
 
 	return player
-}
-
-func insertTestPlayerInUniverse(t *testing.T, conn db.Connection) (persistence.Player, persistence.Universe) {
-	universe := insertTestUniverse(t, conn)
-	player := insertTestPlayer(t, conn, universe.Id)
-	return player, universe
 }
 
 func insertTestPlanet(t *testing.T, conn db.Connection, player uuid.UUID) persistence.Planet {
@@ -217,10 +214,10 @@ func insertTestPlanet(t *testing.T, conn db.Connection, player uuid.UUID) persis
 	return planet
 }
 
-func insertTestPlanetForPlayer(t *testing.T, conn db.Connection) (persistence.Planet, persistence.Player, persistence.Universe) {
-	player, universe := insertTestPlayerInUniverse(t, conn)
+func insertTestPlanetForPlayer(t *testing.T, conn db.Connection) (persistence.Planet, persistence.Player) {
+	player := insertTestPlayer(t, conn)
 	planet := insertTestPlanet(t, conn, player.Id)
-	return planet, player, universe
+	return planet, player
 }
 
 func insertTestPlanetBuildingForPlanet(t *testing.T, conn db.Connection, planet uuid.UUID) (persistence.PlanetBuilding, persistence.Building) {
