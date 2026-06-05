@@ -60,6 +60,42 @@ func TestUnit_ManageUniverse_Create(t *testing.T) {
 	})
 }
 
+func TestUnit_ManageUniverse_Get(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	mockRepo := drivenportstest.NewMockForManagingUniverses(ctrl)
+
+	t.Run("gets existing universe", func(t *testing.T) {
+		expected := models.Universe{
+			Id:   uuid.New(),
+			Name: "my-universe",
+		}
+
+		mockRepo.EXPECT().
+			Get(gomock.Any(), gomock.Eq(expected.Id)).
+			Times(1).
+			Return(expected, nil)
+
+		usecase := NewUniverseUseCase(mockRepo)
+		actual, err := usecase.Get(context.Background(), expected.Id)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.Equal(t, expected, actual)
+	})
+
+	t.Run("returns error when repository fails", func(t *testing.T) {
+		expectedErr := errors.New("stubbed error")
+		mockRepo.EXPECT().
+			Get(gomock.Any(), gomock.Any()).
+			Times(1).
+			Return(models.Universe{}, expectedErr)
+
+		usecase := NewUniverseUseCase(mockRepo)
+		_, err := usecase.Get(context.Background(), uuid.New())
+
+		assert.ErrorIs(t, expectedErr, err, "Actual err: %v", err)
+	})
+}
+
 func TestUnit_ManageUniverse_List(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	mockRepo := drivenportstest.NewMockForManagingUniverses(ctrl)

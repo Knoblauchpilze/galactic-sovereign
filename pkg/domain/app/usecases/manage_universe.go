@@ -31,6 +31,10 @@ func (u *universeUseCase) Create(ctx context.Context, req request.UniverseCreati
 	return universe, nil
 }
 
+func (u *universeUseCase) Get(ctx context.Context, id uuid.UUID) (models.Universe, error) {
+	return u.repo.Get(ctx, id)
+}
+
 func (u *universeUseCase) List(ctx context.Context) ([]models.Universe, error) {
 	return u.repo.List(ctx)
 }
