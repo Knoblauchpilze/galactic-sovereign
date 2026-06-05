@@ -9,12 +9,14 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/labstack/echo/v5"
 	"github.com/stretchr/testify/require"
 )
 
 var (
-	someTime = time.Date(2026, 6, 4, 21, 52, 44, 0, time.UTC)
+	someTime   = time.Date(2026, 6, 4, 21, 52, 44, 0, time.UTC)
+	sampleUuid = uuid.New()
 )
 
 func generateTestRequestWithJsonBody[T any](
