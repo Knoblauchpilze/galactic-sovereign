@@ -10,5 +10,6 @@ import (
 
 type ForManagingUniverse interface {
 	Create(ctx context.Context, req request.UniverseCreationRequest) (models.Universe, error)
+	List(ctx context.Context) ([]models.Universe, error)
 	Delete(ctx context.Context, id uuid.UUID) error
 }

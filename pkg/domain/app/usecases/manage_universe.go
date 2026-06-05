@@ -31,6 +31,10 @@ func (u *universeUseCase) Create(ctx context.Context, req request.UniverseCreati
 	return universe, nil
 }
 
+func (u *universeUseCase) List(ctx context.Context) ([]models.Universe, error) {
+	return u.repo.List(ctx)
+}
+
 func (u *universeUseCase) Delete(ctx context.Context, id uuid.UUID) error {
 	err := u.repo.Delete(ctx, id)
 	if err != nil {

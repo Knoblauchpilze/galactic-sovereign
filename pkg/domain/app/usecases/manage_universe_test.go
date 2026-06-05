@@ -47,7 +47,6 @@ func TestUnit_ManageUniverse_Create(t *testing.T) {
 	})
 
 	t.Run("returns error when repository fails", func(t *testing.T) {
-		// https://pkg.go.dev/go.uber.org/mock/gomock#example-Call.DoAndReturn-CaptureArguments
 		expectedErr := errors.New("stubbed error")
 		mockRepo.EXPECT().
 			Create(gomock.Any(), gomock.Any()).
@@ -56,6 +55,49 @@ func TestUnit_ManageUniverse_Create(t *testing.T) {
 
 		usecase := NewUniverseUseCase(mockRepo)
 		_, err := usecase.Create(context.Background(), request)
+
+		assert.ErrorIs(t, expectedErr, err, "Actual err: %v", err)
+	})
+}
+
+func TestUnit_ManageUniverse_List(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	mockRepo := drivenportstest.NewMockForManagingUniverses(ctrl)
+
+	t.Run("lists existing universes", func(t *testing.T) {
+		expected := []models.Universe{
+			{
+				Id:   uuid.New(),
+				Name: "universe-1",
+			},
+			{
+				Id:   uuid.New(),
+				Name: "universe-1",
+			},
+		}
+
+		mockRepo.EXPECT().
+			List(gomock.Any()).
+			Times(1).
+			Return(expected, nil)
+
+		usecase := NewUniverseUseCase(mockRepo)
+		actual, err := usecase.List(context.Background())
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.Equal(t, expected, actual)
+	})
+
+	t.Run("returns error when repository fails", func(t *testing.T) {
+		expectedErr := errors.New("stubbed error")
+
+		mockRepo.EXPECT().
+			List(gomock.Any()).
+			Times(1).
+			Return(nil, expectedErr)
+
+		usecase := NewUniverseUseCase(mockRepo)
+		_, err := usecase.List(context.Background())
 
 		assert.ErrorIs(t, expectedErr, err, "Actual err: %v", err)
 	})
