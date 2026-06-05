@@ -17,6 +17,7 @@ import (
 	"github.com/Knoblauchpilze/galactic-sovereign/internal/controller"
 	"github.com/Knoblauchpilze/galactic-sovereign/internal/service"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driven"
+	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driving"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/usecases"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/repositories"
 	echoSwagger "github.com/swaggo/echo-swagger/v2"
@@ -110,7 +111,7 @@ func main() {
 	repo := driven.NewUniverseRepository(conn)
 	usecase := usecases.NewUniverseUseCase(repo)
 
-	for _, route := range controller.UniverseEndpoints(usecase) {
+	for _, route := range driving.UniverseEndpoints(usecase) {
 		if err := s.AddRoute(route); err != nil {
 			log.Error("Failed to register route", slog.String("route", route.Path()), slog.Any("error", err))
 			os.Exit(1)
