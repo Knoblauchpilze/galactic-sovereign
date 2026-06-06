@@ -11,6 +11,7 @@ type PlanetDtoRequest struct {
 	Name   string    `json:"name"`
 }
 
+// TODO: This should also include the building actions
 type PlanetDtoResponse struct {
 	Id        uuid.UUID `json:"id" format:"uuid"`
 	Player    uuid.UUID `json:"player" format:"uuid"`
