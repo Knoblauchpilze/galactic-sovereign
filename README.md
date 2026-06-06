@@ -149,7 +149,31 @@ Or by using the convenience make target with:
 make generate-mocks
 ```
 
-It is mandatory to re-generate the modkcs in case of a modification of the interfaces supporting the mocks. This is enforced by a check in the CI (see [check-generated-mocks.yml](.github/workflows/check-generated-mocks.yml)).
+It is mandatory to re-generate the mocks in case of a modification of the interfaces supporting the mocks. This is enforced by a check in the CI (see [check-generated-mocks.yml](.github/workflows/check-generated-mocks.yml)).
+
+## Linting
+
+This project uses [golangci-lint](https://github.com/golangci/golangci-lint) as a collection of linters to perform static code analysis and detect issues. It can be installed locally through the procedure described [here](https://golangci-lint.run/docs/welcome/install/local/#binaries)
+
+```bash
+# binary will be $(go env GOPATH)/bin/golangci-lint
+curl -sSfL https://golangci-lint.run/install.sh | sh -s -- -b $(go env GOPATH)/bin v2.12.2
+
+golangci-lint --version
+```
+
+This will install the executable in `/home/$USER/go/bin` which might or might not be in your path. To add it you can add `/home/knoblauch/$USER/go/bin` to the path.
+
+Once this is done, you can run the linters on the code by either running:
+```bash
+```
+
+Or use the dedicated make target:
+```bash
+make lint
+```
+
+This target should download the executable automatically and not require any installation step. A target `fix-lint` is also available to fix the fixable lint errors.
 
 ## Local development
 

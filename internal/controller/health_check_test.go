@@ -8,6 +8,7 @@ import (
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/rest"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -40,7 +41,8 @@ func TestUnit_Healthcheck_CallsPoolPing(t *testing.T) {
 	mc := dummyEchoContext()
 	mp := &mockConnection{}
 
-	healthcheck(mc, mp)
+	err := healthcheck(mc, mp)
+	require.NoError(t, err, "Actual err: %v", err)
 
 	assert.Equal(1, mp.pingCalled)
 }

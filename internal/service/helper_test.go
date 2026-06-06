@@ -387,23 +387,6 @@ func insertTestPlanetResourceStorage(
 	return storage, resource
 }
 
-func insertTestBuildingActionForPlanet(
-	t *testing.T,
-	conn db.Connection,
-	planet uuid.UUID,
-) (persistence.BuildingAction, persistence.Building) {
-	createdAt := time.Date(2025, 2, 13, 8, 37, 55, 0, time.UTC)
-	completedAt := createdAt.Add(1*time.Hour + 2*time.Minute)
-
-	return insertTestBuildingActionForPlanetWithTimes(
-		t,
-		conn,
-		planet,
-		createdAt,
-		completedAt,
-	)
-}
-
 func insertTestBuildingActionForPlanetWithTimes(
 	t *testing.T,
 	conn db.Connection,

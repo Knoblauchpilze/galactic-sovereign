@@ -664,7 +664,7 @@ func TestIT_PlanetService_CreationDeletionWorkflow(t *testing.T) {
 
 		assert.True(t, eassert.EqualsIgnoringFields(planetFromDb.PlanetDtoResponse, planetResponse, "CreatedAt"))
 		assert.True(t, eassert.AreTimeCloserThan(
-			planetFromDb.PlanetDtoResponse.CreatedAt,
+			planetFromDb.CreatedAt,
 			planetResponse.CreatedAt,
 			1*time.Second,
 		))

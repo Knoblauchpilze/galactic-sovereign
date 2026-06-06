@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v5"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 var someUuid = uuid.MustParse("83a57c6c-7a5a-4c6a-87c9-2d6445f805a2")
@@ -39,7 +40,8 @@ func TestUnit_GameUpdateWatcher_WhenNoPlanetId_DoesNotScheduleResources(t *testi
 	ctx, _, _ := generateTestEchoContext()
 	callable := GameUpdateWatcher(m, &mockPlanetResourceService{}, defaultHandler)
 
-	callable(ctx)
+	err := callable(ctx)
+	require.NoError(t, err, "Actual err: %v", err)
 
 	assert.Equal(0, m.processActionsCalled)
 }
@@ -51,7 +53,8 @@ func TestUnit_GameUpdateWatcher_SchedulesActions(t *testing.T) {
 	ctx, _, _ := generateTestEchoContextWithPlanetId()
 	callable := GameUpdateWatcher(m, &mockPlanetResourceService{}, defaultHandler)
 
-	callable(ctx)
+	err := callable(ctx)
+	require.NoError(t, err, "Actual err: %v", err)
 
 	assert.Equal(1, m.processActionsCalled)
 	assert.Equal(someUuid, m.planet)
@@ -66,7 +69,8 @@ func TestUnit_GameUpdateWatcher_ScheduleActionsTimeIsAtTheMomentOfTheCall(t *tes
 
 	beforeCall := time.Now()
 
-	callable(ctx)
+	err := callable(ctx)
+	require.NoError(t, err, "Actual err: %v", err)
 
 	assert.True(beforeCall.Before(m.until))
 }
@@ -115,7 +119,8 @@ func TestUnit_GameUpdateWatcher_WhenNoPlanetId_DoesNotCallUpdateOfPlanetResource
 	ctx, _, _ := generateTestEchoContext()
 	callable := GameUpdateWatcher(&mockActionService{}, m, defaultHandler)
 
-	callable(ctx)
+	err := callable(ctx)
+	require.NoError(t, err, "Actual err: %v", err)
 
 	assert.Equal(0, m.updatePlanetUntilCalled)
 }
@@ -127,7 +132,8 @@ func TestUnit_GameUpdateWatcher_SchedulesUpdateOfResources(t *testing.T) {
 	ctx, _, _ := generateTestEchoContextWithPlanetId()
 	callable := GameUpdateWatcher(&mockActionService{}, m, defaultHandler)
 
-	callable(ctx)
+	err := callable(ctx)
+	require.NoError(t, err, "Actual err: %v", err)
 
 	assert.Equal(1, m.updatePlanetUntilCalled)
 	assert.Equal(someUuid, m.planet)
@@ -142,7 +148,8 @@ func TestUnit_GameUpdateWatcher_UpdateResourcesTimeIsAtTheMomentOfTheCall(t *tes
 
 	beforeCall := time.Now()
 
-	callable(ctx)
+	err := callable(ctx)
+	require.NoError(t, err, "Actual err: %v", err)
 
 	assert.True(beforeCall.Before(m.until))
 }

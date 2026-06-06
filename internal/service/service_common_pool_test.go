@@ -127,7 +127,9 @@ func (s *ServicePoolTestSuite) TestWhenUsingTransaction_ExpectCallsClose() {
 			}
 
 			m := &mockConnection{}
-			testCase.handler(context.Background(), m, repos)
+
+			err := testCase.handler(context.Background(), m, repos)
+			require.NoError(t, err, "Actual err: %v", err)
 
 			for _, tx := range m.txs {
 				s.Require().Equal(1, tx.closeCalled)
