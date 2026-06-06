@@ -266,6 +266,46 @@ const docTemplate = `{
                 },
                 "type": "object"
             },
+            "dtos.PlayerDtoRequest": {
+                "properties": {
+                    "api_user": {
+                        "format": "uuid",
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "universe": {
+                        "format": "uuid",
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "dtos.PlayerDtoResponse": {
+                "properties": {
+                    "api_user": {
+                        "format": "uuid",
+                        "type": "string"
+                    },
+                    "createdAt": {
+                        "format": "date-time",
+                        "type": "string"
+                    },
+                    "id": {
+                        "format": "uuid",
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "universe": {
+                        "format": "uuid",
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
             "dtos.UniverseDtoRequest": {
                 "properties": {
                     "name": {
@@ -320,6 +360,31 @@ const docTemplate = `{
                     "details": {
                         "items": {
                             "$ref": "#/components/schemas/communication.PlayerDtoResponse"
+                        },
+                        "type": "array",
+                        "uniqueItems": false
+                    },
+                    "requestId": {
+                        "example": "669cd40f-ea15-40a8-ab03-81e704a3ecf9",
+                        "format": "uuid",
+                        "type": "string"
+                    },
+                    "status": {
+                        "$ref": "#/components/schemas/rest.Status"
+                    }
+                },
+                "required": [
+                    "details",
+                    "requestId",
+                    "status"
+                ],
+                "type": "object"
+            },
+            "rest.ResponseEnvelope-array_dtos_PlayerDtoResponse": {
+                "properties": {
+                    "details": {
+                        "items": {
+                            "$ref": "#/components/schemas/dtos.PlayerDtoResponse"
                         },
                         "type": "array",
                         "uniqueItems": false
@@ -432,6 +497,27 @@ const docTemplate = `{
                 "properties": {
                     "details": {
                         "$ref": "#/components/schemas/communication.PlayerDtoResponse"
+                    },
+                    "requestId": {
+                        "example": "669cd40f-ea15-40a8-ab03-81e704a3ecf9",
+                        "format": "uuid",
+                        "type": "string"
+                    },
+                    "status": {
+                        "$ref": "#/components/schemas/rest.Status"
+                    }
+                },
+                "required": [
+                    "details",
+                    "requestId",
+                    "status"
+                ],
+                "type": "object"
+            },
+            "rest.ResponseEnvelope-dtos_PlayerDtoResponse": {
+                "properties": {
+                    "details": {
+                        "$ref": "#/components/schemas/dtos.PlayerDtoResponse"
                     },
                     "requestId": {
                         "example": "669cd40f-ea15-40a8-ab03-81e704a3ecf9",
@@ -944,7 +1030,7 @@ const docTemplate = `{
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/rest.ResponseEnvelope-array_communication_PlayerDtoResponse"
+                                    "$ref": "#/components/schemas/rest.ResponseEnvelope-array_dtos_PlayerDtoResponse"
                                 }
                             }
                         },
@@ -972,6 +1058,75 @@ const docTemplate = `{
                     }
                 },
                 "summary": "List players",
+                "tags": [
+                    "players"
+                ]
+            },
+            "post": {
+                "description": "Creates a player and its homeworld.",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "oneOf": [
+                                    {
+                                        "type": "object"
+                                    },
+                                    {
+                                        "$ref": "#/components/schemas/dtos.PlayerDtoRequest",
+                                        "summary": "request",
+                                        "description": "Player payload"
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    "description": "Player payload",
+                    "required": true
+                },
+                "responses": {
+                    "201": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/rest.ResponseEnvelope-dtos_PlayerDtoResponse"
+                                }
+                            }
+                        },
+                        "description": "Created"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/rest.ResponseEnvelope-string"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "409": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/rest.ResponseEnvelope-string"
+                                }
+                            }
+                        },
+                        "description": "Conflict"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/rest.ResponseEnvelope-string"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "summary": "Create player",
                 "tags": [
                     "players"
                 ]
@@ -1058,7 +1213,7 @@ const docTemplate = `{
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/rest.ResponseEnvelope-communication_PlayerDtoResponse"
+                                    "$ref": "#/components/schemas/rest.ResponseEnvelope-dtos_PlayerDtoResponse"
                                 }
                             }
                         },

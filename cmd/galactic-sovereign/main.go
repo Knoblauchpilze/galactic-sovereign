@@ -71,7 +71,6 @@ func main() {
 	}
 
 	planetService := service.NewPlanetService(conn, repos)
-	playerService := service.NewPlayerService(conn, repos)
 	buildingActionService := service.NewBuildingActionService(conn, repos)
 
 	actionService := service.NewActionService(conn, repos)
@@ -80,13 +79,6 @@ func main() {
 	s := server.NewWithLogger(conf.Server, log)
 
 	for _, route := range controller.PlanetEndpoints(planetService, actionService, planetResourceService) {
-		if err := s.AddRoute(route); err != nil {
-			log.Error("Failed to register route", slog.String("route", route.Path()), slog.Any("error", err))
-			os.Exit(1)
-		}
-	}
-
-	for _, route := range controller.PlayerEndpoints(playerService) {
 		if err := s.AddRoute(route); err != nil {
 			log.Error("Failed to register route", slog.String("route", route.Path()), slog.Any("error", err))
 			os.Exit(1)
@@ -108,16 +100,8 @@ func main() {
 	}
 
 	// New logic using DDD
-	repo := drivenadapters.NewUniverseRepository(conn)
-	usecase := usecases.NewUniverseUseCase(repo)
-
-	for _, route := range drivingadapters.UniverseEndpoints(usecase) {
-		if err := s.AddRoute(route); err != nil {
-			log.Error("Failed to register route", slog.String("route", route.Path()), slog.Any("error", err))
-			os.Exit(1)
-		}
-	}
-
+	registerUniverseRoutes(conn, s, log)
+	registerPlayerRoutes(conn, s, log)
 	// End new logic using DDD
 
 	swaggerUi := rest.NewRawRoute(http.MethodGet, "/swagger/*", echoSwagger.WrapHandlerV3)
@@ -136,5 +120,29 @@ func main() {
 	if err != nil {
 		log.Error("Error while serving", slog.Any("error", err))
 		os.Exit(1)
+	}
+}
+
+func registerUniverseRoutes(conn db.Connection, s server.Server, log *slog.Logger) {
+	repo := drivenadapters.NewUniverseRepository(conn)
+	usecase := usecases.NewUniverseUseCase(repo)
+
+	for _, route := range drivingadapters.UniverseEndpoints(usecase) {
+		if err := s.AddRoute(route); err != nil {
+			log.Error("Failed to register route", slog.String("route", route.Path()), slog.Any("error", err))
+			os.Exit(1)
+		}
+	}
+}
+
+func registerPlayerRoutes(conn db.Connection, s server.Server, log *slog.Logger) {
+	repo := drivenadapters.NewPlayerRepository(conn)
+	usecase := usecases.NewPlayerUseCase(repo)
+
+	for _, route := range drivingadapters.PlayerEndpoints(usecase) {
+		if err := s.AddRoute(route); err != nil {
+			log.Error("Failed to register route", slog.String("route", route.Path()), slog.Any("error", err))
+			os.Exit(1)
+		}
 	}
 }
