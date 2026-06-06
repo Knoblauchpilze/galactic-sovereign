@@ -225,47 +225,6 @@ const docTemplate = `{
                 },
                 "type": "object"
             },
-            "communication.PlayerDtoRequest": {
-                "properties": {
-                    "api_user": {
-                        "format": "uuid",
-                        "type": "string"
-                    },
-                    "name": {
-                        "form": "name",
-                        "type": "string"
-                    },
-                    "universe": {
-                        "format": "uuid",
-                        "type": "string"
-                    }
-                },
-                "type": "object"
-            },
-            "communication.PlayerDtoResponse": {
-                "properties": {
-                    "api_user": {
-                        "format": "uuid",
-                        "type": "string"
-                    },
-                    "createdAt": {
-                        "format": "date-time",
-                        "type": "string"
-                    },
-                    "id": {
-                        "format": "uuid",
-                        "type": "string"
-                    },
-                    "name": {
-                        "type": "string"
-                    },
-                    "universe": {
-                        "format": "uuid",
-                        "type": "string"
-                    }
-                },
-                "type": "object"
-            },
             "dtos.PlayerDtoRequest": {
                 "properties": {
                     "api_user": {
@@ -335,31 +294,6 @@ const docTemplate = `{
                     "details": {
                         "items": {
                             "$ref": "#/components/schemas/communication.PlanetDtoResponse"
-                        },
-                        "type": "array",
-                        "uniqueItems": false
-                    },
-                    "requestId": {
-                        "example": "669cd40f-ea15-40a8-ab03-81e704a3ecf9",
-                        "format": "uuid",
-                        "type": "string"
-                    },
-                    "status": {
-                        "$ref": "#/components/schemas/rest.Status"
-                    }
-                },
-                "required": [
-                    "details",
-                    "requestId",
-                    "status"
-                ],
-                "type": "object"
-            },
-            "rest.ResponseEnvelope-array_communication_PlayerDtoResponse": {
-                "properties": {
-                    "details": {
-                        "items": {
-                            "$ref": "#/components/schemas/communication.PlayerDtoResponse"
                         },
                         "type": "array",
                         "uniqueItems": false
@@ -476,27 +410,6 @@ const docTemplate = `{
                 "properties": {
                     "details": {
                         "$ref": "#/components/schemas/communication.PlanetDtoResponse"
-                    },
-                    "requestId": {
-                        "example": "669cd40f-ea15-40a8-ab03-81e704a3ecf9",
-                        "format": "uuid",
-                        "type": "string"
-                    },
-                    "status": {
-                        "$ref": "#/components/schemas/rest.Status"
-                    }
-                },
-                "required": [
-                    "details",
-                    "requestId",
-                    "status"
-                ],
-                "type": "object"
-            },
-            "rest.ResponseEnvelope-communication_PlayerDtoResponse": {
-                "properties": {
-                    "details": {
-                        "$ref": "#/components/schemas/communication.PlayerDtoResponse"
                     },
                     "requestId": {
                         "example": "669cd40f-ea15-40a8-ab03-81e704a3ecf9",

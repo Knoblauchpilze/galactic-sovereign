@@ -56,6 +56,7 @@ type mockPlanetResourceService struct {
 	until                   time.Time
 }
 
+var defaultPlayerId = uuid.MustParse("bd7cb2c0-2124-4c1b-8ff8-2d3eb928ffa9")
 var defaultPlanetId = uuid.MustParse("080f5a2b-800a-458d-9806-7660bde4db00")
 var defaultResourceId = uuid.MustParse("84e01480-5433-4ebe-a078-7e1cd18c86c4")
 var defaultBuildingId = uuid.MustParse("ba846861-b015-4726-b9a8-3fe1cf2621e7")

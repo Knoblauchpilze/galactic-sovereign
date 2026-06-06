@@ -29,11 +29,3 @@ func fromPlanetServiceAwareHttpHandler(handler planetServiceAwareHttpHandler, se
 		return handler(c, service)
 	}
 }
-
-type playerServiceAwareHttpHandler func(*echo.Context, service.PlayerService) error
-
-func fromPlayerServiceAwareHttpHandler(handler playerServiceAwareHttpHandler, service service.PlayerService) echo.HandlerFunc {
-	return func(c *echo.Context) error {
-		return handler(c, service)
-	}
-}
