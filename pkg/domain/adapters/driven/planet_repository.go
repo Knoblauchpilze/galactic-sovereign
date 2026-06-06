@@ -1,4 +1,4 @@
-package driven
+package drivenadapter
 
 import (
 	"context"
@@ -6,7 +6,7 @@ import (
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driven/mappers"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
-	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driven"
+	drivenport "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driven"
 	"github.com/google/uuid"
 )
 
@@ -148,7 +148,7 @@ type planetRepositoryImpl struct {
 	conn db.Connection
 }
 
-func NewPlanetRepository(conn db.Connection) driven.ForManagingPlanets {
+func NewPlanetRepository(conn db.Connection) drivenport.ForManagingPlanets {
 	return &planetRepositoryImpl{
 		conn: conn,
 	}

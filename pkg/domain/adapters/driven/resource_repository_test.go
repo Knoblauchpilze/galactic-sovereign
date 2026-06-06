@@ -1,4 +1,4 @@
-package driven
+package drivenadapter
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
-	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driven"
+	drivenport "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driven"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -27,7 +27,7 @@ func TestIT_ResourceRepository_List(t *testing.T) {
 	assert.Contains(t, actual, r2)
 }
 
-func newTestResourceRepository(t *testing.T) (driven.ForListingResources, db.Connection) {
+func newTestResourceRepository(t *testing.T) (drivenport.ForListingResources, db.Connection) {
 	t.Helper()
 	conn := newTestConnection(t)
 	return NewResourceRepository(conn), conn

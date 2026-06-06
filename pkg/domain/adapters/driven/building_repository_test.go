@@ -1,4 +1,4 @@
-package driven
+package drivenadapter
 
 import (
 	"context"
@@ -8,7 +8,7 @@ import (
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
-	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driven"
+	drivenport "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driven"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -41,7 +41,7 @@ func TestIT_BuildingRepository_List(t *testing.T) {
 	assert.Contains(t, actual, fullCheckBuilding)
 }
 
-func newTestBuildingRepository(t *testing.T) (driven.ForListingBuildings, db.Connection) {
+func newTestBuildingRepository(t *testing.T) (drivenport.ForListingBuildings, db.Connection) {
 	t.Helper()
 	conn := newTestConnection(t)
 	return NewBuildingRepository(conn), conn

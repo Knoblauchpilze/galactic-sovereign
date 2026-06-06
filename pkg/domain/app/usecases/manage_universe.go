@@ -5,16 +5,16 @@ import (
 
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/request"
-	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driven"
+	drivenport "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driven"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driving"
 	"github.com/google/uuid"
 )
 
 type universeUseCase struct {
-	repo driven.ForManagingUniverses
+	repo drivenport.ForManagingUniverses
 }
 
-func NewUniverseUseCase(repo driven.ForManagingUniverses) driving.ForManagingUniverse {
+func NewUniverseUseCase(repo drivenport.ForManagingUniverses) driving.ForManagingUniverse {
 	return &universeUseCase{
 		repo: repo,
 	}
