@@ -31,126 +31,6 @@ components:
           format: uuid
           type: string
       type: object
-    communication.FullPlanetDtoResponse:
-      properties:
-        buildingActions:
-          items:
-            $ref: '#/components/schemas/communication.BuildingActionDtoResponse'
-          type: array
-        buildings:
-          items:
-            $ref: '#/components/schemas/communication.PlanetBuildingDtoResponse'
-          type: array
-        createdAt:
-          format: date-time
-          type: string
-        homeworld:
-          type: boolean
-        id:
-          format: uuid
-          type: string
-        name:
-          type: string
-        player:
-          format: uuid
-          type: string
-        productions:
-          items:
-            $ref: '#/components/schemas/communication.PlanetResourceProductionDtoResponse'
-          type: array
-        resources:
-          items:
-            $ref: '#/components/schemas/communication.PlanetResourceDtoResponse'
-          type: array
-        storages:
-          items:
-            $ref: '#/components/schemas/communication.PlanetResourceStorageDtoResponse'
-          type: array
-      type: object
-    communication.PlanetBuildingDtoResponse:
-      properties:
-        building:
-          format: uuid
-          type: string
-        createdAt:
-          format: date-time
-          type: string
-        level:
-          type: integer
-        planet:
-          format: uuid
-          type: string
-        updatedAt:
-          format: date-time
-          type: string
-      type: object
-    communication.PlanetDtoRequest:
-      properties:
-        name:
-          form: name
-          type: string
-        player:
-          format: uuid
-          type: string
-      type: object
-    communication.PlanetDtoResponse:
-      properties:
-        createdAt:
-          format: date-time
-          type: string
-        homeworld:
-          type: boolean
-        id:
-          format: uuid
-          type: string
-        name:
-          type: string
-        player:
-          format: uuid
-          type: string
-      type: object
-    communication.PlanetResourceDtoResponse:
-      properties:
-        amount:
-          type: number
-        createdAt:
-          format: date-time
-          type: string
-        planet:
-          format: uuid
-          type: string
-        resource:
-          format: uuid
-          type: string
-        updatedAt:
-          format: date-time
-          type: string
-      type: object
-    communication.PlanetResourceProductionDtoResponse:
-      properties:
-        building:
-          format: uuid
-          type: string
-        planet:
-          format: uuid
-          type: string
-        production:
-          type: integer
-        resource:
-          format: uuid
-          type: string
-      type: object
-    communication.PlanetResourceStorageDtoResponse:
-      properties:
-        planet:
-          format: uuid
-          type: string
-        resource:
-          format: uuid
-          type: string
-        storage:
-          type: integer
-      type: object
     dtos.PlanetDtoRequest:
       properties:
         name:
@@ -264,24 +144,6 @@ components:
         name:
           type: string
       type: object
-    rest.ResponseEnvelope-array_communication_PlanetDtoResponse:
-      properties:
-        details:
-          items:
-            $ref: '#/components/schemas/communication.PlanetDtoResponse'
-          type: array
-          uniqueItems: false
-        requestId:
-          example: 669cd40f-ea15-40a8-ab03-81e704a3ecf9
-          format: uuid
-          type: string
-        status:
-          $ref: '#/components/schemas/rest.Status'
-      required:
-      - details
-      - requestId
-      - status
-      type: object
     rest.ResponseEnvelope-array_dtos_PlanetDtoResponse:
       properties:
         details:
@@ -340,36 +202,6 @@ components:
       properties:
         details:
           $ref: '#/components/schemas/communication.BuildingActionDtoResponse'
-        requestId:
-          example: 669cd40f-ea15-40a8-ab03-81e704a3ecf9
-          format: uuid
-          type: string
-        status:
-          $ref: '#/components/schemas/rest.Status'
-      required:
-      - details
-      - requestId
-      - status
-      type: object
-    rest.ResponseEnvelope-communication_FullPlanetDtoResponse:
-      properties:
-        details:
-          $ref: '#/components/schemas/communication.FullPlanetDtoResponse'
-        requestId:
-          example: 669cd40f-ea15-40a8-ab03-81e704a3ecf9
-          format: uuid
-          type: string
-        status:
-          $ref: '#/components/schemas/rest.Status'
-      required:
-      - details
-      - requestId
-      - status
-      type: object
-    rest.ResponseEnvelope-communication_PlanetDtoResponse:
-      properties:
-        details:
-          $ref: '#/components/schemas/communication.PlanetDtoResponse'
         requestId:
           example: 669cd40f-ea15-40a8-ab03-81e704a3ecf9
           format: uuid
