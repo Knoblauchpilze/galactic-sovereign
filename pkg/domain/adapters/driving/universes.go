@@ -1,4 +1,4 @@
-package driving
+package drivingadapters
 
 import (
 	"log/slog"
@@ -10,12 +10,12 @@ import (
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/rest"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driving/dtos"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driving/mappers"
-	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driving"
+	drivingports "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driving"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v5"
 )
 
-func UniverseEndpoints(usecase driving.ForManagingUniverse) rest.Routes {
+func UniverseEndpoints(usecase drivingports.ForManagingUniverse) rest.Routes {
 	var out rest.Routes
 
 	handler := generateHandler(CreateUniverse, usecase)
@@ -50,7 +50,7 @@ func UniverseEndpoints(usecase driving.ForManagingUniverse) rest.Routes {
 //	@Failure		409		{object}	rest.ResponseEnvelope[string]
 //	@Failure		500		{object}	rest.ResponseEnvelope[string]
 //	@Router			/universes [post]
-func CreateUniverse(c *echo.Context, usecase driving.ForManagingUniverse) error {
+func CreateUniverse(c *echo.Context, usecase drivingports.ForManagingUniverse) error {
 	var inputDto dtos.UniverseDtoRequest
 	err := c.Bind(&inputDto)
 	if err != nil {
@@ -84,7 +84,7 @@ func CreateUniverse(c *echo.Context, usecase driving.ForManagingUniverse) error 
 //	@Failure		404	{object}	rest.ResponseEnvelope[string]
 //	@Failure		500	{object}	rest.ResponseEnvelope[string]
 //	@Router			/universes/{id} [get]
-func GetUniverse(c *echo.Context, usecase driving.ForManagingUniverse) error {
+func GetUniverse(c *echo.Context, usecase drivingports.ForManagingUniverse) error {
 	maybeId := c.Param("id")
 	id, err := uuid.Parse(maybeId)
 	if err != nil {
@@ -114,7 +114,7 @@ func GetUniverse(c *echo.Context, usecase driving.ForManagingUniverse) error {
 //	@Success		200	{object}	rest.ResponseEnvelope[[]dtos.UniverseDtoResponse]
 //	@Failure		500	{object}	rest.ResponseEnvelope[string]
 //	@Router			/universes [get]
-func ListUniverses(c *echo.Context, usecase driving.ForManagingUniverse) error {
+func ListUniverses(c *echo.Context, usecase drivingports.ForManagingUniverse) error {
 	universes, err := usecase.List(c.Request().Context())
 	if err != nil {
 		c.Logger().Error("Failed to list universes", slog.Any("error", err))
@@ -138,7 +138,7 @@ func ListUniverses(c *echo.Context, usecase driving.ForManagingUniverse) error {
 //	@Failure		404	{object}	rest.ResponseEnvelope[string]
 //	@Failure		500	{object}	rest.ResponseEnvelope[string]
 //	@Router			/universes/{id} [delete]
-func DeleteUniverse(c *echo.Context, usecase driving.ForManagingUniverse) error {
+func DeleteUniverse(c *echo.Context, usecase drivingports.ForManagingUniverse) error {
 	maybeId := c.Param("id")
 	id, err := uuid.Parse(maybeId)
 	if err != nil {

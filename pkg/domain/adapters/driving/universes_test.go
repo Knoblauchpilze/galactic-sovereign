@@ -1,4 +1,4 @@
-package driving
+package drivingadapters
 
 import (
 	"net/http"

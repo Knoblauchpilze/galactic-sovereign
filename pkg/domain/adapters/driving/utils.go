@@ -1,4 +1,4 @@
-package driving
+package drivingadapters
 
 import "github.com/labstack/echo/v5"
 
