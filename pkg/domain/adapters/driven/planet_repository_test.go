@@ -1,4 +1,4 @@
-package drivenadapter
+package drivenadapters
 
 import (
 	"context"
@@ -10,7 +10,7 @@ import (
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db/pgx"
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/errors"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
-	drivenport "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driven"
+	drivenports "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driven"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -469,7 +469,7 @@ func TestIT_PlanetRepository_CreationDeletionWorkflow(t *testing.T) {
 	}
 }
 
-func newTestPlanetRepository(t *testing.T) (drivenport.ForManagingPlanets, db.Connection) {
+func newTestPlanetRepository(t *testing.T) (drivenports.ForManagingPlanets, db.Connection) {
 	t.Helper()
 	conn := newTestConnection(t)
 	return NewPlanetRepository(conn), conn

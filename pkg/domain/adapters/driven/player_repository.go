@@ -1,11 +1,11 @@
-package drivenadapter
+package drivenadapters
 
 import (
 	"context"
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
-	drivenport "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driven"
+	drivenports "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driven"
 	"github.com/google/uuid"
 )
 
@@ -59,7 +59,7 @@ type playerRepositoryImpl struct {
 	conn db.Connection
 }
 
-func NewPlayerRepository(conn db.Connection) drivenport.ForManagingPlayers {
+func NewPlayerRepository(conn db.Connection) drivenports.ForManagingPlayers {
 	return &playerRepositoryImpl{
 		conn: conn,
 	}

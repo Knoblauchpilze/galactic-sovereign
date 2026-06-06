@@ -1,4 +1,4 @@
-package drivenadapter
+package drivenadapters
 
 import (
 	"context"
@@ -10,7 +10,7 @@ import (
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db/pgx"
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/errors"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
-	drivenport "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driven"
+	drivenports "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driven"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -404,7 +404,7 @@ func TestIT_BuildingActionRepository_CreationDeletionWorkflow(t *testing.T) {
 	}
 }
 
-func newTestBuildingActionRepository(t *testing.T) (drivenport.ForManagingBuildingActions, db.Connection) {
+func newTestBuildingActionRepository(t *testing.T) (drivenports.ForManagingBuildingActions, db.Connection) {
 	t.Helper()
 	conn := newTestConnection(t)
 	return NewBuildingActionRepository(conn), conn

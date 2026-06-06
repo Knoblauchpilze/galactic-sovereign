@@ -1,4 +1,4 @@
-package drivenadapter
+package drivenadapters
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db/pgx"
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/errors"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
-	drivenport "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driven"
+	drivenports "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driven"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -127,7 +127,7 @@ func TestIT_PlayerRepository_Delete(t *testing.T) {
 	})
 }
 
-func newTestPlayerRepository(t *testing.T) (drivenport.ForManagingPlayers, db.Connection) {
+func newTestPlayerRepository(t *testing.T) (drivenports.ForManagingPlayers, db.Connection) {
 	t.Helper()
 	conn := newTestConnection(t)
 	return NewPlayerRepository(conn), conn

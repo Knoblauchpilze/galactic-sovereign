@@ -16,7 +16,7 @@ import (
 	"github.com/Knoblauchpilze/galactic-sovereign/cmd/galactic-sovereign/internal"
 	"github.com/Knoblauchpilze/galactic-sovereign/internal/controller"
 	"github.com/Knoblauchpilze/galactic-sovereign/internal/service"
-	drivenadapter "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driven"
+	drivenadapters "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driven"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driving"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/usecases"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/repositories"
@@ -108,7 +108,7 @@ func main() {
 	}
 
 	// New logic using DDD
-	repo := drivenadapter.NewUniverseRepository(conn)
+	repo := drivenadapters.NewUniverseRepository(conn)
 	usecase := usecases.NewUniverseUseCase(repo)
 
 	for _, route := range driving.UniverseEndpoints(usecase) {

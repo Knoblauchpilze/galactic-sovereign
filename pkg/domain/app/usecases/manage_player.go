@@ -5,16 +5,16 @@ import (
 
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/request"
-	drivenport "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driven"
+	drivenports "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driven"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driving"
 	"github.com/google/uuid"
 )
 
 type playerUseCase struct {
-	repo drivenport.ForManagingPlayers
+	repo drivenports.ForManagingPlayers
 }
 
-func NewPlayerUseCase(repo drivenport.ForManagingPlayers) driving.ForManagingPlayer {
+func NewPlayerUseCase(repo drivenports.ForManagingPlayers) driving.ForManagingPlayer {
 	return &playerUseCase{
 		repo: repo,
 	}
