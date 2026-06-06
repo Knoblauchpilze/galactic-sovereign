@@ -10,6 +10,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+var defaultPlayerId = uuid.MustParse("efc01287-830f-4b95-8b26-3deff7135f2d")
+var someTime = time.Date(2024, 05, 05, 20, 50, 18, 651387237, time.UTC)
 var defaultPlanetId = uuid.MustParse("65801b9b-84e6-411d-805f-2eb89587c5a7")
 var defaultPlanet = persistence.Planet{
 	Id:        defaultPlanetId,
