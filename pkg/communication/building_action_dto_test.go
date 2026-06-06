@@ -10,6 +10,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+var someTime = time.Date(2024, 05, 05, 20, 50, 18, 651387237, time.UTC)
+var defaultPlanetId = uuid.MustParse("65801b9b-84e6-411d-805f-2eb89587c5a7")
 var defaultActionId = uuid.MustParse("91336067-9884-4280-bb37-411124561e73")
 var defaultBuildignAction = persistence.BuildingAction{
 	Id:           defaultActionId,

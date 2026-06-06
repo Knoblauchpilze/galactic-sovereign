@@ -55,8 +55,7 @@ type transactionInteractionTestCase struct {
 type ServicePoolTestSuite struct {
 	suite.Suite
 
-	generateRepositoriesMocks      generateRepositoriesMocks
-	generateErrorRepositoriesMocks generateRepositoriesMocks
+	generateRepositoriesMocks generateRepositoriesMocks
 
 	repositoryInteractionTestCases  map[string]repositoryInteractionTestCase
 	returnTestCases                 map[string]returnTestCase

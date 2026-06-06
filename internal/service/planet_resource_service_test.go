@@ -6,12 +6,39 @@ import (
 	"time"
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
+	"github.com/Knoblauchpilze/galactic-sovereign/pkg/persistence"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/repositories"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 )
 
+var defaultPlanetId = uuid.MustParse("5b0efd85-8817-4454-b8f3-7af5d93253a1")
+var metalResourceId = uuid.MustParse("8ed8d1f2-f39a-404b-96e1-9805ae6cd175")
+var defaultBuildingId = uuid.MustParse("5ec0f2cb-adc9-4f09-bb77-61d0ccdbcc52")
 var someTime = time.Date(2024, 8, 17, 14, 31, 13, 651387247, time.UTC)
+var defaultPlanetResource = persistence.PlanetResource{
+	Planet:    defaultPlanetId,
+	Resource:  metalResourceId,
+	Amount:    784.0987,
+	CreatedAt: testDate,
+	UpdatedAt: testDate,
+}
+var defaultPlanetResourceProduction = persistence.PlanetResourceProduction{
+	Planet:     defaultPlanetId,
+	Building:   &defaultBuildingId,
+	Resource:   metalResourceId,
+	Production: 31,
+	CreatedAt:  testDate,
+	UpdatedAt:  testDate,
+}
+var defaultPlanetResourceStorage = persistence.PlanetResourceStorage{
+	Planet:    defaultPlanetId,
+	Resource:  metalResourceId,
+	Storage:   9876,
+	CreatedAt: testDate,
+	UpdatedAt: testDate,
+}
 
 func TestUnit_PlanetResourceService(t *testing.T) {
 	s := ServicePoolTestSuite{
@@ -189,6 +216,14 @@ func assertConnectionIsAMock(conn db.Connection, assert *require.Assertions) *mo
 	m, ok := conn.(*mockConnection)
 	if !ok {
 		assert.Fail("Provided connection is not a mock")
+	}
+	return m
+}
+
+func assertPlanetResourceRepoIsAMock(repos repositories.Repositories, assert *require.Assertions) *mockPlanetResourceRepository {
+	m, ok := repos.PlanetResource.(*mockPlanetResourceRepository)
+	if !ok {
+		assert.Fail("Provided planet resource repository is not a mock")
 	}
 	return m
 }
