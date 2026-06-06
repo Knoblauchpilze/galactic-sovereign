@@ -225,6 +225,106 @@ const docTemplate = `{
                 },
                 "type": "object"
             },
+            "dtos.PlanetDtoRequest": {
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "player": {
+                        "format": "uuid",
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "dtos.PlanetDtoResponse": {
+                "properties": {
+                    "createdAt": {
+                        "format": "date-time",
+                        "type": "string"
+                    },
+                    "homeworld": {
+                        "type": "boolean"
+                    },
+                    "id": {
+                        "format": "uuid",
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "player": {
+                        "format": "uuid",
+                        "type": "string"
+                    },
+                    "productions": {
+                        "items": {
+                            "$ref": "#/components/schemas/dtos.PlanetResourceProductionDtoResponse"
+                        },
+                        "type": "array",
+                        "uniqueItems": false
+                    },
+                    "resources": {
+                        "items": {
+                            "$ref": "#/components/schemas/dtos.PlanetResourceDtoResponse"
+                        },
+                        "type": "array",
+                        "uniqueItems": false
+                    },
+                    "storages": {
+                        "items": {
+                            "$ref": "#/components/schemas/dtos.PlanetResourceStorageDtoResponse"
+                        },
+                        "type": "array",
+                        "uniqueItems": false
+                    },
+                    "updatedAt": {
+                        "format": "date-time",
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "dtos.PlanetResourceDtoResponse": {
+                "properties": {
+                    "amount": {
+                        "type": "number"
+                    },
+                    "resource": {
+                        "format": "uuid",
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "dtos.PlanetResourceProductionDtoResponse": {
+                "properties": {
+                    "building": {
+                        "format": "uuid",
+                        "type": "string"
+                    },
+                    "production": {
+                        "type": "integer"
+                    },
+                    "resource": {
+                        "format": "uuid",
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "dtos.PlanetResourceStorageDtoResponse": {
+                "properties": {
+                    "resource": {
+                        "format": "uuid",
+                        "type": "string"
+                    },
+                    "storage": {
+                        "type": "integer"
+                    }
+                },
+                "type": "object"
+            },
             "dtos.PlayerDtoRequest": {
                 "properties": {
                     "api_user": {
@@ -294,6 +394,31 @@ const docTemplate = `{
                     "details": {
                         "items": {
                             "$ref": "#/components/schemas/communication.PlanetDtoResponse"
+                        },
+                        "type": "array",
+                        "uniqueItems": false
+                    },
+                    "requestId": {
+                        "example": "669cd40f-ea15-40a8-ab03-81e704a3ecf9",
+                        "format": "uuid",
+                        "type": "string"
+                    },
+                    "status": {
+                        "$ref": "#/components/schemas/rest.Status"
+                    }
+                },
+                "required": [
+                    "details",
+                    "requestId",
+                    "status"
+                ],
+                "type": "object"
+            },
+            "rest.ResponseEnvelope-array_dtos_PlanetDtoResponse": {
+                "properties": {
+                    "details": {
+                        "items": {
+                            "$ref": "#/components/schemas/dtos.PlanetDtoResponse"
                         },
                         "type": "array",
                         "uniqueItems": false
@@ -410,6 +535,27 @@ const docTemplate = `{
                 "properties": {
                     "details": {
                         "$ref": "#/components/schemas/communication.PlanetDtoResponse"
+                    },
+                    "requestId": {
+                        "example": "669cd40f-ea15-40a8-ab03-81e704a3ecf9",
+                        "format": "uuid",
+                        "type": "string"
+                    },
+                    "status": {
+                        "$ref": "#/components/schemas/rest.Status"
+                    }
+                },
+                "required": [
+                    "details",
+                    "requestId",
+                    "status"
+                ],
+                "type": "object"
+            },
+            "rest.ResponseEnvelope-dtos_PlanetDtoResponse": {
+                "properties": {
+                    "details": {
+                        "$ref": "#/components/schemas/dtos.PlanetDtoResponse"
                     },
                     "requestId": {
                         "example": "669cd40f-ea15-40a8-ab03-81e704a3ecf9",
@@ -626,7 +772,7 @@ const docTemplate = `{
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/rest.ResponseEnvelope-array_communication_PlanetDtoResponse"
+                                    "$ref": "#/components/schemas/rest.ResponseEnvelope-array_dtos_PlanetDtoResponse"
                                 }
                             }
                         },
@@ -669,7 +815,7 @@ const docTemplate = `{
                                         "type": "object"
                                     },
                                     {
-                                        "$ref": "#/components/schemas/communication.PlanetDtoRequest",
+                                        "$ref": "#/components/schemas/dtos.PlanetDtoRequest",
                                         "summary": "request",
                                         "description": "Planet payload"
                                     }
@@ -685,7 +831,7 @@ const docTemplate = `{
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/rest.ResponseEnvelope-communication_PlanetDtoResponse"
+                                    "$ref": "#/components/schemas/rest.ResponseEnvelope-dtos_PlanetDtoResponse"
                                 }
                             }
                         },
@@ -799,7 +945,7 @@ const docTemplate = `{
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/rest.ResponseEnvelope-communication_FullPlanetDtoResponse"
+                                    "$ref": "#/components/schemas/rest.ResponseEnvelope-dtos_PlanetDtoResponse"
                                 }
                             }
                         },
