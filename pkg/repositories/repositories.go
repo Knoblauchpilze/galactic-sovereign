@@ -14,6 +14,5 @@ type Repositories struct {
 	PlanetResource                   PlanetResourceRepository
 	PlanetResourceProduction         PlanetResourceProductionRepository
 	PlanetResourceStorage            PlanetResourceStorageRepository
-	Player                           PlayerRepository
 	Resource                         ResourceRepository
 }

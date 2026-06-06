@@ -154,33 +154,25 @@ func insertTestBuildingResourceStorage(t *testing.T, conn db.Connection, buildin
 	return storage, resource
 }
 
-func insertTestPlayer(t *testing.T, conn db.Connection) persistence.Player {
+func insertTestPlayer(t *testing.T, conn db.Connection) uuid.UUID {
 	someTime := time.Date(2024, 12, 8, 10, 9, 48, 0, time.UTC)
 
-	player := persistence.Player{
-		Id:        uuid.New(),
-		ApiUser:   uuid.New(),
-		Universe:  oberonUniverseId,
-		Name:      fmt.Sprintf("my-player-%s", uuid.NewString()),
-		CreatedAt: someTime,
-	}
+	playerId := uuid.New()
 
-	sqlQuery := `INSERT INTO player (id, api_user, universe, name, created_at) VALUES ($1, $2, $3, $4, $5) RETURNING updated_at`
-	updatedAt, err := db.QueryOne[time.Time](
+	sqlQuery := `INSERT INTO player (id, api_user, universe, name, created_at)
+		VALUES ($1, $2, $3, $4, $5)`
+	_, err := conn.Exec(
 		context.Background(),
-		conn,
 		sqlQuery,
-		player.Id,
-		player.ApiUser,
-		player.Universe,
-		player.Name,
-		player.CreatedAt,
+		playerId,
+		uuid.New(),
+		oberonUniverseId,
+		fmt.Sprintf("my-player-%s", playerId.String()),
+		someTime,
 	)
 	require.Nil(t, err)
 
-	player.UpdatedAt = updatedAt
-
-	return player
+	return playerId
 }
 
 func insertTestPlanet(t *testing.T, conn db.Connection, player uuid.UUID) persistence.Planet {
@@ -214,10 +206,10 @@ func insertTestPlanet(t *testing.T, conn db.Connection, player uuid.UUID) persis
 	return planet
 }
 
-func insertTestPlanetForPlayer(t *testing.T, conn db.Connection) (persistence.Planet, persistence.Player) {
-	player := insertTestPlayer(t, conn)
-	planet := insertTestPlanet(t, conn, player.Id)
-	return planet, player
+func insertTestPlanetForPlayer(t *testing.T, conn db.Connection) (persistence.Planet, uuid.UUID) {
+	playerId := insertTestPlayer(t, conn)
+	planet := insertTestPlanet(t, conn, playerId)
+	return planet, playerId
 }
 
 func insertTestPlanetBuildingForPlanet(t *testing.T, conn db.Connection, planet uuid.UUID) (persistence.PlanetBuilding, persistence.Building) {

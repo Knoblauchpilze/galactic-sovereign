@@ -66,7 +66,6 @@ func main() {
 		PlanetResource:                   repositories.NewPlanetResourceRepository(),
 		PlanetResourceProduction:         repositories.NewPlanetResourceProductionRepository(),
 		PlanetResourceStorage:            repositories.NewPlanetResourceStorageRepository(),
-		Player:                           repositories.NewPlayerRepository(conn),
 		Resource:                         repositories.NewResourceRepository(),
 	}
 

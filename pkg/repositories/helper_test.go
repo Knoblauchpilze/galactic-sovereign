@@ -2,7 +2,9 @@ package repositories
 
 import (
 	"context"
+	"fmt"
 	"testing"
+	"time"
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db/postgresql"
@@ -19,4 +21,25 @@ func newTestConnection(t *testing.T) db.Connection {
 	conn, err := db.New(context.Background(), dbTestConfig)
 	require.Nil(t, err)
 	return conn
+}
+
+func insertTestPlayer(t *testing.T, conn db.Connection) uuid.UUID {
+	someTime := time.Date(2024, 11, 29, 17, 56, 02, 0, time.UTC)
+
+	playerId := uuid.New()
+
+	sqlQuery := `INSERT INTO player (id, api_user, universe, name, created_at)
+		VALUES ($1, $2, $3, $4, $5)`
+	_, err := conn.Exec(
+		context.Background(),
+		sqlQuery,
+		playerId,
+		uuid.New(),
+		oberonUniverseId,
+		fmt.Sprintf("my-player-%s", playerId.String()),
+		someTime,
+	)
+	require.Nil(t, err)
+
+	return playerId
 }

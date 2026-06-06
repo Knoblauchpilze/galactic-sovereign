@@ -20,11 +20,11 @@ func TestIT_PlanetRespository_Create(t *testing.T) {
 	repo, conn, tx := newTestPlanetRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
 
-	player := insertTestPlayer(t, conn)
+	playerId := insertTestPlayer(t, conn)
 
 	planet := persistence.Planet{
 		Id:        uuid.New(),
-		Player:    player.Id,
+		Player:    playerId,
 		Name:      fmt.Sprintf("my-planet-%s", uuid.NewString()),
 		Homeworld: false,
 		CreatedAt: time.Date(2024, 11, 30, 14, 48, 47, 0, time.UTC),
@@ -43,11 +43,11 @@ func TestIT_PlanetRespository_Create_WhenHomeworld_ExpectCorrectlyMarkedAsSuch(t
 	repo, conn, tx := newTestPlanetRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
 
-	player := insertTestPlayer(t, conn)
+	playerId := insertTestPlayer(t, conn)
 
 	planet := persistence.Planet{
 		Id:        uuid.New(),
-		Player:    player.Id,
+		Player:    playerId,
 		Name:      fmt.Sprintf("my-planet-%s", uuid.NewString()),
 		Homeworld: true,
 		CreatedAt: time.Date(2024, 11, 30, 14, 51, 57, 0, time.UTC),
@@ -66,11 +66,11 @@ func TestIT_PlanetRespository_Create_WhenHomeworldAlreadyExists_ExpectFailureWhe
 	repo, conn, tx := newTestPlanetRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
 
-	_, player := insertTestHomeworldPlanetForPlayer(t, conn)
+	_, playerId := insertTestHomeworldPlanetForPlayer(t, conn)
 
 	planet := persistence.Planet{
 		Id:        uuid.New(),
-		Player:    player.Id,
+		Player:    playerId,
 		Name:      fmt.Sprintf("my-planet-%s", uuid.NewString()),
 		Homeworld: true,
 		CreatedAt: time.Date(2024, 11, 30, 14, 57, 49, 0, time.UTC),
@@ -87,13 +87,13 @@ func TestIT_PlanetRepository_Create_RegistersBuildingsForPlanet(t *testing.T) {
 	repo, conn, tx := newTestPlanetRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
 
-	player := insertTestPlayer(t, conn)
+	playerId := insertTestPlayer(t, conn)
 	b1 := insertTestBuilding(t, conn)
 	b2 := insertTestBuilding(t, conn)
 
 	planet := persistence.Planet{
 		Id:        uuid.New(),
-		Player:    player.Id,
+		Player:    playerId,
 		Name:      fmt.Sprintf("my-planet-%s", uuid.NewString()),
 		Homeworld: false,
 		CreatedAt: time.Date(2024, 11, 30, 15, 12, 53, 0, time.UTC),
@@ -111,12 +111,12 @@ func TestIT_PlanetRepository_Create_RegistersBuildingWithLevel0(t *testing.T) {
 	repo, conn, tx := newTestPlanetRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
 
-	player := insertTestPlayer(t, conn)
+	playerId := insertTestPlayer(t, conn)
 	building := insertTestBuilding(t, conn)
 
 	planet := persistence.Planet{
 		Id:        uuid.New(),
-		Player:    player.Id,
+		Player:    playerId,
 		Name:      fmt.Sprintf("my-planet-%s", uuid.NewString()),
 		Homeworld: false,
 		CreatedAt: time.Date(2024, 11, 30, 15, 17, 53, 0, time.UTC),
@@ -133,13 +133,13 @@ func TestIT_PlanetRepository_Create_RegistersResourcesForPlanet(t *testing.T) {
 	repo, conn, tx := newTestPlanetRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
 
-	player := insertTestPlayer(t, conn)
+	playerId := insertTestPlayer(t, conn)
 	r1 := insertTestResource(t, conn)
 	r2 := insertTestResource(t, conn)
 
 	planet := persistence.Planet{
 		Id:        uuid.New(),
-		Player:    player.Id,
+		Player:    playerId,
 		Name:      fmt.Sprintf("my-planet-%s", uuid.NewString()),
 		Homeworld: false,
 		CreatedAt: time.Date(2024, 11, 30, 15, 21, 38, 0, time.UTC),
@@ -157,12 +157,12 @@ func TestIT_PlanetRepository_Create_RegistersResourceWithStartAmount(t *testing.
 	repo, conn, tx := newTestPlanetRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
 
-	player := insertTestPlayer(t, conn)
+	playerId := insertTestPlayer(t, conn)
 	resource := insertTestResource(t, conn)
 
 	planet := persistence.Planet{
 		Id:        uuid.New(),
-		Player:    player.Id,
+		Player:    playerId,
 		Name:      fmt.Sprintf("my-planet-%s", uuid.NewString()),
 		Homeworld: false,
 		CreatedAt: time.Date(2024, 11, 30, 15, 22, 36, 0, time.UTC),
@@ -179,13 +179,13 @@ func TestIT_PlanetRepository_Create_RegistersResourceProductionsForPlanet(t *tes
 	repo, conn, tx := newTestPlanetRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
 
-	player := insertTestPlayer(t, conn)
+	playerId := insertTestPlayer(t, conn)
 	r1 := insertTestResource(t, conn)
 	r2 := insertTestResource(t, conn)
 
 	planet := persistence.Planet{
 		Id:        uuid.New(),
-		Player:    player.Id,
+		Player:    playerId,
 		Name:      fmt.Sprintf("my-planet-%s", uuid.NewString()),
 		Homeworld: false,
 		CreatedAt: time.Date(2024, 11, 30, 15, 24, 47, 0, time.UTC),
@@ -203,12 +203,12 @@ func TestIT_PlanetRepository_Create_RegistersResourceWithStartProductionAndNoBui
 	repo, conn, tx := newTestPlanetRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
 
-	player := insertTestPlayer(t, conn)
+	playerId := insertTestPlayer(t, conn)
 	resource := insertTestResource(t, conn)
 
 	planet := persistence.Planet{
 		Id:        uuid.New(),
-		Player:    player.Id,
+		Player:    playerId,
 		Name:      fmt.Sprintf("my-planet-%s", uuid.NewString()),
 		Homeworld: false,
 		CreatedAt: time.Date(2024, 11, 30, 15, 26, 17, 0, time.UTC),
@@ -225,13 +225,13 @@ func TestIT_PlanetRepository_Create_RegistersResourceStoragesForPlanet(t *testin
 	repo, conn, tx := newTestPlanetRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
 
-	player := insertTestPlayer(t, conn)
+	playerId := insertTestPlayer(t, conn)
 	r1 := insertTestResource(t, conn)
 	r2 := insertTestResource(t, conn)
 
 	planet := persistence.Planet{
 		Id:        uuid.New(),
-		Player:    player.Id,
+		Player:    playerId,
 		Name:      fmt.Sprintf("my-planet-%s", uuid.NewString()),
 		CreatedAt: time.Date(2024, 11, 30, 15, 30, 18, 0, time.UTC),
 		Homeworld: false,
@@ -249,12 +249,12 @@ func TestIT_PlanetRepository_Create_RegistersResourceWithStartStorageAndNoBuildi
 	repo, conn, tx := newTestPlanetRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
 
-	player := insertTestPlayer(t, conn)
+	playerId := insertTestPlayer(t, conn)
 	resource := insertTestResource(t, conn)
 
 	planet := persistence.Planet{
 		Id:        uuid.New(),
-		Player:    player.Id,
+		Player:    playerId,
 		Name:      fmt.Sprintf("my-planet-%s", uuid.NewString()),
 		Homeworld: false,
 		CreatedAt: time.Date(2024, 11, 30, 15, 33, 03, 0, time.UTC),
@@ -294,8 +294,8 @@ func TestIT_PlanetRepository_List(t *testing.T) {
 	repo, conn, tx := newTestPlanetRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
 	defer tx.Close(context.Background())
-	p1, player := insertTestPlanetForPlayer(t, conn)
-	p2 := insertTestPlanet(t, conn, player.Id, false)
+	p1, playerId := insertTestPlanetForPlayer(t, conn)
+	p2 := insertTestPlanet(t, conn, playerId, false)
 
 	actual, err := repo.List(context.Background(), tx)
 
@@ -309,11 +309,11 @@ func TestIT_PlanetRepository_ListForPlayer(t *testing.T) {
 	repo, conn, tx := newTestPlanetRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
 	defer tx.Close(context.Background())
-	p1, player1 := insertTestPlanetForPlayer(t, conn)
-	p2 := insertTestPlanet(t, conn, player1.Id, false)
+	p1, player1Id := insertTestPlanetForPlayer(t, conn)
+	p2 := insertTestPlanet(t, conn, player1Id, false)
 	p3, _ := insertTestPlanetForPlayer(t, conn)
 
-	actual, err := repo.ListForPlayer(context.Background(), tx, player1.Id)
+	actual, err := repo.ListForPlayer(context.Background(), tx, player1Id)
 
 	assert.Nil(t, err)
 	assert.GreaterOrEqual(t, len(actual), 2)
@@ -364,11 +364,11 @@ func TestIT_PlanetRepository_CreationDeletionWorkflow(t *testing.T) {
 	repo, conn := newTestPlanetRepository(t)
 	defer conn.Close(context.Background())
 
-	player := insertTestPlayer(t, conn)
+	playerId := insertTestPlayer(t, conn)
 
 	planet := persistence.Planet{
 		Id:        uuid.New(),
-		Player:    player.Id,
+		Player:    playerId,
 		Name:      fmt.Sprintf("my-planet-%s", uuid.NewString()),
 		Homeworld: false,
 		CreatedAt: time.Date(2024, 11, 30, 15, 50, 30, 0, time.UTC),
@@ -483,11 +483,11 @@ func TestIT_PlanetRepository_HomeWorldCreationDeletionWorkflow(t *testing.T) {
 	repo, conn := newTestPlanetRepository(t)
 	defer conn.Close(context.Background())
 
-	player := insertTestPlayer(t, conn)
+	playerId := insertTestPlayer(t, conn)
 
 	planet := persistence.Planet{
 		Id:        uuid.New(),
-		Player:    player.Id,
+		Player:    playerId,
 		Name:      fmt.Sprintf("my-planet-%s", uuid.NewString()),
 		Homeworld: true,
 		CreatedAt: time.Date(2024, 11, 30, 15, 50, 55, 0, time.UTC),
@@ -574,16 +574,16 @@ func insertTestPlanet(t *testing.T, conn db.Connection, player uuid.UUID, homewo
 	return planet
 }
 
-func insertTestPlanetForPlayer(t *testing.T, conn db.Connection) (persistence.Planet, persistence.Player) {
-	player := insertTestPlayer(t, conn)
-	planet := insertTestPlanet(t, conn, player.Id, false)
-	return planet, player
+func insertTestPlanetForPlayer(t *testing.T, conn db.Connection) (persistence.Planet, uuid.UUID) {
+	playerId := insertTestPlayer(t, conn)
+	planet := insertTestPlanet(t, conn, playerId, false)
+	return planet, playerId
 }
 
-func insertTestHomeworldPlanetForPlayer(t *testing.T, conn db.Connection) (persistence.Planet, persistence.Player) {
-	player := insertTestPlayer(t, conn)
-	planet := insertTestPlanet(t, conn, player.Id, true)
-	return planet, player
+func insertTestHomeworldPlanetForPlayer(t *testing.T, conn db.Connection) (persistence.Planet, uuid.UUID) {
+	playerId := insertTestPlayer(t, conn)
+	planet := insertTestPlanet(t, conn, playerId, true)
+	return planet, playerId
 }
 
 func assertPlanetExists(t *testing.T, conn db.Connection, id uuid.UUID) {

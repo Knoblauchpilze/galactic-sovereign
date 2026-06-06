@@ -630,12 +630,12 @@ func TestIT_PlanetService_CreationDeletionWorkflow(t *testing.T) {
 		PlanetResourceStorage:    repositories.NewPlanetResourceStorageRepository(),
 		BuildingAction:           repositories.NewBuildingActionRepository(),
 	}
-	player := insertTestPlayer(t, conn)
+	playerId := insertTestPlayer(t, conn)
 
 	service := NewPlanetService(conn, repos)
 
 	planetRequest := communication.PlanetDtoRequest{
-		Player: player.Id,
+		Player: playerId,
 		Name:   fmt.Sprintf("my-planet-%s", uuid.NewString()),
 	}
 

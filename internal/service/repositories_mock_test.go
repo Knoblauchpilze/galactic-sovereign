@@ -324,52 +324,6 @@ func (m *mockPlanetResourceStorageRepository) Update(ctx context.Context, tx db.
 	return storage, m.updateErr
 }
 
-type mockPlayerRepository struct {
-	repositories.PlayerRepository
-
-	player persistence.Player
-	err    error
-
-	createCalled         int
-	createdPlayer        persistence.Player
-	getCalled            int
-	getId                uuid.UUID
-	listCalled           int
-	listForApiUserId     uuid.UUID
-	listForApiUserCalled int
-	deleteCalled         int
-	deleteId             uuid.UUID
-}
-
-func (m *mockPlayerRepository) Create(ctx context.Context, tx db.Transaction, player persistence.Player) (persistence.Player, error) {
-	m.createCalled++
-	m.createdPlayer = player
-	return m.player, m.err
-}
-
-func (m *mockPlayerRepository) Get(ctx context.Context, id uuid.UUID) (persistence.Player, error) {
-	m.getCalled++
-	m.getId = id
-	return m.player, m.err
-}
-
-func (m *mockPlayerRepository) List(ctx context.Context) ([]persistence.Player, error) {
-	m.listCalled++
-	return []persistence.Player{m.player}, m.err
-}
-
-func (m *mockPlayerRepository) ListForApiUser(ctx context.Context, apiUser uuid.UUID) ([]persistence.Player, error) {
-	m.listForApiUserCalled++
-	m.listForApiUserId = apiUser
-	return []persistence.Player{m.player}, m.err
-}
-
-func (m *mockPlayerRepository) Delete(ctx context.Context, tx db.Transaction, id uuid.UUID) error {
-	m.deleteCalled++
-	m.deleteId = id
-	return m.err
-}
-
 func getValueToReturnOr[T any](count int, values []T, value T) *T {
 	out := getValueToReturn(count, values)
 	if out == nil {
