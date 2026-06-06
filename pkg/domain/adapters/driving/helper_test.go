@@ -27,6 +27,15 @@ func generateTestRequest(t *testing.T, method string) *http.Request {
 	return req
 }
 
+func addQueryParam(t *testing.T, req *http.Request, key string, value string) {
+	t.Helper()
+
+	q := req.URL.Query()
+	q.Add(key, value)
+
+	req.URL.RawQuery = q.Encode()
+}
+
 func generateTestRequestWithJsonBody[T any](
 	t *testing.T,
 	method string,
