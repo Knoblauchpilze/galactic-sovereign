@@ -93,3 +93,7 @@ func encodeBody[T any](t *testing.T, data T) io.Reader {
 
 	return bytes.NewReader(out)
 }
+
+func ptrFor[T any](value T) *T {
+	return &value
+}

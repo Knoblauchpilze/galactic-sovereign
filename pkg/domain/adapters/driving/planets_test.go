@@ -115,6 +115,30 @@ func TestUnit_Planets_GetPlanet(t *testing.T) {
 			Id:        uuid.New(),
 			Name:      "planet-1",
 			CreatedAt: someTime,
+			UpdatedAt: someOtherTime,
+			Resources: []models.PlanetResource{
+				{
+					Resource: uuid.New(),
+					Amount:   1478,
+				},
+			},
+			Storages: []models.PlanetResourceStorage{
+				{
+					Resource: uuid.New(),
+					Storage:  48790,
+				},
+			},
+			Productions: []models.PlanetResourceProduction{
+				{
+					Resource:   uuid.New(),
+					Production: 12,
+				},
+				{
+					Resource:   uuid.New(),
+					Building:   ptrFor(uuid.New()),
+					Production: 8917,
+				},
+			},
 		}
 		mockUsecase.EXPECT().
 			Get(gomock.Any(), gomock.Eq(sampleUuid)).
@@ -127,12 +151,27 @@ func TestUnit_Planets_GetPlanet(t *testing.T) {
 		assert.Equal(t, http.StatusOK, rw.Code)
 		actual := decodeResponseBody[dtos.PlanetDtoResponse](t, rw)
 		expected := dtos.PlanetDtoResponse{
-			Id:          planet.Id,
-			Name:        planet.Name,
-			CreatedAt:   planet.CreatedAt,
-			Resources:   []dtos.PlanetResourceDtoResponse{},
-			Storages:    []dtos.PlanetResourceStorageDtoResponse{},
-			Productions: []dtos.PlanetResourceProductionDtoResponse{},
+			Id:        planet.Id,
+			Name:      planet.Name,
+			CreatedAt: planet.CreatedAt,
+			UpdatedAt: planet.UpdatedAt,
+			Resources: []dtos.PlanetResourceDtoResponse{
+				{Resource: planet.Resources[0].Resource, Amount: 1478},
+			},
+			Storages: []dtos.PlanetResourceStorageDtoResponse{
+				{Resource: planet.Storages[0].Resource, Storage: 48790},
+			},
+			Productions: []dtos.PlanetResourceProductionDtoResponse{
+				{
+					Resource:   planet.Productions[0].Resource,
+					Production: 12,
+				},
+				{
+					Building:   planet.Productions[1].Building,
+					Resource:   planet.Productions[1].Resource,
+					Production: 8917,
+				},
+			},
 		}
 		assert.Equal(t, expected, actual)
 	})
