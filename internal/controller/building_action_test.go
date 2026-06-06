@@ -33,6 +33,28 @@ type mockBuildingActionService struct {
 	deleteId     uuid.UUID
 }
 
+type mockActionService struct {
+	game.ActionService
+
+	err error
+
+	processActionsCalled int
+	planet               uuid.UUID
+	until                time.Time
+}
+
+type mockPlanetResourceService struct {
+	game.PlanetResourceService
+
+	err error
+
+	updatePlanetUntilCalled int
+	planet                  uuid.UUID
+	until                   time.Time
+}
+
+var defaultPlanetId = uuid.MustParse("080f5a2b-800a-458d-9806-7660bde4db00")
+var defaultBuildingId = uuid.MustParse("ba846861-b015-4726-b9a8-3fe1cf2621e7")
 var defaultBuildingActionId = uuid.MustParse("694a47ab-cd58-431e-9298-e0e788bfc01e")
 var defaultBuildingActionDtoRequest = communication.BuildingActionDtoRequest{
 	Building: defaultBuildingId,
@@ -284,5 +306,19 @@ func (m *mockBuildingActionService) Delete(ctx context.Context, id uuid.UUID) er
 	m.deleteCalled++
 	m.deleteId = id
 
+	return m.err
+}
+
+func (m *mockActionService) ProcessActionsUntil(ctx context.Context, planet uuid.UUID, until time.Time) error {
+	m.processActionsCalled++
+	m.planet = planet
+	m.until = until
+	return m.err
+}
+
+func (m *mockPlanetResourceService) UpdatePlanetUntil(ctx context.Context, planet uuid.UUID, until time.Time) error {
+	m.updatePlanetUntilCalled++
+	m.planet = planet
+	m.until = until
 	return m.err
 }

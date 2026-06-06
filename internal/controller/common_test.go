@@ -72,16 +72,6 @@ func TestUnit_FromDbAwareHttpHandler(t *testing.T) {
 	suite.Run(t, &s)
 }
 
-func TestUnit_FromPlanetServiceAwareHttpHandler(t *testing.T) {
-	s := HandlerTestSuite[service.PlanetService]{
-		generateTestFunc: func(in func(*echo.Context, service.PlanetService) error) echo.HandlerFunc {
-			return fromPlanetServiceAwareHttpHandler(in, &mockPlanetService{})
-		},
-	}
-
-	suite.Run(t, &s)
-}
-
 func dummyEchoContext() *echo.Context {
 	ctx, _ := generateTestEchoContextWithMethod(http.MethodGet)
 	return ctx

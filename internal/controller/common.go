@@ -21,11 +21,3 @@ func fromDbAwareHttpHandler(handler dbAwareHttpHandler, conn db.Connection) echo
 		return handler(c, conn)
 	}
 }
-
-type planetServiceAwareHttpHandler func(*echo.Context, service.PlanetService) error
-
-func fromPlanetServiceAwareHttpHandler(handler planetServiceAwareHttpHandler, service service.PlanetService) echo.HandlerFunc {
-	return func(c *echo.Context) error {
-		return handler(c, service)
-	}
-}
