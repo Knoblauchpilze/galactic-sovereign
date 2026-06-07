@@ -8,12 +8,16 @@ import (
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
 	"github.com/Knoblauchpilze/galactic-sovereign/internal/service"
+	"github.com/google/uuid"
 	"github.com/labstack/echo/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
 
-var errDefault = fmt.Errorf("some error")
+var (
+	errDefault  = fmt.Errorf("some error")
+	defaultUuid = uuid.MustParse("08ce96a3-3430-48a8-a3b2-b1c987a207ca")
+)
 
 type HandlerTestSuite[Service any] struct {
 	suite.Suite
