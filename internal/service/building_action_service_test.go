@@ -20,11 +20,11 @@ import (
 func TestIT_BuildingActionService_Create(t *testing.T) {
 	service, conn := newTestBuildingActionService(t)
 
-	planet, _ := insertTestPlanetForPlayer(t, conn)
-	building, _ := insertTestPlanetBuildingForPlanet(t, conn, planet.Id)
+	planetId, _ := insertTestPlanetForPlayer(t, conn)
+	building, _ := insertTestPlanetBuildingForPlanet(t, conn, planetId)
 
 	actionRequest := communication.BuildingActionDtoRequest{
-		Planet:   planet.Id,
+		Planet:   planetId,
 		Building: building.Building,
 	}
 	actionResponse, err := service.Create(context.Background(), actionRequest)
@@ -43,12 +43,12 @@ func TestIT_BuildingActionService_Create(t *testing.T) {
 func TestIT_BuildingActionService_Create_WhenNotEnoughResources_ExpectFailure(t *testing.T) {
 	service, conn := newTestBuildingActionService(t)
 
-	planet, _ := insertTestPlanetForPlayer(t, conn)
-	building, _ := insertTestPlanetBuildingForPlanet(t, conn, planet.Id)
+	planetId, _ := insertTestPlanetForPlayer(t, conn)
+	building, _ := insertTestPlanetBuildingForPlanet(t, conn, planetId)
 	insertTestBuildingCost(t, conn, building.Building)
 
 	actionRequest := communication.BuildingActionDtoRequest{
-		Planet:   planet.Id,
+		Planet:   planetId,
 		Building: building.Building,
 	}
 	_, err := service.Create(context.Background(), actionRequest)
@@ -59,12 +59,12 @@ func TestIT_BuildingActionService_Create_WhenNotEnoughResources_ExpectFailure(t 
 func TestIT_BuildingActionService_Create_WhenBuildingDoesNotExist_ExpectFailure(t *testing.T) {
 	service, conn := newTestBuildingActionService(t)
 
-	planet, _ := insertTestPlanetForPlayer(t, conn)
+	planetId, _ := insertTestPlanetForPlayer(t, conn)
 	building := insertTestBuilding(t, conn)
 	insertTestBuildingCost(t, conn, building.Id)
 
 	actionRequest := communication.BuildingActionDtoRequest{
-		Planet:   planet.Id,
+		Planet:   planetId,
 		Building: building.Id,
 	}
 	_, err := service.Create(context.Background(), actionRequest)
@@ -75,13 +75,13 @@ func TestIT_BuildingActionService_Create_WhenBuildingDoesNotExist_ExpectFailure(
 func TestIT_BuildingActionService_Create_WithCost_ExpectCostToBeRegistered(t *testing.T) {
 	service, conn := newTestBuildingActionService(t)
 
-	planet, _ := insertTestPlanetForPlayer(t, conn)
-	building, _ := insertTestPlanetBuildingForPlanet(t, conn, planet.Id)
+	planetId, _ := insertTestPlanetForPlayer(t, conn)
+	building, _ := insertTestPlanetBuildingForPlanet(t, conn, planetId)
 	cost, _ := insertTestBuildingCost(t, conn, building.Building)
-	insertTestPlanetResourceForResource(t, conn, planet.Id, cost.Resource, time.Now())
+	insertTestPlanetResourceForResource(t, conn, planetId, cost.Resource, time.Now())
 
 	actionRequest := communication.BuildingActionDtoRequest{
-		Planet:   planet.Id,
+		Planet:   planetId,
 		Building: building.Building,
 	}
 	actionResponse, err := service.Create(context.Background(), actionRequest)
@@ -94,15 +94,15 @@ func TestIT_BuildingActionService_Create_WithCost_ExpectCostToBeRegistered(t *te
 func TestIT_BuildingActionService_Create_WithCost_ExpectCostToBeTakenFromResources(t *testing.T) {
 	service, conn := newTestBuildingActionService(t)
 
-	planet, _ := insertTestPlanetForPlayer(t, conn)
-	building, _ := insertTestPlanetBuildingForPlanet(t, conn, planet.Id)
+	planetId, _ := insertTestPlanetForPlayer(t, conn)
+	building, _ := insertTestPlanetBuildingForPlanet(t, conn, planetId)
 	cost, _ := insertTestBuildingCost(t, conn, building.Building)
 	planetResource := insertTestPlanetResourceForResource(
-		t, conn, planet.Id, cost.Resource, time.Now(),
+		t, conn, planetId, cost.Resource, time.Now(),
 	)
 
 	actionRequest := communication.BuildingActionDtoRequest{
-		Planet:   planet.Id,
+		Planet:   planetId,
 		Building: building.Building,
 	}
 	actionResponse, err := service.Create(context.Background(), actionRequest)
@@ -110,18 +110,18 @@ func TestIT_BuildingActionService_Create_WithCost_ExpectCostToBeTakenFromResourc
 	assert.Nil(t, err, "Actual err: %v", err)
 	assertBuildingActionExists(t, conn, actionResponse.Id)
 	expectedCost := 268.0
-	assertPlanetResourceAmount(t, conn, planet.Id, cost.Resource, planetResource.Amount-expectedCost)
+	assertPlanetResourceAmount(t, conn, planetId, cost.Resource, planetResource.Amount-expectedCost)
 }
 
 func TestIT_BuildingActionService_Create_WithResourceProduction_ExpectProductionToBeRegistered(t *testing.T) {
 	service, conn := newTestBuildingActionService(t)
 
-	planet, _ := insertTestPlanetForPlayer(t, conn)
-	building, _ := insertTestPlanetBuildingForPlanet(t, conn, planet.Id)
+	planetId, _ := insertTestPlanetForPlayer(t, conn)
+	building, _ := insertTestPlanetBuildingForPlanet(t, conn, planetId)
 	production, _ := insertTestBuildingResourceProduction(t, conn, building.Building)
 
 	actionRequest := communication.BuildingActionDtoRequest{
-		Planet:   planet.Id,
+		Planet:   planetId,
 		Building: building.Building,
 	}
 	actionResponse, err := service.Create(context.Background(), actionRequest)
@@ -140,12 +140,12 @@ func TestIT_BuildingActionService_Create_WithResourceProduction_ExpectProduction
 func TestIT_BuildingActionService_Create_WithResourceStorage_ExpectStorageToBeRegistered(t *testing.T) {
 	service, conn := newTestBuildingActionService(t)
 
-	planet, _ := insertTestPlanetForPlayer(t, conn)
-	building, _ := insertTestPlanetBuildingForPlanet(t, conn, planet.Id)
+	planetId, _ := insertTestPlanetForPlayer(t, conn)
+	building, _ := insertTestPlanetBuildingForPlanet(t, conn, planetId)
 	storage, _ := insertTestBuildingResourceStorage(t, conn, building.Building)
 
 	actionRequest := communication.BuildingActionDtoRequest{
-		Planet:   planet.Id,
+		Planet:   planetId,
 		Building: building.Building,
 	}
 	actionResponse, err := service.Create(context.Background(), actionRequest)
@@ -164,13 +164,13 @@ func TestIT_BuildingActionService_Create_WithResourceStorage_ExpectStorageToBeRe
 func TestIT_BuildingActionService_Delete(t *testing.T) {
 	service, conn := newTestBuildingActionService(t)
 
-	planet, _ := insertTestPlanetForPlayer(t, conn)
+	planetId, _ := insertTestPlanetForPlayer(t, conn)
 	createdAt := time.Now()
 	completedAt := createdAt.Add(2 * time.Hour)
 	action, _ := insertTestBuildingActionForPlanetWithTimes(
 		t,
 		conn,
-		planet.Id,
+		planetId,
 		createdAt,
 		completedAt,
 	)
@@ -184,12 +184,12 @@ func TestIT_BuildingActionService_Delete(t *testing.T) {
 func TestIT_BuildingActionService_Delete_ExpectCostsToBeDeleted(t *testing.T) {
 	service, conn := newTestBuildingActionService(t)
 
-	planet, _ := insertTestPlanetForPlayer(t, conn)
+	planetId, _ := insertTestPlanetForPlayer(t, conn)
 	createdAt := time.Now()
 	completedAt := createdAt.Add(2 * time.Hour)
-	action, _ := insertTestBuildingActionForPlanetWithTimes(t, conn, planet.Id, createdAt, completedAt)
+	action, _ := insertTestBuildingActionForPlanetWithTimes(t, conn, planetId, createdAt, completedAt)
 	_, res := insertTestBuildingActionCostForAction(t, conn, action.Id)
-	insertTestPlanetResourceForResource(t, conn, planet.Id, res.Id, time.Now())
+	insertTestPlanetResourceForResource(t, conn, planetId, res.Id, time.Now())
 
 	err := service.Delete(context.Background(), action.Id)
 
@@ -201,13 +201,13 @@ func TestIT_BuildingActionService_Delete_ExpectCostsToBeDeleted(t *testing.T) {
 func TestIT_BuildingActionService_Delete_ExpectResourcesToBeRestored(t *testing.T) {
 	service, conn := newTestBuildingActionService(t)
 
-	planet, _ := insertTestPlanetForPlayer(t, conn)
+	planetId, _ := insertTestPlanetForPlayer(t, conn)
 	createdAt := time.Now()
 	completedAt := createdAt.Add(2 * time.Hour)
-	action, _ := insertTestBuildingActionForPlanetWithTimes(t, conn, planet.Id, createdAt, completedAt)
+	action, _ := insertTestBuildingActionForPlanetWithTimes(t, conn, planetId, createdAt, completedAt)
 	cost, _ := insertTestBuildingActionCostForAction(t, conn, action.Id)
 	planetResource := insertTestPlanetResourceForResource(
-		t, conn, planet.Id, cost.Resource, time.Now(),
+		t, conn, planetId, cost.Resource, time.Now(),
 	)
 
 	err := service.Delete(context.Background(), action.Id)
@@ -215,16 +215,16 @@ func TestIT_BuildingActionService_Delete_ExpectResourcesToBeRestored(t *testing.
 	assert.Nil(t, err, "Actual err: %v", err)
 	assertBuildingActionDoesNotExist(t, conn, action.Id)
 	expectedAmount := planetResource.Amount + float64(cost.Amount)
-	assertPlanetResourceAmount(t, conn, planet.Id, planetResource.Resource, expectedAmount)
+	assertPlanetResourceAmount(t, conn, planetId, planetResource.Resource, expectedAmount)
 }
 
 func TestIT_BuildingActionService_Delete_ExpectResourceProductionToBeDeleted(t *testing.T) {
 	service, conn := newTestBuildingActionService(t)
 
-	planet, _ := insertTestPlanetForPlayer(t, conn)
+	planetId, _ := insertTestPlanetForPlayer(t, conn)
 	createdAt := time.Now()
 	completedAt := createdAt.Add(2 * time.Hour)
-	action, _ := insertTestBuildingActionForPlanetWithTimes(t, conn, planet.Id, createdAt, completedAt)
+	action, _ := insertTestBuildingActionForPlanetWithTimes(t, conn, planetId, createdAt, completedAt)
 	insertTestBuildingActionResourceProductionForAction(t, conn, action.Id)
 
 	err := service.Delete(context.Background(), action.Id)
@@ -237,10 +237,10 @@ func TestIT_BuildingActionService_Delete_ExpectResourceProductionToBeDeleted(t *
 func TestIT_BuildingActionService_Delete_ExpectResourceStorageToBeDeleted(t *testing.T) {
 	service, conn := newTestBuildingActionService(t)
 
-	planet, _ := insertTestPlanetForPlayer(t, conn)
+	planetId, _ := insertTestPlanetForPlayer(t, conn)
 	createdAt := time.Now()
 	completedAt := createdAt.Add(2 * time.Hour)
-	action, _ := insertTestBuildingActionForPlanetWithTimes(t, conn, planet.Id, createdAt, completedAt)
+	action, _ := insertTestBuildingActionForPlanetWithTimes(t, conn, planetId, createdAt, completedAt)
 	insertTestBuildingActionResourceStorageForAction(t, conn, action.Id)
 
 	err := service.Delete(context.Background(), action.Id)
@@ -253,10 +253,10 @@ func TestIT_BuildingActionService_Delete_ExpectResourceStorageToBeDeleted(t *tes
 func TestIT_BuildingActionService_Delete_WhenActionAlreadyCompleted_ExpectFailure(t *testing.T) {
 	service, conn := newTestBuildingActionService(t)
 
-	planet, _ := insertTestPlanetForPlayer(t, conn)
+	planetId, _ := insertTestPlanetForPlayer(t, conn)
 	createdAt := time.Now().Add(-23 * time.Hour)
 	completedAt := createdAt.Add(30 * time.Minute)
-	action, _ := insertTestBuildingActionForPlanetWithTimes(t, conn, planet.Id, createdAt, completedAt)
+	action, _ := insertTestBuildingActionForPlanetWithTimes(t, conn, planetId, createdAt, completedAt)
 
 	err := service.Delete(context.Background(), action.Id)
 
@@ -275,13 +275,13 @@ func TestIT_BuildingActionService_CreationDeletionWorkflow(t *testing.T) {
 
 	service, conn := newTestBuildingActionServiceWithCompletionTime(t, completionTimeFunc)
 
-	planet, _ := insertTestPlanetForPlayer(t, conn)
-	building, _ := insertTestPlanetBuildingForPlanet(t, conn, planet.Id)
+	planetId, _ := insertTestPlanetForPlayer(t, conn)
+	building, _ := insertTestPlanetBuildingForPlanet(t, conn, planetId)
 	_, resource := insertTestBuildingCost(t, conn, building.Building)
-	insertTestPlanetResourceForResource(t, conn, planet.Id, resource.Id, time.Now())
+	insertTestPlanetResourceForResource(t, conn, planetId, resource.Id, time.Now())
 
 	actionRequest := communication.BuildingActionDtoRequest{
-		Planet:   planet.Id,
+		Planet:   planetId,
 		Building: building.Building,
 	}
 

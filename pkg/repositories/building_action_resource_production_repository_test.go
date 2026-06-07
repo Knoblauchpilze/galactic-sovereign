@@ -17,7 +17,7 @@ import (
 func TestIT_BuildingActionResourceProductionRepository_Create(t *testing.T) {
 	repo, conn, tx := newTestBuildingActionResourceProductionRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
-	action, _ := insertTestBuildingAction(t, conn)
+	action, _, _ := insertTestBuildingAction(t, conn)
 	resource := insertTestResource(t, conn)
 
 	production := persistence.BuildingActionResourceProduction{
@@ -86,7 +86,7 @@ func newTestBuildingActionResourceProductionRepositoryAndTransaction(t *testing.
 }
 
 func insertTestBuildingActionResourceProduction(t *testing.T, conn db.Connection) (persistence.BuildingActionResourceProduction, persistence.BuildingAction, persistence.Resource) {
-	action, _ := insertTestBuildingAction(t, conn)
+	action, _, _ := insertTestBuildingAction(t, conn)
 	production, resource := insertTestBuildingActionResourceProductionForAction(t, conn, action.Id)
 	return production, action, resource
 }

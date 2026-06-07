@@ -18,11 +18,11 @@ import (
 func TestIT_PlanetResourceRepository_Create(t *testing.T) {
 	repo, conn, tx := newTestPlanetResourceRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
-	planet, _ := insertTestPlanetForPlayer(t, conn)
+	planetId, _ := insertTestPlanetForPlayer(t, conn)
 	resource := insertTestResource(t, conn)
 
 	planetResource := persistence.PlanetResource{
-		Planet:    planet.Id,
+		Planet:    planetId,
 		Resource:  resource.Id,
 		Amount:    29,
 		CreatedAt: time.Now(),
@@ -34,17 +34,17 @@ func TestIT_PlanetResourceRepository_Create(t *testing.T) {
 
 	assert.True(t, eassert.EqualsIgnoringFields(actual, planetResource, "UpdatedAt"))
 	assert.Equal(t, actual.UpdatedAt, actual.CreatedAt)
-	assertPlanetResourceExists(t, conn, planet.Id, resource.Id)
+	assertPlanetResourceExists(t, conn, planetId, resource.Id)
 }
 
 func TestIT_PlanetResourceRepository_Create_WhenDuplicateResource_ExpectFailure(t *testing.T) {
 	repo, conn, tx := newTestPlanetResourceRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
-	planet, _ := insertTestPlanetForPlayer(t, conn)
-	planetResource, resource := insertTestPlanetResource(t, conn, planet.Id)
+	planetId, _ := insertTestPlanetForPlayer(t, conn)
+	planetResource, resource := insertTestPlanetResource(t, conn, planetId)
 
 	newResource := persistence.PlanetResource{
-		Planet:    planet.Id,
+		Planet:    planetId,
 		Resource:  resource.Id,
 		Amount:    planetResource.Amount * 2,
 		CreatedAt: time.Now(),
@@ -54,19 +54,19 @@ func TestIT_PlanetResourceRepository_Create_WhenDuplicateResource_ExpectFailure(
 	tx.Close(context.Background())
 
 	assert.True(t, errors.IsErrorWithCode(err, pgx.UniqueConstraintViolation), "Actual err: %v", err)
-	assertPlanetResourceAmount(t, conn, planet.Id, resource.Id, planetResource.Amount)
+	assertPlanetResourceAmount(t, conn, planetId, resource.Id, planetResource.Amount)
 }
 
 func TestIT_PlanetResourceRepository_ListForPlanet(t *testing.T) {
 	repo, conn, tx := newTestPlanetResourceRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
-	planet1, _ := insertTestPlanetForPlayer(t, conn)
-	pr1, _ := insertTestPlanetResource(t, conn, planet1.Id)
-	pr2, _ := insertTestPlanetResource(t, conn, planet1.Id)
-	planet2, _ := insertTestPlanetForPlayer(t, conn)
-	_, r3 := insertTestPlanetResource(t, conn, planet2.Id)
+	planetId1, _ := insertTestPlanetForPlayer(t, conn)
+	pr1, _ := insertTestPlanetResource(t, conn, planetId1)
+	pr2, _ := insertTestPlanetResource(t, conn, planetId1)
+	planetId2, _ := insertTestPlanetForPlayer(t, conn)
+	_, r3 := insertTestPlanetResource(t, conn, planetId2)
 
-	actual, err := repo.ListForPlanet(context.Background(), tx, planet1.Id)
+	actual, err := repo.ListForPlanet(context.Background(), tx, planetId1)
 	tx.Close(context.Background())
 
 	assert.Nil(t, err)
@@ -74,7 +74,7 @@ func TestIT_PlanetResourceRepository_ListForPlanet(t *testing.T) {
 	assert.True(t, eassert.ContainsIgnoringFields(actual, pr1))
 	assert.True(t, eassert.ContainsIgnoringFields(actual, pr2))
 	for _, planetResource := range actual {
-		assert.NotEqual(t, planetResource.Planet, planet2.Id)
+		assert.NotEqual(t, planetResource.Planet, planetId2)
 		assert.NotEqual(t, planetResource.Resource, r3.Id)
 	}
 }
@@ -82,8 +82,8 @@ func TestIT_PlanetResourceRepository_ListForPlanet(t *testing.T) {
 func TestIT_PlanetResourceRepository_Update(t *testing.T) {
 	repo, conn, tx := newTestPlanetResourceRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
-	planet, _ := insertTestPlanetForPlayer(t, conn)
-	planetResource, resource := insertTestPlanetResource(t, conn, planet.Id)
+	planetId, _ := insertTestPlanetForPlayer(t, conn)
+	planetResource, resource := insertTestPlanetResource(t, conn, planetId)
 
 	updatedPlanetResource := planetResource
 	updatedPlanetResource.UpdatedAt = planetResource.UpdatedAt.Add(3 * time.Second)
@@ -95,7 +95,7 @@ func TestIT_PlanetResourceRepository_Update(t *testing.T) {
 	assert.Nil(t, err)
 
 	expected := persistence.PlanetResource{
-		Planet:    planet.Id,
+		Planet:    planetId,
 		Resource:  resource.Id,
 		Amount:    planetResource.Amount * 3,
 		CreatedAt: planetResource.CreatedAt,
@@ -108,8 +108,8 @@ func TestIT_PlanetResourceRepository_Update(t *testing.T) {
 func TestIT_PlanetResourceRepository_Update_WhenVersionIsWrong_ExpectOptimisticLockException(t *testing.T) {
 	repo, conn, tx := newTestPlanetResourceRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
-	planet, _ := insertTestPlanetForPlayer(t, conn)
-	planetResource, _ := insertTestPlanetResource(t, conn, planet.Id)
+	planetId, _ := insertTestPlanetForPlayer(t, conn)
+	planetResource, _ := insertTestPlanetResource(t, conn, planetId)
 
 	updatedPlanetResource := planetResource
 	updatedPlanetResource.Amount = planetResource.Amount * 4
@@ -124,8 +124,8 @@ func TestIT_PlanetResourceRepository_Update_WhenVersionIsWrong_ExpectOptimisticL
 func TestIT_PlanetResourceRepository_Update_BumpsUpdatedAt(t *testing.T) {
 	repo, conn := newTestPlanetResourceRepository(t)
 	defer conn.Close(context.Background())
-	planet, _ := insertTestPlanetForPlayer(t, conn)
-	planetResource, _ := insertTestPlanetResource(t, conn, planet.Id)
+	planetId, _ := insertTestPlanetForPlayer(t, conn)
+	planetResource, _ := insertTestPlanetResource(t, conn, planetId)
 
 	updatedPlanetResource := planetResource
 	updatedPlanetResource.UpdatedAt = planetResource.UpdatedAt.Add(2 * time.Second)
@@ -146,7 +146,7 @@ func TestIT_PlanetResourceRepository_Update_BumpsUpdatedAt(t *testing.T) {
 		require.Nil(t, err)
 		defer tx.Close(context.Background())
 
-		allResources, err := repo.ListForPlanet(context.Background(), tx, planet.Id)
+		allResources, err := repo.ListForPlanet(context.Background(), tx, planetId)
 		require.Nil(t, err)
 		assert.Len(t, allResources, 1)
 
@@ -159,8 +159,8 @@ func TestIT_PlanetResourceRepository_Update_BumpsUpdatedAt(t *testing.T) {
 func TestIT_PlanetResourceRepository_Update_BumpsVersion(t *testing.T) {
 	repo, conn := newTestPlanetResourceRepository(t)
 	defer conn.Close(context.Background())
-	planet, _ := insertTestPlanetForPlayer(t, conn)
-	planetResource, _ := insertTestPlanetResource(t, conn, planet.Id)
+	planetId, _ := insertTestPlanetForPlayer(t, conn)
+	planetResource, _ := insertTestPlanetResource(t, conn, planetId)
 
 	updatedPlanetResource := planetResource
 	updatedPlanetResource.Amount = planetResource.Amount * 3
@@ -180,7 +180,7 @@ func TestIT_PlanetResourceRepository_Update_BumpsVersion(t *testing.T) {
 		require.Nil(t, err)
 		defer tx.Close(context.Background())
 
-		allResources, err := repo.ListForPlanet(context.Background(), tx, planet.Id)
+		allResources, err := repo.ListForPlanet(context.Background(), tx, planetId)
 		require.Nil(t, err)
 		assert.Len(t, allResources, 1)
 
@@ -235,13 +235,6 @@ func assertPlanetResourceExists(t *testing.T, conn db.Connection, planet uuid.UU
 	value, err := db.QueryOne[int](context.Background(), conn, sqlQuery, planet, resource)
 	require.Nil(t, err)
 	require.Equal(t, 1, value)
-}
-
-func assertPlanetResourceDoesNotExist(t *testing.T, conn db.Connection, planet uuid.UUID) {
-	sqlQuery := `SELECT COUNT(resource) FROM planet_resource WHERE planet = $1`
-	value, err := db.QueryOne[int](context.Background(), conn, sqlQuery, planet)
-	require.Nil(t, err)
-	require.Zero(t, value)
 }
 
 func assertPlanetResourceAmount(t *testing.T, conn db.Connection, planet uuid.UUID, resource uuid.UUID, amount float64) {

@@ -17,7 +17,7 @@ import (
 func TestIT_BuildingActionCostRepository_Create(t *testing.T) {
 	repo, conn, tx := newTestBuildingActionCostRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
-	action, _ := insertTestBuildingAction(t, conn)
+	action, _, _ := insertTestBuildingAction(t, conn)
 	resource := insertTestResource(t, conn)
 
 	cost := persistence.BuildingActionCost{
@@ -86,7 +86,7 @@ func newTestBuildingActionCostRepositoryAndTransaction(t *testing.T) (BuildingAc
 }
 
 func insertTestBuildingActionCost(t *testing.T, conn db.Connection) (persistence.BuildingActionCost, persistence.BuildingAction, persistence.Resource) {
-	action, _ := insertTestBuildingAction(t, conn)
+	action, _, _ := insertTestBuildingAction(t, conn)
 	cost, resource := insertTestBuildingActionCostForAction(t, conn, action.Id)
 	return cost, action, resource
 }

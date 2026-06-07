@@ -17,30 +17,30 @@ import (
 
 func TestIT_ActionService_ProcessActionUntil_WhenNoAction_ExpectSuccess(t *testing.T) {
 	service, conn := newTestActionService(t)
-	planet, _ := insertTestPlanetForPlayer(t, conn)
+	planetId, _ := insertTestPlanetForPlayer(t, conn)
 
 	veryFarInThePast := time.Now().Add(-800 * time.Hour)
 
-	err := service.ProcessActionsUntil(context.Background(), planet.Id, veryFarInThePast)
+	err := service.ProcessActionsUntil(context.Background(), planetId, veryFarInThePast)
 
 	assert.Nil(t, err)
 }
 
 func TestIT_ActionService_ProcessActionUntil_WhenActionIsNotCompleted_ExpectNotProcessed(t *testing.T) {
 	service, conn := newTestActionService(t)
-	planet, _ := insertTestPlanetForPlayer(t, conn)
+	planetId, _ := insertTestPlanetForPlayer(t, conn)
 	createdAt := time.Now().Add(-2 * time.Hour)
 	completedAt := createdAt.Add(8 * time.Hour)
 	action, _ := insertTestBuildingActionForPlanetWithTimes(
 		t,
 		conn,
-		planet.Id,
+		planetId,
 		createdAt,
 		completedAt,
 	)
 	beforeActionCompletes := completedAt.Add(-1 * time.Hour)
 
-	err := service.ProcessActionsUntil(context.Background(), planet.Id, beforeActionCompletes)
+	err := service.ProcessActionsUntil(context.Background(), planetId, beforeActionCompletes)
 
 	assert.Nil(t, err)
 	assertBuildingActionExists(t, conn, action.Id)
@@ -48,18 +48,18 @@ func TestIT_ActionService_ProcessActionUntil_WhenActionIsNotCompleted_ExpectNotP
 
 func TestIT_ActionService_ProcessActionUntil_WhenProcessingFail_ExpectActionIsNotRemoved(t *testing.T) {
 	service, conn := newTestActionService(t)
-	planet, _ := insertTestPlanetForPlayer(t, conn)
+	planetId, _ := insertTestPlanetForPlayer(t, conn)
 	createdAt := time.Now().Add(-2 * time.Hour)
 	completedAt := createdAt.Add(1 * time.Hour)
 	action, _ := insertTestBuildingActionForPlanetWithTimes(
 		t,
 		conn,
-		planet.Id,
+		planetId,
 		createdAt,
 		completedAt,
 	)
 
-	err := service.ProcessActionsUntil(context.Background(), planet.Id, time.Now())
+	err := service.ProcessActionsUntil(context.Background(), planetId, time.Now())
 
 	// Processing this action fails because the building associated with
 	// it does not exist on the planet.
@@ -69,21 +69,21 @@ func TestIT_ActionService_ProcessActionUntil_WhenProcessingFail_ExpectActionIsNo
 
 func TestIT_ActionService_ProcessActionUntil_WhenActionIsCompleted_ExpectRemoval(t *testing.T) {
 	service, conn := newTestActionService(t)
-	planet, _ := insertTestPlanetForPlayer(t, conn)
-	planetBuilding, _ := insertTestPlanetBuildingForPlanet(t, conn, planet.Id)
+	planetId, _ := insertTestPlanetForPlayer(t, conn)
+	planetBuilding, _ := insertTestPlanetBuildingForPlanet(t, conn, planetId)
 	createdAt := time.Now().Add(-2 * time.Hour)
 	completedAt := createdAt.Add(-1 * time.Hour)
 	action := insertTestBuildingActionForPlanetAndBuildingWithTimes(
 		t,
 		conn,
-		planet.Id,
+		planetId,
 		planetBuilding.Building,
 		createdAt,
 		completedAt,
 	)
 	afterActionCompletes := completedAt.Add(1 * time.Second)
 
-	err := service.ProcessActionsUntil(context.Background(), planet.Id, afterActionCompletes)
+	err := service.ProcessActionsUntil(context.Background(), planetId, afterActionCompletes)
 
 	assert.Nil(t, err)
 	assertBuildingActionDoesNotExist(t, conn, action.Id)
@@ -91,25 +91,25 @@ func TestIT_ActionService_ProcessActionUntil_WhenActionIsCompleted_ExpectRemoval
 
 func TestIT_ActionService_ProcessActionUntil_ExpectResourcesToBeUpdatedToCompletionTime(t *testing.T) {
 	service, conn := newTestActionService(t)
-	planet, _ := insertTestPlanetForPlayer(t, conn)
-	planetBuilding, _ := insertTestPlanetBuildingForPlanet(t, conn, planet.Id)
-	planetResourceProd, res := insertTestPlanetResourceProductionForBuilding(t, conn, planet.Id, planetBuilding.Building)
-	insertTestPlanetResourceStorageForResource(t, conn, planet.Id, res.Id, 50_000)
+	planetId, _ := insertTestPlanetForPlayer(t, conn)
+	planetBuilding, _ := insertTestPlanetBuildingForPlanet(t, conn, planetId)
+	planetResourceProd, res := insertTestPlanetResourceProductionForBuilding(t, conn, planetId, planetBuilding.Building)
+	insertTestPlanetResourceStorageForResource(t, conn, planetId, res.Id, 50_000)
 	createdAt := time.Now().Add(-3 * time.Hour)
 	completedAt := createdAt.Add(2 * time.Hour)
 	action := insertTestBuildingActionForPlanetAndBuildingWithTimes(
 		t,
 		conn,
-		planet.Id,
+		planetId,
 		planetBuilding.Building,
 		createdAt,
 		completedAt,
 	)
 	updatedAt := createdAt.Add(1 * time.Hour)
-	planetResource := insertTestPlanetResourceForResource(t, conn, planet.Id, res.Id, updatedAt)
+	planetResource := insertTestPlanetResourceForResource(t, conn, planetId, res.Id, updatedAt)
 
 	afterActionCompletes := completedAt.Add(1 * time.Second)
-	err := service.ProcessActionsUntil(context.Background(), planet.Id, afterActionCompletes)
+	err := service.ProcessActionsUntil(context.Background(), planetId, afterActionCompletes)
 
 	assert.Nil(t, err)
 	assertBuildingActionDoesNotExist(t, conn, action.Id)
@@ -126,32 +126,32 @@ func TestIT_ActionService_ProcessActionUntil_ExpectResourcesToBeUpdatedToComplet
 
 func TestIT_ActionService_ProcessActionUntil_WhenResourceIsNotProduced_ExpectResourceToStayTheSame(t *testing.T) {
 	service, conn := newTestActionService(t)
-	planet, _ := insertTestPlanetForPlayer(t, conn)
-	planetBuilding, _ := insertTestPlanetBuildingForPlanet(t, conn, planet.Id)
+	planetId, _ := insertTestPlanetForPlayer(t, conn)
+	planetBuilding, _ := insertTestPlanetBuildingForPlanet(t, conn, planetId)
 	res := insertTestResource(t, conn)
-	insertTestPlanetResourceStorageForResource(t, conn, planet.Id, res.Id, 50_000)
+	insertTestPlanetResourceStorageForResource(t, conn, planetId, res.Id, 50_000)
 	createdAt := time.Now().Add(-3 * time.Hour)
 	completedAt := createdAt.Add(2 * time.Hour)
 	action := insertTestBuildingActionForPlanetAndBuildingWithTimes(
 		t,
 		conn,
-		planet.Id,
+		planetId,
 		planetBuilding.Building,
 		createdAt,
 		completedAt,
 	)
 	updatedAt := createdAt.Add(1 * time.Hour)
-	planetResource := insertTestPlanetResourceForResource(t, conn, planet.Id, res.Id, updatedAt)
+	planetResource := insertTestPlanetResourceForResource(t, conn, planetId, res.Id, updatedAt)
 
 	afterActionCompletes := completedAt.Add(1 * time.Second)
-	err := service.ProcessActionsUntil(context.Background(), planet.Id, afterActionCompletes)
+	err := service.ProcessActionsUntil(context.Background(), planetId, afterActionCompletes)
 
 	assert.Nil(t, err)
 	assertBuildingActionDoesNotExist(t, conn, action.Id)
 	assertPlanetResourceAmount(
 		t,
 		conn,
-		planet.Id,
+		planetId,
 		res.Id,
 		planetResource.Amount,
 	)
@@ -159,32 +159,32 @@ func TestIT_ActionService_ProcessActionUntil_WhenResourceIsNotProduced_ExpectRes
 
 func TestIT_ActionService_ProcessActionUntil_WhenStorageIsAlreadyFull_ExpectResourceToStayTheSame(t *testing.T) {
 	service, conn := newTestActionService(t)
-	planet, _ := insertTestPlanetForPlayer(t, conn)
-	planetBuilding, _ := insertTestPlanetBuildingForPlanet(t, conn, planet.Id)
-	planetResourceProd, res := insertTestPlanetResourceProductionForBuilding(t, conn, planet.Id, planetBuilding.Building)
+	planetId, _ := insertTestPlanetForPlayer(t, conn)
+	planetBuilding, _ := insertTestPlanetBuildingForPlanet(t, conn, planetId)
+	planetResourceProd, res := insertTestPlanetResourceProductionForBuilding(t, conn, planetId, planetBuilding.Building)
 	createdAt := time.Now().Add(-3 * time.Hour)
 	completedAt := createdAt.Add(2 * time.Hour)
 	action := insertTestBuildingActionForPlanetAndBuildingWithTimes(
 		t,
 		conn,
-		planet.Id,
+		planetId,
 		planetBuilding.Building,
 		createdAt,
 		completedAt,
 	)
 	updatedAt := createdAt.Add(1 * time.Hour)
-	planetResource := insertTestPlanetResourceForResource(t, conn, planet.Id, res.Id, updatedAt)
+	planetResource := insertTestPlanetResourceForResource(t, conn, planetId, res.Id, updatedAt)
 	lowerStorageThanWhatAlreadyExists := int(planetResource.Amount - 100)
 	insertTestPlanetResourceStorageForResource(
 		t,
 		conn,
-		planet.Id,
+		planetId,
 		res.Id,
 		lowerStorageThanWhatAlreadyExists,
 	)
 
 	afterActionCompletes := completedAt.Add(1 * time.Second)
-	err := service.ProcessActionsUntil(context.Background(), planet.Id, afterActionCompletes)
+	err := service.ProcessActionsUntil(context.Background(), planetId, afterActionCompletes)
 
 	assert.Nil(t, err)
 	assertBuildingActionDoesNotExist(t, conn, action.Id)
@@ -199,21 +199,21 @@ func TestIT_ActionService_ProcessActionUntil_WhenStorageIsAlreadyFull_ExpectReso
 
 func TestIT_ActionService_ProcessActionUntil_WhenStorageCanNotHoldAllProduction_ExpectResourceToFillStorage(t *testing.T) {
 	service, conn := newTestActionService(t)
-	planet, _ := insertTestPlanetForPlayer(t, conn)
-	planetBuilding, _ := insertTestPlanetBuildingForPlanet(t, conn, planet.Id)
-	planetResourceProd, res := insertTestPlanetResourceProductionForBuilding(t, conn, planet.Id, planetBuilding.Building)
+	planetId, _ := insertTestPlanetForPlayer(t, conn)
+	planetBuilding, _ := insertTestPlanetBuildingForPlanet(t, conn, planetId)
+	planetResourceProd, res := insertTestPlanetResourceProductionForBuilding(t, conn, planetId, planetBuilding.Building)
 	createdAt := time.Now().Add(-3 * time.Hour)
 	completedAt := createdAt.Add(2 * time.Hour)
 	action := insertTestBuildingActionForPlanetAndBuildingWithTimes(
 		t,
 		conn,
-		planet.Id,
+		planetId,
 		planetBuilding.Building,
 		createdAt,
 		completedAt,
 	)
 	updatedAt := createdAt.Add(1 * time.Hour)
-	planetResource := insertTestPlanetResourceForResource(t, conn, planet.Id, res.Id, updatedAt)
+	planetResource := insertTestPlanetResourceForResource(t, conn, planetId, res.Id, updatedAt)
 
 	elapsed := completedAt.Sub(updatedAt)
 	expectedProduction := elapsed.Hours() * float64(planetResourceProd.Production)
@@ -222,13 +222,13 @@ func TestIT_ActionService_ProcessActionUntil_WhenStorageCanNotHoldAllProduction_
 	insertTestPlanetResourceStorageForResource(
 		t,
 		conn,
-		planet.Id,
+		planetId,
 		res.Id,
 		int(lowerStorageThanNeeded),
 	)
 
 	afterActionCompletes := completedAt.Add(1 * time.Second)
-	err := service.ProcessActionsUntil(context.Background(), planet.Id, afterActionCompletes)
+	err := service.ProcessActionsUntil(context.Background(), planetId, afterActionCompletes)
 
 	assert.Nil(t, err)
 	assertBuildingActionDoesNotExist(t, conn, action.Id)
@@ -244,40 +244,40 @@ func TestIT_ActionService_ProcessActionUntil_WhenStorageCanNotHoldAllProduction_
 
 func TestIT_ActionService_ProcessActionUntil_ExpectBuildingToBeUpdated(t *testing.T) {
 	service, conn := newTestActionService(t)
-	planet, _ := insertTestPlanetForPlayer(t, conn)
-	planetBuilding, _ := insertTestPlanetBuildingForPlanet(t, conn, planet.Id)
+	planetId, _ := insertTestPlanetForPlayer(t, conn)
+	planetBuilding, _ := insertTestPlanetBuildingForPlanet(t, conn, planetId)
 	createdAt := time.Now().Add(-3 * time.Hour)
 	completedAt := createdAt.Add(2 * time.Hour)
 	action := insertTestBuildingActionForPlanetAndBuildingWithTimes(
 		t,
 		conn,
-		planet.Id,
+		planetId,
 		planetBuilding.Building,
 		createdAt,
 		completedAt,
 	)
 
 	afterActionCompletes := completedAt.Add(1 * time.Second)
-	err := service.ProcessActionsUntil(context.Background(), planet.Id, afterActionCompletes)
+	err := service.ProcessActionsUntil(context.Background(), planetId, afterActionCompletes)
 
 	assert.Nil(t, err)
 	assertBuildingActionDoesNotExist(t, conn, action.Id)
 	expectedLevel := action.DesiredLevel
-	assertPlanetBuildingLevel(t, conn, planet.Id, planetBuilding.Building, expectedLevel)
+	assertPlanetBuildingLevel(t, conn, planetId, planetBuilding.Building, expectedLevel)
 }
 
 func TestIT_ActionService_ProcessActionUntil_ExpectResourceProductionToBeUpdated(t *testing.T) {
 	service, conn := newTestActionService(t)
-	planet, _ := insertTestPlanetForPlayer(t, conn)
-	planetBuilding, _ := insertTestPlanetBuildingForPlanet(t, conn, planet.Id)
-	prp1, res1 := insertTestPlanetResourceProductionForBuilding(t, conn, planet.Id, planetBuilding.Building)
-	prp2, res2 := insertTestPlanetResourceProduction(t, conn, planet.Id)
+	planetId, _ := insertTestPlanetForPlayer(t, conn)
+	planetBuilding, _ := insertTestPlanetBuildingForPlanet(t, conn, planetId)
+	prp1, res1 := insertTestPlanetResourceProductionForBuilding(t, conn, planetId, planetBuilding.Building)
+	prp2, res2 := insertTestPlanetResourceProduction(t, conn, planetId)
 	createdAt := time.Now().Add(-3 * time.Hour)
 	completedAt := createdAt.Add(2 * time.Hour)
 	action := insertTestBuildingActionForPlanetAndBuildingWithTimes(
 		t,
 		conn,
-		planet.Id,
+		planetId,
 		planetBuilding.Building,
 		createdAt,
 		completedAt,
@@ -290,14 +290,14 @@ func TestIT_ActionService_ProcessActionUntil_ExpectResourceProductionToBeUpdated
 	)
 
 	afterActionCompletes := completedAt.Add(1 * time.Second)
-	err := service.ProcessActionsUntil(context.Background(), planet.Id, afterActionCompletes)
+	err := service.ProcessActionsUntil(context.Background(), planetId, afterActionCompletes)
 
 	assert.Nil(t, err)
 	assertBuildingActionDoesNotExist(t, conn, action.Id)
 	assertPlanetResourceProductionForBuilding(
 		t,
 		conn,
-		planet.Id,
+		planetId,
 		res1.Id,
 		*prp1.Building,
 		actionProduction.Production,
@@ -305,7 +305,7 @@ func TestIT_ActionService_ProcessActionUntil_ExpectResourceProductionToBeUpdated
 	assertPlanetResourceProductionWithoutBuilding(
 		t,
 		conn,
-		planet.Id,
+		planetId,
 		res2.Id,
 		prp2.Production,
 	)
@@ -313,15 +313,15 @@ func TestIT_ActionService_ProcessActionUntil_ExpectResourceProductionToBeUpdated
 
 func TestIT_ActionService_ProcessActionUntil_WhenResourceIsNotProduced_ExpectResourceProductionCreatedToNewValue(t *testing.T) {
 	service, conn := newTestActionService(t)
-	planet, _ := insertTestPlanetForPlayer(t, conn)
-	planetBuilding, _ := insertTestPlanetBuildingForPlanet(t, conn, planet.Id)
+	planetId, _ := insertTestPlanetForPlayer(t, conn)
+	planetBuilding, _ := insertTestPlanetBuildingForPlanet(t, conn, planetId)
 	res := insertTestResource(t, conn)
 	createdAt := time.Now().Add(-3 * time.Hour)
 	completedAt := createdAt.Add(2 * time.Hour)
 	action := insertTestBuildingActionForPlanetAndBuildingWithTimes(
 		t,
 		conn,
-		planet.Id,
+		planetId,
 		planetBuilding.Building,
 		createdAt,
 		completedAt,
@@ -334,14 +334,14 @@ func TestIT_ActionService_ProcessActionUntil_WhenResourceIsNotProduced_ExpectRes
 	)
 
 	afterActionCompletes := completedAt.Add(1 * time.Second)
-	err := service.ProcessActionsUntil(context.Background(), planet.Id, afterActionCompletes)
+	err := service.ProcessActionsUntil(context.Background(), planetId, afterActionCompletes)
 
 	assert.Nil(t, err)
 	assertBuildingActionDoesNotExist(t, conn, action.Id)
 	assertPlanetResourceProductionForBuilding(
 		t,
 		conn,
-		planet.Id,
+		planetId,
 		res.Id,
 		planetBuilding.Building,
 		actionProduction.Production,
@@ -350,16 +350,16 @@ func TestIT_ActionService_ProcessActionUntil_WhenResourceIsNotProduced_ExpectRes
 
 func TestIT_ActionService_ProcessActionUntil_ExpectResourceStorageToBeUpdated(t *testing.T) {
 	service, conn := newTestActionService(t)
-	planet, _ := insertTestPlanetForPlayer(t, conn)
-	planetBuilding, _ := insertTestPlanetBuildingForPlanet(t, conn, planet.Id)
-	_, res1 := insertTestPlanetResourceStorage(t, conn, planet.Id)
-	prs2, res2 := insertTestPlanetResourceStorage(t, conn, planet.Id)
+	planetId, _ := insertTestPlanetForPlayer(t, conn)
+	planetBuilding, _ := insertTestPlanetBuildingForPlanet(t, conn, planetId)
+	_, res1 := insertTestPlanetResourceStorage(t, conn, planetId)
+	prs2, res2 := insertTestPlanetResourceStorage(t, conn, planetId)
 	createdAt := time.Now().Add(-3 * time.Hour)
 	completedAt := createdAt.Add(2 * time.Hour)
 	action := insertTestBuildingActionForPlanetAndBuildingWithTimes(
 		t,
 		conn,
-		planet.Id,
+		planetId,
 		planetBuilding.Building,
 		createdAt,
 		completedAt,
@@ -372,26 +372,26 @@ func TestIT_ActionService_ProcessActionUntil_ExpectResourceStorageToBeUpdated(t 
 	)
 
 	afterActionCompletes := completedAt.Add(1 * time.Second)
-	err := service.ProcessActionsUntil(context.Background(), planet.Id, afterActionCompletes)
+	err := service.ProcessActionsUntil(context.Background(), planetId, afterActionCompletes)
 
 	assert.Nil(t, err)
 	assertBuildingActionDoesNotExist(t, conn, action.Id)
 	// TODO: This fails because it is not implemented.
-	assertPlanetResourceStorage(t, conn, planet.Id, res1.Id, actionStorage.Storage)
-	assertPlanetResourceStorage(t, conn, planet.Id, res2.Id, prs2.Storage)
+	assertPlanetResourceStorage(t, conn, planetId, res1.Id, actionStorage.Storage)
+	assertPlanetResourceStorage(t, conn, planetId, res2.Id, prs2.Storage)
 }
 
 func TestIT_ActionService_ProcessActionUntil_WhenResourceIsNotStorable_ExpectFailure(t *testing.T) {
 	service, conn := newTestActionService(t)
-	planet, _ := insertTestPlanetForPlayer(t, conn)
-	planetBuilding, _ := insertTestPlanetBuildingForPlanet(t, conn, planet.Id)
+	planetId, _ := insertTestPlanetForPlayer(t, conn)
+	planetBuilding, _ := insertTestPlanetBuildingForPlanet(t, conn, planetId)
 	res := insertTestResource(t, conn)
 	createdAt := time.Now().Add(-3 * time.Hour)
 	completedAt := createdAt.Add(2 * time.Hour)
 	action := insertTestBuildingActionForPlanetAndBuildingWithTimes(
 		t,
 		conn,
-		planet.Id,
+		planetId,
 		planetBuilding.Building,
 		createdAt,
 		completedAt,
@@ -404,7 +404,7 @@ func TestIT_ActionService_ProcessActionUntil_WhenResourceIsNotStorable_ExpectFai
 	)
 
 	afterActionCompletes := completedAt.Add(1 * time.Second)
-	err := service.ProcessActionsUntil(context.Background(), planet.Id, afterActionCompletes)
+	err := service.ProcessActionsUntil(context.Background(), planetId, afterActionCompletes)
 
 	assert.True(t, errors.IsErrorWithCode(err, ActionUpdatesUnknownResource))
 }

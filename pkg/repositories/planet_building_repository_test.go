@@ -17,10 +17,10 @@ import (
 func TestIT_PlanetBuildingRepository_GetForPlanetAndBuilding(t *testing.T) {
 	repo, conn, tx := newTestPlanetBuildingRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
-	planet, _ := insertTestPlanetForPlayer(t, conn)
-	pb, building := insertTestPlanetBuildingForPlanet(t, conn, planet.Id)
+	planetId, _ := insertTestPlanetForPlayer(t, conn)
+	pb, building := insertTestPlanetBuildingForPlanet(t, conn, planetId)
 
-	actual, err := repo.GetForPlanetAndBuilding(context.Background(), tx, planet.Id, building.Id)
+	actual, err := repo.GetForPlanetAndBuilding(context.Background(), tx, planetId, building.Id)
 	tx.Close(context.Background())
 	assert.Nil(t, err)
 
@@ -30,13 +30,13 @@ func TestIT_PlanetBuildingRepository_GetForPlanetAndBuilding(t *testing.T) {
 func TestIT_PlanetBuildingRepository_ListForPlanet(t *testing.T) {
 	repo, conn, tx := newTestPlanetBuildingRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
-	planet1, _ := insertTestPlanetForPlayer(t, conn)
-	pb1, _ := insertTestPlanetBuildingForPlanet(t, conn, planet1.Id)
-	pb2, _ := insertTestPlanetBuildingForPlanet(t, conn, planet1.Id)
-	planet2, _ := insertTestPlanetForPlayer(t, conn)
-	_, b3 := insertTestPlanetBuildingForPlanet(t, conn, planet2.Id)
+	planetId1, _ := insertTestPlanetForPlayer(t, conn)
+	pb1, _ := insertTestPlanetBuildingForPlanet(t, conn, planetId1)
+	pb2, _ := insertTestPlanetBuildingForPlanet(t, conn, planetId1)
+	planetId2, _ := insertTestPlanetForPlayer(t, conn)
+	_, b3 := insertTestPlanetBuildingForPlanet(t, conn, planetId2)
 
-	actual, err := repo.ListForPlanet(context.Background(), tx, planet1.Id)
+	actual, err := repo.ListForPlanet(context.Background(), tx, planetId1)
 	tx.Close(context.Background())
 
 	assert.Nil(t, err)
@@ -44,7 +44,7 @@ func TestIT_PlanetBuildingRepository_ListForPlanet(t *testing.T) {
 	assert.True(t, eassert.ContainsIgnoringFields(actual, pb1))
 	assert.True(t, eassert.ContainsIgnoringFields(actual, pb2))
 	for _, planetBuilding := range actual {
-		assert.NotEqual(t, planetBuilding.Planet, planet2.Id)
+		assert.NotEqual(t, planetBuilding.Planet, planetId2)
 		assert.NotEqual(t, planetBuilding.Building, b3.Id)
 	}
 }
@@ -52,8 +52,8 @@ func TestIT_PlanetBuildingRepository_ListForPlanet(t *testing.T) {
 func TestIT_PlanetBuildingRepository_Update(t *testing.T) {
 	repo, conn, tx := newTestPlanetBuildingRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
-	planet, _ := insertTestPlanetForPlayer(t, conn)
-	planetBuilding, building := insertTestPlanetBuildingForPlanet(t, conn, planet.Id)
+	planetId, _ := insertTestPlanetForPlayer(t, conn)
+	planetBuilding, building := insertTestPlanetBuildingForPlanet(t, conn, planetId)
 
 	updatedBuilding := planetBuilding
 	updatedBuilding.UpdatedAt = planetBuilding.UpdatedAt.Add(24 * time.Minute)
@@ -65,7 +65,7 @@ func TestIT_PlanetBuildingRepository_Update(t *testing.T) {
 	assert.Nil(t, err)
 
 	expected := persistence.PlanetBuilding{
-		Planet:    planet.Id,
+		Planet:    planetId,
 		Building:  building.Id,
 		Level:     planetBuilding.Level + 4,
 		CreatedAt: planetBuilding.CreatedAt,
@@ -79,8 +79,8 @@ func TestIT_PlanetBuildingRepository_Update(t *testing.T) {
 func TestIT_PlanetBuildingRepository_Update_WhenVersionIsWrong_ExpectOptimisticLockException(t *testing.T) {
 	repo, conn, tx := newTestPlanetBuildingRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
-	planet, _ := insertTestPlanetForPlayer(t, conn)
-	planetBuilding, _ := insertTestPlanetBuildingForPlanet(t, conn, planet.Id)
+	planetId, _ := insertTestPlanetForPlayer(t, conn)
+	planetBuilding, _ := insertTestPlanetBuildingForPlanet(t, conn, planetId)
 
 	updatedBuilding := planetBuilding
 	updatedBuilding.Level = planetBuilding.Level * 4
@@ -95,8 +95,8 @@ func TestIT_PlanetBuildingRepository_Update_WhenVersionIsWrong_ExpectOptimisticL
 func TestIT_PlanetBuildingRepository_Update_BumpsUpdatedAt(t *testing.T) {
 	repo, conn := newTestPlanetBuildingRepository(t)
 	defer conn.Close(context.Background())
-	planet, _ := insertTestPlanetForPlayer(t, conn)
-	planetBuilding, _ := insertTestPlanetBuildingForPlanet(t, conn, planet.Id)
+	planetId, _ := insertTestPlanetForPlayer(t, conn)
+	planetBuilding, _ := insertTestPlanetBuildingForPlanet(t, conn, planetId)
 
 	updatedBuilding := planetBuilding
 	updatedBuilding.UpdatedAt = planetBuilding.UpdatedAt.Add(1 * time.Hour)
@@ -117,7 +117,7 @@ func TestIT_PlanetBuildingRepository_Update_BumpsUpdatedAt(t *testing.T) {
 		require.Nil(t, err)
 		defer tx.Close(context.Background())
 
-		allBuildings, err := repo.ListForPlanet(context.Background(), tx, planet.Id)
+		allBuildings, err := repo.ListForPlanet(context.Background(), tx, planetId)
 		require.Nil(t, err)
 		assert.Len(t, allBuildings, 1)
 
@@ -130,8 +130,8 @@ func TestIT_PlanetBuildingRepository_Update_BumpsUpdatedAt(t *testing.T) {
 func TestIT_PlanetBuildingRepository_Update_BumpsVersion(t *testing.T) {
 	repo, conn := newTestPlanetBuildingRepository(t)
 	defer conn.Close(context.Background())
-	planet, _ := insertTestPlanetForPlayer(t, conn)
-	planetBuilding, _ := insertTestPlanetBuildingForPlanet(t, conn, planet.Id)
+	planetId, _ := insertTestPlanetForPlayer(t, conn)
+	planetBuilding, _ := insertTestPlanetBuildingForPlanet(t, conn, planetId)
 
 	updatedBuilding := planetBuilding
 	updatedBuilding.UpdatedAt = planetBuilding.UpdatedAt.Add(1 * time.Hour)
@@ -152,7 +152,7 @@ func TestIT_PlanetBuildingRepository_Update_BumpsVersion(t *testing.T) {
 		require.Nil(t, err)
 		defer tx.Close(context.Background())
 
-		allBuildings, err := repo.ListForPlanet(context.Background(), tx, planet.Id)
+		allBuildings, err := repo.ListForPlanet(context.Background(), tx, planetId)
 		require.Nil(t, err)
 		assert.Len(t, allBuildings, 1)
 
@@ -200,25 +200,4 @@ func insertTestPlanetBuildingForPlanet(t *testing.T, conn db.Connection, planet 
 	require.Nil(t, err)
 
 	return planetBuilding, building
-}
-
-func assertPlanetBuildingExists(t *testing.T, conn db.Connection, planet uuid.UUID, building uuid.UUID) {
-	sqlQuery := `SELECT COUNT(*) FROM planet_building WHERE planet = $1 AND building = $2`
-	value, err := db.QueryOne[int](context.Background(), conn, sqlQuery, planet, building)
-	require.Nil(t, err)
-	require.Equal(t, 1, value)
-}
-
-func assertPlanetBuildingDoesNotExist(t *testing.T, conn db.Connection, planet uuid.UUID) {
-	sqlQuery := `SELECT COUNT(building) FROM planet_building WHERE planet = $1`
-	value, err := db.QueryOne[int](context.Background(), conn, sqlQuery, planet)
-	require.Nil(t, err)
-	require.Zero(t, value)
-}
-
-func assertPlanetBuildingLevel(t *testing.T, conn db.Connection, planet uuid.UUID, building uuid.UUID, level int) {
-	sqlQuery := `SELECT level FROM planet_building WHERE planet = $1 AND building = $2`
-	value, err := db.QueryOne[int](context.Background(), conn, sqlQuery, planet, building)
-	require.Nil(t, err)
-	require.Equal(t, level, value)
 }

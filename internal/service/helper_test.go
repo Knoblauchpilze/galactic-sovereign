@@ -175,41 +175,34 @@ func insertTestPlayer(t *testing.T, conn db.Connection) uuid.UUID {
 	return playerId
 }
 
-func insertTestPlanet(t *testing.T, conn db.Connection, player uuid.UUID) persistence.Planet {
+func insertTestPlanet(t *testing.T, conn db.Connection, player uuid.UUID) uuid.UUID {
 	someTime := time.Date(2024, 12, 8, 10, 9, 58, 0, time.UTC)
 
-	planet := persistence.Planet{
-		Id:        uuid.New(),
-		Player:    player,
-		Name:      fmt.Sprintf("my-planet-%s", uuid.NewString()),
-		Homeworld: true,
-		CreatedAt: someTime,
-		UpdatedAt: someTime,
-	}
+	planetId := uuid.New()
 
 	sqlQuery := `INSERT INTO planet (id, player, name, created_at, updated_at) VALUES ($1, $2, $3, $4, $5)`
 	_, err := conn.Exec(
 		context.Background(),
 		sqlQuery,
-		planet.Id,
-		planet.Player,
-		planet.Name,
-		planet.CreatedAt,
-		planet.UpdatedAt,
+		planetId,
+		player,
+		fmt.Sprintf("my-planet-%s", planetId.String()),
+		someTime,
+		someTime,
 	)
 	require.Nil(t, err)
 
 	sqlQuery = `INSERT INTO homeworld (player, planet) VALUES ($1, $2)`
-	_, err = conn.Exec(context.Background(), sqlQuery, planet.Player, planet.Id)
+	_, err = conn.Exec(context.Background(), sqlQuery, player, planetId)
 	require.Nil(t, err)
 
-	return planet
+	return planetId
 }
 
-func insertTestPlanetForPlayer(t *testing.T, conn db.Connection) (persistence.Planet, uuid.UUID) {
+func insertTestPlanetForPlayer(t *testing.T, conn db.Connection) (uuid.UUID, uuid.UUID) {
 	playerId := insertTestPlayer(t, conn)
-	planet := insertTestPlanet(t, conn, playerId)
-	return planet, playerId
+	planetId := insertTestPlanet(t, conn, playerId)
+	return planetId, playerId
 }
 
 func insertTestPlanetBuildingForPlanet(t *testing.T, conn db.Connection, planet uuid.UUID) (persistence.PlanetBuilding, persistence.Building) {

@@ -18,12 +18,12 @@ import (
 func TestIT_PlanetResourceProductionRepository_Create(t *testing.T) {
 	repo, conn, tx := newTestPlanetResourceProductionRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
-	planet, _ := insertTestPlanetForPlayer(t, conn)
+	planetId, _ := insertTestPlanetForPlayer(t, conn)
 	resource := insertTestResource(t, conn)
 	building := insertTestBuilding(t, conn)
 
 	prod := persistence.PlanetResourceProduction{
-		Planet:     planet.Id,
+		Planet:     planetId,
 		Building:   &building.Id,
 		Resource:   resource.Id,
 		Production: 56,
@@ -36,18 +36,18 @@ func TestIT_PlanetResourceProductionRepository_Create(t *testing.T) {
 
 	assert.True(t, eassert.EqualsIgnoringFields(actual, prod, "UpdatedAt"))
 	assert.Equal(t, actual.UpdatedAt, actual.CreatedAt)
-	assertPlanetResourceProductionExists(t, conn, planet.Id, resource.Id)
-	assertPlanetResourceProductionForBuilding(t, conn, planet.Id, resource.Id, building.Id, 56)
+	assertPlanetResourceProductionExists(t, conn, planetId, resource.Id)
+	assertPlanetResourceProductionForBuilding(t, conn, planetId, resource.Id, building.Id, 56)
 }
 
 func TestIT_PlanetResourceProductionRepository_Create_WithoutBuilding(t *testing.T) {
 	repo, conn, tx := newTestPlanetResourceProductionRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
-	planet, _ := insertTestPlanetForPlayer(t, conn)
+	planetId, _ := insertTestPlanetForPlayer(t, conn)
 	resource := insertTestResource(t, conn)
 
 	prod := persistence.PlanetResourceProduction{
-		Planet:     planet.Id,
+		Planet:     planetId,
 		Resource:   resource.Id,
 		Production: 56,
 		CreatedAt:  time.Now(),
@@ -59,18 +59,18 @@ func TestIT_PlanetResourceProductionRepository_Create_WithoutBuilding(t *testing
 
 	assert.True(t, eassert.EqualsIgnoringFields(actual, prod, "UpdatedAt"))
 	assert.Equal(t, actual.UpdatedAt, actual.CreatedAt)
-	assertPlanetResourceProductionExists(t, conn, planet.Id, resource.Id)
-	assertPlanetResourceProductionWithoutBuilding(t, conn, planet.Id, resource.Id, 56)
+	assertPlanetResourceProductionExists(t, conn, planetId, resource.Id)
+	assertPlanetResourceProductionWithoutBuilding(t, conn, planetId, resource.Id, 56)
 }
 
 func TestIT_PlanetResourceProductionRepository_Create_WhenDuplicateResourceProductionWithoutBuilding_ExpectSuccess(t *testing.T) {
 	repo, conn := newTestPlanetResourceProductionRepository(t)
 	defer conn.Close(context.Background())
-	planet, _ := insertTestPlanetForPlayer(t, conn)
-	production, resource := insertTestPlanetResourceProductionForBuilding(t, conn, planet.Id, nil)
+	planetId, _ := insertTestPlanetForPlayer(t, conn)
+	production, resource := insertTestPlanetResourceProductionForBuilding(t, conn, planetId, nil)
 
 	newProd := persistence.PlanetResourceProduction{
-		Planet:     planet.Id,
+		Planet:     planetId,
 		Resource:   resource.Id,
 		Production: production.Production * 2,
 		CreatedAt:  time.Date(2024, 12, 1, 17, 52, 21, 0, time.UTC),
@@ -91,7 +91,7 @@ func TestIT_PlanetResourceProductionRepository_Create_WhenDuplicateResourceProdu
 		require.Nil(t, err)
 		defer tx.Close(context.Background())
 
-		allProductions, err = repo.ListForPlanet(context.Background(), tx, planet.Id)
+		allProductions, err = repo.ListForPlanet(context.Background(), tx, planetId)
 		require.Nil(t, err)
 	}()
 
@@ -102,11 +102,11 @@ func TestIT_PlanetResourceProductionRepository_Create_WhenDuplicateResourceProdu
 func TestIT_PlanetResourceProductionRepository_Create_WhenDuplicateResourceProductionForBuilding_ExpectFailure(t *testing.T) {
 	repo, conn, tx := newTestPlanetResourceProductionRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
-	planet, _ := insertTestPlanetForPlayer(t, conn)
-	production, building, resource := insertTestPlanetResourceProduction(t, conn, planet.Id)
+	planetId, _ := insertTestPlanetForPlayer(t, conn)
+	production, building, resource := insertTestPlanetResourceProduction(t, conn, planetId)
 
 	newProd := persistence.PlanetResourceProduction{
-		Planet:     planet.Id,
+		Planet:     planetId,
 		Resource:   resource.Id,
 		Building:   &building.Id,
 		Production: production.Production * 2,
@@ -117,23 +117,23 @@ func TestIT_PlanetResourceProductionRepository_Create_WhenDuplicateResourceProdu
 	tx.Close(context.Background())
 
 	assert.True(t, errors.IsErrorWithCode(err, pgx.UniqueConstraintViolation), "Actual err: %v", err)
-	assertPlanetResourceProductionForBuilding(t, conn, planet.Id, resource.Id, building.Id, production.Production)
+	assertPlanetResourceProductionForBuilding(t, conn, planetId, resource.Id, building.Id, production.Production)
 }
 
 func TestIT_PlanetResourceProductionRepository_GetForPlanetAndBuilding(t *testing.T) {
 	repo, conn, tx := newTestPlanetResourceProductionRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
-	planet1, _ := insertTestPlanetForPlayer(t, conn)
+	planetId1, _ := insertTestPlanetForPlayer(t, conn)
 	building1 := insertTestBuilding(t, conn)
 	building2 := insertTestBuilding(t, conn)
-	insertTestPlanetResourceProductionForBuilding(t, conn, planet1.Id, nil)
-	prp2, _ := insertTestPlanetResourceProductionForBuilding(t, conn, planet1.Id, &building1.Id)
-	insertTestPlanetResourceProductionForBuilding(t, conn, planet1.Id, &building2.Id)
+	insertTestPlanetResourceProductionForBuilding(t, conn, planetId1, nil)
+	prp2, _ := insertTestPlanetResourceProductionForBuilding(t, conn, planetId1, &building1.Id)
+	insertTestPlanetResourceProductionForBuilding(t, conn, planetId1, &building2.Id)
 
-	planet2, _ := insertTestPlanetForPlayer(t, conn)
-	insertTestPlanetResourceProduction(t, conn, planet2.Id)
+	planetId2, _ := insertTestPlanetForPlayer(t, conn)
+	insertTestPlanetResourceProduction(t, conn, planetId2)
 
-	actual, err := repo.GetForPlanetAndBuilding(context.Background(), tx, planet1.Id, &building1.Id)
+	actual, err := repo.GetForPlanetAndBuilding(context.Background(), tx, planetId1, &building1.Id)
 	tx.Close(context.Background())
 
 	assert.Nil(t, err)
@@ -143,17 +143,17 @@ func TestIT_PlanetResourceProductionRepository_GetForPlanetAndBuilding(t *testin
 func TestIT_PlanetResourceProductionRepository_GetForPlanetAndBuilding_WhenBuildingIsNull_ExpectSuccess(t *testing.T) {
 	repo, conn, tx := newTestPlanetResourceProductionRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
-	planet1, _ := insertTestPlanetForPlayer(t, conn)
+	planetId1, _ := insertTestPlanetForPlayer(t, conn)
 	building1 := insertTestBuilding(t, conn)
 	building2 := insertTestBuilding(t, conn)
-	prp1, _ := insertTestPlanetResourceProductionForBuilding(t, conn, planet1.Id, nil)
-	insertTestPlanetResourceProductionForBuilding(t, conn, planet1.Id, &building1.Id)
-	insertTestPlanetResourceProductionForBuilding(t, conn, planet1.Id, &building2.Id)
+	prp1, _ := insertTestPlanetResourceProductionForBuilding(t, conn, planetId1, nil)
+	insertTestPlanetResourceProductionForBuilding(t, conn, planetId1, &building1.Id)
+	insertTestPlanetResourceProductionForBuilding(t, conn, planetId1, &building2.Id)
 
-	planet2, _ := insertTestPlanetForPlayer(t, conn)
-	insertTestPlanetResourceProduction(t, conn, planet2.Id)
+	planetId2, _ := insertTestPlanetForPlayer(t, conn)
+	insertTestPlanetResourceProduction(t, conn, planetId2)
 
-	actual, err := repo.GetForPlanetAndBuilding(context.Background(), tx, planet1.Id, nil)
+	actual, err := repo.GetForPlanetAndBuilding(context.Background(), tx, planetId1, nil)
 	tx.Close(context.Background())
 
 	assert.Nil(t, err)
@@ -163,13 +163,13 @@ func TestIT_PlanetResourceProductionRepository_GetForPlanetAndBuilding_WhenBuild
 func TestIT_PlanetResourceProductionRepository_ListForPlanet(t *testing.T) {
 	repo, conn, tx := newTestPlanetResourceProductionRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
-	planet1, _ := insertTestPlanetForPlayer(t, conn)
-	prp1, _ := insertTestPlanetResourceProductionForBuilding(t, conn, planet1.Id, nil)
-	prp2, _, _ := insertTestPlanetResourceProduction(t, conn, planet1.Id)
-	planet2, _ := insertTestPlanetForPlayer(t, conn)
-	_, _, r3 := insertTestPlanetResourceProduction(t, conn, planet2.Id)
+	planetId1, _ := insertTestPlanetForPlayer(t, conn)
+	prp1, _ := insertTestPlanetResourceProductionForBuilding(t, conn, planetId1, nil)
+	prp2, _, _ := insertTestPlanetResourceProduction(t, conn, planetId1)
+	planetId2, _ := insertTestPlanetForPlayer(t, conn)
+	_, _, r3 := insertTestPlanetResourceProduction(t, conn, planetId2)
 
-	actual, err := repo.ListForPlanet(context.Background(), tx, planet1.Id)
+	actual, err := repo.ListForPlanet(context.Background(), tx, planetId1)
 	tx.Close(context.Background())
 
 	assert.Nil(t, err)
@@ -177,7 +177,7 @@ func TestIT_PlanetResourceProductionRepository_ListForPlanet(t *testing.T) {
 	assert.True(t, eassert.ContainsIgnoringFields(actual, prp1))
 	assert.True(t, eassert.ContainsIgnoringFields(actual, prp2))
 	for _, planetResource := range actual {
-		assert.NotEqual(t, planetResource.Planet, planet2.Id)
+		assert.NotEqual(t, planetResource.Planet, planetId2)
 		assert.NotEqual(t, planetResource.Resource, r3.Id)
 	}
 }
@@ -185,8 +185,8 @@ func TestIT_PlanetResourceProductionRepository_ListForPlanet(t *testing.T) {
 func TestIT_PlanetResourceProductionRepository_Update(t *testing.T) {
 	repo, conn, tx := newTestPlanetResourceProductionRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
-	planet, _ := insertTestPlanetForPlayer(t, conn)
-	production, building, resource := insertTestPlanetResourceProduction(t, conn, planet.Id)
+	planetId, _ := insertTestPlanetForPlayer(t, conn)
+	production, building, resource := insertTestPlanetResourceProduction(t, conn, planetId)
 
 	updatedProduction := production
 	updatedProduction.UpdatedAt = production.UpdatedAt.Add(18 * time.Second)
@@ -198,7 +198,7 @@ func TestIT_PlanetResourceProductionRepository_Update(t *testing.T) {
 	assert.Nil(t, err)
 
 	expected := persistence.PlanetResourceProduction{
-		Planet:     planet.Id,
+		Planet:     planetId,
 		Resource:   resource.Id,
 		Building:   &building.Id,
 		Production: production.Production * 7,
@@ -213,8 +213,8 @@ func TestIT_PlanetResourceProductionRepository_Update(t *testing.T) {
 func TestIT_PlanetResourceProductionRepository_Update_WhenVersionIsWrong_ExpectOptimisticLockException(t *testing.T) {
 	repo, conn, tx := newTestPlanetResourceProductionRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
-	planet, _ := insertTestPlanetForPlayer(t, conn)
-	production, _, _ := insertTestPlanetResourceProduction(t, conn, planet.Id)
+	planetId, _ := insertTestPlanetForPlayer(t, conn)
+	production, _, _ := insertTestPlanetResourceProduction(t, conn, planetId)
 
 	updatedProduction := production
 	updatedProduction.Production = production.Production * 4
@@ -229,8 +229,8 @@ func TestIT_PlanetResourceProductionRepository_Update_WhenVersionIsWrong_ExpectO
 func TestIT_PlanetResourceProductionRepository_Update_WithoutBuilding(t *testing.T) {
 	repo, conn, tx := newTestPlanetResourceProductionRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
-	planet, _ := insertTestPlanetForPlayer(t, conn)
-	production, resource := insertTestPlanetResourceProductionForBuilding(t, conn, planet.Id, nil)
+	planetId, _ := insertTestPlanetForPlayer(t, conn)
+	production, resource := insertTestPlanetResourceProductionForBuilding(t, conn, planetId, nil)
 
 	updatedProduction := production
 	updatedProduction.UpdatedAt = production.UpdatedAt.Add(18 * time.Second)
@@ -242,7 +242,7 @@ func TestIT_PlanetResourceProductionRepository_Update_WithoutBuilding(t *testing
 	assert.Nil(t, err)
 
 	expected := persistence.PlanetResourceProduction{
-		Planet:     planet.Id,
+		Planet:     planetId,
 		Resource:   resource.Id,
 		Building:   nil,
 		Production: production.Production * 7,
@@ -257,8 +257,8 @@ func TestIT_PlanetResourceProductionRepository_Update_WithoutBuilding(t *testing
 func TestIT_PlanetResourceProductionRepository_Update_WithoutBuilding_WhenVersionIsWrong_ExpectOptimisticLockException(t *testing.T) {
 	repo, conn, tx := newTestPlanetResourceProductionRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
-	planet, _ := insertTestPlanetForPlayer(t, conn)
-	production, _ := insertTestPlanetResourceProductionForBuilding(t, conn, planet.Id, nil)
+	planetId, _ := insertTestPlanetForPlayer(t, conn)
+	production, _ := insertTestPlanetResourceProductionForBuilding(t, conn, planetId, nil)
 
 	updatedProduction := production
 	updatedProduction.Production = production.Production * 4
@@ -273,8 +273,8 @@ func TestIT_PlanetResourceProductionRepository_Update_WithoutBuilding_WhenVersio
 func TestIT_PlanetResourceProductionRepository_Update_BumpsUpdatedAt(t *testing.T) {
 	repo, conn := newTestPlanetResourceProductionRepository(t)
 	defer conn.Close(context.Background())
-	planet, _ := insertTestPlanetForPlayer(t, conn)
-	production, _, _ := insertTestPlanetResourceProduction(t, conn, planet.Id)
+	planetId, _ := insertTestPlanetForPlayer(t, conn)
+	production, _, _ := insertTestPlanetResourceProduction(t, conn, planetId)
 
 	updatedProduction := production
 	updatedProduction.UpdatedAt = production.UpdatedAt.Add(2 * time.Second)
@@ -295,7 +295,7 @@ func TestIT_PlanetResourceProductionRepository_Update_BumpsUpdatedAt(t *testing.
 		require.Nil(t, err)
 		defer tx.Close(context.Background())
 
-		allProductions, err := repo.ListForPlanet(context.Background(), tx, planet.Id)
+		allProductions, err := repo.ListForPlanet(context.Background(), tx, planetId)
 		require.Nil(t, err)
 		assert.Len(t, allProductions, 1)
 
@@ -308,8 +308,8 @@ func TestIT_PlanetResourceProductionRepository_Update_BumpsUpdatedAt(t *testing.
 func TestIT_PlanetResourceProductionRepository_Update_BumpsVersion(t *testing.T) {
 	repo, conn := newTestPlanetResourceProductionRepository(t)
 	defer conn.Close(context.Background())
-	planet, _ := insertTestPlanetForPlayer(t, conn)
-	production, _, _ := insertTestPlanetResourceProduction(t, conn, planet.Id)
+	planetId, _ := insertTestPlanetForPlayer(t, conn)
+	production, _, _ := insertTestPlanetResourceProduction(t, conn, planetId)
 
 	updatedProduction := production
 	updatedProduction.Production = production.Production * 3
@@ -329,7 +329,7 @@ func TestIT_PlanetResourceProductionRepository_Update_BumpsVersion(t *testing.T)
 		require.Nil(t, err)
 		defer tx.Close(context.Background())
 
-		allProductions, err := repo.ListForPlanet(context.Background(), tx, planet.Id)
+		allProductions, err := repo.ListForPlanet(context.Background(), tx, planetId)
 		require.Nil(t, err)
 		assert.Len(t, allProductions, 1)
 
@@ -394,26 +394,6 @@ func assertPlanetResourceProductionExists(t *testing.T, conn db.Connection, plan
 	value, err := db.QueryOne[int](context.Background(), conn, sqlQuery, planet, resource)
 	require.Nil(t, err)
 	require.Equal(t, 1, value)
-}
-
-func assertPlanetResourceProductionDoesNotExist(t *testing.T, conn db.Connection, planet uuid.UUID) {
-	sqlQuery := `SELECT COUNT(resource) FROM planet_resource_production WHERE planet = $1`
-	value, err := db.QueryOne[int](context.Background(), conn, sqlQuery, planet)
-	require.Nil(t, err)
-	require.Zero(t, value)
-}
-
-func assertPlanetResourceProduction(t *testing.T, conn db.Connection, planet uuid.UUID, resource uuid.UUID, prod int) {
-	type productionData struct {
-		Production int
-		Building   *string
-	}
-
-	sqlQuery := `SELECT production, building FROM planet_resource_production WHERE planet = $1 AND resource = $2`
-	value, err := db.QueryOne[productionData](context.Background(), conn, sqlQuery, planet, resource)
-	require.Nil(t, err)
-	require.Equal(t, prod, value.Production)
-	require.Nil(t, value.Building)
 }
 
 func assertPlanetResourceProductionWithoutBuilding(t *testing.T, conn db.Connection, planet uuid.UUID, resource uuid.UUID, prod int) {

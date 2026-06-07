@@ -18,12 +18,12 @@ import (
 func TestIT_BuildingActionRepository_Create(t *testing.T) {
 	repo, conn, tx := newTestBuildingActionRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
-	planet, _ := insertTestPlanetForPlayer(t, conn)
+	planetId, _ := insertTestPlanetForPlayer(t, conn)
 	building := insertTestBuilding(t, conn)
 
 	action := persistence.BuildingAction{
 		Id:           uuid.New(),
-		Planet:       planet.Id,
+		Planet:       planetId,
 		Building:     building.Id,
 		CurrentLevel: 2,
 		DesiredLevel: 3,
@@ -43,12 +43,12 @@ func TestIT_BuildingActionRepository_Create_WhenDuplicatePlanet_ExpectFailure(t 
 	repo, conn, tx := newTestBuildingActionRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
 	defer tx.Close(context.Background())
-	_, planet := insertTestBuildingAction(t, conn)
+	_, planetId, _ := insertTestBuildingAction(t, conn)
 	building := insertTestBuilding(t, conn)
 
 	newAction := persistence.BuildingAction{
 		Id:           uuid.New(),
-		Planet:       planet.Id,
+		Planet:       planetId,
 		Building:     building.Id,
 		CurrentLevel: 4,
 		DesiredLevel: 5,
@@ -66,7 +66,7 @@ func TestIT_BuildingActionRepository_Get(t *testing.T) {
 	repo, conn, tx := newTestBuildingActionRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
 	defer tx.Close(context.Background())
-	action, _ := insertTestBuildingAction(t, conn)
+	action, _, _ := insertTestBuildingAction(t, conn)
 
 	actual, err := repo.Get(context.Background(), tx, action.Id)
 	assert.Nil(t, err)
@@ -89,10 +89,10 @@ func TestIT_BuildingActionRepository_ListForPlanet(t *testing.T) {
 	repo, conn, tx := newTestBuildingActionRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
 	defer tx.Close(context.Background())
-	action1, planet1 := insertTestBuildingAction(t, conn)
+	action1, planetId1, _ := insertTestBuildingAction(t, conn)
 	insertTestBuildingAction(t, conn)
 
-	actual, err := repo.ListForPlanet(context.Background(), tx, planet1.Id)
+	actual, err := repo.ListForPlanet(context.Background(), tx, planetId1)
 
 	assert.Nil(t, err)
 	assert.GreaterOrEqual(t, len(actual), 1)
@@ -103,11 +103,11 @@ func TestIT_BuildingActionRepository_ListBeforeCompletionTime_WhenCompletionTime
 	repo, conn, tx := newTestBuildingActionRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
 	defer tx.Close(context.Background())
-	action, planet := insertTestBuildingAction(t, conn)
+	action, planetId, _ := insertTestBuildingAction(t, conn)
 
 	until := action.CompletedAt.Add(1 * time.Second)
 
-	actual, err := repo.ListBeforeCompletionTime(context.Background(), tx, planet.Id, until)
+	actual, err := repo.ListBeforeCompletionTime(context.Background(), tx, planetId, until)
 
 	assert.Nil(t, err)
 	assert.GreaterOrEqual(t, len(actual), 1)
@@ -118,11 +118,11 @@ func TestIT_BuildingActionRepository_ListBeforeCompletionTime_WhenCompletionTime
 	repo, conn, tx := newTestBuildingActionRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
 	defer tx.Close(context.Background())
-	action, planet := insertTestBuildingAction(t, conn)
+	action, planetId, _ := insertTestBuildingAction(t, conn)
 
 	until := action.CompletedAt.Add(-1 * time.Second)
 
-	actual, err := repo.ListBeforeCompletionTime(context.Background(), tx, planet.Id, until)
+	actual, err := repo.ListBeforeCompletionTime(context.Background(), tx, planetId, until)
 
 	assert.Nil(t, err)
 	assert.Equal(t, len(actual), 0)
@@ -131,7 +131,7 @@ func TestIT_BuildingActionRepository_ListBeforeCompletionTime_WhenCompletionTime
 func TestIT_BuildingActionRepository_Delete(t *testing.T) {
 	repo, conn, tx := newTestBuildingActionRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
-	action, _ := insertTestBuildingAction(t, conn)
+	action, _, _ := insertTestBuildingAction(t, conn)
 
 	err := repo.Delete(context.Background(), tx, action.Id)
 	tx.Close(context.Background())
@@ -154,10 +154,10 @@ func TestIT_BuildingActionRepository_Delete_WhenNotFound_ExpectSuccess(t *testin
 func TestIT_BuildingActionRepository_Delete_ExpectProductionShouldBeDeleted(t *testing.T) {
 	repo, conn, tx := newTestBuildingActionRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
-	action1, _ := insertTestBuildingAction(t, conn)
+	action1, _, _ := insertTestBuildingAction(t, conn)
 	insertTestBuildingActionResourceProductionForAction(t, conn, action1.Id)
 
-	action2, _ := insertTestBuildingAction(t, conn)
+	action2, _, _ := insertTestBuildingAction(t, conn)
 	production2, _ := insertTestBuildingActionResourceProductionForAction(t, conn, action2.Id)
 
 	err := repo.Delete(context.Background(), tx, action1.Id)
@@ -172,10 +172,10 @@ func TestIT_BuildingActionRepository_Delete_ExpectProductionShouldBeDeleted(t *t
 func TestIT_BuildingActionRepository_Delete_ExpectStorageShouldBeDeleted(t *testing.T) {
 	repo, conn, tx := newTestBuildingActionRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
-	action1, _ := insertTestBuildingAction(t, conn)
+	action1, _, _ := insertTestBuildingAction(t, conn)
 	insertTestBuildingActionResourceStorageForAction(t, conn, action1.Id)
 
-	action2, _ := insertTestBuildingAction(t, conn)
+	action2, _, _ := insertTestBuildingAction(t, conn)
 	storage2, _ := insertTestBuildingActionResourceStorageForAction(t, conn, action2.Id)
 
 	err := repo.Delete(context.Background(), tx, action1.Id)
@@ -190,10 +190,10 @@ func TestIT_BuildingActionRepository_Delete_ExpectStorageShouldBeDeleted(t *test
 func TestIT_BuildingActionRepository_Delete_ExpectCostShouldBeDeleted(t *testing.T) {
 	repo, conn, tx := newTestBuildingActionRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
-	action1, _ := insertTestBuildingAction(t, conn)
+	action1, _, _ := insertTestBuildingAction(t, conn)
 	insertTestBuildingActionCostForAction(t, conn, action1.Id)
 
-	action2, _ := insertTestBuildingAction(t, conn)
+	action2, _, _ := insertTestBuildingAction(t, conn)
 	cost2, _ := insertTestBuildingActionCostForAction(t, conn, action2.Id)
 
 	err := repo.Delete(context.Background(), tx, action1.Id)
@@ -208,9 +208,9 @@ func TestIT_BuildingActionRepository_Delete_ExpectCostShouldBeDeleted(t *testing
 func TestIT_BuildingActionRepository_DeleteForPlanet(t *testing.T) {
 	repo, conn, tx := newTestBuildingActionRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
-	action, planet := insertTestBuildingAction(t, conn)
+	action, planetId, _ := insertTestBuildingAction(t, conn)
 
-	err := repo.DeleteForPlanet(context.Background(), tx, planet.Id)
+	err := repo.DeleteForPlanet(context.Background(), tx, planetId)
 	tx.Close(context.Background())
 
 	assert.Nil(t, err)
@@ -220,10 +220,10 @@ func TestIT_BuildingActionRepository_DeleteForPlanet(t *testing.T) {
 func TestIT_BuildingActionRepository_DeleteForPlanet_ExpectProductionShouldBeDeleted(t *testing.T) {
 	repo, conn, tx := newTestBuildingActionRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
-	action1, _ := insertTestBuildingAction(t, conn)
+	action1, _, _ := insertTestBuildingAction(t, conn)
 	insertTestBuildingActionResourceProductionForAction(t, conn, action1.Id)
 
-	action2, _ := insertTestBuildingAction(t, conn)
+	action2, _, _ := insertTestBuildingAction(t, conn)
 	production2, _ := insertTestBuildingActionResourceProductionForAction(t, conn, action2.Id)
 
 	err := repo.DeleteForPlanet(context.Background(), tx, action1.Planet)
@@ -238,10 +238,10 @@ func TestIT_BuildingActionRepository_DeleteForPlanet_ExpectProductionShouldBeDel
 func TestIT_BuildingActionRepository_DeleteForPlanet_ExpectStorageShouldBeDeleted(t *testing.T) {
 	repo, conn, tx := newTestBuildingActionRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
-	action1, _ := insertTestBuildingAction(t, conn)
+	action1, _, _ := insertTestBuildingAction(t, conn)
 	insertTestBuildingActionResourceStorageForAction(t, conn, action1.Id)
 
-	action2, _ := insertTestBuildingAction(t, conn)
+	action2, _, _ := insertTestBuildingAction(t, conn)
 	storage2, _ := insertTestBuildingActionResourceStorageForAction(t, conn, action2.Id)
 
 	err := repo.DeleteForPlanet(context.Background(), tx, action1.Planet)
@@ -256,10 +256,10 @@ func TestIT_BuildingActionRepository_DeleteForPlanet_ExpectStorageShouldBeDelete
 func TestIT_BuildingActionRepository_DeleteForPlanet_ExpectCostShouldBeDeleted(t *testing.T) {
 	repo, conn, tx := newTestBuildingActionRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
-	action1, _ := insertTestBuildingAction(t, conn)
+	action1, _, _ := insertTestBuildingAction(t, conn)
 	insertTestBuildingActionCostForAction(t, conn, action1.Id)
 
-	action2, _ := insertTestBuildingAction(t, conn)
+	action2, _, _ := insertTestBuildingAction(t, conn)
 	cost2, _ := insertTestBuildingActionCostForAction(t, conn, action2.Id)
 
 	err := repo.DeleteForPlanet(context.Background(), tx, action1.Planet)
@@ -274,9 +274,9 @@ func TestIT_BuildingActionRepository_DeleteForPlanet_ExpectCostShouldBeDeleted(t
 func TestIT_BuildingActionRepository_DeleteForPlayer(t *testing.T) {
 	repo, conn, tx := newTestBuildingActionRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
-	action, planet := insertTestBuildingAction(t, conn)
+	action, _, playerId := insertTestBuildingAction(t, conn)
 
-	err := repo.DeleteForPlayer(context.Background(), tx, planet.Player)
+	err := repo.DeleteForPlayer(context.Background(), tx, playerId)
 	tx.Close(context.Background())
 
 	assert.Nil(t, err)
@@ -286,13 +286,13 @@ func TestIT_BuildingActionRepository_DeleteForPlayer(t *testing.T) {
 func TestIT_BuildingActionRepository_DeleteForPlayer_ExpectProductionShouldBeDeleted(t *testing.T) {
 	repo, conn, tx := newTestBuildingActionRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
-	action1, planet1 := insertTestBuildingAction(t, conn)
+	action1, _, playerId1 := insertTestBuildingAction(t, conn)
 	insertTestBuildingActionResourceProductionForAction(t, conn, action1.Id)
 
-	action2, _ := insertTestBuildingAction(t, conn)
+	action2, _, _ := insertTestBuildingAction(t, conn)
 	production2, _ := insertTestBuildingActionResourceProductionForAction(t, conn, action2.Id)
 
-	err := repo.DeleteForPlayer(context.Background(), tx, planet1.Player)
+	err := repo.DeleteForPlayer(context.Background(), tx, playerId1)
 	tx.Close(context.Background())
 
 	assert.Nil(t, err)
@@ -304,13 +304,13 @@ func TestIT_BuildingActionRepository_DeleteForPlayer_ExpectProductionShouldBeDel
 func TestIT_BuildingActionRepository_DeleteForPlayer_ExpectStorageShouldBeDeleted(t *testing.T) {
 	repo, conn, tx := newTestBuildingActionRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
-	action1, planet1 := insertTestBuildingAction(t, conn)
+	action1, _, playerId1 := insertTestBuildingAction(t, conn)
 	insertTestBuildingActionResourceStorageForAction(t, conn, action1.Id)
 
-	action2, _ := insertTestBuildingAction(t, conn)
+	action2, _, _ := insertTestBuildingAction(t, conn)
 	storage2, _ := insertTestBuildingActionResourceStorageForAction(t, conn, action2.Id)
 
-	err := repo.DeleteForPlayer(context.Background(), tx, planet1.Player)
+	err := repo.DeleteForPlayer(context.Background(), tx, playerId1)
 	tx.Close(context.Background())
 
 	assert.Nil(t, err)
@@ -322,13 +322,13 @@ func TestIT_BuildingActionRepository_DeleteForPlayer_ExpectStorageShouldBeDelete
 func TestIT_BuildingActionRepository_DeleteForPlayer_ExpectCostShouldBeDeleted(t *testing.T) {
 	repo, conn, tx := newTestBuildingActionRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
-	action1, planet1 := insertTestBuildingAction(t, conn)
+	action1, _, playerId1 := insertTestBuildingAction(t, conn)
 	insertTestBuildingActionCostForAction(t, conn, action1.Id)
 
-	action2, _ := insertTestBuildingAction(t, conn)
+	action2, _, _ := insertTestBuildingAction(t, conn)
 	cost2, _ := insertTestBuildingActionCostForAction(t, conn, action2.Id)
 
-	err := repo.DeleteForPlayer(context.Background(), tx, planet1.Player)
+	err := repo.DeleteForPlayer(context.Background(), tx, playerId1)
 	tx.Close(context.Background())
 
 	assert.Nil(t, err)
@@ -341,12 +341,12 @@ func TestIT_BuildingActionRepository_CreationDeletionWorkflow(t *testing.T) {
 	repo, conn := newTestBuildingActionRepository(t)
 	defer conn.Close(context.Background())
 
-	planet, _ := insertTestPlanetForPlayer(t, conn)
+	planetId, _ := insertTestPlanetForPlayer(t, conn)
 	building := insertTestBuilding(t, conn)
 
 	action := persistence.BuildingAction{
 		Id:           uuid.New(),
-		Planet:       planet.Id,
+		Planet:       planetId,
 		Building:     building.Id,
 		CurrentLevel: 26,
 		DesiredLevel: 27,
@@ -401,15 +401,15 @@ func newTestBuildingActionRepositoryAndTransaction(t *testing.T) (BuildingAction
 	return repo, conn, tx
 }
 
-func insertTestBuildingAction(t *testing.T, conn db.Connection) (persistence.BuildingAction, persistence.Planet) {
+func insertTestBuildingAction(t *testing.T, conn db.Connection) (persistence.BuildingAction, uuid.UUID, uuid.UUID) {
 	someTime := time.Date(2024, 12, 7, 20, 8, 48, 0, time.UTC)
 
-	planet, _ := insertTestPlanetForPlayer(t, conn)
+	planetId, playerId := insertTestPlanetForPlayer(t, conn)
 	building := insertTestBuilding(t, conn)
 
 	action := persistence.BuildingAction{
 		Id:           uuid.New(),
-		Planet:       planet.Id,
+		Planet:       planetId,
 		Building:     building.Id,
 		CurrentLevel: 4,
 		DesiredLevel: 5,
@@ -431,7 +431,7 @@ func insertTestBuildingAction(t *testing.T, conn db.Connection) (persistence.Bui
 	)
 	require.Nil(t, err)
 
-	return action, planet
+	return action, planetId, playerId
 }
 
 func assertBuildingActionExists(t *testing.T, conn db.Connection, action uuid.UUID) {
