@@ -6,6 +6,7 @@ on:
       - "go.mod"
       - "cmd/galactic-sovereign/main.go"
       - "internal/controller/**"
+      - "pkg/domain/adapters/driving/**"
       - "Makefile"
       - ".github/workflows/check-api-spec.yml"
 

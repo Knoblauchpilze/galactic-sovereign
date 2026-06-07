@@ -52,6 +52,18 @@ const docTemplate = `{
                 },
                 "type": "object"
             },
+            "dtos.BuildingActionCostDtoResponse": {
+                "properties": {
+                    "amount": {
+                        "type": "integer"
+                    },
+                    "resource": {
+                        "format": "uuid",
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
             "dtos.BuildingActionDtoRequest": {
                 "properties": {
                     "building": {
@@ -88,6 +100,51 @@ const docTemplate = `{
                     "planet": {
                         "format": "uuid",
                         "type": "string"
+                    },
+                    "productions": {
+                        "items": {
+                            "$ref": "#/components/schemas/dtos.BuildingActionProductionDtoResponse"
+                        },
+                        "type": "array",
+                        "uniqueItems": false
+                    },
+                    "resources": {
+                        "items": {
+                            "$ref": "#/components/schemas/dtos.BuildingActionCostDtoResponse"
+                        },
+                        "type": "array",
+                        "uniqueItems": false
+                    },
+                    "storages": {
+                        "items": {
+                            "$ref": "#/components/schemas/dtos.BuildingActionStorageDtoResponse"
+                        },
+                        "type": "array",
+                        "uniqueItems": false
+                    }
+                },
+                "type": "object"
+            },
+            "dtos.BuildingActionProductionDtoResponse": {
+                "properties": {
+                    "production": {
+                        "type": "integer"
+                    },
+                    "resource": {
+                        "format": "uuid",
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "dtos.BuildingActionStorageDtoResponse": {
+                "properties": {
+                    "resource": {
+                        "format": "uuid",
+                        "type": "string"
+                    },
+                    "storage": {
+                        "type": "integer"
                     }
                 },
                 "type": "object"
