@@ -52,15 +52,43 @@ func TestUnit_BuildingActions_CreateBuildingAction(t *testing.T) {
 		ctx, rw := generateTestContextFromRequest(t, req, addIdPathParam)
 
 		expectedRequest := request.BuildingActionCreationRequest{Planet: sampleUuid, Building: dto.Building}
+		action := models.BuildingAction{
+			Id:           uuid.New(),
+			Planet:       sampleUuid,
+			Building:     dto.Building,
+			CurrentLevel: 5,
+			DesiredLevel: 6,
+			CreatedAt:    someTime,
+			CompletedAt:  someOtherTime,
+			Version:      13,
+			Costs: []models.BuildingActionCost{
+				{
+					Resource: uuid.New(),
+					Amount:   1478,
+				},
+			},
+			Storages: []models.BuildingActionResourceStorage{
+				{
+					Resource: uuid.New(),
+					Storage:  48790,
+				},
+			},
+			Productions: []models.BuildingActionResourceProduction{
+				{
+					Resource:   uuid.New(),
+					Production: 12,
+				},
+				{
+					Resource:   uuid.New(),
+					Production: 8917,
+				},
+			},
+		}
+
 		mockUsecase.EXPECT().
 			Create(gomock.Any(), gomock.Eq(expectedRequest)).
 			Times(1).
-			Return(models.BuildingAction{
-				Id:        sampleUuid,
-				Planet:    sampleUuid,
-				CreatedAt: someTime,
-				Version:   0,
-			}, nil)
+			Return(action, nil)
 
 		err := createBuildingAction(ctx, mockUsecase)
 		require.NoError(t, err, "Actual err: %v", err)
@@ -68,9 +96,29 @@ func TestUnit_BuildingActions_CreateBuildingAction(t *testing.T) {
 		assert.Equal(t, http.StatusCreated, rw.Code)
 		actual := decodeResponseBody[dtos.BuildingActionDtoResponse](t, rw)
 		expected := dtos.BuildingActionDtoResponse{
-			Id:        sampleUuid,
-			Planet:    sampleUuid,
-			CreatedAt: someTime,
+			Id:           action.Id,
+			Planet:       action.Planet,
+			Building:     action.Building,
+			CurrentLevel: action.CurrentLevel,
+			DesiredLevel: action.DesiredLevel,
+			CreatedAt:    action.CreatedAt,
+			CompletedAt:  action.CompletedAt,
+			Costs: []dtos.BuildingActionCostDtoResponse{
+				{Resource: action.Costs[0].Resource, Amount: 1478},
+			},
+			Storages: []dtos.BuildingActionStorageDtoResponse{
+				{Resource: action.Storages[0].Resource, Storage: 48790},
+			},
+			Productions: []dtos.BuildingActionProductionDtoResponse{
+				{
+					Resource:   action.Productions[0].Resource,
+					Production: 12,
+				},
+				{
+					Resource:   action.Productions[1].Resource,
+					Production: 8917,
+				},
+			},
 		}
 		assert.Equal(t, expected, actual)
 	})
