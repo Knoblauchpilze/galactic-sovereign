@@ -14,4 +14,6 @@ type Universe struct {
 	CreatedAt time.Time
 
 	Version int
+
+	Buildings []Building
 }
