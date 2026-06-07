@@ -24,6 +24,7 @@ type PlanetDtoResponse struct {
 	Resources   []PlanetResourceDtoResponse           `json:"resources"`
 	Storages    []PlanetResourceStorageDtoResponse    `json:"storages"`
 	Productions []PlanetResourceProductionDtoResponse `json:"productions"`
+	Buildings   []PlanetBuildingDtoResponse           `json:"buildings"`
 }
 
 type PlanetResourceDtoResponse struct {
@@ -40,4 +41,11 @@ type PlanetResourceProductionDtoResponse struct {
 	Building   *uuid.UUID `json:"building,omitempty" format:"uuid"`
 	Resource   uuid.UUID  `json:"resource" format:"uuid"`
 	Production int        `json:"production"`
+}
+
+type PlanetBuildingDtoResponse struct {
+	Building  uuid.UUID `json:"building" format:"uuid"`
+	Level     int       `json:"level"`
+	CreatedAt time.Time `json:"createdAt" format:"date-time"`
+	UpdatedAt time.Time `json:"updatedAt" format:"date-time"`
 }

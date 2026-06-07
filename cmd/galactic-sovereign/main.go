@@ -83,6 +83,8 @@ func main() {
 	}
 
 	// New logic using DDD
+	// TODO: Some of the routes need to be restroed under the game.NewResourceRoute
+	// wrapping to trigger the processing of actions (e.g. planets)
 	registerUniverseRoutes(conn, s, log)
 	registerPlayerRoutes(conn, s, log)
 	registerPlanetsRoutes(conn, s, log)

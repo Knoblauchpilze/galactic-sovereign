@@ -48,6 +48,7 @@ func TestUnit_ManagePlanet_Create(t *testing.T) {
 		assert.Equal(t, []models.PlanetResource{}, captured.Resources)
 		assert.Equal(t, []models.PlanetResourceStorage{}, captured.Storages)
 		assert.Equal(t, []models.PlanetResourceProduction{}, captured.Productions)
+		assert.Equal(t, []models.PlanetBuilding{}, captured.Buildings)
 		assert.Equal(t, 0, captured.Version)
 		assert.Equal(t, captured, actual)
 	})

@@ -68,6 +68,7 @@ func TestUnit_Planets_CreatePlanet(t *testing.T) {
 			Resources:   []dtos.PlanetResourceDtoResponse{},
 			Storages:    []dtos.PlanetResourceStorageDtoResponse{},
 			Productions: []dtos.PlanetResourceProductionDtoResponse{},
+			Buildings:   []dtos.PlanetBuildingDtoResponse{},
 		}
 		assert.Equal(t, expected, actual)
 	})
@@ -139,6 +140,14 @@ func TestUnit_Planets_GetPlanet(t *testing.T) {
 					Production: 8917,
 				},
 			},
+			Buildings: []models.PlanetBuilding{
+				{
+					Building:  uuid.New(),
+					Level:     14,
+					CreatedAt: someTime,
+					UpdatedAt: someOtherTime,
+				},
+			},
 		}
 		mockUsecase.EXPECT().
 			Get(gomock.Any(), gomock.Eq(sampleUuid)).
@@ -170,6 +179,14 @@ func TestUnit_Planets_GetPlanet(t *testing.T) {
 					Building:   planet.Productions[1].Building,
 					Resource:   planet.Productions[1].Resource,
 					Production: 8917,
+				},
+			},
+			Buildings: []dtos.PlanetBuildingDtoResponse{
+				{
+					Building:  planet.Buildings[0].Building,
+					Level:     planet.Buildings[0].Level,
+					CreatedAt: someTime,
+					UpdatedAt: someOtherTime,
 				},
 			},
 		}
@@ -241,6 +258,7 @@ func TestUnit_Planets_ListPlanets(t *testing.T) {
 				Resources:   []dtos.PlanetResourceDtoResponse{},
 				Storages:    []dtos.PlanetResourceStorageDtoResponse{},
 				Productions: []dtos.PlanetResourceProductionDtoResponse{},
+				Buildings:   []dtos.PlanetBuildingDtoResponse{},
 			},
 			{
 				Id:          planets[1].Id,
@@ -249,6 +267,7 @@ func TestUnit_Planets_ListPlanets(t *testing.T) {
 				Resources:   []dtos.PlanetResourceDtoResponse{},
 				Storages:    []dtos.PlanetResourceStorageDtoResponse{},
 				Productions: []dtos.PlanetResourceProductionDtoResponse{},
+				Buildings:   []dtos.PlanetBuildingDtoResponse{},
 			},
 		}
 		assert.Equal(t, expected, actual)
@@ -350,6 +369,7 @@ func TestUnit_Planets_ListPlanets_ForPlayer(t *testing.T) {
 				Resources:   []dtos.PlanetResourceDtoResponse{},
 				Storages:    []dtos.PlanetResourceStorageDtoResponse{},
 				Productions: []dtos.PlanetResourceProductionDtoResponse{},
+				Buildings:   []dtos.PlanetBuildingDtoResponse{},
 			},
 			{
 				Id:          planets[1].Id,
@@ -358,6 +378,7 @@ func TestUnit_Planets_ListPlanets_ForPlayer(t *testing.T) {
 				Resources:   []dtos.PlanetResourceDtoResponse{},
 				Storages:    []dtos.PlanetResourceStorageDtoResponse{},
 				Productions: []dtos.PlanetResourceProductionDtoResponse{},
+				Buildings:   []dtos.PlanetBuildingDtoResponse{},
 			},
 		}
 		assert.Equal(t, expected, actual)

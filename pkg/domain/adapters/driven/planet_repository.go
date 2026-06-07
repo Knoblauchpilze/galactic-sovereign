@@ -70,6 +70,17 @@ FROM
 WHERE
 	planet = $1`
 
+	listPlanetBuildingForPlanetQuery = `
+SELECT
+	building,
+	level,
+	created_at,
+	updated_at
+FROM
+	planet_building
+WHERE
+	planet = $1`
+
 	listPlanetQuery = `
 SELECT
 	p.id,
@@ -104,12 +115,23 @@ FROM
 WHERE
 	p.player = $1`
 
+	deletePlanetBuildingsQuery           = `DELETE FROM planet_building WHERE planet = $1`
 	deletePlanetResourceProductionsQuery = `DELETE FROM planet_resource_production WHERE planet = $1`
 	deletePlanetResourceStoragesQuery    = `DELETE FROM planet_resource_storage WHERE planet = $1`
 	deletePlanetResourcesQuery           = `DELETE FROM planet_resource WHERE planet = $1`
 	deletePlanetHomeworldQuery           = `DELETE FROM homeworld WHERE planet = $1`
 	deletePlanetQuery                    = `DELETE FROM planet WHERE id = $1`
 
+	deletePlanetBuildingForPlayerQuery = `
+DELETE FROM
+	planet_building AS pbd
+USING
+	planet_building AS pb
+	LEFT JOIN planet AS p ON pb.planet = p.id
+WHERE
+	pbd.planet = pb.planet
+	AND pbd.building = pb.building
+	AND p.player = $1`
 	deletePlanetResourceProductionForPlayerQuery = `
 DELETE FROM
 	planet_resource_production AS prpd
@@ -256,6 +278,11 @@ func (r *planetRepositoryImpl) Delete(ctx context.Context, id uuid.UUID) error {
 	}
 	defer tx.Close(ctx)
 
+	_, err = tx.Exec(ctx, deletePlanetBuildingsQuery, id)
+	if err != nil {
+		return err
+	}
+
 	_, err = tx.Exec(ctx, deletePlanetResourceProductionsQuery, id)
 	if err != nil {
 		return err
@@ -286,6 +313,11 @@ func (r *planetRepositoryImpl) DeleteForPlayer(ctx context.Context, player uuid.
 		return err
 	}
 	defer tx.Close(ctx)
+
+	_, err = tx.Exec(ctx, deletePlanetBuildingForPlayerQuery, player)
+	if err != nil {
+		return err
+	}
 
 	_, err = tx.Exec(ctx, deletePlanetResourceProductionForPlayerQuery, player)
 	if err != nil {
@@ -336,12 +368,21 @@ func loadPlanetDetails(ctx context.Context, tx db.Transaction, dbPlanet mappers.
 	}
 
 	planet.Productions, err = db.QueryAllTx[models.PlanetResourceProduction](
-		ctx, tx, listPlanetResourceProductionForPlanetQuery,
+		ctx,
+		tx,
+		listPlanetResourceProductionForPlanetQuery,
 		dbPlanet.Id,
 	)
 	if err != nil {
 		return planet, err
 	}
+
+	planet.Buildings, err = db.QueryAllTx[models.PlanetBuilding](
+		ctx,
+		tx,
+		listPlanetBuildingForPlanetQuery,
+		dbPlanet.Id,
+	)
 
 	return planet, nil
 }

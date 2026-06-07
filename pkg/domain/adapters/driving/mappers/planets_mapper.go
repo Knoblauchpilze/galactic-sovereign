@@ -24,6 +24,7 @@ func ToPlanetResponse(planet models.Planet) dtos.PlanetDtoResponse {
 		Resources:   toPlanetResourcesResponse(planet.Resources),
 		Storages:    toPlanetStoragesResponse(planet.Storages),
 		Productions: toPlanetProductionsResponse(planet.Productions),
+		Buildings:   toPlanetBuildingsResponse(planet.Buildings),
 	}
 }
 
@@ -94,9 +95,29 @@ func toPlanetProductionsResponse(
 	return out
 }
 
-// Resources   []PlanetResourceDtoResponse           `json:"resources"`
-// Storages    []PlanetResourceStorageDtoResponse    `json:"storages"`
-// Productions []PlanetResourceProductionDtoResponse `json:"productions"`
+func toPlanetBuildingResponse(
+	building models.PlanetBuilding,
+) dtos.PlanetBuildingDtoResponse {
+	return dtos.PlanetBuildingDtoResponse{
+		Building:  building.Building,
+		Level:     building.Level,
+		CreatedAt: building.CreatedAt,
+		UpdatedAt: building.UpdatedAt,
+	}
+}
+
+func toPlanetBuildingsResponse(
+	buildings []models.PlanetBuilding,
+) []dtos.PlanetBuildingDtoResponse {
+	out := make([]dtos.PlanetBuildingDtoResponse, 0, len(buildings))
+
+	for _, b := range buildings {
+		dto := toPlanetBuildingResponse(b)
+		out = append(out, dto)
+	}
+
+	return out
+}
 
 func ToPlanetsResponse(planets []models.Planet) []dtos.PlanetDtoResponse {
 	out := make([]dtos.PlanetDtoResponse, 0, len(planets))
