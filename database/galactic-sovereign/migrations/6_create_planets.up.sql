@@ -44,10 +44,8 @@ CREATE TABLE planet_resource_production (
   FOREIGN KEY (planet) REFERENCES planet(id),
   FOREIGN KEY (building) REFERENCES building(id),
   FOREIGN KEY (resource) REFERENCES resource(id),
-  -- TODO: Migrating to psql 15 would allow NULLS NOT DISTINCT to make sure
-  -- that we don't allow multiple productions from NULL buildings.
-  -- See: https://stackoverflow.com/questions/8289100/create-unique-constraint-with-null-columns
-  UNIQUE (planet, building)
+  -- https://stackoverflow.com/questions/8289100/create-unique-constraint-with-null-columns
+  UNIQUE NULLS NOT DISTINCT (planet, building, resource)
 );
 
 CREATE INDEX planet_resource_production_planet_index ON planet_resource_production (planet);
