@@ -52,6 +52,46 @@ const docTemplate = `{
                 },
                 "type": "object"
             },
+            "dtos.BuildingActionDtoRequest": {
+                "properties": {
+                    "building": {
+                        "format": "uuid",
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "dtos.BuildingActionDtoResponse": {
+                "properties": {
+                    "building": {
+                        "format": "uuid",
+                        "type": "string"
+                    },
+                    "completedAt": {
+                        "format": "date-time",
+                        "type": "string"
+                    },
+                    "createdAt": {
+                        "format": "date-time",
+                        "type": "string"
+                    },
+                    "currentLevel": {
+                        "type": "integer"
+                    },
+                    "desiredLevel": {
+                        "type": "integer"
+                    },
+                    "id": {
+                        "format": "uuid",
+                        "type": "string"
+                    },
+                    "planet": {
+                        "format": "uuid",
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
             "dtos.PlanetDtoRequest": {
                 "properties": {
                     "name": {
@@ -312,6 +352,27 @@ const docTemplate = `{
                 ],
                 "type": "object"
             },
+            "rest.ResponseEnvelope-dtos_BuildingActionDtoResponse": {
+                "properties": {
+                    "details": {
+                        "$ref": "#/components/schemas/dtos.BuildingActionDtoResponse"
+                    },
+                    "requestId": {
+                        "example": "669cd40f-ea15-40a8-ab03-81e704a3ecf9",
+                        "format": "uuid",
+                        "type": "string"
+                    },
+                    "status": {
+                        "$ref": "#/components/schemas/rest.Status"
+                    }
+                },
+                "required": [
+                    "details",
+                    "requestId",
+                    "status"
+                ],
+                "type": "object"
+            },
             "rest.ResponseEnvelope-dtos_PlanetDtoResponse": {
                 "properties": {
                     "details": {
@@ -455,16 +516,6 @@ const docTemplate = `{
                             }
                         },
                         "description": "Bad Request"
-                    },
-                    "404": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/rest.ResponseEnvelope-string"
-                                }
-                            }
-                        },
-                        "description": "Not Found"
                     },
                     "500": {
                         "content": {
@@ -660,16 +711,6 @@ const docTemplate = `{
                         },
                         "description": "Bad Request"
                     },
-                    "404": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/rest.ResponseEnvelope-string"
-                                }
-                            }
-                        },
-                        "description": "Not Found"
-                    },
                     "500": {
                         "content": {
                             "application/json": {
@@ -772,7 +813,7 @@ const docTemplate = `{
                                         "type": "object"
                                     },
                                     {
-                                        "$ref": "#/components/schemas/communication.BuildingActionDtoRequest",
+                                        "$ref": "#/components/schemas/dtos.BuildingActionDtoRequest",
                                         "summary": "request",
                                         "description": "Building action payload"
                                     }
@@ -788,7 +829,7 @@ const docTemplate = `{
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/rest.ResponseEnvelope-communication_BuildingActionDtoResponse"
+                                    "$ref": "#/components/schemas/rest.ResponseEnvelope-dtos_BuildingActionDtoResponse"
                                 }
                             }
                         },
@@ -986,16 +1027,6 @@ const docTemplate = `{
                             }
                         },
                         "description": "Bad Request"
-                    },
-                    "404": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/rest.ResponseEnvelope-string"
-                                }
-                            }
-                        },
-                        "description": "Not Found"
                     },
                     "500": {
                         "content": {
@@ -1210,16 +1241,6 @@ const docTemplate = `{
                             }
                         },
                         "description": "Bad Request"
-                    },
-                    "404": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/rest.ResponseEnvelope-string"
-                                }
-                            }
-                        },
-                        "description": "Not Found"
                     },
                     "500": {
                         "content": {
