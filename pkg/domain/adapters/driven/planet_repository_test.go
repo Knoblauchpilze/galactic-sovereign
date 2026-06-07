@@ -4,16 +4,26 @@ import (
 	"context"
 	"fmt"
 	"math/rand"
+	"os"
+	"path/filepath"
+	"runtime"
+	"sort"
+	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db/pgx"
+	"github.com/Knoblauchpilze/backend-toolkit/pkg/db/postgresql"
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/errors"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
 	drivenports "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driven"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/testcontainers/testcontainers-go"
+	"github.com/testcontainers/testcontainers-go/modules/postgres"
+	"github.com/testcontainers/testcontainers-go/wait"
 )
 
 var (
@@ -182,7 +192,7 @@ func TestIT_PlanetRepository_Get(t *testing.T) {
 }
 
 func TestIT_PlanetRepository_List(t *testing.T) {
-	repo, conn := newTestPlanetRepository(t)
+	repo, conn := newTestPlanetRepositoryWithContainer(t)
 	defer conn.Close(context.Background())
 	p1, player1, _ := insertTestPlanetForPlayer(t, conn)
 	p2 := insertTestPlanet(t, conn, player1.Id)
@@ -207,6 +217,199 @@ func TestIT_PlanetRepository_List(t *testing.T) {
 	assert.Contains(t, actual, p7)
 	assert.Contains(t, actual, p8)
 	assert.Contains(t, actual, p9)
+}
+
+func newTestPlanetRepositoryWithContainer(t *testing.T) (drivenports.ForManagingPlanets, db.Connection) {
+	t.Helper()
+
+	ctx := context.Background()
+	pgContainer, err := postgres.Run(
+		ctx,
+		"postgres:16-alpine",
+		postgres.WithDatabase("postgres"),
+		postgres.WithUsername("postgres"),
+		postgres.WithPassword("postgres"),
+		testcontainers.WithWaitStrategy(wait.ForListeningPort("5432/tcp")),
+	)
+	require.NoError(t, err, "Actual err: %v", err)
+
+	t.Cleanup(func() {
+		require.NoError(t, pgContainer.Terminate(context.Background()))
+	})
+
+	host, err := pgContainer.Host(ctx)
+	require.NoError(t, err, "Actual err: %v", err)
+
+	mappedPort, err := pgContainer.MappedPort(ctx, "5432/tcp")
+	require.NoError(t, err, "Actual err: %v", err)
+
+	portInt, err := strconv.ParseUint(mappedPort.Port(), 10, 16)
+	require.NoError(t, err, "Actual err: %v", err)
+	port := uint16(portInt)
+
+	postgresConfig := postgresql.Config{
+		Host:           host,
+		Port:           port,
+		Database:       "postgres",
+		User:           "postgres",
+		Password:       "postgres",
+		ConnectTimeout: dbTestConfig.ConnectTimeout,
+	}
+
+	bootstrapConn, err := db.New(ctx, postgresConfig)
+	require.NoError(t, err, "Actual err: %v", err)
+	t.Cleanup(func() {
+		bootstrapConn.Close(context.Background())
+	})
+
+	require.NoError(t, bootstrapDatabaseForPlanetTests(ctx, bootstrapConn, host, port))
+
+	adminConfig := postgresql.Config{
+		Host:           host,
+		Port:           port,
+		Database:       "db_galactic_sovereign",
+		User:           "galactic_sovereign_admin",
+		Password:       "admin_password",
+		ConnectTimeout: dbTestConfig.ConnectTimeout,
+	}
+	adminConn, err := db.New(ctx, adminConfig)
+	require.NoError(t, err, "Actual err: %v", err)
+	t.Cleanup(func() {
+		adminConn.Close(context.Background())
+	})
+
+	require.NoError(t, runAllUpMigrationsForPlanetTests(ctx, adminConn))
+
+	managerConfig := postgresql.Config{
+		Host:           host,
+		Port:           port,
+		Database:       "db_galactic_sovereign",
+		User:           "galactic_sovereign_manager",
+		Password:       "manager_password",
+		ConnectTimeout: dbTestConfig.ConnectTimeout,
+	}
+
+	conn, err := db.New(ctx, managerConfig)
+	require.NoError(t, err, "Actual err: %v", err)
+	return NewPlanetRepository(conn), conn
+}
+
+func bootstrapDatabaseForPlanetTests(ctx context.Context, conn db.Connection, host string, port uint16) error {
+	statements := []string{
+		"CREATE USER galactic_sovereign_admin WITH CREATEDB PASSWORD 'admin_password'",
+		"CREATE USER galactic_sovereign_manager WITH PASSWORD 'manager_password'",
+		"CREATE USER galactic_sovereign_user WITH PASSWORD 'user_password'",
+		"GRANT galactic_sovereign_user TO galactic_sovereign_manager",
+		"GRANT galactic_sovereign_manager TO galactic_sovereign_admin",
+		"CREATE DATABASE db_galactic_sovereign OWNER galactic_sovereign_admin",
+		"REVOKE ALL ON DATABASE db_galactic_sovereign FROM public",
+		"GRANT CONNECT ON DATABASE db_galactic_sovereign TO galactic_sovereign_user",
+	}
+
+	for _, stmt := range statements {
+		if _, err := conn.Exec(ctx, stmt); err != nil {
+			return err
+		}
+	}
+
+	setupConfig := postgresql.Config{
+		Host:           host,
+		Port:           port,
+		Database:       "db_galactic_sovereign",
+		User:           "postgres",
+		Password:       "postgres",
+		ConnectTimeout: dbTestConfig.ConnectTimeout,
+	}
+
+	setupConn, err := db.New(ctx, setupConfig)
+	if err != nil {
+		return err
+	}
+	defer setupConn.Close(context.Background())
+
+	dbStatements := []string{
+		"CREATE SCHEMA galactic_sovereign_schema AUTHORIZATION galactic_sovereign_admin",
+		"ALTER ROLE galactic_sovereign_admin IN DATABASE db_galactic_sovereign SET search_path = galactic_sovereign_schema",
+		"ALTER ROLE galactic_sovereign_manager IN DATABASE db_galactic_sovereign SET search_path = galactic_sovereign_schema",
+		"ALTER ROLE galactic_sovereign_user IN DATABASE db_galactic_sovereign SET search_path = galactic_sovereign_schema",
+		"GRANT USAGE ON SCHEMA galactic_sovereign_schema TO galactic_sovereign_user",
+		"GRANT CREATE ON SCHEMA galactic_sovereign_schema TO galactic_sovereign_admin",
+		"ALTER DEFAULT PRIVILEGES FOR ROLE galactic_sovereign_admin GRANT SELECT ON TABLES TO galactic_sovereign_user",
+		"ALTER DEFAULT PRIVILEGES FOR ROLE galactic_sovereign_admin GRANT INSERT, UPDATE, DELETE ON TABLES TO galactic_sovereign_manager",
+	}
+
+	for _, stmt := range dbStatements {
+		if _, err := setupConn.Exec(ctx, stmt); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func runAllUpMigrationsForPlanetTests(ctx context.Context, conn db.Connection) error {
+	_, thisFile, _, ok := runtime.Caller(0)
+	if !ok {
+		return fmt.Errorf("failed to resolve current file path")
+	}
+
+	repoRoot := filepath.Clean(filepath.Join(filepath.Dir(thisFile), "..", "..", "..", ".."))
+	migrationsDir := filepath.Join(repoRoot, "database", "galactic-sovereign", "migrations")
+
+	entries, err := os.ReadDir(migrationsDir)
+	if err != nil {
+		return err
+	}
+
+	type migrationFile struct {
+		version int
+		name    string
+	}
+
+	upFiles := []migrationFile{}
+	for _, entry := range entries {
+		if entry.IsDir() {
+			continue
+		}
+
+		name := entry.Name()
+		if !strings.HasSuffix(name, ".up.sql") {
+			continue
+		}
+
+		versionPart, _, found := strings.Cut(name, "_")
+		if !found {
+			continue
+		}
+
+		version, err := strconv.Atoi(versionPart)
+		if err != nil {
+			return err
+		}
+
+		upFiles = append(upFiles, migrationFile{version: version, name: name})
+	}
+
+	sort.Slice(upFiles, func(i int, j int) bool {
+		if upFiles[i].version == upFiles[j].version {
+			return upFiles[i].name < upFiles[j].name
+		}
+		return upFiles[i].version < upFiles[j].version
+	})
+
+	for _, migration := range upFiles {
+		migrationPath := filepath.Join(migrationsDir, migration.name)
+		content, err := os.ReadFile(migrationPath)
+		if err != nil {
+			return err
+		}
+
+		if _, err := conn.Exec(ctx, string(content)); err != nil {
+			return fmt.Errorf("applying migration %s: %w", migration.name, err)
+		}
+	}
+
+	return nil
 }
 
 func TestIT_PlanetRepository_ListForPlayer(t *testing.T) {
