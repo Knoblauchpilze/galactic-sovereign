@@ -149,7 +149,6 @@ func listPlayers(c *echo.Context, usecase drivingports.ForManagingPlayer) error 
 //	@Param			id	path		string	true	"Player id (UUID)"	Format(uuid)
 //	@Success		204	{string}	string
 //	@Failure		400	{object}	rest.ResponseEnvelope[string]
-//	@Failure		404	{object}	rest.ResponseEnvelope[string]
 //	@Failure		500	{object}	rest.ResponseEnvelope[string]
 //	@Router			/players/{id} [delete]
 func deletePlayer(c *echo.Context, usecase drivingports.ForManagingPlayer) error {

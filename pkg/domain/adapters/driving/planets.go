@@ -148,7 +148,6 @@ func listPlanets(c *echo.Context, usecase drivingports.ForManagingPlanet) error 
 //	@Param			id	path		string	true	"Planet id (UUID)"	Format(uuid)
 //	@Success		204	{string}	string
 //	@Failure		400	{object}	rest.ResponseEnvelope[string]
-//	@Failure		404	{object}	rest.ResponseEnvelope[string]
 //	@Failure		500	{object}	rest.ResponseEnvelope[string]
 //	@Router			/planets/{id} [delete]
 func deletePlanet(c *echo.Context, usecase drivingports.ForManagingPlanet) error {

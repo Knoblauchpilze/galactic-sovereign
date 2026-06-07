@@ -135,7 +135,6 @@ func listUniverses(c *echo.Context, usecase drivingports.ForManagingUniverse) er
 //	@Param			id	path		string	true	"Universe id (UUID)"	Format(uuid)
 //	@Success		204	{string}	string
 //	@Failure		400	{object}	rest.ResponseEnvelope[string]
-//	@Failure		404	{object}	rest.ResponseEnvelope[string]
 //	@Failure		500	{object}	rest.ResponseEnvelope[string]
 //	@Router			/universes/{id} [delete]
 func deleteUniverse(c *echo.Context, usecase drivingports.ForManagingUniverse) error {
