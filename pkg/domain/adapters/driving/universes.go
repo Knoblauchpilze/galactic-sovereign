@@ -18,26 +18,26 @@ import (
 func UniverseEndpoints(usecase drivingports.ForManagingUniverse) rest.Routes {
 	var out rest.Routes
 
-	handler := generateHandler(CreateUniverse, usecase)
+	handler := generateHandler(createUniverse, usecase)
 	post := rest.NewRoute(http.MethodPost, "/universes", handler)
 	out = append(out, post)
 
-	handler = generateHandler(GetUniverse, usecase)
+	handler = generateHandler(getUniverse, usecase)
 	get := rest.NewRoute(http.MethodGet, "/universes/:id", handler)
 	out = append(out, get)
 
-	handler = generateHandler(ListUniverses, usecase)
+	handler = generateHandler(listUniverses, usecase)
 	list := rest.NewRoute(http.MethodGet, "/universes", handler)
 	out = append(out, list)
 
-	handler = generateHandler(DeleteUniverse, usecase)
+	handler = generateHandler(deleteUniverse, usecase)
 	delete := rest.NewRoute(http.MethodDelete, "/universes/:id", handler)
 	out = append(out, delete)
 
 	return out
 }
 
-// CreateUniverse godoc
+// createUniverse godoc
 //
 //	@Summary		Create universe
 //	@Description	Creates a universe.
@@ -50,7 +50,7 @@ func UniverseEndpoints(usecase drivingports.ForManagingUniverse) rest.Routes {
 //	@Failure		409		{object}	rest.ResponseEnvelope[string]
 //	@Failure		500		{object}	rest.ResponseEnvelope[string]
 //	@Router			/universes [post]
-func CreateUniverse(c *echo.Context, usecase drivingports.ForManagingUniverse) error {
+func createUniverse(c *echo.Context, usecase drivingports.ForManagingUniverse) error {
 	var inputDto dtos.UniverseDtoRequest
 	err := c.Bind(&inputDto)
 	if err != nil {
@@ -72,7 +72,7 @@ func CreateUniverse(c *echo.Context, usecase drivingports.ForManagingUniverse) e
 	return c.JSON(http.StatusCreated, out)
 }
 
-// GetUniverse godoc
+// getUniverse godoc
 //
 //	@Summary		Get universe
 //	@Description	Returns a universe and related resources/buildings.
@@ -84,7 +84,7 @@ func CreateUniverse(c *echo.Context, usecase drivingports.ForManagingUniverse) e
 //	@Failure		404	{object}	rest.ResponseEnvelope[string]
 //	@Failure		500	{object}	rest.ResponseEnvelope[string]
 //	@Router			/universes/{id} [get]
-func GetUniverse(c *echo.Context, usecase drivingports.ForManagingUniverse) error {
+func getUniverse(c *echo.Context, usecase drivingports.ForManagingUniverse) error {
 	maybeId := c.Param("id")
 	id, err := uuid.Parse(maybeId)
 	if err != nil {
@@ -105,7 +105,7 @@ func GetUniverse(c *echo.Context, usecase drivingports.ForManagingUniverse) erro
 	return c.JSON(http.StatusOK, out)
 }
 
-// ListUniverses godoc
+// listUniverses godoc
 //
 //	@Summary		List universes
 //	@Description	Returns all universes.
@@ -114,7 +114,7 @@ func GetUniverse(c *echo.Context, usecase drivingports.ForManagingUniverse) erro
 //	@Success		200	{object}	rest.ResponseEnvelope[[]dtos.UniverseDtoResponse]
 //	@Failure		500	{object}	rest.ResponseEnvelope[string]
 //	@Router			/universes [get]
-func ListUniverses(c *echo.Context, usecase drivingports.ForManagingUniverse) error {
+func listUniverses(c *echo.Context, usecase drivingports.ForManagingUniverse) error {
 	universes, err := usecase.List(c.Request().Context())
 	if err != nil {
 		c.Logger().Error("Failed to list universes", slog.Any("error", err))
@@ -126,7 +126,7 @@ func ListUniverses(c *echo.Context, usecase drivingports.ForManagingUniverse) er
 	return c.JSON(http.StatusOK, out)
 }
 
-// DeleteUniverse godoc
+// deleteUniverse godoc
 //
 //	@Summary		Delete universe
 //	@Description	Deletes a universe by id.
@@ -138,7 +138,7 @@ func ListUniverses(c *echo.Context, usecase drivingports.ForManagingUniverse) er
 //	@Failure		404	{object}	rest.ResponseEnvelope[string]
 //	@Failure		500	{object}	rest.ResponseEnvelope[string]
 //	@Router			/universes/{id} [delete]
-func DeleteUniverse(c *echo.Context, usecase drivingports.ForManagingUniverse) error {
+func deleteUniverse(c *echo.Context, usecase drivingports.ForManagingUniverse) error {
 	maybeId := c.Param("id")
 	id, err := uuid.Parse(maybeId)
 	if err != nil {

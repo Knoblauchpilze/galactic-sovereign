@@ -19,26 +19,26 @@ import (
 func PlayerEndpoints(usecase drivingports.ForManagingPlayer) rest.Routes {
 	var out rest.Routes
 
-	handler := generateHandler(CreatePlayer, usecase)
+	handler := generateHandler(createPlayer, usecase)
 	post := rest.NewRoute(http.MethodPost, "/players", handler)
 	out = append(out, post)
 
-	handler = generateHandler(GetPlayer, usecase)
+	handler = generateHandler(getPlayer, usecase)
 	get := rest.NewRoute(http.MethodGet, "/players/:id", handler)
 	out = append(out, get)
 
-	handler = generateHandler(ListPlayers, usecase)
+	handler = generateHandler(listPlayers, usecase)
 	list := rest.NewRoute(http.MethodGet, "/players", handler)
 	out = append(out, list)
 
-	handler = generateHandler(DeletePlayer, usecase)
+	handler = generateHandler(deletePlayer, usecase)
 	delete := rest.NewRoute(http.MethodDelete, "/players/:id", handler)
 	out = append(out, delete)
 
 	return out
 }
 
-// CreatePlayer godoc
+// createPlayer godoc
 //
 //	@Summary		Create player
 //	@Description	Creates a player and its homeworld.
@@ -51,7 +51,7 @@ func PlayerEndpoints(usecase drivingports.ForManagingPlayer) rest.Routes {
 //	@Failure		409		{object}	rest.ResponseEnvelope[string]
 //	@Failure		500		{object}	rest.ResponseEnvelope[string]
 //	@Router			/players [post]
-func CreatePlayer(c *echo.Context, usecase drivingports.ForManagingPlayer) error {
+func createPlayer(c *echo.Context, usecase drivingports.ForManagingPlayer) error {
 	var inputDto dtos.PlayerDtoRequest
 	err := c.Bind(&inputDto)
 	if err != nil {
@@ -73,7 +73,7 @@ func CreatePlayer(c *echo.Context, usecase drivingports.ForManagingPlayer) error
 	return c.JSON(http.StatusCreated, out)
 }
 
-// GetPlayer godoc
+// getPlayer godoc
 //
 //	@Summary		Get player
 //	@Description	Returns a player by id.
@@ -85,7 +85,7 @@ func CreatePlayer(c *echo.Context, usecase drivingports.ForManagingPlayer) error
 //	@Failure		404	{object}	rest.ResponseEnvelope[string]
 //	@Failure		500	{object}	rest.ResponseEnvelope[string]
 //	@Router			/players/{id} [get]
-func GetPlayer(c *echo.Context, usecase drivingports.ForManagingPlayer) error {
+func getPlayer(c *echo.Context, usecase drivingports.ForManagingPlayer) error {
 	maybeId := c.Param("id")
 	id, err := uuid.Parse(maybeId)
 	if err != nil {
@@ -106,7 +106,7 @@ func GetPlayer(c *echo.Context, usecase drivingports.ForManagingPlayer) error {
 	return c.JSON(http.StatusOK, out)
 }
 
-// ListPlayers godoc
+// listPlayers godoc
 //
 //	@Summary		List players
 //	@Description	Returns players, optionally filtered by api_user.
@@ -117,7 +117,7 @@ func GetPlayer(c *echo.Context, usecase drivingports.ForManagingPlayer) error {
 //	@Failure		400			{object}	rest.ResponseEnvelope[string]
 //	@Failure		500			{object}	rest.ResponseEnvelope[string]
 //	@Router			/players [get]
-func ListPlayers(c *echo.Context, usecase drivingports.ForManagingPlayer) error {
+func listPlayers(c *echo.Context, usecase drivingports.ForManagingPlayer) error {
 	exists, apiUser, err := fetchIdFromQueryParam("api_user", c)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, "invalid id syntax")
@@ -140,7 +140,7 @@ func ListPlayers(c *echo.Context, usecase drivingports.ForManagingPlayer) error 
 	return c.JSON(http.StatusOK, out)
 }
 
-// DeletePlayer godoc
+// deletePlayer godoc
 //
 //	@Summary		Delete player
 //	@Description	Deletes a player by id.
@@ -152,7 +152,7 @@ func ListPlayers(c *echo.Context, usecase drivingports.ForManagingPlayer) error 
 //	@Failure		404	{object}	rest.ResponseEnvelope[string]
 //	@Failure		500	{object}	rest.ResponseEnvelope[string]
 //	@Router			/players/{id} [delete]
-func DeletePlayer(c *echo.Context, usecase drivingports.ForManagingPlayer) error {
+func deletePlayer(c *echo.Context, usecase drivingports.ForManagingPlayer) error {
 	maybeId := c.Param("id")
 	id, err := uuid.Parse(maybeId)
 	if err != nil {

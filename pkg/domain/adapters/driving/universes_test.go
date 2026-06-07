@@ -25,7 +25,7 @@ func TestUnit_Universes_CreateUniverse(t *testing.T) {
 		req := generateTestRequestWithJsonBody(t, http.MethodPost, "not-a-dto-request")
 		ctx, rw := generateTestContextFromRequest(t, req)
 
-		err := CreateUniverse(ctx, mockUsecase)
+		err := createUniverse(ctx, mockUsecase)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Equal(t, http.StatusBadRequest, rw.Code)
@@ -49,7 +49,7 @@ func TestUnit_Universes_CreateUniverse(t *testing.T) {
 				Version:   0,
 			}, nil)
 
-		err := CreateUniverse(ctx, mockUsecase)
+		err := createUniverse(ctx, mockUsecase)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Equal(t, http.StatusCreated, rw.Code)
@@ -72,7 +72,7 @@ func TestUnit_Universes_CreateUniverse(t *testing.T) {
 			Times(1).
 			Return(models.Universe{}, errors.New("stubbed error"))
 
-		err := CreateUniverse(ctx, mockUsecase)
+		err := createUniverse(ctx, mockUsecase)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Equal(t, http.StatusInternalServerError, rw.Code)
@@ -90,7 +90,7 @@ func TestUnit_Universes_GetUniverse(t *testing.T) {
 		ctx, rw := generateTestContextFromRequest(t, req)
 		ctx.SetPathValues([]echo.PathValue{{Name: "id", Value: "not-a-uuid"}})
 
-		err := GetUniverse(ctx, mockUsecase)
+		err := getUniverse(ctx, mockUsecase)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Equal(t, http.StatusBadRequest, rw.Code)
@@ -108,7 +108,7 @@ func TestUnit_Universes_GetUniverse(t *testing.T) {
 			Times(1).
 			Return(universe, nil)
 
-		err := GetUniverse(ctx, mockUsecase)
+		err := getUniverse(ctx, mockUsecase)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Equal(t, http.StatusOK, rw.Code)
@@ -130,7 +130,7 @@ func TestUnit_Universes_GetUniverse(t *testing.T) {
 			Times(1).
 			Return(models.Universe{}, errors.NewCode(db.NoMatchingRows))
 
-		err := GetUniverse(ctx, mockUsecase)
+		err := getUniverse(ctx, mockUsecase)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Equal(t, http.StatusNotFound, rw.Code)
@@ -147,7 +147,7 @@ func TestUnit_Universes_GetUniverse(t *testing.T) {
 			Times(1).
 			Return(models.Universe{}, errors.New("stubbed error"))
 
-		err := GetUniverse(ctx, mockUsecase)
+		err := getUniverse(ctx, mockUsecase)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Equal(t, http.StatusInternalServerError, rw.Code)
@@ -173,7 +173,7 @@ func TestUnit_Universes_ListUniverses(t *testing.T) {
 			Times(1).
 			Return(universes, nil)
 
-		err := ListUniverses(ctx, mockUsecase)
+		err := listUniverses(ctx, mockUsecase)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Equal(t, http.StatusOK, rw.Code)
@@ -194,7 +194,7 @@ func TestUnit_Universes_ListUniverses(t *testing.T) {
 			Times(1).
 			Return([]models.Universe{}, nil)
 
-		err := ListUniverses(ctx, mockUsecase)
+		err := listUniverses(ctx, mockUsecase)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Equal(t, http.StatusOK, rw.Code)
@@ -211,7 +211,7 @@ func TestUnit_Universes_ListUniverses(t *testing.T) {
 			Times(1).
 			Return(nil, nil)
 
-		err := ListUniverses(ctx, mockUsecase)
+		err := listUniverses(ctx, mockUsecase)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Equal(t, http.StatusOK, rw.Code)
@@ -228,7 +228,7 @@ func TestUnit_Universes_ListUniverses(t *testing.T) {
 			Times(1).
 			Return([]models.Universe{}, errors.New("stubbed error"))
 
-		err := ListUniverses(ctx, mockUsecase)
+		err := listUniverses(ctx, mockUsecase)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Equal(t, http.StatusInternalServerError, rw.Code)
@@ -246,7 +246,7 @@ func TestUnit_Universes_DeleteUniverse(t *testing.T) {
 		ctx, rw := generateTestContextFromRequest(t, req)
 		ctx.SetPathValues([]echo.PathValue{{Name: "id", Value: "not-a-uuid"}})
 
-		err := DeleteUniverse(ctx, mockUsecase)
+		err := deleteUniverse(ctx, mockUsecase)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Equal(t, http.StatusBadRequest, rw.Code)
@@ -263,7 +263,7 @@ func TestUnit_Universes_DeleteUniverse(t *testing.T) {
 			Times(1).
 			Return(nil)
 
-		err := DeleteUniverse(ctx, mockUsecase)
+		err := deleteUniverse(ctx, mockUsecase)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Equal(t, http.StatusNoContent, rw.Code)
@@ -278,7 +278,7 @@ func TestUnit_Universes_DeleteUniverse(t *testing.T) {
 			Times(1).
 			Return(errors.New("stubbed error"))
 
-		err := DeleteUniverse(ctx, mockUsecase)
+		err := deleteUniverse(ctx, mockUsecase)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Equal(t, http.StatusInternalServerError, rw.Code)

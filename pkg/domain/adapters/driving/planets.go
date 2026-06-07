@@ -19,26 +19,26 @@ import (
 func PlanetEndpoints(usecase drivingports.ForManagingPlanet) rest.Routes {
 	var out rest.Routes
 
-	handler := generateHandler(CreatePlanet, usecase)
+	handler := generateHandler(createPlanet, usecase)
 	post := rest.NewRoute(http.MethodPost, "/planets", handler)
 	out = append(out, post)
 
-	handler = generateHandler(GetPlanet, usecase)
+	handler = generateHandler(getPlanet, usecase)
 	get := rest.NewRoute(http.MethodGet, "/planets/:id", handler)
 	out = append(out, get)
 
-	handler = generateHandler(ListPlanets, usecase)
+	handler = generateHandler(listPlanets, usecase)
 	list := rest.NewRoute(http.MethodGet, "/planets", handler)
 	out = append(out, list)
 
-	handler = generateHandler(DeletePlanet, usecase)
+	handler = generateHandler(deletePlanet, usecase)
 	delete := rest.NewRoute(http.MethodDelete, "/planets/:id", handler)
 	out = append(out, delete)
 
 	return out
 }
 
-// CreatePlanet godoc
+// createPlanet godoc
 //
 //	@Summary		Create planet
 //	@Description	Creates a planet from the provided payload.
@@ -50,7 +50,7 @@ func PlanetEndpoints(usecase drivingports.ForManagingPlanet) rest.Routes {
 //	@Failure		400		{object}	rest.ResponseEnvelope[string]
 //	@Failure		500		{object}	rest.ResponseEnvelope[string]
 //	@Router			/planets [post]
-func CreatePlanet(c *echo.Context, usecase drivingports.ForManagingPlanet) error {
+func createPlanet(c *echo.Context, usecase drivingports.ForManagingPlanet) error {
 	var inputDto dtos.PlanetDtoRequest
 	err := c.Bind(&inputDto)
 	if err != nil {
@@ -72,7 +72,7 @@ func CreatePlanet(c *echo.Context, usecase drivingports.ForManagingPlanet) error
 	return c.JSON(http.StatusCreated, out)
 }
 
-// GetPlanet godoc
+// getPlanet godoc
 //
 //	@Summary		Get planet
 //	@Description	Returns a planet and all related game data.
@@ -84,7 +84,7 @@ func CreatePlanet(c *echo.Context, usecase drivingports.ForManagingPlanet) error
 //	@Failure		404	{object}	rest.ResponseEnvelope[string]
 //	@Failure		500	{object}	rest.ResponseEnvelope[string]
 //	@Router			/planets/{id} [get]
-func GetPlanet(c *echo.Context, usecase drivingports.ForManagingPlanet) error {
+func getPlanet(c *echo.Context, usecase drivingports.ForManagingPlanet) error {
 	maybeId := c.Param("id")
 	id, err := uuid.Parse(maybeId)
 	if err != nil {
@@ -105,7 +105,7 @@ func GetPlanet(c *echo.Context, usecase drivingports.ForManagingPlanet) error {
 	return c.JSON(http.StatusOK, out)
 }
 
-// ListPlanets godoc
+// listPlanets godoc
 //
 //	@Summary		List planets
 //	@Description	Returns planets, optionally filtered by player id.
@@ -116,7 +116,7 @@ func GetPlanet(c *echo.Context, usecase drivingports.ForManagingPlanet) error {
 //	@Failure		400		{object}	rest.ResponseEnvelope[string]
 //	@Failure		500		{object}	rest.ResponseEnvelope[string]
 //	@Router			/planets [get]
-func ListPlanets(c *echo.Context, usecase drivingports.ForManagingPlanet) error {
+func listPlanets(c *echo.Context, usecase drivingports.ForManagingPlanet) error {
 	exists, playerId, err := fetchIdFromQueryParam("player", c)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, "invalid id syntax")
@@ -139,7 +139,7 @@ func ListPlanets(c *echo.Context, usecase drivingports.ForManagingPlanet) error 
 	return c.JSON(http.StatusOK, out)
 }
 
-// DeletePlanet godoc
+// deletePlanet godoc
 //
 //	@Summary		Delete planet
 //	@Description	Deletes a planet by id.
@@ -151,7 +151,7 @@ func ListPlanets(c *echo.Context, usecase drivingports.ForManagingPlanet) error 
 //	@Failure		404	{object}	rest.ResponseEnvelope[string]
 //	@Failure		500	{object}	rest.ResponseEnvelope[string]
 //	@Router			/planets/{id} [delete]
-func DeletePlanet(c *echo.Context, usecase drivingports.ForManagingPlanet) error {
+func deletePlanet(c *echo.Context, usecase drivingports.ForManagingPlanet) error {
 	maybeId := c.Param("id")
 	id, err := uuid.Parse(maybeId)
 	if err != nil {

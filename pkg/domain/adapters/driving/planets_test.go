@@ -30,7 +30,7 @@ func TestUnit_Planets_CreatePlanet(t *testing.T) {
 		req := generateTestRequestWithJsonBody(t, http.MethodPost, "not-a-dto-request")
 		ctx, rw := generateTestContextFromRequest(t, req)
 
-		err := CreatePlanet(ctx, mockUsecase)
+		err := createPlanet(ctx, mockUsecase)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Equal(t, http.StatusBadRequest, rw.Code)
@@ -56,7 +56,7 @@ func TestUnit_Planets_CreatePlanet(t *testing.T) {
 				Version:   0,
 			}, nil)
 
-		err := CreatePlanet(ctx, mockUsecase)
+		err := createPlanet(ctx, mockUsecase)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Equal(t, http.StatusCreated, rw.Code)
@@ -81,7 +81,7 @@ func TestUnit_Planets_CreatePlanet(t *testing.T) {
 			Times(1).
 			Return(models.Planet{}, errors.New("stubbed error"))
 
-		err := CreatePlanet(ctx, mockUsecase)
+		err := createPlanet(ctx, mockUsecase)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Equal(t, http.StatusInternalServerError, rw.Code)
@@ -99,7 +99,7 @@ func TestUnit_Planets_GetPlanet(t *testing.T) {
 		ctx, rw := generateTestContextFromRequest(t, req)
 		ctx.SetPathValues([]echo.PathValue{{Name: "id", Value: "not-a-uuid"}})
 
-		err := GetPlanet(ctx, mockUsecase)
+		err := getPlanet(ctx, mockUsecase)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Equal(t, http.StatusBadRequest, rw.Code)
@@ -145,7 +145,7 @@ func TestUnit_Planets_GetPlanet(t *testing.T) {
 			Times(1).
 			Return(planet, nil)
 
-		err := GetPlanet(ctx, mockUsecase)
+		err := getPlanet(ctx, mockUsecase)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Equal(t, http.StatusOK, rw.Code)
@@ -185,7 +185,7 @@ func TestUnit_Planets_GetPlanet(t *testing.T) {
 			Times(1).
 			Return(models.Planet{}, errors.NewCode(db.NoMatchingRows))
 
-		err := GetPlanet(ctx, mockUsecase)
+		err := getPlanet(ctx, mockUsecase)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Equal(t, http.StatusNotFound, rw.Code)
@@ -202,7 +202,7 @@ func TestUnit_Planets_GetPlanet(t *testing.T) {
 			Times(1).
 			Return(models.Planet{}, errors.New("stubbed error"))
 
-		err := GetPlanet(ctx, mockUsecase)
+		err := getPlanet(ctx, mockUsecase)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Equal(t, http.StatusInternalServerError, rw.Code)
@@ -228,7 +228,7 @@ func TestUnit_Planets_ListPlanets(t *testing.T) {
 			Times(1).
 			Return(planets, nil)
 
-		err := ListPlanets(ctx, mockUsecase)
+		err := listPlanets(ctx, mockUsecase)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Equal(t, http.StatusOK, rw.Code)
@@ -263,7 +263,7 @@ func TestUnit_Planets_ListPlanets(t *testing.T) {
 			Times(1).
 			Return([]models.Planet{}, nil)
 
-		err := ListPlanets(ctx, mockUsecase)
+		err := listPlanets(ctx, mockUsecase)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Equal(t, http.StatusOK, rw.Code)
@@ -280,7 +280,7 @@ func TestUnit_Planets_ListPlanets(t *testing.T) {
 			Times(1).
 			Return(nil, nil)
 
-		err := ListPlanets(ctx, mockUsecase)
+		err := listPlanets(ctx, mockUsecase)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Equal(t, http.StatusOK, rw.Code)
@@ -297,7 +297,7 @@ func TestUnit_Planets_ListPlanets(t *testing.T) {
 			Times(1).
 			Return([]models.Planet{}, errors.New("stubbed error"))
 
-		err := ListPlanets(ctx, mockUsecase)
+		err := listPlanets(ctx, mockUsecase)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Equal(t, http.StatusInternalServerError, rw.Code)
@@ -315,7 +315,7 @@ func TestUnit_Planets_ListPlanets_ForPlayer(t *testing.T) {
 		addQueryParam(t, req, "player", "not-a-uuid")
 		ctx, rw := generateTestContextFromRequest(t, req)
 
-		err := ListPlanets(ctx, mockUsecase)
+		err := listPlanets(ctx, mockUsecase)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Equal(t, http.StatusBadRequest, rw.Code)
@@ -337,7 +337,7 @@ func TestUnit_Planets_ListPlanets_ForPlayer(t *testing.T) {
 			Times(1).
 			Return(planets, nil)
 
-		err := ListPlanets(ctx, mockUsecase)
+		err := listPlanets(ctx, mockUsecase)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Equal(t, http.StatusOK, rw.Code)
@@ -373,7 +373,7 @@ func TestUnit_Planets_ListPlanets_ForPlayer(t *testing.T) {
 			Times(1).
 			Return([]models.Planet{}, nil)
 
-		err := ListPlanets(ctx, mockUsecase)
+		err := listPlanets(ctx, mockUsecase)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Equal(t, http.StatusOK, rw.Code)
@@ -391,7 +391,7 @@ func TestUnit_Planets_ListPlanets_ForPlayer(t *testing.T) {
 			Times(1).
 			Return(nil, nil)
 
-		err := ListPlanets(ctx, mockUsecase)
+		err := listPlanets(ctx, mockUsecase)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Equal(t, http.StatusOK, rw.Code)
@@ -409,7 +409,7 @@ func TestUnit_Planets_ListPlanets_ForPlayer(t *testing.T) {
 			Times(1).
 			Return([]models.Planet{}, errors.New("stubbed error"))
 
-		err := ListPlanets(ctx, mockUsecase)
+		err := listPlanets(ctx, mockUsecase)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Equal(t, http.StatusInternalServerError, rw.Code)
@@ -427,7 +427,7 @@ func TestUnit_Planets_DeletePlanet(t *testing.T) {
 		ctx, rw := generateTestContextFromRequest(t, req)
 		ctx.SetPathValues([]echo.PathValue{{Name: "id", Value: "not-a-uuid"}})
 
-		err := DeletePlanet(ctx, mockUsecase)
+		err := deletePlanet(ctx, mockUsecase)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Equal(t, http.StatusBadRequest, rw.Code)
@@ -444,7 +444,7 @@ func TestUnit_Planets_DeletePlanet(t *testing.T) {
 			Times(1).
 			Return(nil)
 
-		err := DeletePlanet(ctx, mockUsecase)
+		err := deletePlanet(ctx, mockUsecase)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Equal(t, http.StatusNoContent, rw.Code)
@@ -459,7 +459,7 @@ func TestUnit_Planets_DeletePlanet(t *testing.T) {
 			Times(1).
 			Return(errors.New("stubbed error"))
 
-		err := DeletePlanet(ctx, mockUsecase)
+		err := deletePlanet(ctx, mockUsecase)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Equal(t, http.StatusInternalServerError, rw.Code)

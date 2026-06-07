@@ -31,7 +31,7 @@ func TestUnit_Players_CreatePlayer(t *testing.T) {
 		req := generateTestRequestWithJsonBody(t, http.MethodPost, "not-a-dto-request")
 		ctx, rw := generateTestContextFromRequest(t, req)
 
-		err := CreatePlayer(ctx, mockUsecase)
+		err := createPlayer(ctx, mockUsecase)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Equal(t, http.StatusBadRequest, rw.Code)
@@ -60,7 +60,7 @@ func TestUnit_Players_CreatePlayer(t *testing.T) {
 				Version:   0,
 			}, nil)
 
-		err := CreatePlayer(ctx, mockUsecase)
+		err := createPlayer(ctx, mockUsecase)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Equal(t, http.StatusCreated, rw.Code)
@@ -84,7 +84,7 @@ func TestUnit_Players_CreatePlayer(t *testing.T) {
 			Times(1).
 			Return(models.Player{}, errors.New("stubbed error"))
 
-		err := CreatePlayer(ctx, mockUsecase)
+		err := createPlayer(ctx, mockUsecase)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Equal(t, http.StatusInternalServerError, rw.Code)
@@ -102,7 +102,7 @@ func TestUnit_Players_GetPlayer(t *testing.T) {
 		ctx, rw := generateTestContextFromRequest(t, req)
 		ctx.SetPathValues([]echo.PathValue{{Name: "id", Value: "not-a-uuid"}})
 
-		err := GetPlayer(ctx, mockUsecase)
+		err := getPlayer(ctx, mockUsecase)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Equal(t, http.StatusBadRequest, rw.Code)
@@ -126,7 +126,7 @@ func TestUnit_Players_GetPlayer(t *testing.T) {
 			Times(1).
 			Return(player, nil)
 
-		err := GetPlayer(ctx, mockUsecase)
+		err := getPlayer(ctx, mockUsecase)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Equal(t, http.StatusOK, rw.Code)
@@ -150,7 +150,7 @@ func TestUnit_Players_GetPlayer(t *testing.T) {
 			Times(1).
 			Return(models.Player{}, errors.NewCode(db.NoMatchingRows))
 
-		err := GetPlayer(ctx, mockUsecase)
+		err := getPlayer(ctx, mockUsecase)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Equal(t, http.StatusNotFound, rw.Code)
@@ -167,7 +167,7 @@ func TestUnit_Players_GetPlayer(t *testing.T) {
 			Times(1).
 			Return(models.Player{}, errors.New("stubbed error"))
 
-		err := GetPlayer(ctx, mockUsecase)
+		err := getPlayer(ctx, mockUsecase)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Equal(t, http.StatusInternalServerError, rw.Code)
@@ -193,7 +193,7 @@ func TestUnit_Players_ListPlayers(t *testing.T) {
 			Times(1).
 			Return(players, nil)
 
-		err := ListPlayers(ctx, mockUsecase)
+		err := listPlayers(ctx, mockUsecase)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Equal(t, http.StatusOK, rw.Code)
@@ -214,7 +214,7 @@ func TestUnit_Players_ListPlayers(t *testing.T) {
 			Times(1).
 			Return([]models.Player{}, nil)
 
-		err := ListPlayers(ctx, mockUsecase)
+		err := listPlayers(ctx, mockUsecase)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Equal(t, http.StatusOK, rw.Code)
@@ -231,7 +231,7 @@ func TestUnit_Players_ListPlayers(t *testing.T) {
 			Times(1).
 			Return(nil, nil)
 
-		err := ListPlayers(ctx, mockUsecase)
+		err := listPlayers(ctx, mockUsecase)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Equal(t, http.StatusOK, rw.Code)
@@ -248,7 +248,7 @@ func TestUnit_Players_ListPlayers(t *testing.T) {
 			Times(1).
 			Return([]models.Player{}, errors.New("stubbed error"))
 
-		err := ListPlayers(ctx, mockUsecase)
+		err := listPlayers(ctx, mockUsecase)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Equal(t, http.StatusInternalServerError, rw.Code)
@@ -266,7 +266,7 @@ func TestUnit_Players_ListPlayers_ForApiUser(t *testing.T) {
 		addQueryParam(t, req, "api_user", "not-a-uuid")
 		ctx, rw := generateTestContextFromRequest(t, req)
 
-		err := ListPlayers(ctx, mockUsecase)
+		err := listPlayers(ctx, mockUsecase)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Equal(t, http.StatusBadRequest, rw.Code)
@@ -288,7 +288,7 @@ func TestUnit_Players_ListPlayers_ForApiUser(t *testing.T) {
 			Times(1).
 			Return(players, nil)
 
-		err := ListPlayers(ctx, mockUsecase)
+		err := listPlayers(ctx, mockUsecase)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Equal(t, http.StatusOK, rw.Code)
@@ -310,7 +310,7 @@ func TestUnit_Players_ListPlayers_ForApiUser(t *testing.T) {
 			Times(1).
 			Return([]models.Player{}, nil)
 
-		err := ListPlayers(ctx, mockUsecase)
+		err := listPlayers(ctx, mockUsecase)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Equal(t, http.StatusOK, rw.Code)
@@ -328,7 +328,7 @@ func TestUnit_Players_ListPlayers_ForApiUser(t *testing.T) {
 			Times(1).
 			Return(nil, nil)
 
-		err := ListPlayers(ctx, mockUsecase)
+		err := listPlayers(ctx, mockUsecase)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Equal(t, http.StatusOK, rw.Code)
@@ -346,7 +346,7 @@ func TestUnit_Players_ListPlayers_ForApiUser(t *testing.T) {
 			Times(1).
 			Return([]models.Player{}, errors.New("stubbed error"))
 
-		err := ListPlayers(ctx, mockUsecase)
+		err := listPlayers(ctx, mockUsecase)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Equal(t, http.StatusInternalServerError, rw.Code)
@@ -364,7 +364,7 @@ func TestUnit_Players_DeletePlayer(t *testing.T) {
 		ctx, rw := generateTestContextFromRequest(t, req)
 		ctx.SetPathValues([]echo.PathValue{{Name: "id", Value: "not-a-uuid"}})
 
-		err := DeletePlayer(ctx, mockUsecase)
+		err := deletePlayer(ctx, mockUsecase)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Equal(t, http.StatusBadRequest, rw.Code)
@@ -381,7 +381,7 @@ func TestUnit_Players_DeletePlayer(t *testing.T) {
 			Times(1).
 			Return(nil)
 
-		err := DeletePlayer(ctx, mockUsecase)
+		err := deletePlayer(ctx, mockUsecase)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Equal(t, http.StatusNoContent, rw.Code)
@@ -396,7 +396,7 @@ func TestUnit_Players_DeletePlayer(t *testing.T) {
 			Times(1).
 			Return(errors.New("stubbed error"))
 
-		err := DeletePlayer(ctx, mockUsecase)
+		err := deletePlayer(ctx, mockUsecase)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Equal(t, http.StatusInternalServerError, rw.Code)
