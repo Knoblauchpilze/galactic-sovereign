@@ -6,7 +6,6 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
 	"github.com/Knoblauchpilze/galactic-sovereign/internal/service"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v5"
@@ -60,16 +59,6 @@ func TestUnit_FromBuildingActionServiceAwareHttpHandler(t *testing.T) {
 	s := HandlerTestSuite[service.BuildingActionService]{
 		generateTestFunc: func(in func(*echo.Context, service.BuildingActionService) error) echo.HandlerFunc {
 			return fromBuildingActionServiceAwareHttpHandler(in, &mockBuildingActionService{})
-		},
-	}
-
-	suite.Run(t, &s)
-}
-
-func TestUnit_FromDbAwareHttpHandler(t *testing.T) {
-	s := HandlerTestSuite[db.Connection]{
-		generateTestFunc: func(in func(*echo.Context, db.Connection) error) echo.HandlerFunc {
-			return fromDbAwareHttpHandler(in, &mockConnection{})
 		},
 	}
 
