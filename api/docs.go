@@ -491,7 +491,7 @@ const docTemplate = `{
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "string"
+                                    "$ref": "#/components/schemas/rest.ResponseEnvelope-string"
                                 }
                             }
                         },

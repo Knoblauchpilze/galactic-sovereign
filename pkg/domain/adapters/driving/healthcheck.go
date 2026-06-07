@@ -24,7 +24,7 @@ func HealthcheckEndpoints(usecase drivingports.ForCheckingServiceHealth) rest.Ro
 //	@Description	Returns service health based on database connectivity.
 //	@Tags			healthcheck
 //	@Produce		json
-//	@Success		200	{string}	rest.ResponseEnvelope[string]	"OK"
+//	@Success		200	{object}	rest.ResponseEnvelope[string]	"OK"
 //	@Failure		503	{object}	rest.ResponseEnvelope[string]
 //	@Router			/healthcheck [get]
 func healthcheck(c *echo.Context, usecase drivingports.ForCheckingServiceHealth) error {
