@@ -82,17 +82,11 @@ func main() {
 		}
 	}
 
-	for _, route := range controller.HealthCheckEndpoints(conn) {
-		if err := s.AddRoute(route); err != nil {
-			log.Error("Failed to register route", slog.String("route", route.Path()), slog.Any("error", err))
-			os.Exit(1)
-		}
-	}
-
 	// New logic using DDD
 	registerUniverseRoutes(conn, s, log)
 	registerPlayerRoutes(conn, s, log)
 	registerPlanetsRoutes(conn, s, log)
+	registerHealthRoutes(conn, s, log)
 	// End new logic using DDD
 
 	swaggerUi := rest.NewRawRoute(http.MethodGet, "/swagger/*", echoSwagger.WrapHandlerV3)
@@ -143,6 +137,18 @@ func registerPlanetsRoutes(conn db.Connection, s server.Server, log *slog.Logger
 	usecase := usecases.NewPlanetUseCase(repo)
 
 	for _, route := range drivingadapters.PlanetEndpoints(usecase) {
+		if err := s.AddRoute(route); err != nil {
+			log.Error("Failed to register route", slog.String("route", route.Path()), slog.Any("error", err))
+			os.Exit(1)
+		}
+	}
+}
+
+func registerHealthRoutes(conn db.Connection, s server.Server, log *slog.Logger) {
+	checker := drivenadapters.NewDatabaseChecker(conn)
+	usecase := usecases.NewCheckHealthUseCase(checker)
+
+	for _, route := range drivingadapters.HealthcheckEndpoints(usecase) {
 		if err := s.AddRoute(route); err != nil {
 			log.Error("Failed to register route", slog.String("route", route.Path()), slog.Any("error", err))
 			os.Exit(1)
