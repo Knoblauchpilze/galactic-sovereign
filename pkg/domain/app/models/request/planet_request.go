@@ -25,5 +25,6 @@ func FromPlanetCreationRequest(planet PlanetCreationRequest) models.Planet {
 		Resources:   []models.PlanetResource{},
 		Storages:    []models.PlanetResourceStorage{},
 		Productions: []models.PlanetResourceProduction{},
+		Buildings:   []models.PlanetBuilding{},
 	}
 }
