@@ -22,3 +22,18 @@ type BuildingAction struct {
 	Storages    []BuildingActionResourceStorage
 	Productions []BuildingActionResourceProduction
 }
+
+type BuildingActionCost struct {
+	Resource uuid.UUID
+	Amount   int
+}
+
+type BuildingActionResourceStorage struct {
+	Resource uuid.UUID
+	Storage  int
+}
+
+type BuildingActionResourceProduction struct {
+	Resource   uuid.UUID
+	Production int
+}
