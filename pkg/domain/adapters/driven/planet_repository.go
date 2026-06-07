@@ -383,6 +383,9 @@ func loadPlanetDetails(ctx context.Context, tx db.Transaction, dbPlanet mappers.
 		listPlanetBuildingForPlanetQuery,
 		dbPlanet.Id,
 	)
+	if err != nil {
+		return planet, err
+	}
 
 	return planet, nil
 }
