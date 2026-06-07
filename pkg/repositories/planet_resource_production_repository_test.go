@@ -63,8 +63,8 @@ func TestIT_PlanetResourceProductionRepository_Create_WithoutBuilding(t *testing
 	assertPlanetResourceProductionWithoutBuilding(t, conn, planetId, resource.Id, 56)
 }
 
-func TestIT_PlanetResourceProductionRepository_Create_WhenDuplicateResourceProductionWithoutBuilding_ExpectSuccess(t *testing.T) {
-	repo, conn := newTestPlanetResourceProductionRepository(t)
+func TestIT_PlanetResourceProductionRepository_Create_WhenDuplicateResourceProductionWithoutBuilding_ExpectFailure(t *testing.T) {
+	repo, conn, tx := newTestPlanetResourceProductionRepositoryAndTransaction(t)
 	defer conn.Close(context.Background())
 	planetId, _ := insertTestPlanetForPlayer(t, conn)
 	production, resource := insertTestPlanetResourceProductionForBuilding(t, conn, planetId, nil)
@@ -76,27 +76,11 @@ func TestIT_PlanetResourceProductionRepository_Create_WhenDuplicateResourceProdu
 		CreatedAt:  time.Date(2024, 12, 1, 17, 52, 21, 0, time.UTC),
 	}
 
-	func() {
-		tx, err := conn.BeginTx(context.Background())
-		require.Nil(t, err)
-		defer tx.Close(context.Background())
+	_, err := repo.Create(context.Background(), tx, newProd)
+	tx.Close(context.Background())
 
-		_, err = repo.Create(context.Background(), tx, newProd)
-		assert.Nil(t, err)
-	}()
-
-	var allProductions []persistence.PlanetResourceProduction
-	func() {
-		tx, err := conn.BeginTx(context.Background())
-		require.Nil(t, err)
-		defer tx.Close(context.Background())
-
-		allProductions, err = repo.ListForPlanet(context.Background(), tx, planetId)
-		require.Nil(t, err)
-	}()
-
-	assert.True(t, eassert.ContainsIgnoringFields(allProductions, production, "UpdatedAt"))
-	assert.True(t, eassert.ContainsIgnoringFields(allProductions, newProd, "UpdatedAt"))
+	assert.True(t, errors.IsErrorWithCode(err, pgx.UniqueConstraintViolation), "Actual err: %v", err)
+	assertPlanetResourceProductionWithoutBuilding(t, conn, planetId, resource.Id, production.Production)
 }
 
 func TestIT_PlanetResourceProductionRepository_Create_WhenDuplicateResourceProductionForBuilding_ExpectFailure(t *testing.T) {
