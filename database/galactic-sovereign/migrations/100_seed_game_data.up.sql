@@ -1,11 +1,4 @@
 
--- Universes
-INSERT INTO galactic_sovereign_schema.universe ("id", "name")
-  VALUES ('9682f17b-f5f0-4eda-a747-2537d2151837', 'oberon');
-
-INSERT INTO galactic_sovereign_schema.universe ("id", "name")
-  VALUES ('0ac6c027-11d6-47e6-ab15-514cfac48200', 'aquarius');
-
 -- Resources
 INSERT INTO galactic_sovereign_schema.resource ("id", "name", "start_amount", "start_production", "start_storage")
   VALUES ('b4419b6b-b3bf-4576-aa92-055283addbc8', 'metal', 500, 30, 10000);
