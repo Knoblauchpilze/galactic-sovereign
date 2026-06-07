@@ -149,6 +149,26 @@ const docTemplate = `{
                 },
                 "type": "object"
             },
+            "dtos.PlanetBuildingDtoResponse": {
+                "properties": {
+                    "building": {
+                        "format": "uuid",
+                        "type": "string"
+                    },
+                    "createdAt": {
+                        "format": "date-time",
+                        "type": "string"
+                    },
+                    "level": {
+                        "type": "integer"
+                    },
+                    "updatedAt": {
+                        "format": "date-time",
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
             "dtos.PlanetDtoRequest": {
                 "properties": {
                     "name": {
@@ -163,6 +183,13 @@ const docTemplate = `{
             },
             "dtos.PlanetDtoResponse": {
                 "properties": {
+                    "buildings": {
+                        "items": {
+                            "$ref": "#/components/schemas/dtos.PlanetBuildingDtoResponse"
+                        },
+                        "type": "array",
+                        "uniqueItems": false
+                    },
                     "createdAt": {
                         "format": "date-time",
                         "type": "string"

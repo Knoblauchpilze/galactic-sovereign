@@ -98,6 +98,20 @@ components:
         storage:
           type: integer
       type: object
+    dtos.PlanetBuildingDtoResponse:
+      properties:
+        building:
+          format: uuid
+          type: string
+        createdAt:
+          format: date-time
+          type: string
+        level:
+          type: integer
+        updatedAt:
+          format: date-time
+          type: string
+      type: object
     dtos.PlanetDtoRequest:
       properties:
         name:
@@ -108,6 +122,11 @@ components:
       type: object
     dtos.PlanetDtoResponse:
       properties:
+        buildings:
+          items:
+            $ref: '#/components/schemas/dtos.PlanetBuildingDtoResponse'
+          type: array
+          uniqueItems: false
         createdAt:
           format: date-time
           type: string
