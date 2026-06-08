@@ -15,7 +15,6 @@ import (
 
 func TestIT_ResourceRepository_List(t *testing.T) {
 	repo, conn := newTestResourceRepository(t)
-	defer conn.Close(context.Background())
 	r1 := insertTestResource(t, conn)
 	r2 := insertTestResource(t, conn)
 
@@ -29,7 +28,7 @@ func TestIT_ResourceRepository_List(t *testing.T) {
 
 func newTestResourceRepository(t *testing.T) (drivenports.ForListingResources, db.Connection) {
 	t.Helper()
-	conn := newTestConnection(t)
+	conn := newTestConnectionWithContainer(t)
 	return NewResourceRepository(conn), conn
 }
 

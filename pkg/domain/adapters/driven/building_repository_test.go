@@ -20,7 +20,6 @@ var (
 
 func TestIT_BuildingRepository_List(t *testing.T) {
 	repo, conn := newTestBuildingRepository(t)
-	defer conn.Close(context.Background())
 	b1 := insertTestBuilding(t, conn, addBuildingCost)
 	b2 := insertTestBuilding(t, conn, addBuildingProduction)
 	b3 := insertTestBuilding(t, conn, addBuildingStorage)
@@ -43,7 +42,7 @@ func TestIT_BuildingRepository_List(t *testing.T) {
 
 func newTestBuildingRepository(t *testing.T) (drivenports.ForListingBuildings, db.Connection) {
 	t.Helper()
-	conn := newTestConnection(t)
+	conn := newTestConnectionWithContainer(t)
 	return NewBuildingRepository(conn), conn
 }
 
