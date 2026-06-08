@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestUnity_FromBuildingActionCreationRequest(t *testing.T) {
+func TestUnit_FromBuildingActionCreationRequest(t *testing.T) {
 	beforeConversion := time.Now()
 
 	request := BuildingActionCreationRequest{
