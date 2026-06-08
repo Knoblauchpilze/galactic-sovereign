@@ -33,6 +33,7 @@ jobs:
           grep -vE '^Test(Unit|IT|)_' test_without_main.txt > not_matching.txt || [[ $? == 1 ]]
           FAILURES=$(wc -l < not_matching.txt)
           if [[ ${FAILURES} -ne 0 ]]; then
+            cat not_matching.txt
             echo 'failed=true' >> $GITHUB_OUTPUT
           fi
       - name: Fail if some do not match
