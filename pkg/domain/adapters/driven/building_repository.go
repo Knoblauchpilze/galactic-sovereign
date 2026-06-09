@@ -7,6 +7,7 @@ import (
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driven/mappers"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
 	drivenports "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driven"
+	"github.com/google/uuid"
 )
 
 const (
@@ -48,6 +49,16 @@ FROM
 	building_resource_storage
 WHERE
 	building = $1`
+
+	getBuildingQuery = `
+SELECT
+	id,
+	name,
+	created_at
+FROM
+	building
+WHERE
+	id = $1`
 )
 
 type buildingRepositoryImpl struct {
@@ -58,6 +69,21 @@ func NewBuildingRepository(conn db.Connection) drivenports.ForListingBuildings {
 	return &buildingRepositoryImpl{
 		conn: conn,
 	}
+}
+
+func (r *buildingRepositoryImpl) Get(ctx context.Context, id uuid.UUID) (models.Building, error) {
+	tx, err := r.conn.BeginTx(ctx)
+	if err != nil {
+		return models.Building{}, err
+	}
+	defer tx.Close(ctx)
+
+	dbBuilding, err := db.QueryOneTx[mappers.DbBuilding](ctx, tx, getBuildingQuery, id)
+	if err != nil {
+		return models.Building{}, err
+	}
+
+	return loadBuildingDetails(ctx, tx, dbBuilding)
 }
 
 func (r *buildingRepositoryImpl) List(ctx context.Context) ([]models.Building, error) {

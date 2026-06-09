@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
+	"github.com/Knoblauchpilze/backend-toolkit/pkg/errors"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
 	drivenports "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driven"
 	"github.com/google/uuid"
@@ -17,6 +18,27 @@ import (
 var (
 	metalResourceId = uuid.MustParse("b4419b6b-b3bf-4576-aa92-055283addbc8")
 )
+
+func TestIT_BuildingRepository_Get(t *testing.T) {
+	repo, conn := newTestBuildingRepository(t)
+	defer conn.Close(context.Background())
+
+	t.Run("gets a building", func(t *testing.T) {
+		building := insertTestBuilding(t, conn)
+
+		actual, err := repo.Get(context.Background(), building.Id)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.Equal(t, actual, building)
+	})
+
+	t.Run("returns error when building does not exist", func(t *testing.T) {
+		id := uuid.MustParse("00000000-1111-2222-1111-000000000000")
+		_, err := repo.Get(context.Background(), id)
+
+		assert.True(t, errors.IsErrorWithCode(err, db.NoMatchingRows), "Actual err: %v", err)
+	})
+}
 
 func TestIT_BuildingRepository_List(t *testing.T) {
 	repo, conn := newTestBuildingRepository(t)
