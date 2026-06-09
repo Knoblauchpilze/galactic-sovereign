@@ -19,7 +19,6 @@ var (
 	crystalResourceId = uuid.MustParse("cd2ac9aa-9968-4ff5-b746-88f1f810fbb3")
 )
 
-// TODO: A new function should create a building action for a certain level
 type Building struct {
 	Id        uuid.UUID
 	Name      string
