@@ -12,8 +12,7 @@ import (
 
 func TestIT_DatabaseChecker_Ping(t *testing.T) {
 	t.Run("returns no error when connection is healthy", func(t *testing.T) {
-		conn := newTestConnection(t)
-		defer conn.Close(context.Background())
+		conn := newTestConnectionWithContainer(t)
 
 		checker := NewDatabaseChecker(conn)
 
@@ -22,7 +21,7 @@ func TestIT_DatabaseChecker_Ping(t *testing.T) {
 	})
 
 	t.Run("returns error when connection is not healthy", func(t *testing.T) {
-		conn := newTestConnection(t)
+		conn := newTestConnectionWithContainer(t)
 		conn.Close(context.Background())
 
 		checker := NewDatabaseChecker(conn)

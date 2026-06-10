@@ -117,7 +117,6 @@ func TestIT_PlanetRepository_Create(t *testing.T) {
 
 func TestIT_PlanetRepository_Get(t *testing.T) {
 	repo, conn := newTestPlanetRepository(t)
-	defer conn.Close(context.Background())
 
 	t.Run("gets planet", func(t *testing.T) {
 		planet, _, _ := insertTestPlanetForPlayer(t, conn)
@@ -183,7 +182,6 @@ func TestIT_PlanetRepository_Get(t *testing.T) {
 
 func TestIT_PlanetRepository_List(t *testing.T) {
 	repo, conn := newTestPlanetRepository(t)
-	defer conn.Close(context.Background())
 	p1, player1, _ := insertTestPlanetForPlayer(t, conn)
 	p2 := insertTestPlanet(t, conn, player1.Id)
 	p3, player2, _ := insertTestPlanetForPlayer(t, conn)
@@ -211,7 +209,6 @@ func TestIT_PlanetRepository_List(t *testing.T) {
 
 func TestIT_PlanetRepository_ListForPlayer(t *testing.T) {
 	repo, conn := newTestPlanetRepository(t)
-	defer conn.Close(context.Background())
 	p1, _, _ := insertTestPlanetForPlayer(t, conn)
 	p2, player1, _ := insertTestPlanetForPlayer(t, conn)
 	p3 := insertTestPlanet(t, conn, player1.Id, addPlanetResource)
@@ -237,7 +234,6 @@ func TestIT_PlanetRepository_ListForPlayer(t *testing.T) {
 
 func TestIT_PlanetRepository_Delete(t *testing.T) {
 	repo, conn := newTestPlanetRepository(t)
-	defer conn.Close(context.Background())
 
 	t.Run("deletes planet", func(t *testing.T) {
 		planet, _, _ := insertTestPlanetForPlayer(t, conn)
@@ -373,7 +369,6 @@ func TestIT_PlanetRepository_Delete(t *testing.T) {
 
 func TestIT_PlanetRepository_DeleteForPlayer(t *testing.T) {
 	repo, conn := newTestPlanetRepository(t)
-	defer conn.Close(context.Background())
 
 	t.Run("deletes all planets", func(t *testing.T) {
 		p1, player, _ := insertTestHomeworldPlanetForPlayer(t, conn)
@@ -450,7 +445,6 @@ func TestIT_PlanetRepository_DeleteForPlayer(t *testing.T) {
 
 func TestIT_PlanetRepository_CreationDeletionWorkflow(t *testing.T) {
 	repo, conn := newTestPlanetRepository(t)
-	defer conn.Close(context.Background())
 
 	type testCase struct {
 		name   string
@@ -520,7 +514,7 @@ func TestIT_PlanetRepository_CreationDeletionWorkflow(t *testing.T) {
 
 func newTestPlanetRepository(t *testing.T) (drivenports.ForManagingPlanets, db.Connection) {
 	t.Helper()
-	conn := newTestConnection(t)
+	conn := newTestConnectionWithContainer(t)
 	return NewPlanetRepository(conn), conn
 }
 

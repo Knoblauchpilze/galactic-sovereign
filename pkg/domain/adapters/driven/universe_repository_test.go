@@ -17,7 +17,6 @@ import (
 
 func TestIT_UniverseRepository_Create(t *testing.T) {
 	repo, conn := newTestUniverseRepository(t)
-	defer conn.Close(context.Background())
 
 	t.Run("creates a universe", func(t *testing.T) {
 		universe := models.Universe{
@@ -55,7 +54,6 @@ func TestIT_UniverseRepository_Create(t *testing.T) {
 
 func TestIT_UniverseRepository_Get(t *testing.T) {
 	repo, conn := newTestUniverseRepository(t)
-	defer conn.Close(context.Background())
 
 	t.Run("gets a universe", func(t *testing.T) {
 		universe := insertTestUniverse(t, conn)
@@ -76,7 +74,6 @@ func TestIT_UniverseRepository_Get(t *testing.T) {
 
 func TestIT_UniverseRepository_List(t *testing.T) {
 	repo, conn := newTestUniverseRepository(t)
-	defer conn.Close(context.Background())
 	u1 := insertTestUniverse(t, conn)
 	u2 := insertTestUniverse(t, conn)
 
@@ -90,7 +87,6 @@ func TestIT_UniverseRepository_List(t *testing.T) {
 
 func TestIT_UniverseRepository_Delete(t *testing.T) {
 	repo, conn := newTestUniverseRepository(t)
-	defer conn.Close(context.Background())
 
 	t.Run("deletes universe", func(t *testing.T) {
 		universe := insertTestUniverse(t, conn)
@@ -111,7 +107,7 @@ func TestIT_UniverseRepository_Delete(t *testing.T) {
 
 func newTestUniverseRepository(t *testing.T) (drivenports.ForManagingUniverses, db.Connection) {
 	t.Helper()
-	conn := newTestConnection(t)
+	conn := newTestConnectionWithContainer(t)
 	return NewUniverseRepository(conn), conn
 }
 
