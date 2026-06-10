@@ -6,8 +6,6 @@ import (
 	"github.com/google/uuid"
 )
 
-// TODO: The building actions are missing from the planet
-// TODO: A new function should be added to create an action for a building
 type Planet struct {
 	Id        uuid.UUID
 	Player    uuid.UUID
@@ -24,6 +22,8 @@ type Planet struct {
 	Productions []PlanetResourceProduction
 
 	Buildings []PlanetBuilding
+
+	BuildingAction *uuid.UUID
 }
 
 type PlanetResource struct {

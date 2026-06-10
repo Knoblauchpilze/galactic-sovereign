@@ -29,12 +29,14 @@ SELECT
 	END AS homeworld,
 	p.created_at,
 	p.updated_at,
-	p.version
+	p.version,
+	ba.id AS building_action
 FROM
 	planet AS p
 	LEFT JOIN homeworld AS h ON h.planet = p.id
+	LEFT JOIN building_action AS ba ON ba.planet = p.id
 WHERE
-	id = $1`
+	p.id = $1`
 
 	listPlanetResourceForPlanetQuery = `
 SELECT
@@ -92,10 +94,12 @@ SELECT
 	END AS homeworld,
 	p.created_at,
 	p.updated_at,
-	p.version
+	p.version,
+	ba.id AS building_action
 FROM
 	planet AS p
-	LEFT JOIN homeworld AS h ON h.planet = p.id`
+	LEFT JOIN homeworld AS h ON h.planet = p.id
+	LEFT JOIN building_action AS ba ON ba.planet = p.id`
 
 	listPlanetForPlayerQuery = `
 SELECT
@@ -108,10 +112,12 @@ SELECT
 	END AS homeworld,
 	p.created_at,
 	p.updated_at,
-	p.version
+	p.version,
+	ba.id AS building_action
 FROM
 	planet AS p
 	LEFT JOIN homeworld AS h ON h.planet = p.id
+	LEFT JOIN building_action AS ba ON ba.planet = p.id
 WHERE
 	p.player = $1`
 
@@ -167,12 +173,14 @@ WHERE
 )
 
 type planetRepositoryImpl struct {
-	conn db.Connection
+	conn       db.Connection
+	actionRepo *buildingActionRepositoryImpl
 }
 
 func NewPlanetRepository(conn db.Connection) drivenports.ForManagingPlanets {
 	return &planetRepositoryImpl{
-		conn: conn,
+		conn:       conn,
+		actionRepo: &buildingActionRepositoryImpl{conn: conn},
 	}
 }
 
@@ -278,33 +286,12 @@ func (r *planetRepositoryImpl) Delete(ctx context.Context, id uuid.UUID) error {
 	}
 	defer tx.Close(ctx)
 
-	_, err = tx.Exec(ctx, deletePlanetBuildingsQuery, id)
+	err = deleteBuildingActionDetailsForPlanet(ctx, tx, id)
 	if err != nil {
 		return err
 	}
 
-	_, err = tx.Exec(ctx, deletePlanetResourceProductionsQuery, id)
-	if err != nil {
-		return err
-	}
-
-	_, err = tx.Exec(ctx, deletePlanetResourceStoragesQuery, id)
-	if err != nil {
-		return err
-	}
-
-	_, err = tx.Exec(ctx, deletePlanetResourcesQuery, id)
-	if err != nil {
-		return err
-	}
-
-	_, err = tx.Exec(ctx, deletePlanetHomeworldQuery, id)
-	if err != nil {
-		return err
-	}
-
-	_, err = tx.Exec(ctx, deletePlanetQuery, id)
-	return err
+	return deletePlanetDetails(ctx, tx, id)
 }
 
 func (r *planetRepositoryImpl) DeleteForPlayer(ctx context.Context, player uuid.UUID) error {
@@ -313,6 +300,11 @@ func (r *planetRepositoryImpl) DeleteForPlayer(ctx context.Context, player uuid.
 		return err
 	}
 	defer tx.Close(ctx)
+
+	err = deleteBuildingActionDetailsForPlayer(ctx, tx, player)
+	if err != nil {
+		return err
+	}
 
 	_, err = tx.Exec(ctx, deletePlanetBuildingForPlayerQuery, player)
 	if err != nil {
@@ -388,4 +380,38 @@ func loadPlanetDetails(ctx context.Context, tx db.Transaction, dbPlanet mappers.
 	}
 
 	return planet, nil
+}
+
+func deletePlanetDetails(ctx context.Context, tx db.Transaction, id uuid.UUID) error {
+	_, err := tx.Exec(ctx, deletePlanetBuildingsQuery, id)
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.Exec(ctx, deletePlanetResourceProductionsQuery, id)
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.Exec(ctx, deletePlanetResourceStoragesQuery, id)
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.Exec(ctx, deletePlanetResourcesQuery, id)
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.Exec(ctx, deletePlanetHomeworldQuery, id)
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.Exec(ctx, deletePlanetQuery, id)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

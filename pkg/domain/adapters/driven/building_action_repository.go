@@ -323,27 +323,7 @@ func (r *buildingActionRepositoryImpl) DeleteForPlanet(ctx context.Context, plan
 	}
 	defer tx.Close(ctx)
 
-	_, err = tx.Exec(ctx, deleteBuildingActionResourceProductionForPlanetQuery, planet)
-	if err != nil {
-		return err
-	}
-
-	_, err = tx.Exec(ctx, deleteBuildingActionResourceStorageForPlanetQuery, planet)
-	if err != nil {
-		return err
-	}
-
-	_, err = tx.Exec(ctx, deleteBuildingActionCostForPlanetQuery, planet)
-	if err != nil {
-		return err
-	}
-
-	_, err = tx.Exec(ctx, deleteBuildingActionForPlanetQuery, planet)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return deleteBuildingActionDetailsForPlanet(ctx, tx, planet)
 }
 
 func (r *buildingActionRepositoryImpl) DeleteForPlayer(ctx context.Context, player uuid.UUID) error {
@@ -353,27 +333,7 @@ func (r *buildingActionRepositoryImpl) DeleteForPlayer(ctx context.Context, play
 	}
 	defer tx.Close(ctx)
 
-	_, err = tx.Exec(ctx, deleteBuildingActionResourceProductionForPlayerQuery, player)
-	if err != nil {
-		return err
-	}
-
-	_, err = tx.Exec(ctx, deleteBuildingActionResourceStorageForPlayerQuery, player)
-	if err != nil {
-		return err
-	}
-
-	_, err = tx.Exec(ctx, deleteBuildingActionCostForPlayerQuery, player)
-	if err != nil {
-		return err
-	}
-
-	_, err = tx.Exec(ctx, deleteBuildingActionForPlayerQuery, player)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return deleteBuildingActionDetailsForPlayer(ctx, tx, player)
 }
 
 func loadBuildingActionDetails(
@@ -415,4 +375,52 @@ func loadBuildingActionDetails(
 	}
 
 	return action, nil
+}
+
+func deleteBuildingActionDetailsForPlanet(ctx context.Context, tx db.Transaction, planet uuid.UUID) error {
+	_, err := tx.Exec(ctx, deleteBuildingActionResourceProductionForPlanetQuery, planet)
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.Exec(ctx, deleteBuildingActionResourceStorageForPlanetQuery, planet)
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.Exec(ctx, deleteBuildingActionCostForPlanetQuery, planet)
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.Exec(ctx, deleteBuildingActionForPlanetQuery, planet)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func deleteBuildingActionDetailsForPlayer(ctx context.Context, tx db.Transaction, player uuid.UUID) error {
+	_, err := tx.Exec(ctx, deleteBuildingActionResourceProductionForPlayerQuery, player)
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.Exec(ctx, deleteBuildingActionResourceStorageForPlayerQuery, player)
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.Exec(ctx, deleteBuildingActionCostForPlayerQuery, player)
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.Exec(ctx, deleteBuildingActionForPlayerQuery, player)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

@@ -164,8 +164,17 @@ func TestIT_PlanetRepository_Get(t *testing.T) {
 		assert.Equal(t, actual, planet)
 	})
 
-	t.Run("gets planet with building", func(t *testing.T) {
+	t.Run("gets planet with buildings", func(t *testing.T) {
 		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetBuilding)
+
+		actual, err := repo.Get(context.Background(), planet.Id)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.Equal(t, actual, planet)
+	})
+
+	t.Run("gets planet with building actions", func(t *testing.T) {
+		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetBuildingAction)
 
 		actual, err := repo.Get(context.Background(), planet.Id)
 		require.NoError(t, err, "Actual err: %v", err)
@@ -193,6 +202,7 @@ func TestIT_PlanetRepository_List(t *testing.T) {
 	p7 := insertTestPlanet(t, conn, player2.Id, addPlanetProduction)
 	p8 := insertTestPlanet(t, conn, player2.Id, addPlanetProductionForBuilding)
 	p9 := insertTestPlanet(t, conn, player2.Id, addPlanetBuilding)
+	p10 := insertTestPlanet(t, conn, player2.Id, addPlanetBuildingAction)
 
 	actual, err := repo.List(context.Background())
 	require.NoError(t, err, "Actual err: %v", err)
@@ -207,6 +217,7 @@ func TestIT_PlanetRepository_List(t *testing.T) {
 	assert.Contains(t, actual, p7)
 	assert.Contains(t, actual, p8)
 	assert.Contains(t, actual, p9)
+	assert.Contains(t, actual, p10)
 }
 
 func TestIT_PlanetRepository_ListForPlayer(t *testing.T) {
@@ -219,6 +230,7 @@ func TestIT_PlanetRepository_ListForPlayer(t *testing.T) {
 	p5 := insertTestPlanet(t, conn, player1.Id, addPlanetProduction)
 	p6 := insertTestPlanet(t, conn, player1.Id, addPlanetProductionForBuilding)
 	p7 := insertTestPlanet(t, conn, player1.Id, addPlanetBuilding)
+	p8 := insertTestPlanet(t, conn, player1.Id, addPlanetBuildingAction)
 
 	actual, err := repo.ListForPlayer(context.Background(), player1.Id)
 	require.NoError(t, err, "Actual err: %v", err)
@@ -230,6 +242,7 @@ func TestIT_PlanetRepository_ListForPlayer(t *testing.T) {
 	assert.Contains(t, actual, p5)
 	assert.Contains(t, actual, p6)
 	assert.Contains(t, actual, p7)
+	assert.Contains(t, actual, p8)
 	for _, planet := range actual {
 		assert.NotEqual(t, planet.Id, p1.Id)
 	}
@@ -342,7 +355,7 @@ func TestIT_PlanetRepository_Delete(t *testing.T) {
 		assertPlanetProductionDoesNotExist(t, conn, planet.Id)
 	})
 
-	t.Run("deletes planet with building", func(t *testing.T) {
+	t.Run("deletes planet with buildings", func(t *testing.T) {
 		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetBuilding)
 
 		err := repo.Delete(context.Background(), planet.Id)
@@ -352,7 +365,7 @@ func TestIT_PlanetRepository_Delete(t *testing.T) {
 		assertPlanetBuildingDoesNotExist(t, conn, planet.Id)
 	})
 
-	t.Run("deletes homeworld with building", func(t *testing.T) {
+	t.Run("deletes homeworld with buildings", func(t *testing.T) {
 		planet, _, _ := insertTestHomeworldPlanetForPlayer(t, conn, addPlanetBuilding)
 
 		err := repo.Delete(context.Background(), planet.Id)
@@ -361,6 +374,27 @@ func TestIT_PlanetRepository_Delete(t *testing.T) {
 		assertPlanetDoesNotExist(t, conn, planet.Id)
 		assertPlanetIsNotHomeworld(t, conn, planet.Id)
 		assertPlanetBuildingDoesNotExist(t, conn, planet.Id)
+	})
+
+	t.Run("deletes planet with building actions", func(t *testing.T) {
+		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetBuildingAction)
+
+		err := repo.Delete(context.Background(), planet.Id)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assertPlanetDoesNotExist(t, conn, planet.Id)
+		assertBuildingActionDoesNotExist(t, conn, *planet.BuildingAction)
+	})
+
+	t.Run("deletes homeworld with building actions", func(t *testing.T) {
+		planet, _, _ := insertTestHomeworldPlanetForPlayer(t, conn, addPlanetBuildingAction)
+
+		err := repo.Delete(context.Background(), planet.Id)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assertPlanetDoesNotExist(t, conn, planet.Id)
+		assertPlanetIsNotHomeworld(t, conn, planet.Id)
+		assertBuildingActionDoesNotExist(t, conn, *planet.BuildingAction)
 	})
 
 	t.Run("succeeds when the planet does not exist", func(t *testing.T) {
@@ -437,7 +471,7 @@ func TestIT_PlanetRepository_DeleteForPlayer(t *testing.T) {
 		assertPlanetProductionDoesNotExist(t, conn, planet.Id)
 	})
 
-	t.Run("deletes planet with building", func(t *testing.T) {
+	t.Run("deletes planet with buildings", func(t *testing.T) {
 		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetBuilding)
 
 		err := repo.DeleteForPlayer(context.Background(), planet.Player)
@@ -445,6 +479,16 @@ func TestIT_PlanetRepository_DeleteForPlayer(t *testing.T) {
 
 		assertPlanetDoesNotExist(t, conn, planet.Id)
 		assertPlanetBuildingDoesNotExist(t, conn, planet.Id)
+	})
+
+	t.Run("deletes planet with building actions", func(t *testing.T) {
+		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetBuildingAction)
+
+		err := repo.DeleteForPlayer(context.Background(), planet.Player)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assertPlanetDoesNotExist(t, conn, planet.Id)
+		assertBuildingActionDoesNotExist(t, conn, *planet.BuildingAction)
 	})
 }
 
@@ -714,6 +758,37 @@ func addPlanetBuilding(t *testing.T, conn db.Connection, p *models.Planet) {
 	require.NoError(t, err, "Actual err: %v", err)
 
 	p.Buildings = append(p.Buildings, building)
+}
+
+func addPlanetBuildingAction(t *testing.T, conn db.Connection, p *models.Planet) {
+	t.Helper()
+
+	action := models.BuildingAction{
+		Id:           uuid.New(),
+		Building:     metalStorageId,
+		CurrentLevel: 0,
+		DesiredLevel: 1,
+		CreatedAt:    someTime,
+		CompletedAt:  someOtherTime,
+	}
+
+	sqlQuery := `INSERT INTO building_action
+		(id, planet, building, current_level, desired_level, created_at, completed_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7)`
+	_, err := conn.Exec(
+		context.Background(),
+		sqlQuery,
+		action.Id,
+		p.Id,
+		action.Building,
+		action.CurrentLevel,
+		action.DesiredLevel,
+		action.CreatedAt,
+		action.CompletedAt,
+	)
+	require.NoError(t, err, "Actual err: %v", err)
+
+	p.BuildingAction = &action.Id
 }
 
 func insertTestPlanetForPlayer(
