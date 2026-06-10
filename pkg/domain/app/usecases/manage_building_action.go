@@ -1,0 +1,57 @@
+package usecases
+
+import (
+	"context"
+
+	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
+	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/request"
+	drivenports "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driven"
+	drivingports "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driving"
+	"github.com/google/uuid"
+)
+
+type buildingActionUseCase struct {
+	actionRepo   drivenports.ForManagingBuildingActions
+	planetRepo   drivenports.ForManagingPlanets
+	buildingRepo drivenports.ForListingBuildings
+}
+
+func NewBuildingActionUseCase(
+	actionRepo drivenports.ForManagingBuildingActions,
+	planetRepo drivenports.ForManagingPlanets,
+	buildingRepo drivenports.ForListingBuildings,
+) drivingports.ForManagingBuildingAction {
+	return &buildingActionUseCase{
+		actionRepo:   actionRepo,
+		planetRepo:   planetRepo,
+		buildingRepo: buildingRepo,
+	}
+}
+
+func (b *buildingActionUseCase) Create(ctx context.Context, req request.BuildingActionCreationRequest) (models.BuildingAction, error) {
+	planet, err := b.planetRepo.Get(ctx, req.Planet)
+	if err != nil {
+		return models.BuildingAction{}, err
+	}
+
+	building, err := b.buildingRepo.Get(ctx, req.Building)
+	if err != nil {
+		return models.BuildingAction{}, err
+	}
+
+	action, err := building.CreateBuildingAction(planet)
+	if err != nil {
+		return models.BuildingAction{}, err
+	}
+
+	err = b.actionRepo.Create(ctx, action)
+	if err != nil {
+		return models.BuildingAction{}, err
+	}
+
+	return action, nil
+}
+
+func (b *buildingActionUseCase) Delete(ctx context.Context, id uuid.UUID) error {
+	return b.actionRepo.Delete(ctx, id)
+}
