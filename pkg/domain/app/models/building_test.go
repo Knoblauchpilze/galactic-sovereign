@@ -46,7 +46,7 @@ func TestUnit_Building_CreateBuildingAction(t *testing.T) {
 			Storages:    []BuildingResourceStorage{},
 		}
 
-		action, err := b.CreateBuildingAction(p, b.Id)
+		action, err := b.CreateBuildingAction(p)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		expected := BuildingAction{
@@ -100,7 +100,7 @@ func TestUnit_Building_CreateBuildingAction(t *testing.T) {
 			Storages: []BuildingResourceStorage{},
 		}
 
-		action, err := b.CreateBuildingAction(p, b.Id)
+		action, err := b.CreateBuildingAction(p)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		expected := BuildingAction{
@@ -155,7 +155,7 @@ func TestUnit_Building_CreateBuildingAction(t *testing.T) {
 			},
 		}
 
-		action, err := b.CreateBuildingAction(p, b.Id)
+		action, err := b.CreateBuildingAction(p)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		expected := BuildingAction{
@@ -203,7 +203,7 @@ func TestUnit_Building_CreateBuildingAction(t *testing.T) {
 			Storages:    []BuildingResourceStorage{},
 		}
 
-		action, err := b.CreateBuildingAction(p, b.Id)
+		action, err := b.CreateBuildingAction(p)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		actual := action.CompletedAt.Sub(action.CreatedAt)
@@ -227,7 +227,7 @@ func TestUnit_Building_CreateBuildingAction(t *testing.T) {
 			Storages:    []BuildingResourceStorage{},
 		}
 
-		action, err := b.CreateBuildingAction(p, b.Id)
+		action, err := b.CreateBuildingAction(p)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		actual := action.CompletedAt.Sub(action.CreatedAt)
@@ -250,7 +250,7 @@ func TestUnit_Building_CreateBuildingAction(t *testing.T) {
 			Storages:    []BuildingResourceStorage{},
 		}
 
-		action, err := b.CreateBuildingAction(p, b.Id)
+		action, err := b.CreateBuildingAction(p)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		actual := action.CompletedAt.Sub(action.CreatedAt)
@@ -274,7 +274,7 @@ func TestUnit_Building_CreateBuildingAction(t *testing.T) {
 			Storages:    []BuildingResourceStorage{},
 		}
 
-		action, err := b.CreateBuildingAction(p, b.Id)
+		action, err := b.CreateBuildingAction(p)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		actual := action.CompletedAt.Sub(action.CreatedAt)
@@ -303,7 +303,7 @@ func TestUnit_Building_CreateBuildingAction(t *testing.T) {
 			Storages:    []BuildingResourceStorage{},
 		}
 
-		action, err := b.CreateBuildingAction(p, b.Id)
+		action, err := b.CreateBuildingAction(p)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		actual := action.CompletedAt.Sub(action.CreatedAt)
@@ -314,7 +314,7 @@ func TestUnit_Building_CreateBuildingAction(t *testing.T) {
 	t.Run("returns error when building does not exist on planet", func(t *testing.T) {
 		b := Building{Id: uuid.New()}
 
-		_, err := b.CreateBuildingAction(p, b.Id)
+		_, err := b.CreateBuildingAction(p)
 
 		assert.ErrorIs(t, err, errBuildingNotFound)
 	})

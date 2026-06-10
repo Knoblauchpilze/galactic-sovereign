@@ -48,8 +48,8 @@ type BuildingResourceStorage struct {
 	Progress float64
 }
 
-func (b Building) CreateBuildingAction(planet Planet, building uuid.UUID) (BuildingAction, error) {
-	pb, err := findBuildingById(planet.Buildings, building)
+func (b Building) CreateBuildingAction(planet Planet) (BuildingAction, error) {
+	pb, err := findBuildingById(planet.Buildings, b.Id)
 	if err != nil {
 		return BuildingAction{}, err
 	}
@@ -63,7 +63,7 @@ func (b Building) CreateBuildingAction(planet Planet, building uuid.UUID) (Build
 	action := BuildingAction{
 		Id:           uuid.New(),
 		Planet:       planet.Id,
-		Building:     building,
+		Building:     b.Id,
 		CurrentLevel: pb.Level,
 		DesiredLevel: desiredLevel,
 
