@@ -140,6 +140,16 @@ func TestUnit_ManageBuildingAction_Create(t *testing.T) {
 	})
 
 	t.Run("returns error when repository fails", func(t *testing.T) {
+		mockPlanetRepo.EXPECT().
+			Get(gomock.Any(), gomock.Eq(request.Planet)).
+			Times(1).
+			Return(planet, nil)
+
+		mockBuildingRepo.EXPECT().
+			Get(gomock.Any(), gomock.Eq(request.Building)).
+			Times(1).
+			Return(building, nil)
+
 		expectedErr := errors.New("stubbed error")
 		mockActionRepo.EXPECT().
 			Create(gomock.Any(), gomock.Any()).
