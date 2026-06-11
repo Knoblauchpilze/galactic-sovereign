@@ -17,6 +17,21 @@ INSERT INTO
 	building_action (id, planet, building, current_level, desired_level, created_at, completed_at, version)
 	VALUES($1, $2, $3, $4, $5, $6, $7, $8)`
 
+	createBuildingActionCostQuery = `
+INSERT INTO
+	building_action_cost (action, resource, amount)
+	VALUES($1, $2, $3)`
+
+	createBuildingActionResourceStorageQuery = `
+INSERT INTO
+	building_action_resource_storage (action, resource, storage)
+	VALUES($1, $2, $3)`
+
+	createBuildingActionResourceProductionQuery = `
+INSERT INTO
+	building_action_resource_production (action, resource, production)
+	VALUES($1, $2, $3)`
+
 	getBuildingActionQuery = `
 SELECT
 	id,
@@ -180,7 +195,13 @@ func (r *buildingActionRepositoryImpl) Create(
 	ctx context.Context,
 	action models.BuildingAction,
 ) error {
-	_, err := r.conn.Exec(
+	tx, err := r.conn.BeginTx(ctx)
+	if err != nil {
+		return err
+	}
+	defer tx.Close(ctx)
+
+	_, err = tx.Exec(
 		ctx,
 		createBuildingActionQuery,
 		action.Id,
@@ -192,7 +213,50 @@ func (r *buildingActionRepositoryImpl) Create(
 		action.CompletedAt,
 		action.Version,
 	)
-	return err
+	if err != nil {
+		return err
+	}
+
+	for _, c := range action.Costs {
+		_, err = tx.Exec(
+			ctx,
+			createBuildingActionCostQuery,
+			action.Id,
+			c.Resource,
+			c.Amount,
+		)
+		if err != nil {
+			return err
+		}
+	}
+
+	for _, s := range action.Storages {
+		_, err = tx.Exec(
+			ctx,
+			createBuildingActionResourceStorageQuery,
+			action.Id,
+			s.Resource,
+			s.Storage,
+		)
+		if err != nil {
+			return err
+		}
+	}
+
+	for _, p := range action.Productions {
+		_, err = tx.Exec(
+			ctx,
+			createBuildingActionResourceProductionQuery,
+			action.Id,
+			p.Resource,
+			p.Production,
+		)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (r *buildingActionRepositoryImpl) Get(

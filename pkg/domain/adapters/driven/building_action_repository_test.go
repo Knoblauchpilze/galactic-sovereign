@@ -51,6 +51,114 @@ func TestIT_BuildingActionRepository_Create(t *testing.T) {
 		assert.Equal(t, action, actual)
 	})
 
+	t.Run("creates an action with costs", func(t *testing.T) {
+		planet, _, _ := insertTestPlanetForPlayer(t, conn)
+
+		action := models.BuildingAction{
+			Id:           uuid.New(),
+			Planet:       planet.Id,
+			Building:     metalMineId,
+			CurrentLevel: 2,
+			DesiredLevel: 3,
+			CreatedAt:    someTime,
+			CompletedAt:  someTime.Add(1 * time.Hour),
+			Version:      9,
+			Costs: []models.BuildingActionCost{
+				{
+					Resource: metalResourceId,
+					Amount:   36,
+				},
+				{
+					Resource: crystalResourceId,
+					Amount:   798,
+				},
+			},
+			Storages:    []models.BuildingActionResourceStorage{},
+			Productions: []models.BuildingActionResourceProduction{},
+		}
+
+		err := repo.Create(context.Background(), action)
+		require.NoError(t, err, "Actual err: %v", err)
+		assertBuildingActionExists(t, conn, action.Id)
+
+		actual, err := repo.Get(context.Background(), action.Id)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.Equal(t, action, actual)
+	})
+
+	t.Run("creates an action with storages", func(t *testing.T) {
+		planet, _, _ := insertTestPlanetForPlayer(t, conn)
+
+		action := models.BuildingAction{
+			Id:           uuid.New(),
+			Planet:       planet.Id,
+			Building:     metalMineId,
+			CurrentLevel: 2,
+			DesiredLevel: 3,
+			CreatedAt:    someTime,
+			CompletedAt:  someTime.Add(1 * time.Hour),
+			Version:      9,
+			Costs:        []models.BuildingActionCost{},
+			Storages: []models.BuildingActionResourceStorage{
+				{
+					Resource: metalResourceId,
+					Storage:  321417,
+				},
+				{
+					Resource: crystalResourceId,
+					Storage:  65478,
+				},
+			},
+			Productions: []models.BuildingActionResourceProduction{},
+		}
+
+		err := repo.Create(context.Background(), action)
+		require.NoError(t, err, "Actual err: %v", err)
+		assertBuildingActionExists(t, conn, action.Id)
+
+		actual, err := repo.Get(context.Background(), action.Id)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.Equal(t, action, actual)
+	})
+
+	t.Run("creates an action with productions", func(t *testing.T) {
+		planet, _, _ := insertTestPlanetForPlayer(t, conn)
+
+		action := models.BuildingAction{
+			Id:           uuid.New(),
+			Planet:       planet.Id,
+			Building:     metalMineId,
+			CurrentLevel: 2,
+			DesiredLevel: 3,
+			CreatedAt:    someTime,
+			CompletedAt:  someTime.Add(1 * time.Hour),
+			Version:      9,
+			Costs:        []models.BuildingActionCost{},
+			Storages:     []models.BuildingActionResourceStorage{},
+			Productions: []models.BuildingActionResourceProduction{
+				{
+					Resource:   metalResourceId,
+					Production: 147,
+				},
+				{
+					Resource:   crystalResourceId,
+					Production: 3254,
+				},
+			},
+		}
+
+		err := repo.Create(context.Background(), action)
+		require.NoError(t, err, "Actual err: %v", err)
+		assertBuildingActionExists(t, conn, action.Id)
+
+		actual, err := repo.Get(context.Background(), action.Id)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.Equal(t, action, actual)
+	})
+
 	t.Run("returns error when action with same id already exists", func(t *testing.T) {
 		_, planet := insertTestBuildingAction(t, conn)
 
