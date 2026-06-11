@@ -15,16 +15,17 @@ func ToPlanetCreationRequest(dto dtos.PlanetDtoRequest) request.PlanetCreationRe
 
 func ToPlanetResponse(planet models.Planet) dtos.PlanetDtoResponse {
 	return dtos.PlanetDtoResponse{
-		Id:          planet.Id,
-		Player:      planet.Player,
-		Name:        planet.Name,
-		Homeworld:   planet.Homeworld,
-		CreatedAt:   planet.CreatedAt,
-		UpdatedAt:   planet.UpdatedAt,
-		Resources:   toPlanetResourcesResponse(planet.Resources),
-		Storages:    toPlanetStoragesResponse(planet.Storages),
-		Productions: toPlanetProductionsResponse(planet.Productions),
-		Buildings:   toPlanetBuildingsResponse(planet.Buildings),
+		Id:             planet.Id,
+		Player:         planet.Player,
+		Name:           planet.Name,
+		Homeworld:      planet.Homeworld,
+		CreatedAt:      planet.CreatedAt,
+		UpdatedAt:      planet.UpdatedAt,
+		Resources:      toPlanetResourcesResponse(planet.Resources),
+		Storages:       toPlanetStoragesResponse(planet.Storages),
+		Productions:    toPlanetProductionsResponse(planet.Productions),
+		Buildings:      toPlanetBuildingsResponse(planet.Buildings),
+		BuildingAction: planet.BuildingAction,
 	}
 }
 

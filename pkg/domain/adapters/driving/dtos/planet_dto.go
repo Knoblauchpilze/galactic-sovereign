@@ -11,7 +11,6 @@ type PlanetDtoRequest struct {
 	Name   string    `json:"name"`
 }
 
-// TODO: This should also include the building actions
 type PlanetDtoResponse struct {
 	Id        uuid.UUID `json:"id" format:"uuid"`
 	Player    uuid.UUID `json:"player" format:"uuid"`
@@ -25,6 +24,8 @@ type PlanetDtoResponse struct {
 	Storages    []PlanetResourceStorageDtoResponse    `json:"storages"`
 	Productions []PlanetResourceProductionDtoResponse `json:"productions"`
 	Buildings   []PlanetBuildingDtoResponse           `json:"buildings"`
+
+	BuildingAction *uuid.UUID `json:"building_action,omitempty"`
 }
 
 type PlanetResourceDtoResponse struct {

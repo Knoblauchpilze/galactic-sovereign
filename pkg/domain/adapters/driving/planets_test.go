@@ -148,6 +148,7 @@ func TestUnit_Planets_GetPlanet(t *testing.T) {
 					UpdatedAt: someOtherTime,
 				},
 			},
+			BuildingAction: &sampleUuid,
 		}
 		mockUsecase.EXPECT().
 			Get(gomock.Any(), gomock.Eq(sampleUuid)).
@@ -189,6 +190,46 @@ func TestUnit_Planets_GetPlanet(t *testing.T) {
 					UpdatedAt: someOtherTime,
 				},
 			},
+			BuildingAction: &sampleUuid,
+		}
+		assert.Equal(t, expected, actual)
+	})
+
+	t.Run("correctly ignores building action when not provided", func(t *testing.T) {
+		req := generateTestRequest(t, http.MethodGet)
+		ctx, rw := generateTestContextFromRequest(t, req, addIdPathParam)
+
+		planet := models.Planet{
+			Id:             uuid.New(),
+			Name:           "planet-1",
+			CreatedAt:      someTime,
+			UpdatedAt:      someOtherTime,
+			Resources:      []models.PlanetResource{},
+			Storages:       []models.PlanetResourceStorage{},
+			Productions:    []models.PlanetResourceProduction{},
+			Buildings:      []models.PlanetBuilding{},
+			BuildingAction: nil,
+		}
+		mockUsecase.EXPECT().
+			Get(gomock.Any(), gomock.Eq(sampleUuid)).
+			Times(1).
+			Return(planet, nil)
+
+		err := getPlanet(ctx, mockUsecase)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.Equal(t, http.StatusOK, rw.Code)
+		actual := decodeResponseBody[dtos.PlanetDtoResponse](t, rw)
+		expected := dtos.PlanetDtoResponse{
+			Id:             planet.Id,
+			Name:           planet.Name,
+			CreatedAt:      planet.CreatedAt,
+			UpdatedAt:      planet.UpdatedAt,
+			Resources:      []dtos.PlanetResourceDtoResponse{},
+			Storages:       []dtos.PlanetResourceStorageDtoResponse{},
+			Productions:    []dtos.PlanetResourceProductionDtoResponse{},
+			Buildings:      []dtos.PlanetBuildingDtoResponse{},
+			BuildingAction: nil,
 		}
 		assert.Equal(t, expected, actual)
 	})
