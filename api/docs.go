@@ -183,6 +183,9 @@ const docTemplate = `{
             },
             "dtos.PlanetDtoResponse": {
                 "properties": {
+                    "building_action": {
+                        "type": "string"
+                    },
                     "buildings": {
                         "items": {
                             "$ref": "#/components/schemas/dtos.PlanetBuildingDtoResponse"
