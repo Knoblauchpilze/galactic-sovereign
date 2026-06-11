@@ -18,6 +18,21 @@ INSERT INTO
 
 	createPlanetHomeworldQuery = `INSERT INTO homeworld (player, planet) VALUES($1, $2)`
 
+	createPlanetResourceQuery = `
+INSERT INTO
+	planet_resource (planet, resource, amount, created_at, updated_at)
+	VALUES($1, $2, $3, $4, $5)`
+
+	createPlanetResourceStorageQuery = `
+INSERT INTO
+	planet_resource_storage (planet, resource, storage, created_at, updated_at)
+	VALUES($1, $2, $3, $4, $5)`
+
+	createPlanetResourceProductionQuery = `
+INSERT INTO
+	planet_resource_production (planet, building, resource, production, created_at, updated_at)
+	VALUES($1, $2, $3, $4, $5, $6)`
+
 	getPlanetQuery = `
 SELECT
 	p.id,
@@ -205,11 +220,58 @@ func (r *planetRepositoryImpl) Create(ctx context.Context, planet models.Planet)
 		return err
 	}
 
-	if !planet.Homeworld {
-		return nil
+	if planet.Homeworld {
+		_, err = tx.Exec(ctx, createPlanetHomeworldQuery, planet.Player, planet.Id)
+		if err != nil {
+			return err
+		}
 	}
 
-	_, err = tx.Exec(ctx, createPlanetHomeworldQuery, planet.Player, planet.Id)
+	for _, r := range planet.Resources {
+		_, err = tx.Exec(
+			ctx,
+			createPlanetResourceQuery,
+			planet.Id,
+			r.Resource,
+			r.Amount,
+			r.CreatedAt,
+			r.UpdatedAt,
+		)
+		if err != nil {
+			return err
+		}
+	}
+
+	for _, s := range planet.Storages {
+		_, err = tx.Exec(
+			ctx,
+			createPlanetResourceStorageQuery,
+			planet.Id,
+			s.Resource,
+			s.Storage,
+			s.CreatedAt,
+			s.UpdatedAt,
+		)
+		if err != nil {
+			return err
+		}
+	}
+
+	for _, p := range planet.Productions {
+		_, err = tx.Exec(
+			ctx,
+			createPlanetResourceProductionQuery,
+			planet.Id,
+			p.Building,
+			p.Resource,
+			p.Production,
+			p.CreatedAt,
+			p.UpdatedAt,
+		)
+		if err != nil {
+			return err
+		}
+	}
 
 	return err
 }

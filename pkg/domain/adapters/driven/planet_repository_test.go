@@ -52,6 +52,202 @@ func TestIT_PlanetRepository_Create(t *testing.T) {
 		assert.Equal(t, planet, actual)
 	})
 
+	t.Run("creates a planet with resources", func(t *testing.T) {
+		player, _ := insertTestPlayerInUniverse(t, conn)
+
+		planet := models.Planet{
+			Id:        uuid.New(),
+			Player:    player.Id,
+			Name:      fmt.Sprintf("my-planet-%s", uuid.NewString()),
+			Homeworld: false,
+			CreatedAt: someTime,
+			UpdatedAt: someOtherTime,
+			Version:   3,
+			Resources: []models.PlanetResource{
+				{
+					Resource:  crystalResourceId,
+					Amount:    7894.29,
+					CreatedAt: someTime,
+					UpdatedAt: someOtherTime,
+				},
+			},
+			Storages:    []models.PlanetResourceStorage{},
+			Productions: []models.PlanetResourceProduction{},
+			Buildings:   []models.PlanetBuilding{},
+		}
+
+		err := repo.Create(context.Background(), planet)
+		require.NoError(t, err, "Actual err: %v", err)
+		assertPlanetExists(t, conn, planet.Id)
+
+		actual, err := repo.Get(context.Background(), planet.Id)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.Equal(t, planet, actual)
+	})
+
+	t.Run("creates a planet with storages", func(t *testing.T) {
+		player, _ := insertTestPlayerInUniverse(t, conn)
+
+		planet := models.Planet{
+			Id:        uuid.New(),
+			Player:    player.Id,
+			Name:      fmt.Sprintf("my-planet-%s", uuid.NewString()),
+			Homeworld: false,
+			CreatedAt: someTime,
+			UpdatedAt: someOtherTime,
+			Version:   3,
+			Resources: []models.PlanetResource{},
+			Storages: []models.PlanetResourceStorage{
+				{
+					Resource:  metalResourceId,
+					Storage:   23658,
+					CreatedAt: someTime,
+					UpdatedAt: someOtherTime,
+				},
+			},
+			Productions: []models.PlanetResourceProduction{},
+			Buildings:   []models.PlanetBuilding{},
+		}
+
+		err := repo.Create(context.Background(), planet)
+		require.NoError(t, err, "Actual err: %v", err)
+		assertPlanetExists(t, conn, planet.Id)
+
+		actual, err := repo.Get(context.Background(), planet.Id)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.Equal(t, planet, actual)
+	})
+
+	t.Run("creates a planet with productions", func(t *testing.T) {
+		player, _ := insertTestPlayerInUniverse(t, conn)
+
+		planet := models.Planet{
+			Id:        uuid.New(),
+			Player:    player.Id,
+			Name:      fmt.Sprintf("my-planet-%s", uuid.NewString()),
+			Homeworld: false,
+			CreatedAt: someTime,
+			UpdatedAt: someOtherTime,
+			Version:   3,
+			Resources: []models.PlanetResource{},
+			Storages:  []models.PlanetResourceStorage{},
+			Productions: []models.PlanetResourceProduction{
+				{
+					Resource:   crystalResourceId,
+					Production: 458,
+					CreatedAt:  someTime,
+					UpdatedAt:  someOtherTime,
+				},
+			},
+			Buildings: []models.PlanetBuilding{},
+		}
+
+		err := repo.Create(context.Background(), planet)
+		require.NoError(t, err, "Actual err: %v", err)
+		assertPlanetExists(t, conn, planet.Id)
+
+		actual, err := repo.Get(context.Background(), planet.Id)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.Equal(t, planet, actual)
+	})
+
+	t.Run("creates a planet with productions for building", func(t *testing.T) {
+		player, _ := insertTestPlayerInUniverse(t, conn)
+
+		planet := models.Planet{
+			Id:        uuid.New(),
+			Player:    player.Id,
+			Name:      fmt.Sprintf("my-planet-%s", uuid.NewString()),
+			Homeworld: false,
+			CreatedAt: someTime,
+			UpdatedAt: someOtherTime,
+			Version:   3,
+			Resources: []models.PlanetResource{},
+			Storages:  []models.PlanetResourceStorage{},
+			Productions: []models.PlanetResourceProduction{
+				{
+					Resource:   metalResourceId,
+					Building:   &metalMineId,
+					Production: 35987,
+					CreatedAt:  someTime,
+					UpdatedAt:  someOtherTime,
+				},
+			},
+			Buildings: []models.PlanetBuilding{},
+		}
+
+		err := repo.Create(context.Background(), planet)
+		require.NoError(t, err, "Actual err: %v", err)
+		assertPlanetExists(t, conn, planet.Id)
+
+		actual, err := repo.Get(context.Background(), planet.Id)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.Equal(t, planet, actual)
+	})
+
+	t.Run("creates a planet with buildings", func(t *testing.T) {
+		player, _ := insertTestPlayerInUniverse(t, conn)
+
+		planet := models.Planet{
+			Id:          uuid.New(),
+			Player:      player.Id,
+			Name:        fmt.Sprintf("my-planet-%s", uuid.NewString()),
+			Homeworld:   false,
+			CreatedAt:   someTime,
+			UpdatedAt:   someOtherTime,
+			Version:     3,
+			Resources:   []models.PlanetResource{},
+			Storages:    []models.PlanetResourceStorage{},
+			Productions: []models.PlanetResourceProduction{},
+			Buildings: []models.PlanetBuilding{
+				{
+					Building: metalMineId,
+					Level:    14,
+				},
+			},
+		}
+
+		err := repo.Create(context.Background(), planet)
+		require.NoError(t, err, "Actual err: %v", err)
+		assertPlanetExists(t, conn, planet.Id)
+
+		actual, err := repo.Get(context.Background(), planet.Id)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.Equal(t, planet, actual)
+	})
+
+	t.Run("creates a planet", func(t *testing.T) {
+		player, _ := insertTestPlayerInUniverse(t, conn)
+
+		planet := models.Planet{
+			Id:          uuid.New(),
+			Player:      player.Id,
+			Name:        fmt.Sprintf("my-planet-%s", uuid.NewString()),
+			Homeworld:   false,
+			CreatedAt:   someTime,
+			UpdatedAt:   someOtherTime,
+			Version:     3,
+			Resources:   []models.PlanetResource{},
+			Storages:    []models.PlanetResourceStorage{},
+			Productions: []models.PlanetResourceProduction{},
+			Buildings:   []models.PlanetBuilding{},
+		}
+
+		err := repo.Create(context.Background(), planet)
+		require.NoError(t, err, "Actual err: %v", err)
+		assertPlanetExists(t, conn, planet.Id)
+
+		actual, err := repo.Get(context.Background(), planet.Id)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.Equal(t, planet, actual)
+	})
+
 	t.Run("returns error when planet with same id already exists", func(t *testing.T) {
 		planet, player, _ := insertTestPlanetForPlayer(t, conn)
 
