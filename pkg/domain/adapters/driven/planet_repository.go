@@ -33,6 +33,11 @@ INSERT INTO
 	planet_resource_production (planet, building, resource, production, created_at, updated_at)
 	VALUES($1, $2, $3, $4, $5, $6)`
 
+	createPlanetBuildingQuery = `
+INSERT INTO
+	planet_building (planet, building, level, created_at, updated_at)
+	VALUES($1, $2, $3, $4, $5)`
+
 	getPlanetQuery = `
 SELECT
 	p.id,
@@ -267,6 +272,21 @@ func (r *planetRepositoryImpl) Create(ctx context.Context, planet models.Planet)
 			p.Production,
 			p.CreatedAt,
 			p.UpdatedAt,
+		)
+		if err != nil {
+			return err
+		}
+	}
+
+	for _, b := range planet.Buildings {
+		_, err := tx.Exec(
+			ctx,
+			createPlanetBuildingQuery,
+			planet.Id,
+			b.Building,
+			b.Level,
+			b.CreatedAt,
+			b.UpdatedAt,
 		)
 		if err != nil {
 			return err
