@@ -15,4 +15,6 @@ type Player struct {
 	CreatedAt time.Time
 
 	Version int
+
+	Planets []uuid.UUID
 }

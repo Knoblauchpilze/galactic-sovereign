@@ -29,6 +29,14 @@ FROM
 WHERE
 	id = $1`
 
+	listPlanetIdsForPlayerQuery = `
+SELECT
+	id
+FROM
+	planet
+WHERE
+	player = $1`
+
 	listPlayerQuery = `
 SELECT
 	id,
@@ -143,6 +151,17 @@ func (r *playerRepositoryImpl) Delete(ctx context.Context, id uuid.UUID) error {
 
 func loadPlayerDetails(ctx context.Context, tx db.Transaction, dbPlayer mappers.DbPlayer) (models.Player, error) {
 	player := dbPlayer.ToDomain()
+
+	var err error
+	player.Planets, err = db.QueryAllTx[uuid.UUID](
+		ctx,
+		tx,
+		listPlanetIdsForPlayerQuery,
+		dbPlayer.Id,
+	)
+	if err != nil {
+		return player, err
+	}
 
 	return player, nil
 }
