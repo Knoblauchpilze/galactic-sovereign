@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
+	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driven/mappers"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
 	drivenports "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driven"
 	"github.com/google/uuid"
@@ -71,18 +72,77 @@ func (r *playerRepositoryImpl) Create(ctx context.Context, player models.Player)
 }
 
 func (r *playerRepositoryImpl) Get(ctx context.Context, id uuid.UUID) (models.Player, error) {
-	return db.QueryOne[models.Player](ctx, r.conn, getPlayerQuery, id)
+	tx, err := r.conn.BeginTx(ctx)
+	if err != nil {
+		return models.Player{}, err
+	}
+	defer tx.Close(ctx)
+
+	dbPlayer, err := db.QueryOneTx[mappers.DbPlayer](ctx, tx, getPlayerQuery, id)
+	if err != nil {
+		return models.Player{}, err
+	}
+
+	return loadPlayerDetails(ctx, tx, dbPlayer)
 }
 
 func (r *playerRepositoryImpl) List(ctx context.Context) ([]models.Player, error) {
-	return db.QueryAll[models.Player](ctx, r.conn, listPlayerQuery)
+	tx, err := r.conn.BeginTx(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Close(ctx)
+
+	dbPlayers, err := db.QueryAllTx[mappers.DbPlayer](ctx, tx, listPlayerQuery)
+	if err != nil {
+		return nil, err
+	}
+
+	players := make([]models.Player, 0, len(dbPlayers))
+	for id := range dbPlayers {
+		player, err := loadPlayerDetails(ctx, tx, dbPlayers[id])
+		if err != nil {
+			return nil, err
+		}
+
+		players = append(players, player)
+	}
+
+	return players, nil
 }
 
 func (r *playerRepositoryImpl) ListForApiUser(ctx context.Context, apiUser uuid.UUID) ([]models.Player, error) {
-	return db.QueryAll[models.Player](ctx, r.conn, listPlayerForApiUserQuery, apiUser)
+	tx, err := r.conn.BeginTx(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Close(ctx)
+
+	dbPlayers, err := db.QueryAllTx[mappers.DbPlayer](ctx, tx, listPlayerForApiUserQuery, apiUser)
+	if err != nil {
+		return nil, err
+	}
+
+	players := make([]models.Player, 0, len(dbPlayers))
+	for id := range dbPlayers {
+		player, err := loadPlayerDetails(ctx, tx, dbPlayers[id])
+		if err != nil {
+			return nil, err
+		}
+
+		players = append(players, player)
+	}
+
+	return players, nil
 }
 
 func (r *playerRepositoryImpl) Delete(ctx context.Context, id uuid.UUID) error {
 	_, err := r.conn.Exec(ctx, deletePlayerQuery, id)
 	return err
+}
+
+func loadPlayerDetails(ctx context.Context, tx db.Transaction, dbPlayer mappers.DbPlayer) (models.Player, error) {
+	player := dbPlayer.ToDomain()
+
+	return player, nil
 }
