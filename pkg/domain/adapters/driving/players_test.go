@@ -120,6 +120,7 @@ func TestUnit_Players_GetPlayer(t *testing.T) {
 			Universe:  uuid.New(),
 			Name:      "player-1",
 			CreatedAt: someTime,
+			Planets:   []uuid.UUID{uuid.New()},
 		}
 		mockUsecase.EXPECT().
 			Get(gomock.Any(), gomock.Eq(sampleUuid)).
@@ -137,6 +138,7 @@ func TestUnit_Players_GetPlayer(t *testing.T) {
 			Universe:  player.Universe,
 			Name:      player.Name,
 			CreatedAt: player.CreatedAt,
+			Planets:   player.Planets,
 		}
 		assert.Equal(t, expected, actual)
 	})
@@ -185,8 +187,17 @@ func TestUnit_Players_ListPlayers(t *testing.T) {
 		ctx, rw := generateTestContextFromRequest(t, req)
 
 		players := []models.Player{
-			{Id: uuid.New(), Name: "player-1", CreatedAt: someTime},
-			{Id: uuid.New(), Name: "player-2", CreatedAt: someOtherTime},
+			{
+				Id:        uuid.New(),
+				Name:      "player-1",
+				CreatedAt: someTime,
+			},
+			{
+				Id:        uuid.New(),
+				Name:      "player-2",
+				CreatedAt: someOtherTime,
+				Planets:   []uuid.UUID{uuid.New()},
+			},
 		}
 		mockUsecase.EXPECT().
 			List(gomock.Any()).
@@ -199,8 +210,17 @@ func TestUnit_Players_ListPlayers(t *testing.T) {
 		assert.Equal(t, http.StatusOK, rw.Code)
 		actual := decodeResponseBody[[]dtos.PlayerDtoResponse](t, rw)
 		expected := []dtos.PlayerDtoResponse{
-			{Id: players[0].Id, Name: players[0].Name, CreatedAt: players[0].CreatedAt},
-			{Id: players[1].Id, Name: players[1].Name, CreatedAt: players[1].CreatedAt},
+			{
+				Id:        players[0].Id,
+				Name:      players[0].Name,
+				CreatedAt: players[0].CreatedAt,
+			},
+			{
+				Id:        players[1].Id,
+				Name:      players[1].Name,
+				CreatedAt: players[1].CreatedAt,
+				Planets:   players[1].Planets,
+			},
 		}
 		assert.Equal(t, expected, actual)
 	})
@@ -280,8 +300,17 @@ func TestUnit_Players_ListPlayers_ForApiUser(t *testing.T) {
 		ctx, rw := generateTestContextFromRequest(t, req)
 
 		players := []models.Player{
-			{Id: uuid.New(), Name: "player-1", CreatedAt: someTime},
-			{Id: uuid.New(), Name: "player-2", CreatedAt: someOtherTime},
+			{
+				Id:        uuid.New(),
+				Name:      "player-1",
+				CreatedAt: someTime,
+				Planets:   []uuid.UUID{uuid.New()},
+			},
+			{
+				Id:        uuid.New(),
+				Name:      "player-2",
+				CreatedAt: someOtherTime,
+			},
 		}
 		mockUsecase.EXPECT().
 			ListForApiUser(gomock.Any(), gomock.Eq(sampleUuid)).
@@ -294,8 +323,17 @@ func TestUnit_Players_ListPlayers_ForApiUser(t *testing.T) {
 		assert.Equal(t, http.StatusOK, rw.Code)
 		actual := decodeResponseBody[[]dtos.PlayerDtoResponse](t, rw)
 		expected := []dtos.PlayerDtoResponse{
-			{Id: players[0].Id, Name: players[0].Name, CreatedAt: players[0].CreatedAt},
-			{Id: players[1].Id, Name: players[1].Name, CreatedAt: players[1].CreatedAt},
+			{
+				Id:        players[0].Id,
+				Name:      players[0].Name,
+				CreatedAt: players[0].CreatedAt,
+				Planets:   players[0].Planets,
+			},
+			{
+				Id:        players[1].Id,
+				Name:      players[1].Name,
+				CreatedAt: players[1].CreatedAt,
+			},
 		}
 		assert.Equal(t, expected, actual)
 	})

@@ -312,6 +312,13 @@ const docTemplate = `{
                     "name": {
                         "type": "string"
                     },
+                    "planets": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array",
+                        "uniqueItems": false
+                    },
                     "universe": {
                         "format": "uuid",
                         "type": "string"
