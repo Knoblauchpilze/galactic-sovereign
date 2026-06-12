@@ -7,18 +7,18 @@ import (
 )
 
 type PlayerDtoRequest struct {
-	ApiUser  uuid.UUID `json:"api_user" format:"uuid"`
-	Universe uuid.UUID `json:"universe" format:"uuid"`
-	Name     string    `json:"name"`
+	ApiUser  uuid.UUID `json:"api_user" format:"uuid" binding:"required"`
+	Universe uuid.UUID `json:"universe" format:"uuid" binding:"required"`
+	Name     string    `json:"name" example:"count tesla" binding:"required"`
 }
 
 type PlayerDtoResponse struct {
-	Id       uuid.UUID `json:"id" format:"uuid"`
-	ApiUser  uuid.UUID `json:"api_user" format:"uuid"`
-	Universe uuid.UUID `json:"universe" format:"uuid"`
-	Name     string    `json:"name"`
+	Id       uuid.UUID `json:"id" format:"uuid" binding:"required"`
+	ApiUser  uuid.UUID `json:"api_user" format:"uuid" binding:"required"`
+	Universe uuid.UUID `json:"universe" format:"uuid" binding:"required"`
+	Name     string    `json:"name" example:"emperor palpatine" binding:"required"`
 
-	CreatedAt time.Time `json:"createdAt" format:"date-time"`
+	CreatedAt time.Time `json:"createdAt" format:"date-time" binding:"required"`
 
-	Planets []uuid.UUID `json:"planets"`
+	Planets []uuid.UUID `json:"planets" format:"uuid" binding:"required"`
 }

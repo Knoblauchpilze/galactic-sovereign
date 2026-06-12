@@ -43,7 +43,6 @@ func PlayerEndpoints(usecase drivingports.ForManagingPlayer) rest.Routes {
 //	@Summary		Create player
 //	@Description	Creates a player and its homeworld.
 //	@Tags			players
-//	@Accept			json
 //	@Produce		json
 //	@Param			request	body		dtos.PlayerDtoRequest	true	"Player payload"
 //	@Success		201		{object}	rest.ResponseEnvelope[dtos.PlayerDtoResponse]

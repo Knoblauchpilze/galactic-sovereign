@@ -43,7 +43,6 @@ func PlanetEndpoints(usecase drivingports.ForManagingPlanet) rest.Routes {
 //	@Summary		Create planet
 //	@Description	Creates a planet from the provided payload.
 //	@Tags			planets
-//	@Accept			json
 //	@Produce		json
 //	@Param			request	body		dtos.PlanetDtoRequest	true	"Planet payload"
 //	@Success		201		{object}	rest.ResponseEnvelope[dtos.PlanetDtoResponse]

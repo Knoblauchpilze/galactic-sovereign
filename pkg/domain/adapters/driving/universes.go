@@ -42,7 +42,6 @@ func UniverseEndpoints(usecase drivingports.ForManagingUniverse) rest.Routes {
 //	@Summary		Create universe
 //	@Description	Creates a universe.
 //	@Tags			universes
-//	@Accept			json
 //	@Produce		json
 //	@Param			request	body		dtos.UniverseDtoRequest	true	"Universe payload"
 //	@Success		201		{object}	rest.ResponseEnvelope[dtos.UniverseDtoResponse]

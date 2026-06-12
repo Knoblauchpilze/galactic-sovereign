@@ -44,6 +44,8 @@ components:
         building:
           format: uuid
           type: string
+      required:
+      - building
       type: object
     dtos.BuildingActionDtoResponse:
       properties:
@@ -81,6 +83,17 @@ components:
             $ref: '#/components/schemas/dtos.BuildingActionStorageDtoResponse'
           type: array
           uniqueItems: false
+      required:
+      - building
+      - completedAt
+      - createdAt
+      - currentLevel
+      - desiredLevel
+      - id
+      - planet
+      - productions
+      - resources
+      - storages
       type: object
     dtos.BuildingActionProductionDtoResponse:
       properties:
@@ -111,14 +124,23 @@ components:
         updatedAt:
           format: date-time
           type: string
+      required:
+      - building
+      - createdAt
+      - level
+      - updatedAt
       type: object
     dtos.PlanetDtoRequest:
       properties:
         name:
+          example: earth
           type: string
         player:
           format: uuid
           type: string
+      required:
+      - name
+      - player
       type: object
     dtos.PlanetDtoResponse:
       properties:
@@ -138,6 +160,7 @@ components:
           format: uuid
           type: string
         name:
+          example: colony
           type: string
         player:
           format: uuid
@@ -160,6 +183,17 @@ components:
         updatedAt:
           format: date-time
           type: string
+      required:
+      - buildings
+      - createdAt
+      - homeworld
+      - id
+      - name
+      - player
+      - productions
+      - resources
+      - storages
+      - updatedAt
       type: object
     dtos.PlanetResourceDtoResponse:
       properties:
@@ -168,6 +202,9 @@ components:
         resource:
           format: uuid
           type: string
+      required:
+      - amount
+      - resource
       type: object
     dtos.PlanetResourceProductionDtoResponse:
       properties:
@@ -179,6 +216,10 @@ components:
         resource:
           format: uuid
           type: string
+      required:
+      - building
+      - production
+      - resource
       type: object
     dtos.PlanetResourceStorageDtoResponse:
       properties:
@@ -187,6 +228,9 @@ components:
           type: string
         storage:
           type: integer
+      required:
+      - resource
+      - storage
       type: object
     dtos.PlayerDtoRequest:
       properties:
@@ -194,10 +238,15 @@ components:
           format: uuid
           type: string
         name:
+          example: count tesla
           type: string
         universe:
           format: uuid
           type: string
+      required:
+      - api_user
+      - name
+      - universe
       type: object
     dtos.PlayerDtoResponse:
       properties:
@@ -211,20 +260,32 @@ components:
           format: uuid
           type: string
         name:
+          example: emperor palpatine
           type: string
         planets:
           items:
+            format: uuid
             type: string
           type: array
           uniqueItems: false
         universe:
           format: uuid
           type: string
+      required:
+      - api_user
+      - createdAt
+      - id
+      - name
+      - planets
+      - universe
       type: object
     dtos.UniverseDtoRequest:
       properties:
         name:
+          example: aquarius
           type: string
+      required:
+      - name
       type: object
     dtos.UniverseDtoResponse:
       properties:
@@ -235,7 +296,12 @@ components:
           format: uuid
           type: string
         name:
+          example: oberon
           type: string
+      required:
+      - createdAt
+      - id
+      - name
       type: object
     rest.ResponseEnvelope-array_dtos_PlanetDtoResponse:
       properties:
@@ -488,11 +554,9 @@ paths:
         content:
           application/json:
             schema:
-              oneOf:
-              - type: object
-              - $ref: '#/components/schemas/dtos.PlanetDtoRequest'
-                description: Planet payload
-                summary: request
+              $ref: '#/components/schemas/dtos.PlanetDtoRequest'
+              description: Planet payload
+              summary: request
         description: Planet payload
         required: true
       responses:
@@ -604,11 +668,9 @@ paths:
         content:
           application/json:
             schema:
-              oneOf:
-              - type: object
-              - $ref: '#/components/schemas/dtos.BuildingActionDtoRequest'
-                description: Building action payload
-                summary: request
+              $ref: '#/components/schemas/dtos.BuildingActionDtoRequest'
+              description: Building action payload
+              summary: request
         description: Building action payload
         required: true
       responses:
@@ -676,11 +738,9 @@ paths:
         content:
           application/json:
             schema:
-              oneOf:
-              - type: object
-              - $ref: '#/components/schemas/dtos.PlayerDtoRequest'
-                description: Player payload
-                summary: request
+              $ref: '#/components/schemas/dtos.PlayerDtoRequest'
+              description: Player payload
+              summary: request
         description: Player payload
         required: true
       responses:
@@ -807,11 +867,9 @@ paths:
         content:
           application/json:
             schema:
-              oneOf:
-              - type: object
-              - $ref: '#/components/schemas/dtos.UniverseDtoRequest'
-                description: Universe payload
-                summary: request
+              $ref: '#/components/schemas/dtos.UniverseDtoRequest'
+              description: Universe payload
+              summary: request
         description: Universe payload
         required: true
       responses:

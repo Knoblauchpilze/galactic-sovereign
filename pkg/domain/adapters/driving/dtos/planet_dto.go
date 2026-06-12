@@ -7,46 +7,46 @@ import (
 )
 
 type PlanetDtoRequest struct {
-	Player uuid.UUID `json:"player" format:"uuid"`
-	Name   string    `json:"name"`
+	Player uuid.UUID `json:"player" format:"uuid" binding:"required"`
+	Name   string    `json:"name" example:"earth" binding:"required"`
 }
 
 type PlanetDtoResponse struct {
-	Id        uuid.UUID `json:"id" format:"uuid"`
-	Player    uuid.UUID `json:"player" format:"uuid"`
-	Name      string    `json:"name"`
-	Homeworld bool      `json:"homeworld"`
+	Id        uuid.UUID `json:"id" format:"uuid" binding:"required"`
+	Player    uuid.UUID `json:"player" format:"uuid" binding:"required"`
+	Name      string    `json:"name" example:"colony" binding:"required"`
+	Homeworld bool      `json:"homeworld" binding:"required"`
 
-	CreatedAt time.Time `json:"createdAt" format:"date-time"`
-	UpdatedAt time.Time `json:"updatedAt" format:"date-time"`
+	CreatedAt time.Time `json:"createdAt" format:"date-time" binding:"required"`
+	UpdatedAt time.Time `json:"updatedAt" format:"date-time" binding:"required"`
 
-	Resources   []PlanetResourceDtoResponse           `json:"resources"`
-	Storages    []PlanetResourceStorageDtoResponse    `json:"storages"`
-	Productions []PlanetResourceProductionDtoResponse `json:"productions"`
-	Buildings   []PlanetBuildingDtoResponse           `json:"buildings"`
+	Resources   []PlanetResourceDtoResponse           `json:"resources" binding:"required"`
+	Storages    []PlanetResourceStorageDtoResponse    `json:"storages" binding:"required"`
+	Productions []PlanetResourceProductionDtoResponse `json:"productions" binding:"required"`
+	Buildings   []PlanetBuildingDtoResponse           `json:"buildings" binding:"required"`
 
 	BuildingAction *uuid.UUID `json:"building_action,omitempty"`
 }
 
 type PlanetResourceDtoResponse struct {
-	Resource uuid.UUID `json:"resource" format:"uuid"`
-	Amount   float64   `json:"amount"`
+	Resource uuid.UUID `json:"resource" format:"uuid" binding:"required"`
+	Amount   float64   `json:"amount" binding:"required"`
 }
 
 type PlanetResourceStorageDtoResponse struct {
-	Resource uuid.UUID `json:"resource" format:"uuid"`
-	Storage  int       `json:"storage"`
+	Resource uuid.UUID `json:"resource" format:"uuid" binding:"required"`
+	Storage  int       `json:"storage" binding:"required"`
 }
 
 type PlanetResourceProductionDtoResponse struct {
-	Building   *uuid.UUID `json:"building,omitempty" format:"uuid"`
-	Resource   uuid.UUID  `json:"resource" format:"uuid"`
-	Production int        `json:"production"`
+	Building   *uuid.UUID `json:"building,omitempty" format:"uuid" binding:"required"`
+	Resource   uuid.UUID  `json:"resource" format:"uuid" binding:"required"`
+	Production int        `json:"production" binding:"required"`
 }
 
 type PlanetBuildingDtoResponse struct {
-	Building  uuid.UUID `json:"building" format:"uuid"`
-	Level     int       `json:"level"`
-	CreatedAt time.Time `json:"createdAt" format:"date-time"`
-	UpdatedAt time.Time `json:"updatedAt" format:"date-time"`
+	Building  uuid.UUID `json:"building" format:"uuid" binding:"required"`
+	Level     int       `json:"level" binding:"required"`
+	CreatedAt time.Time `json:"createdAt" format:"date-time" binding:"required"`
+	UpdatedAt time.Time `json:"updatedAt" format:"date-time" binding:"required"`
 }

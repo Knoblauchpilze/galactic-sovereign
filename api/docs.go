@@ -71,6 +71,9 @@ const docTemplate = `{
                         "type": "string"
                     }
                 },
+                "required": [
+                    "building"
+                ],
                 "type": "object"
             },
             "dtos.BuildingActionDtoResponse": {
@@ -123,6 +126,18 @@ const docTemplate = `{
                         "uniqueItems": false
                     }
                 },
+                "required": [
+                    "building",
+                    "completedAt",
+                    "createdAt",
+                    "currentLevel",
+                    "desiredLevel",
+                    "id",
+                    "planet",
+                    "productions",
+                    "resources",
+                    "storages"
+                ],
                 "type": "object"
             },
             "dtos.BuildingActionProductionDtoResponse": {
@@ -167,11 +182,18 @@ const docTemplate = `{
                         "type": "string"
                     }
                 },
+                "required": [
+                    "building",
+                    "createdAt",
+                    "level",
+                    "updatedAt"
+                ],
                 "type": "object"
             },
             "dtos.PlanetDtoRequest": {
                 "properties": {
                     "name": {
+                        "example": "earth",
                         "type": "string"
                     },
                     "player": {
@@ -179,6 +201,10 @@ const docTemplate = `{
                         "type": "string"
                     }
                 },
+                "required": [
+                    "name",
+                    "player"
+                ],
                 "type": "object"
             },
             "dtos.PlanetDtoResponse": {
@@ -205,6 +231,7 @@ const docTemplate = `{
                         "type": "string"
                     },
                     "name": {
+                        "example": "colony",
                         "type": "string"
                     },
                     "player": {
@@ -237,6 +264,18 @@ const docTemplate = `{
                         "type": "string"
                     }
                 },
+                "required": [
+                    "buildings",
+                    "createdAt",
+                    "homeworld",
+                    "id",
+                    "name",
+                    "player",
+                    "productions",
+                    "resources",
+                    "storages",
+                    "updatedAt"
+                ],
                 "type": "object"
             },
             "dtos.PlanetResourceDtoResponse": {
@@ -249,6 +288,10 @@ const docTemplate = `{
                         "type": "string"
                     }
                 },
+                "required": [
+                    "amount",
+                    "resource"
+                ],
                 "type": "object"
             },
             "dtos.PlanetResourceProductionDtoResponse": {
@@ -265,6 +308,11 @@ const docTemplate = `{
                         "type": "string"
                     }
                 },
+                "required": [
+                    "building",
+                    "production",
+                    "resource"
+                ],
                 "type": "object"
             },
             "dtos.PlanetResourceStorageDtoResponse": {
@@ -277,6 +325,10 @@ const docTemplate = `{
                         "type": "integer"
                     }
                 },
+                "required": [
+                    "resource",
+                    "storage"
+                ],
                 "type": "object"
             },
             "dtos.PlayerDtoRequest": {
@@ -286,6 +338,7 @@ const docTemplate = `{
                         "type": "string"
                     },
                     "name": {
+                        "example": "count tesla",
                         "type": "string"
                     },
                     "universe": {
@@ -293,6 +346,11 @@ const docTemplate = `{
                         "type": "string"
                     }
                 },
+                "required": [
+                    "api_user",
+                    "name",
+                    "universe"
+                ],
                 "type": "object"
             },
             "dtos.PlayerDtoResponse": {
@@ -310,10 +368,12 @@ const docTemplate = `{
                         "type": "string"
                     },
                     "name": {
+                        "example": "emperor palpatine",
                         "type": "string"
                     },
                     "planets": {
                         "items": {
+                            "format": "uuid",
                             "type": "string"
                         },
                         "type": "array",
@@ -324,14 +384,26 @@ const docTemplate = `{
                         "type": "string"
                     }
                 },
+                "required": [
+                    "api_user",
+                    "createdAt",
+                    "id",
+                    "name",
+                    "planets",
+                    "universe"
+                ],
                 "type": "object"
             },
             "dtos.UniverseDtoRequest": {
                 "properties": {
                     "name": {
+                        "example": "aquarius",
                         "type": "string"
                     }
                 },
+                "required": [
+                    "name"
+                ],
                 "type": "object"
             },
             "dtos.UniverseDtoResponse": {
@@ -345,9 +417,15 @@ const docTemplate = `{
                         "type": "string"
                     },
                     "name": {
+                        "example": "oberon",
                         "type": "string"
                     }
                 },
+                "required": [
+                    "createdAt",
+                    "id",
+                    "name"
+                ],
                 "type": "object"
             },
             "rest.ResponseEnvelope-array_dtos_PlanetDtoResponse": {
@@ -715,16 +793,9 @@ const docTemplate = `{
                     "content": {
                         "application/json": {
                             "schema": {
-                                "oneOf": [
-                                    {
-                                        "type": "object"
-                                    },
-                                    {
-                                        "$ref": "#/components/schemas/dtos.PlanetDtoRequest",
-                                        "summary": "request",
-                                        "description": "Planet payload"
-                                    }
-                                ]
+                                "$ref": "#/components/schemas/dtos.PlanetDtoRequest",
+                                "summary": "request",
+                                "description": "Planet payload"
                             }
                         }
                     },
@@ -902,16 +973,9 @@ const docTemplate = `{
                     "content": {
                         "application/json": {
                             "schema": {
-                                "oneOf": [
-                                    {
-                                        "type": "object"
-                                    },
-                                    {
-                                        "$ref": "#/components/schemas/dtos.BuildingActionDtoRequest",
-                                        "summary": "request",
-                                        "description": "Building action payload"
-                                    }
-                                ]
+                                "$ref": "#/components/schemas/dtos.BuildingActionDtoRequest",
+                                "summary": "request",
+                                "description": "Building action payload"
                             }
                         }
                     },
@@ -1022,16 +1086,9 @@ const docTemplate = `{
                     "content": {
                         "application/json": {
                             "schema": {
-                                "oneOf": [
-                                    {
-                                        "type": "object"
-                                    },
-                                    {
-                                        "$ref": "#/components/schemas/dtos.PlayerDtoRequest",
-                                        "summary": "request",
-                                        "description": "Player payload"
-                                    }
-                                ]
+                                "$ref": "#/components/schemas/dtos.PlayerDtoRequest",
+                                "summary": "request",
+                                "description": "Player payload"
                             }
                         }
                     },
@@ -1236,16 +1293,9 @@ const docTemplate = `{
                     "content": {
                         "application/json": {
                             "schema": {
-                                "oneOf": [
-                                    {
-                                        "type": "object"
-                                    },
-                                    {
-                                        "$ref": "#/components/schemas/dtos.UniverseDtoRequest",
-                                        "summary": "request",
-                                        "description": "Universe payload"
-                                    }
-                                ]
+                                "$ref": "#/components/schemas/dtos.UniverseDtoRequest",
+                                "summary": "request",
+                                "description": "Universe payload"
                             }
                         }
                     },
