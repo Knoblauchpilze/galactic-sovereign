@@ -54,7 +54,12 @@ func (r *universeRepositoryImpl) Create(ctx context.Context, universe models.Uni
 }
 
 func (r *universeRepositoryImpl) Get(ctx context.Context, id uuid.UUID) (models.Universe, error) {
-	return db.QueryOne[models.Universe](ctx, r.conn, getUniverseQuery, id)
+	universe, err := db.QueryOne[models.Universe](ctx, r.conn, getUniverseQuery, id)
+	if err != nil {
+		return models.Universe{}, parseDbError(err)
+	}
+
+	return universe, nil
 }
 
 func (r *universeRepositoryImpl) List(ctx context.Context) ([]models.Universe, error) {
