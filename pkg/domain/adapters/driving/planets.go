@@ -4,13 +4,13 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db/pgx"
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/errors"
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/rest"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driving/dtos"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driving/mappers"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
+	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
 	drivingports "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driving"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v5"
@@ -92,7 +92,7 @@ func getPlanet(c *echo.Context, usecase drivingports.ForManagingPlanet) error {
 
 	planet, err := usecase.Get(c.Request().Context(), id)
 	if err != nil {
-		if errors.IsErrorWithCode(err, db.NoMatchingRows) {
+		if err == domainerrors.ErrNotFound {
 			return c.JSON(http.StatusNotFound, "no such planet")
 		}
 

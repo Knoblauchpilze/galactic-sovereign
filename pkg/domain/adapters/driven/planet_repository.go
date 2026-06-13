@@ -305,7 +305,7 @@ func (r *planetRepositoryImpl) Get(ctx context.Context, id uuid.UUID) (models.Pl
 
 	dbPlanet, err := db.QueryOneTx[mappers.DbPlanet](ctx, tx, getPlanetQuery, id)
 	if err != nil {
-		return models.Planet{}, err
+		return models.Planet{}, parseDbError(err)
 	}
 
 	return loadPlanetDetails(ctx, tx, dbPlanet)
