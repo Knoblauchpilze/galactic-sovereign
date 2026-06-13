@@ -276,7 +276,7 @@ func (r *buildingActionRepositoryImpl) Get(
 		id,
 	)
 	if err != nil {
-		return models.BuildingAction{}, err
+		return models.BuildingAction{}, parseDbError(err)
 	}
 
 	return loadBuildingActionDetails(ctx, tx, dbAction)
