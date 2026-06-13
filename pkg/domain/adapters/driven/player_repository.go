@@ -88,7 +88,7 @@ func (r *playerRepositoryImpl) Get(ctx context.Context, id uuid.UUID) (models.Pl
 
 	dbPlayer, err := db.QueryOneTx[mappers.DbPlayer](ctx, tx, getPlayerQuery, id)
 	if err != nil {
-		return models.Player{}, err
+		return models.Player{}, parseDbError(err)
 	}
 
 	return loadPlayerDetails(ctx, tx, dbPlayer)

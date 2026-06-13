@@ -9,6 +9,7 @@ import (
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db/pgx"
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/errors"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
+	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
 	drivenports "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driven"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -104,7 +105,7 @@ func TestIT_PlayerRepository_Get(t *testing.T) {
 		id := uuid.MustParse("00000000-1111-2222-1111-000000000000")
 		_, err := repo.Get(context.Background(), id)
 
-		assert.True(t, errors.IsErrorWithCode(err, db.NoMatchingRows), "Actual err: %v", err)
+		assert.ErrorIs(t, err, domainerrors.ErrNotFound, "Actual err: %v", err)
 	})
 }
 

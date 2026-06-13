@@ -4,11 +4,11 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/errors"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driving/drivingportstest"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driving/dtos"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
+	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/request"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v5"
@@ -150,7 +150,7 @@ func TestUnit_Players_GetPlayer(t *testing.T) {
 		mockUsecase.EXPECT().
 			Get(gomock.Any(), gomock.Eq(sampleUuid)).
 			Times(1).
-			Return(models.Player{}, errors.NewCode(db.NoMatchingRows))
+			Return(models.Player{}, domainerrors.ErrNotFound)
 
 		err := getPlayer(ctx, mockUsecase)
 		require.NoError(t, err, "Actual err: %v", err)
