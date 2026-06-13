@@ -80,7 +80,7 @@ func (r *buildingRepositoryImpl) Get(ctx context.Context, id uuid.UUID) (models.
 
 	dbBuilding, err := db.QueryOneTx[mappers.DbBuilding](ctx, tx, getBuildingQuery, id)
 	if err != nil {
-		return models.Building{}, err
+		return models.Building{}, parseDbError(err)
 	}
 
 	return loadBuildingDetails(ctx, tx, dbBuilding)
