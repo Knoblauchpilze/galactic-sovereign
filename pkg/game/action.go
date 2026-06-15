@@ -3,7 +3,6 @@ package game
 import (
 	"math"
 
-	"github.com/Knoblauchpilze/backend-toolkit/pkg/errors"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/persistence"
 	"github.com/google/uuid"
 )
@@ -128,7 +127,7 @@ func validateActionBuilding(
 		}
 	}
 
-	return errors.NewCode(NoSuchBuilding)
+	return ErrNoSuchBuilding
 }
 
 func validateActionCost(
@@ -143,7 +142,7 @@ func validateActionCost(
 	for _, cost := range costs {
 		actual, ok := temp[cost.Resource]
 		if !ok || actual.Amount < float64(cost.Amount) {
-			return errors.NewCode(NotEnoughResources)
+			return ErrNotEnoughResources
 		}
 	}
 

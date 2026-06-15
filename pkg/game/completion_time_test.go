@@ -4,7 +4,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Knoblauchpilze/backend-toolkit/pkg/errors"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/persistence"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -25,19 +24,15 @@ var defaultResources = []persistence.Resource{
 }
 
 func TestUnit_BuildingCompletionTimeFromCost_whenMetalNotFound_expectError(t *testing.T) {
-	assert := assert.New(t)
-
 	resources := []persistence.Resource{}
 	costs := []persistence.BuildingActionCost{}
 
 	_, err := buildingCompletionTimeFromCost(resources, costs)
 
-	assert.True(errors.IsErrorWithCode(err, NoSuchResource))
+	assert.Equal(t, ErrNoSuchResource, err, "Actual err: %v", err)
 }
 
 func TestUnit_BuildingCompletionTimeFromCost_whenCrystalNotFound_expectError(t *testing.T) {
-	assert := assert.New(t)
-
 	resources := []persistence.Resource{
 		{
 			Id:   defaultMetalId,
@@ -48,7 +43,7 @@ func TestUnit_BuildingCompletionTimeFromCost_whenCrystalNotFound_expectError(t *
 
 	_, err := buildingCompletionTimeFromCost(resources, costs)
 
-	assert.True(errors.IsErrorWithCode(err, NoSuchResource))
+	assert.Equal(t, ErrNoSuchResource, err, "Actual err: %v", err)
 }
 
 func TestUnit_BuildingCompletionTimeFromCost_onlyMetalCost(t *testing.T) {

@@ -49,11 +49,11 @@ func GameUpdateWatcher(actionService ActionService, planetResourceService Planet
 }
 
 func handleError(err error, c *echo.Context) error {
-	if errors.IsErrorWithCode(err, actionSchedulingFailed) {
+	if errCode, ok := errors.AsErrorWithCode(err); ok && errCode.Code == errActionSchedulingFailed {
 		c.Logger().Error("Failed to scheduled pending actions", slog.Any("error", err))
 		return c.JSON(http.StatusInternalServerError, "Failed to process actions")
 	}
-	if errors.IsErrorWithCode(err, planetResourceUpdateFailed) {
+	if errCode, ok := errors.AsErrorWithCode(err); ok && errCode.Code == errPlanetResourceUpdateFailed {
 		c.Logger().Error("Failed to update planet resources", slog.Any("error", err))
 		return c.JSON(http.StatusInternalServerError, "Failed to update resources")
 	}
@@ -68,12 +68,12 @@ func (data *actionProcessingData) updateGameToCurrentTime(ctx context.Context, p
 
 	err := data.actionService.ProcessActionsUntil(ctx, planet, timeStamp)
 	if err != nil {
-		return errors.WrapCode(err, actionSchedulingFailed)
+		return errors.WrapCode(err, errActionSchedulingFailed)
 	}
 
 	err = data.planetResourceService.UpdatePlanetUntil(ctx, planet, timeStamp)
 	if err != nil {
-		return errors.WrapCode(err, planetResourceUpdateFailed)
+		return errors.WrapCode(err, errPlanetResourceUpdateFailed)
 	}
 
 	return nil

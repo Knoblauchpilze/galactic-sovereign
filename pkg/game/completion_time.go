@@ -4,7 +4,6 @@ import (
 	"math"
 	"time"
 
-	"github.com/Knoblauchpilze/backend-toolkit/pkg/errors"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/persistence"
 )
 
@@ -23,7 +22,7 @@ func findResourceByName(name string, resources []persistence.Resource) *persiste
 func findResourceRequirementByName(name string, resources []persistence.Resource, costs []persistence.BuildingActionCost) (float64, error) {
 	resource := findResourceByName(name, resources)
 	if resource == nil {
-		return 0.0, errors.NewCode(NoSuchResource)
+		return 0.0, ErrNoSuchResource
 	}
 
 	for _, cost := range costs {
