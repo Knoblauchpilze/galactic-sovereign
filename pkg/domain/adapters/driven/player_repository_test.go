@@ -6,8 +6,6 @@ import (
 	"testing"
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
-	"github.com/Knoblauchpilze/backend-toolkit/pkg/db/pgx"
-	"github.com/Knoblauchpilze/backend-toolkit/pkg/errors"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
 	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
 	drivenports "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driven"
@@ -74,7 +72,9 @@ func TestIT_PlayerRepository_Create(t *testing.T) {
 
 		err := repo.Create(context.Background(), newPlayer)
 
-		assert.True(t, errors.IsErrorWithCode(err, pgx.UniqueConstraintViolation), "Actual err: %v", err)
+		actual, ok := db.AsDatabaseError(err)
+		require.True(t, ok)
+		assert.Equal(t, db.ErrUniqueConstraintViolation, actual.Code, "Actual err: %v", err)
 		assertPlayerDoesNotExist(t, conn, newPlayer.Id)
 	})
 }

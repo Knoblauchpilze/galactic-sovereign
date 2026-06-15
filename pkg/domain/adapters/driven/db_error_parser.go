@@ -2,7 +2,6 @@ package drivenadapters
 
 import (
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
-	"github.com/Knoblauchpilze/backend-toolkit/pkg/errors"
 	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
 )
 
@@ -11,7 +10,7 @@ func parseDbError(err error) error {
 		return nil
 	}
 
-	if errors.IsErrorWithCode(err, db.NoMatchingRows) {
+	if err == db.ErrNoMatchingRows {
 		return domainerrors.ErrNotFound
 	}
 
