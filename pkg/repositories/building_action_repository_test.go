@@ -6,8 +6,6 @@ import (
 	"time"
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
-	"github.com/Knoblauchpilze/backend-toolkit/pkg/db/pgx"
-	"github.com/Knoblauchpilze/backend-toolkit/pkg/errors"
 	eassert "github.com/Knoblauchpilze/easy-assert/assert"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/persistence"
 	"github.com/google/uuid"
@@ -58,7 +56,9 @@ func TestIT_BuildingActionRepository_Create_WhenDuplicatePlanet_ExpectFailure(t 
 
 	_, err := repo.Create(context.Background(), tx, newAction)
 
-	assert.True(t, errors.IsErrorWithCode(err, pgx.UniqueConstraintViolation), "Actual err: %v", err)
+	actual, ok := db.AsDatabaseError(err)
+	require.True(t, ok)
+	assert.Equal(t, db.ErrUniqueConstraintViolation, actual.Code, "Actual err: %v", err)
 	assertBuildingActionDoesNotExist(t, conn, newAction.Id)
 }
 
@@ -82,7 +82,7 @@ func TestIT_BuildingActionRepository_Get_WhenNotFound_ExpectFailure(t *testing.T
 	// Non-existent id
 	id := uuid.MustParse("00000000-1111-2222-1111-000000000000")
 	_, err := repo.Get(context.Background(), tx, id)
-	assert.True(t, errors.IsErrorWithCode(err, db.NoMatchingRows), "Actual err: %v", err)
+	assert.Equal(t, db.ErrNoMatchingRows, err, "Actual err: %v", err)
 }
 
 func TestIT_BuildingActionRepository_ListForPlanet(t *testing.T) {

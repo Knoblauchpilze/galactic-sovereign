@@ -6,8 +6,6 @@ import (
 	"time"
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
-	"github.com/Knoblauchpilze/backend-toolkit/pkg/db/pgx"
-	"github.com/Knoblauchpilze/backend-toolkit/pkg/errors"
 	eassert "github.com/Knoblauchpilze/easy-assert/assert"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/persistence"
 	"github.com/google/uuid"
@@ -79,7 +77,9 @@ func TestIT_PlanetResourceProductionRepository_Create_WhenDuplicateResourceProdu
 	_, err := repo.Create(context.Background(), tx, newProd)
 	tx.Close(context.Background())
 
-	assert.True(t, errors.IsErrorWithCode(err, pgx.UniqueConstraintViolation), "Actual err: %v", err)
+	actual, ok := db.AsDatabaseError(err)
+	require.True(t, ok)
+	assert.Equal(t, db.ErrUniqueConstraintViolation, actual.Code, "Actual err: %v", err)
 	assertPlanetResourceProductionWithoutBuilding(t, conn, planetId, resource.Id, production.Production)
 }
 
@@ -100,7 +100,9 @@ func TestIT_PlanetResourceProductionRepository_Create_WhenDuplicateResourceProdu
 	_, err := repo.Create(context.Background(), tx, newProd)
 	tx.Close(context.Background())
 
-	assert.True(t, errors.IsErrorWithCode(err, pgx.UniqueConstraintViolation), "Actual err: %v", err)
+	actual, ok := db.AsDatabaseError(err)
+	require.True(t, ok)
+	assert.Equal(t, db.ErrUniqueConstraintViolation, actual.Code, "Actual err: %v", err)
 	assertPlanetResourceProductionForBuilding(t, conn, planetId, resource.Id, building.Id, production.Production)
 }
 
@@ -207,7 +209,7 @@ func TestIT_PlanetResourceProductionRepository_Update_WhenVersionIsWrong_ExpectO
 	_, err := repo.Update(context.Background(), tx, updatedProduction)
 	tx.Close(context.Background())
 
-	assert.True(t, errors.IsErrorWithCode(err, OptimisticLockException), "Actual err: %v", err)
+	assert.Equal(t, ErrOptimisticLockException, err, "Actual err: %v", err)
 }
 
 func TestIT_PlanetResourceProductionRepository_Update_WithoutBuilding(t *testing.T) {
@@ -251,7 +253,7 @@ func TestIT_PlanetResourceProductionRepository_Update_WithoutBuilding_WhenVersio
 	_, err := repo.Update(context.Background(), tx, updatedProduction)
 	tx.Close(context.Background())
 
-	assert.True(t, errors.IsErrorWithCode(err, OptimisticLockException), "Actual err: %v", err)
+	assert.Equal(t, ErrOptimisticLockException, err, "Actual err: %v", err)
 }
 
 func TestIT_PlanetResourceProductionRepository_Update_BumpsUpdatedAt(t *testing.T) {

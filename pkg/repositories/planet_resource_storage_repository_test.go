@@ -6,8 +6,6 @@ import (
 	"time"
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
-	"github.com/Knoblauchpilze/backend-toolkit/pkg/db/pgx"
-	"github.com/Knoblauchpilze/backend-toolkit/pkg/errors"
 	eassert "github.com/Knoblauchpilze/easy-assert/assert"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/persistence"
 	"github.com/google/uuid"
@@ -53,7 +51,9 @@ func TestIT_PlanetResourceStorageRepository_Create_WhenDuplicateResource_ExpectF
 	_, err := repo.Create(context.Background(), tx, newStorage)
 	tx.Close(context.Background())
 
-	assert.True(t, errors.IsErrorWithCode(err, pgx.UniqueConstraintViolation), "Actual err: %v", err)
+	actual, ok := db.AsDatabaseError(err)
+	require.True(t, ok)
+	assert.Equal(t, db.ErrUniqueConstraintViolation, actual.Code, "Actual err: %v", err)
 	assertPlanetResourceStorage(t, conn, planetId, resource.Id, storage.Storage)
 }
 
@@ -140,7 +140,7 @@ func TestIT_PlanetResourceStorageRepository_Update_WhenVersionIsWrong_ExpectOpti
 	_, err := repo.Update(context.Background(), tx, updatedStorage)
 	tx.Close(context.Background())
 
-	assert.True(t, errors.IsErrorWithCode(err, OptimisticLockException), "Actual err: %v", err)
+	assert.Equal(t, ErrOptimisticLockException, err, "Actual err: %v", err)
 }
 
 func TestIT_PlanetResourceStorageRepository_Update_BumpsUpdatedAt(t *testing.T) {

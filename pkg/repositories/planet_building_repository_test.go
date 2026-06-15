@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
-	"github.com/Knoblauchpilze/backend-toolkit/pkg/errors"
 	eassert "github.com/Knoblauchpilze/easy-assert/assert"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/persistence"
 	"github.com/google/uuid"
@@ -89,7 +88,7 @@ func TestIT_PlanetBuildingRepository_Update_WhenVersionIsWrong_ExpectOptimisticL
 	_, err := repo.Update(context.Background(), tx, updatedBuilding)
 	tx.Close(context.Background())
 
-	assert.True(t, errors.IsErrorWithCode(err, OptimisticLockException), "Actual err: %v", err)
+	assert.Equal(t, ErrOptimisticLockException, err, "Actual err: %v", err)
 }
 
 func TestIT_PlanetBuildingRepository_Update_BumpsUpdatedAt(t *testing.T) {

@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
-	"github.com/Knoblauchpilze/backend-toolkit/pkg/errors"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/persistence"
 	"github.com/google/uuid"
 )
@@ -119,7 +118,7 @@ func (r *planetResourceStorageRepositoryImpl) Update(
 		return storage, err
 	}
 	if affectedRows != 1 {
-		return storage, errors.NewCode(OptimisticLockException)
+		return storage, ErrOptimisticLockException
 	}
 
 	storage.Version = version

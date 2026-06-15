@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
-	"github.com/Knoblauchpilze/backend-toolkit/pkg/errors"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/persistence"
 	"github.com/google/uuid"
 )
@@ -167,7 +166,7 @@ func (r *planetResourceProductionRepositoryImpl) Update(
 		return production, err
 	}
 	if affectedRows != 1 {
-		return production, errors.NewCode(OptimisticLockException)
+		return production, ErrOptimisticLockException
 	}
 
 	production.Version = version

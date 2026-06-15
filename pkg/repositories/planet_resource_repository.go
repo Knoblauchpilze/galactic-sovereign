@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
-	"github.com/Knoblauchpilze/backend-toolkit/pkg/errors"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/persistence"
 	"github.com/google/uuid"
 )
@@ -69,7 +68,7 @@ func (r *planetResourceRepositoryImpl) Update(ctx context.Context, tx db.Transac
 		return resource, err
 	}
 	if affectedRows != 1 {
-		return resource, errors.NewCode(OptimisticLockException)
+		return resource, ErrOptimisticLockException
 	}
 
 	resource.Version = version

@@ -5,8 +5,6 @@ import (
 	"testing"
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
-	"github.com/Knoblauchpilze/backend-toolkit/pkg/db/pgx"
-	"github.com/Knoblauchpilze/backend-toolkit/pkg/errors"
 	eassert "github.com/Knoblauchpilze/easy-assert/assert"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/persistence"
 	"github.com/google/uuid"
@@ -49,7 +47,9 @@ func TestIT_BuildingActionCostRepository_Create_WhenDuplicatedResource_ExpectFai
 	_, err := repo.Create(context.Background(), tx, newCost)
 	tx.Close(context.Background())
 
-	assert.True(t, errors.IsErrorWithCode(err, pgx.UniqueConstraintViolation), "Actual err: %v", err)
+	actual, ok := db.AsDatabaseError(err)
+	require.True(t, ok)
+	assert.Equal(t, db.ErrUniqueConstraintViolation, actual.Code, "Actual err: %v", err)
 	assertBuildingActionCostForResource(t, conn, action.Id, resource.Id, cost.Amount)
 }
 

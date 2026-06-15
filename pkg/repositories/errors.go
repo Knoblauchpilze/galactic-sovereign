@@ -3,5 +3,9 @@ package repositories
 import "github.com/Knoblauchpilze/backend-toolkit/pkg/errors"
 
 const (
-	OptimisticLockException errors.ErrorCode = 200
+	errOptimisticLockException errors.ErrorCode = 200
+)
+
+var (
+	ErrOptimisticLockException = errors.FromCode(errOptimisticLockException)
 )
