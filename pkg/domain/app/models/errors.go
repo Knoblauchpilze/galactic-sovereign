@@ -5,5 +5,5 @@ import "github.com/Knoblauchpilze/backend-toolkit/pkg/errors"
 var (
 	noSuchBuilding errors.ErrorCode = 270
 
-	errBuildingNotFound = errors.NewCode(noSuchBuilding)
+	errBuildingNotFound = errors.FromCode(noSuchBuilding)
 )

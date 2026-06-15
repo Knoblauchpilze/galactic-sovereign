@@ -7,5 +7,5 @@ const (
 )
 
 var (
-	ErrNotFound = errors.NewCode(resourceNotFound)
+	ErrNotFound = errors.FromCode(resourceNotFound)
 )

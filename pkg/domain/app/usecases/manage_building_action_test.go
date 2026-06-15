@@ -5,9 +5,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/errors"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
+	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/request"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/usecases/drivenportstest"
 	"github.com/google/uuid"
@@ -114,12 +114,12 @@ func TestUnit_ManageBuildingAction_Create(t *testing.T) {
 		mockPlanetRepo.EXPECT().
 			Get(gomock.Any(), gomock.Eq(request.Planet)).
 			Times(1).
-			Return(models.Planet{}, errors.NewCode(db.NoMatchingRows))
+			Return(models.Planet{}, domainerrors.ErrNotFound)
 
 		usecase := NewBuildingActionUseCase(mockActionRepo, mockPlanetRepo, mockBuildingRepo)
 		_, err := usecase.Create(context.Background(), request)
 
-		assert.True(t, errors.IsErrorWithCode(err, db.NoMatchingRows), "Actual err: %v", err)
+		assert.Equal(t, domainerrors.ErrNotFound, err, "Actual err: %v", err)
 	})
 
 	t.Run("returns error when building is not found", func(t *testing.T) {
@@ -131,12 +131,12 @@ func TestUnit_ManageBuildingAction_Create(t *testing.T) {
 		mockBuildingRepo.EXPECT().
 			Get(gomock.Any(), gomock.Eq(request.Building)).
 			Times(1).
-			Return(models.Building{}, errors.NewCode(db.NoMatchingRows))
+			Return(models.Building{}, domainerrors.ErrNotFound)
 
 		usecase := NewBuildingActionUseCase(mockActionRepo, mockPlanetRepo, mockBuildingRepo)
 		_, err := usecase.Create(context.Background(), request)
 
-		assert.True(t, errors.IsErrorWithCode(err, db.NoMatchingRows), "Actual err: %v", err)
+		assert.Equal(t, domainerrors.ErrNotFound, err, "Actual err: %v", err)
 	})
 
 	t.Run("returns error when repository fails", func(t *testing.T) {
