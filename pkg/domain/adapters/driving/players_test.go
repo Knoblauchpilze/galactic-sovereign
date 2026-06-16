@@ -39,6 +39,23 @@ func TestUnit_Players_CreatePlayer(t *testing.T) {
 		assert.Equal(t, "invalid player syntax", actual)
 	})
 
+	t.Run("returns 409 whan name already exists", func(t *testing.T) {
+		req := generateTestRequestWithJsonBody(t, http.MethodPost, dto)
+		ctx, rw := generateTestContextFromRequest(t, req)
+
+		mockUsecase.EXPECT().
+			Create(gomock.Any(), gomock.Any()).
+			Times(1).
+			Return(models.Player{}, domainerrors.ErrNameAlreadyTaken)
+
+		err := createPlayer(ctx, mockUsecase)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.Equal(t, http.StatusConflict, rw.Code)
+		actual := decodeResponseBody[string](t, rw)
+		assert.Equal(t, "name already used", actual)
+	})
+
 	t.Run("forwards creation to use case", func(t *testing.T) {
 		req := generateTestRequestWithJsonBody(t, http.MethodPost, dto)
 		ctx, rw := generateTestContextFromRequest(t, req)

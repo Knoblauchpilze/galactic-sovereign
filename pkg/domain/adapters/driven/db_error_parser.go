@@ -34,6 +34,8 @@ func parseUniqueConstraintViolation(err *db.DatabaseError) error {
 	switch err.Constraint {
 	case "universe_name_key":
 		return domainerrors.ErrNameAlreadyTaken
+	case "player_universe_name_key":
+		return domainerrors.ErrNameAlreadyTaken
 	default:
 		return err
 	}

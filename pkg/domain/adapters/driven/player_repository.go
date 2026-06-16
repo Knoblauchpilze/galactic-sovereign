@@ -76,7 +76,7 @@ func NewPlayerRepository(conn db.Connection) drivenports.ForManagingPlayers {
 
 func (r *playerRepositoryImpl) Create(ctx context.Context, player models.Player) error {
 	_, err := r.conn.Exec(ctx, createPlayerQuery, player.Id, player.ApiUser, player.Universe, player.Name, player.CreatedAt)
-	return err
+	return parseDbError(err)
 }
 
 func (r *playerRepositoryImpl) Get(ctx context.Context, id uuid.UUID) (models.Player, error) {

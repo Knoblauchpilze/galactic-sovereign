@@ -72,9 +72,7 @@ func TestIT_PlayerRepository_Create(t *testing.T) {
 
 		err := repo.Create(context.Background(), newPlayer)
 
-		actual, ok := db.AsDatabaseError(err)
-		require.True(t, ok)
-		assert.Equal(t, db.ErrUniqueConstraintViolation, actual.Code, "Actual err: %v", err)
+		assert.Equal(t, domainerrors.ErrNameAlreadyTaken, err, "Actual err: %v", err)
 		assertPlayerDoesNotExist(t, conn, newPlayer.Id)
 	})
 }
