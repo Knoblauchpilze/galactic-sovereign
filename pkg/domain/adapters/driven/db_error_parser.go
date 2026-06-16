@@ -14,5 +14,27 @@ func parseDbError(err error) error {
 		return domainerrors.ErrNotFound
 	}
 
+	if dbErr, ok := db.AsDatabaseError(err); ok {
+		return parseFullDbError(dbErr)
+	}
+
 	return err
+}
+
+func parseFullDbError(err *db.DatabaseError) error {
+	switch err.Code {
+	case db.ErrUniqueConstraintViolation:
+		return parseUniqueConstraintViolation(err)
+	default:
+		return err
+	}
+}
+
+func parseUniqueConstraintViolation(err *db.DatabaseError) error {
+	switch err.Constraint {
+	case "universe_name_key":
+		return domainerrors.ErrNameAlreadyTaken
+	default:
+		return err
+	}
 }

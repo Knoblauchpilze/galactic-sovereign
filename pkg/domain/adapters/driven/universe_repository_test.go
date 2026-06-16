@@ -46,9 +46,7 @@ func TestIT_UniverseRepository_Create(t *testing.T) {
 
 		err := repo.Create(context.Background(), newUniverse)
 
-		actual, ok := db.AsDatabaseError(err)
-		require.True(t, ok)
-		assert.Equal(t, db.ErrUniqueConstraintViolation, actual.Code, "Actual err: %v", err)
+		assert.Equal(t, domainerrors.ErrNameAlreadyTaken, err, "Actual err: %+v", err)
 		assertUniverseDoesNotExist(t, conn, newUniverse.Id)
 	})
 

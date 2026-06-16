@@ -4,7 +4,6 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/rest"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driving/dtos"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driving/mappers"
@@ -58,7 +57,7 @@ func createUniverse(c *echo.Context, usecase drivingports.ForManagingUniverse) e
 	request := mappers.ToUniverseCreationRequest(inputDto)
 	universe, err := usecase.Create(c.Request().Context(), request)
 	if err != nil {
-		if dbErr, ok := db.AsDatabaseError(err); ok && dbErr.Code == db.ErrUniqueConstraintViolation {
+		if err == domainerrors.ErrNameAlreadyTaken {
 			return c.JSON(http.StatusConflict, "name already used")
 		}
 

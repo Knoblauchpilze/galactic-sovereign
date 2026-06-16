@@ -50,7 +50,7 @@ func NewUniverseRepository(conn db.Connection) drivenports.ForManagingUniverses 
 
 func (r *universeRepositoryImpl) Create(ctx context.Context, universe models.Universe) error {
 	_, err := r.conn.Exec(ctx, createUniverseQuery, universe.Id, universe.Name, universe.CreatedAt.UTC())
-	return err
+	return parseDbError(err)
 }
 
 func (r *universeRepositoryImpl) Get(ctx context.Context, id uuid.UUID) (models.Universe, error) {

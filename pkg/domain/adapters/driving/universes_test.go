@@ -62,6 +62,24 @@ func TestUnit_Universes_CreateUniverse(t *testing.T) {
 		assert.Equal(t, expected, actual)
 	})
 
+	t.Run("returns 409 when name is already taken", func(t *testing.T) {
+		dto := dtos.UniverseDtoRequest{Name: "my-universe"}
+		req := generateTestRequestWithJsonBody(t, http.MethodPost, dto)
+		ctx, rw := generateTestContextFromRequest(t, req)
+
+		mockUsecase.EXPECT().
+			Create(gomock.Any(), gomock.Any()).
+			Times(1).
+			Return(models.Universe{}, domainerrors.ErrNameAlreadyTaken)
+
+		err := createUniverse(ctx, mockUsecase)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.Equal(t, http.StatusConflict, rw.Code)
+		actual := decodeResponseBody[string](t, rw)
+		assert.Equal(t, "name already used", actual)
+	})
+
 	t.Run("returns 500 when use case fails", func(t *testing.T) {
 		dto := dtos.UniverseDtoRequest{Name: "my-universe"}
 		req := generateTestRequestWithJsonBody(t, http.MethodPost, dto)
