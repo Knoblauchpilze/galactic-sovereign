@@ -7,6 +7,7 @@ import (
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/rest"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driving/dtos"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driving/mappers"
+	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
 	drivingports "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driving"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v5"
@@ -55,6 +56,10 @@ func createBuildingAction(c *echo.Context, usecase drivingports.ForManagingBuild
 	request := mappers.ToBuildingActionCreationRequest(planetId, inputDto)
 	action, err := usecase.Create(c.Request().Context(), request)
 	if err != nil {
+		if err == domainerrors.ErrActionAlreadyInProgress {
+			return c.JSON(http.StatusConflict, "action already in progress")
+		}
+
 		c.Logger().Error("Failed to create building action", slog.Any("error", err))
 		return c.JSON(http.StatusInternalServerError, "failed to create building action")
 	}

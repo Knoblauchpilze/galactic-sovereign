@@ -8,6 +8,7 @@ import (
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driving/drivingportstest"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driving/dtos"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
+	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/request"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v5"
@@ -121,6 +122,24 @@ func TestUnit_BuildingActions_CreateBuildingAction(t *testing.T) {
 			},
 		}
 		assert.Equal(t, expected, actual)
+	})
+
+	t.Run("returns 409 when action already exists", func(t *testing.T) {
+		dto := dtos.BuildingActionDtoRequest{Building: uuid.New()}
+		req := generateTestRequestWithJsonBody(t, http.MethodPost, dto)
+		ctx, rw := generateTestContextFromRequest(t, req, addIdPathParam)
+
+		mockUsecase.EXPECT().
+			Create(gomock.Any(), gomock.Any()).
+			Times(1).
+			Return(models.BuildingAction{}, domainerrors.ErrActionAlreadyInProgress)
+
+		err := createBuildingAction(ctx, mockUsecase)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.Equal(t, http.StatusConflict, rw.Code)
+		actual := decodeResponseBody[string](t, rw)
+		assert.Equal(t, "action already in progress", actual)
 	})
 
 	t.Run("returns 500 when use case fails", func(t *testing.T) {

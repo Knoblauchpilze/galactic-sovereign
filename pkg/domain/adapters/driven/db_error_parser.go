@@ -36,6 +36,8 @@ func parseUniqueConstraintViolation(err *db.DatabaseError) error {
 		return domainerrors.ErrNameAlreadyTaken
 	case "player_universe_name_key":
 		return domainerrors.ErrNameAlreadyTaken
+	case "building_action_planet_key":
+		return domainerrors.ErrActionAlreadyInProgress
 	default:
 		return err
 	}

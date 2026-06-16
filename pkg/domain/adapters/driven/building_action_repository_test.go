@@ -158,7 +158,7 @@ func TestIT_BuildingActionRepository_Create(t *testing.T) {
 		assert.Equal(t, action, actual)
 	})
 
-	t.Run("returns error when action with same id already exists", func(t *testing.T) {
+	t.Run("returns error when action for same planet already exists", func(t *testing.T) {
 		_, planet := insertTestBuildingAction(t, conn)
 
 		newAction := models.BuildingAction{
@@ -174,9 +174,7 @@ func TestIT_BuildingActionRepository_Create(t *testing.T) {
 
 		err := repo.Create(context.Background(), newAction)
 
-		actual, ok := db.AsDatabaseError(err)
-		require.True(t, ok, "Actual err: %v", err)
-		assert.Equal(t, db.ErrUniqueConstraintViolation, actual.Code, "Actual err: %v", err)
+		assert.Equal(t, domainerrors.ErrActionAlreadyInProgress, err, "Actual err: %v", err)
 		assertBuildingActionDoesNotExist(t, conn, newAction.Id)
 	})
 }

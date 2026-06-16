@@ -214,7 +214,7 @@ func (r *buildingActionRepositoryImpl) Create(
 		action.Version,
 	)
 	if err != nil {
-		return err
+		return parseDbError(err)
 	}
 
 	for _, c := range action.Costs {
