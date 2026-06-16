@@ -14,12 +14,9 @@ import (
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/server"
 	_ "github.com/Knoblauchpilze/galactic-sovereign/api"
 	"github.com/Knoblauchpilze/galactic-sovereign/cmd/galactic-sovereign/internal"
-	"github.com/Knoblauchpilze/galactic-sovereign/internal/controller"
-	"github.com/Knoblauchpilze/galactic-sovereign/internal/service"
 	drivenadapters "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driven"
 	drivingadapters "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driving"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/usecases"
-	"github.com/Knoblauchpilze/galactic-sovereign/pkg/repositories"
 	echoSwagger "github.com/swaggo/echo-swagger/v2"
 )
 
@@ -52,42 +49,14 @@ func main() {
 	}
 	defer conn.Close(context.Background())
 
-	repos := repositories.Repositories{
-		Building:                         repositories.NewBuildingRepository(),
-		BuildingAction:                   repositories.NewBuildingActionRepository(),
-		BuildingActionCost:               repositories.NewBuildingActionCostRepository(),
-		BuildingActionResourceProduction: repositories.NewBuildingActionResourceProductionRepository(),
-		BuildingActionResourceStorage:    repositories.NewBuildingActionResourceStorageRepository(),
-		BuildingCost:                     repositories.NewBuildingCostRepository(),
-		BuildingResourceProduction:       repositories.NewBuildingResourceProductionRepository(),
-		BuildingResourceStorage:          repositories.NewBuildingResourceStorageRepository(),
-		PlanetBuilding:                   repositories.NewPlanetBuildingRepository(),
-		PlanetResource:                   repositories.NewPlanetResourceRepository(),
-		PlanetResourceProduction:         repositories.NewPlanetResourceProductionRepository(),
-		PlanetResourceStorage:            repositories.NewPlanetResourceStorageRepository(),
-		Resource:                         repositories.NewResourceRepository(),
-	}
-
-	buildingActionService := service.NewBuildingActionService(conn, repos)
-
-	actionService := service.NewActionService(conn, repos)
-	planetResourceService := service.NewPlanetResourceService(conn, repos)
-
 	s := server.NewWithLogger(conf.Server, log)
 
-	for _, route := range controller.BuildingActionEndpoints(buildingActionService, actionService, planetResourceService) {
-		if err := s.AddRoute(route); err != nil {
-			log.Error("Failed to register route", slog.String("route", route.Path()), slog.Any("error", err))
-			os.Exit(1)
-		}
-	}
-
-	// New logic using DDD
-	// TODO: Some of the routes need to be restroed under the game.NewResourceRoute
+	// TODO: Some of the routes need to be restored under the game.NewResourceRoute
 	// wrapping to trigger the processing of actions (e.g. planets)
-	registerUniverseRoutes(conn, s, log)
-	registerPlayerRoutes(conn, s, log)
+	registerUniversesRoutes(conn, s, log)
+	registerPlayersRoutes(conn, s, log)
 	registerPlanetsRoutes(conn, s, log)
+	registerBuildingActionsRoutes(conn, s, log)
 	registerHealthRoutes(conn, s, log)
 	// End new logic using DDD
 
@@ -110,7 +79,7 @@ func main() {
 	}
 }
 
-func registerUniverseRoutes(conn db.Connection, s server.Server, log *slog.Logger) {
+func registerUniversesRoutes(conn db.Connection, s server.Server, log *slog.Logger) {
 	repo := drivenadapters.NewUniverseRepository(conn)
 	usecase := usecases.NewUniverseUseCase(repo)
 
@@ -122,7 +91,7 @@ func registerUniverseRoutes(conn db.Connection, s server.Server, log *slog.Logge
 	}
 }
 
-func registerPlayerRoutes(conn db.Connection, s server.Server, log *slog.Logger) {
+func registerPlayersRoutes(conn db.Connection, s server.Server, log *slog.Logger) {
 	repo := drivenadapters.NewPlayerRepository(conn)
 	usecase := usecases.NewPlayerUseCase(repo)
 
@@ -139,6 +108,20 @@ func registerPlanetsRoutes(conn db.Connection, s server.Server, log *slog.Logger
 	usecase := usecases.NewPlanetUseCase(repo)
 
 	for _, route := range drivingadapters.PlanetEndpoints(usecase) {
+		if err := s.AddRoute(route); err != nil {
+			log.Error("Failed to register route", slog.String("route", route.Path()), slog.Any("error", err))
+			os.Exit(1)
+		}
+	}
+}
+
+func registerBuildingActionsRoutes(conn db.Connection, s server.Server, log *slog.Logger) {
+	actionRepo := drivenadapters.NewBuildingActionRepository(conn)
+	planetRepo := drivenadapters.NewPlanetRepository(conn)
+	buildingRepo := drivenadapters.NewBuildingRepository(conn)
+	usecase := usecases.NewBuildingActionUseCase(actionRepo, planetRepo, buildingRepo)
+
+	for _, route := range drivingadapters.BuildingActionEndpoints(usecase) {
 		if err := s.AddRoute(route); err != nil {
 			log.Error("Failed to register route", slog.String("route", route.Path()), slog.Any("error", err))
 			os.Exit(1)

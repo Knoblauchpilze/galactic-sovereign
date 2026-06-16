@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -316,6 +317,6 @@ func TestUnit_Building_CreateBuildingAction(t *testing.T) {
 
 		_, err := b.CreateBuildingAction(p)
 
-		assert.ErrorIs(t, err, errBuildingNotFound)
+		assert.ErrorIs(t, err, domainerrors.ErrBuildingNotFound)
 	})
 }

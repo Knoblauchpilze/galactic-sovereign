@@ -4,6 +4,7 @@ import (
 	"math"
 	"time"
 
+	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
 	"github.com/google/uuid"
 )
 
@@ -165,7 +166,7 @@ func findBuildingById(buildings []PlanetBuilding, id uuid.UUID) (PlanetBuilding,
 		}
 	}
 
-	return PlanetBuilding{}, errBuildingNotFound
+	return PlanetBuilding{}, domainerrors.ErrBuildingNotFound
 }
 
 func findResourceById(resources []BuildingActionCost, id uuid.UUID) float64 {

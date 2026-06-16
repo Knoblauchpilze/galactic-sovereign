@@ -60,6 +60,10 @@ func createBuildingAction(c *echo.Context, usecase drivingports.ForManagingBuild
 			return c.JSON(http.StatusConflict, "action already in progress")
 		}
 
+		if err == domainerrors.ErrBuildingNotFound {
+			return c.JSON(http.StatusConflict, "action already in progress")
+		}
+
 		c.Logger().Error("Failed to create building action", slog.Any("error", err))
 		return c.JSON(http.StatusInternalServerError, "failed to create building action")
 	}
