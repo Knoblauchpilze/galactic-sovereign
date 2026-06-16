@@ -37,6 +37,7 @@ func BuildingActionEndpoints(usecase drivingports.ForManagingBuildingAction) res
 //	@Param			request	body		dtos.BuildingActionDtoRequest	true	"Building action payload"
 //	@Success		201		{object}	rest.ResponseEnvelope[dtos.BuildingActionDtoResponse]
 //	@Failure		400		{object}	rest.ResponseEnvelope[string]
+//	@Failure		404		{object}	rest.ResponseEnvelope[string]
 //	@Failure		409		{object}	rest.ResponseEnvelope[string]
 //	@Failure		500		{object}	rest.ResponseEnvelope[string]
 //	@Router			/planets/{id}/actions [post]
@@ -60,8 +61,12 @@ func createBuildingAction(c *echo.Context, usecase drivingports.ForManagingBuild
 			return c.JSON(http.StatusConflict, "action already in progress")
 		}
 
+		if err == domainerrors.ErrNotFound {
+			return c.JSON(http.StatusNotFound, "no such planet")
+		}
+
 		if err == domainerrors.ErrBuildingNotFound {
-			return c.JSON(http.StatusConflict, "action already in progress")
+			return c.JSON(http.StatusBadRequest, "no such building")
 		}
 
 		c.Logger().Error("Failed to create building action", slog.Any("error", err))

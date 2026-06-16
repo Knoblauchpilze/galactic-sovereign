@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
+	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/request"
 	drivenports "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driven"
 	drivingports "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driving"
@@ -36,6 +37,10 @@ func (b *buildingActionUseCase) Create(ctx context.Context, req request.Building
 
 	building, err := b.buildingRepo.Get(ctx, req.Building)
 	if err != nil {
+		if err == domainerrors.ErrNotFound {
+			return models.BuildingAction{}, domainerrors.ErrBuildingNotFound
+		}
+
 		return models.BuildingAction{}, err
 	}
 

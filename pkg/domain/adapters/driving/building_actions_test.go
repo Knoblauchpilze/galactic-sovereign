@@ -142,6 +142,42 @@ func TestUnit_BuildingActions_CreateBuildingAction(t *testing.T) {
 		assert.Equal(t, "action already in progress", actual)
 	})
 
+	t.Run("returns 404 when planet is not found", func(t *testing.T) {
+		dto := dtos.BuildingActionDtoRequest{Building: uuid.New()}
+		req := generateTestRequestWithJsonBody(t, http.MethodPost, dto)
+		ctx, rw := generateTestContextFromRequest(t, req, addIdPathParam)
+
+		mockUsecase.EXPECT().
+			Create(gomock.Any(), gomock.Any()).
+			Times(1).
+			Return(models.BuildingAction{}, domainerrors.ErrNotFound)
+
+		err := createBuildingAction(ctx, mockUsecase)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.Equal(t, http.StatusNotFound, rw.Code)
+		actual := decodeResponseBody[string](t, rw)
+		assert.Equal(t, "no such planet", actual)
+	})
+
+	t.Run("returns 400 when building is not found", func(t *testing.T) {
+		dto := dtos.BuildingActionDtoRequest{Building: uuid.New()}
+		req := generateTestRequestWithJsonBody(t, http.MethodPost, dto)
+		ctx, rw := generateTestContextFromRequest(t, req, addIdPathParam)
+
+		mockUsecase.EXPECT().
+			Create(gomock.Any(), gomock.Any()).
+			Times(1).
+			Return(models.BuildingAction{}, domainerrors.ErrBuildingNotFound)
+
+		err := createBuildingAction(ctx, mockUsecase)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.Equal(t, http.StatusBadRequest, rw.Code)
+		actual := decodeResponseBody[string](t, rw)
+		assert.Equal(t, "no such building", actual)
+	})
+
 	t.Run("returns 500 when use case fails", func(t *testing.T) {
 		dto := dtos.BuildingActionDtoRequest{Building: uuid.New()}
 		req := generateTestRequestWithJsonBody(t, http.MethodPost, dto)

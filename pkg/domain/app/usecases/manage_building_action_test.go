@@ -136,7 +136,7 @@ func TestUnit_ManageBuildingAction_Create(t *testing.T) {
 		usecase := NewBuildingActionUseCase(mockActionRepo, mockPlanetRepo, mockBuildingRepo)
 		_, err := usecase.Create(context.Background(), request)
 
-		assert.Equal(t, domainerrors.ErrNotFound, err, "Actual err: %v", err)
+		assert.Equal(t, domainerrors.ErrBuildingNotFound, err, "Actual err: %v", err)
 	})
 
 	t.Run("returns error when repository fails", func(t *testing.T) {
