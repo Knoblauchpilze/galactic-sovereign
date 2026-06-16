@@ -4,7 +4,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Knoblauchpilze/backend-toolkit/pkg/errors"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/persistence"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -165,8 +164,6 @@ func TestUnit_ConsolidateBuildingActionLevel_WhenBuildingExists_SetsCorrectLevel
 }
 
 func TestUnit_ConsolidateBuildingActionCompletionTime_WhenResourceNotFound_ExpectError(t *testing.T) {
-	assert := assert.New(t)
-
 	action := persistence.BuildingAction{
 		Building: defaultId,
 	}
@@ -189,7 +186,7 @@ func TestUnit_ConsolidateBuildingActionCompletionTime_WhenResourceNotFound_Expec
 
 	_, err := ConsolidateBuildingActionCompletionTime(action, resources, costs)
 
-	assert.True(errors.IsErrorWithCode(err, NoSuchResource))
+	assert.Equal(t, ErrNoSuchResource, err, "Actual err: %v")
 }
 
 func TestUnit_ConsolidateBuildingActionCompletionTime(t *testing.T) {
@@ -217,8 +214,6 @@ func TestUnit_ConsolidateBuildingActionCompletionTime(t *testing.T) {
 }
 
 func TestUnit_ValidateActionBuilding_NoSuchBuilding(t *testing.T) {
-	assert := assert.New(t)
-
 	action := persistence.BuildingAction{
 		Building: defaultId,
 	}
@@ -226,7 +221,7 @@ func TestUnit_ValidateActionBuilding_NoSuchBuilding(t *testing.T) {
 
 	err := validateActionBuilding(action, buildings)
 
-	assert.True(errors.IsErrorWithCode(err, NoSuchBuilding))
+	assert.Equal(t, ErrNoSuchBuilding, err, "Actual err: %v")
 }
 
 func TestUnit_ValidateActionBuilding(t *testing.T) {
@@ -247,8 +242,6 @@ func TestUnit_ValidateActionBuilding(t *testing.T) {
 }
 
 func TestUnit_ValidateActionCost_NoSuchResource(t *testing.T) {
-	assert := assert.New(t)
-
 	resources := []persistence.PlanetResource{}
 	costs := []persistence.BuildingActionCost{
 		{
@@ -259,12 +252,10 @@ func TestUnit_ValidateActionCost_NoSuchResource(t *testing.T) {
 
 	err := validateActionCost(resources, costs)
 
-	assert.True(errors.IsErrorWithCode(err, NotEnoughResources))
+	assert.Equal(t, ErrNotEnoughResources, err, "Actual err: %v")
 }
 
 func TestUnit_ValidateActionCost_TooLittleResource(t *testing.T) {
-	assert := assert.New(t)
-
 	resources := []persistence.PlanetResource{
 		{
 			Resource: defaultId,
@@ -280,7 +271,7 @@ func TestUnit_ValidateActionCost_TooLittleResource(t *testing.T) {
 
 	err := validateActionCost(resources, costs)
 
-	assert.True(errors.IsErrorWithCode(err, NotEnoughResources))
+	assert.Equal(t, ErrNotEnoughResources, err, "Actual err: %v")
 }
 
 func TestUnit_ValidateActionCost_ExactlyEnoughResource(t *testing.T) {
@@ -326,8 +317,6 @@ func TestUnit_ValidateActionCost_MoreThanEnoughResource(t *testing.T) {
 }
 
 func TestUnit_ValidateBuildingAction_BuildingUnknown(t *testing.T) {
-	assert := assert.New(t)
-
 	action := persistence.BuildingAction{
 		Building: defaultId,
 	}
@@ -347,12 +336,10 @@ func TestUnit_ValidateBuildingAction_BuildingUnknown(t *testing.T) {
 
 	err := ValidateBuildingAction(action, resources, buildings, costs)
 
-	assert.True(errors.IsErrorWithCode(err, NoSuchBuilding))
+	assert.Equal(t, ErrNoSuchBuilding, err, "Actual err: %v")
 }
 
 func TestUnit_ValidateBuildingAction_CostFails(t *testing.T) {
-	assert := assert.New(t)
-
 	action := persistence.BuildingAction{
 		Building: defaultId,
 	}
@@ -376,7 +363,7 @@ func TestUnit_ValidateBuildingAction_CostFails(t *testing.T) {
 
 	err := ValidateBuildingAction(action, resources, buildings, costs)
 
-	assert.True(errors.IsErrorWithCode(err, NotEnoughResources))
+	assert.Equal(t, ErrNotEnoughResources, err, "Actual err: %v")
 }
 
 func TestUnit_ValidateBuildingAction(t *testing.T) {

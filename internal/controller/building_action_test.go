@@ -11,8 +11,6 @@ import (
 	"time"
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
-	"github.com/Knoblauchpilze/backend-toolkit/pkg/db/pgx"
-	"github.com/Knoblauchpilze/backend-toolkit/pkg/errors"
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/rest"
 	"github.com/Knoblauchpilze/galactic-sovereign/internal/service"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/communication"
@@ -168,14 +166,14 @@ func TestUnit_BuildingActionController(t *testing.T) {
 				req:                generateTestRequestWithBuildingActionBody(http.MethodPost, defaultBuildingActionDtoRequest),
 				idAsRouteParam:     true,
 				handler:            createBuildingAction,
-				err:                errors.NewCode(game.NotEnoughResources),
+				err:                game.ErrNotEnoughResources,
 				expectedHttpStatus: http.StatusBadRequest,
 			},
 			"createBuildingAction_buildingActionAlreadyInProgress": {
 				req:                generateTestRequestWithBuildingActionBody(http.MethodPost, defaultBuildingActionDtoRequest),
 				idAsRouteParam:     true,
 				handler:            createBuildingAction,
-				err:                errors.NewCode(pgx.UniqueConstraintViolation),
+				err:                &db.DatabaseError{Code: db.ErrUniqueConstraintViolation},
 				expectedHttpStatus: http.StatusConflict,
 			},
 			"deleteBuildingAction": {
@@ -189,7 +187,7 @@ func TestUnit_BuildingActionController(t *testing.T) {
 				req:                httptest.NewRequest(http.MethodDelete, "/", nil),
 				idAsRouteParam:     true,
 				handler:            deleteBuildingAction,
-				err:                errors.NewCode(db.NoMatchingRows),
+				err:                db.ErrNoMatchingRows,
 				expectedHttpStatus: http.StatusNotFound,
 			},
 		},

@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
-	"github.com/Knoblauchpilze/backend-toolkit/pkg/errors"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/communication"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/game"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/persistence"
@@ -124,7 +123,7 @@ func (s *buildingActionServiceImpl) Delete(ctx context.Context, id uuid.UUID) er
 	}
 
 	if action.CompletedAt.Before(tx.TimeStamp()) {
-		return errors.NewCode(ActionAlreadyCompleted)
+		return ErrActionAlreadyCompleted
 	}
 
 	costs, err := s.buildingActionCostRepo.ListForAction(ctx, tx, action.Id)

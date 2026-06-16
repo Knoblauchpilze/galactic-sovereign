@@ -4,8 +4,7 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/Knoblauchpilze/backend-toolkit/pkg/db/pgx"
-	"github.com/Knoblauchpilze/backend-toolkit/pkg/errors"
+	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/rest"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driving/dtos"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driving/mappers"
@@ -60,7 +59,7 @@ func createPlayer(c *echo.Context, usecase drivingports.ForManagingPlayer) error
 	request := mappers.ToPlayerCreationRequest(inputDto)
 	player, err := usecase.Create(c.Request().Context(), request)
 	if err != nil {
-		if errors.IsErrorWithCode(err, pgx.UniqueConstraintViolation) {
+		if dbErr, ok := db.AsDatabaseError(err); ok && dbErr.Code == db.ErrUniqueConstraintViolation {
 			return c.JSON(http.StatusConflict, "name already used")
 		}
 

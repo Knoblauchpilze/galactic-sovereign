@@ -7,8 +7,6 @@ import (
 	"time"
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
-	"github.com/Knoblauchpilze/backend-toolkit/pkg/db/pgx"
-	"github.com/Knoblauchpilze/backend-toolkit/pkg/errors"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
 	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
 	drivenports "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driven"
@@ -176,12 +174,9 @@ func TestIT_BuildingActionRepository_Create(t *testing.T) {
 
 		err := repo.Create(context.Background(), newAction)
 
-		assert.True(
-			t,
-			errors.IsErrorWithCode(err, pgx.UniqueConstraintViolation),
-			"Actual err: %v",
-			err,
-		)
+		actual, ok := db.AsDatabaseError(err)
+		require.True(t, ok, "Actual err: %v", err)
+		assert.Equal(t, db.ErrUniqueConstraintViolation, actual.Code, "Actual err: %v", err)
 		assertBuildingActionDoesNotExist(t, conn, newAction.Id)
 	})
 }

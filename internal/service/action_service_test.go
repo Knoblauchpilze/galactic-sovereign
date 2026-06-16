@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
-	"github.com/Knoblauchpilze/backend-toolkit/pkg/errors"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/game"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/repositories"
 	"github.com/google/uuid"
@@ -63,7 +62,7 @@ func TestIT_ActionService_ProcessActionUntil_WhenProcessingFail_ExpectActionIsNo
 
 	// Processing this action fails because the building associated with
 	// it does not exist on the planet.
-	assert.True(t, errors.IsErrorWithCode(err, db.NoMatchingRows))
+	assert.Equal(t, db.ErrNoMatchingRows, err)
 	assertBuildingActionExists(t, conn, action.Id)
 }
 
@@ -406,7 +405,7 @@ func TestIT_ActionService_ProcessActionUntil_WhenResourceIsNotStorable_ExpectFai
 	afterActionCompletes := completedAt.Add(1 * time.Second)
 	err := service.ProcessActionsUntil(context.Background(), planetId, afterActionCompletes)
 
-	assert.True(t, errors.IsErrorWithCode(err, ActionUpdatesUnknownResource))
+	assert.Equal(t, ErrActionUpdatesUnknownResource, err)
 }
 
 func newTestActionService(t *testing.T) (game.ActionService, db.Connection) {

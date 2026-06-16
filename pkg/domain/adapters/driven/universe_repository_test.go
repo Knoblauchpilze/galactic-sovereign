@@ -6,8 +6,6 @@ import (
 	"testing"
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
-	"github.com/Knoblauchpilze/backend-toolkit/pkg/db/pgx"
-	"github.com/Knoblauchpilze/backend-toolkit/pkg/errors"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
 	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
 	drivenports "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driven"
@@ -48,7 +46,9 @@ func TestIT_UniverseRepository_Create(t *testing.T) {
 
 		err := repo.Create(context.Background(), newUniverse)
 
-		assert.True(t, errors.IsErrorWithCode(err, pgx.UniqueConstraintViolation), "Actual err: %v", err)
+		actual, ok := db.AsDatabaseError(err)
+		require.True(t, ok)
+		assert.Equal(t, db.ErrUniqueConstraintViolation, actual.Code, "Actual err: %v", err)
 		assertUniverseDoesNotExist(t, conn, newUniverse.Id)
 	})
 

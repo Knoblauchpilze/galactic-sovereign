@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
-	"github.com/Knoblauchpilze/backend-toolkit/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -29,6 +28,6 @@ func TestIT_DatabaseChecker_Ping(t *testing.T) {
 
 		err := checker.Ping(context.Background())
 
-		assert.True(t, errors.IsErrorWithCode(err, db.NotConnected), "Actual err: %v", err)
+		assert.Equal(t, db.ErrNotConnected, err, "Actual err: %v", err)
 	})
 }

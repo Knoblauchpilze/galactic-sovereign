@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
-	"github.com/Knoblauchpilze/backend-toolkit/pkg/errors"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/persistence"
 	"github.com/google/uuid"
 )
@@ -84,7 +83,7 @@ func (r *planetBuildingRepositoryImpl) Update(ctx context.Context, tx db.Transac
 		return building, err
 	}
 	if affectedRows != 1 {
-		return building, errors.NewCode(OptimisticLockException)
+		return building, ErrOptimisticLockException
 	}
 
 	building.Version = version

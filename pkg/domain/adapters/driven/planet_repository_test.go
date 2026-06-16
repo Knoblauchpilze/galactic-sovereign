@@ -7,8 +7,6 @@ import (
 	"testing"
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
-	"github.com/Knoblauchpilze/backend-toolkit/pkg/db/pgx"
-	"github.com/Knoblauchpilze/backend-toolkit/pkg/errors"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
 	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
 	drivenports "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driven"
@@ -263,7 +261,9 @@ func TestIT_PlanetRepository_Create(t *testing.T) {
 		}
 
 		err := repo.Create(context.Background(), duplicatedPlanet)
-		assert.True(t, errors.IsErrorWithCode(err, pgx.UniqueConstraintViolation), "Actual err: %v", err)
+		actual, ok := db.AsDatabaseError(err)
+		require.True(t, ok)
+		assert.Equal(t, db.ErrUniqueConstraintViolation, actual.Code, "Actual err: %v", err)
 	})
 
 	t.Run("creates homeworld and marks it as such", func(t *testing.T) {
@@ -307,7 +307,9 @@ func TestIT_PlanetRepository_Create(t *testing.T) {
 		}
 
 		err := repo.Create(context.Background(), planet)
-		assert.True(t, errors.IsErrorWithCode(err, pgx.UniqueConstraintViolation), "Actual err: %v", err)
+		actual, ok := db.AsDatabaseError(err)
+		require.True(t, ok)
+		assert.Equal(t, db.ErrUniqueConstraintViolation, actual.Code, "Actual err: %v", err)
 		assertPlanetDoesNotExist(t, conn, planet.Id)
 	})
 }

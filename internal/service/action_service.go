@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
-	"github.com/Knoblauchpilze/backend-toolkit/pkg/errors"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/game"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/persistence"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/repositories"
@@ -133,7 +132,7 @@ func (s *actionServiceImpl) updatePlanetProductionForResource(
 
 	production, err := s.planetResourceProductionRepo.GetForPlanetAndBuilding(ctx, tx, action.Planet, &action.Building)
 	if err != nil {
-		if errors.IsErrorWithCode(err, db.NoMatchingRows) {
+		if err == db.ErrNoMatchingRows {
 			return s.createPlanetProductionForResourceAndBuilding(ctx, tx, action, newProduction)
 		}
 
@@ -188,8 +187,8 @@ func (s *actionServiceImpl) updatePlanetStorageForResource(
 		newStorage.Resource,
 	)
 	if err != nil {
-		if errors.IsErrorWithCode(err, db.NoMatchingRows) {
-			return errors.WrapCode(err, ActionUpdatesUnknownResource)
+		if err == db.ErrNoMatchingRows {
+			return ErrActionUpdatesUnknownResource
 		}
 		return err
 	}
