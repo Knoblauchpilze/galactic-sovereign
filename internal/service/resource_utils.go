@@ -25,15 +25,15 @@ func findResourceForCost(resources []persistence.PlanetResource, cost persistenc
 		}
 	}
 
-	return persistence.PlanetResource{}, errors.NewCode(noSuchResource)
+	return persistence.PlanetResource{}, errors.FromCode(errNoSuchResource)
 }
 
 func updatePlanetResourceWithCosts(ctx context.Context, tx db.Transaction, repo repositories.PlanetResourceRepository, resources []persistence.PlanetResource, costs []persistence.BuildingActionCost, update updateFunc) error {
 	for _, cost := range costs {
 		resource, err := findResourceForCost(resources, cost)
 		if err != nil {
-			if errors.IsErrorWithCode(err, noSuchResource) {
-				return errors.NewCode(ActionUsesUnknownResource)
+			if errCode, ok := errors.AsErrorWithCode(err); ok && errCode.Code == errNoSuchResource {
+				return ErrActionUsesUnknownResource
 			}
 
 			return err
@@ -44,8 +44,8 @@ func updatePlanetResourceWithCosts(ctx context.Context, tx db.Transaction, repo 
 
 		_, err = repo.Update(ctx, tx, planetResource)
 		if err != nil {
-			if errors.IsErrorWithCode(err, repositories.OptimisticLockException) {
-				return errors.NewCode(ConflictingStateForAction)
+			if err == repositories.ErrOptimisticLockException {
+				return ErrConflictingStateForAction
 			}
 
 			return err

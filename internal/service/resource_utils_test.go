@@ -9,6 +9,7 @@ import (
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/repositories"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 var defaultResourceId = uuid.MustParse("f568a280-92ec-4752-b14b-5e71070cce3e")
@@ -28,8 +29,6 @@ var defaultActionCosts = []persistence.BuildingActionCost{
 }
 
 func TestUnit_FindResourceForCost_NoSuchResource(t *testing.T) {
-	assert := assert.New(t)
-
 	cost := persistence.BuildingActionCost{
 		Resource: otherResourceid,
 		Amount:   2,
@@ -37,7 +36,9 @@ func TestUnit_FindResourceForCost_NoSuchResource(t *testing.T) {
 
 	_, err := findResourceForCost(defaultPlanetResources, cost)
 
-	assert.True(errors.IsErrorWithCode(err, noSuchResource))
+	actual, ok := errors.AsErrorWithCode(err)
+	require.True(t, ok)
+	assert.Equal(t, errNoSuchResource, actual.Code)
 }
 
 func TestUnit_FindResourceForCost_ResourceExist(t *testing.T) {
@@ -56,8 +57,6 @@ func TestUnit_FindResourceForCost_ResourceExist(t *testing.T) {
 }
 
 func TestUnit_UpdatePlanetResourceWithCosts_ResourceNotFound(t *testing.T) {
-	assert := assert.New(t)
-
 	costs := []persistence.BuildingActionCost{
 		{
 			Resource: otherResourceid,
@@ -67,7 +66,7 @@ func TestUnit_UpdatePlanetResourceWithCosts_ResourceNotFound(t *testing.T) {
 
 	err := updatePlanetResourceWithCosts(context.Background(), nil, &mockPlanetResourceRepository{}, defaultPlanetResources, costs, addResource)
 
-	assert.True(errors.IsErrorWithCode(err, ActionUsesUnknownResource))
+	assert.Equal(t, ErrActionUsesUnknownResource, err)
 }
 
 func TestUnit_UpdatePlanetResourceWithCosts_UpdateResourceInDb(t *testing.T) {
@@ -123,14 +122,12 @@ func TestUnit_UpdatePlanetResourceWithCosts_Update_Fails(t *testing.T) {
 }
 
 func TestUnit_UpdatePlanetResourceWithCosts_Update_OptimisticLockException(t *testing.T) {
-	assert := assert.New(t)
-
 	m := &mockPlanetResourceRepository{
-		updateErr: errors.NewCode(repositories.OptimisticLockException),
+		updateErr: repositories.ErrOptimisticLockException,
 	}
 
 	err := updatePlanetResourceWithCosts(context.Background(), nil, m, defaultPlanetResources, defaultActionCosts, addResource)
 
-	assert.True(errors.IsErrorWithCode(err, ConflictingStateForAction))
-	assert.Equal(1, m.updateCalled)
+	assert.Equal(t, ErrConflictingStateForAction, err)
+	assert.Equal(t, 1, m.updateCalled)
 }

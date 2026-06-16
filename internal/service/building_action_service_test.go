@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
-	"github.com/Knoblauchpilze/backend-toolkit/pkg/errors"
 	eassert "github.com/Knoblauchpilze/easy-assert/assert"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/communication"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/game"
@@ -53,7 +52,7 @@ func TestIT_BuildingActionService_Create_WhenNotEnoughResources_ExpectFailure(t 
 	}
 	_, err := service.Create(context.Background(), actionRequest)
 
-	assert.True(t, errors.IsErrorWithCode(err, game.NotEnoughResources))
+	assert.Equal(t, game.ErrNotEnoughResources, err)
 }
 
 func TestIT_BuildingActionService_Create_WhenBuildingDoesNotExist_ExpectFailure(t *testing.T) {
@@ -69,7 +68,7 @@ func TestIT_BuildingActionService_Create_WhenBuildingDoesNotExist_ExpectFailure(
 	}
 	_, err := service.Create(context.Background(), actionRequest)
 
-	assert.True(t, errors.IsErrorWithCode(err, game.NoSuchBuilding))
+	assert.Equal(t, game.ErrNoSuchBuilding, err)
 }
 
 func TestIT_BuildingActionService_Create_WithCost_ExpectCostToBeRegistered(t *testing.T) {
@@ -260,7 +259,7 @@ func TestIT_BuildingActionService_Delete_WhenActionAlreadyCompleted_ExpectFailur
 
 	err := service.Delete(context.Background(), action.Id)
 
-	assert.True(t, errors.IsErrorWithCode(err, ActionAlreadyCompleted), "Actual err: %v", err)
+	assert.Equal(t, ErrActionAlreadyCompleted, err, "Actual err: %v", err)
 }
 
 func TestIT_BuildingActionService_CreationDeletionWorkflow(t *testing.T) {
