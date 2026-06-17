@@ -16,7 +16,6 @@ import (
 
 func TestIT_PlayerRepository_Create(t *testing.T) {
 	repo, conn := newTestPlayerRepository(t)
-	defer conn.Close(context.Background())
 
 	t.Run("creates a player", func(t *testing.T) {
 		universe := insertTestUniverse(t, conn)
@@ -79,7 +78,6 @@ func TestIT_PlayerRepository_Create(t *testing.T) {
 
 func TestIT_PlayerRepository_Get(t *testing.T) {
 	repo, conn := newTestPlayerRepository(t)
-	defer conn.Close(context.Background())
 
 	t.Run("gets a player", func(t *testing.T) {
 		player, _ := insertTestPlayerInUniverse(t, conn)
@@ -109,8 +107,6 @@ func TestIT_PlayerRepository_Get(t *testing.T) {
 
 func TestIT_PlayerRepository_List(t *testing.T) {
 	repo, conn := newTestPlayerRepository(t)
-	defer conn.Close(context.Background())
-
 	p1, universe := insertTestPlayerInUniverse(t, conn)
 	p2 := insertTestPlayer(t, conn, universe.Id)
 	p3 := insertTestPlayer(t, conn, universe.Id, addPlayerPlanet)
@@ -126,7 +122,6 @@ func TestIT_PlayerRepository_List(t *testing.T) {
 
 func TestIT_PlayerRepository_ListForApiUser(t *testing.T) {
 	repo, conn := newTestPlayerRepository(t)
-	defer conn.Close(context.Background())
 
 	t.Run("list player for an API user", func(t *testing.T) {
 		p1, universe := insertTestPlayerInUniverse(t, conn)
@@ -151,7 +146,6 @@ func TestIT_PlayerRepository_ListForApiUser(t *testing.T) {
 
 func TestIT_PlayerRepository_Delete(t *testing.T) {
 	repo, conn := newTestPlayerRepository(t)
-	defer conn.Close(context.Background())
 
 	t.Run("deletes a player", func(t *testing.T) {
 		player, _ := insertTestPlayerInUniverse(t, conn)
