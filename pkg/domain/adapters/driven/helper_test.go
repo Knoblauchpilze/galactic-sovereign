@@ -69,6 +69,37 @@ func createTestContainer(t *testing.T) *postgres.PostgresContainer {
 	return postgresContainer
 }
 
+func (s *testContainerSuite) createConnection(
+	t *testing.T,
+	postgresContainer *postgres.PostgresContainer,
+	database string,
+	user string,
+	password string,
+) db.Connection {
+	t.Helper()
+
+	host, err := postgresContainer.Host(context.Background())
+	require.NoError(t, err, "Actual err: %v", err)
+
+	port, err := postgresContainer.MappedPort(context.Background(), "5432/tcp")
+	require.NoError(t, err, "Actual err: %v", err)
+
+	portValue, err := strconv.ParseUint(port.Port(), 10, 16)
+	require.NoError(t, err, "Actual err: %v", err)
+
+	conn, err := db.New(context.Background(), postgresql.Config{
+		Host:           host,
+		Port:           uint16(portValue),
+		Database:       database,
+		User:           user,
+		Password:       password,
+		ConnectTimeout: 5 * time.Second,
+	})
+	require.NoError(t, err, "Actual err: %v", err)
+
+	return conn
+}
+
 func newTestConnection(t *testing.T) db.Connection {
 	t.Helper()
 
@@ -98,7 +129,7 @@ func newTestConnection(t *testing.T) db.Connection {
 	)
 	require.NoError(t, err, "Actual err: %v", err)
 
-	conn := newConnectionForTestContainer(
+	conn := sharedTestContainerSuite.createConnection(
 		t,
 		postgresContainer,
 		testDatabaseName,
@@ -141,7 +172,7 @@ func (s *testContainerSuite) ensureInitialized(t *testing.T) {
 	ctx := context.Background()
 	postgresContainer := createTestContainer(t)
 
-	bootstrapConn := newConnectionForTestContainer(
+	bootstrapConn := s.createConnection(
 		t,
 		postgresContainer,
 		"postgres",
@@ -149,7 +180,7 @@ func (s *testContainerSuite) ensureInitialized(t *testing.T) {
 		testDatabasePassword,
 	)
 
-	templateConn := newConnectionForTestContainer(
+	templateConn := s.createConnection(
 		t,
 		postgresContainer,
 		testTemplateDatabase,
@@ -174,7 +205,7 @@ func (s *testContainerSuite) ensureInitialized(t *testing.T) {
 	)
 	require.NoError(t, err, "Actual err: %v", err)
 
-	runMigrationsForTestContainer(t, postgresContainer, testTemplateDatabase)
+	s.runMigrations(t, postgresContainer, testTemplateDatabase)
 
 	s.container = postgresContainer
 	s.bootstrapConn = bootstrapConn
@@ -200,46 +231,15 @@ func (s *testContainerSuite) teardown() {
 	s.testDatabaseCounter = 0
 }
 
-func newConnectionForTestContainer(
-	t *testing.T,
-	postgresContainer *postgres.PostgresContainer,
-	database string,
-	user string,
-	password string,
-) db.Connection {
-	t.Helper()
-
-	host, err := postgresContainer.Host(context.Background())
-	require.NoError(t, err, "Actual err: %v", err)
-
-	port, err := postgresContainer.MappedPort(context.Background(), "5432/tcp")
-	require.NoError(t, err, "Actual err: %v", err)
-
-	portValue, err := strconv.ParseUint(port.Port(), 10, 16)
-	require.NoError(t, err, "Actual err: %v", err)
-
-	conn, err := db.New(context.Background(), postgresql.Config{
-		Host:           host,
-		Port:           uint16(portValue),
-		Database:       database,
-		User:           user,
-		Password:       password,
-		ConnectTimeout: 5 * time.Second,
-	})
-	require.NoError(t, err, "Actual err: %v", err)
-
-	return conn
-}
-
-func runMigrationsForTestContainer(
+func (s *testContainerSuite) runMigrations(
 	t *testing.T,
 	postgresContainer *postgres.PostgresContainer,
 	database string,
 ) {
 	t.Helper()
 
-	databaseURL := databaseURLForTestContainer(t, postgresContainer, database)
-	sourceURL := migrationSourceURL(t)
+	databaseURL := s.databaseURL(t, postgresContainer, database)
+	sourceURL := s.migrationSourceURL(t)
 
 	migrationRunner, err := migrate.New(sourceURL, databaseURL)
 	require.NoError(t, err, "Actual err: %v", err)
@@ -254,16 +254,16 @@ func runMigrationsForTestContainer(
 	require.NoError(t, databaseCloseErr, "Actual err: %v", databaseCloseErr)
 }
 
-func databaseURLForTestContainer(
+func (s *testContainerSuite) databaseURL(
 	t *testing.T,
 	postgresContainer *postgres.PostgresContainer,
 	database string,
 ) string {
+	_ = s
 	t.Helper()
 
 	host, err := postgresContainer.Host(context.Background())
 	require.NoError(t, err, "Actual err: %v", err)
-
 	port, err := postgresContainer.MappedPort(context.Background(), "5432/tcp")
 	require.NoError(t, err, "Actual err: %v", err)
 
@@ -277,7 +277,8 @@ func databaseURLForTestContainer(
 	)
 }
 
-func migrationSourceURL(t *testing.T) string {
+func (s *testContainerSuite) migrationSourceURL(t *testing.T) string {
+	_ = s
 	t.Helper()
 
 	_, currentFilePath, _, ok := runtime.Caller(0)
