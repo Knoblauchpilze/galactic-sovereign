@@ -8,15 +8,16 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
-	"slices"
 	"strconv"
-	"strings"
 	"sync"
 	"testing"
 	"time"
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db/postgresql"
+	migrate "github.com/golang-migrate/migrate/v4"
+	_ "github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
@@ -173,13 +174,7 @@ func (s *testContainerSuite) ensureInitialized(t *testing.T) {
 	)
 	require.NoError(t, err, "Actual err: %v", err)
 
-	for _, migrationPath := range testMigrationPaths(t) {
-		migration, readErr := os.ReadFile(migrationPath)
-		require.NoError(t, readErr, "Actual err: %v", readErr)
-
-		_, err = templateConn.Exec(ctx, string(migration))
-		require.NoError(t, err, "Actual err: %v", err)
-	}
+	runMigrationsForTestContainer(t, postgresContainer, testTemplateDatabase)
 
 	s.container = postgresContainer
 	s.bootstrapConn = bootstrapConn
@@ -236,29 +231,60 @@ func newConnectionForTestContainer(
 	return conn
 }
 
-func testMigrationPaths(t *testing.T) []string {
+func runMigrationsForTestContainer(
+	t *testing.T,
+	postgresContainer *postgres.PostgresContainer,
+	database string,
+) {
+	t.Helper()
+
+	databaseURL := databaseURLForTestContainer(t, postgresContainer, database)
+	sourceURL := migrationSourceURL(t)
+
+	migrationRunner, err := migrate.New(sourceURL, databaseURL)
+	require.NoError(t, err, "Actual err: %v", err)
+
+	err = migrationRunner.Up()
+	if err != nil {
+		require.ErrorIs(t, err, migrate.ErrNoChange, "Actual err: %v", err)
+	}
+
+	sourceCloseErr, databaseCloseErr := migrationRunner.Close()
+	require.NoError(t, sourceCloseErr, "Actual err: %v", sourceCloseErr)
+	require.NoError(t, databaseCloseErr, "Actual err: %v", databaseCloseErr)
+}
+
+func databaseURLForTestContainer(
+	t *testing.T,
+	postgresContainer *postgres.PostgresContainer,
+	database string,
+) string {
+	t.Helper()
+
+	host, err := postgresContainer.Host(context.Background())
+	require.NoError(t, err, "Actual err: %v", err)
+
+	port, err := postgresContainer.MappedPort(context.Background(), "5432/tcp")
+	require.NoError(t, err, "Actual err: %v", err)
+
+	return fmt.Sprintf(
+		"postgres://%s:%s@%s:%s/%s?sslmode=disable",
+		testDatabaseUser,
+		testDatabasePassword,
+		host,
+		port.Port(),
+		database,
+	)
+}
+
+func migrationSourceURL(t *testing.T) string {
 	t.Helper()
 
 	_, currentFilePath, _, ok := runtime.Caller(0)
 	require.True(t, ok)
 
-	migrationPaths, err := filepath.Glob(
-		filepath.Join(filepath.Dir(currentFilePath), "../../../../database/galactic-sovereign/migrations/*.up.sql"),
-	)
-	require.NoError(t, err, "Actual err: %v", err)
-
-	slices.SortStableFunc(migrationPaths, func(left string, right string) int {
-		leftPrefix, _ := migrationFilePrefix(left)
-		rightPrefix, _ := migrationFilePrefix(right)
-		return leftPrefix - rightPrefix
-	})
-
-	return migrationPaths
-}
-
-func migrationFilePrefix(path string) (int, error) {
-	prefix := strings.SplitN(filepath.Base(path), "_", 2)[0]
-	return strconv.Atoi(prefix)
+	migrationsPath := filepath.Join(filepath.Dir(currentFilePath), "../../../../database/galactic-sovereign/migrations")
+	return fmt.Sprintf("file://%s", migrationsPath)
 }
 
 func randFloat(precision int) float64 {
