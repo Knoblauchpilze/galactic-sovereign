@@ -69,37 +69,6 @@ func createTestContainer(t *testing.T) *postgres.PostgresContainer {
 	return postgresContainer
 }
 
-func (s *testContainerSuite) createConnection(
-	t *testing.T,
-	postgresContainer *postgres.PostgresContainer,
-	database string,
-	user string,
-	password string,
-) db.Connection {
-	t.Helper()
-
-	host, err := postgresContainer.Host(context.Background())
-	require.NoError(t, err, "Actual err: %v", err)
-
-	port, err := postgresContainer.MappedPort(context.Background(), "5432/tcp")
-	require.NoError(t, err, "Actual err: %v", err)
-
-	portValue, err := strconv.ParseUint(port.Port(), 10, 16)
-	require.NoError(t, err, "Actual err: %v", err)
-
-	conn, err := db.New(context.Background(), postgresql.Config{
-		Host:           host,
-		Port:           uint16(portValue),
-		Database:       database,
-		User:           user,
-		Password:       password,
-		ConnectTimeout: 5 * time.Second,
-	})
-	require.NoError(t, err, "Actual err: %v", err)
-
-	return conn
-}
-
 func newTestConnection(t *testing.T) db.Connection {
 	t.Helper()
 
@@ -146,6 +115,37 @@ func newTestConnection(t *testing.T) db.Connection {
 		)
 		require.NoError(t, dropErr, "Actual err: %v", dropErr)
 	})
+
+	return conn
+}
+
+func (s *testContainerSuite) createConnection(
+	t *testing.T,
+	postgresContainer *postgres.PostgresContainer,
+	database string,
+	user string,
+	password string,
+) db.Connection {
+	t.Helper()
+
+	host, err := postgresContainer.Host(context.Background())
+	require.NoError(t, err, "Actual err: %v", err)
+
+	port, err := postgresContainer.MappedPort(context.Background(), "5432/tcp")
+	require.NoError(t, err, "Actual err: %v", err)
+
+	portValue, err := strconv.ParseUint(port.Port(), 10, 16)
+	require.NoError(t, err, "Actual err: %v", err)
+
+	conn, err := db.New(context.Background(), postgresql.Config{
+		Host:           host,
+		Port:           uint16(portValue),
+		Database:       database,
+		User:           user,
+		Password:       password,
+		ConnectTimeout: 5 * time.Second,
+	})
+	require.NoError(t, err, "Actual err: %v", err)
 
 	return conn
 }
