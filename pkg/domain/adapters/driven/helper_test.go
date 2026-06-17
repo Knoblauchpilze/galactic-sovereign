@@ -32,10 +32,6 @@ var (
 const (
 	testContainerImage = "postgres:18-alpine"
 
-	testBootstrapDatabase = "postgres"
-	testBootstrapUser     = "postgres"
-	testBootstrapPassword = "postgres"
-
 	testDatabaseUser     = "galactic_sovereign_manager"
 	testDatabasePassword = "manager_password"
 	testDatabaseSchema   = "galactic_sovereign_schema"
@@ -62,9 +58,9 @@ func createTestContainer(t *testing.T) *postgres.PostgresContainer {
 	postgresContainer, err := postgres.Run(
 		context.Background(),
 		testContainerImage,
-		postgres.WithDatabase(testBootstrapDatabase),
-		postgres.WithUsername(testBootstrapUser),
-		postgres.WithPassword(testBootstrapPassword),
+		postgres.WithDatabase(testTemplateDatabase),
+		postgres.WithUsername(testDatabaseUser),
+		postgres.WithPassword(testDatabasePassword),
 		postgres.BasicWaitStrategies(),
 	)
 	require.NoError(t, err, "Actual err: %v", err)
@@ -94,8 +90,7 @@ func newTestConnection(t *testing.T) db.Connection {
 	_, err = bootstrapConn.Exec(
 		ctx,
 		fmt.Sprintf(
-			`ALTER ROLE %s IN DATABASE %s SET search_path = %s`,
-			testDatabaseUser,
+			`ALTER DATABASE %s SET search_path = %s`,
 			testDatabaseName,
 			testDatabaseSchema,
 		),
@@ -148,48 +143,10 @@ func (s *testContainerSuite) ensureInitialized(t *testing.T) {
 	bootstrapConn := newConnectionForTestContainer(
 		t,
 		postgresContainer,
-		testBootstrapDatabase,
-		testBootstrapUser,
-		testBootstrapPassword,
+		"postgres",
+		testDatabaseUser,
+		testDatabasePassword,
 	)
-
-	_, err := bootstrapConn.Exec(
-		ctx,
-		fmt.Sprintf(`CREATE USER %s WITH PASSWORD '%s'`, testDatabaseUser, testDatabasePassword),
-	)
-	require.NoError(t, err, "Actual err: %v", err)
-
-	_, err = bootstrapConn.Exec(
-		ctx,
-		fmt.Sprintf(`CREATE DATABASE %s OWNER %s`, testTemplateDatabase, testDatabaseUser),
-	)
-	require.NoError(t, err, "Actual err: %v", err)
-
-	templateBootstrapConn := newConnectionForTestContainer(
-		t,
-		postgresContainer,
-		testTemplateDatabase,
-		testBootstrapUser,
-		testBootstrapPassword,
-	)
-	defer templateBootstrapConn.Close(ctx)
-
-	_, err = templateBootstrapConn.Exec(
-		ctx,
-		fmt.Sprintf(`CREATE SCHEMA %s AUTHORIZATION %s`, testDatabaseSchema, testDatabaseUser),
-	)
-	require.NoError(t, err, "Actual err: %v", err)
-
-	_, err = templateBootstrapConn.Exec(
-		ctx,
-		fmt.Sprintf(
-			`ALTER ROLE %s IN DATABASE %s SET search_path = %s`,
-			testDatabaseUser,
-			testTemplateDatabase,
-			testDatabaseSchema,
-		),
-	)
-	require.NoError(t, err, "Actual err: %v", err)
 
 	templateConn := newConnectionForTestContainer(
 		t,
@@ -198,6 +155,23 @@ func (s *testContainerSuite) ensureInitialized(t *testing.T) {
 		testDatabaseUser,
 		testDatabasePassword,
 	)
+	defer templateConn.Close(ctx)
+
+	_, err := templateConn.Exec(
+		ctx,
+		fmt.Sprintf(`CREATE SCHEMA %s AUTHORIZATION %s`, testDatabaseSchema, testDatabaseUser),
+	)
+	require.NoError(t, err, "Actual err: %v", err)
+
+	_, err = templateConn.Exec(
+		ctx,
+		fmt.Sprintf(
+			`ALTER DATABASE %s SET search_path = %s`,
+			testTemplateDatabase,
+			testDatabaseSchema,
+		),
+	)
+	require.NoError(t, err, "Actual err: %v", err)
 
 	for _, migrationPath := range testMigrationPaths(t) {
 		migration, readErr := os.ReadFile(migrationPath)
@@ -206,8 +180,6 @@ func (s *testContainerSuite) ensureInitialized(t *testing.T) {
 		_, err = templateConn.Exec(ctx, string(migration))
 		require.NoError(t, err, "Actual err: %v", err)
 	}
-
-	templateConn.Close(ctx)
 
 	s.container = postgresContainer
 	s.bootstrapConn = bootstrapConn
