@@ -79,6 +79,7 @@ func TestIT_UniverseRepository_List(t *testing.T) {
 	actual, err := repo.List(context.Background())
 	require.NoError(t, err, "Actual err: %v", err)
 
+	// The additional resources are the universes from the seed data
 	assert.GreaterOrEqual(t, len(actual), 2)
 	assert.Contains(t, actual, u1)
 	assert.Contains(t, actual, u2)

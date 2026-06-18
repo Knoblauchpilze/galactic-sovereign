@@ -230,50 +230,42 @@ func TestIT_BuildingActionRepository_ListForPlanet(t *testing.T) {
 
 	t.Run("lists an action for a planet", func(t *testing.T) {
 		action1, planet1 := insertTestBuildingAction(t, conn)
-		action2, _ := insertTestBuildingAction(t, conn)
+		insertTestBuildingAction(t, conn)
 
 		actual, err := repo.ListForPlanet(context.Background(), planet1.Id)
 		require.NoError(t, err, "Actual err: %v", err)
 
-		assert.GreaterOrEqual(t, len(actual), 1)
-		assert.Contains(t, actual, action1)
-		assert.NotContains(t, actual, action2)
+		assert.Equal(t, []models.BuildingAction{action1}, actual)
 	})
 
 	t.Run("lists an action with costs for a planet", func(t *testing.T) {
 		action1, planet1 := insertTestBuildingAction(t, conn, addBuildingActionCost)
-		action2, _ := insertTestBuildingAction(t, conn)
+		insertTestBuildingAction(t, conn)
 
 		actual, err := repo.ListForPlanet(context.Background(), planet1.Id)
 		require.NoError(t, err, "Actual err: %v", err)
 
-		assert.GreaterOrEqual(t, len(actual), 1)
-		assert.Contains(t, actual, action1)
-		assert.NotContains(t, actual, action2)
+		assert.Equal(t, []models.BuildingAction{action1}, actual)
 	})
 
 	t.Run("lists an action with storages for a planet", func(t *testing.T) {
 		action1, planet1 := insertTestBuildingAction(t, conn, addBuildingActionStorage)
-		action2, _ := insertTestBuildingAction(t, conn)
+		insertTestBuildingAction(t, conn)
 
 		actual, err := repo.ListForPlanet(context.Background(), planet1.Id)
 		require.NoError(t, err, "Actual err: %v", err)
 
-		assert.GreaterOrEqual(t, len(actual), 1)
-		assert.Contains(t, actual, action1)
-		assert.NotContains(t, actual, action2)
+		assert.Equal(t, []models.BuildingAction{action1}, actual)
 	})
 
 	t.Run("lists an action with productions for a planet", func(t *testing.T) {
 		action1, planet1 := insertTestBuildingAction(t, conn, addBuildingActionProduction)
-		action2, _ := insertTestBuildingAction(t, conn)
+		insertTestBuildingAction(t, conn)
 
 		actual, err := repo.ListForPlanet(context.Background(), planet1.Id)
 		require.NoError(t, err, "Actual err: %v", err)
 
-		assert.GreaterOrEqual(t, len(actual), 1)
-		assert.Contains(t, actual, action1)
-		assert.NotContains(t, actual, action2)
+		assert.Equal(t, []models.BuildingAction{action1}, actual)
 	})
 }
 
@@ -288,8 +280,7 @@ func TestIT_BuildingActionRepository_ListBeforeCompletionTime(t *testing.T) {
 		actual, err := repo.ListBeforeCompletionTime(context.Background(), planet.Id, until)
 		require.NoError(t, err, "Actual err: %v", err)
 
-		assert.Equal(t, 1, len(actual))
-		assert.Contains(t, actual, action)
+		assert.Equal(t, []models.BuildingAction{action}, actual)
 	})
 
 	t.Run("does not return action when completion is after requested time", func(t *testing.T) {

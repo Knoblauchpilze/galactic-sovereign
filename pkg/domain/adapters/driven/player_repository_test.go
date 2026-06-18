@@ -114,7 +114,7 @@ func TestIT_PlayerRepository_List(t *testing.T) {
 	actual, err := repo.List(context.Background())
 	require.NoError(t, err, "Actual err: %v", err)
 
-	assert.GreaterOrEqual(t, len(actual), 2)
+	// The additional resources are players from the seed data
 	assert.Contains(t, actual, p1)
 	assert.Contains(t, actual, p2)
 	assert.Contains(t, actual, p3)

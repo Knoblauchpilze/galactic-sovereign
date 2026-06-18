@@ -53,7 +53,7 @@ func TestIT_BuildingRepository_List(t *testing.T) {
 	actual, err := repo.List(context.Background())
 	require.NoError(t, err, "Actual err: %v", err)
 
-	assert.GreaterOrEqual(t, len(actual), 2)
+	// The additional resources are buildings from the seed data
 	assert.Contains(t, actual, b1)
 	assert.Contains(t, actual, b2)
 	assert.Contains(t, actual, b3)

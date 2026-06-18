@@ -404,7 +404,7 @@ func TestIT_PlanetRepository_List(t *testing.T) {
 	actual, err := repo.List(context.Background())
 	require.NoError(t, err, "Actual err: %v", err)
 
-	assert.GreaterOrEqual(t, len(actual), 9)
+	// The additional resources are planet from the seed data
 	assert.Contains(t, actual, p1)
 	assert.Contains(t, actual, p2)
 	assert.Contains(t, actual, p3)
@@ -431,7 +431,8 @@ func TestIT_PlanetRepository_ListForPlayer(t *testing.T) {
 	actual, err := repo.ListForPlayer(context.Background(), player1.Id)
 	require.NoError(t, err, "Actual err: %v", err)
 
-	assert.GreaterOrEqual(t, len(actual), 6)
+	// As all planets are registered with the same creation data their order is
+	// not deterministic.
 	assert.Contains(t, actual, p2)
 	assert.Contains(t, actual, p3)
 	assert.Contains(t, actual, p4)
@@ -439,9 +440,7 @@ func TestIT_PlanetRepository_ListForPlayer(t *testing.T) {
 	assert.Contains(t, actual, p6)
 	assert.Contains(t, actual, p7)
 	assert.Contains(t, actual, p8)
-	for _, planet := range actual {
-		assert.NotEqual(t, planet.Id, p1.Id)
-	}
+	assert.NotContains(t, actual, p1)
 }
 
 func TestIT_PlanetRepository_Delete(t *testing.T) {
