@@ -2,7 +2,6 @@ package drivenadapters
 
 import (
 	"context"
-	"time"
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driven/mappers"
@@ -73,42 +72,6 @@ FROM
 	building_action_resource_production
 WHERE
 	action = $1`
-
-	listBuildingActionForPlanetQuery = `
-SELECT
-	id,
-	planet,
-	building,
-	current_level,
-	desired_level,
-	created_at,
-	completed_at,
-	version
-FROM
-	building_action
-WHERE
-	planet = $1
-ORDER BY
-	completed_at,
-	planet`
-
-	listBuildingActionBeforeCompletionTimeQuery = `
-SELECT
-	id,
-	planet,
-	building,
-	current_level,
-	desired_level,
-	created_at,
-	completed_at,
-	version
-FROM
-	building_action
-WHERE
-	planet = $1
-	AND completed_at <= $2
-ORDER BY
-	completed_at`
 
 	deleteBuildingActionResourceProductionQuery = `DELETE FROM building_action_resource_production WHERE action = $1`
 	deleteBuildingActionResourceStorageQuery    = `DELETE FROM building_action_resource_storage WHERE action = $1`
@@ -287,74 +250,6 @@ func (r *buildingActionRepositoryImpl) Get(
 	return loadBuildingActionDetails(ctx, tx, dbAction)
 }
 
-func (r *buildingActionRepositoryImpl) ListForPlanet(
-	ctx context.Context,
-	planet uuid.UUID,
-) ([]models.BuildingAction, error) {
-	tx, err := r.conn.BeginTx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	defer tx.Close(ctx)
-
-	dbActions, err := db.QueryAllTx[mappers.DbBuildingAction](
-		ctx,
-		tx,
-		listBuildingActionForPlanetQuery,
-		planet,
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	actions := make([]models.BuildingAction, 0, len(dbActions))
-	for id := range dbActions {
-		action, err := loadBuildingActionDetails(ctx, tx, dbActions[id])
-		if err != nil {
-			return nil, err
-		}
-
-		actions = append(actions, action)
-	}
-
-	return actions, nil
-}
-
-func (r *buildingActionRepositoryImpl) ListBeforeCompletionTime(
-	ctx context.Context,
-	planet uuid.UUID,
-	until time.Time,
-) ([]models.BuildingAction, error) {
-	tx, err := r.conn.BeginTx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	defer tx.Close(ctx)
-
-	dbActions, err := db.QueryAllTx[mappers.DbBuildingAction](
-		ctx,
-		tx,
-		listBuildingActionBeforeCompletionTimeQuery,
-		planet,
-		until,
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	actions := make([]models.BuildingAction, 0, len(dbActions))
-	for id := range dbActions {
-		action, err := loadBuildingActionDetails(ctx, tx, dbActions[id])
-		if err != nil {
-			return nil, err
-		}
-
-		actions = append(actions, action)
-	}
-
-	return actions, nil
-}
-
 func (r *buildingActionRepositoryImpl) Delete(ctx context.Context, id uuid.UUID) error {
 	tx, err := r.conn.BeginTx(ctx)
 	if err != nil {
@@ -383,26 +278,6 @@ func (r *buildingActionRepositoryImpl) Delete(ctx context.Context, id uuid.UUID)
 	}
 
 	return nil
-}
-
-func (r *buildingActionRepositoryImpl) DeleteForPlanet(ctx context.Context, planet uuid.UUID) error {
-	tx, err := r.conn.BeginTx(ctx)
-	if err != nil {
-		return err
-	}
-	defer tx.Close(ctx)
-
-	return deleteBuildingActionDetailsForPlanet(ctx, tx, planet)
-}
-
-func (r *buildingActionRepositoryImpl) DeleteForPlayer(ctx context.Context, player uuid.UUID) error {
-	tx, err := r.conn.BeginTx(ctx)
-	if err != nil {
-		return err
-	}
-	defer tx.Close(ctx)
-
-	return deleteBuildingActionDetailsForPlayer(ctx, tx, player)
 }
 
 func loadBuildingActionDetails(

@@ -12,7 +12,6 @@ package drivenportstest
 import (
 	context "context"
 	reflect "reflect"
-	time "time"
 
 	models "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
 	uuid "github.com/google/uuid"
@@ -71,34 +70,6 @@ func (mr *MockForManagingBuildingActionsMockRecorder) Delete(ctx, id any) *gomoc
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockForManagingBuildingActions)(nil).Delete), ctx, id)
 }
 
-// DeleteForPlanet mocks base method.
-func (m *MockForManagingBuildingActions) DeleteForPlanet(ctx context.Context, planet uuid.UUID) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteForPlanet", ctx, planet)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// DeleteForPlanet indicates an expected call of DeleteForPlanet.
-func (mr *MockForManagingBuildingActionsMockRecorder) DeleteForPlanet(ctx, planet any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteForPlanet", reflect.TypeOf((*MockForManagingBuildingActions)(nil).DeleteForPlanet), ctx, planet)
-}
-
-// DeleteForPlayer mocks base method.
-func (m *MockForManagingBuildingActions) DeleteForPlayer(ctx context.Context, player uuid.UUID) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteForPlayer", ctx, player)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// DeleteForPlayer indicates an expected call of DeleteForPlayer.
-func (mr *MockForManagingBuildingActionsMockRecorder) DeleteForPlayer(ctx, player any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteForPlayer", reflect.TypeOf((*MockForManagingBuildingActions)(nil).DeleteForPlayer), ctx, player)
-}
-
 // Get mocks base method.
 func (m *MockForManagingBuildingActions) Get(ctx context.Context, id uuid.UUID) (models.BuildingAction, error) {
 	m.ctrl.T.Helper()
@@ -112,34 +83,4 @@ func (m *MockForManagingBuildingActions) Get(ctx context.Context, id uuid.UUID) 
 func (mr *MockForManagingBuildingActionsMockRecorder) Get(ctx, id any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockForManagingBuildingActions)(nil).Get), ctx, id)
-}
-
-// ListBeforeCompletionTime mocks base method.
-func (m *MockForManagingBuildingActions) ListBeforeCompletionTime(ctx context.Context, planet uuid.UUID, until time.Time) ([]models.BuildingAction, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListBeforeCompletionTime", ctx, planet, until)
-	ret0, _ := ret[0].([]models.BuildingAction)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ListBeforeCompletionTime indicates an expected call of ListBeforeCompletionTime.
-func (mr *MockForManagingBuildingActionsMockRecorder) ListBeforeCompletionTime(ctx, planet, until any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListBeforeCompletionTime", reflect.TypeOf((*MockForManagingBuildingActions)(nil).ListBeforeCompletionTime), ctx, planet, until)
-}
-
-// ListForPlanet mocks base method.
-func (m *MockForManagingBuildingActions) ListForPlanet(ctx context.Context, planet uuid.UUID) ([]models.BuildingAction, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListForPlanet", ctx, planet)
-	ret0, _ := ret[0].([]models.BuildingAction)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ListForPlanet indicates an expected call of ListForPlanet.
-func (mr *MockForManagingBuildingActionsMockRecorder) ListForPlanet(ctx, planet any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListForPlanet", reflect.TypeOf((*MockForManagingBuildingActions)(nil).ListForPlanet), ctx, planet)
 }
