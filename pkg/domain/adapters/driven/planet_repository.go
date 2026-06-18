@@ -217,89 +217,12 @@ func (r *planetRepositoryImpl) Create(ctx context.Context, planet models.Planet)
 	}
 	defer tx.Close(ctx)
 
-	_, err = tx.Exec(
-		ctx,
-		createPlanetQuery,
-		planet.Id,
-		planet.Player,
-		planet.Name,
-		planet.CreatedAt,
-		planet.UpdatedAt,
-		planet.Version,
-	)
+	err = createPlanetWithDetails(ctx, tx, planet)
 	if err != nil {
-		return err
+		return parseDbError(err)
 	}
 
-	if planet.Homeworld {
-		_, err = tx.Exec(ctx, createPlanetHomeworldQuery, planet.Player, planet.Id)
-		if err != nil {
-			return err
-		}
-	}
-
-	for _, r := range planet.Resources {
-		_, err = tx.Exec(
-			ctx,
-			createPlanetResourceQuery,
-			planet.Id,
-			r.Resource,
-			r.Amount,
-			r.CreatedAt,
-			r.UpdatedAt,
-		)
-		if err != nil {
-			return err
-		}
-	}
-
-	for _, s := range planet.Storages {
-		_, err = tx.Exec(
-			ctx,
-			createPlanetResourceStorageQuery,
-			planet.Id,
-			s.Resource,
-			s.Storage,
-			s.CreatedAt,
-			s.UpdatedAt,
-		)
-		if err != nil {
-			return err
-		}
-	}
-
-	for _, p := range planet.Productions {
-		_, err = tx.Exec(
-			ctx,
-			createPlanetResourceProductionQuery,
-			planet.Id,
-			p.Building,
-			p.Resource,
-			p.Production,
-			p.CreatedAt,
-			p.UpdatedAt,
-		)
-		if err != nil {
-			return err
-		}
-	}
-
-	for _, b := range planet.Buildings {
-		_, err := tx.Exec(
-			ctx,
-			createPlanetBuildingQuery,
-			planet.Id,
-			b.Building,
-			b.Level,
-			b.CreatedAt,
-			b.UpdatedAt,
-		)
-		if err != nil {
-			return err
-		}
-	}
-
-	return err
+	return nil
 }
 
 func (r *planetRepositoryImpl) Get(ctx context.Context, id uuid.UUID) (models.Planet, error) {
@@ -421,6 +344,92 @@ func (r *planetRepositoryImpl) DeleteForPlayer(ctx context.Context, player uuid.
 
 	_, err = tx.Exec(ctx, deletePlanetSqlForQuery, player)
 	return err
+}
+
+func createPlanetWithDetails(ctx context.Context, tx db.Transaction, planet models.Planet) error {
+	_, err := tx.Exec(
+		ctx,
+		createPlanetQuery,
+		planet.Id,
+		planet.Player,
+		planet.Name,
+		planet.CreatedAt,
+		planet.UpdatedAt,
+		planet.Version,
+	)
+	if err != nil {
+		return parseDbError(err)
+	}
+
+	if planet.Homeworld {
+		_, err := tx.Exec(ctx, createPlanetHomeworldQuery, planet.Player, planet.Id)
+		if err != nil {
+			return err
+		}
+	}
+
+	for _, r := range planet.Resources {
+		_, err := tx.Exec(
+			ctx,
+			createPlanetResourceQuery,
+			planet.Id,
+			r.Resource,
+			r.Amount,
+			r.CreatedAt,
+			r.UpdatedAt,
+		)
+		if err != nil {
+			return err
+		}
+	}
+
+	for _, s := range planet.Storages {
+		_, err := tx.Exec(
+			ctx,
+			createPlanetResourceStorageQuery,
+			planet.Id,
+			s.Resource,
+			s.Storage,
+			s.CreatedAt,
+			s.UpdatedAt,
+		)
+		if err != nil {
+			return err
+		}
+	}
+
+	for _, p := range planet.Productions {
+		_, err := tx.Exec(
+			ctx,
+			createPlanetResourceProductionQuery,
+			planet.Id,
+			p.Building,
+			p.Resource,
+			p.Production,
+			p.CreatedAt,
+			p.UpdatedAt,
+		)
+		if err != nil {
+			return err
+		}
+	}
+
+	for _, b := range planet.Buildings {
+		_, err := tx.Exec(
+			ctx,
+			createPlanetBuildingQuery,
+			planet.Id,
+			b.Building,
+			b.Level,
+			b.CreatedAt,
+			b.UpdatedAt,
+		)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func loadPlanetDetails(ctx context.Context, tx db.Transaction, dbPlanet mappers.DbPlanet) (models.Planet, error) {
