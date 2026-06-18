@@ -15,14 +15,14 @@ import (
 
 func TestIT_ResourceRepository_List(t *testing.T) {
 	repo, conn := newTestResourceRepository(t)
-	defer conn.Close(context.Background())
 	r1 := insertTestResource(t, conn)
 	r2 := insertTestResource(t, conn)
 
 	actual, err := repo.List(context.Background())
 	require.NoError(t, err, "Actual err: %v", err)
 
-	assert.GreaterOrEqual(t, len(actual), 2)
+	// The 2 additional resources are metal and crystal from the seed data
+	assert.Equal(t, 4, len(actual))
 	assert.Contains(t, actual, r1)
 	assert.Contains(t, actual, r2)
 }

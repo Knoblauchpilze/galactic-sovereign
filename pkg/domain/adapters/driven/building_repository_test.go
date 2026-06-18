@@ -42,7 +42,6 @@ func TestIT_BuildingRepository_Get(t *testing.T) {
 
 func TestIT_BuildingRepository_List(t *testing.T) {
 	repo, conn := newTestBuildingRepository(t)
-	defer conn.Close(context.Background())
 	b1 := insertTestBuilding(t, conn, addBuildingCost)
 	b2 := insertTestBuilding(t, conn, addBuildingProduction)
 	b3 := insertTestBuilding(t, conn, addBuildingStorage)

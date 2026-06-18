@@ -21,7 +21,6 @@ var (
 
 func TestIT_BuildingActionRepository_Create(t *testing.T) {
 	repo, conn := newTestBuildingActionRepository(t)
-	defer conn.Close(context.Background())
 
 	t.Run("creates an action", func(t *testing.T) {
 		planet, _, _ := insertTestPlanetForPlayer(t, conn)
@@ -181,7 +180,6 @@ func TestIT_BuildingActionRepository_Create(t *testing.T) {
 
 func TestIT_BuildingActionRepository_Get(t *testing.T) {
 	repo, conn := newTestBuildingActionRepository(t)
-	defer conn.Close(context.Background())
 
 	t.Run("gets an action", func(t *testing.T) {
 		action, _ := insertTestBuildingAction(t, conn)
@@ -229,7 +227,6 @@ func TestIT_BuildingActionRepository_Get(t *testing.T) {
 
 func TestIT_BuildingActionRepository_ListForPlanet(t *testing.T) {
 	repo, conn := newTestBuildingActionRepository(t)
-	defer conn.Close(context.Background())
 
 	t.Run("lists an action for a planet", func(t *testing.T) {
 		action1, planet1 := insertTestBuildingAction(t, conn)
@@ -282,7 +279,6 @@ func TestIT_BuildingActionRepository_ListForPlanet(t *testing.T) {
 
 func TestIT_BuildingActionRepository_ListBeforeCompletionTime(t *testing.T) {
 	repo, conn := newTestBuildingActionRepository(t)
-	defer conn.Close(context.Background())
 
 	t.Run("returns action when completion is before requested time", func(t *testing.T) {
 		action, planet := insertTestBuildingAction(t, conn)
@@ -310,7 +306,6 @@ func TestIT_BuildingActionRepository_ListBeforeCompletionTime(t *testing.T) {
 
 func TestIT_BuildingActionRepository_Delete(t *testing.T) {
 	repo, conn := newTestBuildingActionRepository(t)
-	defer conn.Close(context.Background())
 
 	t.Run("deletes an action", func(t *testing.T) {
 		action, _ := insertTestBuildingAction(t, conn)
@@ -361,7 +356,6 @@ func TestIT_BuildingActionRepository_Delete(t *testing.T) {
 
 func TestIT_BuildingActionRepository_DeleteForPlanet(t *testing.T) {
 	repo, conn := newTestBuildingActionRepository(t)
-	defer conn.Close(context.Background())
 
 	t.Run("deletes an action", func(t *testing.T) {
 		action, planet := insertTestBuildingAction(t, conn)
@@ -405,7 +399,6 @@ func TestIT_BuildingActionRepository_DeleteForPlanet(t *testing.T) {
 
 func TestIT_BuildingActionRepository_DeleteForPlayer(t *testing.T) {
 	repo, conn := newTestBuildingActionRepository(t)
-	defer conn.Close(context.Background())
 
 	t.Run("deletes an action", func(t *testing.T) {
 		action, planet := insertTestBuildingAction(t, conn)
@@ -449,7 +442,6 @@ func TestIT_BuildingActionRepository_DeleteForPlayer(t *testing.T) {
 
 func TestIT_BuildingActionRepository_CreationDeletionWorkflow(t *testing.T) {
 	repo, conn := newTestBuildingActionRepository(t)
-	defer conn.Close(context.Background())
 
 	type testCase struct {
 		name   string
