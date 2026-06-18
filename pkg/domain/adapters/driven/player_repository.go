@@ -35,7 +35,10 @@ SELECT
 FROM
 	planet
 WHERE
-	player = $1`
+	player = $1
+ORDER BY
+	created_at,
+	name`
 
 	listPlayerQuery = `
 SELECT
@@ -46,7 +49,10 @@ SELECT
 	created_at,
 	version
 FROM
-	player`
+	player
+ORDER BY
+	created_at,
+	name`
 
 	listPlayerForApiUserQuery = `
 SELECT
@@ -59,7 +65,10 @@ SELECT
 FROM
 	player
 WHERE
-	api_user = $1`
+	api_user = $1
+ORDER BY
+	created_at,
+	name`
 
 	deletePlayerQuery = `DELETE FROM player WHERE id = $1`
 )

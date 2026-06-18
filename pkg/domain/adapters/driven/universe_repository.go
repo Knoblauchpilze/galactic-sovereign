@@ -33,7 +33,10 @@ SELECT
 	created_at,
 	version
 FROM
-	universe`
+	universe
+ORDER BY
+	created_at,
+	name`
 
 	deleteUniverseQuery = `DELETE FROM universe WHERE id = $1`
 )

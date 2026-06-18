@@ -18,6 +18,9 @@ SELECT
 	start_storage,
 	created_at
 FROM
+	resource
+ORDER BY
+	created_at,
 	resource`
 )
 

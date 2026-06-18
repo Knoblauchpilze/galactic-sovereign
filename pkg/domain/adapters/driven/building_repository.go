@@ -11,13 +11,26 @@ import (
 )
 
 const (
+	getBuildingQuery = `
+SELECT
+	id,
+	name,
+	created_at
+FROM
+	building
+WHERE
+	id = $1`
+
 	listBuildingQuery = `
 SELECT
 	id,
 	name,
 	created_at
 FROM
-	building`
+	building
+ORDER BY
+	created_at,
+	name`
 
 	listBuildingCostForBuildingQuery = `
 SELECT
@@ -49,16 +62,6 @@ FROM
 	building_resource_storage
 WHERE
 	building = $1`
-
-	getBuildingQuery = `
-SELECT
-	id,
-	name,
-	created_at
-FROM
-	building
-WHERE
-	id = $1`
 )
 
 type buildingRepositoryImpl struct {

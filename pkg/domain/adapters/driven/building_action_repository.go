@@ -87,7 +87,10 @@ SELECT
 FROM
 	building_action
 WHERE
-	planet = $1`
+	planet = $1
+ORDER BY
+	completed_at,
+	planet`
 
 	listBuildingActionBeforeCompletionTimeQuery = `
 SELECT
@@ -103,7 +106,9 @@ FROM
 	building_action
 WHERE
 	planet = $1
-	AND completed_at <= $2`
+	AND completed_at <= $2
+ORDER BY
+	completed_at`
 
 	deleteBuildingActionResourceProductionQuery = `DELETE FROM building_action_resource_production WHERE action = $1`
 	deleteBuildingActionResourceStorageQuery    = `DELETE FROM building_action_resource_storage WHERE action = $1`

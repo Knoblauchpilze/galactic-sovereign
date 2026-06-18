@@ -119,7 +119,10 @@ SELECT
 FROM
 	planet AS p
 	LEFT JOIN homeworld AS h ON h.planet = p.id
-	LEFT JOIN building_action AS ba ON ba.planet = p.id`
+	LEFT JOIN building_action AS ba ON ba.planet = p.id
+ORDER BY
+	p.created_at,
+	p.name`
 
 	listPlanetForPlayerQuery = `
 SELECT
@@ -139,7 +142,10 @@ FROM
 	LEFT JOIN homeworld AS h ON h.planet = p.id
 	LEFT JOIN building_action AS ba ON ba.planet = p.id
 WHERE
-	p.player = $1`
+	p.player = $1
+ORDER BY
+	p.created_at,
+	p.name`
 
 	deletePlanetBuildingsQuery           = `DELETE FROM planet_building WHERE planet = $1`
 	deletePlanetResourceProductionsQuery = `DELETE FROM planet_resource_production WHERE planet = $1`
