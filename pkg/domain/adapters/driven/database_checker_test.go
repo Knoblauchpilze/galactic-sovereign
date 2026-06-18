@@ -1,7 +1,6 @@
 package drivenadapters
 
 import (
-	"context"
 	"testing"
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
@@ -14,17 +13,17 @@ func TestIT_DatabaseChecker_Ping(t *testing.T) {
 		conn := newTestConnection(t)
 		checker := NewDatabaseChecker(conn)
 
-		err := checker.Ping(context.Background())
+		err := checker.Ping(t.Context())
 		require.NoError(t, err, "Actual err: %v", err)
 	})
 
 	t.Run("returns error when connection is not healthy", func(t *testing.T) {
 		conn := newTestConnection(t)
-		conn.Close(context.Background())
+		conn.Close(t.Context())
 
 		checker := NewDatabaseChecker(conn)
 
-		err := checker.Ping(context.Background())
+		err := checker.Ping(t.Context())
 
 		assert.Equal(t, db.ErrNotConnected, err, "Actual err: %v", err)
 	})

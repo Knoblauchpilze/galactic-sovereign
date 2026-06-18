@@ -1,7 +1,6 @@
 package drivenadapters
 
 import (
-	"context"
 	"fmt"
 	"testing"
 
@@ -18,7 +17,7 @@ func TestIT_ResourceRepository_List(t *testing.T) {
 	r1 := insertTestResource(t, conn)
 	r2 := insertTestResource(t, conn)
 
-	actual, err := repo.List(context.Background())
+	actual, err := repo.List(t.Context())
 	require.NoError(t, err, "Actual err: %v", err)
 
 	// The 2 additional resources are metal and crystal from the seed data
@@ -48,7 +47,7 @@ func insertTestResource(t *testing.T, conn db.Connection) models.Resource {
 	sqlQuery := `INSERT INTO resource (id, name, start_amount, start_production, start_storage, created_at)
 		VALUES ($1, $2, $3, $4, $5, $6)`
 	_, err := conn.Exec(
-		context.Background(),
+		t.Context(),
 		sqlQuery,
 		resource.Id,
 		resource.Name,

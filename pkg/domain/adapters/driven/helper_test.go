@@ -57,7 +57,7 @@ func createTestContainer(t *testing.T) *postgres.PostgresContainer {
 	t.Helper()
 
 	postgresContainer, err := postgres.Run(
-		context.Background(),
+		t.Context(),
 		testContainerImage,
 		postgres.WithDatabase(testTemplateDatabase),
 		postgres.WithUsername(testDatabaseUser),
@@ -72,13 +72,12 @@ func createTestContainer(t *testing.T) *postgres.PostgresContainer {
 func newTestConnection(t *testing.T) db.Connection {
 	t.Helper()
 
-	ctx := context.Background()
 	sharedTestContainerSuite.ensureInitialized(t)
 
 	testDatabaseName, bootstrapConn, postgresContainer := sharedTestContainerSuite.nextDatabaseContext()
 
 	_, err := bootstrapConn.Exec(
-		ctx,
+		t.Context(),
 		fmt.Sprintf(
 			`CREATE DATABASE %s WITH TEMPLATE %s OWNER %s`,
 			testDatabaseName,
@@ -89,7 +88,7 @@ func newTestConnection(t *testing.T) db.Connection {
 	require.NoError(t, err, "Actual err: %v", err)
 
 	_, err = bootstrapConn.Exec(
-		ctx,
+		t.Context(),
 		fmt.Sprintf(
 			`ALTER DATABASE %s SET search_path = %s`,
 			testDatabaseName,
@@ -107,10 +106,10 @@ func newTestConnection(t *testing.T) db.Connection {
 	)
 
 	t.Cleanup(func() {
-		conn.Close(ctx)
+		conn.Close(t.Context())
 
 		_, dropErr := bootstrapConn.Exec(
-			ctx,
+			context.Background(),
 			fmt.Sprintf(`DROP DATABASE IF EXISTS %s WITH (FORCE)`, testDatabaseName),
 		)
 		require.NoError(t, dropErr, "Actual err: %v", dropErr)
@@ -128,16 +127,16 @@ func (s *testContainerSuite) createConnection(
 ) db.Connection {
 	t.Helper()
 
-	host, err := postgresContainer.Host(context.Background())
+	host, err := postgresContainer.Host(t.Context())
 	require.NoError(t, err, "Actual err: %v", err)
 
-	port, err := postgresContainer.MappedPort(context.Background(), "5432/tcp")
+	port, err := postgresContainer.MappedPort(t.Context(), "5432/tcp")
 	require.NoError(t, err, "Actual err: %v", err)
 
 	portValue, err := strconv.ParseUint(port.Port(), 10, 16)
 	require.NoError(t, err, "Actual err: %v", err)
 
-	conn, err := db.New(context.Background(), postgresql.Config{
+	conn, err := db.New(t.Context(), postgresql.Config{
 		Host:           host,
 		Port:           uint16(portValue),
 		Database:       database,
@@ -169,7 +168,6 @@ func (s *testContainerSuite) ensureInitialized(t *testing.T) {
 		return
 	}
 
-	ctx := context.Background()
 	postgresContainer := createTestContainer(t)
 
 	bootstrapConn := s.createConnection(
@@ -187,16 +185,16 @@ func (s *testContainerSuite) ensureInitialized(t *testing.T) {
 		testDatabaseUser,
 		testDatabasePassword,
 	)
-	defer templateConn.Close(ctx)
+	defer templateConn.Close(t.Context())
 
 	_, err := templateConn.Exec(
-		ctx,
+		t.Context(),
 		fmt.Sprintf(`CREATE SCHEMA %s AUTHORIZATION %s`, testDatabaseSchema, testDatabaseUser),
 	)
 	require.NoError(t, err, "Actual err: %v", err)
 
 	_, err = templateConn.Exec(
-		ctx,
+		t.Context(),
 		fmt.Sprintf(
 			`ALTER DATABASE %s SET search_path = %s`,
 			testTemplateDatabase,
@@ -220,8 +218,7 @@ func (s *testContainerSuite) teardown() {
 		return
 	}
 
-	ctx := context.Background()
-	s.bootstrapConn.Close(ctx)
+	s.bootstrapConn.Close(context.Background())
 
 	_ = testcontainers.TerminateContainer(s.container)
 
@@ -262,9 +259,9 @@ func (s *testContainerSuite) databaseURL(
 	_ = s
 	t.Helper()
 
-	host, err := postgresContainer.Host(context.Background())
+	host, err := postgresContainer.Host(t.Context())
 	require.NoError(t, err, "Actual err: %v", err)
-	port, err := postgresContainer.MappedPort(context.Background(), "5432/tcp")
+	port, err := postgresContainer.MappedPort(t.Context(), "5432/tcp")
 	require.NoError(t, err, "Actual err: %v", err)
 
 	return fmt.Sprintf(

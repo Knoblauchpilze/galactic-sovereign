@@ -1,7 +1,6 @@
 package drivenadapters
 
 import (
-	"context"
 	"fmt"
 	"math/rand"
 	"testing"
@@ -21,12 +20,11 @@ var (
 
 func TestIT_BuildingRepository_Get(t *testing.T) {
 	repo, conn := newTestBuildingRepository(t)
-	defer conn.Close(context.Background())
 
 	t.Run("gets a building", func(t *testing.T) {
 		building := insertTestBuilding(t, conn)
 
-		actual, err := repo.Get(context.Background(), building.Id)
+		actual, err := repo.Get(t.Context(), building.Id)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Equal(t, actual, building)
@@ -34,7 +32,7 @@ func TestIT_BuildingRepository_Get(t *testing.T) {
 
 	t.Run("returns error when building does not exist", func(t *testing.T) {
 		id := uuid.MustParse("00000000-1111-2222-1111-000000000000")
-		_, err := repo.Get(context.Background(), id)
+		_, err := repo.Get(t.Context(), id)
 
 		assert.ErrorIs(t, err, domainerrors.ErrNotFound, "Actual err: %v", err)
 	})
@@ -50,7 +48,7 @@ func TestIT_BuildingRepository_List(t *testing.T) {
 	hangarLikeBuilding := insertTestBuilding(t, conn, addBuildingCost, addBuildingStorage)
 	fullCheckBuilding := insertTestBuilding(t, conn, addBuildingCost, addBuildingProduction, addBuildingStorage)
 
-	actual, err := repo.List(context.Background())
+	actual, err := repo.List(t.Context())
 	require.NoError(t, err, "Actual err: %v", err)
 
 	// The additional resources are buildings from the seed data
@@ -88,7 +86,7 @@ func insertTestBuilding(
 
 	sqlQuery := `INSERT INTO building (id, name, created_at) VALUES ($1, $2, $3)`
 	_, err := conn.Exec(
-		context.Background(),
+		t.Context(),
 		sqlQuery,
 		building.Id,
 		building.Name,
@@ -116,7 +114,7 @@ func addBuildingCost(t *testing.T, conn db.Connection, b *models.Building) {
 	sqlQuery := `INSERT INTO building_cost (building, resource, cost, progress)
 		VALUES ($1, $2, $3, $4)`
 	_, err := conn.Exec(
-		context.Background(),
+		t.Context(),
 		sqlQuery,
 		b.Id,
 		cost.Resource,
@@ -141,7 +139,7 @@ func addBuildingProduction(t *testing.T, conn db.Connection, b *models.Building)
 	sqlQuery := `INSERT INTO building_resource_production (building, resource, base, progress)
 		VALUES ($1, $2, $3, $4)`
 	_, err := conn.Exec(
-		context.Background(),
+		t.Context(),
 		sqlQuery,
 		b.Id,
 		production.Resource,
@@ -167,7 +165,7 @@ func addBuildingStorage(t *testing.T, conn db.Connection, b *models.Building) {
 	sqlQuery := `INSERT INTO building_resource_storage (building, resource, base, scale, progress)
 		VALUES ($1, $2, $3, $4, $5)`
 	_, err := conn.Exec(
-		context.Background(),
+		t.Context(),
 		sqlQuery,
 		b.Id,
 		storage.Resource,

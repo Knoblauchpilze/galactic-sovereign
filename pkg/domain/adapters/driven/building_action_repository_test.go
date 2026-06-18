@@ -1,7 +1,6 @@
 package drivenadapters
 
 import (
-	"context"
 	"math/rand"
 	"testing"
 	"time"
@@ -39,11 +38,11 @@ func TestIT_BuildingActionRepository_Create(t *testing.T) {
 			Productions:  []models.BuildingActionResourceProduction{},
 		}
 
-		err := repo.Create(context.Background(), action)
+		err := repo.Create(t.Context(), action)
 		require.NoError(t, err, "Actual err: %v", err)
 		assertBuildingActionExists(t, conn, action.Id)
 
-		actual, err := repo.Get(context.Background(), action.Id)
+		actual, err := repo.Get(t.Context(), action.Id)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Equal(t, action, actual)
@@ -75,11 +74,11 @@ func TestIT_BuildingActionRepository_Create(t *testing.T) {
 			Productions: []models.BuildingActionResourceProduction{},
 		}
 
-		err := repo.Create(context.Background(), action)
+		err := repo.Create(t.Context(), action)
 		require.NoError(t, err, "Actual err: %v", err)
 		assertBuildingActionExists(t, conn, action.Id)
 
-		actual, err := repo.Get(context.Background(), action.Id)
+		actual, err := repo.Get(t.Context(), action.Id)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Equal(t, action, actual)
@@ -111,11 +110,11 @@ func TestIT_BuildingActionRepository_Create(t *testing.T) {
 			Productions: []models.BuildingActionResourceProduction{},
 		}
 
-		err := repo.Create(context.Background(), action)
+		err := repo.Create(t.Context(), action)
 		require.NoError(t, err, "Actual err: %v", err)
 		assertBuildingActionExists(t, conn, action.Id)
 
-		actual, err := repo.Get(context.Background(), action.Id)
+		actual, err := repo.Get(t.Context(), action.Id)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Equal(t, action, actual)
@@ -147,11 +146,11 @@ func TestIT_BuildingActionRepository_Create(t *testing.T) {
 			},
 		}
 
-		err := repo.Create(context.Background(), action)
+		err := repo.Create(t.Context(), action)
 		require.NoError(t, err, "Actual err: %v", err)
 		assertBuildingActionExists(t, conn, action.Id)
 
-		actual, err := repo.Get(context.Background(), action.Id)
+		actual, err := repo.Get(t.Context(), action.Id)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Equal(t, action, actual)
@@ -171,7 +170,7 @@ func TestIT_BuildingActionRepository_Create(t *testing.T) {
 			Version:      14,
 		}
 
-		err := repo.Create(context.Background(), newAction)
+		err := repo.Create(t.Context(), newAction)
 
 		assert.Equal(t, domainerrors.ErrActionAlreadyInProgress, err, "Actual err: %v", err)
 		assertBuildingActionDoesNotExist(t, conn, newAction.Id)
@@ -184,7 +183,7 @@ func TestIT_BuildingActionRepository_Get(t *testing.T) {
 	t.Run("gets an action", func(t *testing.T) {
 		action, _ := insertTestBuildingAction(t, conn)
 
-		actual, err := repo.Get(context.Background(), action.Id)
+		actual, err := repo.Get(t.Context(), action.Id)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Equal(t, action, actual)
@@ -193,7 +192,7 @@ func TestIT_BuildingActionRepository_Get(t *testing.T) {
 	t.Run("gets an action with costs", func(t *testing.T) {
 		action, _ := insertTestBuildingAction(t, conn, addBuildingActionCost)
 
-		actual, err := repo.Get(context.Background(), action.Id)
+		actual, err := repo.Get(t.Context(), action.Id)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Equal(t, action, actual)
@@ -202,7 +201,7 @@ func TestIT_BuildingActionRepository_Get(t *testing.T) {
 	t.Run("gets an action with storages", func(t *testing.T) {
 		action, _ := insertTestBuildingAction(t, conn, addBuildingActionStorage)
 
-		actual, err := repo.Get(context.Background(), action.Id)
+		actual, err := repo.Get(t.Context(), action.Id)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Equal(t, action, actual)
@@ -211,7 +210,7 @@ func TestIT_BuildingActionRepository_Get(t *testing.T) {
 	t.Run("gets an action with productions", func(t *testing.T) {
 		action, _ := insertTestBuildingAction(t, conn, addBuildingActionProduction)
 
-		actual, err := repo.Get(context.Background(), action.Id)
+		actual, err := repo.Get(t.Context(), action.Id)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Equal(t, action, actual)
@@ -219,7 +218,7 @@ func TestIT_BuildingActionRepository_Get(t *testing.T) {
 
 	t.Run("returns error when action does not exist", func(t *testing.T) {
 		id := uuid.MustParse("00000000-1111-2222-1111-000000000000")
-		_, err := repo.Get(context.Background(), id)
+		_, err := repo.Get(t.Context(), id)
 
 		assert.ErrorIs(t, err, domainerrors.ErrNotFound, "Actual err: %v", err)
 	})
@@ -231,7 +230,7 @@ func TestIT_BuildingActionRepository_Delete(t *testing.T) {
 	t.Run("deletes an action", func(t *testing.T) {
 		action, _ := insertTestBuildingAction(t, conn)
 
-		err := repo.Delete(context.Background(), action.Id)
+		err := repo.Delete(t.Context(), action.Id)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assertBuildingActionDoesNotExist(t, conn, action.Id)
@@ -240,7 +239,7 @@ func TestIT_BuildingActionRepository_Delete(t *testing.T) {
 	t.Run("deletes action with costs", func(t *testing.T) {
 		action, _ := insertTestBuildingAction(t, conn, addBuildingActionCost)
 
-		err := repo.Delete(context.Background(), action.Id)
+		err := repo.Delete(t.Context(), action.Id)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assertBuildingActionDoesNotExist(t, conn, action.Id)
@@ -250,7 +249,7 @@ func TestIT_BuildingActionRepository_Delete(t *testing.T) {
 	t.Run("deletes action with storages", func(t *testing.T) {
 		action, _ := insertTestBuildingAction(t, conn, addBuildingActionStorage)
 
-		err := repo.Delete(context.Background(), action.Id)
+		err := repo.Delete(t.Context(), action.Id)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assertBuildingActionDoesNotExist(t, conn, action.Id)
@@ -260,7 +259,7 @@ func TestIT_BuildingActionRepository_Delete(t *testing.T) {
 	t.Run("deletes action with productions", func(t *testing.T) {
 		action, _ := insertTestBuildingAction(t, conn, addBuildingActionProduction)
 
-		err := repo.Delete(context.Background(), action.Id)
+		err := repo.Delete(t.Context(), action.Id)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assertBuildingActionDoesNotExist(t, conn, action.Id)
@@ -270,7 +269,7 @@ func TestIT_BuildingActionRepository_Delete(t *testing.T) {
 	t.Run("succeeds when the action does not exist", func(t *testing.T) {
 		nonExistingId := uuid.MustParse("00000000-0000-1221-0000-000000000000")
 
-		err := repo.Delete(context.Background(), nonExistingId)
+		err := repo.Delete(t.Context(), nonExistingId)
 		require.NoError(t, err, "Actual err: %v", err)
 	})
 }
@@ -307,19 +306,19 @@ func TestIT_BuildingActionRepository_CreationDeletionWorkflow(t *testing.T) {
 			tc.action.Planet = planet.Id
 
 			func() {
-				err := repo.Create(context.Background(), tc.action)
+				err := repo.Create(t.Context(), tc.action)
 				require.NoError(t, err, "Actual err: %v", err)
 			}()
 
 			func() {
-				actionFromDb, err := repo.Get(context.Background(), tc.action.Id)
+				actionFromDb, err := repo.Get(t.Context(), tc.action.Id)
 				require.NoError(t, err, "Actual err: %v", err)
 
 				assert.Equal(t, tc.action, actionFromDb)
 			}()
 
 			func() {
-				err := repo.Delete(context.Background(), tc.action.Id)
+				err := repo.Delete(t.Context(), tc.action.Id)
 				require.NoError(t, err, "Actual err: %v", err)
 			}()
 
@@ -363,7 +362,7 @@ func insertTestBuildingAction(
 		(id, planet, building, current_level, desired_level, created_at, completed_at, version)
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
 	_, err := conn.Exec(
-		context.Background(),
+		t.Context(),
 		sqlQuery,
 		action.Id,
 		action.Planet,
@@ -394,7 +393,7 @@ func addBuildingActionCost(t *testing.T, conn db.Connection, a *models.BuildingA
 	sqlQuery := `INSERT INTO building_action_cost (action, resource, amount)
 		VALUES ($1, $2, $3)`
 	_, err := conn.Exec(
-		context.Background(),
+		t.Context(),
 		sqlQuery,
 		a.Id,
 		cost.Resource,
@@ -416,7 +415,7 @@ func addBuildingActionStorage(t *testing.T, conn db.Connection, a *models.Buildi
 	sqlQuery := `INSERT INTO building_action_resource_storage (action, resource, storage)
 		VALUES ($1, $2, $3)`
 	_, err := conn.Exec(
-		context.Background(),
+		t.Context(),
 		sqlQuery,
 		a.Id,
 		storage.Resource,
@@ -438,7 +437,7 @@ func addBuildingActionProduction(t *testing.T, conn db.Connection, a *models.Bui
 	sqlQuery := `INSERT INTO building_action_resource_production (action, resource, production)
 		VALUES ($1, $2, $3)`
 	_, err := conn.Exec(
-		context.Background(),
+		t.Context(),
 		sqlQuery,
 		a.Id,
 		production.Resource,
@@ -453,7 +452,7 @@ func assertBuildingActionExists(t *testing.T, conn db.Connection, id uuid.UUID) 
 	t.Helper()
 
 	sqlQuery := `SELECT COUNT(*) FROM building_action WHERE id = $1`
-	value, err := db.QueryOne[int](context.Background(), conn, sqlQuery, id)
+	value, err := db.QueryOne[int](t.Context(), conn, sqlQuery, id)
 	require.NoError(t, err, "Actual err: %v", err)
 	require.Equal(t, 1, value)
 }
@@ -462,7 +461,7 @@ func assertBuildingActionDoesNotExist(t *testing.T, conn db.Connection, action u
 	t.Helper()
 
 	sqlQuery := `SELECT COUNT(*) FROM building_action WHERE id = $1`
-	value, err := db.QueryOne[int](context.Background(), conn, sqlQuery, action)
+	value, err := db.QueryOne[int](t.Context(), conn, sqlQuery, action)
 	require.NoError(t, err, "Actual err: %v", err)
 	require.Zero(t, value)
 }
@@ -471,7 +470,7 @@ func assertBuildingActionCostDoesNotExist(t *testing.T, conn db.Connection, acti
 	t.Helper()
 
 	sqlQuery := `SELECT COUNT(*) FROM building_action_cost WHERE action = $1`
-	value, err := db.QueryOne[int](context.Background(), conn, sqlQuery, action)
+	value, err := db.QueryOne[int](t.Context(), conn, sqlQuery, action)
 	require.NoError(t, err, "Actual err: %v", err)
 	require.Zero(t, value)
 }
@@ -480,7 +479,7 @@ func assertBuildingActionStorageDoesNotExist(t *testing.T, conn db.Connection, a
 	t.Helper()
 
 	sqlQuery := `SELECT COUNT(*) FROM building_action_resource_storage WHERE action = $1`
-	value, err := db.QueryOne[int](context.Background(), conn, sqlQuery, action)
+	value, err := db.QueryOne[int](t.Context(), conn, sqlQuery, action)
 	require.NoError(t, err, "Actual err: %v", err)
 	require.Zero(t, value)
 }
@@ -489,7 +488,7 @@ func assertBuildingActionProductionDoesNotExist(t *testing.T, conn db.Connection
 	t.Helper()
 
 	sqlQuery := `SELECT COUNT(*) FROM building_action_resource_production WHERE action = $1`
-	value, err := db.QueryOne[int](context.Background(), conn, sqlQuery, action)
+	value, err := db.QueryOne[int](t.Context(), conn, sqlQuery, action)
 	require.NoError(t, err, "Actual err: %v", err)
 	require.Zero(t, value)
 }
