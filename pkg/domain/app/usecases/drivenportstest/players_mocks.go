@@ -57,17 +57,17 @@ func (mr *MockForManagingPlayersMockRecorder) Create(ctx, player, homeworld any)
 }
 
 // Delete mocks base method.
-func (m *MockForManagingPlayers) Delete(ctx context.Context, id uuid.UUID) error {
+func (m *MockForManagingPlayers) Delete(ctx context.Context, player models.Player) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Delete", ctx, id)
+	ret := m.ctrl.Call(m, "Delete", ctx, player)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Delete indicates an expected call of Delete.
-func (mr *MockForManagingPlayersMockRecorder) Delete(ctx, id any) *gomock.Call {
+func (mr *MockForManagingPlayersMockRecorder) Delete(ctx, player any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockForManagingPlayers)(nil).Delete), ctx, id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockForManagingPlayers)(nil).Delete), ctx, player)
 }
 
 // Get mocks base method.

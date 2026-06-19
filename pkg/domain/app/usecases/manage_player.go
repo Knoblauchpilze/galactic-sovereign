@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
+	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/request"
 	drivenports "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driven"
 	drivingports "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driving"
@@ -67,7 +68,16 @@ func (p *playerUseCase) ListForApiUser(ctx context.Context, apiUser uuid.UUID) (
 }
 
 func (p *playerUseCase) Delete(ctx context.Context, id uuid.UUID) error {
-	err := p.playerRepo.Delete(ctx, id)
+	player, err := p.playerRepo.Get(ctx, id)
+	if err != nil {
+		if err == domainerrors.ErrNotFound {
+			return nil
+		}
+
+		return err
+	}
+
+	err = p.playerRepo.Delete(ctx, player)
 	if err != nil {
 		return err
 	}

@@ -12,5 +12,5 @@ type ForManagingPlayers interface {
 	Get(ctx context.Context, id uuid.UUID) (models.Player, error)
 	List(ctx context.Context) ([]models.Player, error)
 	ListForApiUser(ctx context.Context, apiUser uuid.UUID) ([]models.Player, error)
-	Delete(ctx context.Context, id uuid.UUID) error
+	Delete(ctx context.Context, player models.Player) error
 }

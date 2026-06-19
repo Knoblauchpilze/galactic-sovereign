@@ -259,25 +259,35 @@ func TestUnit_ManagePlayer_Delete(t *testing.T) {
 	suite := setupPlayerTestSuite(t)
 
 	t.Run("deletes existing player", func(t *testing.T) {
-		id := uuid.New()
+		player := models.Player{Id: uuid.New()}
 
 		suite.mockPlayerRepo.EXPECT().
-			Delete(gomock.Any(), gomock.Eq(id)).
+			Get(gomock.Any(), gomock.Eq(player.Id)).
+			Times(1).
+			Return(player, nil)
+		suite.mockPlayerRepo.EXPECT().
+			Delete(gomock.Any(), gomock.Eq(player)).
 			Times(1).
 			Return(nil)
 
-		err := suite.usecase.Delete(context.Background(), id)
+		err := suite.usecase.Delete(context.Background(), player.Id)
 		require.NoError(t, err, "Actual err: %v", err)
 	})
 
 	t.Run("returns error when repository fails", func(t *testing.T) {
+		player := models.Player{Id: uuid.New()}
+
+		suite.mockPlayerRepo.EXPECT().
+			Get(gomock.Any(), gomock.Eq(player.Id)).
+			Times(1).
+			Return(player, nil)
 		expectedErr := errors.New("stubbed error")
 		suite.mockPlayerRepo.EXPECT().
 			Delete(gomock.Any(), gomock.Any()).
 			Times(1).
 			Return(expectedErr)
 
-		err := suite.usecase.Delete(context.Background(), uuid.New())
+		err := suite.usecase.Delete(context.Background(), player.Id)
 
 		assert.ErrorIs(t, expectedErr, err, "Actual err: %v", err)
 	})

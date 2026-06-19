@@ -172,8 +172,8 @@ func (r *playerRepositoryImpl) ListForApiUser(ctx context.Context, apiUser uuid.
 	return players, nil
 }
 
-func (r *playerRepositoryImpl) Delete(ctx context.Context, id uuid.UUID) error {
-	_, err := r.conn.Exec(ctx, deletePlayerQuery, id)
+func (r *playerRepositoryImpl) Delete(ctx context.Context, player models.Player) error {
+	_, err := r.conn.Exec(ctx, deletePlayerQuery, player.Id)
 	return err
 }
 

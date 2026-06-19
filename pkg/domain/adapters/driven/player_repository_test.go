@@ -215,16 +215,16 @@ func TestIT_PlayerRepository_Delete(t *testing.T) {
 	t.Run("deletes a player", func(t *testing.T) {
 		player, _ := insertTestPlayerInUniverse(t, conn)
 
-		err := repo.Delete(t.Context(), player.Id)
+		err := repo.Delete(t.Context(), player)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assertPlayerDoesNotExist(t, conn, player.Id)
 	})
 
 	t.Run("succeeds when the player does not exist", func(t *testing.T) {
-		nonExistingId := uuid.MustParse("00000000-0000-1221-0000-000000000000")
+		player := models.Player{Id: uuid.New()}
 
-		err := repo.Delete(t.Context(), nonExistingId)
+		err := repo.Delete(t.Context(), player)
 		require.NoError(t, err, "Actual err: %v", err)
 	})
 }
