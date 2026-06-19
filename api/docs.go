@@ -8,50 +8,6 @@ const docTemplate = `{
     "schemes": {{ marshal .Schemes }},
     "components": {
         "schemas": {
-            "communication.BuildingActionDtoRequest": {
-                "properties": {
-                    "building": {
-                        "format": "uuid",
-                        "type": "string"
-                    },
-                    "planet": {
-                        "format": "uuid",
-                        "type": "string"
-                    }
-                },
-                "type": "object"
-            },
-            "communication.BuildingActionDtoResponse": {
-                "properties": {
-                    "building": {
-                        "format": "uuid",
-                        "type": "string"
-                    },
-                    "completedAt": {
-                        "format": "date-time",
-                        "type": "string"
-                    },
-                    "createdAt": {
-                        "format": "date-time",
-                        "type": "string"
-                    },
-                    "currentLevel": {
-                        "type": "integer"
-                    },
-                    "desiredLevel": {
-                        "type": "integer"
-                    },
-                    "id": {
-                        "format": "uuid",
-                        "type": "string"
-                    },
-                    "planet": {
-                        "format": "uuid",
-                        "type": "string"
-                    }
-                },
-                "type": "object"
-            },
             "dtos.BuildingActionCostDtoResponse": {
                 "properties": {
                     "amount": {
@@ -486,27 +442,6 @@ const docTemplate = `{
                         },
                         "type": "array",
                         "uniqueItems": false
-                    },
-                    "requestId": {
-                        "example": "669cd40f-ea15-40a8-ab03-81e704a3ecf9",
-                        "format": "uuid",
-                        "type": "string"
-                    },
-                    "status": {
-                        "$ref": "#/components/schemas/rest.Status"
-                    }
-                },
-                "required": [
-                    "details",
-                    "requestId",
-                    "status"
-                ],
-                "type": "object"
-            },
-            "rest.ResponseEnvelope-communication_BuildingActionDtoResponse": {
-                "properties": {
-                    "details": {
-                        "$ref": "#/components/schemas/communication.BuildingActionDtoResponse"
                     },
                     "requestId": {
                         "example": "669cd40f-ea15-40a8-ab03-81e704a3ecf9",

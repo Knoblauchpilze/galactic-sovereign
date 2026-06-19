@@ -58,7 +58,6 @@ func main() {
 	registerPlanetsRoutes(conn, s, log)
 	registerBuildingActionsRoutes(conn, s, log)
 	registerHealthRoutes(conn, s, log)
-	// End new logic using DDD
 
 	swaggerUi := rest.NewRawRoute(http.MethodGet, "/swagger/*", echoSwagger.WrapHandlerV3)
 	if err := s.AddRoute(swaggerUi); err != nil {
