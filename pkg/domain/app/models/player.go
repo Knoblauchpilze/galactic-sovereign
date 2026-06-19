@@ -23,8 +23,32 @@ type Player struct {
 	Planets []uuid.UUID
 }
 
-func (p *Player) CreateHomeworld() Planet {
+func (p *Player) CreateHomeworld(resources []Resource) Planet {
 	createdAt := time.Now()
+
+	planetResources := make([]PlanetResource, 0, len(resources))
+	planetStorages := make([]PlanetResourceStorage, 0, len(resources))
+	planetProductions := make([]PlanetResourceProduction, 0, len(resources))
+
+	for _, r := range resources {
+		pr := PlanetResource{
+			Resource: r.Id,
+			Amount:   float64(r.StartAmount),
+		}
+		planetResources = append(planetResources, pr)
+
+		ps := PlanetResourceStorage{
+			Resource: r.Id,
+			Storage:  r.StartStorage,
+		}
+		planetStorages = append(planetStorages, ps)
+
+		pp := PlanetResourceProduction{
+			Resource:   r.Id,
+			Production: r.StartProduction,
+		}
+		planetProductions = append(planetProductions, pp)
+	}
 
 	planet := Planet{
 		Id:             uuid.New(),
@@ -34,9 +58,9 @@ func (p *Player) CreateHomeworld() Planet {
 		CreatedAt:      createdAt,
 		UpdatedAt:      createdAt,
 		Version:        0,
-		Resources:      []PlanetResource{},
-		Storages:       []PlanetResourceStorage{},
-		Productions:    []PlanetResourceProduction{},
+		Resources:      planetResources,
+		Storages:       planetStorages,
+		Productions:    planetProductions,
 		Buildings:      []PlanetBuilding{},
 		BuildingAction: nil,
 	}
