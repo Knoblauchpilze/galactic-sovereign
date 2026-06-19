@@ -30,9 +30,20 @@ func NewPlayerUseCase(
 
 func (p *playerUseCase) Create(ctx context.Context, req request.PlayerCreationRequest) (models.Player, error) {
 	player := request.FromPlayerCreationRequest(req)
-	homeworld := player.CreateHomeworld([]models.Resource{}, []models.Building{})
 
-	err := p.playerRepo.Create(ctx, player, homeworld)
+	resources, err := p.resourceRepo.List(ctx)
+	if err != nil {
+		return models.Player{}, err
+	}
+
+	buildings, err := p.buildingRepo.List(ctx)
+	if err != nil {
+		return models.Player{}, err
+	}
+
+	homeworld := player.CreateHomeworld(resources, buildings)
+
+	err = p.playerRepo.Create(ctx, player, homeworld)
 	if err != nil {
 		return models.Player{}, err
 	}

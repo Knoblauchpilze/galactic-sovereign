@@ -21,6 +21,17 @@ func TestUnit_ManagePlayer_Create(t *testing.T) {
 	mockResourceRepo := drivenportstest.NewMockForListingResources(ctrl)
 	mockBuildingRepo := drivenportstest.NewMockForListingBuildings(ctrl)
 
+	resources := []models.Resource{
+		{
+			Id:              metalResourceId,
+			StartAmount:     145,
+			StartStorage:    226,
+			StartProduction: 897,
+		},
+	}
+
+	buildings := []models.Building{{Id: uuid.New()}}
+
 	request := request.PlayerCreationRequest{
 		ApiUser:  uuid.New(),
 		Universe: uuid.New(),
@@ -30,6 +41,14 @@ func TestUnit_ManagePlayer_Create(t *testing.T) {
 	t.Run("persists created player", func(t *testing.T) {
 		var captured models.Player
 		var capturedHomeworld models.Planet
+		mockResourceRepo.EXPECT().
+			List(gomock.Any()).
+			Times(1).
+			Return(resources, nil)
+		mockBuildingRepo.EXPECT().
+			List(gomock.Any()).
+			Times(1).
+			Return(buildings, nil)
 		mockPlayerRepo.EXPECT().
 			Create(gomock.Any(), gomock.AssignableToTypeOf(captured), gomock.AssignableToTypeOf(capturedHomeworld)).
 			Times(1).
@@ -53,9 +72,47 @@ func TestUnit_ManagePlayer_Create(t *testing.T) {
 
 		assert.Equal(t, captured.Id, capturedHomeworld.Player)
 		assert.True(t, capturedHomeworld.Homeworld)
+		expectedResources := []models.PlanetResource{
+			{
+				Resource: metalResourceId,
+				Amount:   145,
+			},
+		}
+		assert.Equal(t, expectedResources, capturedHomeworld.Resources)
+		expectedStorages := []models.PlanetResourceStorage{
+			{
+				Resource: metalResourceId,
+				Storage:  226,
+			},
+		}
+		assert.Equal(t, expectedStorages, capturedHomeworld.Storages)
+		expectedProductions := []models.PlanetResourceProduction{
+			{
+				Resource:   metalResourceId,
+				Building:   nil,
+				Production: 897,
+			},
+		}
+		assert.Equal(t, expectedProductions, capturedHomeworld.Productions)
+		expectedBuildings := []models.PlanetBuilding{
+			{
+				Building: buildings[0].Id,
+				Level:    0,
+			},
+		}
+		assert.Equal(t, expectedBuildings, capturedHomeworld.Buildings)
+		assert.Nil(t, capturedHomeworld.BuildingAction)
 	})
 
-	t.Run("returns error when repository fails", func(t *testing.T) {
+	t.Run("returns error when creation fails", func(t *testing.T) {
+		mockResourceRepo.EXPECT().
+			List(gomock.Any()).
+			Times(1).
+			Return(resources, nil)
+		mockBuildingRepo.EXPECT().
+			List(gomock.Any()).
+			Times(1).
+			Return(buildings, nil)
 		expectedErr := errors.New("stubbed error")
 		mockPlayerRepo.EXPECT().
 			Create(gomock.Any(), gomock.Any(), gomock.Any()).
