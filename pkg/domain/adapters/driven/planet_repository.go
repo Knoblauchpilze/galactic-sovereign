@@ -145,49 +145,6 @@ ORDER BY
 	deletePlanetResourcesQuery           = `DELETE FROM planet_resource WHERE planet = $1`
 	deletePlanetHomeworldQuery           = `DELETE FROM homeworld WHERE planet = $1`
 	deletePlanetQuery                    = `DELETE FROM planet WHERE id = $1`
-
-	deletePlanetBuildingForPlayerQuery = `
-DELETE FROM
-	planet_building AS pbd
-USING
-	planet_building AS pb
-	LEFT JOIN planet AS p ON pb.planet = p.id
-WHERE
-	pbd.planet = pb.planet
-	AND pbd.building = pb.building
-	AND p.player = $1`
-	deletePlanetResourceProductionForPlayerQuery = `
-DELETE FROM
-	planet_resource_production AS prpd
-USING
-	planet_resource_production AS prp
-	LEFT JOIN planet AS p ON prp.planet = p.id
-WHERE
-	prpd.planet = prp.planet
-	AND prpd.resource = prp.resource
-	AND p.player = $1`
-	deletePlanetResourceStorageForPlayerQuery = `
-DELETE FROM
-	planet_resource_storage AS prsd
-USING
-	planet_resource_storage AS prs
-	LEFT JOIN planet AS p ON prs.planet = p.id
-WHERE
-	prsd.planet = prs.planet
-	AND prsd.resource = prs.resource
-	AND p.player = $1`
-	deletePlanetResourcesForPlayerQuery = `
-DELETE FROM
-	planet_resource AS prd
-USING
-	planet_resource AS pr
-	LEFT JOIN planet AS p ON pr.planet = p.id
-WHERE
-	prd.planet = pr.planet
-	AND prd.resource = pr.resource
-	AND p.player = $1`
-	deletePlanetHomeworldForPlayerQuery = `DELETE FROM homeworld WHERE player = $1`
-	deletePlanetSqlForQuery             = `DELETE FROM planet WHERE player = $1`
 )
 
 type planetRepositoryImpl struct {

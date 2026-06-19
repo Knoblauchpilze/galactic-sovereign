@@ -107,46 +107,6 @@ WHERE
 	bacd.action = bac.action
 	AND ba.planet = $1`
 	deleteBuildingActionForPlanetQuery = `DELETE FROM building_action WHERE planet = $1`
-
-	deleteBuildingActionResourceProductionForPlayerQuery = `
-DELETE FROM
-	building_action_resource_production AS barpd
-USING
-	building_action_resource_production AS barp
-	LEFT JOIN building_action AS ba ON ba.id = barp.action
-	LEFT JOIN planet AS p ON p.id = ba.planet
-WHERE
-	barpd.action = barp.action
-	AND p.player = $1`
-	deleteBuildingActionResourceStorageForPlayerQuery = `
-DELETE FROM
-	building_action_resource_storage AS barsd
-USING
-	building_action_resource_storage AS bars
-	LEFT JOIN building_action AS ba ON ba.id = bars.action
-	LEFT JOIN planet AS p ON p.id = ba.planet
-WHERE
-	barsd.action = bars.action
-	AND p.player = $1`
-	deleteBuildingActionCostForPlayerQuery = `
-DELETE FROM
-	building_action_cost AS bacd
-USING
-	building_action_cost AS bac
-	LEFT JOIN building_action AS ba ON ba.id = bac.action
-	LEFT JOIN planet AS p ON p.id = ba.planet
-WHERE
-	bacd.action = bac.action
-	AND p.player = $1`
-	deleteBuildingActionForPlayerQuery = `
-DELETE FROM
-	building_action AS bad
-USING
-	building_action AS ba
-	LEFT JOIN planet AS p ON p.id = ba.planet
-WHERE
-	bad.id = ba.id
-	AND p.player = $1`
 )
 
 type buildingActionRepositoryImpl struct {
@@ -338,30 +298,6 @@ func deleteBuildingActionDetailsForPlanet(ctx context.Context, tx db.Transaction
 	}
 
 	_, err = tx.Exec(ctx, deleteBuildingActionForPlanetQuery, planet)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func deleteBuildingActionDetailsForPlayer(ctx context.Context, tx db.Transaction, player uuid.UUID) error {
-	_, err := tx.Exec(ctx, deleteBuildingActionResourceProductionForPlayerQuery, player)
-	if err != nil {
-		return err
-	}
-
-	_, err = tx.Exec(ctx, deleteBuildingActionResourceStorageForPlayerQuery, player)
-	if err != nil {
-		return err
-	}
-
-	_, err = tx.Exec(ctx, deleteBuildingActionCostForPlayerQuery, player)
-	if err != nil {
-		return err
-	}
-
-	_, err = tx.Exec(ctx, deleteBuildingActionForPlayerQuery, player)
 	if err != nil {
 		return err
 	}
