@@ -23,13 +23,36 @@ func TestUnit_Player_CreateHomeworld(t *testing.T) {
 		},
 	}
 
+	buildings := []Building{
+		{
+			Id: uuid.New(),
+			Costs: []BuildingCost{
+				{
+					Resource: metalResourceId,
+					Cost:     550,
+					Progress: 26.4,
+				},
+			},
+		},
+		{
+			Id: uuid.New(),
+			Storages: []BuildingResourceStorage{
+				{
+					Resource: metalResourceId,
+					Scale:    1500.0,
+					Progress: 26.4,
+				},
+			},
+		},
+	}
+
 	t.Run("creates a homeworld belonging to the player", func(t *testing.T) {
 		p := Player{
 			Id:      uuid.New(),
 			Planets: []uuid.UUID{},
 		}
 
-		actual := p.CreateHomeworld(resources)
+		actual := p.CreateHomeworld(resources, buildings)
 
 		assert.Equal(t, p.Id, actual.Player)
 		assert.True(t, actual.Homeworld)
@@ -44,7 +67,7 @@ func TestUnit_Player_CreateHomeworld(t *testing.T) {
 			Planets: nil,
 		}
 
-		actual := p.CreateHomeworld(resources)
+		actual := p.CreateHomeworld(resources, buildings)
 
 		assert.Equal(t, p.Id, actual.Player)
 		assert.True(t, actual.Homeworld)
@@ -59,7 +82,7 @@ func TestUnit_Player_CreateHomeworld(t *testing.T) {
 			Planets: []uuid.UUID{},
 		}
 
-		actual := p.CreateHomeworld(resources)
+		actual := p.CreateHomeworld(resources, buildings)
 
 		expected := []PlanetResource{
 			{
@@ -80,7 +103,7 @@ func TestUnit_Player_CreateHomeworld(t *testing.T) {
 			Planets: []uuid.UUID{},
 		}
 
-		actual := p.CreateHomeworld(resources)
+		actual := p.CreateHomeworld(resources, buildings)
 
 		expected := []PlanetResourceStorage{
 			{
@@ -101,7 +124,7 @@ func TestUnit_Player_CreateHomeworld(t *testing.T) {
 			Planets: []uuid.UUID{},
 		}
 
-		actual := p.CreateHomeworld(resources)
+		actual := p.CreateHomeworld(resources, buildings)
 
 		expected := []PlanetResourceProduction{
 			{
@@ -114,5 +137,26 @@ func TestUnit_Player_CreateHomeworld(t *testing.T) {
 			},
 		}
 		assert.Equal(t, expected, actual.Productions)
+	})
+
+	t.Run("creates each building with level 0", func(t *testing.T) {
+		p := Player{
+			Id:      uuid.New(),
+			Planets: []uuid.UUID{},
+		}
+
+		actual := p.CreateHomeworld(resources, buildings)
+
+		expected := []PlanetBuilding{
+			{
+				Building: buildings[0].Id,
+				Level:    0,
+			},
+			{
+				Building: buildings[1].Id,
+				Level:    0,
+			},
+		}
+		assert.Equal(t, expected, actual.Buildings)
 	})
 }
