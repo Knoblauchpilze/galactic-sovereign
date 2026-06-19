@@ -85,19 +85,11 @@ components:
         building:
           format: uuid
           type: string
-        createdAt:
-          format: date-time
-          type: string
         level:
           type: integer
-        updatedAt:
-          format: date-time
-          type: string
       required:
       - building
-      - createdAt
       - level
-      - updatedAt
       type: object
     dtos.PlanetDtoRequest:
       properties:

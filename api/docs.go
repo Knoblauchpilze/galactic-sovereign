@@ -126,23 +126,13 @@ const docTemplate = `{
                         "format": "uuid",
                         "type": "string"
                     },
-                    "createdAt": {
-                        "format": "date-time",
-                        "type": "string"
-                    },
                     "level": {
                         "type": "integer"
-                    },
-                    "updatedAt": {
-                        "format": "date-time",
-                        "type": "string"
                     }
                 },
                 "required": [
                     "building",
-                    "createdAt",
-                    "level",
-                    "updatedAt"
+                    "level"
                 ],
                 "type": "object"
             },
