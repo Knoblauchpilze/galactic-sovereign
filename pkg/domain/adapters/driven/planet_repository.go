@@ -246,11 +246,6 @@ func (r *planetRepositoryImpl) Delete(ctx context.Context, id uuid.UUID) error {
 	}
 	defer tx.Close(ctx)
 
-	err = deleteBuildingActionDetailsForPlanet(ctx, tx, id)
-	if err != nil {
-		return err
-	}
-
 	return deletePlanetDetails(ctx, tx, id)
 }
 
@@ -380,7 +375,12 @@ func loadPlanetDetails(ctx context.Context, tx db.Transaction, dbPlanet mappers.
 }
 
 func deletePlanetDetails(ctx context.Context, tx db.Transaction, id uuid.UUID) error {
-	_, err := tx.Exec(ctx, deletePlanetBuildingsQuery, id)
+	err := deleteBuildingActionDetailsForPlanet(ctx, tx, id)
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.Exec(ctx, deletePlanetBuildingsQuery, id)
 	if err != nil {
 		return err
 	}

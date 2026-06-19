@@ -234,6 +234,19 @@ func TestIT_PlayerRepository_Delete(t *testing.T) {
 		assertPlanetDoesNotExist(t, conn, planet.Id)
 	})
 
+	t.Run("deletes a player with a building action", func(t *testing.T) {
+		player, _ := insertTestPlayerInUniverse(t, conn)
+		planet := insertTestPlanet(t, conn, player.Id, addPlanetBuildingAction)
+		player.Planets = []uuid.UUID{planet.Id}
+
+		err := repo.Delete(t.Context(), player)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assertPlayerDoesNotExist(t, conn, player.Id)
+		assertPlanetDoesNotExist(t, conn, planet.Id)
+		assertBuildingActionDoesNotExist(t, conn, *planet.BuildingAction)
+	})
+
 	t.Run("succeeds when the player does not exist", func(t *testing.T) {
 		player := models.Player{Id: uuid.New()}
 
