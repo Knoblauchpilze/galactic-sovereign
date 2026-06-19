@@ -14,17 +14,20 @@ type playerUseCase struct {
 	playerRepo   drivenports.ForManagingPlayers
 	resourceRepo drivenports.ForListingResources
 	buildingRepo drivenports.ForListingBuildings
+	planetRepo   drivenports.ForManagingPlanets
 }
 
 func NewPlayerUseCase(
 	playerRepo drivenports.ForManagingPlayers,
 	resourceRepo drivenports.ForListingResources,
 	buildingRepo drivenports.ForListingBuildings,
+	planetRepo drivenports.ForManagingPlanets,
 ) drivingports.ForManagingPlayer {
 	return &playerUseCase{
 		playerRepo:   playerRepo,
 		resourceRepo: resourceRepo,
 		buildingRepo: buildingRepo,
+		planetRepo:   planetRepo,
 	}
 }
 
