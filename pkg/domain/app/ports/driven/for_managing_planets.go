@@ -13,5 +13,4 @@ type ForManagingPlanets interface {
 	List(ctx context.Context) ([]models.Planet, error)
 	ListForPlayer(ctx context.Context, player uuid.UUID) ([]models.Planet, error)
 	Delete(ctx context.Context, id uuid.UUID) error
-	DeleteForPlayer(ctx context.Context, player uuid.UUID) error
 }

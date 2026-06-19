@@ -297,47 +297,6 @@ func (r *planetRepositoryImpl) Delete(ctx context.Context, id uuid.UUID) error {
 	return deletePlanetDetails(ctx, tx, id)
 }
 
-func (r *planetRepositoryImpl) DeleteForPlayer(ctx context.Context, player uuid.UUID) error {
-	tx, err := r.conn.BeginTx(ctx)
-	if err != nil {
-		return err
-	}
-	defer tx.Close(ctx)
-
-	err = deleteBuildingActionDetailsForPlayer(ctx, tx, player)
-	if err != nil {
-		return err
-	}
-
-	_, err = tx.Exec(ctx, deletePlanetBuildingForPlayerQuery, player)
-	if err != nil {
-		return err
-	}
-
-	_, err = tx.Exec(ctx, deletePlanetResourceProductionForPlayerQuery, player)
-	if err != nil {
-		return err
-	}
-
-	_, err = tx.Exec(ctx, deletePlanetResourceStorageForPlayerQuery, player)
-	if err != nil {
-		return err
-	}
-
-	_, err = tx.Exec(ctx, deletePlanetResourcesForPlayerQuery, player)
-	if err != nil {
-		return err
-	}
-
-	_, err = tx.Exec(ctx, deletePlanetHomeworldForPlayerQuery, player)
-	if err != nil {
-		return err
-	}
-
-	_, err = tx.Exec(ctx, deletePlanetSqlForQuery, player)
-	return err
-}
-
 func createPlanetWithDetails(ctx context.Context, tx db.Transaction, planet models.Planet) error {
 	_, err := tx.Exec(
 		ctx,

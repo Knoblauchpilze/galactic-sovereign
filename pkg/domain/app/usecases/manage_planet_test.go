@@ -220,34 +220,3 @@ func TestUnit_ManagePlanet_Delete(t *testing.T) {
 		assert.ErrorIs(t, expectedErr, err, "Actual err: %v", err)
 	})
 }
-
-func TestUnit_ManagePlanet_DeleteForPlayer(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	mockRepo := drivenportstest.NewMockForManagingPlanets(ctrl)
-
-	t.Run("lists existing planets", func(t *testing.T) {
-		player := uuid.New()
-		mockRepo.EXPECT().
-			DeleteForPlayer(gomock.Any(), gomock.Eq(player)).
-			Times(1).
-			Return(nil)
-
-		usecase := NewPlanetUseCase(mockRepo)
-		err := usecase.DeleteForPlayer(context.Background(), player)
-		require.NoError(t, err, "Actual err: %v", err)
-	})
-
-	t.Run("returns error when repository fails", func(t *testing.T) {
-		expectedErr := errors.New("stubbed error")
-
-		mockRepo.EXPECT().
-			DeleteForPlayer(gomock.Any(), gomock.Any()).
-			Times(1).
-			Return(expectedErr)
-
-		usecase := NewPlanetUseCase(mockRepo)
-		err := usecase.DeleteForPlayer(context.Background(), uuid.New())
-
-		assert.ErrorIs(t, expectedErr, err, "Actual err: %v", err)
-	})
-}

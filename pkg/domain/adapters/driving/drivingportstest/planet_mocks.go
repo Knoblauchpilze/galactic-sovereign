@@ -72,20 +72,6 @@ func (mr *MockForManagingPlanetMockRecorder) Delete(ctx, id any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockForManagingPlanet)(nil).Delete), ctx, id)
 }
 
-// DeleteForPlayer mocks base method.
-func (m *MockForManagingPlanet) DeleteForPlayer(ctx context.Context, player uuid.UUID) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteForPlayer", ctx, player)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// DeleteForPlayer indicates an expected call of DeleteForPlayer.
-func (mr *MockForManagingPlanetMockRecorder) DeleteForPlayer(ctx, player any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteForPlayer", reflect.TypeOf((*MockForManagingPlanet)(nil).DeleteForPlayer), ctx, player)
-}
-
 // Get mocks base method.
 func (m *MockForManagingPlanet) Get(ctx context.Context, id uuid.UUID) (models.Planet, error) {
 	m.ctrl.T.Helper()

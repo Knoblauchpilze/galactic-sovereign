@@ -46,7 +46,3 @@ func (p *planetUseCase) ListForPlayer(ctx context.Context, player uuid.UUID) ([]
 func (p *planetUseCase) Delete(ctx context.Context, id uuid.UUID) error {
 	return p.repo.Delete(ctx, id)
 }
-
-func (p *planetUseCase) DeleteForPlayer(ctx context.Context, player uuid.UUID) error {
-	return p.repo.DeleteForPlayer(ctx, player)
-}
