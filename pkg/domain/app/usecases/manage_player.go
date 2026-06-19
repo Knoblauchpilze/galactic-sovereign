@@ -11,12 +11,17 @@ import (
 )
 
 type playerUseCase struct {
-	repo drivenports.ForManagingPlayers
+	playerRepo   drivenports.ForManagingPlayers
+	resourceRepo drivenports.ForListingResources
 }
 
-func NewPlayerUseCase(repo drivenports.ForManagingPlayers) drivingports.ForManagingPlayer {
+func NewPlayerUseCase(
+	playerRepo drivenports.ForManagingPlayers,
+	resourceRepo drivenports.ForListingResources,
+) drivingports.ForManagingPlayer {
 	return &playerUseCase{
-		repo: repo,
+		playerRepo:   playerRepo,
+		resourceRepo: resourceRepo,
 	}
 }
 
@@ -24,7 +29,7 @@ func (p *playerUseCase) Create(ctx context.Context, req request.PlayerCreationRe
 	player := request.FromPlayerCreationRequest(req)
 	homeworld := player.CreateHomeworld()
 
-	err := p.repo.Create(ctx, player, homeworld)
+	err := p.playerRepo.Create(ctx, player, homeworld)
 	if err != nil {
 		return models.Player{}, err
 	}
@@ -33,19 +38,19 @@ func (p *playerUseCase) Create(ctx context.Context, req request.PlayerCreationRe
 }
 
 func (p *playerUseCase) Get(ctx context.Context, id uuid.UUID) (models.Player, error) {
-	return p.repo.Get(ctx, id)
+	return p.playerRepo.Get(ctx, id)
 }
 
 func (p *playerUseCase) List(ctx context.Context) ([]models.Player, error) {
-	return p.repo.List(ctx)
+	return p.playerRepo.List(ctx)
 }
 
 func (p *playerUseCase) ListForApiUser(ctx context.Context, apiUser uuid.UUID) ([]models.Player, error) {
-	return p.repo.ListForApiUser(ctx, apiUser)
+	return p.playerRepo.ListForApiUser(ctx, apiUser)
 }
 
 func (p *playerUseCase) Delete(ctx context.Context, id uuid.UUID) error {
-	err := p.repo.Delete(ctx, id)
+	err := p.playerRepo.Delete(ctx, id)
 	if err != nil {
 		return err
 	}

@@ -17,7 +17,8 @@ import (
 
 func TestUnit_ManagePlayer_Create(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	mockRepo := drivenportstest.NewMockForManagingPlayers(ctrl)
+	mockPlayerRepo := drivenportstest.NewMockForManagingPlayers(ctrl)
+	mockResourceRepo := drivenportstest.NewMockForListingResources(ctrl)
 
 	request := request.PlayerCreationRequest{
 		ApiUser:  uuid.New(),
@@ -28,7 +29,7 @@ func TestUnit_ManagePlayer_Create(t *testing.T) {
 	t.Run("persists created player", func(t *testing.T) {
 		var captured models.Player
 		var capturedHomeworld models.Planet
-		mockRepo.EXPECT().
+		mockPlayerRepo.EXPECT().
 			Create(gomock.Any(), gomock.AssignableToTypeOf(captured), gomock.AssignableToTypeOf(capturedHomeworld)).
 			Times(1).
 			DoAndReturn(func(ctx context.Context, player models.Player, planet models.Planet) error {
@@ -39,7 +40,7 @@ func TestUnit_ManagePlayer_Create(t *testing.T) {
 
 		beforeInsertion := time.Now()
 
-		usecase := NewPlayerUseCase(mockRepo)
+		usecase := NewPlayerUseCase(mockPlayerRepo, mockResourceRepo)
 		actual, err := usecase.Create(context.Background(), request)
 		require.NoError(t, err, "Actual err: %v", err)
 
@@ -55,12 +56,12 @@ func TestUnit_ManagePlayer_Create(t *testing.T) {
 
 	t.Run("returns error when repository fails", func(t *testing.T) {
 		expectedErr := errors.New("stubbed error")
-		mockRepo.EXPECT().
+		mockPlayerRepo.EXPECT().
 			Create(gomock.Any(), gomock.Any(), gomock.Any()).
 			Times(1).
 			Return(expectedErr)
 
-		usecase := NewPlayerUseCase(mockRepo)
+		usecase := NewPlayerUseCase(mockPlayerRepo, mockResourceRepo)
 		_, err := usecase.Create(context.Background(), request)
 
 		assert.ErrorIs(t, expectedErr, err, "Actual err: %v", err)
@@ -69,7 +70,8 @@ func TestUnit_ManagePlayer_Create(t *testing.T) {
 
 func TestUnit_ManagePlayer_Get(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	mockRepo := drivenportstest.NewMockForManagingPlayers(ctrl)
+	mockPlayerRepo := drivenportstest.NewMockForManagingPlayers(ctrl)
+	mockResourceRepo := drivenportstest.NewMockForListingResources(ctrl)
 
 	t.Run("gets existing player", func(t *testing.T) {
 		expected := models.Player{
@@ -79,12 +81,12 @@ func TestUnit_ManagePlayer_Get(t *testing.T) {
 			Name:     "my-player",
 		}
 
-		mockRepo.EXPECT().
+		mockPlayerRepo.EXPECT().
 			Get(gomock.Any(), gomock.Eq(expected.Id)).
 			Times(1).
 			Return(expected, nil)
 
-		usecase := NewPlayerUseCase(mockRepo)
+		usecase := NewPlayerUseCase(mockPlayerRepo, mockResourceRepo)
 		actual, err := usecase.Get(context.Background(), expected.Id)
 		require.NoError(t, err, "Actual err: %v", err)
 
@@ -93,12 +95,12 @@ func TestUnit_ManagePlayer_Get(t *testing.T) {
 
 	t.Run("returns error when repository fails", func(t *testing.T) {
 		expectedErr := errors.New("stubbed error")
-		mockRepo.EXPECT().
+		mockPlayerRepo.EXPECT().
 			Get(gomock.Any(), gomock.Any()).
 			Times(1).
 			Return(models.Player{}, expectedErr)
 
-		usecase := NewPlayerUseCase(mockRepo)
+		usecase := NewPlayerUseCase(mockPlayerRepo, mockResourceRepo)
 		_, err := usecase.Get(context.Background(), uuid.New())
 
 		assert.ErrorIs(t, expectedErr, err, "Actual err: %v", err)
@@ -107,7 +109,8 @@ func TestUnit_ManagePlayer_Get(t *testing.T) {
 
 func TestUnit_ManagePlayer_List(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	mockRepo := drivenportstest.NewMockForManagingPlayers(ctrl)
+	mockPlayerRepo := drivenportstest.NewMockForManagingPlayers(ctrl)
+	mockResourceRepo := drivenportstest.NewMockForListingResources(ctrl)
 
 	t.Run("lists existing players", func(t *testing.T) {
 		expected := []models.Player{
@@ -125,12 +128,12 @@ func TestUnit_ManagePlayer_List(t *testing.T) {
 			},
 		}
 
-		mockRepo.EXPECT().
+		mockPlayerRepo.EXPECT().
 			List(gomock.Any()).
 			Times(1).
 			Return(expected, nil)
 
-		usecase := NewPlayerUseCase(mockRepo)
+		usecase := NewPlayerUseCase(mockPlayerRepo, mockResourceRepo)
 		actual, err := usecase.List(context.Background())
 		require.NoError(t, err, "Actual err: %v", err)
 
@@ -140,12 +143,12 @@ func TestUnit_ManagePlayer_List(t *testing.T) {
 	t.Run("returns error when repository fails", func(t *testing.T) {
 		expectedErr := errors.New("stubbed error")
 
-		mockRepo.EXPECT().
+		mockPlayerRepo.EXPECT().
 			List(gomock.Any()).
 			Times(1).
 			Return(nil, expectedErr)
 
-		usecase := NewPlayerUseCase(mockRepo)
+		usecase := NewPlayerUseCase(mockPlayerRepo, mockResourceRepo)
 		_, err := usecase.List(context.Background())
 
 		assert.ErrorIs(t, expectedErr, err, "Actual err: %v", err)
@@ -154,7 +157,8 @@ func TestUnit_ManagePlayer_List(t *testing.T) {
 
 func TestUnit_ManagePlayer_ListForApiUser(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	mockRepo := drivenportstest.NewMockForManagingPlayers(ctrl)
+	mockPlayerRepo := drivenportstest.NewMockForManagingPlayers(ctrl)
+	mockResourceRepo := drivenportstest.NewMockForListingResources(ctrl)
 
 	t.Run("lists existing players", func(t *testing.T) {
 		apiUser := uuid.New()
@@ -173,12 +177,12 @@ func TestUnit_ManagePlayer_ListForApiUser(t *testing.T) {
 			},
 		}
 
-		mockRepo.EXPECT().
+		mockPlayerRepo.EXPECT().
 			ListForApiUser(gomock.Any(), gomock.Eq(apiUser)).
 			Times(1).
 			Return(expected, nil)
 
-		usecase := NewPlayerUseCase(mockRepo)
+		usecase := NewPlayerUseCase(mockPlayerRepo, mockResourceRepo)
 		actual, err := usecase.ListForApiUser(context.Background(), apiUser)
 		require.NoError(t, err, "Actual err: %v", err)
 
@@ -188,12 +192,12 @@ func TestUnit_ManagePlayer_ListForApiUser(t *testing.T) {
 	t.Run("returns error when repository fails", func(t *testing.T) {
 		expectedErr := errors.New("stubbed error")
 
-		mockRepo.EXPECT().
+		mockPlayerRepo.EXPECT().
 			ListForApiUser(gomock.Any(), gomock.Any()).
 			Times(1).
 			Return(nil, expectedErr)
 
-		usecase := NewPlayerUseCase(mockRepo)
+		usecase := NewPlayerUseCase(mockPlayerRepo, mockResourceRepo)
 		_, err := usecase.ListForApiUser(context.Background(), uuid.New())
 
 		assert.ErrorIs(t, expectedErr, err, "Actual err: %v", err)
@@ -202,29 +206,30 @@ func TestUnit_ManagePlayer_ListForApiUser(t *testing.T) {
 
 func TestUnit_ManagePlayer_Delete(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	mockRepo := drivenportstest.NewMockForManagingPlayers(ctrl)
+	mockPlayerRepo := drivenportstest.NewMockForManagingPlayers(ctrl)
+	mockResourceRepo := drivenportstest.NewMockForListingResources(ctrl)
 
 	t.Run("deletes existing player", func(t *testing.T) {
 		id := uuid.New()
 
-		mockRepo.EXPECT().
+		mockPlayerRepo.EXPECT().
 			Delete(gomock.Any(), gomock.Eq(id)).
 			Times(1).
 			Return(nil)
 
-		usecase := NewPlayerUseCase(mockRepo)
+		usecase := NewPlayerUseCase(mockPlayerRepo, mockResourceRepo)
 		err := usecase.Delete(context.Background(), id)
 		require.NoError(t, err, "Actual err: %v", err)
 	})
 
 	t.Run("returns error when repository fails", func(t *testing.T) {
 		expectedErr := errors.New("stubbed error")
-		mockRepo.EXPECT().
+		mockPlayerRepo.EXPECT().
 			Delete(gomock.Any(), gomock.Any()).
 			Times(1).
 			Return(expectedErr)
 
-		usecase := NewPlayerUseCase(mockRepo)
+		usecase := NewPlayerUseCase(mockPlayerRepo, mockResourceRepo)
 		err := usecase.Delete(context.Background(), uuid.New())
 
 		assert.ErrorIs(t, expectedErr, err, "Actual err: %v", err)
