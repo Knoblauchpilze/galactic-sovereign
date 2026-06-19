@@ -63,10 +63,8 @@ func TestIT_PlanetRepository_Create(t *testing.T) {
 			Version:   3,
 			Resources: []models.PlanetResource{
 				{
-					Resource:  crystalResourceId,
-					Amount:    7894.29,
-					CreatedAt: someTime,
-					UpdatedAt: someOtherTime,
+					Resource: crystalResourceId,
+					Amount:   7894.29,
 				},
 			},
 			Storages:    []models.PlanetResourceStorage{},
@@ -98,10 +96,8 @@ func TestIT_PlanetRepository_Create(t *testing.T) {
 			Resources: []models.PlanetResource{},
 			Storages: []models.PlanetResourceStorage{
 				{
-					Resource:  metalResourceId,
-					Storage:   23658,
-					CreatedAt: someTime,
-					UpdatedAt: someOtherTime,
+					Resource: metalResourceId,
+					Storage:  23658,
 				},
 			},
 			Productions: []models.PlanetResourceProduction{},
@@ -135,8 +131,6 @@ func TestIT_PlanetRepository_Create(t *testing.T) {
 				{
 					Resource:   crystalResourceId,
 					Production: 458,
-					CreatedAt:  someTime,
-					UpdatedAt:  someOtherTime,
 				},
 			},
 			Buildings: []models.PlanetBuilding{},
@@ -170,8 +164,6 @@ func TestIT_PlanetRepository_Create(t *testing.T) {
 					Resource:   metalResourceId,
 					Building:   &metalMineId,
 					Production: 35987,
-					CreatedAt:  someTime,
-					UpdatedAt:  someOtherTime,
 				},
 			},
 			Buildings: []models.PlanetBuilding{},
@@ -820,21 +812,17 @@ func addPlanetResource(t *testing.T, conn db.Connection, p *models.Planet) {
 	resource := models.PlanetResource{
 		Resource: crystalResourceId,
 		// Amount is stored with 5 decimals in the DB
-		Amount:    randFloat(5),
-		CreatedAt: someTime,
-		UpdatedAt: someOtherTime,
+		Amount: randFloat(5),
 	}
 
-	sqlQuery := `INSERT INTO planet_resource (planet, resource, amount, created_at, updated_at)
-		VALUES ($1, $2, $3, $4, $5)`
+	sqlQuery := `INSERT INTO planet_resource (planet, resource, amount)
+		VALUES ($1, $2, $3)`
 	_, err := conn.Exec(
 		t.Context(),
 		sqlQuery,
 		p.Id,
 		resource.Resource,
 		resource.Amount,
-		resource.CreatedAt,
-		resource.UpdatedAt,
 	)
 	require.NoError(t, err, "Actual err: %v", err)
 
@@ -845,22 +833,18 @@ func addPlanetStorage(t *testing.T, conn db.Connection, p *models.Planet) {
 	t.Helper()
 
 	storage := models.PlanetResourceStorage{
-		Resource:  crystalResourceId,
-		Storage:   6233,
-		CreatedAt: someTime,
-		UpdatedAt: someTime,
+		Resource: crystalResourceId,
+		Storage:  6233,
 	}
 
-	sqlQuery := `INSERT INTO planet_resource_storage (planet, resource, storage, created_at, updated_at)
-		VALUES ($1, $2, $3, $4, $5)`
+	sqlQuery := `INSERT INTO planet_resource_storage (planet, resource, storage)
+		VALUES ($1, $2, $3)`
 	_, err := conn.Exec(
 		t.Context(),
 		sqlQuery,
 		p.Id,
 		storage.Resource,
 		storage.Storage,
-		storage.CreatedAt,
-		storage.UpdatedAt,
 	)
 	require.NoError(t, err, "Actual err: %v", err)
 
@@ -874,13 +858,11 @@ func addPlanetProductionForBuilding(t *testing.T, conn db.Connection, p *models.
 		Building:   &crystalMineId,
 		Resource:   metalResourceId,
 		Production: rand.Intn(784152),
-		CreatedAt:  someTime,
-		UpdatedAt:  someOtherTime,
 	}
 
 	sqlQuery := `INSERT INTO planet_resource_production
-		(planet, building, resource, production, created_at, updated_at)
-		VALUES ($1, $2, $3, $4, $5, $6)`
+		(planet, building, resource, production)
+		VALUES ($1, $2, $3, $4)`
 	_, err := conn.Exec(
 		t.Context(),
 		sqlQuery,
@@ -888,8 +870,6 @@ func addPlanetProductionForBuilding(t *testing.T, conn db.Connection, p *models.
 		production.Building,
 		production.Resource,
 		production.Production,
-		production.CreatedAt,
-		production.UpdatedAt,
 	)
 	require.NoError(t, err, "Actual err: %v", err)
 
@@ -903,13 +883,11 @@ func addPlanetProduction(t *testing.T, conn db.Connection, p *models.Planet) {
 		Building:   nil,
 		Resource:   metalResourceId,
 		Production: rand.Intn(6589),
-		CreatedAt:  someTime,
-		UpdatedAt:  someOtherTime,
 	}
 
 	sqlQuery := `INSERT INTO planet_resource_production
-		(planet, building, resource, production, created_at, updated_at)
-		VALUES ($1, $2, $3, $4, $5, $6)`
+		(planet, building, resource, production)
+		VALUES ($1, $2, $3, $4)`
 	_, err := conn.Exec(
 		t.Context(),
 		sqlQuery,
@@ -917,8 +895,6 @@ func addPlanetProduction(t *testing.T, conn db.Connection, p *models.Planet) {
 		production.Building,
 		production.Resource,
 		production.Production,
-		production.CreatedAt,
-		production.UpdatedAt,
 	)
 	require.NoError(t, err, "Actual err: %v", err)
 
@@ -929,22 +905,18 @@ func addPlanetBuilding(t *testing.T, conn db.Connection, p *models.Planet) {
 	t.Helper()
 
 	building := models.PlanetBuilding{
-		Building:  metalStorageId,
-		Level:     0,
-		CreatedAt: someTime,
-		UpdatedAt: someTime,
+		Building: metalStorageId,
+		Level:    0,
 	}
 
-	sqlQuery := `INSERT INTO planet_building (planet, building, level, created_at, updated_at)
-		VALUES ($1, $2, $3, $4, $5)`
+	sqlQuery := `INSERT INTO planet_building (planet, building, level)
+		VALUES ($1, $2, $3)`
 	_, err := conn.Exec(
 		t.Context(),
 		sqlQuery,
 		p.Id,
 		building.Building,
 		building.Level,
-		building.CreatedAt,
-		building.UpdatedAt,
 	)
 	require.NoError(t, err, "Actual err: %v", err)
 

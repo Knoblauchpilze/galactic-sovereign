@@ -29,32 +29,20 @@ type Planet struct {
 type PlanetResource struct {
 	Resource uuid.UUID
 	Amount   float64
-
-	CreatedAt time.Time
-	UpdatedAt time.Time
 }
 
 type PlanetResourceStorage struct {
 	Resource uuid.UUID
 	Storage  int
-
-	CreatedAt time.Time
-	UpdatedAt time.Time
 }
 
 type PlanetResourceProduction struct {
 	Resource   uuid.UUID
 	Building   *uuid.UUID
 	Production int
-
-	CreatedAt time.Time
-	UpdatedAt time.Time
 }
 
 type PlanetBuilding struct {
 	Building uuid.UUID
 	Level    int
-
-	CreatedAt time.Time
-	UpdatedAt time.Time
 }

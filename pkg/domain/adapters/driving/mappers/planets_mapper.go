@@ -100,10 +100,8 @@ func toPlanetBuildingResponse(
 	building models.PlanetBuilding,
 ) dtos.PlanetBuildingDtoResponse {
 	return dtos.PlanetBuildingDtoResponse{
-		Building:  building.Building,
-		Level:     building.Level,
-		CreatedAt: building.CreatedAt,
-		UpdatedAt: building.UpdatedAt,
+		Building: building.Building,
+		Level:    building.Level,
 	}
 }
 

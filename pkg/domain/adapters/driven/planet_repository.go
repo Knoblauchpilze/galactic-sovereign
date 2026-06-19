@@ -20,23 +20,23 @@ INSERT INTO
 
 	createPlanetResourceQuery = `
 INSERT INTO
-	planet_resource (planet, resource, amount, created_at, updated_at)
-	VALUES($1, $2, $3, $4, $5)`
+	planet_resource (planet, resource, amount)
+	VALUES($1, $2, $3)`
 
 	createPlanetResourceStorageQuery = `
 INSERT INTO
-	planet_resource_storage (planet, resource, storage, created_at, updated_at)
-	VALUES($1, $2, $3, $4, $5)`
+	planet_resource_storage (planet, resource, storage)
+	VALUES($1, $2, $3)`
 
 	createPlanetResourceProductionQuery = `
 INSERT INTO
-	planet_resource_production (planet, building, resource, production, created_at, updated_at)
-	VALUES($1, $2, $3, $4, $5, $6)`
+	planet_resource_production (planet, building, resource, production)
+	VALUES($1, $2, $3, $4)`
 
 	createPlanetBuildingQuery = `
 INSERT INTO
-	planet_building (planet, building, level, created_at, updated_at)
-	VALUES($1, $2, $3, $4, $5)`
+	planet_building (planet, building, level)
+	VALUES($1, $2, $3)`
 
 	getPlanetQuery = `
 SELECT
@@ -61,9 +61,7 @@ WHERE
 	listPlanetResourceForPlanetQuery = `
 SELECT
 	resource,
-	amount,
-	created_at,
-	updated_at
+	amount
 FROM
 	planet_resource
 WHERE
@@ -72,9 +70,7 @@ WHERE
 	listPlanetResourceStorageForPlanetQuery = `
 SELECT
 	resource,
-	storage,
-	created_at,
-	updated_at
+	storage
 FROM
 	planet_resource_storage
 WHERE
@@ -84,9 +80,7 @@ WHERE
 SELECT
 	building,
 	resource,
-	production,
-	created_at,
-	updated_at
+	production
 FROM
 	planet_resource_production
 WHERE
@@ -95,9 +89,7 @@ WHERE
 	listPlanetBuildingForPlanetQuery = `
 SELECT
 	building,
-	level,
-	created_at,
-	updated_at
+	level
 FROM
 	planet_building
 WHERE
@@ -375,8 +367,6 @@ func createPlanetWithDetails(ctx context.Context, tx db.Transaction, planet mode
 			planet.Id,
 			r.Resource,
 			r.Amount,
-			r.CreatedAt,
-			r.UpdatedAt,
 		)
 		if err != nil {
 			return err
@@ -390,8 +380,6 @@ func createPlanetWithDetails(ctx context.Context, tx db.Transaction, planet mode
 			planet.Id,
 			s.Resource,
 			s.Storage,
-			s.CreatedAt,
-			s.UpdatedAt,
 		)
 		if err != nil {
 			return err
@@ -406,8 +394,6 @@ func createPlanetWithDetails(ctx context.Context, tx db.Transaction, planet mode
 			p.Building,
 			p.Resource,
 			p.Production,
-			p.CreatedAt,
-			p.UpdatedAt,
 		)
 		if err != nil {
 			return err
@@ -421,8 +407,6 @@ func createPlanetWithDetails(ctx context.Context, tx db.Transaction, planet mode
 			planet.Id,
 			b.Building,
 			b.Level,
-			b.CreatedAt,
-			b.UpdatedAt,
 		)
 		if err != nil {
 			return err

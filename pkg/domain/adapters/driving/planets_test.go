@@ -142,10 +142,8 @@ func TestUnit_Planets_GetPlanet(t *testing.T) {
 			},
 			Buildings: []models.PlanetBuilding{
 				{
-					Building:  uuid.New(),
-					Level:     14,
-					CreatedAt: someTime,
-					UpdatedAt: someOtherTime,
+					Building: uuid.New(),
+					Level:    14,
 				},
 			},
 			BuildingAction: &sampleUuid,
@@ -184,10 +182,8 @@ func TestUnit_Planets_GetPlanet(t *testing.T) {
 			},
 			Buildings: []dtos.PlanetBuildingDtoResponse{
 				{
-					Building:  planet.Buildings[0].Building,
-					Level:     planet.Buildings[0].Level,
-					CreatedAt: someTime,
-					UpdatedAt: someOtherTime,
+					Building: planet.Buildings[0].Building,
+					Level:    planet.Buildings[0].Level,
 				},
 			},
 			BuildingAction: &sampleUuid,

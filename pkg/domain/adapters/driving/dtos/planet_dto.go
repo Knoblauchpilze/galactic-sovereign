@@ -45,8 +45,6 @@ type PlanetResourceProductionDtoResponse struct {
 }
 
 type PlanetBuildingDtoResponse struct {
-	Building  uuid.UUID `json:"building" format:"uuid" binding:"required"`
-	Level     int       `json:"level" binding:"required"`
-	CreatedAt time.Time `json:"createdAt" format:"date-time" binding:"required"`
-	UpdatedAt time.Time `json:"updatedAt" format:"date-time" binding:"required"`
+	Building uuid.UUID `json:"building" format:"uuid" binding:"required"`
+	Level    int       `json:"level" binding:"required"`
 }
