@@ -173,8 +173,25 @@ func (r *playerRepositoryImpl) ListForApiUser(ctx context.Context, apiUser uuid.
 }
 
 func (r *playerRepositoryImpl) Delete(ctx context.Context, player models.Player) error {
-	_, err := r.conn.Exec(ctx, deletePlayerQuery, player.Id)
-	return err
+	tx, err := r.conn.BeginTx(ctx)
+	if err != nil {
+		return err
+	}
+	defer tx.Close(ctx)
+
+	for _, p := range player.Planets {
+		err = deletePlanetDetails(ctx, tx, p)
+		if err != nil {
+			return parseDbError(err)
+		}
+	}
+
+	_, err = tx.Exec(ctx, deletePlayerQuery, player.Id)
+	if err != nil {
+		return parseDbError(err)
+	}
+
+	return nil
 }
 
 func loadPlayerDetails(ctx context.Context, tx db.Transaction, dbPlayer mappers.DbPlayer) (models.Player, error) {
