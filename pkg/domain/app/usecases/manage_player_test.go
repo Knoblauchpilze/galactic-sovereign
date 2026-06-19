@@ -19,6 +19,7 @@ func TestUnit_ManagePlayer_Create(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	mockPlayerRepo := drivenportstest.NewMockForManagingPlayers(ctrl)
 	mockResourceRepo := drivenportstest.NewMockForListingResources(ctrl)
+	mockBuildingRepo := drivenportstest.NewMockForListingBuildings(ctrl)
 
 	request := request.PlayerCreationRequest{
 		ApiUser:  uuid.New(),
@@ -40,7 +41,7 @@ func TestUnit_ManagePlayer_Create(t *testing.T) {
 
 		beforeInsertion := time.Now()
 
-		usecase := NewPlayerUseCase(mockPlayerRepo, mockResourceRepo)
+		usecase := NewPlayerUseCase(mockPlayerRepo, mockResourceRepo, mockBuildingRepo)
 		actual, err := usecase.Create(context.Background(), request)
 		require.NoError(t, err, "Actual err: %v", err)
 
@@ -61,7 +62,7 @@ func TestUnit_ManagePlayer_Create(t *testing.T) {
 			Times(1).
 			Return(expectedErr)
 
-		usecase := NewPlayerUseCase(mockPlayerRepo, mockResourceRepo)
+		usecase := NewPlayerUseCase(mockPlayerRepo, mockResourceRepo, mockBuildingRepo)
 		_, err := usecase.Create(context.Background(), request)
 
 		assert.ErrorIs(t, expectedErr, err, "Actual err: %v", err)
@@ -72,6 +73,7 @@ func TestUnit_ManagePlayer_Get(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	mockPlayerRepo := drivenportstest.NewMockForManagingPlayers(ctrl)
 	mockResourceRepo := drivenportstest.NewMockForListingResources(ctrl)
+	mockBuildingRepo := drivenportstest.NewMockForListingBuildings(ctrl)
 
 	t.Run("gets existing player", func(t *testing.T) {
 		expected := models.Player{
@@ -86,7 +88,7 @@ func TestUnit_ManagePlayer_Get(t *testing.T) {
 			Times(1).
 			Return(expected, nil)
 
-		usecase := NewPlayerUseCase(mockPlayerRepo, mockResourceRepo)
+		usecase := NewPlayerUseCase(mockPlayerRepo, mockResourceRepo, mockBuildingRepo)
 		actual, err := usecase.Get(context.Background(), expected.Id)
 		require.NoError(t, err, "Actual err: %v", err)
 
@@ -100,7 +102,7 @@ func TestUnit_ManagePlayer_Get(t *testing.T) {
 			Times(1).
 			Return(models.Player{}, expectedErr)
 
-		usecase := NewPlayerUseCase(mockPlayerRepo, mockResourceRepo)
+		usecase := NewPlayerUseCase(mockPlayerRepo, mockResourceRepo, mockBuildingRepo)
 		_, err := usecase.Get(context.Background(), uuid.New())
 
 		assert.ErrorIs(t, expectedErr, err, "Actual err: %v", err)
@@ -111,6 +113,7 @@ func TestUnit_ManagePlayer_List(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	mockPlayerRepo := drivenportstest.NewMockForManagingPlayers(ctrl)
 	mockResourceRepo := drivenportstest.NewMockForListingResources(ctrl)
+	mockBuildingRepo := drivenportstest.NewMockForListingBuildings(ctrl)
 
 	t.Run("lists existing players", func(t *testing.T) {
 		expected := []models.Player{
@@ -133,7 +136,7 @@ func TestUnit_ManagePlayer_List(t *testing.T) {
 			Times(1).
 			Return(expected, nil)
 
-		usecase := NewPlayerUseCase(mockPlayerRepo, mockResourceRepo)
+		usecase := NewPlayerUseCase(mockPlayerRepo, mockResourceRepo, mockBuildingRepo)
 		actual, err := usecase.List(context.Background())
 		require.NoError(t, err, "Actual err: %v", err)
 
@@ -148,7 +151,7 @@ func TestUnit_ManagePlayer_List(t *testing.T) {
 			Times(1).
 			Return(nil, expectedErr)
 
-		usecase := NewPlayerUseCase(mockPlayerRepo, mockResourceRepo)
+		usecase := NewPlayerUseCase(mockPlayerRepo, mockResourceRepo, mockBuildingRepo)
 		_, err := usecase.List(context.Background())
 
 		assert.ErrorIs(t, expectedErr, err, "Actual err: %v", err)
@@ -159,6 +162,7 @@ func TestUnit_ManagePlayer_ListForApiUser(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	mockPlayerRepo := drivenportstest.NewMockForManagingPlayers(ctrl)
 	mockResourceRepo := drivenportstest.NewMockForListingResources(ctrl)
+	mockBuildingRepo := drivenportstest.NewMockForListingBuildings(ctrl)
 
 	t.Run("lists existing players", func(t *testing.T) {
 		apiUser := uuid.New()
@@ -182,7 +186,7 @@ func TestUnit_ManagePlayer_ListForApiUser(t *testing.T) {
 			Times(1).
 			Return(expected, nil)
 
-		usecase := NewPlayerUseCase(mockPlayerRepo, mockResourceRepo)
+		usecase := NewPlayerUseCase(mockPlayerRepo, mockResourceRepo, mockBuildingRepo)
 		actual, err := usecase.ListForApiUser(context.Background(), apiUser)
 		require.NoError(t, err, "Actual err: %v", err)
 
@@ -197,7 +201,7 @@ func TestUnit_ManagePlayer_ListForApiUser(t *testing.T) {
 			Times(1).
 			Return(nil, expectedErr)
 
-		usecase := NewPlayerUseCase(mockPlayerRepo, mockResourceRepo)
+		usecase := NewPlayerUseCase(mockPlayerRepo, mockResourceRepo, mockBuildingRepo)
 		_, err := usecase.ListForApiUser(context.Background(), uuid.New())
 
 		assert.ErrorIs(t, expectedErr, err, "Actual err: %v", err)
@@ -208,6 +212,7 @@ func TestUnit_ManagePlayer_Delete(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	mockPlayerRepo := drivenportstest.NewMockForManagingPlayers(ctrl)
 	mockResourceRepo := drivenportstest.NewMockForListingResources(ctrl)
+	mockBuildingRepo := drivenportstest.NewMockForListingBuildings(ctrl)
 
 	t.Run("deletes existing player", func(t *testing.T) {
 		id := uuid.New()
@@ -217,7 +222,7 @@ func TestUnit_ManagePlayer_Delete(t *testing.T) {
 			Times(1).
 			Return(nil)
 
-		usecase := NewPlayerUseCase(mockPlayerRepo, mockResourceRepo)
+		usecase := NewPlayerUseCase(mockPlayerRepo, mockResourceRepo, mockBuildingRepo)
 		err := usecase.Delete(context.Background(), id)
 		require.NoError(t, err, "Actual err: %v", err)
 	})
@@ -229,7 +234,7 @@ func TestUnit_ManagePlayer_Delete(t *testing.T) {
 			Times(1).
 			Return(expectedErr)
 
-		usecase := NewPlayerUseCase(mockPlayerRepo, mockResourceRepo)
+		usecase := NewPlayerUseCase(mockPlayerRepo, mockResourceRepo, mockBuildingRepo)
 		err := usecase.Delete(context.Background(), uuid.New())
 
 		assert.ErrorIs(t, expectedErr, err, "Actual err: %v", err)

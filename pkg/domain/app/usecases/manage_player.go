@@ -13,21 +13,24 @@ import (
 type playerUseCase struct {
 	playerRepo   drivenports.ForManagingPlayers
 	resourceRepo drivenports.ForListingResources
+	buildingRepo drivenports.ForListingBuildings
 }
 
 func NewPlayerUseCase(
 	playerRepo drivenports.ForManagingPlayers,
 	resourceRepo drivenports.ForListingResources,
+	buildingRepo drivenports.ForListingBuildings,
 ) drivingports.ForManagingPlayer {
 	return &playerUseCase{
 		playerRepo:   playerRepo,
 		resourceRepo: resourceRepo,
+		buildingRepo: buildingRepo,
 	}
 }
 
 func (p *playerUseCase) Create(ctx context.Context, req request.PlayerCreationRequest) (models.Player, error) {
 	player := request.FromPlayerCreationRequest(req)
-	homeworld := player.CreateHomeworld([]models.Resource{})
+	homeworld := player.CreateHomeworld([]models.Resource{}, []models.Building{})
 
 	err := p.playerRepo.Create(ctx, player, homeworld)
 	if err != nil {
