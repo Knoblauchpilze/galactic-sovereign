@@ -43,17 +43,17 @@ func (m *MockForManagingPlayers) EXPECT() *MockForManagingPlayersMockRecorder {
 }
 
 // Create mocks base method.
-func (m *MockForManagingPlayers) Create(ctx context.Context, player models.Player) error {
+func (m *MockForManagingPlayers) Create(ctx context.Context, player models.Player, homeworld models.Planet) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Create", ctx, player)
+	ret := m.ctrl.Call(m, "Create", ctx, player, homeworld)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Create indicates an expected call of Create.
-func (mr *MockForManagingPlayersMockRecorder) Create(ctx, player any) *gomock.Call {
+func (mr *MockForManagingPlayersMockRecorder) Create(ctx, player, homeworld any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockForManagingPlayers)(nil).Create), ctx, player)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockForManagingPlayers)(nil).Create), ctx, player, homeworld)
 }
 
 // Delete mocks base method.

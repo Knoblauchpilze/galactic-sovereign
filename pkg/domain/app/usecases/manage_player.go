@@ -22,8 +22,9 @@ func NewPlayerUseCase(repo drivenports.ForManagingPlayers) drivingports.ForManag
 
 func (p *playerUseCase) Create(ctx context.Context, req request.PlayerCreationRequest) (models.Player, error) {
 	player := request.FromPlayerCreationRequest(req)
+	homeworld := player.CreateHomeworld()
 
-	err := p.repo.Create(ctx, player)
+	err := p.repo.Create(ctx, player, homeworld)
 	if err != nil {
 		return models.Player{}, err
 	}

@@ -83,9 +83,28 @@ func NewPlayerRepository(conn db.Connection) drivenports.ForManagingPlayers {
 	}
 }
 
-func (r *playerRepositoryImpl) Create(ctx context.Context, player models.Player) error {
-	_, err := r.conn.Exec(ctx, createPlayerQuery, player.Id, player.ApiUser, player.Universe, player.Name, player.CreatedAt)
-	return parseDbError(err)
+func (r *playerRepositoryImpl) Create(
+	ctx context.Context,
+	player models.Player,
+	homeworld models.Planet,
+) error {
+	tx, err := r.conn.BeginTx(ctx)
+	if err != nil {
+		return err
+	}
+	defer tx.Close(ctx)
+
+	_, err = r.conn.Exec(ctx, createPlayerQuery, player.Id, player.ApiUser, player.Universe, player.Name, player.CreatedAt)
+	if err != nil {
+		return parseDbError(err)
+	}
+
+	err = createPlanetWithDetails(ctx, tx, homeworld)
+	if err != nil {
+		return parseDbError(err)
+	}
+
+	return nil
 }
 
 func (r *playerRepositoryImpl) Get(ctx context.Context, id uuid.UUID) (models.Player, error) {
