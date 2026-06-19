@@ -178,6 +178,24 @@ func TestUnit_BuildingActions_CreateBuildingAction(t *testing.T) {
 		assert.Equal(t, "no such building", actual)
 	})
 
+	t.Run("returns 400 when not enough resources are on the planet", func(t *testing.T) {
+		dto := dtos.BuildingActionDtoRequest{Building: uuid.New()}
+		req := generateTestRequestWithJsonBody(t, http.MethodPost, dto)
+		ctx, rw := generateTestContextFromRequest(t, req, addIdPathParam)
+
+		mockUsecase.EXPECT().
+			Create(gomock.Any(), gomock.Any()).
+			Times(1).
+			Return(models.BuildingAction{}, domainerrors.ErrNotEnoughResources)
+
+		err := createBuildingAction(ctx, mockUsecase)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.Equal(t, http.StatusBadRequest, rw.Code)
+		actual := decodeResponseBody[string](t, rw)
+		assert.Equal(t, "not enough resources", actual)
+	})
+
 	t.Run("returns 500 when use case fails", func(t *testing.T) {
 		dto := dtos.BuildingActionDtoRequest{Building: uuid.New()}
 		req := generateTestRequestWithJsonBody(t, http.MethodPost, dto)

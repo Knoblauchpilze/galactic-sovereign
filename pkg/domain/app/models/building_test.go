@@ -16,8 +16,29 @@ var (
 
 func TestUnit_Building_CreateBuildingAction(t *testing.T) {
 	buildingId := uuid.New()
+	sampleResource1 := uuid.New()
+	sampleResource2 := uuid.New()
 	p := Planet{
 		Id: uuid.New(),
+		// High enough values to not have to worry about costs
+		Resources: []PlanetResource{
+			{
+				Resource: sampleResource1,
+				Amount:   999999,
+			},
+			{
+				Resource: sampleResource2,
+				Amount:   999999,
+			},
+			{
+				Resource: metalResourceId,
+				Amount:   999999,
+			},
+			{
+				Resource: crystalResourceId,
+				Amount:   999999,
+			},
+		},
 		Buildings: []PlanetBuilding{
 			{
 				Building: buildingId,
@@ -33,12 +54,12 @@ func TestUnit_Building_CreateBuildingAction(t *testing.T) {
 			CreatedAt: someTime,
 			Costs: []BuildingCost{
 				{
-					Resource: uuid.New(),
+					Resource: sampleResource1,
 					Cost:     36,
 					Progress: 1.5,
 				},
 				{
-					Resource: uuid.New(),
+					Resource: sampleResource2,
 					Cost:     78,
 					Progress: 1.7,
 				},
@@ -66,11 +87,11 @@ func TestUnit_Building_CreateBuildingAction(t *testing.T) {
 
 			Costs: []BuildingActionCost{
 				{
-					Resource: b.Costs[0].Resource,
+					Resource: sampleResource1,
 					Amount:   182,
 				},
 				{
-					Resource: b.Costs[1].Resource,
+					Resource: sampleResource2,
 					Amount:   651,
 				},
 			},
@@ -88,12 +109,12 @@ func TestUnit_Building_CreateBuildingAction(t *testing.T) {
 			Costs:     []BuildingCost{},
 			Productions: []BuildingResourceProduction{
 				{
-					Resource: uuid.New(),
+					Resource: sampleResource1,
 					Base:     74,
 					Progress: 4.5,
 				},
 				{
-					Resource: uuid.New(),
+					Resource: sampleResource2,
 					Base:     98,
 					Progress: 2.4,
 				},
@@ -120,11 +141,11 @@ func TestUnit_Building_CreateBuildingAction(t *testing.T) {
 			Costs: []BuildingActionCost{},
 			Productions: []BuildingActionResourceProduction{
 				{
-					Resource:   b.Productions[0].Resource,
+					Resource:   sampleResource1,
 					Production: 682754,
 				},
 				{
-					Resource:   b.Productions[1].Resource,
+					Resource:   sampleResource2,
 					Production: 39016,
 				},
 			},
@@ -142,13 +163,13 @@ func TestUnit_Building_CreateBuildingAction(t *testing.T) {
 			Productions: []BuildingResourceProduction{},
 			Storages: []BuildingResourceStorage{
 				{
-					Resource: uuid.New(),
+					Resource: sampleResource1,
 					Base:     8904,
 					Scale:    2,
 					Progress: 2.2,
 				},
 				{
-					Resource: uuid.New(),
+					Resource: sampleResource2,
 					Base:     312,
 					Scale:    1.2,
 					Progress: 1.1,
@@ -176,11 +197,11 @@ func TestUnit_Building_CreateBuildingAction(t *testing.T) {
 			Productions: []BuildingActionResourceProduction{},
 			Storages: []BuildingActionResourceStorage{
 				{
-					Resource: b.Storages[0].Resource,
+					Resource: sampleResource1,
 					Storage:  917112,
 				},
 				{
-					Resource: b.Storages[1].Resource,
+					Resource: sampleResource2,
 					Storage:  312,
 				},
 			},
@@ -195,7 +216,7 @@ func TestUnit_Building_CreateBuildingAction(t *testing.T) {
 			CreatedAt: someTime,
 			Costs: []BuildingCost{
 				{
-					Resource: uuid.New(),
+					Resource: sampleResource1,
 					Cost:     36,
 					Progress: 1.5,
 				},
@@ -211,14 +232,14 @@ func TestUnit_Building_CreateBuildingAction(t *testing.T) {
 		assert.Equal(t, time.Duration(0), actual)
 		expectedCosts := []BuildingActionCost{
 			{
-				Resource: b.Costs[0].Resource,
+				Resource: sampleResource1,
 				Amount:   182,
 			},
 		}
 		assert.Equal(t, expectedCosts, action.Costs)
 	})
 
-	t.Run("correctly calculates completion time when another resource is used", func(t *testing.T) {
+	t.Run("correctly calculates completion time when no resource is used", func(t *testing.T) {
 		b := Building{
 			Id:          buildingId,
 			Name:        "test-building",
@@ -318,5 +339,44 @@ func TestUnit_Building_CreateBuildingAction(t *testing.T) {
 		_, err := b.CreateBuildingAction(p)
 
 		assert.ErrorIs(t, err, domainerrors.ErrBuildingNotFound)
+	})
+
+	t.Run("returns error when resources are missing on the planet", func(t *testing.T) {
+		b := Building{
+			Id:        buildingId,
+			Name:      "test-building",
+			CreatedAt: someTime,
+			Costs: []BuildingCost{
+				{
+					Resource: metalResourceId,
+					Cost:     36,
+					Progress: 1.5,
+				},
+				{
+					Resource: crystalResourceId,
+					Cost:     79,
+					Progress: 1.7,
+				},
+			},
+			Productions: []BuildingResourceProduction{},
+			Storages:    []BuildingResourceStorage{},
+		}
+
+		poorPlanet := p
+		poorPlanet.Resources = []PlanetResource{
+			{
+				Resource: metalResourceId,
+				Amount:   189,
+			},
+			{
+				Resource: crystalResourceId,
+				// Needed value: 659
+				Amount: 658,
+			},
+		}
+
+		_, err := b.CreateBuildingAction(poorPlanet)
+
+		assert.ErrorIs(t, domainerrors.ErrNotEnoughResources, err)
 	})
 }

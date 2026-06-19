@@ -69,6 +69,10 @@ func createBuildingAction(c *echo.Context, usecase drivingports.ForManagingBuild
 			return c.JSON(http.StatusBadRequest, "no such building")
 		}
 
+		if err == domainerrors.ErrNotEnoughResources {
+			return c.JSON(http.StatusBadRequest, "not enough resources")
+		}
+
 		c.Logger().Error("Failed to create building action", slog.Any("error", err))
 		return c.JSON(http.StatusInternalServerError, "failed to create building action")
 	}

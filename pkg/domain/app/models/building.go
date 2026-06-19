@@ -55,6 +55,10 @@ func (b Building) CreateBuildingAction(planet Planet) (BuildingAction, error) {
 	completionTime := determineCompletionTime(costs)
 	createdAt := time.Now()
 
+	if err := validateEnoughResources(planet, costs); err != nil {
+		return BuildingAction{}, err
+	}
+
 	action := BuildingAction{
 		Id:           uuid.New(),
 		Planet:       planet.Id,
@@ -151,6 +155,25 @@ func determineCompletionTime(
 	nanoSeconds := math.Ceil(buildTimeHour * float64(time.Hour.Nanoseconds()))
 
 	return time.Duration(nanoSeconds)
+}
+
+func validateEnoughResources(
+	planet Planet,
+	costs []BuildingActionCost,
+) error {
+	temp := make(map[uuid.UUID]PlanetResource)
+	for _, resource := range planet.Resources {
+		temp[resource.Resource] = resource
+	}
+
+	for _, cost := range costs {
+		actual, ok := temp[cost.Resource]
+		if !ok || actual.Amount < float64(cost.Amount) {
+			return domainerrors.ErrNotEnoughResources
+		}
+	}
+
+	return nil
 }
 
 func findBuildingById(buildings []PlanetBuilding, id uuid.UUID) (PlanetBuilding, error) {

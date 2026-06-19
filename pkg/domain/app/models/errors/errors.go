@@ -9,6 +9,7 @@ const (
 
 	nameAlreadyTaken        errors.ErrorCode = 610
 	actionAlreadyInProgress errors.ErrorCode = 611
+	notEnoughResources      errors.ErrorCode = 612
 )
 
 var (
@@ -17,4 +18,5 @@ var (
 
 	ErrNameAlreadyTaken        = errors.FromCode(nameAlreadyTaken)
 	ErrActionAlreadyInProgress = errors.FromCode(actionAlreadyInProgress)
+	ErrNotEnoughResources      = errors.FromCode(notEnoughResources)
 )
