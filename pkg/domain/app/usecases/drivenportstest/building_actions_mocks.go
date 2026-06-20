@@ -57,17 +57,17 @@ func (mr *MockForManagingBuildingActionsMockRecorder) Create(ctx, planet, action
 }
 
 // Delete mocks base method.
-func (m *MockForManagingBuildingActions) Delete(ctx context.Context, id uuid.UUID) error {
+func (m *MockForManagingBuildingActions) Delete(ctx context.Context, action models.BuildingAction) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Delete", ctx, id)
+	ret := m.ctrl.Call(m, "Delete", ctx, action)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Delete indicates an expected call of Delete.
-func (mr *MockForManagingBuildingActionsMockRecorder) Delete(ctx, id any) *gomock.Call {
+func (mr *MockForManagingBuildingActionsMockRecorder) Delete(ctx, action any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockForManagingBuildingActions)(nil).Delete), ctx, id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockForManagingBuildingActions)(nil).Delete), ctx, action)
 }
 
 // Get mocks base method.

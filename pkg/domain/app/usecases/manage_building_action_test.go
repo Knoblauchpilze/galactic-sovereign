@@ -210,19 +210,42 @@ func TestUnit_ManageBuildingAction_Delete(t *testing.T) {
 	mockBuildingRepo := drivenportstest.NewMockForListingBuildings(ctrl)
 
 	t.Run("deletes existing building action", func(t *testing.T) {
-		id := uuid.New()
+		action := models.BuildingAction{Id: uuid.New()}
 
 		mockActionRepo.EXPECT().
-			Delete(gomock.Any(), gomock.Eq(id)).
+			Get(gomock.Any(), gomock.Eq(action.Id)).
+			Times(1).
+			Return(action, nil)
+		mockActionRepo.EXPECT().
+			Delete(gomock.Any(), gomock.Eq(action)).
 			Times(1).
 			Return(nil)
 
 		usecase := NewBuildingActionUseCase(mockActionRepo, mockPlanetRepo, mockBuildingRepo)
-		err := usecase.Delete(context.Background(), id)
+		err := usecase.Delete(context.Background(), action.Id)
+		require.NoError(t, err, "Actual err: %v", err)
+	})
+
+	t.Run("succeeds when building action is not found", func(t *testing.T) {
+		actionId := uuid.New()
+
+		mockActionRepo.EXPECT().
+			Get(gomock.Any(), gomock.Eq(actionId)).
+			Times(1).
+			Return(models.BuildingAction{}, domainerrors.ErrNotFound)
+
+		usecase := NewBuildingActionUseCase(mockActionRepo, mockPlanetRepo, mockBuildingRepo)
+		err := usecase.Delete(context.Background(), actionId)
 		require.NoError(t, err, "Actual err: %v", err)
 	})
 
 	t.Run("returns error when repository fails", func(t *testing.T) {
+		action := models.BuildingAction{Id: uuid.New()}
+
+		mockActionRepo.EXPECT().
+			Get(gomock.Any(), gomock.Eq(action.Id)).
+			Times(1).
+			Return(action, nil)
 		expectedErr := errors.New("stubbed error")
 		mockActionRepo.EXPECT().
 			Delete(gomock.Any(), gomock.Any()).
@@ -230,7 +253,7 @@ func TestUnit_ManageBuildingAction_Delete(t *testing.T) {
 			Return(expectedErr)
 
 		usecase := NewBuildingActionUseCase(mockActionRepo, mockPlanetRepo, mockBuildingRepo)
-		err := usecase.Delete(context.Background(), uuid.New())
+		err := usecase.Delete(context.Background(), action.Id)
 
 		assert.ErrorIs(t, expectedErr, err, "Actual err: %v", err)
 	})

@@ -166,29 +166,14 @@ func (r *buildingActionRepositoryImpl) Get(
 	return loadBuildingActionDetails(ctx, tx, dbAction)
 }
 
-func (r *buildingActionRepositoryImpl) Delete(ctx context.Context, id uuid.UUID) error {
+func (r *buildingActionRepositoryImpl) Delete(ctx context.Context, action models.BuildingAction) error {
 	tx, err := r.conn.BeginTx(ctx)
 	if err != nil {
 		return err
 	}
 	defer tx.Close(ctx)
 
-	_, err = tx.Exec(ctx, deleteBuildingActionResourceProductionQuery, id)
-	if err != nil {
-		return err
-	}
-
-	_, err = tx.Exec(ctx, deleteBuildingActionResourceStorageQuery, id)
-	if err != nil {
-		return err
-	}
-
-	_, err = tx.Exec(ctx, deleteBuildingActionCostsQuery, id)
-	if err != nil {
-		return err
-	}
-
-	_, err = tx.Exec(ctx, deleteBuildingActionQuery, id)
+	err = deleteBuildingActionDetails(ctx, tx, action)
 	if err != nil {
 		return err
 	}
@@ -294,6 +279,30 @@ func loadBuildingActionDetails(
 	}
 
 	return action, nil
+}
+
+func deleteBuildingActionDetails(ctx context.Context, tx db.Transaction, action models.BuildingAction) error {
+	_, err := tx.Exec(ctx, deleteBuildingActionResourceProductionQuery, action.Id)
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.Exec(ctx, deleteBuildingActionResourceStorageQuery, action.Id)
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.Exec(ctx, deleteBuildingActionCostsQuery, action.Id)
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.Exec(ctx, deleteBuildingActionQuery, action.Id)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func deleteBuildingActionDetailsForPlanet(ctx context.Context, tx db.Transaction, planet uuid.UUID) error {

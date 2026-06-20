@@ -58,5 +58,19 @@ func (b *buildingActionUseCase) Create(ctx context.Context, req request.Building
 }
 
 func (b *buildingActionUseCase) Delete(ctx context.Context, id uuid.UUID) error {
-	return b.actionRepo.Delete(ctx, id)
+	action, err := b.actionRepo.Get(ctx, id)
+	if err != nil {
+		if err == domainerrors.ErrNotFound {
+			return nil
+		}
+
+		return err
+	}
+
+	err = b.actionRepo.Delete(ctx, action)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

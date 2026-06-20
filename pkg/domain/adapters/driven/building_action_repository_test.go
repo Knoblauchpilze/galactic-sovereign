@@ -310,7 +310,7 @@ func TestIT_BuildingActionRepository_Delete(t *testing.T) {
 	t.Run("deletes an action", func(t *testing.T) {
 		action, _ := insertTestBuildingAction(t, conn)
 
-		err := repo.Delete(t.Context(), action.Id)
+		err := repo.Delete(t.Context(), action)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assertBuildingActionDoesNotExist(t, conn, action.Id)
@@ -319,7 +319,7 @@ func TestIT_BuildingActionRepository_Delete(t *testing.T) {
 	t.Run("deletes action with costs", func(t *testing.T) {
 		action, _ := insertTestBuildingAction(t, conn, addBuildingActionCost)
 
-		err := repo.Delete(t.Context(), action.Id)
+		err := repo.Delete(t.Context(), action)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assertBuildingActionDoesNotExist(t, conn, action.Id)
@@ -329,7 +329,7 @@ func TestIT_BuildingActionRepository_Delete(t *testing.T) {
 	t.Run("deletes action with storages", func(t *testing.T) {
 		action, _ := insertTestBuildingAction(t, conn, addBuildingActionStorage)
 
-		err := repo.Delete(t.Context(), action.Id)
+		err := repo.Delete(t.Context(), action)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assertBuildingActionDoesNotExist(t, conn, action.Id)
@@ -339,7 +339,7 @@ func TestIT_BuildingActionRepository_Delete(t *testing.T) {
 	t.Run("deletes action with productions", func(t *testing.T) {
 		action, _ := insertTestBuildingAction(t, conn, addBuildingActionProduction)
 
-		err := repo.Delete(t.Context(), action.Id)
+		err := repo.Delete(t.Context(), action)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assertBuildingActionDoesNotExist(t, conn, action.Id)
@@ -347,9 +347,9 @@ func TestIT_BuildingActionRepository_Delete(t *testing.T) {
 	})
 
 	t.Run("succeeds when the action does not exist", func(t *testing.T) {
-		nonExistingId := uuid.MustParse("00000000-0000-1221-0000-000000000000")
+		action := models.BuildingAction{Id: uuid.New()}
 
-		err := repo.Delete(t.Context(), nonExistingId)
+		err := repo.Delete(t.Context(), action)
 		require.NoError(t, err, "Actual err: %v", err)
 	})
 }
@@ -399,7 +399,7 @@ func TestIT_BuildingActionRepository_CreationDeletionWorkflow(t *testing.T) {
 			}()
 
 			func() {
-				err := repo.Delete(t.Context(), tc.action.Id)
+				err := repo.Delete(t.Context(), tc.action)
 				require.NoError(t, err, "Actual err: %v", err)
 			}()
 

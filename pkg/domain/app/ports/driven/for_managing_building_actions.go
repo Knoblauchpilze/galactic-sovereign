@@ -10,5 +10,5 @@ import (
 type ForManagingBuildingActions interface {
 	Create(ctx context.Context, planet models.Planet, action models.BuildingAction) error
 	Get(ctx context.Context, id uuid.UUID) (models.BuildingAction, error)
-	Delete(ctx context.Context, id uuid.UUID) error
+	Delete(ctx context.Context, action models.BuildingAction) error
 }
