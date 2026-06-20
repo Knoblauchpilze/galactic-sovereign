@@ -64,6 +64,8 @@ func (p *Planet) AddBuildingAction(building Building) (BuildingAction, error) {
 		return BuildingAction{}, err
 	}
 
+	p.deductResources(action)
+
 	p.BuildingAction = &action.Id
 
 	return action, nil
@@ -85,6 +87,22 @@ func (p *Planet) validateEnoughResources(
 	}
 
 	return nil
+}
+
+func (p *Planet) deductResources(
+	action BuildingAction,
+) {
+	temp := make(map[uuid.UUID]BuildingActionCost)
+	for _, cost := range action.Costs {
+		temp[cost.Resource] = cost
+	}
+
+	for id, resource := range p.Resources {
+		cost, ok := temp[resource.Resource]
+		if ok {
+			p.Resources[id].Amount -= float64(cost.Amount)
+		}
+	}
 }
 
 func (p *Planet) findBuildingById(id uuid.UUID) (PlanetBuilding, error) {

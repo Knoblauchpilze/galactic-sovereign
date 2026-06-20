@@ -1,6 +1,7 @@
 package models
 
 import (
+	"slices"
 	"testing"
 	"time"
 
@@ -113,6 +114,28 @@ func TestUnit_Planet_AddBuildingAction(t *testing.T) {
 			},
 		}
 		assert.Equal(t, expectedAction, action)
+	})
+
+	t.Run("deducts action costs from the available planet resources", func(t *testing.T) {
+		p := generateTestPlanet(t, withPlanetBuilding, withManyResources)
+		b := generateTestBuilding(t, withBuildingCost, withBuildingProduction, withBuildingStorage)
+
+		initialResources := slices.Clone(p.Resources)
+
+		action, err := p.AddBuildingAction(b)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		expectedResources := []PlanetResource{
+			{
+				Resource: metalResourceId,
+				Amount:   initialResources[0].Amount - float64(action.Costs[0].Amount),
+			},
+			{
+				Resource: crystalResourceId,
+				Amount:   initialResources[1].Amount - float64(action.Costs[1].Amount),
+			},
+		}
+		assert.Equal(t, expectedResources, p.Resources)
 	})
 }
 
