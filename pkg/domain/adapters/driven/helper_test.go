@@ -287,5 +287,5 @@ func (s *testContainerSuite) migrationSourceURL(t *testing.T) string {
 
 func randFloat(min float64, max float64, precision int) float64 {
 	rounder := math.Pow(10, float64(precision))
-	return min + math.Round((max-min)*rand.Float64()*rounder)/rounder
+	return math.Round(min+(max-min)*rand.Float64()*rounder) / rounder
 }
