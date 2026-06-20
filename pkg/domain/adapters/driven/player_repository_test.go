@@ -244,7 +244,7 @@ func TestIT_PlayerRepository_Delete(t *testing.T) {
 
 		assertPlayerDoesNotExist(t, conn, player.Id)
 		assertPlanetDoesNotExist(t, conn, planet.Id)
-		assertBuildingActionDoesNotExist(t, conn, *planet.BuildingAction)
+		assertBuildingActionDoesNotExist(t, conn, planet.BuildingAction.Id)
 	})
 
 	t.Run("succeeds when the player does not exist", func(t *testing.T) {

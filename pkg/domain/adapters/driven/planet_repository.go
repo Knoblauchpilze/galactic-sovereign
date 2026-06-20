@@ -96,6 +96,26 @@ FROM
 WHERE
 	planet = $1`
 
+	getPlanetByActionQuery = `
+SELECT
+	p.id,
+	p.player,
+	p.name,
+	CASE
+		WHEN h.planet IS NOT NULL THEN true
+		ELSE false
+	END AS homeworld,
+	p.created_at,
+	p.updated_at,
+	p.version,
+	ba.id AS building_action
+FROM
+	planet AS p
+	LEFT JOIN homeworld AS h ON h.planet = p.id
+	LEFT JOIN building_action AS ba ON ba.planet = p.id
+WHERE
+	ba.id = $1`
+
 	listPlanetQuery = `
 SELECT
 	p.id,
@@ -211,6 +231,21 @@ func (r *planetRepositoryImpl) Get(ctx context.Context, id uuid.UUID) (models.Pl
 	return loadPlanetDetails(ctx, tx, dbPlanet)
 }
 
+func (r *planetRepositoryImpl) GetByAction(ctx context.Context, action uuid.UUID) (models.Planet, error) {
+	tx, err := r.conn.BeginTx(ctx)
+	if err != nil {
+		return models.Planet{}, err
+	}
+	defer tx.Close(ctx)
+
+	dbPlanet, err := db.QueryOneTx[mappers.DbPlanet](ctx, tx, getPlanetByActionQuery, action)
+	if err != nil {
+		return models.Planet{}, parseDbError(err)
+	}
+
+	return loadPlanetDetails(ctx, tx, dbPlanet)
+}
+
 func (r *planetRepositoryImpl) List(ctx context.Context) ([]models.Planet, error) {
 	tx, err := r.conn.BeginTx(ctx)
 	if err != nil {
@@ -268,7 +303,7 @@ func (r *planetRepositoryImpl) Delete(ctx context.Context, id uuid.UUID) error {
 	}
 	defer tx.Close(ctx)
 
-	return deletePlanetDetails(ctx, tx, id)
+	return deletePlanetAndDetails(ctx, tx, id)
 }
 
 func createPlanetWithDetails(ctx context.Context, tx db.Transaction, planet models.Planet) error {
@@ -393,6 +428,15 @@ func loadPlanetDetails(ctx context.Context, tx db.Transaction, dbPlanet mappers.
 		return planet, err
 	}
 
+	if dbPlanet.BuildingAction != nil {
+		action, err := loadBuildingActionAndDetails(ctx, tx, *dbPlanet.BuildingAction)
+		if err != nil {
+			return planet, err
+		}
+
+		planet.BuildingAction = &action
+	}
+
 	return planet, nil
 }
 
@@ -432,8 +476,8 @@ func updatePlanetDetails(ctx context.Context, tx db.Transaction, planet models.P
 	return nil
 }
 
-func deletePlanetDetails(ctx context.Context, tx db.Transaction, id uuid.UUID) error {
-	err := deleteBuildingActionDetailsForPlanet(ctx, tx, id)
+func deletePlanetAndDetails(ctx context.Context, tx db.Transaction, id uuid.UUID) error {
+	err := deleteBuildingActionAndDetailsForPlanet(ctx, tx, id)
 	if err != nil {
 		return err
 	}

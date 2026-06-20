@@ -122,15 +122,19 @@ func NewBuildingActionRepository(conn db.Connection) drivenports.ForManagingBuil
 func (r *buildingActionRepositoryImpl) Create(
 	ctx context.Context,
 	planet models.Planet,
-	action models.BuildingAction,
 ) error {
+	// TODO: Should be nil?
+	if planet.BuildingAction == nil {
+		return nil
+	}
+
 	tx, err := r.conn.BeginTx(ctx)
 	if err != nil {
 		return err
 	}
 	defer tx.Close(ctx)
 
-	err = createBuildingActionWithDetails(ctx, tx, action)
+	err = createBuildingActionWithDetails(ctx, tx, *planet.BuildingAction)
 	if err != nil {
 		return parseDbError(err)
 	}
@@ -153,23 +157,13 @@ func (r *buildingActionRepositoryImpl) Get(
 	}
 	defer tx.Close(ctx)
 
-	dbAction, err := db.QueryOneTx[mappers.DbBuildingAction](
-		ctx,
-		tx,
-		getBuildingActionQuery,
-		id,
-	)
-	if err != nil {
-		return models.BuildingAction{}, parseDbError(err)
-	}
-
-	return loadBuildingActionDetails(ctx, tx, dbAction)
+	return loadBuildingActionAndDetails(ctx, tx, id)
 }
 
 func (r *buildingActionRepositoryImpl) Delete(
 	ctx context.Context,
 	planet models.Planet,
-	action models.BuildingAction,
+	action uuid.UUID,
 ) error {
 	tx, err := r.conn.BeginTx(ctx)
 	if err != nil {
@@ -177,7 +171,7 @@ func (r *buildingActionRepositoryImpl) Delete(
 	}
 	defer tx.Close(ctx)
 
-	err = deleteBuildingActionDetails(ctx, tx, action)
+	err = deleteBuildingActionAndDetails(ctx, tx, action)
 	if err != nil {
 		return err
 	}
@@ -249,14 +243,23 @@ func createBuildingActionWithDetails(ctx context.Context, tx db.Transaction, act
 	return nil
 }
 
-func loadBuildingActionDetails(
+func loadBuildingActionAndDetails(
 	ctx context.Context,
 	tx db.Transaction,
-	dbAction mappers.DbBuildingAction,
+	id uuid.UUID,
 ) (models.BuildingAction, error) {
+	dbAction, err := db.QueryOneTx[mappers.DbBuildingAction](
+		ctx,
+		tx,
+		getBuildingActionQuery,
+		id,
+	)
+	if err != nil {
+		return models.BuildingAction{}, parseDbError(err)
+	}
+
 	action := dbAction.ToDomain()
 
-	var err error
 	action.Costs, err = db.QueryAllTx[models.BuildingActionCost](
 		ctx,
 		tx,
@@ -290,23 +293,23 @@ func loadBuildingActionDetails(
 	return action, nil
 }
 
-func deleteBuildingActionDetails(ctx context.Context, tx db.Transaction, action models.BuildingAction) error {
-	_, err := tx.Exec(ctx, deleteBuildingActionResourceProductionQuery, action.Id)
+func deleteBuildingActionAndDetails(ctx context.Context, tx db.Transaction, action uuid.UUID) error {
+	_, err := tx.Exec(ctx, deleteBuildingActionResourceProductionQuery, action)
 	if err != nil {
 		return err
 	}
 
-	_, err = tx.Exec(ctx, deleteBuildingActionResourceStorageQuery, action.Id)
+	_, err = tx.Exec(ctx, deleteBuildingActionResourceStorageQuery, action)
 	if err != nil {
 		return err
 	}
 
-	_, err = tx.Exec(ctx, deleteBuildingActionCostsQuery, action.Id)
+	_, err = tx.Exec(ctx, deleteBuildingActionCostsQuery, action)
 	if err != nil {
 		return err
 	}
 
-	_, err = tx.Exec(ctx, deleteBuildingActionQuery, action.Id)
+	_, err = tx.Exec(ctx, deleteBuildingActionQuery, action)
 	if err != nil {
 		return err
 	}
@@ -314,7 +317,7 @@ func deleteBuildingActionDetails(ctx context.Context, tx db.Transaction, action 
 	return nil
 }
 
-func deleteBuildingActionDetailsForPlanet(ctx context.Context, tx db.Transaction, planet uuid.UUID) error {
+func deleteBuildingActionAndDetailsForPlanet(ctx context.Context, tx db.Transaction, planet uuid.UUID) error {
 	_, err := tx.Exec(ctx, deleteBuildingActionResourceProductionForPlanetQuery, planet)
 	if err != nil {
 		return err

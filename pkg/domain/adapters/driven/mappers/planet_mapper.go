@@ -23,13 +23,12 @@ type DbPlanet struct {
 
 func (p DbPlanet) ToDomain() models.Planet {
 	return models.Planet{
-		Id:             p.Id,
-		Player:         p.Player,
-		Name:           p.Name,
-		Homeworld:      p.Homeworld,
-		CreatedAt:      p.CreatedAt,
-		UpdatedAt:      p.UpdatedAt,
-		Version:        p.Version,
-		BuildingAction: p.BuildingAction,
+		Id:        p.Id,
+		Player:    p.Player,
+		Name:      p.Name,
+		Homeworld: p.Homeworld,
+		CreatedAt: p.CreatedAt,
+		UpdatedAt: p.UpdatedAt,
+		Version:   p.Version,
 	}
 }

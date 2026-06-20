@@ -85,6 +85,21 @@ func (mr *MockForManagingPlanetsMockRecorder) Get(ctx, id any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockForManagingPlanets)(nil).Get), ctx, id)
 }
 
+// GetByAction mocks base method.
+func (m *MockForManagingPlanets) GetByAction(ctx context.Context, action uuid.UUID) (models.Planet, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetByAction", ctx, action)
+	ret0, _ := ret[0].(models.Planet)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetByAction indicates an expected call of GetByAction.
+func (mr *MockForManagingPlanetsMockRecorder) GetByAction(ctx, action any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByAction", reflect.TypeOf((*MockForManagingPlanets)(nil).GetByAction), ctx, action)
+}
+
 // List mocks base method.
 func (m *MockForManagingPlanets) List(ctx context.Context) ([]models.Planet, error) {
 	m.ctrl.T.Helper()

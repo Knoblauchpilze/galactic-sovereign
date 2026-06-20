@@ -180,7 +180,7 @@ func (r *playerRepositoryImpl) Delete(ctx context.Context, player models.Player)
 	defer tx.Close(ctx)
 
 	for _, p := range player.Planets {
-		err = deletePlanetDetails(ctx, tx, p)
+		err = deletePlanetAndDetails(ctx, tx, p)
 		if err != nil {
 			return parseDbError(err)
 		}

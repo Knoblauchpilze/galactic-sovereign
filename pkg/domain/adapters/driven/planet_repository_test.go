@@ -323,7 +323,7 @@ func TestIT_PlanetRepository_Get(t *testing.T) {
 		actual, err := repo.Get(t.Context(), planet.Id)
 		require.NoError(t, err, "Actual err: %v", err)
 
-		assert.Equal(t, actual, planet)
+		assert.Equal(t, planet, actual)
 	})
 
 	t.Run("gets planet with storages", func(t *testing.T) {
@@ -332,7 +332,7 @@ func TestIT_PlanetRepository_Get(t *testing.T) {
 		actual, err := repo.Get(t.Context(), planet.Id)
 		require.NoError(t, err, "Actual err: %v", err)
 
-		assert.Equal(t, actual, planet)
+		assert.Equal(t, planet, actual)
 	})
 
 	t.Run("gets planet with productions", func(t *testing.T) {
@@ -341,7 +341,7 @@ func TestIT_PlanetRepository_Get(t *testing.T) {
 		actual, err := repo.Get(t.Context(), planet.Id)
 		require.NoError(t, err, "Actual err: %v", err)
 
-		assert.Equal(t, actual, planet)
+		assert.Equal(t, planet, actual)
 	})
 
 	t.Run("gets planet with productions for building", func(t *testing.T) {
@@ -350,7 +350,7 @@ func TestIT_PlanetRepository_Get(t *testing.T) {
 		actual, err := repo.Get(t.Context(), planet.Id)
 		require.NoError(t, err, "Actual err: %v", err)
 
-		assert.Equal(t, actual, planet)
+		assert.Equal(t, planet, actual)
 	})
 
 	t.Run("gets planet with buildings", func(t *testing.T) {
@@ -359,7 +359,7 @@ func TestIT_PlanetRepository_Get(t *testing.T) {
 		actual, err := repo.Get(t.Context(), planet.Id)
 		require.NoError(t, err, "Actual err: %v", err)
 
-		assert.Equal(t, actual, planet)
+		assert.Equal(t, planet, actual)
 	})
 
 	t.Run("gets planet with building actions", func(t *testing.T) {
@@ -368,12 +368,32 @@ func TestIT_PlanetRepository_Get(t *testing.T) {
 		actual, err := repo.Get(t.Context(), planet.Id)
 		require.NoError(t, err, "Actual err: %v", err)
 
-		assert.Equal(t, actual, planet)
+		assert.Equal(t, planet, actual)
 	})
 
 	t.Run("returns error when planet does not exist", func(t *testing.T) {
 		id := uuid.MustParse("00000000-1111-2222-1111-000000000000")
 		_, err := repo.Get(t.Context(), id)
+
+		assert.ErrorIs(t, err, domainerrors.ErrNotFound, "Actual err: %v", err)
+	})
+}
+
+func TestIT_PlanetRepository_GetByAction(t *testing.T) {
+	repo, conn := newTestPlanetRepository(t)
+
+	t.Run("gets planet by action", func(t *testing.T) {
+		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetBuildingAction)
+
+		actual, err := repo.GetByAction(t.Context(), planet.BuildingAction.Id)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.Equal(t, planet, actual)
+	})
+
+	t.Run("returns error when planet does not exist", func(t *testing.T) {
+		id := uuid.MustParse("00000000-1111-2222-1111-000000000000")
+		_, err := repo.GetByAction(t.Context(), id)
 
 		assert.ErrorIs(t, err, domainerrors.ErrNotFound, "Actual err: %v", err)
 	})
@@ -568,7 +588,7 @@ func TestIT_PlanetRepository_Delete(t *testing.T) {
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assertPlanetDoesNotExist(t, conn, planet.Id)
-		assertBuildingActionDoesNotExist(t, conn, *planet.BuildingAction)
+		assertBuildingActionDoesNotExist(t, conn, planet.BuildingAction.Id)
 	})
 
 	t.Run("deletes homeworld with building actions", func(t *testing.T) {
@@ -579,7 +599,7 @@ func TestIT_PlanetRepository_Delete(t *testing.T) {
 
 		assertPlanetDoesNotExist(t, conn, planet.Id)
 		assertPlanetIsNotHomeworld(t, conn, planet.Id)
-		assertBuildingActionDoesNotExist(t, conn, *planet.BuildingAction)
+		assertBuildingActionDoesNotExist(t, conn, planet.BuildingAction.Id)
 	})
 
 	t.Run("succeeds when the planet does not exist", func(t *testing.T) {
@@ -842,16 +862,23 @@ func addPlanetBuildingAction(t *testing.T, conn db.Connection, p *models.Planet)
 
 	action := models.BuildingAction{
 		Id:           uuid.New(),
+		Planet:       p.Id,
 		Building:     metalStorageId,
 		CurrentLevel: 0,
 		DesiredLevel: 1,
 		CreatedAt:    someTime,
 		CompletedAt:  someOtherTime,
+		Version:      2,
+		// This is intentional: the details (e.g. costs, etc.) are returned as empty
+		// slices by the adapter
+		Costs:       []models.BuildingActionCost{},
+		Storages:    []models.BuildingActionResourceStorage{},
+		Productions: []models.BuildingActionResourceProduction{},
 	}
 
 	sqlQuery := `INSERT INTO building_action
-		(id, planet, building, current_level, desired_level, created_at, completed_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7)`
+		(id, planet, building, current_level, desired_level, created_at, completed_at, version)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
 	_, err := conn.Exec(
 		t.Context(),
 		sqlQuery,
@@ -862,10 +889,11 @@ func addPlanetBuildingAction(t *testing.T, conn db.Connection, p *models.Planet)
 		action.DesiredLevel,
 		action.CreatedAt,
 		action.CompletedAt,
+		action.Version,
 	)
 	require.NoError(t, err, "Actual err: %v", err)
 
-	p.BuildingAction = &action.Id
+	p.BuildingAction = &action
 }
 
 func insertTestPlanetForPlayer(

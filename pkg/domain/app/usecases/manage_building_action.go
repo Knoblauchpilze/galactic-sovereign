@@ -44,35 +44,39 @@ func (b *buildingActionUseCase) Create(ctx context.Context, req request.Building
 		return models.BuildingAction{}, err
 	}
 
-	action, err := planet.AddBuildingAction(building)
+	err = planet.AddBuildingAction(building)
 	if err != nil {
 		return models.BuildingAction{}, err
 	}
 
-	err = b.actionRepo.Create(ctx, planet, action)
+	err = b.actionRepo.Create(ctx, planet)
 	if err != nil {
 		return models.BuildingAction{}, err
 	}
 
-	return action, nil
+	return *planet.BuildingAction, nil
 }
 
 func (b *buildingActionUseCase) Delete(ctx context.Context, id uuid.UUID) error {
-	action, err := b.actionRepo.Get(ctx, id)
+	planet, err := b.planetRepo.GetByAction(ctx, id)
 	if err != nil {
 		if err == domainerrors.ErrNotFound {
 			return nil
 		}
-
 		return err
 	}
 
-	planet, err := b.planetRepo.Get(ctx, action.Planet)
+	if planet.BuildingAction == nil {
+		return nil
+	}
+
+	actionId := planet.BuildingAction.Id
+	err = planet.CancelBuildingAction()
 	if err != nil {
 		return err
 	}
 
-	err = b.actionRepo.Delete(ctx, planet, action)
+	err = b.actionRepo.Delete(ctx, planet, actionId)
 	if err != nil {
 		return err
 	}

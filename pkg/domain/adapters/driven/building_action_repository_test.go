@@ -22,11 +22,10 @@ func TestIT_BuildingActionRepository_Create(t *testing.T) {
 	repo, conn := newTestBuildingActionRepository(t)
 
 	t.Run("creates an action", func(t *testing.T) {
+		actionId := uuid.New()
 		planet, _, _ := insertTestPlanetForPlayer(t, conn)
-		planet.Version++
-
-		action := models.BuildingAction{
-			Id:           uuid.New(),
+		planet.BuildingAction = &models.BuildingAction{
+			Id:           actionId,
 			Planet:       planet.Id,
 			Building:     metalMineId,
 			CurrentLevel: 2,
@@ -38,23 +37,23 @@ func TestIT_BuildingActionRepository_Create(t *testing.T) {
 			Storages:     []models.BuildingActionResourceStorage{},
 			Productions:  []models.BuildingActionResourceProduction{},
 		}
+		planet.Version++
 
-		err := repo.Create(t.Context(), planet, action)
+		err := repo.Create(t.Context(), planet)
 		require.NoError(t, err, "Actual err: %v", err)
-		assertBuildingActionExists(t, conn, action.Id)
+		assertBuildingActionExists(t, conn, actionId)
 
-		actual, err := repo.Get(t.Context(), action.Id)
+		actual, err := repo.Get(t.Context(), actionId)
 		require.NoError(t, err, "Actual err: %v", err)
 
-		assert.Equal(t, action, actual)
+		assert.Equal(t, *planet.BuildingAction, actual)
 	})
 
 	t.Run("creates an action with costs", func(t *testing.T) {
+		actionId := uuid.New()
 		planet, _, _ := insertTestPlanetForPlayer(t, conn)
-		planet.Version++
-
-		action := models.BuildingAction{
-			Id:           uuid.New(),
+		planet.BuildingAction = &models.BuildingAction{
+			Id:           actionId,
 			Planet:       planet.Id,
 			Building:     metalMineId,
 			CurrentLevel: 2,
@@ -75,23 +74,23 @@ func TestIT_BuildingActionRepository_Create(t *testing.T) {
 			Storages:    []models.BuildingActionResourceStorage{},
 			Productions: []models.BuildingActionResourceProduction{},
 		}
+		planet.Version++
 
-		err := repo.Create(t.Context(), planet, action)
+		err := repo.Create(t.Context(), planet)
 		require.NoError(t, err, "Actual err: %v", err)
-		assertBuildingActionExists(t, conn, action.Id)
+		assertBuildingActionExists(t, conn, actionId)
 
-		actual, err := repo.Get(t.Context(), action.Id)
+		actual, err := repo.Get(t.Context(), actionId)
 		require.NoError(t, err, "Actual err: %v", err)
 
-		assert.Equal(t, action, actual)
+		assert.Equal(t, *planet.BuildingAction, actual)
 	})
 
 	t.Run("creates an action with storages", func(t *testing.T) {
+		actionId := uuid.New()
 		planet, _, _ := insertTestPlanetForPlayer(t, conn)
-		planet.Version++
-
-		action := models.BuildingAction{
-			Id:           uuid.New(),
+		planet.BuildingAction = &models.BuildingAction{
+			Id:           actionId,
 			Planet:       planet.Id,
 			Building:     metalMineId,
 			CurrentLevel: 2,
@@ -112,23 +111,23 @@ func TestIT_BuildingActionRepository_Create(t *testing.T) {
 			},
 			Productions: []models.BuildingActionResourceProduction{},
 		}
+		planet.Version++
 
-		err := repo.Create(t.Context(), planet, action)
+		err := repo.Create(t.Context(), planet)
 		require.NoError(t, err, "Actual err: %v", err)
-		assertBuildingActionExists(t, conn, action.Id)
+		assertBuildingActionExists(t, conn, actionId)
 
-		actual, err := repo.Get(t.Context(), action.Id)
+		actual, err := repo.Get(t.Context(), actionId)
 		require.NoError(t, err, "Actual err: %v", err)
 
-		assert.Equal(t, action, actual)
+		assert.Equal(t, *planet.BuildingAction, actual)
 	})
 
 	t.Run("creates an action with productions", func(t *testing.T) {
+		actionId := uuid.New()
 		planet, _, _ := insertTestPlanetForPlayer(t, conn)
-		planet.Version++
-
-		action := models.BuildingAction{
-			Id:           uuid.New(),
+		planet.BuildingAction = &models.BuildingAction{
+			Id:           actionId,
 			Planet:       planet.Id,
 			Building:     metalMineId,
 			CurrentLevel: 2,
@@ -149,27 +148,23 @@ func TestIT_BuildingActionRepository_Create(t *testing.T) {
 				},
 			},
 		}
+		planet.Version++
 
-		err := repo.Create(t.Context(), planet, action)
+		err := repo.Create(t.Context(), planet)
 		require.NoError(t, err, "Actual err: %v", err)
-		assertBuildingActionExists(t, conn, action.Id)
+		assertBuildingActionExists(t, conn, actionId)
 
-		actual, err := repo.Get(t.Context(), action.Id)
+		actual, err := repo.Get(t.Context(), actionId)
 		require.NoError(t, err, "Actual err: %v", err)
 
-		assert.Equal(t, action, actual)
+		assert.Equal(t, *planet.BuildingAction, actual)
 	})
 
 	t.Run("updates planet version and updated at", func(t *testing.T) {
+		actionId := uuid.New()
 		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetResource)
-
-		newTime := time.Date(2026, time.June, 20, 14, 01, 17, 0, time.UTC)
-		require.NotEqual(t, planet.UpdatedAt, newTime)
-		planet.UpdatedAt = newTime
-		planet.Version++
-
-		action := models.BuildingAction{
-			Id:           uuid.New(),
+		planet.BuildingAction = &models.BuildingAction{
+			Id:           actionId,
 			Planet:       planet.Id,
 			Building:     metalMineId,
 			CurrentLevel: 2,
@@ -186,10 +181,14 @@ func TestIT_BuildingActionRepository_Create(t *testing.T) {
 			Storages:    []models.BuildingActionResourceStorage{},
 			Productions: []models.BuildingActionResourceProduction{},
 		}
+		newTime := time.Date(2026, time.June, 20, 14, 01, 17, 0, time.UTC)
+		require.NotEqual(t, planet.UpdatedAt, newTime)
+		planet.UpdatedAt = newTime
+		planet.Version++
 
-		err := repo.Create(t.Context(), planet, action)
+		err := repo.Create(t.Context(), planet)
 		require.NoError(t, err, "Actual err: %v", err)
-		assertBuildingActionExists(t, conn, action.Id)
+		assertBuildingActionExists(t, conn, actionId)
 
 		planetRepo := NewPlanetRepository(conn)
 		actualPlanet, err := planetRepo.Get(t.Context(), planet.Id)
@@ -200,15 +199,13 @@ func TestIT_BuildingActionRepository_Create(t *testing.T) {
 	})
 
 	t.Run("updates planet resources", func(t *testing.T) {
+		actionId := uuid.New()
 		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetResource)
-		planet.Version++
-
 		// This is to make sure that the cost is not bigger than the amount of
 		// resources on the planet
 		require.LessOrEqual(t, 1000.0, planet.Resources[0].Amount)
-
-		action := models.BuildingAction{
-			Id:           uuid.New(),
+		planet.BuildingAction = &models.BuildingAction{
+			Id:           actionId,
 			Planet:       planet.Id,
 			Building:     metalMineId,
 			CurrentLevel: 2,
@@ -225,12 +222,13 @@ func TestIT_BuildingActionRepository_Create(t *testing.T) {
 			Storages:    []models.BuildingActionResourceStorage{},
 			Productions: []models.BuildingActionResourceProduction{},
 		}
+		planet.Version++
 
 		planet.Resources[0].Amount -= 1000
 
-		err := repo.Create(t.Context(), planet, action)
+		err := repo.Create(t.Context(), planet)
 		require.NoError(t, err, "Actual err: %v", err)
-		assertBuildingActionExists(t, conn, action.Id)
+		assertBuildingActionExists(t, conn, actionId)
 
 		expectedAmount := planet.Resources[0].Amount
 		assertPlanetResourceAmount(t, conn, planet.Id, crystalResourceId, float64(expectedAmount))
@@ -238,8 +236,7 @@ func TestIT_BuildingActionRepository_Create(t *testing.T) {
 
 	t.Run("returns error when action for same planet already exists", func(t *testing.T) {
 		_, planet := insertTestBuildingAction(t, conn)
-
-		newAction := models.BuildingAction{
+		planet.BuildingAction = &models.BuildingAction{
 			Id:           uuid.New(),
 			Planet:       planet.Id,
 			Building:     metalMineId,
@@ -250,10 +247,10 @@ func TestIT_BuildingActionRepository_Create(t *testing.T) {
 			Version:      14,
 		}
 
-		err := repo.Create(t.Context(), planet, newAction)
+		err := repo.Create(t.Context(), planet)
 
 		assert.Equal(t, domainerrors.ErrActionAlreadyInProgress, err, "Actual err: %v", err)
-		assertBuildingActionDoesNotExist(t, conn, newAction.Id)
+		assertBuildingActionDoesNotExist(t, conn, planet.BuildingAction.Id)
 	})
 }
 
@@ -311,7 +308,7 @@ func TestIT_BuildingActionRepository_Delete(t *testing.T) {
 		action, planet := insertTestBuildingAction(t, conn)
 		planet.Version++
 
-		err := repo.Delete(t.Context(), planet, action)
+		err := repo.Delete(t.Context(), planet, action.Id)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assertBuildingActionDoesNotExist(t, conn, action.Id)
@@ -321,7 +318,7 @@ func TestIT_BuildingActionRepository_Delete(t *testing.T) {
 		action, planet := insertTestBuildingAction(t, conn, addBuildingActionCost)
 		planet.Version++
 
-		err := repo.Delete(t.Context(), planet, action)
+		err := repo.Delete(t.Context(), planet, action.Id)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assertBuildingActionDoesNotExist(t, conn, action.Id)
@@ -332,7 +329,7 @@ func TestIT_BuildingActionRepository_Delete(t *testing.T) {
 		action, planet := insertTestBuildingAction(t, conn, addBuildingActionStorage)
 		planet.Version++
 
-		err := repo.Delete(t.Context(), planet, action)
+		err := repo.Delete(t.Context(), planet, action.Id)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assertBuildingActionDoesNotExist(t, conn, action.Id)
@@ -343,7 +340,7 @@ func TestIT_BuildingActionRepository_Delete(t *testing.T) {
 		action, planet := insertTestBuildingAction(t, conn, addBuildingActionProduction)
 		planet.Version++
 
-		err := repo.Delete(t.Context(), planet, action)
+		err := repo.Delete(t.Context(), planet, action.Id)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assertBuildingActionDoesNotExist(t, conn, action.Id)
@@ -362,7 +359,7 @@ func TestIT_BuildingActionRepository_Delete(t *testing.T) {
 		planet.UpdatedAt = newTime
 		planet.Version++
 
-		err := repo.Delete(t.Context(), planet, action)
+		err := repo.Delete(t.Context(), planet, action.Id)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assertBuildingActionDoesNotExist(t, conn, action.Id)
@@ -385,7 +382,7 @@ func TestIT_BuildingActionRepository_Delete(t *testing.T) {
 		planet.Resources[0].Amount += 1000
 		planet.Version++
 
-		err := repo.Delete(t.Context(), planet, action)
+		err := repo.Delete(t.Context(), planet, action.Id)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assertBuildingActionDoesNotExist(t, conn, action.Id)
@@ -400,11 +397,14 @@ func TestIT_BuildingActionRepository_Delete(t *testing.T) {
 
 	t.Run("succeeds when the action does not exist", func(t *testing.T) {
 		planet, _, _ := insertTestPlanetForPlayer(t, conn)
-		action := models.BuildingAction{Id: uuid.New(), Planet: planet.Id}
+		planet.BuildingAction = &models.BuildingAction{
+			Id:     uuid.New(),
+			Planet: planet.Id,
+		}
 
 		planet.Version++
 
-		err := repo.Delete(t.Context(), planet, action)
+		err := repo.Delete(t.Context(), planet, planet.BuildingAction.Id)
 		require.NoError(t, err, "Actual err: %v", err)
 	})
 }
@@ -419,6 +419,7 @@ func TestIT_BuildingActionRepository_CreationDeletionWorkflow(t *testing.T) {
 
 	testCases := []testCase{
 		{
+			name: "simple action",
 			action: models.BuildingAction{
 				Id:           uuid.New(),
 				Building:     metalMineId,
@@ -437,12 +438,12 @@ func TestIT_BuildingActionRepository_CreationDeletionWorkflow(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			planet, _, _ := insertTestPlanetForPlayer(t, conn)
+			tc.action.Planet = planet.Id
+			planet.BuildingAction = &tc.action
 			planet.Version++
 
-			tc.action.Planet = planet.Id
-
 			func() {
-				err := repo.Create(t.Context(), planet, tc.action)
+				err := repo.Create(t.Context(), planet)
 				require.NoError(t, err, "Actual err: %v", err)
 			}()
 
@@ -456,7 +457,7 @@ func TestIT_BuildingActionRepository_CreationDeletionWorkflow(t *testing.T) {
 			planet.Version++
 
 			func() {
-				err := repo.Delete(t.Context(), planet, tc.action)
+				err := repo.Delete(t.Context(), planet, tc.action.Id)
 				require.NoError(t, err, "Actual err: %v", err)
 			}()
 
@@ -528,6 +529,7 @@ func insertTestBuildingAction(
 
 	planet, _, _ := insertTestPlanetForPlayer(t, conn)
 	action := insertTestBuildingActionForPlanet(t, conn, planet.Id, modifiers...)
+	planet.BuildingAction = &action
 	return action, planet
 }
 

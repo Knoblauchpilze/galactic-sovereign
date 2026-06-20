@@ -42,12 +42,12 @@ func TestUnit_ManageBuildingAction_Create(t *testing.T) {
 			Times(1).
 			Return(building, nil)
 
-		var captured models.BuildingAction
+		var captured models.Planet
 		mockActionRepo.EXPECT().
-			Create(gomock.Any(), gomock.Any(), gomock.AssignableToTypeOf(captured)).
+			Create(gomock.Any(), gomock.AssignableToTypeOf(captured)).
 			Times(1).
-			DoAndReturn(func(ctx context.Context, planet models.Planet, action models.BuildingAction) error {
-				captured = action
+			DoAndReturn(func(ctx context.Context, planet models.Planet) error {
+				captured = planet
 				return nil
 			})
 
@@ -80,7 +80,7 @@ func TestUnit_ManageBuildingAction_Create(t *testing.T) {
 			Productions: []models.BuildingActionResourceProduction{},
 		}
 		assert.Equal(t, expected, actual)
-		assert.Equal(t, expected, captured)
+		assert.Equal(t, &expected, captured.BuildingAction)
 	})
 
 	t.Run("persists modified planet", func(t *testing.T) {
@@ -100,9 +100,9 @@ func TestUnit_ManageBuildingAction_Create(t *testing.T) {
 
 		var captured models.Planet
 		mockActionRepo.EXPECT().
-			Create(gomock.Any(), gomock.AssignableToTypeOf(captured), gomock.Any()).
+			Create(gomock.Any(), gomock.AssignableToTypeOf(captured)).
 			Times(1).
-			DoAndReturn(func(ctx context.Context, planet models.Planet, action models.BuildingAction) error {
+			DoAndReturn(func(ctx context.Context, planet models.Planet) error {
 				captured = planet
 				return nil
 			})
@@ -134,7 +134,7 @@ func TestUnit_ManageBuildingAction_Create(t *testing.T) {
 			Storages:       planet.Storages,
 			Productions:    planet.Productions,
 			Buildings:      planet.Buildings,
-			BuildingAction: &actual.Id,
+			BuildingAction: &actual,
 		}
 		assert.Equal(t, planet.Id, actual.Planet)
 		assert.Equal(t, expected, captured)
@@ -192,7 +192,7 @@ func TestUnit_ManageBuildingAction_Create(t *testing.T) {
 
 		expectedErr := errors.New("stubbed error")
 		mockActionRepo.EXPECT().
-			Create(gomock.Any(), gomock.Any(), gomock.Any()).
+			Create(gomock.Any(), gomock.Any()).
 			Times(1).
 			Return(expectedErr)
 
@@ -210,34 +210,64 @@ func TestUnit_ManageBuildingAction_Delete(t *testing.T) {
 	mockBuildingRepo := drivenportstest.NewMockForListingBuildings(ctrl)
 
 	t.Run("deletes existing building action", func(t *testing.T) {
-		planet := models.Planet{Id: uuid.New()}
-		action := models.BuildingAction{Id: uuid.New(), Planet: planet.Id}
+		actionId := uuid.New()
+		planet := models.Planet{
+			Id: uuid.New(),
+			BuildingAction: &models.BuildingAction{
+				Id: actionId,
+			},
+		}
 
-		mockActionRepo.EXPECT().
-			Get(gomock.Any(), gomock.Eq(action.Id)).
-			Times(1).
-			Return(action, nil)
 		mockPlanetRepo.EXPECT().
-			Get(gomock.Any(), gomock.Eq(action.Planet)).
+			GetByAction(gomock.Any(), gomock.Eq(actionId)).
 			Times(1).
 			Return(planet, nil)
+		var captured models.Planet
 		mockActionRepo.EXPECT().
-			Delete(gomock.Any(), gomock.Eq(planet), gomock.Eq(action)).
+			Delete(gomock.Any(), gomock.AssignableToTypeOf(captured), gomock.Eq(actionId)).
 			Times(1).
-			Return(nil)
+			DoAndReturn(func(ctx context.Context, planet models.Planet, action uuid.UUID) error {
+				captured = planet
+				return nil
+			})
 
 		usecase := NewBuildingActionUseCase(mockActionRepo, mockPlanetRepo, mockBuildingRepo)
-		err := usecase.Delete(context.Background(), action.Id)
+		err := usecase.Delete(context.Background(), actionId)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		expectedPlanet := models.Planet{
+			Id:             planet.Id,
+			Version:        planet.Version + 1,
+			UpdatedAt:      captured.UpdatedAt,
+			BuildingAction: nil,
+		}
+		assert.Equal(t, expectedPlanet, captured)
+	})
+
+	t.Run("succeeds when planet has no building action", func(t *testing.T) {
+		planet := models.Planet{
+			Id:             uuid.New(),
+			BuildingAction: nil,
+		}
+		actionId := uuid.New()
+
+		mockPlanetRepo.EXPECT().
+			GetByAction(gomock.Any(), gomock.Eq(actionId)).
+			Times(1).
+			Return(planet, nil)
+
+		usecase := NewBuildingActionUseCase(mockActionRepo, mockPlanetRepo, mockBuildingRepo)
+		err := usecase.Delete(context.Background(), actionId)
 		require.NoError(t, err, "Actual err: %v", err)
 	})
 
 	t.Run("succeeds when building action is not found", func(t *testing.T) {
 		actionId := uuid.New()
 
-		mockActionRepo.EXPECT().
-			Get(gomock.Any(), gomock.Eq(actionId)).
+		mockPlanetRepo.EXPECT().
+			GetByAction(gomock.Any(), gomock.Eq(actionId)).
 			Times(1).
-			Return(models.BuildingAction{}, domainerrors.ErrNotFound)
+			Return(models.Planet{}, domainerrors.ErrNotFound)
 
 		usecase := NewBuildingActionUseCase(mockActionRepo, mockPlanetRepo, mockBuildingRepo)
 		err := usecase.Delete(context.Background(), actionId)
@@ -245,15 +275,16 @@ func TestUnit_ManageBuildingAction_Delete(t *testing.T) {
 	})
 
 	t.Run("returns error when repository fails", func(t *testing.T) {
-		planet := models.Planet{Id: uuid.New()}
-		action := models.BuildingAction{Id: uuid.New(), Planet: planet.Id}
+		actionId := uuid.New()
+		planet := models.Planet{
+			Id: uuid.New(),
+			BuildingAction: &models.BuildingAction{
+				Id: actionId,
+			},
+		}
 
-		mockActionRepo.EXPECT().
-			Get(gomock.Any(), gomock.Eq(action.Id)).
-			Times(1).
-			Return(action, nil)
 		mockPlanetRepo.EXPECT().
-			Get(gomock.Any(), gomock.Eq(action.Planet)).
+			GetByAction(gomock.Any(), gomock.Eq(actionId)).
 			Times(1).
 			Return(planet, nil)
 		expectedErr := errors.New("stubbed error")
@@ -263,7 +294,7 @@ func TestUnit_ManageBuildingAction_Delete(t *testing.T) {
 			Return(expectedErr)
 
 		usecase := NewBuildingActionUseCase(mockActionRepo, mockPlanetRepo, mockBuildingRepo)
-		err := usecase.Delete(context.Background(), action.Id)
+		err := usecase.Delete(context.Background(), actionId)
 
 		assert.ErrorIs(t, expectedErr, err, "Actual err: %v", err)
 	})

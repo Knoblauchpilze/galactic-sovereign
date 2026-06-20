@@ -9,8 +9,9 @@ const (
 
 	nameAlreadyTaken           errors.ErrorCode = 610
 	actionAlreadyInProgress    errors.ErrorCode = 611
-	notEnoughResources         errors.ErrorCode = 612
-	optimisticLockingException errors.ErrorCode = 613
+	noActionInProgress         errors.ErrorCode = 612
+	notEnoughResources         errors.ErrorCode = 613
+	optimisticLockingException errors.ErrorCode = 614
 )
 
 var (
@@ -19,6 +20,7 @@ var (
 
 	ErrNameAlreadyTaken        = errors.FromCode(nameAlreadyTaken)
 	ErrActionAlreadyInProgress = errors.FromCode(actionAlreadyInProgress)
+	ErrNoActionInProgress      = errors.FromCode(noActionInProgress)
 	ErrNotEnoughResources      = errors.FromCode(notEnoughResources)
 	ErrOptimisticLocking       = errors.FromCode(optimisticLockingException)
 )

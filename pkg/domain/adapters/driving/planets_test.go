@@ -146,7 +146,9 @@ func TestUnit_Planets_GetPlanet(t *testing.T) {
 					Level:    14,
 				},
 			},
-			BuildingAction: &sampleUuid,
+			BuildingAction: &models.BuildingAction{
+				Id: sampleUuid,
+			},
 		}
 		mockUsecase.EXPECT().
 			Get(gomock.Any(), gomock.Eq(sampleUuid)).

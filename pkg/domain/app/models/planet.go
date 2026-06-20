@@ -24,7 +24,7 @@ type Planet struct {
 
 	Buildings []PlanetBuilding
 
-	BuildingAction *uuid.UUID
+	BuildingAction *BuildingAction
 }
 
 type PlanetResource struct {
@@ -48,29 +48,42 @@ type PlanetBuilding struct {
 	Level    int
 }
 
-func (p *Planet) AddBuildingAction(building Building) (BuildingAction, error) {
+func (p *Planet) AddBuildingAction(building Building) error {
 	if p.BuildingAction != nil {
-		return BuildingAction{}, domainerrors.ErrActionAlreadyInProgress
+		return domainerrors.ErrActionAlreadyInProgress
 	}
 
 	pb, err := p.findBuildingById(building.Id)
 	if err != nil {
-		return BuildingAction{}, err
+		return err
 	}
 
 	action := building.CreateBuildingAction(p.Id, pb.Level+1)
 
 	if err := p.validateEnoughResources(action); err != nil {
-		return BuildingAction{}, err
+		return err
 	}
 
 	p.deductResources(action)
 
-	p.BuildingAction = &action.Id
+	p.BuildingAction = &action
 
 	p.bumpVersion(action.CreatedAt)
 
-	return action, nil
+	return nil
+}
+
+func (p *Planet) CancelBuildingAction() error {
+	if p.BuildingAction == nil {
+		return domainerrors.ErrNoActionInProgress
+	}
+
+	// TODO: Should add back costs
+	p.BuildingAction = nil
+
+	p.bumpVersion(time.Now().UTC())
+
+	return nil
 }
 
 func (p *Planet) validateEnoughResources(
