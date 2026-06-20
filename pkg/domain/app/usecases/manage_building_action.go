@@ -44,7 +44,7 @@ func (b *buildingActionUseCase) Create(ctx context.Context, req request.Building
 		return models.BuildingAction{}, err
 	}
 
-	action, err := building.CreateBuildingAction(planet)
+	action, err := planet.AddBuildingAction(building)
 	if err != nil {
 		return models.BuildingAction{}, err
 	}

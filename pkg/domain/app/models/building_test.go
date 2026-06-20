@@ -4,80 +4,31 @@ import (
 	"testing"
 	"time"
 
-	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 var (
 	someTime = time.Date(2026, 6, 8, 8, 22, 35, 0, time.UTC)
+
+	buildingId = uuid.New()
 )
 
 func TestUnit_Building_CreateBuildingAction(t *testing.T) {
-	buildingId := uuid.New()
-	sampleResource1 := uuid.New()
-	sampleResource2 := uuid.New()
-	p := Planet{
-		Id: uuid.New(),
-		// High enough values to not have to worry about costs
-		Resources: []PlanetResource{
-			{
-				Resource: sampleResource1,
-				Amount:   999999,
-			},
-			{
-				Resource: sampleResource2,
-				Amount:   999999,
-			},
-			{
-				Resource: metalResourceId,
-				Amount:   999999,
-			},
-			{
-				Resource: crystalResourceId,
-				Amount:   999999,
-			},
-		},
-		Buildings: []PlanetBuilding{
-			{
-				Building: buildingId,
-				Level:    4,
-			},
-		},
-	}
+	planetId := uuid.New()
 
 	t.Run("correctly calculates action costs", func(t *testing.T) {
-		b := Building{
-			Id:        buildingId,
-			Name:      "test-building",
-			CreatedAt: someTime,
-			Costs: []BuildingCost{
-				{
-					Resource: sampleResource1,
-					Cost:     36,
-					Progress: 1.5,
-				},
-				{
-					Resource: sampleResource2,
-					Cost:     78,
-					Progress: 1.7,
-				},
-			},
-			Productions: []BuildingResourceProduction{},
-			Storages:    []BuildingResourceStorage{},
-		}
+		b := generateTestBuilding(t, withBuildingCost)
 
-		action, err := b.CreateBuildingAction(p)
-		require.NoError(t, err, "Actual err: %v", err)
+		action := b.CreateBuildingAction(planetId, 5)
 
 		expected := BuildingAction{
 			// The identifier is generated
 			Id:           action.Id,
-			Planet:       p.Id,
+			Planet:       planetId,
 			Building:     b.Id,
-			CurrentLevel: p.Buildings[0].Level,
-			DesiredLevel: p.Buildings[0].Level + 1,
+			CurrentLevel: 4,
+			DesiredLevel: 5,
 
 			CreatedAt: action.CreatedAt,
 			// Ignore the completion here, there are dedicated tests
@@ -87,11 +38,11 @@ func TestUnit_Building_CreateBuildingAction(t *testing.T) {
 
 			Costs: []BuildingActionCost{
 				{
-					Resource: sampleResource1,
+					Resource: metalResourceId,
 					Amount:   182,
 				},
 				{
-					Resource: sampleResource2,
+					Resource: crystalResourceId,
 					Amount:   651,
 				},
 			},
@@ -102,35 +53,16 @@ func TestUnit_Building_CreateBuildingAction(t *testing.T) {
 	})
 
 	t.Run("correctly calculates action resource productions", func(t *testing.T) {
-		b := Building{
-			Id:        buildingId,
-			Name:      "test-building",
-			CreatedAt: someTime,
-			Costs:     []BuildingCost{},
-			Productions: []BuildingResourceProduction{
-				{
-					Resource: sampleResource1,
-					Base:     74,
-					Progress: 4.5,
-				},
-				{
-					Resource: sampleResource2,
-					Base:     98,
-					Progress: 2.4,
-				},
-			},
-			Storages: []BuildingResourceStorage{},
-		}
+		b := generateTestBuilding(t, withBuildingProduction)
 
-		action, err := b.CreateBuildingAction(p)
-		require.NoError(t, err, "Actual err: %v", err)
+		action := b.CreateBuildingAction(planetId, 5)
 
 		expected := BuildingAction{
 			Id:           action.Id,
-			Planet:       p.Id,
+			Planet:       planetId,
 			Building:     b.Id,
-			CurrentLevel: p.Buildings[0].Level,
-			DesiredLevel: p.Buildings[0].Level + 1,
+			CurrentLevel: 4,
+			DesiredLevel: 5,
 
 			CreatedAt: action.CreatedAt,
 			// Ignore the completion here, there are dedicated tests
@@ -141,11 +73,11 @@ func TestUnit_Building_CreateBuildingAction(t *testing.T) {
 			Costs: []BuildingActionCost{},
 			Productions: []BuildingActionResourceProduction{
 				{
-					Resource:   sampleResource1,
+					Resource:   metalResourceId,
 					Production: 682754,
 				},
 				{
-					Resource:   sampleResource2,
+					Resource:   crystalResourceId,
 					Production: 39016,
 				},
 			},
@@ -155,37 +87,16 @@ func TestUnit_Building_CreateBuildingAction(t *testing.T) {
 	})
 
 	t.Run("correctly calculates action resource storages", func(t *testing.T) {
-		b := Building{
-			Id:          buildingId,
-			Name:        "test-building",
-			CreatedAt:   someTime,
-			Costs:       []BuildingCost{},
-			Productions: []BuildingResourceProduction{},
-			Storages: []BuildingResourceStorage{
-				{
-					Resource: sampleResource1,
-					Base:     8904,
-					Scale:    2,
-					Progress: 2.2,
-				},
-				{
-					Resource: sampleResource2,
-					Base:     312,
-					Scale:    1.2,
-					Progress: 1.1,
-				},
-			},
-		}
+		b := generateTestBuilding(t, withBuildingStorage)
 
-		action, err := b.CreateBuildingAction(p)
-		require.NoError(t, err, "Actual err: %v", err)
+		action := b.CreateBuildingAction(planetId, 5)
 
 		expected := BuildingAction{
 			Id:           action.Id,
-			Planet:       p.Id,
+			Planet:       planetId,
 			Building:     b.Id,
-			CurrentLevel: p.Buildings[0].Level,
-			DesiredLevel: p.Buildings[0].Level + 1,
+			CurrentLevel: 4,
+			DesiredLevel: 5,
 
 			CreatedAt: action.CreatedAt,
 			// Ignore the completion here, there are dedicated tests
@@ -197,11 +108,11 @@ func TestUnit_Building_CreateBuildingAction(t *testing.T) {
 			Productions: []BuildingActionResourceProduction{},
 			Storages: []BuildingActionResourceStorage{
 				{
-					Resource: sampleResource1,
+					Resource: metalResourceId,
 					Storage:  917112,
 				},
 				{
-					Resource: sampleResource2,
+					Resource: crystalResourceId,
 					Storage:  312,
 				},
 			},
@@ -216,7 +127,7 @@ func TestUnit_Building_CreateBuildingAction(t *testing.T) {
 			CreatedAt: someTime,
 			Costs: []BuildingCost{
 				{
-					Resource: sampleResource1,
+					Resource: uuid.New(),
 					Cost:     36,
 					Progress: 1.5,
 				},
@@ -225,14 +136,13 @@ func TestUnit_Building_CreateBuildingAction(t *testing.T) {
 			Storages:    []BuildingResourceStorage{},
 		}
 
-		action, err := b.CreateBuildingAction(p)
-		require.NoError(t, err, "Actual err: %v", err)
+		action := b.CreateBuildingAction(planetId, 5)
 
 		actual := action.CompletedAt.Sub(action.CreatedAt)
 		assert.Equal(t, time.Duration(0), actual)
 		expectedCosts := []BuildingActionCost{
 			{
-				Resource: sampleResource1,
+				Resource: b.Costs[0].Resource,
 				Amount:   182,
 			},
 		}
@@ -249,8 +159,7 @@ func TestUnit_Building_CreateBuildingAction(t *testing.T) {
 			Storages:    []BuildingResourceStorage{},
 		}
 
-		action, err := b.CreateBuildingAction(p)
-		require.NoError(t, err, "Actual err: %v", err)
+		action := b.CreateBuildingAction(planetId, 5)
 
 		actual := action.CompletedAt.Sub(action.CreatedAt)
 		assert.Equal(t, time.Duration(0), actual)
@@ -272,8 +181,7 @@ func TestUnit_Building_CreateBuildingAction(t *testing.T) {
 			Storages:    []BuildingResourceStorage{},
 		}
 
-		action, err := b.CreateBuildingAction(p)
-		require.NoError(t, err, "Actual err: %v", err)
+		action := b.CreateBuildingAction(planetId, 5)
 
 		actual := action.CompletedAt.Sub(action.CreatedAt)
 		completionTime := 262080 * time.Millisecond
@@ -296,8 +204,7 @@ func TestUnit_Building_CreateBuildingAction(t *testing.T) {
 			Storages:    []BuildingResourceStorage{},
 		}
 
-		action, err := b.CreateBuildingAction(p)
-		require.NoError(t, err, "Actual err: %v", err)
+		action := b.CreateBuildingAction(planetId, 5)
 
 		actual := action.CompletedAt.Sub(action.CreatedAt)
 		completionTime := 948960 * time.Millisecond
@@ -325,58 +232,85 @@ func TestUnit_Building_CreateBuildingAction(t *testing.T) {
 			Storages:    []BuildingResourceStorage{},
 		}
 
-		action, err := b.CreateBuildingAction(p)
-		require.NoError(t, err, "Actual err: %v", err)
+		action := b.CreateBuildingAction(planetId, 5)
 
 		actual := action.CompletedAt.Sub(action.CreatedAt)
 		completionTime := 1211040 * time.Millisecond
 		assert.Equal(t, completionTime, actual)
 	})
+}
 
-	t.Run("returns error when building does not exist on planet", func(t *testing.T) {
-		b := Building{Id: uuid.New()}
+func generateTestBuilding(
+	t *testing.T,
+	modifiers ...func(*testing.T, *Building),
+) Building {
+	t.Helper()
 
-		_, err := b.CreateBuildingAction(p)
+	b := Building{
+		Id:          buildingId,
+		Name:        "test-building",
+		CreatedAt:   someTime,
+		Costs:       []BuildingCost{},
+		Productions: []BuildingResourceProduction{},
+		Storages:    []BuildingResourceStorage{},
+	}
 
-		assert.ErrorIs(t, err, domainerrors.ErrBuildingNotFound)
-	})
+	for _, modifier := range modifiers {
+		modifier(t, &b)
+	}
 
-	t.Run("returns error when resources are missing on the planet", func(t *testing.T) {
-		b := Building{
-			Id:        buildingId,
-			Name:      "test-building",
-			CreatedAt: someTime,
-			Costs: []BuildingCost{
-				{
-					Resource: metalResourceId,
-					Cost:     36,
-					Progress: 1.5,
-				},
-				{
-					Resource: crystalResourceId,
-					Cost:     79,
-					Progress: 1.7,
-				},
-			},
-			Productions: []BuildingResourceProduction{},
-			Storages:    []BuildingResourceStorage{},
-		}
+	return b
+}
 
-		poorPlanet := p
-		poorPlanet.Resources = []PlanetResource{
-			{
-				Resource: metalResourceId,
-				Amount:   189,
-			},
-			{
-				Resource: crystalResourceId,
-				// Needed value: 659
-				Amount: 658,
-			},
-		}
+func withBuildingCost(t *testing.T, b *Building) {
+	t.Helper()
 
-		_, err := b.CreateBuildingAction(poorPlanet)
+	b.Costs = []BuildingCost{
+		{
+			Resource: metalResourceId,
+			Cost:     36,
+			Progress: 1.5,
+		},
+		{
+			Resource: crystalResourceId,
+			Cost:     78,
+			Progress: 1.7,
+		},
+	}
+}
 
-		assert.ErrorIs(t, domainerrors.ErrNotEnoughResources, err)
-	})
+func withBuildingStorage(t *testing.T, b *Building) {
+	t.Helper()
+
+	b.Storages = []BuildingResourceStorage{
+		{
+			Resource: metalResourceId,
+			Base:     8904,
+			Scale:    2,
+			Progress: 2.2,
+		},
+		{
+			Resource: crystalResourceId,
+			Base:     312,
+			Scale:    1.2,
+			Progress: 1.1,
+		},
+	}
+}
+
+func withBuildingProduction(t *testing.T, b *Building) {
+	t.Helper()
+
+	b.Productions = []BuildingResourceProduction{
+		{
+			Resource: metalResourceId,
+			Base:     74,
+			Progress: 4.5,
+		},
+		{
+			Resource: crystalResourceId,
+			Base:     98,
+			Progress: 2.4,
+		},
+	}
 }

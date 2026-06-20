@@ -34,6 +34,16 @@ func TestUnit_ManageBuildingAction_Create(t *testing.T) {
 
 	planet := models.Planet{
 		Id: request.Planet,
+		Resources: []models.PlanetResource{
+			{
+				Resource: metalResourceId,
+				Amount:   99999,
+			},
+			{
+				Resource: crystalResourceId,
+				Amount:   99999,
+			},
+		},
 		Buildings: []models.PlanetBuilding{
 			{
 				Building: request.Building,

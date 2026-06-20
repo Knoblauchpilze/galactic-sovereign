@@ -4,7 +4,6 @@ import (
 	"math"
 	"time"
 
-	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
 	"github.com/google/uuid"
 )
 
@@ -43,27 +42,16 @@ type BuildingResourceStorage struct {
 	Progress float64
 }
 
-func (b Building) CreateBuildingAction(planet Planet) (BuildingAction, error) {
-	pb, err := findBuildingById(planet.Buildings, b.Id)
-	if err != nil {
-		return BuildingAction{}, err
-	}
-
-	desiredLevel := pb.Level + 1
-
+func (b Building) CreateBuildingAction(planet uuid.UUID, desiredLevel int) BuildingAction {
 	costs := b.determineActionCost(desiredLevel)
 	completionTime := determineCompletionTime(costs)
 	createdAt := time.Now()
 
-	if err := validateEnoughResources(planet, costs); err != nil {
-		return BuildingAction{}, err
-	}
-
 	action := BuildingAction{
 		Id:           uuid.New(),
-		Planet:       planet.Id,
+		Planet:       planet,
 		Building:     b.Id,
-		CurrentLevel: pb.Level,
+		CurrentLevel: desiredLevel - 1,
 		DesiredLevel: desiredLevel,
 
 		CreatedAt:   createdAt,
@@ -75,7 +63,7 @@ func (b Building) CreateBuildingAction(planet Planet) (BuildingAction, error) {
 		Storages:    b.determineActionResourceStorage(desiredLevel),
 		Productions: b.determineActionResourceProduction(desiredLevel),
 	}
-	return action, nil
+	return action
 }
 
 func (b Building) determineActionCost(
@@ -155,35 +143,6 @@ func determineCompletionTime(
 	nanoSeconds := math.Ceil(buildTimeHour * float64(time.Hour.Nanoseconds()))
 
 	return time.Duration(nanoSeconds)
-}
-
-func validateEnoughResources(
-	planet Planet,
-	costs []BuildingActionCost,
-) error {
-	temp := make(map[uuid.UUID]PlanetResource)
-	for _, resource := range planet.Resources {
-		temp[resource.Resource] = resource
-	}
-
-	for _, cost := range costs {
-		actual, ok := temp[cost.Resource]
-		if !ok || actual.Amount < float64(cost.Amount) {
-			return domainerrors.ErrNotEnoughResources
-		}
-	}
-
-	return nil
-}
-
-func findBuildingById(buildings []PlanetBuilding, id uuid.UUID) (PlanetBuilding, error) {
-	for _, b := range buildings {
-		if b.Building == id {
-			return b, nil
-		}
-	}
-
-	return PlanetBuilding{}, domainerrors.ErrBuildingNotFound
 }
 
 func findResourceById(resources []BuildingActionCost, id uuid.UUID) float64 {

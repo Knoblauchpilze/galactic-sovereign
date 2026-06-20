@@ -3,6 +3,7 @@ package models
 import (
 	"time"
 
+	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
 	"github.com/google/uuid"
 )
 
@@ -45,4 +46,53 @@ type PlanetResourceProduction struct {
 type PlanetBuilding struct {
 	Building uuid.UUID
 	Level    int
+}
+
+func (p *Planet) AddBuildingAction(building Building) (BuildingAction, error) {
+	if p.BuildingAction != nil {
+		return BuildingAction{}, domainerrors.ErrActionAlreadyInProgress
+	}
+
+	pb, err := p.findBuildingById(building.Id)
+	if err != nil {
+		return BuildingAction{}, err
+	}
+
+	action := building.CreateBuildingAction(p.Id, pb.Level+1)
+
+	if err := p.validateEnoughResources(action); err != nil {
+		return BuildingAction{}, err
+	}
+
+	p.BuildingAction = &action.Id
+
+	return action, nil
+}
+
+func (p *Planet) validateEnoughResources(
+	action BuildingAction,
+) error {
+	temp := make(map[uuid.UUID]PlanetResource)
+	for _, resource := range p.Resources {
+		temp[resource.Resource] = resource
+	}
+
+	for _, cost := range action.Costs {
+		actual, ok := temp[cost.Resource]
+		if !ok || actual.Amount < float64(cost.Amount) {
+			return domainerrors.ErrNotEnoughResources
+		}
+	}
+
+	return nil
+}
+
+func (p *Planet) findBuildingById(id uuid.UUID) (PlanetBuilding, error) {
+	for _, b := range p.Buildings {
+		if b.Building == id {
+			return b, nil
+		}
+	}
+
+	return PlanetBuilding{}, domainerrors.ErrBuildingNotFound
 }
