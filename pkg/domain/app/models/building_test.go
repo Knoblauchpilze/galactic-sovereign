@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	someTime = time.Date(2026, 6, 8, 8, 22, 35, 0, time.UTC)
+	someTime = time.Date(2026, time.June, 8, 8, 22, 35, 0, time.UTC)
 
 	buildingId = uuid.New()
 )

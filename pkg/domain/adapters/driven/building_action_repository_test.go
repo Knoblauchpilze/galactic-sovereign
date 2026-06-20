@@ -23,6 +23,7 @@ func TestIT_BuildingActionRepository_Create(t *testing.T) {
 
 	t.Run("creates an action", func(t *testing.T) {
 		planet, _, _ := insertTestPlanetForPlayer(t, conn)
+		planet.Version++
 
 		action := models.BuildingAction{
 			Id:           uuid.New(),
@@ -50,6 +51,7 @@ func TestIT_BuildingActionRepository_Create(t *testing.T) {
 
 	t.Run("creates an action with costs", func(t *testing.T) {
 		planet, _, _ := insertTestPlanetForPlayer(t, conn)
+		planet.Version++
 
 		action := models.BuildingAction{
 			Id:           uuid.New(),
@@ -86,6 +88,7 @@ func TestIT_BuildingActionRepository_Create(t *testing.T) {
 
 	t.Run("creates an action with storages", func(t *testing.T) {
 		planet, _, _ := insertTestPlanetForPlayer(t, conn)
+		planet.Version++
 
 		action := models.BuildingAction{
 			Id:           uuid.New(),
@@ -122,6 +125,7 @@ func TestIT_BuildingActionRepository_Create(t *testing.T) {
 
 	t.Run("creates an action with productions", func(t *testing.T) {
 		planet, _, _ := insertTestPlanetForPlayer(t, conn)
+		planet.Version++
 
 		action := models.BuildingAction{
 			Id:           uuid.New(),
@@ -156,8 +160,49 @@ func TestIT_BuildingActionRepository_Create(t *testing.T) {
 		assert.Equal(t, action, actual)
 	})
 
+	t.Run("updates planet version and updated at", func(t *testing.T) {
+		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetResource)
+
+		newTime := time.Date(2026, time.June, 20, 14, 01, 17, 0, time.UTC)
+		require.NotEqual(t, planet.UpdatedAt, newTime)
+		planet.UpdatedAt = newTime
+		planet.Version++
+
+		action := models.BuildingAction{
+			Id:           uuid.New(),
+			Planet:       planet.Id,
+			Building:     metalMineId,
+			CurrentLevel: 2,
+			DesiredLevel: 3,
+			CreatedAt:    someTime,
+			CompletedAt:  someTime.Add(1 * time.Hour),
+			Version:      9,
+			Costs: []models.BuildingActionCost{
+				{
+					Resource: crystalResourceId,
+					Amount:   1000,
+				},
+			},
+			Storages:    []models.BuildingActionResourceStorage{},
+			Productions: []models.BuildingActionResourceProduction{},
+		}
+
+		err := repo.Create(t.Context(), planet, action)
+		require.NoError(t, err, "Actual err: %v", err)
+		assertBuildingActionExists(t, conn, action.Id)
+
+		planetRepo := NewPlanetRepository(conn)
+		actualPlanet, err := planetRepo.Get(t.Context(), planet.Id)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.Equal(t, planet.Version, actualPlanet.Version)
+		assert.Equal(t, newTime, actualPlanet.UpdatedAt)
+	})
+
 	t.Run("updates planet resources with action costs", func(t *testing.T) {
 		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetResource)
+		planet.Version++
+
 		// This is to make sure that the cost is not bigger than the amount of
 		// resources on the planet
 		require.LessOrEqual(t, 1000.0, planet.Resources[0].Amount)
@@ -324,8 +369,8 @@ func TestIT_BuildingActionRepository_CreationDeletionWorkflow(t *testing.T) {
 				Building:     metalMineId,
 				CurrentLevel: 26,
 				DesiredLevel: 27,
-				CreatedAt:    time.Date(2024, 12, 7, 20, 26, 47, 0, time.UTC),
-				CompletedAt:  time.Date(2024, 12, 7, 21, 26, 47, 0, time.UTC),
+				CreatedAt:    time.Date(2024, time.December, 7, 20, 26, 47, 0, time.UTC),
+				CompletedAt:  time.Date(2024, time.December, 7, 21, 26, 47, 0, time.UTC),
 				Version:      17,
 				Costs:        []models.BuildingActionCost{},
 				Storages:     []models.BuildingActionResourceStorage{},
@@ -337,6 +382,7 @@ func TestIT_BuildingActionRepository_CreationDeletionWorkflow(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			planet, _, _ := insertTestPlanetForPlayer(t, conn)
+			planet.Version++
 
 			tc.action.Planet = planet.Id
 

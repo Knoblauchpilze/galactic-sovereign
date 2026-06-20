@@ -140,6 +140,17 @@ ORDER BY
 	p.created_at,
 	p.name`
 
+	updatePlanetQuery = `
+UPDATE
+	planet
+SET
+	version = $1,
+	updated_at = $2
+WHERE
+	id = $3
+	AND version = $4
+	`
+
 	updatePlanetResourcesQuery = `
 UPDATE
 	planet_resource
@@ -397,10 +408,25 @@ func updatePlanetDetails(ctx context.Context, tx db.Transaction, planet models.P
 		if err != nil {
 			return err
 		}
-
 		if affected != 1 {
 			return domainerrors.ErrNotFound
 		}
+	}
+
+	affected, err := tx.Exec(
+		ctx,
+		updatePlanetQuery,
+		planet.Version,
+		planet.UpdatedAt,
+		planet.Id,
+		planet.Version-1,
+	)
+	if err != nil {
+		return err
+	}
+
+	if affected != 1 {
+		return domainerrors.ErrOptimisticLocking
 	}
 
 	return nil
