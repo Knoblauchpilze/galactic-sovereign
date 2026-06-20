@@ -79,13 +79,11 @@ func TestUnit_ManageBuildingAction_Create(t *testing.T) {
 			Times(1).
 			Return(building, nil)
 
-		var capturedPlanet models.Planet
 		var captured models.BuildingAction
 		mockActionRepo.EXPECT().
-			Create(gomock.Any(), gomock.AssignableToTypeOf(capturedPlanet), gomock.AssignableToTypeOf(captured)).
+			Create(gomock.Any(), gomock.Any(), gomock.AssignableToTypeOf(captured)).
 			Times(1).
 			DoAndReturn(func(ctx context.Context, planet models.Planet, action models.BuildingAction) error {
-				capturedPlanet = planet
 				captured = action
 				return nil
 			})
@@ -119,6 +117,59 @@ func TestUnit_ManageBuildingAction_Create(t *testing.T) {
 			Productions: []models.BuildingActionResourceProduction{},
 		}
 		assert.Equal(t, expected, actual)
+		assert.Equal(t, expected, captured)
+	})
+
+	t.Run("persists modified planet", func(t *testing.T) {
+		mockPlanetRepo.EXPECT().
+			Get(gomock.Any(), gomock.Eq(request.Planet)).
+			Times(1).
+			Return(planet, nil)
+
+		mockBuildingRepo.EXPECT().
+			Get(gomock.Any(), gomock.Eq(request.Building)).
+			Times(1).
+			Return(building, nil)
+
+		var captured models.Planet
+		mockActionRepo.EXPECT().
+			Create(gomock.Any(), gomock.AssignableToTypeOf(captured), gomock.Any()).
+			Times(1).
+			DoAndReturn(func(ctx context.Context, planet models.Planet, action models.BuildingAction) error {
+				captured = planet
+				return nil
+			})
+
+		usecase := NewBuildingActionUseCase(mockActionRepo, mockPlanetRepo, mockBuildingRepo)
+		actual, err := usecase.Create(context.Background(), request)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		expected := models.Planet{
+			Id:        planet.Id,
+			Player:    planet.Player,
+			Name:      planet.Name,
+			Homeworld: planet.Homeworld,
+			CreatedAt: planet.CreatedAt,
+			UpdatedAt: planet.UpdatedAt,
+			Version:   planet.Version,
+			Resources: []models.PlanetResource{
+				{
+					Resource: metalResourceId,
+					// Corresponds to the initial amount (99999) minus the cost
+					// for each resource (78 for metal and 123 for crystal)
+					Amount: 99921,
+				},
+				{
+					Resource: crystalResourceId,
+					Amount:   99876,
+				},
+			},
+			Storages:       planet.Storages,
+			Productions:    planet.Productions,
+			Buildings:      planet.Buildings,
+			BuildingAction: &actual.Id,
+		}
+		assert.Equal(t, planet.Id, actual.Planet)
 		assert.Equal(t, expected, captured)
 	})
 
