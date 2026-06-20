@@ -156,6 +156,41 @@ func TestIT_BuildingActionRepository_Create(t *testing.T) {
 		assert.Equal(t, action, actual)
 	})
 
+	t.Run("updates planet resources with action costs", func(t *testing.T) {
+		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetResource)
+		// This is to make sure that the cost is not bigger than the amount of
+		// resources on the planet
+		require.LessOrEqual(t, 1000.0, planet.Resources[0].Amount)
+
+		action := models.BuildingAction{
+			Id:           uuid.New(),
+			Planet:       planet.Id,
+			Building:     metalMineId,
+			CurrentLevel: 2,
+			DesiredLevel: 3,
+			CreatedAt:    someTime,
+			CompletedAt:  someTime.Add(1 * time.Hour),
+			Version:      9,
+			Costs: []models.BuildingActionCost{
+				{
+					Resource: crystalResourceId,
+					Amount:   1000,
+				},
+			},
+			Storages:    []models.BuildingActionResourceStorage{},
+			Productions: []models.BuildingActionResourceProduction{},
+		}
+
+		planet.Resources[0].Amount -= 1000
+
+		err := repo.Create(t.Context(), planet, action)
+		require.NoError(t, err, "Actual err: %v", err)
+		assertBuildingActionExists(t, conn, action.Id)
+
+		expectedAmount := planet.Resources[0].Amount
+		assertPlanetResourceAmount(t, conn, planet.Id, crystalResourceId, float64(expectedAmount))
+	})
+
 	t.Run("returns error when action for same planet already exists", func(t *testing.T) {
 		_, planet := insertTestBuildingAction(t, conn)
 
@@ -491,4 +526,13 @@ func assertBuildingActionProductionDoesNotExist(t *testing.T, conn db.Connection
 	value, err := db.QueryOne[int](t.Context(), conn, sqlQuery, action)
 	require.NoError(t, err, "Actual err: %v", err)
 	require.Zero(t, value)
+}
+
+func assertPlanetResourceAmount(t *testing.T, conn db.Connection, planet uuid.UUID, resource uuid.UUID, amount float64) {
+	t.Helper()
+
+	sqlQuery := `SELECT amount FROM planet_resource WHERE planet = $1 AND resource = $2`
+	value, err := db.QueryOne[float64](t.Context(), conn, sqlQuery, planet, resource)
+	require.NoError(t, err, "Actual err: %v", err)
+	require.Equal(t, amount, value)
 }

@@ -130,59 +130,14 @@ func (r *buildingActionRepositoryImpl) Create(
 	}
 	defer tx.Close(ctx)
 
-	_, err = tx.Exec(
-		ctx,
-		createBuildingActionQuery,
-		action.Id,
-		action.Planet,
-		action.Building,
-		action.CurrentLevel,
-		action.DesiredLevel,
-		action.CreatedAt,
-		action.CompletedAt,
-		action.Version,
-	)
+	err = createBuildingActionWithDetails(ctx, tx, action)
 	if err != nil {
 		return parseDbError(err)
 	}
 
-	for _, c := range action.Costs {
-		_, err = tx.Exec(
-			ctx,
-			createBuildingActionCostQuery,
-			action.Id,
-			c.Resource,
-			c.Amount,
-		)
-		if err != nil {
-			return err
-		}
-	}
-
-	for _, s := range action.Storages {
-		_, err = tx.Exec(
-			ctx,
-			createBuildingActionResourceStorageQuery,
-			action.Id,
-			s.Resource,
-			s.Storage,
-		)
-		if err != nil {
-			return err
-		}
-	}
-
-	for _, p := range action.Productions {
-		_, err = tx.Exec(
-			ctx,
-			createBuildingActionResourceProductionQuery,
-			action.Id,
-			p.Resource,
-			p.Production,
-		)
-		if err != nil {
-			return err
-		}
+	err = updatePlanetDetails(ctx, tx, planet)
+	if err != nil {
+		return parseDbError(err)
 	}
 
 	return nil
@@ -236,6 +191,65 @@ func (r *buildingActionRepositoryImpl) Delete(ctx context.Context, id uuid.UUID)
 	_, err = tx.Exec(ctx, deleteBuildingActionQuery, id)
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func createBuildingActionWithDetails(ctx context.Context, tx db.Transaction, action models.BuildingAction) error {
+	_, err := tx.Exec(
+		ctx,
+		createBuildingActionQuery,
+		action.Id,
+		action.Planet,
+		action.Building,
+		action.CurrentLevel,
+		action.DesiredLevel,
+		action.CreatedAt,
+		action.CompletedAt,
+		action.Version,
+	)
+	if err != nil {
+		return err
+	}
+
+	for _, c := range action.Costs {
+		_, err = tx.Exec(
+			ctx,
+			createBuildingActionCostQuery,
+			action.Id,
+			c.Resource,
+			c.Amount,
+		)
+		if err != nil {
+			return err
+		}
+	}
+
+	for _, s := range action.Storages {
+		_, err = tx.Exec(
+			ctx,
+			createBuildingActionResourceStorageQuery,
+			action.Id,
+			s.Resource,
+			s.Storage,
+		)
+		if err != nil {
+			return err
+		}
+	}
+
+	for _, p := range action.Productions {
+		_, err = tx.Exec(
+			ctx,
+			createBuildingActionResourceProductionQuery,
+			action.Id,
+			p.Resource,
+			p.Production,
+		)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

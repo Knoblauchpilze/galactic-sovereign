@@ -6,6 +6,7 @@ import (
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driven/mappers"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
+	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
 	drivenports "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driven"
 	"github.com/google/uuid"
 )
@@ -138,6 +139,16 @@ WHERE
 ORDER BY
 	p.created_at,
 	p.name`
+
+	updatePlanetResourcesQuery = `
+UPDATE
+	planet_resource
+SET
+	amount = $1
+WHERE
+	planet = $2
+	AND resource = $3
+	`
 
 	deletePlanetBuildingsQuery           = `DELETE FROM planet_building WHERE planet = $1`
 	deletePlanetResourceProductionsQuery = `DELETE FROM planet_resource_production WHERE planet = $1`
@@ -372,6 +383,27 @@ func loadPlanetDetails(ctx context.Context, tx db.Transaction, dbPlanet mappers.
 	}
 
 	return planet, nil
+}
+
+func updatePlanetDetails(ctx context.Context, tx db.Transaction, planet models.Planet) error {
+	for _, r := range planet.Resources {
+		affected, err := tx.Exec(
+			ctx,
+			updatePlanetResourcesQuery,
+			r.Amount,
+			planet.Id,
+			r.Resource,
+		)
+		if err != nil {
+			return err
+		}
+
+		if affected != 1 {
+			return domainerrors.ErrNotFound
+		}
+	}
+
+	return nil
 }
 
 func deletePlanetDetails(ctx context.Context, tx db.Transaction, id uuid.UUID) error {
