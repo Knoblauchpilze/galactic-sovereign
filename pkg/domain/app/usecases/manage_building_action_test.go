@@ -27,48 +27,11 @@ func TestUnit_ManageBuildingAction_Create(t *testing.T) {
 	mockPlanetRepo := drivenportstest.NewMockForManagingPlanets(ctrl)
 	mockBuildingRepo := drivenportstest.NewMockForListingBuildings(ctrl)
 
-	request := request.BuildingActionCreationRequest{
-		Planet:   uuid.New(),
-		Building: uuid.New(),
-	}
-
-	planet := models.Planet{
-		Id: request.Planet,
-		Resources: []models.PlanetResource{
-			{
-				Resource: metalResourceId,
-				Amount:   99999,
-			},
-			{
-				Resource: crystalResourceId,
-				Amount:   99999,
-			},
-		},
-		Buildings: []models.PlanetBuilding{
-			{
-				Building: request.Building,
-				Level:    2,
-			},
-		},
-	}
-
-	building := models.Building{
-		Id: request.Building,
-		Costs: []models.BuildingCost{
-			{
-				Resource: metalResourceId,
-				Cost:     50,
-				Progress: 1.25,
-			},
-			{
-				Resource: crystalResourceId,
-				Cost:     67,
-				Progress: 1.36,
-			},
-		},
-	}
-
 	t.Run("persists created building action", func(t *testing.T) {
+		planet := generateTestPlanet()
+		building := generateTestBuilding(planet)
+		request := generateTestBuildingActionRequest(planet)
+
 		mockPlanetRepo.EXPECT().
 			Get(gomock.Any(), gomock.Eq(request.Planet)).
 			Times(1).
@@ -121,6 +84,10 @@ func TestUnit_ManageBuildingAction_Create(t *testing.T) {
 	})
 
 	t.Run("persists modified planet", func(t *testing.T) {
+		planet := generateTestPlanet()
+		building := generateTestBuilding(planet)
+		request := generateTestBuildingActionRequest(planet)
+
 		mockPlanetRepo.EXPECT().
 			Get(gomock.Any(), gomock.Eq(request.Planet)).
 			Times(1).
@@ -174,6 +141,9 @@ func TestUnit_ManageBuildingAction_Create(t *testing.T) {
 	})
 
 	t.Run("returns error when planet is not found", func(t *testing.T) {
+		planet := generateTestPlanet()
+		request := generateTestBuildingActionRequest(planet)
+
 		mockPlanetRepo.EXPECT().
 			Get(gomock.Any(), gomock.Eq(request.Planet)).
 			Times(1).
@@ -186,6 +156,9 @@ func TestUnit_ManageBuildingAction_Create(t *testing.T) {
 	})
 
 	t.Run("returns error when building is not found", func(t *testing.T) {
+		planet := generateTestPlanet()
+		request := generateTestBuildingActionRequest(planet)
+
 		mockPlanetRepo.EXPECT().
 			Get(gomock.Any(), gomock.Eq(request.Planet)).
 			Times(1).
@@ -203,6 +176,10 @@ func TestUnit_ManageBuildingAction_Create(t *testing.T) {
 	})
 
 	t.Run("returns error when repository fails", func(t *testing.T) {
+		planet := generateTestPlanet()
+		building := generateTestBuilding(planet)
+		request := generateTestBuildingActionRequest(planet)
+
 		mockPlanetRepo.EXPECT().
 			Get(gomock.Any(), gomock.Eq(request.Planet)).
 			Times(1).
@@ -257,4 +234,53 @@ func TestUnit_ManageBuildingAction_Delete(t *testing.T) {
 
 		assert.ErrorIs(t, expectedErr, err, "Actual err: %v", err)
 	})
+}
+
+func generateTestPlanet() models.Planet {
+	return models.Planet{
+		Id: uuid.New(),
+		Resources: []models.PlanetResource{
+			{
+				Resource: metalResourceId,
+				Amount:   99999,
+			},
+			{
+				Resource: crystalResourceId,
+				Amount:   99999,
+			},
+		},
+		Buildings: []models.PlanetBuilding{
+			{
+				Building: uuid.New(),
+				Level:    2,
+			},
+		},
+	}
+}
+
+func generateTestBuilding(planet models.Planet) models.Building {
+	return models.Building{
+		Id: planet.Buildings[0].Building,
+		Costs: []models.BuildingCost{
+			{
+				Resource: metalResourceId,
+				Cost:     50,
+				Progress: 1.25,
+			},
+			{
+				Resource: crystalResourceId,
+				Cost:     67,
+				Progress: 1.36,
+			},
+		},
+	}
+}
+
+func generateTestBuildingActionRequest(
+	planet models.Planet,
+) request.BuildingActionCreationRequest {
+	return request.BuildingActionCreationRequest{
+		Planet:   planet.Id,
+		Building: planet.Buildings[0].Building,
+	}
 }
