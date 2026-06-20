@@ -285,7 +285,7 @@ func (s *testContainerSuite) migrationSourceURL(t *testing.T) string {
 	return fmt.Sprintf("file://%s", migrationsPath)
 }
 
-func randFloat(max float64, precision int) float64 {
+func randFloat(min float64, max float64, precision int) float64 {
 	rounder := math.Pow(10, float64(precision))
-	return math.Round(max*rand.Float64()*rounder) / rounder
+	return min + math.Round((max-min)*rand.Float64()*rounder)/rounder
 }
