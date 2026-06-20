@@ -67,7 +67,12 @@ func (b *buildingActionUseCase) Delete(ctx context.Context, id uuid.UUID) error 
 		return err
 	}
 
-	err = b.actionRepo.Delete(ctx, action)
+	planet, err := b.planetRepo.Get(ctx, action.Planet)
+	if err != nil {
+		return err
+	}
+
+	err = b.actionRepo.Delete(ctx, planet, action)
 	if err != nil {
 		return err
 	}

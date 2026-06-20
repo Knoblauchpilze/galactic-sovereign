@@ -210,14 +210,19 @@ func TestUnit_ManageBuildingAction_Delete(t *testing.T) {
 	mockBuildingRepo := drivenportstest.NewMockForListingBuildings(ctrl)
 
 	t.Run("deletes existing building action", func(t *testing.T) {
-		action := models.BuildingAction{Id: uuid.New()}
+		planet := models.Planet{Id: uuid.New()}
+		action := models.BuildingAction{Id: uuid.New(), Planet: planet.Id}
 
 		mockActionRepo.EXPECT().
 			Get(gomock.Any(), gomock.Eq(action.Id)).
 			Times(1).
 			Return(action, nil)
+		mockPlanetRepo.EXPECT().
+			Get(gomock.Any(), gomock.Eq(action.Planet)).
+			Times(1).
+			Return(planet, nil)
 		mockActionRepo.EXPECT().
-			Delete(gomock.Any(), gomock.Eq(action)).
+			Delete(gomock.Any(), gomock.Eq(planet), gomock.Eq(action)).
 			Times(1).
 			Return(nil)
 
@@ -240,15 +245,20 @@ func TestUnit_ManageBuildingAction_Delete(t *testing.T) {
 	})
 
 	t.Run("returns error when repository fails", func(t *testing.T) {
-		action := models.BuildingAction{Id: uuid.New()}
+		planet := models.Planet{Id: uuid.New()}
+		action := models.BuildingAction{Id: uuid.New(), Planet: planet.Id}
 
 		mockActionRepo.EXPECT().
 			Get(gomock.Any(), gomock.Eq(action.Id)).
 			Times(1).
 			Return(action, nil)
+		mockPlanetRepo.EXPECT().
+			Get(gomock.Any(), gomock.Eq(action.Planet)).
+			Times(1).
+			Return(planet, nil)
 		expectedErr := errors.New("stubbed error")
 		mockActionRepo.EXPECT().
-			Delete(gomock.Any(), gomock.Any()).
+			Delete(gomock.Any(), gomock.Any(), gomock.Any()).
 			Times(1).
 			Return(expectedErr)
 

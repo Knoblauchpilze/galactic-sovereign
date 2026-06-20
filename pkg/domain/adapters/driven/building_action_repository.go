@@ -166,7 +166,11 @@ func (r *buildingActionRepositoryImpl) Get(
 	return loadBuildingActionDetails(ctx, tx, dbAction)
 }
 
-func (r *buildingActionRepositoryImpl) Delete(ctx context.Context, action models.BuildingAction) error {
+func (r *buildingActionRepositoryImpl) Delete(
+	ctx context.Context,
+	planet models.Planet,
+	action models.BuildingAction,
+) error {
 	tx, err := r.conn.BeginTx(ctx)
 	if err != nil {
 		return err
@@ -176,6 +180,11 @@ func (r *buildingActionRepositoryImpl) Delete(ctx context.Context, action models
 	err = deleteBuildingActionDetails(ctx, tx, action)
 	if err != nil {
 		return err
+	}
+
+	err = updatePlanetDetails(ctx, tx, planet)
+	if err != nil {
+		return parseDbError(err)
 	}
 
 	return nil

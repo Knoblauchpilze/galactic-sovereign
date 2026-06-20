@@ -199,7 +199,7 @@ func TestIT_BuildingActionRepository_Create(t *testing.T) {
 		assert.Equal(t, newTime, actualPlanet.UpdatedAt)
 	})
 
-	t.Run("updates planet resources with action costs", func(t *testing.T) {
+	t.Run("updates planet resources", func(t *testing.T) {
 		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetResource)
 		planet.Version++
 
@@ -308,18 +308,20 @@ func TestIT_BuildingActionRepository_Delete(t *testing.T) {
 	repo, conn := newTestBuildingActionRepository(t)
 
 	t.Run("deletes an action", func(t *testing.T) {
-		action, _ := insertTestBuildingAction(t, conn)
+		action, planet := insertTestBuildingAction(t, conn)
+		planet.Version++
 
-		err := repo.Delete(t.Context(), action)
+		err := repo.Delete(t.Context(), planet, action)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assertBuildingActionDoesNotExist(t, conn, action.Id)
 	})
 
 	t.Run("deletes action with costs", func(t *testing.T) {
-		action, _ := insertTestBuildingAction(t, conn, addBuildingActionCost)
+		action, planet := insertTestBuildingAction(t, conn, addBuildingActionCost)
+		planet.Version++
 
-		err := repo.Delete(t.Context(), action)
+		err := repo.Delete(t.Context(), planet, action)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assertBuildingActionDoesNotExist(t, conn, action.Id)
@@ -327,9 +329,10 @@ func TestIT_BuildingActionRepository_Delete(t *testing.T) {
 	})
 
 	t.Run("deletes action with storages", func(t *testing.T) {
-		action, _ := insertTestBuildingAction(t, conn, addBuildingActionStorage)
+		action, planet := insertTestBuildingAction(t, conn, addBuildingActionStorage)
+		planet.Version++
 
-		err := repo.Delete(t.Context(), action)
+		err := repo.Delete(t.Context(), planet, action)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assertBuildingActionDoesNotExist(t, conn, action.Id)
@@ -337,19 +340,71 @@ func TestIT_BuildingActionRepository_Delete(t *testing.T) {
 	})
 
 	t.Run("deletes action with productions", func(t *testing.T) {
-		action, _ := insertTestBuildingAction(t, conn, addBuildingActionProduction)
+		action, planet := insertTestBuildingAction(t, conn, addBuildingActionProduction)
+		planet.Version++
 
-		err := repo.Delete(t.Context(), action)
+		err := repo.Delete(t.Context(), planet, action)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assertBuildingActionDoesNotExist(t, conn, action.Id)
 		assertBuildingActionProductionDoesNotExist(t, conn, action.Id)
 	})
 
-	t.Run("succeeds when the action does not exist", func(t *testing.T) {
-		action := models.BuildingAction{Id: uuid.New()}
+	t.Run("updates planet version and updated at", func(t *testing.T) {
+		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetResource)
+		modifier := func(t *testing.T, conn db.Connection, a *models.BuildingAction) {
+			insertBuildingActionCost(t, conn, planet.Resources[0].Resource, a)
+		}
+		action := insertTestBuildingActionForPlanet(t, conn, planet.Id, modifier)
 
-		err := repo.Delete(t.Context(), action)
+		newTime := time.Date(2026, time.June, 20, 15, 2, 25, 0, time.UTC)
+		require.NotEqual(t, planet.UpdatedAt, newTime)
+		planet.UpdatedAt = newTime
+		planet.Version++
+
+		err := repo.Delete(t.Context(), planet, action)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assertBuildingActionDoesNotExist(t, conn, action.Id)
+
+		planetRepo := NewPlanetRepository(conn)
+		actualPlanet, err := planetRepo.Get(t.Context(), planet.Id)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.Equal(t, planet.Version, actualPlanet.Version)
+		assert.Equal(t, newTime, actualPlanet.UpdatedAt)
+	})
+
+	t.Run("updates planet resource", func(t *testing.T) {
+		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetResource)
+		modifier := func(t *testing.T, conn db.Connection, a *models.BuildingAction) {
+			insertBuildingActionCost(t, conn, planet.Resources[0].Resource, a)
+		}
+		action := insertTestBuildingActionForPlanet(t, conn, planet.Id, modifier)
+
+		planet.Resources[0].Amount += 1000
+		planet.Version++
+
+		err := repo.Delete(t.Context(), planet, action)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assertBuildingActionDoesNotExist(t, conn, action.Id)
+		assertPlanetResourceAmount(
+			t,
+			conn,
+			planet.Id,
+			planet.Resources[0].Resource,
+			planet.Resources[0].Amount,
+		)
+	})
+
+	t.Run("succeeds when the action does not exist", func(t *testing.T) {
+		planet, _, _ := insertTestPlanetForPlayer(t, conn)
+		action := models.BuildingAction{Id: uuid.New(), Planet: planet.Id}
+
+		planet.Version++
+
+		err := repo.Delete(t.Context(), planet, action)
 		require.NoError(t, err, "Actual err: %v", err)
 	})
 }
@@ -398,8 +453,10 @@ func TestIT_BuildingActionRepository_CreationDeletionWorkflow(t *testing.T) {
 				assert.Equal(t, tc.action, actionFromDb)
 			}()
 
+			planet.Version++
+
 			func() {
-				err := repo.Delete(t.Context(), tc.action)
+				err := repo.Delete(t.Context(), planet, tc.action)
 				require.NoError(t, err, "Actual err: %v", err)
 			}()
 
@@ -414,18 +471,17 @@ func newTestBuildingActionRepository(t *testing.T) (drivenports.ForManagingBuild
 	return NewBuildingActionRepository(conn), conn
 }
 
-func insertTestBuildingAction(
+func insertTestBuildingActionForPlanet(
 	t *testing.T,
 	conn db.Connection,
+	planetId uuid.UUID,
 	modifiers ...func(*testing.T, db.Connection, *models.BuildingAction),
-) (models.BuildingAction, models.Planet) {
+) models.BuildingAction {
 	t.Helper()
-
-	planet, _, _ := insertTestPlanetForPlayer(t, conn)
 
 	action := models.BuildingAction{
 		Id:           uuid.New(),
-		Planet:       planet.Id,
+		Planet:       planetId,
 		Building:     metalMineId,
 		CurrentLevel: 4,
 		DesiredLevel: 5,
@@ -460,14 +516,30 @@ func insertTestBuildingAction(
 		modifier(t, conn, &action)
 	}
 
+	return action
+}
+
+func insertTestBuildingAction(
+	t *testing.T,
+	conn db.Connection,
+	modifiers ...func(*testing.T, db.Connection, *models.BuildingAction),
+) (models.BuildingAction, models.Planet) {
+	t.Helper()
+
+	planet, _, _ := insertTestPlanetForPlayer(t, conn)
+	action := insertTestBuildingActionForPlanet(t, conn, planet.Id, modifiers...)
 	return action, planet
 }
 
 func addBuildingActionCost(t *testing.T, conn db.Connection, a *models.BuildingAction) {
 	t.Helper()
 
+	insertBuildingActionCost(t, conn, metalResourceId, a)
+}
+
+func insertBuildingActionCost(t *testing.T, conn db.Connection, resourceId uuid.UUID, a *models.BuildingAction) {
 	cost := models.BuildingActionCost{
-		Resource: metalResourceId,
+		Resource: resourceId,
 		Amount:   rand.Intn(4589),
 	}
 
