@@ -108,7 +108,7 @@ func addBuildingCost(t *testing.T, conn db.Connection, b *models.Building) {
 		Resource: metalResourceId,
 		Cost:     rand.Intn(897),
 		// Progress is stored with 5 decimals in the DB
-		Progress: randFloat(5),
+		Progress: randFloat(100, 5),
 	}
 
 	sqlQuery := `INSERT INTO building_cost (building, resource, cost, progress)
@@ -133,7 +133,7 @@ func addBuildingProduction(t *testing.T, conn db.Connection, b *models.Building)
 		Resource: metalResourceId,
 		Base:     rand.Intn(1748),
 		// Progress is stored with 5 decimals in the DB
-		Progress: randFloat(5),
+		Progress: randFloat(500, 5),
 	}
 
 	sqlQuery := `INSERT INTO building_resource_production (building, resource, base, progress)
@@ -158,8 +158,8 @@ func addBuildingStorage(t *testing.T, conn db.Connection, b *models.Building) {
 		Resource: metalResourceId,
 		Base:     rand.Intn(1748),
 		// Scale and progress are stored with 5 decimals in the DB
-		Scale:    randFloat(5),
-		Progress: randFloat(5),
+		Scale:    randFloat(1, 5),
+		Progress: randFloat(1, 5),
 	}
 
 	sqlQuery := `INSERT INTO building_resource_storage (building, resource, base, scale, progress)
