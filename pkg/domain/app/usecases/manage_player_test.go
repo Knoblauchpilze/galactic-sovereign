@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
+	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/request"
 	drivingports "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driving"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/usecases/drivenportstest"
@@ -271,6 +272,18 @@ func TestUnit_ManagePlayer_Delete(t *testing.T) {
 			Return(nil)
 
 		err := suite.usecase.Delete(context.Background(), player.Id)
+		require.NoError(t, err, "Actual err: %v", err)
+	})
+
+	t.Run("succeeds when building action is not found", func(t *testing.T) {
+		playerId := uuid.New()
+
+		suite.mockPlayerRepo.EXPECT().
+			Get(gomock.Any(), gomock.Eq(playerId)).
+			Times(1).
+			Return(models.Player{}, domainerrors.ErrNotFound)
+
+		err := suite.usecase.Delete(context.Background(), playerId)
 		require.NoError(t, err, "Actual err: %v", err)
 	})
 
