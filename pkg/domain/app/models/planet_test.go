@@ -137,6 +137,20 @@ func TestUnit_Planet_AddBuildingAction(t *testing.T) {
 		}
 		assert.Equal(t, expectedResources, p.Resources)
 	})
+
+	t.Run("bumps version and updated at field", func(t *testing.T) {
+		p := generateTestPlanet(t, withPlanetBuilding, withManyResources)
+		p.UpdatedAt = someTime
+		b := generateTestBuilding(t, withBuildingCost, withBuildingProduction, withBuildingStorage)
+
+		initialVersion := p.Version
+
+		action, err := p.AddBuildingAction(b)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.Equal(t, initialVersion+1, p.Version)
+		assert.Equal(t, action.CreatedAt, p.UpdatedAt)
+	})
 }
 
 func generateTestPlanet(

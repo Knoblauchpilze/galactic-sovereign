@@ -534,5 +534,5 @@ func assertPlanetResourceAmount(t *testing.T, conn db.Connection, planet uuid.UU
 	sqlQuery := `SELECT amount FROM planet_resource WHERE planet = $1 AND resource = $2`
 	value, err := db.QueryOne[float64](t.Context(), conn, sqlQuery, planet, resource)
 	require.NoError(t, err, "Actual err: %v", err)
-	require.Equal(t, amount, value)
+	require.InDelta(t, amount, value, 0.00001)
 }

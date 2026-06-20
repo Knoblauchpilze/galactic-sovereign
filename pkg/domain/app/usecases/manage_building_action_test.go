@@ -117,8 +117,8 @@ func TestUnit_ManageBuildingAction_Create(t *testing.T) {
 			Name:      planet.Name,
 			Homeworld: planet.Homeworld,
 			CreatedAt: planet.CreatedAt,
-			UpdatedAt: planet.UpdatedAt,
-			Version:   planet.Version,
+			UpdatedAt: actual.CreatedAt,
+			Version:   planet.Version + 1,
 			Resources: []models.PlanetResource{
 				{
 					Resource: metalResourceId,

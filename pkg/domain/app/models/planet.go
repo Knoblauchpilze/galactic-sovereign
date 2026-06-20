@@ -68,6 +68,8 @@ func (p *Planet) AddBuildingAction(building Building) (BuildingAction, error) {
 
 	p.BuildingAction = &action.Id
 
+	p.bumpVersion(action.CreatedAt)
+
 	return action, nil
 }
 
@@ -103,6 +105,11 @@ func (p *Planet) deductResources(
 			p.Resources[id].Amount -= float64(cost.Amount)
 		}
 	}
+}
+
+func (p *Planet) bumpVersion(timestamp time.Time) {
+	p.UpdatedAt = timestamp
+	p.Version++
 }
 
 func (p *Planet) findBuildingById(id uuid.UUID) (PlanetBuilding, error) {
