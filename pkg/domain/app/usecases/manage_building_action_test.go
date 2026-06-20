@@ -79,11 +79,13 @@ func TestUnit_ManageBuildingAction_Create(t *testing.T) {
 			Times(1).
 			Return(building, nil)
 
+		var capturedPlanet models.Planet
 		var captured models.BuildingAction
 		mockActionRepo.EXPECT().
-			Create(gomock.Any(), gomock.AssignableToTypeOf(captured)).
+			Create(gomock.Any(), gomock.AssignableToTypeOf(capturedPlanet), gomock.AssignableToTypeOf(captured)).
 			Times(1).
-			DoAndReturn(func(ctx context.Context, action models.BuildingAction) error {
+			DoAndReturn(func(ctx context.Context, planet models.Planet, action models.BuildingAction) error {
+				capturedPlanet = planet
 				captured = action
 				return nil
 			})
@@ -162,7 +164,7 @@ func TestUnit_ManageBuildingAction_Create(t *testing.T) {
 
 		expectedErr := errors.New("stubbed error")
 		mockActionRepo.EXPECT().
-			Create(gomock.Any(), gomock.Any()).
+			Create(gomock.Any(), gomock.Any(), gomock.Any()).
 			Times(1).
 			Return(expectedErr)
 

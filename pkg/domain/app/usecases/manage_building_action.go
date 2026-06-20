@@ -49,7 +49,7 @@ func (b *buildingActionUseCase) Create(ctx context.Context, req request.Building
 		return models.BuildingAction{}, err
 	}
 
-	err = b.actionRepo.Create(ctx, action)
+	err = b.actionRepo.Create(ctx, planet, action)
 	if err != nil {
 		return models.BuildingAction{}, err
 	}

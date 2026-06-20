@@ -121,6 +121,7 @@ func NewBuildingActionRepository(conn db.Connection) drivenports.ForManagingBuil
 
 func (r *buildingActionRepositoryImpl) Create(
 	ctx context.Context,
+	planet models.Planet,
 	action models.BuildingAction,
 ) error {
 	tx, err := r.conn.BeginTx(ctx)

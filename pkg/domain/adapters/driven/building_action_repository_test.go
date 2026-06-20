@@ -38,7 +38,7 @@ func TestIT_BuildingActionRepository_Create(t *testing.T) {
 			Productions:  []models.BuildingActionResourceProduction{},
 		}
 
-		err := repo.Create(t.Context(), action)
+		err := repo.Create(t.Context(), planet, action)
 		require.NoError(t, err, "Actual err: %v", err)
 		assertBuildingActionExists(t, conn, action.Id)
 
@@ -74,7 +74,7 @@ func TestIT_BuildingActionRepository_Create(t *testing.T) {
 			Productions: []models.BuildingActionResourceProduction{},
 		}
 
-		err := repo.Create(t.Context(), action)
+		err := repo.Create(t.Context(), planet, action)
 		require.NoError(t, err, "Actual err: %v", err)
 		assertBuildingActionExists(t, conn, action.Id)
 
@@ -110,7 +110,7 @@ func TestIT_BuildingActionRepository_Create(t *testing.T) {
 			Productions: []models.BuildingActionResourceProduction{},
 		}
 
-		err := repo.Create(t.Context(), action)
+		err := repo.Create(t.Context(), planet, action)
 		require.NoError(t, err, "Actual err: %v", err)
 		assertBuildingActionExists(t, conn, action.Id)
 
@@ -146,7 +146,7 @@ func TestIT_BuildingActionRepository_Create(t *testing.T) {
 			},
 		}
 
-		err := repo.Create(t.Context(), action)
+		err := repo.Create(t.Context(), planet, action)
 		require.NoError(t, err, "Actual err: %v", err)
 		assertBuildingActionExists(t, conn, action.Id)
 
@@ -170,7 +170,7 @@ func TestIT_BuildingActionRepository_Create(t *testing.T) {
 			Version:      14,
 		}
 
-		err := repo.Create(t.Context(), newAction)
+		err := repo.Create(t.Context(), planet, newAction)
 
 		assert.Equal(t, domainerrors.ErrActionAlreadyInProgress, err, "Actual err: %v", err)
 		assertBuildingActionDoesNotExist(t, conn, newAction.Id)
@@ -306,7 +306,7 @@ func TestIT_BuildingActionRepository_CreationDeletionWorkflow(t *testing.T) {
 			tc.action.Planet = planet.Id
 
 			func() {
-				err := repo.Create(t.Context(), tc.action)
+				err := repo.Create(t.Context(), planet, tc.action)
 				require.NoError(t, err, "Actual err: %v", err)
 			}()
 
