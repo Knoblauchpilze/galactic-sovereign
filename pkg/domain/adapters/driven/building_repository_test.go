@@ -158,8 +158,10 @@ func addBuildingStorage(t *testing.T, conn db.Connection, b *models.Building) {
 		Resource: metalResourceId,
 		Base:     rand.Intn(1748),
 		// Scale and progress are stored with 5 decimals in the DB
-		Scale:    randFloat(0.1, 1, 5),
-		Progress: randFloat(0.1, 1, 5),
+		// The min value is arbitrary but ideally should be represented exactly as
+		// a float, otherwise some comparison with assert.Contains might fail.
+		Scale:    randFloat(0.0625, 1, 5),
+		Progress: randFloat(0.0625, 1, 5),
 	}
 
 	sqlQuery := `INSERT INTO building_resource_storage (building, resource, base, scale, progress)
