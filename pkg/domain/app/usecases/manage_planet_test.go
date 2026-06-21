@@ -17,7 +17,8 @@ import (
 
 func TestUnit_ManagePlanet_Create(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	mockRepo := drivenportstest.NewMockForManagingPlanets(ctrl)
+	mockPlayerRepo := drivenportstest.NewMockForManagingPlayers(ctrl)
+	mockPlanetRepo := drivenportstest.NewMockForManagingPlanets(ctrl)
 
 	request := request.PlanetCreationRequest{
 		Player: uuid.New(),
@@ -26,7 +27,7 @@ func TestUnit_ManagePlanet_Create(t *testing.T) {
 
 	t.Run("persists created planet", func(t *testing.T) {
 		var captured models.Planet
-		mockRepo.EXPECT().
+		mockPlanetRepo.EXPECT().
 			Create(gomock.Any(), gomock.AssignableToTypeOf(captured)).
 			Times(1).
 			DoAndReturn(func(ctx context.Context, planet models.Planet) error {
@@ -36,7 +37,7 @@ func TestUnit_ManagePlanet_Create(t *testing.T) {
 
 		beforeInsertion := time.Now()
 
-		usecase := NewPlanetUseCase(mockRepo)
+		usecase := NewPlanetUseCase(mockPlayerRepo, mockPlanetRepo)
 		actual, err := usecase.Create(context.Background(), request)
 		require.NoError(t, err, "Actual err: %v", err)
 
@@ -55,12 +56,12 @@ func TestUnit_ManagePlanet_Create(t *testing.T) {
 
 	t.Run("returns error when repository fails", func(t *testing.T) {
 		expectedErr := errors.New("stubbed error")
-		mockRepo.EXPECT().
+		mockPlanetRepo.EXPECT().
 			Create(gomock.Any(), gomock.Any()).
 			Times(1).
 			Return(expectedErr)
 
-		usecase := NewPlanetUseCase(mockRepo)
+		usecase := NewPlanetUseCase(mockPlayerRepo, mockPlanetRepo)
 		_, err := usecase.Create(context.Background(), request)
 
 		assert.ErrorIs(t, expectedErr, err, "Actual err: %v", err)
@@ -69,7 +70,8 @@ func TestUnit_ManagePlanet_Create(t *testing.T) {
 
 func TestUnit_ManagePlanet_Get(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	mockRepo := drivenportstest.NewMockForManagingPlanets(ctrl)
+	mockPlayerRepo := drivenportstest.NewMockForManagingPlayers(ctrl)
+	mockPlanetRepo := drivenportstest.NewMockForManagingPlanets(ctrl)
 
 	t.Run("gets existing planet", func(t *testing.T) {
 		expected := models.Planet{
@@ -77,12 +79,12 @@ func TestUnit_ManagePlanet_Get(t *testing.T) {
 			Name: "my-planet",
 		}
 
-		mockRepo.EXPECT().
+		mockPlanetRepo.EXPECT().
 			Get(gomock.Any(), gomock.Eq(expected.Id)).
 			Times(1).
 			Return(expected, nil)
 
-		usecase := NewPlanetUseCase(mockRepo)
+		usecase := NewPlanetUseCase(mockPlayerRepo, mockPlanetRepo)
 		actual, err := usecase.Get(context.Background(), expected.Id)
 		require.NoError(t, err, "Actual err: %v", err)
 
@@ -91,12 +93,12 @@ func TestUnit_ManagePlanet_Get(t *testing.T) {
 
 	t.Run("returns error when repository fails", func(t *testing.T) {
 		expectedErr := errors.New("stubbed error")
-		mockRepo.EXPECT().
+		mockPlanetRepo.EXPECT().
 			Get(gomock.Any(), gomock.Any()).
 			Times(1).
 			Return(models.Planet{}, expectedErr)
 
-		usecase := NewPlanetUseCase(mockRepo)
+		usecase := NewPlanetUseCase(mockPlayerRepo, mockPlanetRepo)
 		_, err := usecase.Get(context.Background(), uuid.New())
 
 		assert.ErrorIs(t, expectedErr, err, "Actual err: %v", err)
@@ -105,7 +107,8 @@ func TestUnit_ManagePlanet_Get(t *testing.T) {
 
 func TestUnit_ManagePlanet_List(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	mockRepo := drivenportstest.NewMockForManagingPlanets(ctrl)
+	mockPlayerRepo := drivenportstest.NewMockForManagingPlayers(ctrl)
+	mockPlanetRepo := drivenportstest.NewMockForManagingPlanets(ctrl)
 
 	t.Run("lists existing planets", func(t *testing.T) {
 		expected := []models.Planet{
@@ -119,12 +122,12 @@ func TestUnit_ManagePlanet_List(t *testing.T) {
 			},
 		}
 
-		mockRepo.EXPECT().
+		mockPlanetRepo.EXPECT().
 			List(gomock.Any()).
 			Times(1).
 			Return(expected, nil)
 
-		usecase := NewPlanetUseCase(mockRepo)
+		usecase := NewPlanetUseCase(mockPlayerRepo, mockPlanetRepo)
 		actual, err := usecase.List(context.Background())
 		require.NoError(t, err, "Actual err: %v", err)
 
@@ -134,12 +137,12 @@ func TestUnit_ManagePlanet_List(t *testing.T) {
 	t.Run("returns error when repository fails", func(t *testing.T) {
 		expectedErr := errors.New("stubbed error")
 
-		mockRepo.EXPECT().
+		mockPlanetRepo.EXPECT().
 			List(gomock.Any()).
 			Times(1).
 			Return(nil, expectedErr)
 
-		usecase := NewPlanetUseCase(mockRepo)
+		usecase := NewPlanetUseCase(mockPlayerRepo, mockPlanetRepo)
 		_, err := usecase.List(context.Background())
 
 		assert.ErrorIs(t, expectedErr, err, "Actual err: %v", err)
@@ -148,7 +151,8 @@ func TestUnit_ManagePlanet_List(t *testing.T) {
 
 func TestUnit_ManagePlanet_ListForPlayer(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	mockRepo := drivenportstest.NewMockForManagingPlanets(ctrl)
+	mockPlayerRepo := drivenportstest.NewMockForManagingPlayers(ctrl)
+	mockPlanetRepo := drivenportstest.NewMockForManagingPlanets(ctrl)
 
 	t.Run("lists existing planets", func(t *testing.T) {
 		player := uuid.New()
@@ -163,12 +167,12 @@ func TestUnit_ManagePlanet_ListForPlayer(t *testing.T) {
 			},
 		}
 
-		mockRepo.EXPECT().
+		mockPlanetRepo.EXPECT().
 			ListForPlayer(gomock.Any(), gomock.Eq(player)).
 			Times(1).
 			Return(expected, nil)
 
-		usecase := NewPlanetUseCase(mockRepo)
+		usecase := NewPlanetUseCase(mockPlayerRepo, mockPlanetRepo)
 		actual, err := usecase.ListForPlayer(context.Background(), player)
 		require.NoError(t, err, "Actual err: %v", err)
 
@@ -178,12 +182,12 @@ func TestUnit_ManagePlanet_ListForPlayer(t *testing.T) {
 	t.Run("returns error when repository fails", func(t *testing.T) {
 		expectedErr := errors.New("stubbed error")
 
-		mockRepo.EXPECT().
+		mockPlanetRepo.EXPECT().
 			ListForPlayer(gomock.Any(), gomock.Any()).
 			Times(1).
 			Return(nil, expectedErr)
 
-		usecase := NewPlanetUseCase(mockRepo)
+		usecase := NewPlanetUseCase(mockPlayerRepo, mockPlanetRepo)
 		_, err := usecase.ListForPlayer(context.Background(), uuid.New())
 
 		assert.ErrorIs(t, expectedErr, err, "Actual err: %v", err)
@@ -192,29 +196,30 @@ func TestUnit_ManagePlanet_ListForPlayer(t *testing.T) {
 
 func TestUnit_ManagePlanet_Delete(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	mockRepo := drivenportstest.NewMockForManagingPlanets(ctrl)
+	mockPlayerRepo := drivenportstest.NewMockForManagingPlayers(ctrl)
+	mockPlanetRepo := drivenportstest.NewMockForManagingPlanets(ctrl)
 
 	t.Run("deletes existing planet", func(t *testing.T) {
 		id := uuid.New()
 
-		mockRepo.EXPECT().
+		mockPlanetRepo.EXPECT().
 			Delete(gomock.Any(), gomock.Eq(id)).
 			Times(1).
 			Return(nil)
 
-		usecase := NewPlanetUseCase(mockRepo)
+		usecase := NewPlanetUseCase(mockPlayerRepo, mockPlanetRepo)
 		err := usecase.Delete(context.Background(), id)
 		require.NoError(t, err, "Actual err: %v", err)
 	})
 
 	t.Run("returns error when repository fails", func(t *testing.T) {
 		expectedErr := errors.New("stubbed error")
-		mockRepo.EXPECT().
+		mockPlanetRepo.EXPECT().
 			Delete(gomock.Any(), gomock.Any()).
 			Times(1).
 			Return(expectedErr)
 
-		usecase := NewPlanetUseCase(mockRepo)
+		usecase := NewPlanetUseCase(mockPlayerRepo, mockPlanetRepo)
 		err := usecase.Delete(context.Background(), uuid.New())
 
 		assert.ErrorIs(t, expectedErr, err, "Actual err: %v", err)

@@ -106,8 +106,10 @@ func registerPlayersRoutes(conn db.Connection, s server.Server, log *slog.Logger
 }
 
 func registerPlanetsRoutes(conn db.Connection, s server.Server, log *slog.Logger) {
-	repo := drivenadapters.NewPlanetRepository(conn)
-	usecase := usecases.NewPlanetUseCase(repo)
+	playerRepo := drivenadapters.NewPlayerRepository(conn)
+	planetRepo := drivenadapters.NewPlanetRepository(conn)
+
+	usecase := usecases.NewPlanetUseCase(playerRepo, planetRepo)
 
 	for _, route := range drivingadapters.PlanetEndpoints(usecase) {
 		if err := s.AddRoute(route); err != nil {

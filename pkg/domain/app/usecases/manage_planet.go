@@ -11,19 +11,24 @@ import (
 )
 
 type planetUseCase struct {
-	repo drivenports.ForManagingPlanets
+	playerRepo drivenports.ForManagingPlayers
+	planetRepo drivenports.ForManagingPlanets
 }
 
-func NewPlanetUseCase(repo drivenports.ForManagingPlanets) drivingports.ForManagingPlanet {
+func NewPlanetUseCase(
+	playerRepo drivenports.ForManagingPlayers,
+	planetRepo drivenports.ForManagingPlanets,
+) drivingports.ForManagingPlanet {
 	return &planetUseCase{
-		repo: repo,
+		playerRepo: playerRepo,
+		planetRepo: planetRepo,
 	}
 }
 
 func (p *planetUseCase) Create(ctx context.Context, req request.PlanetCreationRequest) (models.Planet, error) {
 	planet := request.FromPlanetCreationRequest(req)
 
-	err := p.repo.Create(ctx, planet)
+	err := p.planetRepo.Create(ctx, planet)
 	if err != nil {
 		return models.Planet{}, err
 	}
@@ -32,17 +37,17 @@ func (p *planetUseCase) Create(ctx context.Context, req request.PlanetCreationRe
 }
 
 func (p *planetUseCase) Get(ctx context.Context, id uuid.UUID) (models.Planet, error) {
-	return p.repo.Get(ctx, id)
+	return p.planetRepo.Get(ctx, id)
 }
 
 func (p *planetUseCase) List(ctx context.Context) ([]models.Planet, error) {
-	return p.repo.List(ctx)
+	return p.planetRepo.List(ctx)
 }
 
 func (p *planetUseCase) ListForPlayer(ctx context.Context, player uuid.UUID) ([]models.Planet, error) {
-	return p.repo.ListForPlayer(ctx, player)
+	return p.planetRepo.ListForPlayer(ctx, player)
 }
 
 func (p *planetUseCase) Delete(ctx context.Context, id uuid.UUID) error {
-	return p.repo.Delete(ctx, id)
+	return p.planetRepo.Delete(ctx, id)
 }
