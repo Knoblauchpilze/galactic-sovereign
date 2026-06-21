@@ -70,13 +70,12 @@ func (b *buildingActionUseCase) Delete(ctx context.Context, id uuid.UUID) error 
 		return nil
 	}
 
-	actionId := planet.BuildingAction.Id
 	err = planet.CancelBuildingAction()
 	if err != nil {
 		return err
 	}
 
-	err = b.actionRepo.Delete(ctx, planet, actionId)
+	err = b.actionRepo.Delete(ctx, planet)
 	if err != nil {
 		return err
 	}

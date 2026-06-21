@@ -224,9 +224,9 @@ func TestUnit_ManageBuildingAction_Delete(t *testing.T) {
 			Return(planet, nil)
 		var captured models.Planet
 		mockActionRepo.EXPECT().
-			Delete(gomock.Any(), gomock.AssignableToTypeOf(captured), gomock.Eq(actionId)).
+			Delete(gomock.Any(), gomock.AssignableToTypeOf(captured)).
 			Times(1).
-			DoAndReturn(func(ctx context.Context, planet models.Planet, action uuid.UUID) error {
+			DoAndReturn(func(ctx context.Context, planet models.Planet) error {
 				captured = planet
 				return nil
 			})
@@ -242,6 +242,10 @@ func TestUnit_ManageBuildingAction_Delete(t *testing.T) {
 			BuildingAction: nil,
 		}
 		assert.Equal(t, expectedPlanet, captured)
+	})
+
+	t.Run("persists modified planet", func(t *testing.T) {
+		// TODO: Implement this test
 	})
 
 	t.Run("succeeds when planet has no building action", func(t *testing.T) {
@@ -289,7 +293,7 @@ func TestUnit_ManageBuildingAction_Delete(t *testing.T) {
 			Return(planet, nil)
 		expectedErr := errors.New("stubbed error")
 		mockActionRepo.EXPECT().
-			Delete(gomock.Any(), gomock.Any(), gomock.Any()).
+			Delete(gomock.Any(), gomock.Any()).
 			Times(1).
 			Return(expectedErr)
 

@@ -73,11 +73,6 @@ FROM
 WHERE
 	action = $1`
 
-	deleteBuildingActionResourceProductionQuery = `DELETE FROM building_action_resource_production WHERE action = $1`
-	deleteBuildingActionResourceStorageQuery    = `DELETE FROM building_action_resource_storage WHERE action = $1`
-	deleteBuildingActionCostsQuery              = `DELETE FROM building_action_cost WHERE action = $1`
-	deleteBuildingActionQuery                   = `DELETE FROM building_action WHERE id = $1`
-
 	deleteBuildingActionResourceProductionForPlanetQuery = `
 DELETE FROM
 	building_action_resource_production AS barpd
@@ -163,7 +158,6 @@ func (r *buildingActionRepositoryImpl) Get(
 func (r *buildingActionRepositoryImpl) Delete(
 	ctx context.Context,
 	planet models.Planet,
-	action uuid.UUID,
 ) error {
 	tx, err := r.conn.BeginTx(ctx)
 	if err != nil {
@@ -171,7 +165,7 @@ func (r *buildingActionRepositoryImpl) Delete(
 	}
 	defer tx.Close(ctx)
 
-	err = deleteBuildingActionAndDetails(ctx, tx, action)
+	err = deleteBuildingActionAndDetailsForPlanet(ctx, tx, planet.Id)
 	if err != nil {
 		return err
 	}
@@ -291,30 +285,6 @@ func loadBuildingActionAndDetails(
 	}
 
 	return action, nil
-}
-
-func deleteBuildingActionAndDetails(ctx context.Context, tx db.Transaction, action uuid.UUID) error {
-	_, err := tx.Exec(ctx, deleteBuildingActionResourceProductionQuery, action)
-	if err != nil {
-		return err
-	}
-
-	_, err = tx.Exec(ctx, deleteBuildingActionResourceStorageQuery, action)
-	if err != nil {
-		return err
-	}
-
-	_, err = tx.Exec(ctx, deleteBuildingActionCostsQuery, action)
-	if err != nil {
-		return err
-	}
-
-	_, err = tx.Exec(ctx, deleteBuildingActionQuery, action)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func deleteBuildingActionAndDetailsForPlanet(ctx context.Context, tx db.Transaction, planet uuid.UUID) error {
