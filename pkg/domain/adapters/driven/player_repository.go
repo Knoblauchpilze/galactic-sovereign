@@ -18,16 +18,18 @@ INSERT INTO
 
 	getPlayerQuery = `
 SELECT
-	id,
-	api_user,
-	universe,
-	name,
-	created_at,
-	version
+	p.id,
+	p.api_user,
+	p.universe,
+	p.name,
+	p.created_at,
+	p.version,
+	h.planet AS homeworld
 FROM
-	player
+	player AS p
+	LEFT JOIN homeworld AS h ON h.player = p.id
 WHERE
-	id = $1`
+	p.id = $1`
 
 	listPlanetIdsForPlayerQuery = `
 SELECT
@@ -42,33 +44,37 @@ ORDER BY
 
 	listPlayerQuery = `
 SELECT
-	id,
-	api_user,
-	universe,
-	name,
-	created_at,
-	version
+	p.id,
+	p.api_user,
+	p.universe,
+	p.name,
+	p.created_at,
+	p.version,
+	h.planet AS homeworld
 FROM
-	player
+	player AS p
+	LEFT JOIN homeworld AS h ON h.player = p.id
 ORDER BY
-	created_at,
-	name`
+	p.created_at,
+	p.name`
 
 	listPlayerForApiUserQuery = `
 SELECT
-	id,
-	api_user,
-	universe,
-	name,
-	created_at,
-	version
+	p.id,
+	p.api_user,
+	p.universe,
+	p.name,
+	p.created_at,
+	p.version,
+	h.planet AS homeworld
 FROM
-	player
+	player AS p
+	LEFT JOIN homeworld AS h ON h.player = p.id
 WHERE
-	api_user = $1
+	p.api_user = $1
 ORDER BY
-	created_at,
-	name`
+	p.created_at,
+	p.name`
 
 	deletePlayerQuery = `DELETE FROM player WHERE id = $1`
 )

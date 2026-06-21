@@ -19,16 +19,19 @@ func TestIT_PlayerRepository_Create(t *testing.T) {
 	t.Run("creates a player with a homeworld", func(t *testing.T) {
 		universe := insertTestUniverse(t, conn)
 
+		planetId := uuid.New()
+
 		player := models.Player{
 			Id:        uuid.New(),
 			ApiUser:   uuid.New(),
 			Universe:  universe.Id,
 			Name:      fmt.Sprintf("player-%s", uuid.NewString()),
 			CreatedAt: someTime,
-			Planets:   []uuid.UUID{},
+			Homeworld: planetId,
+			Planets:   []uuid.UUID{planetId},
 		}
 		planet := models.Planet{
-			Id:        uuid.New(),
+			Id:        planetId,
 			Player:    player.Id,
 			Name:      fmt.Sprintf("planetr-%s", uuid.NewString()),
 			Homeworld: true,
@@ -150,7 +153,8 @@ func TestIT_PlayerRepository_Get(t *testing.T) {
 		actual, err := repo.Get(t.Context(), player.Id)
 		require.NoError(t, err, "Actual err: %v", err)
 
-		assert.Equal(t, actual, player)
+		fmt.Printf("p: %+v\n", player)
+		assert.Equal(t, player, actual)
 	})
 
 	t.Run("gets a player with planets", func(t *testing.T) {
@@ -159,7 +163,27 @@ func TestIT_PlayerRepository_Get(t *testing.T) {
 		actual, err := repo.Get(t.Context(), player.Id)
 		require.NoError(t, err, "Actual err: %v", err)
 
-		assert.Equal(t, actual, player)
+		assert.Equal(t, player, actual)
+	})
+
+	t.Run("gets a player with a homeworld", func(t *testing.T) {
+		player, _ := insertTestPlayerInUniverse(t, conn)
+		planet := insertTestPlanet(t, conn, player.Id, addPlanetHomeworld)
+
+		actual, err := repo.Get(t.Context(), player.Id)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		expected := models.Player{
+			Id:        player.Id,
+			ApiUser:   player.ApiUser,
+			Universe:  player.Universe,
+			Name:      player.Name,
+			CreatedAt: player.CreatedAt,
+			Version:   player.Version,
+			Homeworld: planet.Id,
+			Planets:   []uuid.UUID{planet.Id},
+		}
+		assert.Equal(t, expected, actual)
 	})
 
 	t.Run("returns error when player does not exist", func(t *testing.T) {
@@ -176,6 +200,9 @@ func TestIT_PlayerRepository_List(t *testing.T) {
 	p2 := insertTestPlayer(t, conn, universe.Id)
 	p3 := insertTestPlayer(t, conn, universe.Id, addPlayerPlanet)
 
+	p4, _ := insertTestPlayerInUniverse(t, conn)
+	planet := insertTestPlanet(t, conn, p4.Id, addPlanetHomeworld)
+
 	actual, err := repo.List(t.Context())
 	require.NoError(t, err, "Actual err: %v", err)
 
@@ -183,12 +210,17 @@ func TestIT_PlayerRepository_List(t *testing.T) {
 	assert.Contains(t, actual, p1)
 	assert.Contains(t, actual, p2)
 	assert.Contains(t, actual, p3)
+
+	expectedP4 := p4
+	expectedP4.Homeworld = planet.Id
+	expectedP4.Planets = []uuid.UUID{planet.Id}
+	assert.Contains(t, actual, expectedP4)
 }
 
 func TestIT_PlayerRepository_ListForApiUser(t *testing.T) {
 	repo, conn := newTestPlayerRepository(t)
 
-	t.Run("list player for an API user", func(t *testing.T) {
+	t.Run("lists player for an API user", func(t *testing.T) {
 		p1, universe := insertTestPlayerInUniverse(t, conn)
 		insertTestPlayer(t, conn, universe.Id)
 
@@ -198,7 +230,22 @@ func TestIT_PlayerRepository_ListForApiUser(t *testing.T) {
 		assert.Equal(t, []models.Player{p1}, actual)
 	})
 
-	t.Run("list player with planets for an API user", func(t *testing.T) {
+	t.Run("lists player with a homeworld", func(t *testing.T) {
+		p1, universe := insertTestPlayerInUniverse(t, conn)
+		planet := insertTestPlanet(t, conn, p1.Id, addPlanetHomeworld)
+
+		insertTestPlayer(t, conn, universe.Id)
+
+		actual, err := repo.ListForApiUser(t.Context(), p1.ApiUser)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		expectedP1 := p1
+		expectedP1.Homeworld = planet.Id
+		expectedP1.Planets = []uuid.UUID{planet.Id}
+		assert.Equal(t, []models.Player{expectedP1}, actual)
+	})
+
+	t.Run("lists player with planets for an API user", func(t *testing.T) {
 		p1, universe := insertTestPlayerInUniverse(t, conn, addPlayerPlanet)
 		insertTestPlayer(t, conn, universe.Id)
 

@@ -59,7 +59,7 @@ func TestIT_UniverseRepository_Get(t *testing.T) {
 		actual, err := repo.Get(t.Context(), universe.Id)
 		require.NoError(t, err, "Actual err: %v", err)
 
-		assert.Equal(t, actual, universe)
+		assert.Equal(t, universe, actual)
 	})
 
 	t.Run("returns error when universe does not exist", func(t *testing.T) {

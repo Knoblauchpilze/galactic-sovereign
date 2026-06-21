@@ -27,7 +27,7 @@ func TestIT_BuildingRepository_Get(t *testing.T) {
 		actual, err := repo.Get(t.Context(), building.Id)
 		require.NoError(t, err, "Actual err: %v", err)
 
-		assert.Equal(t, actual, building)
+		assert.Equal(t, building, actual)
 	})
 
 	t.Run("returns error when building does not exist", func(t *testing.T) {

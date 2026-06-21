@@ -16,6 +16,8 @@ type DbPlayer struct {
 	CreatedAt time.Time
 
 	Version int
+
+	Homeworld uuid.UUID
 }
 
 func (p DbPlayer) ToDomain() models.Player {
@@ -26,5 +28,6 @@ func (p DbPlayer) ToDomain() models.Player {
 		Name:      p.Name,
 		CreatedAt: p.CreatedAt,
 		Version:   p.Version,
+		Homeworld: p.Homeworld,
 	}
 }
