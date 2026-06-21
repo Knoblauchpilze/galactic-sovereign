@@ -235,17 +235,74 @@ func TestUnit_ManageBuildingAction_Delete(t *testing.T) {
 		err := usecase.Delete(context.Background(), actionId)
 		require.NoError(t, err, "Actual err: %v", err)
 
-		expectedPlanet := models.Planet{
-			Id:             planet.Id,
-			Version:        planet.Version + 1,
-			UpdatedAt:      captured.UpdatedAt,
-			BuildingAction: nil,
-		}
-		assert.Equal(t, expectedPlanet, captured)
+		assert.Nil(t, captured.BuildingAction)
 	})
 
 	t.Run("persists modified planet", func(t *testing.T) {
-		// TODO: Implement this test
+		actionId := uuid.New()
+		planet := models.Planet{
+			Id: uuid.New(),
+			Resources: []models.PlanetResource{
+				{
+					Resource: metalResourceId,
+					Amount:   100,
+				},
+				{
+					Resource: crystalResourceId,
+					Amount:   6000,
+				},
+			},
+			BuildingAction: &models.BuildingAction{
+				Id: actionId,
+				Costs: []models.BuildingActionCost{
+					{
+						Resource: metalResourceId,
+						Amount:   47891,
+					},
+					{
+						Resource: crystalResourceId,
+						Amount:   134876,
+					},
+				},
+			},
+		}
+
+		mockPlanetRepo.EXPECT().
+			GetByAction(gomock.Any(), gomock.Eq(actionId)).
+			Times(1).
+			Return(planet, nil)
+		var captured models.Planet
+		mockActionRepo.EXPECT().
+			Delete(gomock.Any(), gomock.AssignableToTypeOf(captured)).
+			Times(1).
+			DoAndReturn(func(ctx context.Context, planet models.Planet) error {
+				captured = planet
+				return nil
+			})
+
+		beforeDeletion := time.Now()
+		usecase := NewBuildingActionUseCase(mockActionRepo, mockPlanetRepo, mockBuildingRepo)
+		err := usecase.Delete(context.Background(), actionId)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		expectedPlanet := models.Planet{
+			Id:        planet.Id,
+			Version:   planet.Version + 1,
+			UpdatedAt: captured.UpdatedAt,
+			Resources: []models.PlanetResource{
+				{
+					Resource: metalResourceId,
+					Amount:   47991,
+				},
+				{
+					Resource: crystalResourceId,
+					Amount:   140876,
+				},
+			},
+			BuildingAction: nil,
+		}
+		assert.Equal(t, expectedPlanet, captured)
+		assert.True(t, beforeDeletion.Before(captured.UpdatedAt))
 	})
 
 	t.Run("succeeds when planet has no building action", func(t *testing.T) {

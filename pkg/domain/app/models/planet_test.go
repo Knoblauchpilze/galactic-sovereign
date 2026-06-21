@@ -168,7 +168,79 @@ func TestUnit_Planet_CancelBuildingAction(t *testing.T) {
 	})
 
 	t.Run("adds back action costs to the available planet resources", func(t *testing.T) {
-		// TODO: Implement this test
+		p := generateTestPlanet(t, withPlanetBuilding)
+		p.Resources = []PlanetResource{
+			{
+				Resource: metalResourceId,
+				Amount:   1000,
+			},
+			{
+				Resource: crystalResourceId,
+				Amount:   2000,
+			},
+		}
+
+		p.BuildingAction = &BuildingAction{
+			Id: uuid.New(),
+			Costs: []BuildingActionCost{
+				{
+					Resource: metalResourceId,
+					Amount:   36,
+				},
+				{
+					Resource: crystalResourceId,
+					Amount:   178,
+				},
+			},
+		}
+
+		err := p.CancelBuildingAction()
+		require.NoError(t, err, "Actual err: %v", err)
+
+		expected := []PlanetResource{
+			{
+				Resource: metalResourceId,
+				Amount:   1036,
+			},
+			{
+				Resource: crystalResourceId,
+				Amount:   2178,
+			},
+		}
+		assert.Equal(t, expected, p.Resources)
+	})
+
+	t.Run("adds back action costs when resources are not present on the planet", func(t *testing.T) {
+		p := generateTestPlanet(t, withPlanetBuilding)
+		p.Resources = []PlanetResource{}
+		p.BuildingAction = &BuildingAction{
+			Id: uuid.New(),
+			Costs: []BuildingActionCost{
+				{
+					Resource: metalResourceId,
+					Amount:   36,
+				},
+				{
+					Resource: crystalResourceId,
+					Amount:   178,
+				},
+			},
+		}
+
+		err := p.CancelBuildingAction()
+		require.NoError(t, err, "Actual err: %v", err)
+
+		expected := []PlanetResource{
+			{
+				Resource: metalResourceId,
+				Amount:   36,
+			},
+			{
+				Resource: crystalResourceId,
+				Amount:   178,
+			},
+		}
+		assert.Equal(t, expected, p.Resources)
 	})
 
 	t.Run("bumps version and updated at field", func(t *testing.T) {

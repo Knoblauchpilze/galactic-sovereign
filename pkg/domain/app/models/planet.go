@@ -78,7 +78,8 @@ func (p *Planet) CancelBuildingAction() error {
 		return domainerrors.ErrNoActionInProgress
 	}
 
-	// TODO: Should add back costs
+	p.creditResources(*p.BuildingAction)
+
 	p.BuildingAction = nil
 
 	p.bumpVersion(time.Now().UTC())
@@ -116,6 +117,28 @@ func (p *Planet) deductResources(
 		cost, ok := temp[resource.Resource]
 		if ok {
 			p.Resources[id].Amount -= float64(cost.Amount)
+		}
+	}
+}
+
+func (p *Planet) creditResources(
+	action BuildingAction,
+) {
+	temp := make(map[uuid.UUID]int)
+	for id, pr := range p.Resources {
+		temp[pr.Resource] = id
+	}
+
+	for _, c := range action.Costs {
+		id, ok := temp[c.Resource]
+		if ok {
+			p.Resources[id].Amount += float64(c.Amount)
+		} else {
+			pr := PlanetResource{
+				Resource: c.Resource,
+				Amount:   float64(c.Amount),
+			}
+			p.Resources = append(p.Resources, pr)
 		}
 	}
 }
