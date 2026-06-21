@@ -8,6 +8,7 @@ import (
 
 const (
 	homeworldDefaultName string = "homeworld"
+	planetDefaultName    string = "colony"
 )
 
 type Player struct {
@@ -30,6 +31,34 @@ func (p *Player) CreateHomeworld(
 ) Planet {
 	createdAt := time.Now()
 
+	planet := createPlanet(p.Id, createdAt, true, resources, buildings)
+
+	p.Homeworld = planet.Id
+	p.Planets = []uuid.UUID{planet.Id}
+
+	return planet
+}
+
+func (p *Player) Colonize(
+	resources []Resource,
+	buildings []Building,
+) Planet {
+	createdAt := time.Now()
+
+	planet := createPlanet(p.Id, createdAt, false, resources, buildings)
+
+	p.Planets = append(p.Planets, planet.Id)
+
+	return planet
+}
+
+func createPlanet(
+	player uuid.UUID,
+	createdAt time.Time,
+	homeworld bool,
+	resources []Resource,
+	buildings []Building,
+) Planet {
 	planetResources := make([]PlanetResource, 0, len(resources))
 	planetStorages := make([]PlanetResourceStorage, 0, len(resources))
 	planetProductions := make([]PlanetResourceProduction, 0, len(resources))
@@ -63,11 +92,16 @@ func (p *Player) CreateHomeworld(
 		planetBuildings = append(planetBuildings, pb)
 	}
 
-	planet := Planet{
+	name := homeworldDefaultName
+	if !homeworld {
+		name = planetDefaultName
+	}
+
+	return Planet{
 		Id:             uuid.New(),
-		Player:         p.Id,
-		Name:           homeworldDefaultName,
-		Homeworld:      true,
+		Player:         player,
+		Name:           name,
+		Homeworld:      homeworld,
 		CreatedAt:      createdAt,
 		UpdatedAt:      createdAt,
 		Version:        0,
@@ -77,9 +111,4 @@ func (p *Player) CreateHomeworld(
 		Buildings:      planetBuildings,
 		BuildingAction: nil,
 	}
-
-	p.Homeworld = planet.Id
-	p.Planets = []uuid.UUID{planet.Id}
-
-	return planet
 }
