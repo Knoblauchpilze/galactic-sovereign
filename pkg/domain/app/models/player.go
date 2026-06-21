@@ -20,7 +20,8 @@ type Player struct {
 
 	Version int
 
-	Planets []uuid.UUID
+	Homeworld uuid.UUID
+	Planets   []uuid.UUID
 }
 
 func (p *Player) CreateHomeworld(
@@ -77,6 +78,7 @@ func (p *Player) CreateHomeworld(
 		BuildingAction: nil,
 	}
 
+	p.Homeworld = planet.Id
 	p.Planets = []uuid.UUID{planet.Id}
 
 	return planet

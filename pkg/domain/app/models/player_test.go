@@ -58,6 +58,7 @@ func TestUnit_Player_CreateHomeworld(t *testing.T) {
 		assert.True(t, actual.Homeworld)
 		assert.Equal(t, "homeworld", actual.Name)
 		assert.Zero(t, actual.Version)
+		assert.Equal(t, actual.Id, p.Homeworld)
 		assert.Equal(t, []uuid.UUID{actual.Id}, p.Planets)
 	})
 
@@ -73,6 +74,7 @@ func TestUnit_Player_CreateHomeworld(t *testing.T) {
 		assert.True(t, actual.Homeworld)
 		assert.Equal(t, "homeworld", actual.Name)
 		assert.Zero(t, actual.Version)
+		assert.Equal(t, actual.Id, p.Homeworld)
 		assert.Equal(t, []uuid.UUID{actual.Id}, p.Planets)
 	})
 
