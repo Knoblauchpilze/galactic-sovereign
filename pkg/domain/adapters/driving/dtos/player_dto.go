@@ -20,5 +20,6 @@ type PlayerDtoResponse struct {
 
 	CreatedAt time.Time `json:"createdAt" format:"date-time" binding:"required"`
 
-	Planets []uuid.UUID `json:"planets" format:"uuid" binding:"required"`
+	Homeworld uuid.UUID   `json:"homeworld" format:"uuid" binding:"required"`
+	Planets   []uuid.UUID `json:"planets" format:"uuid" binding:"required"`
 }

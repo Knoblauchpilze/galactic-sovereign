@@ -21,6 +21,7 @@ func ToPlayerResponse(player models.Player) dtos.PlayerDtoResponse {
 		Universe:  player.Universe,
 		Name:      player.Name,
 		CreatedAt: player.CreatedAt,
+		Homeworld: player.Homeworld,
 		Planets:   player.Planets,
 	}
 }

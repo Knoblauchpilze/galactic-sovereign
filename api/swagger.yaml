@@ -217,6 +217,9 @@ components:
         createdAt:
           format: date-time
           type: string
+        homeworld:
+          format: uuid
+          type: string
         id:
           format: uuid
           type: string
@@ -235,6 +238,7 @@ components:
       required:
       - api_user
       - createdAt
+      - homeworld
       - id
       - name
       - planets

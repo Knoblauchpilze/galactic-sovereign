@@ -137,6 +137,7 @@ func TestUnit_Players_GetPlayer(t *testing.T) {
 			Universe:  uuid.New(),
 			Name:      "player-1",
 			CreatedAt: someTime,
+			Homeworld: uuid.New(),
 			Planets:   []uuid.UUID{uuid.New()},
 		}
 		mockUsecase.EXPECT().
@@ -155,6 +156,7 @@ func TestUnit_Players_GetPlayer(t *testing.T) {
 			Universe:  player.Universe,
 			Name:      player.Name,
 			CreatedAt: player.CreatedAt,
+			Homeworld: player.Homeworld,
 			Planets:   player.Planets,
 		}
 		assert.Equal(t, expected, actual)
@@ -208,6 +210,7 @@ func TestUnit_Players_ListPlayers(t *testing.T) {
 				Id:        uuid.New(),
 				Name:      "player-1",
 				CreatedAt: someTime,
+				Homeworld: uuid.New(),
 			},
 			{
 				Id:        uuid.New(),
@@ -231,6 +234,7 @@ func TestUnit_Players_ListPlayers(t *testing.T) {
 				Id:        players[0].Id,
 				Name:      players[0].Name,
 				CreatedAt: players[0].CreatedAt,
+				Homeworld: players[0].Homeworld,
 			},
 			{
 				Id:        players[1].Id,

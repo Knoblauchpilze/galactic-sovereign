@@ -309,6 +309,10 @@ const docTemplate = `{
                         "format": "date-time",
                         "type": "string"
                     },
+                    "homeworld": {
+                        "format": "uuid",
+                        "type": "string"
+                    },
                     "id": {
                         "format": "uuid",
                         "type": "string"
@@ -333,6 +337,7 @@ const docTemplate = `{
                 "required": [
                     "api_user",
                     "createdAt",
+                    "homeworld",
                     "id",
                     "name",
                     "planets",
