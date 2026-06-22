@@ -11,17 +11,20 @@ import (
 )
 
 type planetUseCase struct {
-	playerRepo drivenports.ForManagingPlayers
-	planetRepo drivenports.ForManagingPlanets
+	playerRepo   drivenports.ForManagingPlayers
+	universeRepo drivenports.ForManagingUniverses
+	planetRepo   drivenports.ForManagingPlanets
 }
 
 func NewPlanetUseCase(
 	playerRepo drivenports.ForManagingPlayers,
+	universeRepo drivenports.ForManagingUniverses,
 	planetRepo drivenports.ForManagingPlanets,
 ) drivingports.ForManagingPlanet {
 	return &planetUseCase{
-		playerRepo: playerRepo,
-		planetRepo: planetRepo,
+		playerRepo:   playerRepo,
+		universeRepo: universeRepo,
+		planetRepo:   planetRepo,
 	}
 }
 
