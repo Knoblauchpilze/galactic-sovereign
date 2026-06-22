@@ -746,7 +746,7 @@ func addPlanetResource(t *testing.T, conn db.Connection, p *models.Planet) {
 	resource := models.PlanetResource{
 		Resource: crystalResourceId,
 		// Amount is stored with 5 decimals in the DB
-		Amount: randFloat(4000, 10000, 5),
+		Amount: randFloat(t, 4000, 10000, 5),
 	}
 
 	sqlQuery := `INSERT INTO planet_resource (planet, resource, amount)

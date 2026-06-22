@@ -287,9 +287,23 @@ func (s *testContainerSuite) migrationSourceURL(t *testing.T) string {
 	return fmt.Sprintf("file://%s", migrationsPath)
 }
 
-func randFloat(min float64, max float64, precision int) float64 {
-	rounder := math.Pow(10, float64(precision))
-	return min + math.Round((max-min)*rand.Float64()*rounder)/rounder
+func randFloat(t *testing.T, min float64, max float64, precision int) float64 {
+	t.Helper()
+
+	scale := math.Pow(10, float64(precision))
+	minScaled := int64(math.Ceil(min * scale))
+	maxScaled := int64(math.Floor(max * scale))
+	if minScaled > maxScaled {
+		t.Fatalf(
+			"no representable values in range [%f, %f] for precision=%d",
+			min,
+			max,
+			precision,
+		)
+	}
+
+	valueScaled := minScaled + rand.Int64N(maxScaled-minScaled+1)
+	return float64(valueScaled) / scale
 }
 
 func assertEqualIgnoringFields[T any](
