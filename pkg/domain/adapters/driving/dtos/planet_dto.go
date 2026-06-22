@@ -8,7 +8,6 @@ import (
 
 type PlanetDtoRequest struct {
 	Player uuid.UUID `json:"player" format:"uuid" binding:"required"`
-	Name   string    `json:"name" example:"earth" binding:"required"`
 }
 
 type PlanetDtoResponse struct {

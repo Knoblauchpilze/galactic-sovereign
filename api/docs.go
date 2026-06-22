@@ -248,17 +248,12 @@ const docTemplate = `{
             },
             "dtos.PlanetDtoRequest": {
                 "properties": {
-                    "name": {
-                        "example": "earth",
-                        "type": "string"
-                    },
                     "player": {
                         "format": "uuid",
                         "type": "string"
                     }
                 },
                 "required": [
-                    "name",
                     "player"
                 ],
                 "type": "object"

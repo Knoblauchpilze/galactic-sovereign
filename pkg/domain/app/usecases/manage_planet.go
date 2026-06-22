@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
+	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/request"
 	drivenports "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driven"
 	drivingports "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driving"
@@ -29,9 +30,22 @@ func NewPlanetUseCase(
 }
 
 func (p *planetUseCase) Create(ctx context.Context, req request.PlanetCreationRequest) (models.Planet, error) {
-	planet := request.FromPlanetCreationRequest(req)
+	player, err := p.playerRepo.Get(ctx, req.Player)
+	if err != nil {
+		if err == domainerrors.ErrNotFound {
+			return models.Planet{}, domainerrors.ErrPlayerNotFound
+		}
+		return models.Planet{}, err
+	}
 
-	err := p.planetRepo.Create(ctx, planet)
+	universe, err := p.universeRepo.Get(ctx, player.Universe)
+	if err != nil {
+		return models.Planet{}, err
+	}
+
+	planet := player.Colonize(universe)
+
+	err = p.planetRepo.Create(ctx, planet)
 	if err != nil {
 		return models.Planet{}, err
 	}

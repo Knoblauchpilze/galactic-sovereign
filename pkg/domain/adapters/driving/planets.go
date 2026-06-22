@@ -62,6 +62,10 @@ func createPlanet(c *echo.Context, usecase drivingports.ForManagingPlanet) error
 			return c.JSON(http.StatusConflict, "name already used")
 		}
 
+		if err == domainerrors.ErrPlayerNotFound {
+			return c.JSON(http.StatusBadRequest, "no such player")
+		}
+
 		c.Logger().Error("Failed to create planet", slog.Any("error", err))
 		return c.JSON(http.StatusInternalServerError, "failed to create planet")
 	}

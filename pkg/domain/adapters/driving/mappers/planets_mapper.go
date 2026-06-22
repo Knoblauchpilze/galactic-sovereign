@@ -9,7 +9,6 @@ import (
 func ToPlanetCreationRequest(dto dtos.PlanetDtoRequest) request.PlanetCreationRequest {
 	return request.PlanetCreationRequest{
 		Player: dto.Player,
-		Name:   dto.Name,
 	}
 }
 
