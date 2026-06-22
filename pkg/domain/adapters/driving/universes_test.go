@@ -140,6 +140,11 @@ func TestUnit_Universes_GetUniverse(t *testing.T) {
 		req := generateTestRequest(t, http.MethodGet)
 		ctx, rw := generateTestContextFromRequest(t, req, addIdPathParam)
 
+		buildingId := uuid.New()
+		buildingCostResourceId := uuid.New()
+		buildingProductionResourceId := uuid.New()
+		buildingStorageResourceId := uuid.New()
+
 		universe := models.Universe{
 			Id:        uuid.New(),
 			Name:      "universe-1",
@@ -152,6 +157,35 @@ func TestUnit_Universes_GetUniverse(t *testing.T) {
 					StartProduction: 47,
 					StartStorage:    1055,
 					CreatedAt:       someOtherTime,
+				},
+			},
+			Buildings: []models.Building{
+				{
+					Id:        buildingId,
+					Name:      "building",
+					CreatedAt: someOtherTime,
+					Costs: []models.BuildingCost{
+						{
+							Resource: buildingCostResourceId,
+							Cost:     42,
+							Progress: 1.5,
+						},
+					},
+					Productions: []models.BuildingResourceProduction{
+						{
+							Resource: buildingProductionResourceId,
+							Base:     30,
+							Progress: 1.1,
+						},
+					},
+					Storages: []models.BuildingResourceStorage{
+						{
+							Resource: buildingStorageResourceId,
+							Base:     5000,
+							Scale:    2.5,
+							Progress: 1.833,
+						},
+					},
 				},
 			},
 		}
@@ -177,6 +211,35 @@ func TestUnit_Universes_GetUniverse(t *testing.T) {
 					StartProduction: 47,
 					StartStorage:    1055,
 					CreatedAt:       someOtherTime,
+				},
+			},
+			Buildings: []dtos.BuildingDtoResponse{
+				{
+					Id:        buildingId,
+					Name:      "building",
+					CreatedAt: someOtherTime,
+					Costs: []dtos.BuildingCostDtoResponse{
+						{
+							Resource: buildingCostResourceId,
+							Cost:     42,
+							Progress: 1.5,
+						},
+					},
+					Productions: []dtos.BuildingResourceProductionDtoResponse{
+						{
+							Resource: buildingProductionResourceId,
+							Base:     30,
+							Progress: 1.1,
+						},
+					},
+					Storages: []dtos.BuildingResourceStorageDtoResponse{
+						{
+							Resource: buildingStorageResourceId,
+							Base:     5000,
+							Scale:    2.5,
+							Progress: 1.833,
+						},
+					},
 				},
 			},
 		}

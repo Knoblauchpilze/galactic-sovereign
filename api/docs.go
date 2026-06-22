@@ -120,6 +120,116 @@ const docTemplate = `{
                 },
                 "type": "object"
             },
+            "dtos.BuildingCostDtoResponse": {
+                "properties": {
+                    "cost": {
+                        "type": "integer"
+                    },
+                    "progress": {
+                        "type": "number"
+                    },
+                    "resource": {
+                        "format": "uuid",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "cost",
+                    "progress",
+                    "resource"
+                ],
+                "type": "object"
+            },
+            "dtos.BuildingDtoResponse": {
+                "properties": {
+                    "costs": {
+                        "items": {
+                            "$ref": "#/components/schemas/dtos.BuildingCostDtoResponse"
+                        },
+                        "type": "array",
+                        "uniqueItems": false
+                    },
+                    "createdAt": {
+                        "format": "date-time",
+                        "type": "string"
+                    },
+                    "id": {
+                        "format": "uuid",
+                        "type": "string"
+                    },
+                    "name": {
+                        "example": "metal mine",
+                        "type": "string"
+                    },
+                    "productions": {
+                        "items": {
+                            "$ref": "#/components/schemas/dtos.BuildingResourceProductionDtoResponse"
+                        },
+                        "type": "array",
+                        "uniqueItems": false
+                    },
+                    "storages": {
+                        "items": {
+                            "$ref": "#/components/schemas/dtos.BuildingResourceStorageDtoResponse"
+                        },
+                        "type": "array",
+                        "uniqueItems": false
+                    }
+                },
+                "required": [
+                    "costs",
+                    "createdAt",
+                    "id",
+                    "name",
+                    "productions",
+                    "storages"
+                ],
+                "type": "object"
+            },
+            "dtos.BuildingResourceProductionDtoResponse": {
+                "properties": {
+                    "base": {
+                        "type": "integer"
+                    },
+                    "progress": {
+                        "type": "number"
+                    },
+                    "resource": {
+                        "format": "uuid",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "base",
+                    "progress",
+                    "resource"
+                ],
+                "type": "object"
+            },
+            "dtos.BuildingResourceStorageDtoResponse": {
+                "properties": {
+                    "base": {
+                        "type": "integer"
+                    },
+                    "progress": {
+                        "type": "number"
+                    },
+                    "resource": {
+                        "format": "uuid",
+                        "type": "string"
+                    },
+                    "scale": {
+                        "type": "number"
+                    }
+                },
+                "required": [
+                    "base",
+                    "progress",
+                    "resource",
+                    "scale"
+                ],
+                "type": "object"
+            },
             "dtos.PlanetBuildingDtoResponse": {
                 "properties": {
                     "building": {
@@ -393,6 +503,13 @@ const docTemplate = `{
             },
             "dtos.UniverseDtoResponse": {
                 "properties": {
+                    "buildings": {
+                        "items": {
+                            "$ref": "#/components/schemas/dtos.BuildingDtoResponse"
+                        },
+                        "type": "array",
+                        "uniqueItems": false
+                    },
                     "createdAt": {
                         "format": "date-time",
                         "type": "string"
@@ -414,6 +531,7 @@ const docTemplate = `{
                     }
                 },
                 "required": [
+                    "buildings",
                     "createdAt",
                     "id",
                     "name",
