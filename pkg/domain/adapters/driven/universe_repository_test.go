@@ -3,6 +3,7 @@ package drivenadapters
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
@@ -30,7 +31,9 @@ func TestIT_UniverseRepository_Create(t *testing.T) {
 		actual, err := repo.Get(t.Context(), universe.Id)
 		require.NoError(t, err, "Actual err: %v", err)
 
-		assert.Equal(t, universe, actual)
+		expected := universe
+		addExpectedResourcesToUniverse(t, conn, &expected)
+		assert.Equal(t, expected, actual)
 	})
 
 	t.Run("returns error when universe with same name already exists", func(t *testing.T) {
@@ -129,7 +132,46 @@ func insertTestUniverse(t *testing.T, conn db.Connection) models.Universe {
 	)
 	require.NoError(t, err, "Actual err: %v", err)
 
+	addExpectedResourcesToUniverse(t, conn, &universe)
+
 	return universe
+}
+
+// addExpectedResourcesToUniverse updates a test universe with resources that are seeded
+// as part of the game data initialization.
+//
+// Those seeded resources are returned on every universe get operation, so tests that
+// insert a universe directly must apply this modifier to reflect the persisted state.
+// This is already taken care of by the `insertTestUniverse` helper.
+func addExpectedResourcesToUniverse(
+	t *testing.T,
+	conn db.Connection,
+	u *models.Universe,
+) {
+	t.Helper()
+
+	sqlQuery := `SELECT created_at FROM resource LIMIT 1`
+	createdAt, err := db.QueryOne[time.Time](t.Context(), conn, sqlQuery)
+	require.NoError(t, err, "Actual err: %v", err)
+
+	u.Resources = []models.Resource{
+		{
+			Id:              metalResourceId,
+			Name:            "metal",
+			StartAmount:     500,
+			StartProduction: 30,
+			StartStorage:    10000,
+			CreatedAt:       createdAt,
+		},
+		{
+			Id:              crystalResourceId,
+			Name:            "crystal",
+			StartAmount:     500,
+			StartProduction: 15,
+			StartStorage:    10000,
+			CreatedAt:       createdAt,
+		},
+	}
 }
 
 func assertUniverseExists(t *testing.T, conn db.Connection, id uuid.UUID) {

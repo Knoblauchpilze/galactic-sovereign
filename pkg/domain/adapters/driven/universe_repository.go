@@ -27,6 +27,20 @@ FROM
 WHERE
 	id = $1`
 
+	listResourceQuery = `
+SELECT
+	id,
+	name,
+	start_amount,
+	start_production,
+	start_storage,
+	created_at
+FROM
+	resource
+ORDER BY
+	created_at,
+	resource`
+
 	listUniverseQuery = `
 SELECT
 	id,
@@ -104,6 +118,16 @@ func (r *universeRepositoryImpl) Delete(ctx context.Context, id uuid.UUID) error
 
 func loadUniverseDetails(ctx context.Context, tx db.Transaction, dbUniverse mappers.DbUniverse) (models.Universe, error) {
 	universe := dbUniverse.ToDomain()
+
+	var err error
+	universe.Resources, err = db.QueryAllTx[models.Resource](
+		ctx,
+		tx,
+		listResourceQuery,
+	)
+	if err != nil {
+		return universe, err
+	}
 
 	return universe, nil
 }

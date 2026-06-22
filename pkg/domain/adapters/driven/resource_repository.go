@@ -8,22 +8,6 @@ import (
 	drivenports "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driven"
 )
 
-const (
-	listResourceQuery = `
-SELECT
-	id,
-	name,
-	start_amount,
-	start_production,
-	start_storage,
-	created_at
-FROM
-	resource
-ORDER BY
-	created_at,
-	resource`
-)
-
 type resourceRepositoryImpl struct {
 	conn db.Connection
 }

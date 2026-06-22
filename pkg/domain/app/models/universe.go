@@ -13,4 +13,6 @@ type Universe struct {
 	CreatedAt time.Time
 
 	Version int
+
+	Resources []Resource
 }
