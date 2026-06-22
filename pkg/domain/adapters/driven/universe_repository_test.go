@@ -158,6 +158,35 @@ func insertTestUniverse(t *testing.T, conn db.Connection) models.Universe {
 	return universe
 }
 
+func insertTestResource(t *testing.T, conn db.Connection) models.Resource {
+	t.Helper()
+
+	resource := models.Resource{
+		Id:              uuid.New(),
+		Name:            fmt.Sprintf("my-resource-%s", uuid.NewString()),
+		StartAmount:     456,
+		StartProduction: 321,
+		StartStorage:    778899,
+		CreatedAt:       someTime,
+	}
+
+	sqlQuery := `INSERT INTO resource (id, name, start_amount, start_production, start_storage, created_at)
+		VALUES ($1, $2, $3, $4, $5, $6)`
+	_, err := conn.Exec(
+		t.Context(),
+		sqlQuery,
+		resource.Id,
+		resource.Name,
+		resource.StartAmount,
+		resource.StartProduction,
+		resource.StartStorage,
+		resource.CreatedAt,
+	)
+	require.NoError(t, err, "Actual err: %v", err)
+
+	return resource
+}
+
 func assertUniverseExists(t *testing.T, conn db.Connection, id uuid.UUID) {
 	t.Helper()
 
