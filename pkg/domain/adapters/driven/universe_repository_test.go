@@ -3,7 +3,6 @@ package drivenadapters
 import (
 	"fmt"
 	"testing"
-	"time"
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
@@ -31,9 +30,7 @@ func TestIT_UniverseRepository_Create(t *testing.T) {
 		actual, err := repo.Get(t.Context(), universe.Id)
 		require.NoError(t, err, "Actual err: %v", err)
 
-		expected := universe
-		addExpectedResourcesToUniverse(t, conn, &expected)
-		assert.Equal(t, expected, actual)
+		assertEqualIgnoringFields(t, actual, universe, "Buildings", "Resources")
 	})
 
 	t.Run("returns error when universe with same name already exists", func(t *testing.T) {
@@ -62,7 +59,27 @@ func TestIT_UniverseRepository_Get(t *testing.T) {
 		actual, err := repo.Get(t.Context(), universe.Id)
 		require.NoError(t, err, "Actual err: %v", err)
 
-		assert.Equal(t, universe, actual)
+		assertEqualIgnoringFields(t, actual, universe, "Buildings", "Resources")
+	})
+
+	t.Run("gets a universe with resources", func(t *testing.T) {
+		universe := insertTestUniverse(t, conn)
+		resource := insertTestResource(t, conn)
+
+		actual, err := repo.Get(t.Context(), universe.Id)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.Contains(t, actual.Resources, resource)
+	})
+
+	t.Run("gets a universe with buildings", func(t *testing.T) {
+		universe := insertTestUniverse(t, conn)
+		building := insertTestBuilding(t, conn)
+
+		actual, err := repo.Get(t.Context(), universe.Id)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.Contains(t, actual.Buildings, building)
 	})
 
 	t.Run("returns error when universe does not exist", func(t *testing.T) {
@@ -77,14 +94,20 @@ func TestIT_UniverseRepository_List(t *testing.T) {
 	repo, conn := newTestUniverseRepository(t)
 	u1 := insertTestUniverse(t, conn)
 	u2 := insertTestUniverse(t, conn)
+	resource := insertTestResource(t, conn)
+	building := insertTestBuilding(t, conn)
 
 	actual, err := repo.List(t.Context())
 	require.NoError(t, err, "Actual err: %v", err)
 
 	// The additional resources are the universes from the seed data
-	assert.GreaterOrEqual(t, len(actual), 2)
-	assert.Contains(t, actual, u1)
-	assert.Contains(t, actual, u2)
+	assertContainsIgnoringFields(t, actual, u1, "Buildings", "Resources")
+	assertContainsIgnoringFields(t, actual, u2, "Buildings", "Resources")
+
+	for _, u := range actual {
+		assert.Contains(t, u.Resources, resource)
+		assert.Contains(t, u.Buildings, building)
+	}
 }
 
 func TestIT_UniverseRepository_Delete(t *testing.T) {
@@ -132,46 +155,7 @@ func insertTestUniverse(t *testing.T, conn db.Connection) models.Universe {
 	)
 	require.NoError(t, err, "Actual err: %v", err)
 
-	addExpectedResourcesToUniverse(t, conn, &universe)
-
 	return universe
-}
-
-// addExpectedResourcesToUniverse updates a test universe with resources that are seeded
-// as part of the game data initialization.
-//
-// Those seeded resources are returned on every universe get operation, so tests that
-// insert a universe directly must apply this modifier to reflect the persisted state.
-// This is already taken care of by the `insertTestUniverse` helper.
-func addExpectedResourcesToUniverse(
-	t *testing.T,
-	conn db.Connection,
-	u *models.Universe,
-) {
-	t.Helper()
-
-	sqlQuery := `SELECT created_at FROM resource LIMIT 1`
-	createdAt, err := db.QueryOne[time.Time](t.Context(), conn, sqlQuery)
-	require.NoError(t, err, "Actual err: %v", err)
-
-	u.Resources = []models.Resource{
-		{
-			Id:              metalResourceId,
-			Name:            "metal",
-			StartAmount:     500,
-			StartProduction: 30,
-			StartStorage:    10000,
-			CreatedAt:       createdAt,
-		},
-		{
-			Id:              crystalResourceId,
-			Name:            "crystal",
-			StartAmount:     500,
-			StartProduction: 15,
-			StartStorage:    10000,
-			CreatedAt:       createdAt,
-		},
-	}
 }
 
 func assertUniverseExists(t *testing.T, conn db.Connection, id uuid.UUID) {

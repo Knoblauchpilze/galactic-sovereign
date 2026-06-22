@@ -15,4 +15,5 @@ type Universe struct {
 	Version int
 
 	Resources []Resource
+	Buildings []Building
 }

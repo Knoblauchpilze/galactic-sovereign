@@ -96,6 +96,10 @@ func (r *buildingRepositoryImpl) List(ctx context.Context) ([]models.Building, e
 	}
 	defer tx.Close(ctx)
 
+	return loadBuildings(ctx, tx)
+}
+
+func loadBuildings(ctx context.Context, tx db.Transaction) ([]models.Building, error) {
 	dbBuildings, err := db.QueryAllTx[mappers.DbBuilding](ctx, tx, listBuildingQuery)
 	if err != nil {
 		return nil, err

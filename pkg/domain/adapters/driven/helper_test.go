@@ -15,9 +15,11 @@ import (
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db/postgresql"
+	eassert "github.com/Knoblauchpilze/easy-assert/assert"
 	migrate "github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
@@ -288,4 +290,28 @@ func (s *testContainerSuite) migrationSourceURL(t *testing.T) string {
 func randFloat(min float64, max float64, precision int) float64 {
 	rounder := math.Pow(10, float64(precision))
 	return min + math.Round((max-min)*rand.Float64()*rounder)/rounder
+}
+
+func assertEqualIgnoringFields[T any](
+	t *testing.T,
+	actual T,
+	expected T,
+	ignoredFields ...string,
+) {
+	t.Helper()
+
+	equal := eassert.EqualsIgnoringFields(actual, expected, ignoredFields...)
+	assert.True(t, equal, "Expected actual=%+v and expected=%+v to be equal", actual, expected)
+}
+
+func assertContainsIgnoringFields[T any](
+	t *testing.T,
+	collection []T,
+	expected T,
+	ignoredFields ...string,
+) {
+	t.Helper()
+
+	equal := eassert.ContainsIgnoringFields(collection, expected, ignoredFields...)
+	assert.True(t, equal, "Expected collection=%+v to contain expected=%+v", collection, expected)
 }

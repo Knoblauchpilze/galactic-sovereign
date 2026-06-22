@@ -129,5 +129,10 @@ func loadUniverseDetails(ctx context.Context, tx db.Transaction, dbUniverse mapp
 		return universe, err
 	}
 
+	universe.Buildings, err = loadBuildings(ctx, tx)
+	if err != nil {
+		return universe, err
+	}
+
 	return universe, nil
 }
