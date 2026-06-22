@@ -20,8 +20,7 @@ import (
 type playerTestSuite struct {
 	ctrl             *gomock.Controller
 	mockPlayerRepo   *drivenportstest.MockForManagingPlayers
-	mockResourceRepo *drivenportstest.MockForListingResources
-	mockBuildingRepo *drivenportstest.MockForListingBuildings
+	mockUniverseRepo *drivenportstest.MockForManagingUniverses
 	mockPlanetRepo   *drivenportstest.MockForManagingPlanets
 	usecase          drivingports.ForManagingPlayer
 }
@@ -29,16 +28,18 @@ type playerTestSuite struct {
 func TestUnit_ManagePlayer_Create(t *testing.T) {
 	suite := setupPlayerTestSuite(t)
 
-	resources := []models.Resource{
-		{
-			Id:              metalResourceId,
-			StartAmount:     145,
-			StartStorage:    226,
-			StartProduction: 897,
+	universe := models.Universe{
+		Id: uuid.New(),
+		Resources: []models.Resource{
+			{
+				Id:              metalResourceId,
+				StartAmount:     145,
+				StartStorage:    226,
+				StartProduction: 897,
+			},
 		},
+		Buildings: []models.Building{{Id: uuid.New()}},
 	}
-
-	buildings := []models.Building{{Id: uuid.New()}}
 
 	request := request.PlayerCreationRequest{
 		ApiUser:  uuid.New(),
@@ -49,14 +50,10 @@ func TestUnit_ManagePlayer_Create(t *testing.T) {
 	t.Run("persists created player", func(t *testing.T) {
 		var captured models.Player
 		var capturedHomeworld models.Planet
-		suite.mockResourceRepo.EXPECT().
-			List(gomock.Any()).
+		suite.mockUniverseRepo.EXPECT().
+			Get(gomock.Any(), gomock.Eq(request.Universe)).
 			Times(1).
-			Return(resources, nil)
-		suite.mockBuildingRepo.EXPECT().
-			List(gomock.Any()).
-			Times(1).
-			Return(buildings, nil)
+			Return(universe, nil)
 		suite.mockPlayerRepo.EXPECT().
 			Create(gomock.Any(), gomock.AssignableToTypeOf(captured), gomock.AssignableToTypeOf(capturedHomeworld)).
 			Times(1).
@@ -103,7 +100,7 @@ func TestUnit_ManagePlayer_Create(t *testing.T) {
 		assert.Equal(t, expectedProductions, capturedHomeworld.Productions)
 		expectedBuildings := []models.PlanetBuilding{
 			{
-				Building: buildings[0].Id,
+				Building: universe.Buildings[0].Id,
 				Level:    0,
 			},
 		}
@@ -111,15 +108,22 @@ func TestUnit_ManagePlayer_Create(t *testing.T) {
 		assert.Nil(t, capturedHomeworld.BuildingAction)
 	})
 
+	t.Run("returns error when universe is not found", func(t *testing.T) {
+		suite.mockUniverseRepo.EXPECT().
+			Get(gomock.Any(), gomock.Any()).
+			Times(1).
+			Return(models.Universe{}, domainerrors.ErrNotFound)
+
+		_, err := suite.usecase.Create(context.Background(), request)
+
+		assert.ErrorIs(t, domainerrors.ErrUniverseNotFound, err, "Actual err: %v", err)
+	})
+
 	t.Run("returns error when creation fails", func(t *testing.T) {
-		suite.mockResourceRepo.EXPECT().
-			List(gomock.Any()).
+		suite.mockUniverseRepo.EXPECT().
+			Get(gomock.Any(), gomock.Any()).
 			Times(1).
-			Return(resources, nil)
-		suite.mockBuildingRepo.EXPECT().
-			List(gomock.Any()).
-			Times(1).
-			Return(buildings, nil)
+			Return(universe, nil)
 		expectedErr := errors.New("stubbed error")
 		suite.mockPlayerRepo.EXPECT().
 			Create(gomock.Any(), gomock.Any(), gomock.Any()).
@@ -311,20 +315,17 @@ func setupPlayerTestSuite(t *testing.T) *playerTestSuite {
 
 	ctrl := gomock.NewController(t)
 	mockPlayerRepo := drivenportstest.NewMockForManagingPlayers(ctrl)
-	mockResourceRepo := drivenportstest.NewMockForListingResources(ctrl)
-	mockBuildingRepo := drivenportstest.NewMockForListingBuildings(ctrl)
+	mockUniverseRepo := drivenportstest.NewMockForManagingUniverses(ctrl)
 	mockPlanetRepo := drivenportstest.NewMockForManagingPlanets(ctrl)
 
 	return &playerTestSuite{
 		ctrl:             ctrl,
 		mockPlayerRepo:   mockPlayerRepo,
-		mockResourceRepo: mockResourceRepo,
-		mockBuildingRepo: mockBuildingRepo,
+		mockUniverseRepo: mockUniverseRepo,
 		mockPlanetRepo:   mockPlanetRepo,
 		usecase: NewPlayerUseCase(
 			mockPlayerRepo,
-			mockResourceRepo,
-			mockBuildingRepo,
+			mockUniverseRepo,
 			mockPlanetRepo,
 		),
 	}

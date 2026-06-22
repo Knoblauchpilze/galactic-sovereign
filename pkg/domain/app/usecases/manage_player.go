@@ -13,21 +13,18 @@ import (
 
 type playerUseCase struct {
 	playerRepo   drivenports.ForManagingPlayers
-	resourceRepo drivenports.ForListingResources
-	buildingRepo drivenports.ForListingBuildings
+	universeRepo drivenports.ForManagingUniverses
 	planetRepo   drivenports.ForManagingPlanets
 }
 
 func NewPlayerUseCase(
 	playerRepo drivenports.ForManagingPlayers,
-	resourceRepo drivenports.ForListingResources,
-	buildingRepo drivenports.ForListingBuildings,
+	universeRepo drivenports.ForManagingUniverses,
 	planetRepo drivenports.ForManagingPlanets,
 ) drivingports.ForManagingPlayer {
 	return &playerUseCase{
 		playerRepo:   playerRepo,
-		resourceRepo: resourceRepo,
-		buildingRepo: buildingRepo,
+		universeRepo: universeRepo,
 		planetRepo:   planetRepo,
 	}
 }
@@ -35,17 +32,15 @@ func NewPlayerUseCase(
 func (p *playerUseCase) Create(ctx context.Context, req request.PlayerCreationRequest) (models.Player, error) {
 	player := request.FromPlayerCreationRequest(req)
 
-	resources, err := p.resourceRepo.List(ctx)
+	universe, err := p.universeRepo.Get(ctx, player.Universe)
 	if err != nil {
+		if err == domainerrors.ErrNotFound {
+			return models.Player{}, domainerrors.ErrUniverseNotFound
+		}
 		return models.Player{}, err
 	}
 
-	buildings, err := p.buildingRepo.List(ctx)
-	if err != nil {
-		return models.Player{}, err
-	}
-
-	homeworld := player.CreateHomeworld(resources, buildings)
+	homeworld := player.CreateHomeworld(universe)
 
 	err = p.playerRepo.Create(ctx, player, homeworld)
 	if err != nil {
