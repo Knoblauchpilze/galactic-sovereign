@@ -62,7 +62,9 @@ func createPlayer(c *echo.Context, usecase drivingports.ForManagingPlayer) error
 			return c.JSON(http.StatusConflict, "name already used")
 		}
 
-		// TODO: Should handle domainerrors.ErrUniverseNotFound to return 400
+		if err == domainerrors.ErrUniverseNotFound {
+			return c.JSON(http.StatusBadRequest, "no such universe")
+		}
 
 		c.Logger().Error("Failed to create player", slog.Any("error", err))
 		return c.JSON(http.StatusInternalServerError, "failed to create player")

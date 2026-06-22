@@ -92,6 +92,23 @@ func TestUnit_Players_CreatePlayer(t *testing.T) {
 		assert.Equal(t, expected, actual)
 	})
 
+	t.Run("returns 400 when universe is not found", func(t *testing.T) {
+		req := generateTestRequestWithJsonBody(t, http.MethodPost, dto)
+		ctx, rw := generateTestContextFromRequest(t, req)
+
+		mockUsecase.EXPECT().
+			Create(gomock.Any(), gomock.Any()).
+			Times(1).
+			Return(models.Player{}, domainerrors.ErrUniverseNotFound)
+
+		err := createPlayer(ctx, mockUsecase)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.Equal(t, http.StatusBadRequest, rw.Code)
+		actual := decodeResponseBody[string](t, rw)
+		assert.Equal(t, "no such universe", actual)
+	})
+
 	t.Run("returns 500 when use case fails", func(t *testing.T) {
 		req := generateTestRequestWithJsonBody(t, http.MethodPost, dto)
 		ctx, rw := generateTestContextFromRequest(t, req)
