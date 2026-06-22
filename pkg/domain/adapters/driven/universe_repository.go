@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
+	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driven/mappers"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
 	drivenports "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driven"
 	"github.com/google/uuid"
@@ -57,19 +58,52 @@ func (r *universeRepositoryImpl) Create(ctx context.Context, universe models.Uni
 }
 
 func (r *universeRepositoryImpl) Get(ctx context.Context, id uuid.UUID) (models.Universe, error) {
-	universe, err := db.QueryOne[models.Universe](ctx, r.conn, getUniverseQuery, id)
+	tx, err := r.conn.BeginTx(ctx)
+	if err != nil {
+		return models.Universe{}, err
+	}
+	defer tx.Close(ctx)
+
+	dbUniverse, err := db.QueryOneTx[mappers.DbUniverse](ctx, tx, getUniverseQuery, id)
 	if err != nil {
 		return models.Universe{}, parseDbError(err)
 	}
 
-	return universe, nil
+	return loadUniverseDetails(ctx, tx, dbUniverse)
 }
 
 func (r *universeRepositoryImpl) List(ctx context.Context) ([]models.Universe, error) {
-	return db.QueryAll[models.Universe](ctx, r.conn, listUniverseQuery)
+	tx, err := r.conn.BeginTx(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Close(ctx)
+
+	dbUniverses, err := db.QueryAllTx[mappers.DbUniverse](ctx, tx, listUniverseQuery)
+	if err != nil {
+		return nil, err
+	}
+
+	universes := make([]models.Universe, 0, len(dbUniverses))
+	for id := range dbUniverses {
+		universe, err := loadUniverseDetails(ctx, tx, dbUniverses[id])
+		if err != nil {
+			return nil, err
+		}
+
+		universes = append(universes, universe)
+	}
+
+	return universes, nil
 }
 
 func (r *universeRepositoryImpl) Delete(ctx context.Context, id uuid.UUID) error {
 	_, err := r.conn.Exec(ctx, deleteUniverseQuery, id)
 	return err
+}
+
+func loadUniverseDetails(ctx context.Context, tx db.Transaction, dbUniverse mappers.DbUniverse) (models.Universe, error) {
+	universe := dbUniverse.ToDomain()
+
+	return universe, nil
 }
