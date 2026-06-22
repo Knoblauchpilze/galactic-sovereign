@@ -90,6 +90,14 @@ func TestUnit_ManagePlanet_Create(t *testing.T) {
 
 	t.Run("returns error when repository fails", func(t *testing.T) {
 		suite := setupPlanetTestSuite(t)
+		suite.mockPlayerRepo.EXPECT().
+			Get(gomock.Any(), gomock.Eq(request.Player)).
+			Times(1).
+			Return(player, nil)
+		suite.mockUniverseRepo.EXPECT().
+			Get(gomock.Any(), gomock.Eq(player.Universe)).
+			Times(1).
+			Return(universe, nil)
 		expectedErr := errors.New("stubbed error")
 		suite.mockPlanetRepo.EXPECT().
 			Create(gomock.Any(), gomock.Any()).
