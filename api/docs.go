@@ -345,6 +345,40 @@ const docTemplate = `{
                 ],
                 "type": "object"
             },
+            "dtos.ResourceDtoResponse": {
+                "properties": {
+                    "createdAt": {
+                        "format": "date-time",
+                        "type": "string"
+                    },
+                    "id": {
+                        "format": "uuid",
+                        "type": "string"
+                    },
+                    "name": {
+                        "example": "metal",
+                        "type": "string"
+                    },
+                    "start_amount": {
+                        "type": "integer"
+                    },
+                    "start_production": {
+                        "type": "integer"
+                    },
+                    "start_storage": {
+                        "type": "integer"
+                    }
+                },
+                "required": [
+                    "createdAt",
+                    "id",
+                    "name",
+                    "start_amount",
+                    "start_production",
+                    "start_storage"
+                ],
+                "type": "object"
+            },
             "dtos.UniverseDtoRequest": {
                 "properties": {
                     "name": {
@@ -370,12 +404,20 @@ const docTemplate = `{
                     "name": {
                         "example": "oberon",
                         "type": "string"
+                    },
+                    "resources": {
+                        "items": {
+                            "$ref": "#/components/schemas/dtos.ResourceDtoResponse"
+                        },
+                        "type": "array",
+                        "uniqueItems": false
                     }
                 },
                 "required": [
                     "createdAt",
                     "id",
-                    "name"
+                    "name",
+                    "resources"
                 ],
                 "type": "object"
             },

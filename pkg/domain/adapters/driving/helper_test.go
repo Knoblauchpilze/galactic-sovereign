@@ -15,9 +15,10 @@ import (
 )
 
 var (
-	someTime      = time.Date(2026, time.June, 4, 21, 52, 44, 0, time.UTC)
-	someOtherTime = time.Date(2026, time.June, 5, 18, 13, 10, 0, time.UTC)
-	sampleUuid    = uuid.New()
+	someTime         = time.Date(2026, time.June, 4, 21, 52, 44, 0, time.UTC)
+	someOtherTime    = time.Date(2026, time.June, 5, 18, 13, 10, 0, time.UTC)
+	sampleUuid       = uuid.New()
+	sampleResourceId = uuid.New()
 )
 
 func generateTestRequest(t *testing.T, method string) *http.Request {

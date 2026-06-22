@@ -17,6 +17,7 @@ func ToUniverseResponse(universe models.Universe) dtos.UniverseDtoResponse {
 		Id:        universe.Id,
 		Name:      universe.Name,
 		CreatedAt: universe.CreatedAt,
+		Resources: toResourcesResponse(universe.Resources),
 	}
 }
 
@@ -25,6 +26,32 @@ func ToUniversesResponse(universes []models.Universe) []dtos.UniverseDtoResponse
 
 	for _, u := range universes {
 		dto := ToUniverseResponse(u)
+		out = append(out, dto)
+	}
+
+	return out
+}
+
+func toResourceResponse(
+	resource models.Resource,
+) dtos.ResourceDtoResponse {
+	return dtos.ResourceDtoResponse{
+		Id:              resource.Id,
+		Name:            resource.Name,
+		StartAmount:     resource.StartAmount,
+		StartProduction: resource.StartProduction,
+		StartStorage:    resource.StartStorage,
+		CreatedAt:       resource.CreatedAt,
+	}
+}
+
+func toResourcesResponse(
+	resources []models.Resource,
+) []dtos.ResourceDtoResponse {
+	out := make([]dtos.ResourceDtoResponse, 0, len(resources))
+
+	for _, r := range resources {
+		dto := toResourceResponse(r)
 		out = append(out, dto)
 	}
 
