@@ -17,7 +17,7 @@ var (
 	someTime      = time.Date(2024, time.November, 29, 17, 53, 29, 0, time.UTC)
 	someOtherTime = time.Date(2026, time.June, 1, 8, 20, 15, 0, time.UTC)
 
-	sharedDbContainer = integrationdb.NewDatabaseSharedContainer()
+	sharedDbContainer = &integrationdb.Suite{}
 )
 
 func TestMain(m *testing.M) {

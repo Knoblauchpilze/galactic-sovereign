@@ -40,11 +40,13 @@ type Suite struct {
 	testDatabaseCounter int
 }
 
-// NewDatabaseSharedContainer creates a new Suite that can be shared across all
-// tests in a binary. Typically stored in a package-level variable and passed to
-// TestMain for teardown.
-func NewDatabaseSharedContainer() *Suite {
-	return &Suite{}
+// NewDatabaseSharedContainer creates a new Suite scoped to the provided test.
+// Teardown is registered automatically via t.Cleanup.
+func NewDatabaseSharedContainer(t *testing.T) *Suite {
+	t.Helper()
+	s := &Suite{}
+	t.Cleanup(s.Teardown)
+	return s
 }
 
 // NewTestConnection returns a fresh DB connection backed by the shared test
@@ -101,6 +103,8 @@ func (s *Suite) NewTestConnection(t *testing.T) db.Connection {
 
 // Teardown shuts down the shared test container. Must be called from TestMain
 // after m.Run() to ensure proper container cleanup.
+// Can also be called at the clean-up step of a test when using the dedicated
+// helper NewDatabaseSharedContainer.
 func (s *Suite) Teardown() {
 	s.teardown()
 }
