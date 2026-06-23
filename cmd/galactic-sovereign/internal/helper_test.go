@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"math/rand/v2"
 	"net/http"
 	"os"
 	"testing"
@@ -22,12 +23,6 @@ const (
 )
 
 var (
-	testServerConfig = server.Config{
-		BasePath:        "/v1/galactic-sovereign",
-		Port:            uint16(60010),
-		ShutdownTimeout: 500 * time.Millisecond,
-	}
-
 	oberonUniverseId = uuid.MustParse("9682f17b-f5f0-4eda-a747-2537d2151837")
 	metalMineId      = uuid.MustParse("d176e82d-f2ca-4611-996b-c4804096caef")
 )
@@ -39,7 +34,7 @@ func TestMain(m *testing.M) {
 
 // urlFor builds a URL under the test server's base path.
 // Segments are joined with '/' and appended after the base path.
-func urlFor(segments ...string) string {
+func urlFor(conf server.Config, segments ...string) string {
 	path := ""
 	for _, s := range segments {
 		path += "/" + s
@@ -47,13 +42,23 @@ func urlFor(segments ...string) string {
 	return fmt.Sprintf(
 		"http://%s:%d%s%s",
 		testServerHost,
-		testServerConfig.Port,
-		testServerConfig.BasePath,
+		conf.Port,
+		conf.BasePath,
 		path,
 	)
 }
 
-func asyncStartServer(t *testing.T, s server.Server) <-chan struct{} {
+func newTestServerConfig() server.Config {
+	return server.Config{
+		BasePath:        "/v1/galactic-sovereign",
+		Port:            uint16(60010 + rand.IntN(200)),
+		ShutdownTimeout: 500 * time.Millisecond,
+	}
+}
+
+// asyncStartServer starts the server in a goroutine and registers shutdown via
+// t.Cleanup, so callers only need to invoke this helper.
+func asyncStartServer(t *testing.T, s server.Server) {
 	t.Helper()
 
 	done := make(chan struct{})
@@ -63,10 +68,14 @@ func asyncStartServer(t *testing.T, s server.Server) <-chan struct{} {
 		assert.NoError(t, err, "Actual err: %v", err)
 	}()
 
+	t.Cleanup(func() {
+		err := s.Stop()
+		require.NoError(t, err, "Actual err: %v", err)
+		<-done
+	})
+
 	const startupDelay = 50 * time.Millisecond
 	time.Sleep(startupDelay)
-
-	return done
 }
 
 func doGet[T any](t *testing.T, url string) T {

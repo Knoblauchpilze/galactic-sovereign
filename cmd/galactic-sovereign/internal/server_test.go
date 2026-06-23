@@ -2,6 +2,7 @@ package internal
 
 import (
 	"log/slog"
+	"net/http"
 	"testing"
 
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driving/dtos"
@@ -14,9 +15,10 @@ import (
 func TestIT_Server_PlayerBuildingActionLifecycle(t *testing.T) {
 	dbContainer := integrationdb.NewDatabaseSharedContainer(t)
 	conn := dbContainer.NewTestConnection(t)
+	conf := newTestServerConfig()
 
-	s := CreateGameServer(testServerConfig, conn, slog.Default())
-	done := asyncStartServer(t, s)
+	s := CreateGameServer(conf, conn, slog.Default())
+	asyncStartServer(t, s)
 
 	// Create a player
 	playerReq := dtos.PlayerDtoRequest{
@@ -25,7 +27,7 @@ func TestIT_Server_PlayerBuildingActionLifecycle(t *testing.T) {
 		Name:     "test-player",
 	}
 	player := doPost[dtos.PlayerDtoResponse](
-		t, urlFor("players"), playerReq,
+		t, urlFor(conf, "players"), playerReq,
 	)
 	assert.Equal(t, oberonUniverseId, player.Universe)
 	assert.Equal(t, "test-player", player.Name)
@@ -33,7 +35,7 @@ func TestIT_Server_PlayerBuildingActionLifecycle(t *testing.T) {
 
 	// Get the homeworld and assert basic properties
 	homeworld := doGet[dtos.PlanetDtoResponse](
-		t, urlFor("planets", player.Homeworld.String()),
+		t, urlFor(conf, "planets", player.Homeworld.String()),
 	)
 	assert.True(t, homeworld.Homeworld)
 	assert.Equal(t, "homeworld", homeworld.Name)
@@ -47,7 +49,7 @@ func TestIT_Server_PlayerBuildingActionLifecycle(t *testing.T) {
 		Building: metalMineId,
 	}
 	action := doPost[dtos.BuildingActionDtoResponse](
-		t, urlFor("planets", homeworld.Id.String(), "actions"), actionReq,
+		t, urlFor(conf, "planets", homeworld.Id.String(), "actions"), actionReq,
 	)
 	assert.Equal(t, metalMineId, action.Building)
 	assert.Len(t, action.Costs, 2)
@@ -56,20 +58,68 @@ func TestIT_Server_PlayerBuildingActionLifecycle(t *testing.T) {
 	assert.Equal(t, homeworld.Id, action.Planet)
 
 	homeworld = doGet[dtos.PlanetDtoResponse](
-		t, urlFor("planets", player.Homeworld.String()),
+		t, urlFor(conf, "planets", player.Homeworld.String()),
 	)
 	require.NotNil(t, homeworld.BuildingAction)
 	assert.Equal(t, action.Id, *homeworld.BuildingAction)
 
 	// Cancel the building action
-	doDelete(t, urlFor("actions", action.Id.String()))
+	doDelete(t, urlFor(conf, "actions", action.Id.String()))
 
 	homeworld = doGet[dtos.PlanetDtoResponse](
-		t, urlFor("planets", player.Homeworld.String()),
+		t, urlFor(conf, "planets", player.Homeworld.String()),
 	)
 	assert.Nil(t, homeworld.BuildingAction)
+}
 
-	err := s.Stop()
-	require.NoError(t, err, "Actual err: %v", err)
-	<-done
+func TestIT_Server_PlayerDeletionRemovesPlanets(t *testing.T) {
+	dbContainer := integrationdb.NewDatabaseSharedContainer(t)
+	conn := dbContainer.NewTestConnection(t)
+	conf := newTestServerConfig()
+
+	s := CreateGameServer(conf, conn, slog.Default())
+	asyncStartServer(t, s)
+
+	// Create a player
+	playerReq := dtos.PlayerDtoRequest{
+		ApiUser:  uuid.New(),
+		Universe: oberonUniverseId,
+		Name:     "test-player-b",
+	}
+	player := doPost[dtos.PlayerDtoResponse](
+		t, urlFor(conf, "players"), playerReq,
+	)
+
+	// Create a second planet
+	planetReq := dtos.PlanetDtoRequest{Player: player.Id}
+	planet := doPost[dtos.PlanetDtoResponse](
+		t, urlFor(conf, "planets"), planetReq,
+	)
+
+	homeworld := doGet[dtos.PlanetDtoResponse](
+		t, urlFor(conf, "planets", player.Homeworld.String()),
+	)
+	secondPlanet := doGet[dtos.PlanetDtoResponse](
+		t, urlFor(conf, "planets", planet.Id.String()),
+	)
+
+	assert.Equal(t, player.Id, homeworld.Player)
+	assert.Equal(t, player.Id, secondPlanet.Player)
+	assert.True(t, homeworld.Homeworld)
+	assert.False(t, secondPlanet.Homeworld)
+
+	// Delete the player
+	doDelete(t, urlFor(conf, "players", player.Id.String()))
+
+	assertGetStatus(t, urlFor(conf, "planets", homeworld.Id.String()), http.StatusNotFound)
+	assertGetStatus(t, urlFor(conf, "planets", secondPlanet.Id.String()), http.StatusNotFound)
+	assertGetStatus(t, urlFor(conf, "players", player.Id.String()), http.StatusNotFound)
+}
+
+func assertGetStatus(t *testing.T, url string, expectedStatus int) {
+	t.Helper()
+
+	resp, err := http.Get(url)
+	require.NoError(t, err, "GET %s: %v", url, err)
+	require.Equal(t, expectedStatus, resp.StatusCode, "GET %s returned %d", url, resp.StatusCode)
 }
