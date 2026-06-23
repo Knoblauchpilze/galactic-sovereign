@@ -66,12 +66,11 @@ func (b *buildingActionUseCase) Delete(ctx context.Context, id uuid.UUID) error 
 		return err
 	}
 
-	if planet.BuildingAction == nil {
-		return nil
-	}
-
 	err = planet.CancelBuildingAction()
 	if err != nil {
+		if err == domainerrors.ErrNoActionInProgress {
+			return nil
+		}
 		return err
 	}
 
