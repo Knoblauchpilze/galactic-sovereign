@@ -1,6 +1,7 @@
 package models
 
 import (
+	"math"
 	"time"
 
 	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
@@ -83,6 +84,43 @@ func (p *Planet) CancelBuildingAction() error {
 	p.BuildingAction = nil
 
 	p.bumpVersion(time.Now().UTC())
+
+	return nil
+}
+
+// TODO: Add tests for this
+func (p *Planet) UpdateToTime(moment time.Time) error {
+	elapsed := moment.Sub(p.UpdatedAt)
+	hours := elapsed.Hours()
+
+	productions := make(map[uuid.UUID]float64)
+	for _, pr := range p.Productions {
+		productions[pr.Resource] = float64(pr.Production)
+	}
+
+	storages := make(map[uuid.UUID]float64)
+	for _, s := range p.Storages {
+		storages[s.Resource] = float64(s.Storage)
+	}
+
+	for id, r := range p.Resources {
+		prod, ok := productions[r.Resource]
+		if !ok {
+			continue
+		}
+
+		storage, ok := storages[r.Resource]
+		if !ok {
+			continue
+		}
+
+		fullAmount := p.Resources[id].Amount + prod*hours
+		fullAmount = math.Min(fullAmount, storage)
+
+		p.Resources[id].Amount = fullAmount
+	}
+
+	p.UpdatedAt = moment
 
 	return nil
 }
