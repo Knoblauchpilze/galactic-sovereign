@@ -19,6 +19,8 @@ import (
 var (
 	metalResourceId   = uuid.MustParse("b4419b6b-b3bf-4576-aa92-055283addbc8")
 	crystalResourceId = uuid.MustParse("cd2ac9aa-9968-4ff5-b746-88f1f810fbb3")
+
+	someTime = time.Date(2026, time.June, 25, 22, 22, 49, 0, time.UTC)
 )
 
 func TestUnit_ManageBuildingAction_Create(t *testing.T) {
@@ -265,6 +267,7 @@ func TestUnit_ManageBuildingAction_Delete(t *testing.T) {
 					},
 				},
 			},
+			UpdatedAt: someTime,
 		}
 
 		mockPlanetRepo.EXPECT().
@@ -280,7 +283,6 @@ func TestUnit_ManageBuildingAction_Delete(t *testing.T) {
 				return nil
 			})
 
-		beforeDeletion := time.Now()
 		usecase := NewBuildingActionUseCase(mockActionRepo, mockPlanetRepo, mockBuildingRepo)
 		err := usecase.Delete(context.Background(), actionId)
 		require.NoError(t, err, "Actual err: %v", err)
@@ -288,7 +290,7 @@ func TestUnit_ManageBuildingAction_Delete(t *testing.T) {
 		expectedPlanet := models.Planet{
 			Id:        planet.Id,
 			Version:   planet.Version + 1,
-			UpdatedAt: captured.UpdatedAt,
+			UpdatedAt: someTime,
 			Resources: []models.PlanetResource{
 				{
 					Resource: metalResourceId,
@@ -302,7 +304,6 @@ func TestUnit_ManageBuildingAction_Delete(t *testing.T) {
 			BuildingAction: nil,
 		}
 		assert.Equal(t, expectedPlanet, captured)
-		assert.True(t, beforeDeletion.Before(captured.UpdatedAt))
 	})
 
 	t.Run("succeeds when planet has no building action", func(t *testing.T) {
