@@ -234,6 +234,42 @@ func TestIT_BuildingActionRepository_Create(t *testing.T) {
 		assertPlanetResourceAmount(t, conn, planet.Id, crystalResourceId, float64(expectedAmount))
 	})
 
+	t.Run("returns error when planet has not the expected version", func(t *testing.T) {
+		actionId := uuid.New()
+		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetResource)
+		require.LessOrEqual(t, 1000.0, planet.Resources[0].Amount)
+		planet.BuildingAction = &models.BuildingAction{
+			Id:           actionId,
+			Planet:       planet.Id,
+			Building:     metalMineId,
+			CurrentLevel: 2,
+			DesiredLevel: 3,
+			CreatedAt:    someTime,
+			CompletedAt:  someTime.Add(1 * time.Hour),
+			Version:      9,
+			Costs: []models.BuildingActionCost{
+				{
+					Resource: crystalResourceId,
+					Amount:   1000,
+				},
+			},
+			Storages:    []models.BuildingActionResourceStorage{},
+			Productions: []models.BuildingActionResourceProduction{},
+		}
+
+		// Only the resources are updated, the version stays the same:
+		// this is not correct as the repository expects the version to
+		// have been bumped.
+		initialAmount := planet.Resources[0].Amount
+		planet.Resources[0].Amount -= 1000
+
+		err := repo.Create(t.Context(), planet)
+
+		assert.ErrorIs(t, domainerrors.ErrOptimisticLocking, err, "Actual err: %v", err)
+		assertBuildingActionDoesNotExist(t, conn, actionId)
+		assertPlanetResourceAmount(t, conn, planet.Id, crystalResourceId, initialAmount)
+	})
+
 	t.Run("returns error when action for same planet already exists", func(t *testing.T) {
 		_, planet := insertTestBuildingAction(t, conn)
 		planet.BuildingAction = &models.BuildingAction{

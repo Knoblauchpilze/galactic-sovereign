@@ -468,8 +468,10 @@ func updatePlanetDetails(ctx context.Context, tx db.Transaction, planet models.P
 	if err != nil {
 		return err
 	}
-
 	if affected != 1 {
+		if err := tx.Rollback(); err != nil {
+			return err
+		}
 		return domainerrors.ErrOptimisticLocking
 	}
 
