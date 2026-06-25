@@ -25,7 +25,7 @@ func TestUnit_Planet_AddBuildingAction(t *testing.T) {
 
 		err := p.AddBuildingAction(b)
 
-		assert.ErrorIs(t, domainerrors.ErrActionAlreadyInProgress, err)
+		assert.ErrorIs(t, domainerrors.ErrActionAlreadyInProgress, err, "Actual err: %v", err)
 		require.NotNil(t, p.BuildingAction)
 		assert.Equal(t, actionId, p.BuildingAction.Id)
 		assert.Equal(t, 3, p.Version)
@@ -61,7 +61,7 @@ func TestUnit_Planet_AddBuildingAction(t *testing.T) {
 
 		err := p.AddBuildingAction(b)
 
-		assert.ErrorIs(t, domainerrors.ErrBuildingNotFound, err)
+		assert.ErrorIs(t, domainerrors.ErrBuildingNotFound, err, "Actual err: %v", err)
 		assert.Nil(t, p.BuildingAction)
 		assert.Equal(t, 3, p.Version)
 	})
@@ -176,7 +176,7 @@ func TestUnit_Planet_CancelBuildingAction(t *testing.T) {
 
 		err := p.CancelBuildingAction()
 
-		assert.ErrorIs(t, domainerrors.ErrNoActionInProgress, err)
+		assert.ErrorIs(t, domainerrors.ErrNoActionInProgress, err, "Actual err: %v", err)
 	})
 
 	t.Run("resets building action in planet", func(t *testing.T) {
