@@ -153,7 +153,6 @@ func TestUnit_Planet_AddBuildingAction(t *testing.T) {
 }
 
 func TestUnit_Planet_CancelBuildingAction(t *testing.T) {
-
 	t.Run("returns error when planet does not have an action", func(t *testing.T) {
 	})
 
@@ -256,6 +255,26 @@ func TestUnit_Planet_CancelBuildingAction(t *testing.T) {
 		assert.Equal(t, initialVersion+1, p.Version)
 		assert.True(t, p.UpdatedAt.After(beforeCall))
 	})
+}
+
+func TestUnit_Planet_UpdateToTime(t *testing.T) {
+	t.Run("does not update resource when no production is defined", func(t *testing.T) {})
+
+	t.Run("does not change resource value when already over the storage capacity", func(t *testing.T) {})
+
+	t.Run("does not change resource when update time is before already computed time", func(t *testing.T) {})
+
+	t.Run("caps resource at storage capacity", func(t *testing.T) {})
+
+	t.Run("adds full production value when storage is sufficient", func(t *testing.T) {})
+
+	t.Run("adds all production for a resource", func(t *testing.T) {})
+
+	t.Run("adds a resource when it is produced but not yet stored on the planet", func(t *testing.T) {})
+
+	t.Run("keeps resource at 0 when no storage is defined for it", func(t *testing.T) {})
+
+	t.Run("bumps updated at field", func(t *testing.T) {})
 }
 
 func generateTestPlanet(
