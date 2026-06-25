@@ -49,6 +49,11 @@ type PlanetBuilding struct {
 	Level    int
 }
 
+// AddBuildingAction adds a building action to the planet.
+// The action will be added with a creation date equal to the UpdatedAt
+// field of the planet. This means that prior to calling this function,
+// callers are expected to trigger UpdateToTime to the desired time.
+// The UpdatedAt field will not be updated.
 func (p *Planet) AddBuildingAction(building Building) error {
 	if p.BuildingAction != nil {
 		return domainerrors.ErrActionAlreadyInProgress
@@ -59,7 +64,7 @@ func (p *Planet) AddBuildingAction(building Building) error {
 		return err
 	}
 
-	action := building.CreateBuildingAction(p.Id, pb.Level+1)
+	action := building.CreateBuildingAction(p.Id, pb.Level+1, p.UpdatedAt)
 
 	if err := p.validateEnoughResources(action); err != nil {
 		return err
@@ -69,11 +74,18 @@ func (p *Planet) AddBuildingAction(building Building) error {
 
 	p.BuildingAction = &action
 
-	p.bumpVersion(action.CreatedAt)
+	p.Version++
 
 	return nil
 }
 
+// CancelBuildingAction deletes a building action from the planet.
+// In case there is no action running an error will be returned.
+// The resources used up by the action will be credited back to the
+// resources stored on the planet.
+// This means that prior to calling this function, callers are
+// expected to trigger UpdateToTime to the desired time.
+// The UpdatedAt field will not be updated.
 func (p *Planet) CancelBuildingAction() error {
 	if p.BuildingAction == nil {
 		return domainerrors.ErrNoActionInProgress
@@ -83,12 +95,11 @@ func (p *Planet) CancelBuildingAction() error {
 
 	p.BuildingAction = nil
 
-	p.bumpVersion(time.Now().UTC())
+	p.Version++
 
 	return nil
 }
 
-// TODO: Add tests for this
 func (p *Planet) UpdateToTime(moment time.Time) {
 	if p.UpdatedAt.After(moment) {
 		return
@@ -132,6 +143,7 @@ func (p *Planet) UpdateToTime(moment time.Time) {
 	}
 
 	p.UpdatedAt = moment
+	p.Version++
 }
 
 func (p *Planet) validateEnoughResources(
@@ -188,11 +200,6 @@ func (p *Planet) creditResources(
 			p.Resources = append(p.Resources, pr)
 		}
 	}
-}
-
-func (p *Planet) bumpVersion(timestamp time.Time) {
-	p.UpdatedAt = timestamp
-	p.Version++
 }
 
 func (p *Planet) findBuildingById(id uuid.UUID) (PlanetBuilding, error) {

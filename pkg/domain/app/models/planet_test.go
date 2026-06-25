@@ -28,6 +28,7 @@ func TestUnit_Planet_AddBuildingAction(t *testing.T) {
 		assert.ErrorIs(t, domainerrors.ErrActionAlreadyInProgress, err)
 		require.NotNil(t, p.BuildingAction)
 		assert.Equal(t, actionId, p.BuildingAction.Id)
+		assert.Equal(t, 3, p.Version)
 	})
 
 	t.Run("returns error when planet does not have enough resources", func(t *testing.T) {
@@ -50,6 +51,7 @@ func TestUnit_Planet_AddBuildingAction(t *testing.T) {
 
 		assert.ErrorIs(t, err, domainerrors.ErrNotEnoughResources, "Actual err: %v", err)
 		assert.Nil(t, p.BuildingAction)
+		assert.Equal(t, 3, p.Version)
 	})
 
 	t.Run("returns error when building does not exist on planet", func(t *testing.T) {
@@ -61,6 +63,7 @@ func TestUnit_Planet_AddBuildingAction(t *testing.T) {
 
 		assert.ErrorIs(t, domainerrors.ErrBuildingNotFound, err)
 		assert.Nil(t, p.BuildingAction)
+		assert.Equal(t, 3, p.Version)
 	})
 
 	t.Run("assigns building action to planet", func(t *testing.T) {
@@ -78,8 +81,8 @@ func TestUnit_Planet_AddBuildingAction(t *testing.T) {
 			Building:     b.Id,
 			CurrentLevel: p.Buildings[0].Level,
 			DesiredLevel: p.Buildings[0].Level + 1,
-			CreatedAt:    p.BuildingAction.CreatedAt,
-			CompletedAt:  p.BuildingAction.CreatedAt.Add(completionTime),
+			CreatedAt:    someTime,
+			CompletedAt:  someTime.Add(completionTime),
 			Version:      0,
 			Costs: []BuildingActionCost{
 				{
@@ -140,7 +143,7 @@ func TestUnit_Planet_AddBuildingAction(t *testing.T) {
 		assert.Equal(t, expectedResources, p.Resources)
 	})
 
-	t.Run("bumps version and updated at field", func(t *testing.T) {
+	t.Run("bumps version by one", func(t *testing.T) {
 		p := generateTestPlanet(t, withPlanetBuilding, withManyResources)
 		p.UpdatedAt = someTime
 		b := generateTestBuilding(t, withBuildingCost, withBuildingProduction, withBuildingStorage)
@@ -152,12 +155,28 @@ func TestUnit_Planet_AddBuildingAction(t *testing.T) {
 		require.NotNil(t, p.BuildingAction)
 
 		assert.Equal(t, initialVersion+1, p.Version)
-		assert.Equal(t, p.BuildingAction.CreatedAt, p.UpdatedAt)
+	})
+
+	t.Run("does not bump updated at field", func(t *testing.T) {
+		p := generateTestPlanet(t, withPlanetBuilding, withManyResources)
+		p.UpdatedAt = someTime
+		b := generateTestBuilding(t, withBuildingCost, withBuildingProduction, withBuildingStorage)
+
+		err := p.AddBuildingAction(b)
+		require.NoError(t, err, "Actual err: %v", err)
+		require.NotNil(t, p.BuildingAction)
+
+		assert.Equal(t, someTime, p.UpdatedAt)
 	})
 }
 
 func TestUnit_Planet_CancelBuildingAction(t *testing.T) {
 	t.Run("returns error when planet does not have an action", func(t *testing.T) {
+		p := generateTestPlanet(t, withPlanetBuilding, withManyResources)
+
+		err := p.CancelBuildingAction()
+
+		assert.ErrorIs(t, domainerrors.ErrNoActionInProgress, err)
 	})
 
 	t.Run("resets building action in planet", func(t *testing.T) {
@@ -246,18 +265,26 @@ func TestUnit_Planet_CancelBuildingAction(t *testing.T) {
 		assert.Equal(t, expected, p.Resources)
 	})
 
-	t.Run("bumps version and updated at field", func(t *testing.T) {
+	t.Run("bumps version by one", func(t *testing.T) {
 		p := generateTestPlanet(t, withPlanetBuilding, withManyResources)
 		p.BuildingAction = &BuildingAction{Id: uuid.New()}
 
 		initialVersion := p.Version
 
-		beforeCall := time.Now()
 		err := p.CancelBuildingAction()
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Equal(t, initialVersion+1, p.Version)
-		assert.True(t, p.UpdatedAt.After(beforeCall))
+	})
+
+	t.Run("does not bump updated at field", func(t *testing.T) {
+		p := generateTestPlanet(t, withPlanetBuilding, withManyResources)
+		p.BuildingAction = &BuildingAction{Id: uuid.New()}
+
+		err := p.CancelBuildingAction()
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.Equal(t, someTime, p.UpdatedAt)
 	})
 }
 
@@ -390,7 +417,11 @@ func generateTestPlanet(
 ) Planet {
 	t.Helper()
 
-	p := Planet{Id: uuid.New()}
+	p := Planet{
+		Id:        uuid.New(),
+		UpdatedAt: someTime,
+		Version:   3,
+	}
 
 	for _, modifier := range modifiers {
 		modifier(t, &p)

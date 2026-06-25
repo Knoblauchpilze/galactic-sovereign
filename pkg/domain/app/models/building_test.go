@@ -20,7 +20,7 @@ func TestUnit_Building_CreateBuildingAction(t *testing.T) {
 	t.Run("correctly calculates action costs", func(t *testing.T) {
 		b := generateTestBuilding(t, withBuildingCost)
 
-		action := b.CreateBuildingAction(planetId, 5)
+		action := b.CreateBuildingAction(planetId, 5, someTime)
 
 		expected := BuildingAction{
 			// The identifier is generated
@@ -30,7 +30,7 @@ func TestUnit_Building_CreateBuildingAction(t *testing.T) {
 			CurrentLevel: 4,
 			DesiredLevel: 5,
 
-			CreatedAt: action.CreatedAt,
+			CreatedAt: someTime,
 			// Ignore the completion here, there are dedicated tests
 			CompletedAt: action.CompletedAt,
 
@@ -55,7 +55,7 @@ func TestUnit_Building_CreateBuildingAction(t *testing.T) {
 	t.Run("correctly calculates action resource productions", func(t *testing.T) {
 		b := generateTestBuilding(t, withBuildingProduction)
 
-		action := b.CreateBuildingAction(planetId, 5)
+		action := b.CreateBuildingAction(planetId, 5, someTime)
 
 		expected := BuildingAction{
 			Id:           action.Id,
@@ -64,7 +64,7 @@ func TestUnit_Building_CreateBuildingAction(t *testing.T) {
 			CurrentLevel: 4,
 			DesiredLevel: 5,
 
-			CreatedAt: action.CreatedAt,
+			CreatedAt: someTime,
 			// Ignore the completion here, there are dedicated tests
 			CompletedAt: action.CompletedAt,
 
@@ -89,7 +89,7 @@ func TestUnit_Building_CreateBuildingAction(t *testing.T) {
 	t.Run("correctly calculates action resource storages", func(t *testing.T) {
 		b := generateTestBuilding(t, withBuildingStorage)
 
-		action := b.CreateBuildingAction(planetId, 5)
+		action := b.CreateBuildingAction(planetId, 5, someTime)
 
 		expected := BuildingAction{
 			Id:           action.Id,
@@ -98,7 +98,7 @@ func TestUnit_Building_CreateBuildingAction(t *testing.T) {
 			CurrentLevel: 4,
 			DesiredLevel: 5,
 
-			CreatedAt: action.CreatedAt,
+			CreatedAt: someTime,
 			// Ignore the completion here, there are dedicated tests
 			CompletedAt: action.CompletedAt,
 
@@ -136,10 +136,10 @@ func TestUnit_Building_CreateBuildingAction(t *testing.T) {
 			Storages:    []BuildingResourceStorage{},
 		}
 
-		action := b.CreateBuildingAction(planetId, 5)
+		action := b.CreateBuildingAction(planetId, 5, someTime)
 
-		actual := action.CompletedAt.Sub(action.CreatedAt)
-		assert.Equal(t, time.Duration(0), actual)
+		assert.Equal(t, someTime, action.CreatedAt)
+		assert.Equal(t, someTime, action.CompletedAt)
 		expectedCosts := []BuildingActionCost{
 			{
 				Resource: b.Costs[0].Resource,
@@ -159,10 +159,10 @@ func TestUnit_Building_CreateBuildingAction(t *testing.T) {
 			Storages:    []BuildingResourceStorage{},
 		}
 
-		action := b.CreateBuildingAction(planetId, 5)
+		action := b.CreateBuildingAction(planetId, 5, someTime)
 
-		actual := action.CompletedAt.Sub(action.CreatedAt)
-		assert.Equal(t, time.Duration(0), actual)
+		assert.Equal(t, someTime, action.CreatedAt)
+		assert.Equal(t, someTime, action.CompletedAt)
 	})
 
 	t.Run("correctly calculates completion time for metal usage", func(t *testing.T) {
@@ -181,11 +181,11 @@ func TestUnit_Building_CreateBuildingAction(t *testing.T) {
 			Storages:    []BuildingResourceStorage{},
 		}
 
-		action := b.CreateBuildingAction(planetId, 5)
+		action := b.CreateBuildingAction(planetId, 5, someTime)
 
-		actual := action.CompletedAt.Sub(action.CreatedAt)
 		completionTime := 262080 * time.Millisecond
-		assert.Equal(t, completionTime, actual)
+		assert.Equal(t, someTime, action.CreatedAt)
+		assert.Equal(t, someTime.Add(completionTime), action.CompletedAt)
 	})
 
 	t.Run("correctly calculates completion time for crystal usage", func(t *testing.T) {
@@ -204,11 +204,11 @@ func TestUnit_Building_CreateBuildingAction(t *testing.T) {
 			Storages:    []BuildingResourceStorage{},
 		}
 
-		action := b.CreateBuildingAction(planetId, 5)
+		action := b.CreateBuildingAction(planetId, 5, someTime)
 
-		actual := action.CompletedAt.Sub(action.CreatedAt)
 		completionTime := 948960 * time.Millisecond
-		assert.Equal(t, completionTime, actual)
+		assert.Equal(t, someTime, action.CreatedAt)
+		assert.Equal(t, someTime.Add(completionTime), action.CompletedAt)
 	})
 
 	t.Run("correctly calculates completion time when metal and crystal are used", func(t *testing.T) {
@@ -232,11 +232,11 @@ func TestUnit_Building_CreateBuildingAction(t *testing.T) {
 			Storages:    []BuildingResourceStorage{},
 		}
 
-		action := b.CreateBuildingAction(planetId, 5)
+		action := b.CreateBuildingAction(planetId, 5, someTime)
 
-		actual := action.CompletedAt.Sub(action.CreatedAt)
 		completionTime := 1211040 * time.Millisecond
-		assert.Equal(t, completionTime, actual)
+		assert.Equal(t, someTime, action.CreatedAt)
+		assert.Equal(t, someTime.Add(completionTime), action.CompletedAt)
 	})
 }
 

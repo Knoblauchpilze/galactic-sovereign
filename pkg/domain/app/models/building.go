@@ -42,10 +42,13 @@ type BuildingResourceStorage struct {
 	Progress float64
 }
 
-func (b Building) CreateBuildingAction(planet uuid.UUID, desiredLevel int) BuildingAction {
+func (b Building) CreateBuildingAction(
+	planet uuid.UUID,
+	desiredLevel int,
+	createdAt time.Time,
+) BuildingAction {
 	costs := b.determineActionCost(desiredLevel)
 	completionTime := determineCompletionTime(costs)
-	createdAt := time.Now()
 
 	action := BuildingAction{
 		Id:           uuid.New(),
