@@ -89,13 +89,19 @@ func (p *Planet) CancelBuildingAction() error {
 }
 
 // TODO: Add tests for this
-func (p *Planet) UpdateToTime(moment time.Time) error {
+func (p *Planet) UpdateToTime(moment time.Time) {
+	if p.UpdatedAt.After(moment) {
+		return
+	}
+
 	elapsed := moment.Sub(p.UpdatedAt)
 	hours := elapsed.Hours()
 
 	productions := make(map[uuid.UUID]float64)
 	for _, pr := range p.Productions {
-		productions[pr.Resource] = float64(pr.Production)
+		existing := productions[pr.Resource]
+		existing += float64(pr.Production)
+		productions[pr.Resource] = existing
 	}
 
 	storages := make(map[uuid.UUID]float64)
@@ -114,15 +120,18 @@ func (p *Planet) UpdateToTime(moment time.Time) error {
 			continue
 		}
 
-		fullAmount := p.Resources[id].Amount + prod*hours
+		fullAmount := p.Resources[id].Amount
+		if fullAmount >= storage {
+			continue
+		}
+
+		fullAmount += prod * hours
 		fullAmount = math.Min(fullAmount, storage)
 
 		p.Resources[id].Amount = fullAmount
 	}
 
 	p.UpdatedAt = moment
-
-	return nil
 }
 
 func (p *Planet) validateEnoughResources(

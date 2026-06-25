@@ -11,6 +11,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+var (
+	crystalMineId = uuid.MustParse("3904d34d-9a7e-47d4-a332-091700e2c5c3")
+)
+
 func TestUnit_Planet_AddBuildingAction(t *testing.T) {
 	t.Run("returns error when planet already has an action", func(t *testing.T) {
 		p := generateTestPlanet(t, withPlanetBuilding, withManyResources)
@@ -258,23 +262,126 @@ func TestUnit_Planet_CancelBuildingAction(t *testing.T) {
 }
 
 func TestUnit_Planet_UpdateToTime(t *testing.T) {
-	t.Run("does not update resource when no production is defined", func(t *testing.T) {})
+	someTime := time.Date(2026, time.June, 25, 20, 19, 37, 0, time.UTC)
+	someTimeLater := someTime.Add(1*time.Hour + 2*time.Minute + 3*time.Second)
 
-	t.Run("does not change resource value when already over the storage capacity", func(t *testing.T) {})
+	t.Run("does not update resource when no production is defined", func(t *testing.T) {
+		p := Planet{
+			Resources: []PlanetResource{{Resource: crystalResourceId, Amount: 36}},
+			UpdatedAt: someTime,
+		}
 
-	t.Run("does not change resource when update time is before already computed time", func(t *testing.T) {})
+		p.UpdateToTime(someTimeLater)
 
-	t.Run("caps resource at storage capacity", func(t *testing.T) {})
+		assert.Len(t, p.Resources, 1)
+		assert.Equal(t, 36.0, p.Resources[0].Amount)
+	})
 
-	t.Run("adds full production value when storage is sufficient", func(t *testing.T) {})
+	t.Run("does not change resource value when already over the storage capacity", func(t *testing.T) {
+		p := Planet{
+			Resources:   []PlanetResource{{Resource: crystalResourceId, Amount: 36}},
+			Storages:    []PlanetResourceStorage{{Resource: crystalResourceId, Storage: 30}},
+			Productions: []PlanetResourceProduction{{Resource: crystalResourceId, Production: 30}},
+			UpdatedAt:   someTime,
+		}
 
-	t.Run("adds all production for a resource", func(t *testing.T) {})
+		p.UpdateToTime(someTimeLater)
 
-	t.Run("adds a resource when it is produced but not yet stored on the planet", func(t *testing.T) {})
+		assert.Len(t, p.Resources, 1)
+		assert.Equal(t, 36.0, p.Resources[0].Amount)
+	})
 
-	t.Run("keeps resource at 0 when no storage is defined for it", func(t *testing.T) {})
+	t.Run("does not change resource when update time is before already computed time", func(t *testing.T) {
+		p := Planet{
+			Resources:   []PlanetResource{{Resource: crystalResourceId, Amount: 36}},
+			Storages:    []PlanetResourceStorage{{Resource: crystalResourceId, Storage: 300}},
+			Productions: []PlanetResourceProduction{{Resource: crystalResourceId, Production: 30}},
+			UpdatedAt:   someTimeLater,
+		}
 
-	t.Run("bumps updated at field", func(t *testing.T) {})
+		p.UpdateToTime(someTime)
+
+		assert.Len(t, p.Resources, 1)
+		assert.Equal(t, 36.0, p.Resources[0].Amount)
+	})
+
+	t.Run("caps resource at storage capacity", func(t *testing.T) {
+		p := Planet{
+			Resources:   []PlanetResource{{Resource: crystalResourceId, Amount: 36}},
+			Storages:    []PlanetResourceStorage{{Resource: crystalResourceId, Storage: 45}},
+			Productions: []PlanetResourceProduction{{Resource: crystalResourceId, Production: 30}},
+			UpdatedAt:   someTime,
+		}
+
+		p.UpdateToTime(someTimeLater)
+
+		assert.Len(t, p.Resources, 1)
+		assert.Equal(t, 45.0, p.Resources[0].Amount)
+	})
+
+	t.Run("adds full production value when storage is sufficient", func(t *testing.T) {
+		p := Planet{
+			Resources:   []PlanetResource{{Resource: crystalResourceId, Amount: 36}},
+			Storages:    []PlanetResourceStorage{{Resource: crystalResourceId, Storage: 300}},
+			Productions: []PlanetResourceProduction{{Resource: crystalResourceId, Production: 30}},
+			UpdatedAt:   someTime,
+		}
+
+		p.UpdateToTime(someTimeLater)
+
+		assert.Len(t, p.Resources, 1)
+		assert.Equal(t, 67.025, p.Resources[0].Amount)
+	})
+
+	t.Run("adds all production for a resource", func(t *testing.T) {
+		p := Planet{
+			Resources: []PlanetResource{{Resource: crystalResourceId, Amount: 36}},
+			Storages:  []PlanetResourceStorage{{Resource: crystalResourceId, Storage: 300}},
+			Productions: []PlanetResourceProduction{
+				{Resource: crystalResourceId, Production: 30},
+				{Resource: crystalResourceId, Production: 45, Building: &crystalMineId},
+			},
+			UpdatedAt: someTime,
+		}
+
+		p.UpdateToTime(someTimeLater)
+
+		assert.Len(t, p.Resources, 1)
+		assert.Equal(t, 113.5625, p.Resources[0].Amount)
+	})
+
+	t.Run("keeps resource at 0 when no storage is defined for it", func(t *testing.T) {
+		p := Planet{
+			Resources: []PlanetResource{{Resource: crystalResourceId, Amount: 36}},
+			Storages:  nil,
+			Productions: []PlanetResourceProduction{
+				{Resource: crystalResourceId, Production: 30},
+				{Resource: crystalResourceId, Production: 45, Building: &crystalMineId},
+			},
+			UpdatedAt: someTime,
+		}
+
+		p.UpdateToTime(someTimeLater)
+
+		assert.Len(t, p.Resources, 1)
+		assert.Equal(t, 36.0, p.Resources[0].Amount)
+	})
+
+	t.Run("bumps updated at field", func(t *testing.T) {
+		p := Planet{UpdatedAt: someTime}
+
+		p.UpdateToTime(someTimeLater)
+
+		assert.Equal(t, someTimeLater, p.UpdatedAt)
+	})
+
+	t.Run("does not bump updated at field when update time is in the past", func(t *testing.T) {
+		p := Planet{UpdatedAt: someTimeLater}
+
+		p.UpdateToTime(someTime)
+
+		assert.Equal(t, someTimeLater, p.UpdatedAt)
+	})
 }
 
 func generateTestPlanet(
@@ -283,9 +390,7 @@ func generateTestPlanet(
 ) Planet {
 	t.Helper()
 
-	p := Planet{
-		Id: uuid.New(),
-	}
+	p := Planet{Id: uuid.New()}
 
 	for _, modifier := range modifiers {
 		modifier(t, &p)
