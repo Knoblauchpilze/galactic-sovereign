@@ -14,6 +14,7 @@ const (
 	noActionInProgress         errors.ErrorCode = 612
 	notEnoughResources         errors.ErrorCode = 613
 	optimisticLockingException errors.ErrorCode = 614
+	planetNotUpToDate          errors.ErrorCode = 615
 )
 
 var (
@@ -27,4 +28,5 @@ var (
 	ErrNoActionInProgress      = errors.FromCode(noActionInProgress)
 	ErrNotEnoughResources      = errors.FromCode(notEnoughResources)
 	ErrOptimisticLocking       = errors.FromCode(optimisticLockingException)
+	ErrPlanetNotUpToDate       = errors.FromCode(planetNotUpToDate)
 )

@@ -298,7 +298,8 @@ func TestUnit_Planet_UpdateToTime(t *testing.T) {
 			UpdatedAt: someTime,
 		}
 
-		p.UpdateToTime(someTimeLater)
+		err := p.UpdateToTime(someTimeLater)
+		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Len(t, p.Resources, 1)
 		assert.Equal(t, 36.0, p.Resources[0].Amount)
@@ -312,7 +313,8 @@ func TestUnit_Planet_UpdateToTime(t *testing.T) {
 			UpdatedAt:   someTime,
 		}
 
-		p.UpdateToTime(someTimeLater)
+		err := p.UpdateToTime(someTimeLater)
+		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Len(t, p.Resources, 1)
 		assert.Equal(t, 36.0, p.Resources[0].Amount)
@@ -326,7 +328,8 @@ func TestUnit_Planet_UpdateToTime(t *testing.T) {
 			UpdatedAt:   someTimeLater,
 		}
 
-		p.UpdateToTime(someTime)
+		err := p.UpdateToTime(someTime)
+		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Len(t, p.Resources, 1)
 		assert.Equal(t, 36.0, p.Resources[0].Amount)
@@ -340,7 +343,8 @@ func TestUnit_Planet_UpdateToTime(t *testing.T) {
 			UpdatedAt:   someTime,
 		}
 
-		p.UpdateToTime(someTimeLater)
+		err := p.UpdateToTime(someTimeLater)
+		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Len(t, p.Resources, 1)
 		assert.Equal(t, 45.0, p.Resources[0].Amount)
@@ -354,7 +358,8 @@ func TestUnit_Planet_UpdateToTime(t *testing.T) {
 			UpdatedAt:   someTime,
 		}
 
-		p.UpdateToTime(someTimeLater)
+		err := p.UpdateToTime(someTimeLater)
+		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Len(t, p.Resources, 1)
 		assert.Equal(t, 67.025, p.Resources[0].Amount)
@@ -371,7 +376,8 @@ func TestUnit_Planet_UpdateToTime(t *testing.T) {
 			UpdatedAt: someTime,
 		}
 
-		p.UpdateToTime(someTimeLater)
+		err := p.UpdateToTime(someTimeLater)
+		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Len(t, p.Resources, 1)
 		assert.Equal(t, 113.5625, p.Resources[0].Amount)
@@ -388,7 +394,8 @@ func TestUnit_Planet_UpdateToTime(t *testing.T) {
 			UpdatedAt: someTime,
 		}
 
-		p.UpdateToTime(someTimeLater)
+		err := p.UpdateToTime(someTimeLater)
+		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Len(t, p.Resources, 1)
 		assert.Equal(t, 36.0, p.Resources[0].Amount)
@@ -397,7 +404,8 @@ func TestUnit_Planet_UpdateToTime(t *testing.T) {
 	t.Run("bumps updated at field", func(t *testing.T) {
 		p := Planet{UpdatedAt: someTime}
 
-		p.UpdateToTime(someTimeLater)
+		err := p.UpdateToTime(someTimeLater)
+		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Equal(t, someTimeLater, p.UpdatedAt)
 	})
@@ -405,9 +413,27 @@ func TestUnit_Planet_UpdateToTime(t *testing.T) {
 	t.Run("does not bump updated at field when update time is in the past", func(t *testing.T) {
 		p := Planet{UpdatedAt: someTimeLater}
 
-		p.UpdateToTime(someTime)
+		err := p.UpdateToTime(someTime)
+		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Equal(t, someTimeLater, p.UpdatedAt)
+	})
+
+	t.Run("returns error when building action finishes before update time", func(t *testing.T) {
+		t1 := time.Date(2026, time.June, 26, 8, 30, 50, 0, time.UTC)
+		t2 := time.Date(2026, time.June, 26, 8, 31, 50, 0, time.UTC)
+		t3 := time.Date(2026, time.June, 26, 8, 32, 50, 0, time.UTC)
+
+		p := Planet{
+			BuildingAction: &BuildingAction{
+				CompletedAt: t2,
+			},
+			UpdatedAt: t1,
+		}
+
+		err := p.UpdateToTime(t3)
+
+		assert.ErrorIs(t, domainerrors.ErrPlanetNotUpToDate, err, "Actual err is: %v", err)
 	})
 }
 

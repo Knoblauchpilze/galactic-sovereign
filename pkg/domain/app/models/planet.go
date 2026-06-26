@@ -100,9 +100,13 @@ func (p *Planet) CancelBuildingAction() error {
 	return nil
 }
 
-func (p *Planet) UpdateToTime(moment time.Time) {
+func (p *Planet) UpdateToTime(moment time.Time) error {
 	if p.UpdatedAt.After(moment) {
-		return
+		return nil
+	}
+
+	if p.BuildingAction != nil && moment.After(p.BuildingAction.CompletedAt) {
+		return domainerrors.ErrPlanetNotUpToDate
 	}
 
 	elapsed := moment.Sub(p.UpdatedAt)
@@ -144,6 +148,8 @@ func (p *Planet) UpdateToTime(moment time.Time) {
 
 	p.UpdatedAt = moment
 	p.Version++
+
+	return nil
 }
 
 func (p *Planet) validateEnoughResources(
