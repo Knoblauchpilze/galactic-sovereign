@@ -153,7 +153,6 @@ func TestIT_PlayerRepository_Get(t *testing.T) {
 		actual, err := repo.Get(t.Context(), player.Id)
 		require.NoError(t, err, "Actual err: %v", err)
 
-		fmt.Printf("p: %+v\n", player)
 		assert.Equal(t, player, actual)
 	})
 

@@ -152,6 +152,31 @@ func (p *Planet) UpdateToTime(moment time.Time) error {
 	return nil
 }
 
+func (p *Planet) ApplyAction() error {
+	if p.BuildingAction == nil {
+		return domainerrors.ErrNoActionInProgress
+	}
+
+	if p.BuildingAction.CompletedAt != p.UpdatedAt {
+		return domainerrors.ErrActionNotCompleted
+	}
+
+	p.updateProductions()
+	p.updateStorages()
+
+	for id := range p.Buildings {
+		if p.Buildings[id].Building == p.BuildingAction.Building {
+			p.Buildings[id].Level = p.BuildingAction.DesiredLevel
+		}
+	}
+
+	p.BuildingAction = nil
+
+	p.Version++
+
+	return nil
+}
+
 func (p *Planet) validateEnoughResources(
 	action BuildingAction,
 ) error {
@@ -205,6 +230,44 @@ func (p *Planet) creditResources(
 			}
 			p.Resources = append(p.Resources, pr)
 		}
+	}
+}
+
+func (p *Planet) updateProductions() {
+	temp := make(map[uuid.UUID]int)
+	for id, pr := range p.Productions {
+		if p.Productions[id].Building == nil || *p.Productions[id].Building != p.BuildingAction.Building {
+			continue
+		}
+
+		temp[pr.Resource] = id
+	}
+
+	for _, pp := range p.BuildingAction.Productions {
+		id, ok := temp[pp.Resource]
+
+		if ok {
+			p.Productions[id].Production = pp.Production
+		} else {
+			newProd := PlanetResourceProduction{
+				Resource:   pp.Resource,
+				Building:   &p.BuildingAction.Building,
+				Production: pp.Production,
+			}
+			p.Productions = append(p.Productions, newProd)
+		}
+	}
+}
+
+func (p *Planet) updateStorages() {
+	temp := make(map[uuid.UUID]int)
+	for id, s := range p.Storages {
+		temp[s.Resource] = id
+	}
+
+	for _, s := range p.BuildingAction.Storages {
+		id := temp[s.Resource]
+		p.Storages[id].Storage = s.Storage
 	}
 }
 

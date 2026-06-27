@@ -13,6 +13,7 @@ import (
 
 var (
 	crystalMineId = uuid.MustParse("3904d34d-9a7e-47d4-a332-091700e2c5c3")
+	metalMineId   = uuid.MustParse("d176e82d-f2ca-4611-996b-c4804096caef")
 )
 
 func TestUnit_Planet_AddBuildingAction(t *testing.T) {
@@ -434,6 +435,262 @@ func TestUnit_Planet_UpdateToTime(t *testing.T) {
 		err := p.UpdateToTime(t3)
 
 		assert.ErrorIs(t, domainerrors.ErrPlanetNotUpToDate, err, "Actual err is: %v", err)
+	})
+}
+
+func TestUnit_Planet_ApplyAction(t *testing.T) {
+	t1 := time.Date(2026, time.June, 26, 8, 41, 30, 0, time.UTC)
+	t2 := time.Date(2026, time.June, 26, 8, 42, 30, 0, time.UTC)
+
+	t.Run("returns error when no action is in progress", func(t *testing.T) {
+		p := Planet{BuildingAction: nil}
+
+		err := p.ApplyAction()
+
+		assert.ErrorIs(t, domainerrors.ErrNoActionInProgress, err, "Actual err: %v", err)
+	})
+
+	t.Run("returns error when planet update time is not matching action completion time", func(t *testing.T) {
+		p := Planet{
+			BuildingAction: &BuildingAction{
+				CompletedAt: t2,
+			},
+			UpdatedAt: t1,
+		}
+
+		err := p.ApplyAction()
+
+		assert.ErrorIs(t, domainerrors.ErrActionNotCompleted, err, "Actual err: %v", err)
+	})
+
+	t.Run("applies resource production changes when applicable", func(t *testing.T) {
+		p := Planet{
+			Buildings: []PlanetBuilding{
+				{Building: metalMineId, Level: 1},
+			},
+			Productions: []PlanetResourceProduction{
+				{Resource: metalResourceId, Production: 50},
+				{Resource: metalResourceId, Production: 30, Building: &metalMineId},
+			},
+			BuildingAction: &BuildingAction{
+				Building:     metalMineId,
+				CurrentLevel: 1,
+				DesiredLevel: 2,
+				Productions: []BuildingActionResourceProduction{
+					{Resource: metalResourceId, Production: 45},
+				},
+				CompletedAt: t1,
+			},
+			UpdatedAt: t1,
+		}
+
+		err := p.ApplyAction()
+		require.NoError(t, err, "Actual err: %v", err)
+
+		expected := []PlanetResourceProduction{
+			{Resource: metalResourceId, Production: 50},
+			{Resource: metalResourceId, Production: 45, Building: &metalMineId},
+		}
+		assert.Equal(t, expected, p.Productions)
+	})
+
+	t.Run("registers new resource production for building when applicable", func(t *testing.T) {
+		p := Planet{
+			Buildings: []PlanetBuilding{
+				{Building: metalMineId, Level: 1},
+			},
+			Productions: []PlanetResourceProduction{
+				{Resource: metalResourceId, Production: 30},
+			},
+			BuildingAction: &BuildingAction{
+				Building:     metalMineId,
+				CurrentLevel: 1,
+				DesiredLevel: 2,
+				Productions: []BuildingActionResourceProduction{
+					{Resource: metalResourceId, Production: 45},
+				},
+				CompletedAt: t1,
+			},
+			UpdatedAt: t1,
+		}
+
+		err := p.ApplyAction()
+		require.NoError(t, err, "Actual err: %v", err)
+
+		expected := []PlanetResourceProduction{
+			{Resource: metalResourceId, Production: 30},
+			{Resource: metalResourceId, Production: 45, Building: &metalMineId},
+		}
+		assert.Equal(t, expected, p.Productions)
+	})
+
+	t.Run("does not change resource production when action has no effect", func(t *testing.T) {
+		p := Planet{
+			Buildings: []PlanetBuilding{
+				{Building: metalMineId, Level: 1},
+			},
+			Productions: []PlanetResourceProduction{
+				{Resource: metalResourceId, Production: 30},
+			},
+			BuildingAction: &BuildingAction{
+				Building:     metalMineId,
+				CurrentLevel: 1,
+				DesiredLevel: 2,
+				Productions:  []BuildingActionResourceProduction{},
+				CompletedAt:  t1,
+			},
+			UpdatedAt: t1,
+		}
+
+		err := p.ApplyAction()
+		require.NoError(t, err, "Actual err: %v", err)
+
+		expected := []PlanetResourceProduction{
+			{Resource: metalResourceId, Production: 30},
+		}
+		assert.Equal(t, expected, p.Productions)
+	})
+
+	t.Run("applies resource storage changes when applicable", func(t *testing.T) {
+		p := Planet{
+			Buildings: []PlanetBuilding{
+				{Building: metalMineId, Level: 1},
+			},
+			Storages: []PlanetResourceStorage{
+				{Resource: metalResourceId, Storage: 1000},
+			},
+			BuildingAction: &BuildingAction{
+				Building:     metalMineId,
+				CurrentLevel: 1,
+				DesiredLevel: 2,
+				Storages: []BuildingActionResourceStorage{
+					{Resource: metalResourceId, Storage: 2000},
+				},
+				CompletedAt: t1,
+			},
+			UpdatedAt: t1,
+		}
+
+		err := p.ApplyAction()
+		require.NoError(t, err, "Actual err: %v", err)
+
+		expected := []PlanetResourceStorage{
+			{Resource: metalResourceId, Storage: 2000},
+		}
+		assert.Equal(t, expected, p.Storages)
+	})
+
+	t.Run("does not change resource storage when action has no effect", func(t *testing.T) {
+		p := Planet{
+			Buildings: []PlanetBuilding{
+				{Building: metalMineId, Level: 1},
+			},
+			Storages: []PlanetResourceStorage{
+				{Resource: metalResourceId, Storage: 1000},
+			},
+			BuildingAction: &BuildingAction{
+				Building:     metalMineId,
+				CurrentLevel: 1,
+				DesiredLevel: 2,
+				Storages:     []BuildingActionResourceStorage{},
+				CompletedAt:  t1,
+			},
+			UpdatedAt: t1,
+		}
+
+		err := p.ApplyAction()
+		require.NoError(t, err, "Actual err: %v", err)
+
+		expected := []PlanetResourceStorage{
+			{Resource: metalResourceId, Storage: 1000},
+		}
+		assert.Equal(t, expected, p.Storages)
+	})
+
+	t.Run("updates building to desired level", func(t *testing.T) {
+		p := Planet{
+			Buildings: []PlanetBuilding{
+				{Building: crystalMineId, Level: 1},
+			},
+			BuildingAction: &BuildingAction{
+				Building:     crystalMineId,
+				CurrentLevel: 1,
+				DesiredLevel: 2,
+				CompletedAt:  t1,
+			},
+			UpdatedAt: t1,
+		}
+
+		err := p.ApplyAction()
+		require.NoError(t, err, "Actual err: %v", err)
+
+		expected := []PlanetBuilding{
+			{Building: crystalMineId, Level: 2},
+		}
+		assert.Equal(t, expected, p.Buildings)
+	})
+
+	t.Run("bumps version by one", func(t *testing.T) {
+		p := Planet{
+			Buildings: []PlanetBuilding{
+				{Building: crystalMineId, Level: 1},
+			},
+			Version: 0,
+			BuildingAction: &BuildingAction{
+				Building:     crystalMineId,
+				CurrentLevel: 1,
+				DesiredLevel: 2,
+				CompletedAt:  t1,
+			},
+			UpdatedAt: t1,
+		}
+
+		err := p.ApplyAction()
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.Equal(t, 1, p.Version)
+	})
+
+	t.Run("does not change updated at field", func(t *testing.T) {
+		p := Planet{
+			Buildings: []PlanetBuilding{
+				{Building: crystalMineId, Level: 1},
+			},
+			Version: 0,
+			BuildingAction: &BuildingAction{
+				Building:     crystalMineId,
+				CurrentLevel: 1,
+				DesiredLevel: 2,
+				CompletedAt:  t1,
+			},
+			UpdatedAt: t1,
+		}
+
+		err := p.ApplyAction()
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.Equal(t, t1, p.UpdatedAt)
+	})
+
+	t.Run("removes building action from planet", func(t *testing.T) {
+		p := Planet{
+			Buildings: []PlanetBuilding{
+				{Building: crystalMineId, Level: 1},
+			},
+			Version: 0,
+			BuildingAction: &BuildingAction{
+				Building:     crystalMineId,
+				CurrentLevel: 1,
+				DesiredLevel: 2,
+				CompletedAt:  t1,
+			},
+			UpdatedAt: t1,
+		}
+
+		err := p.ApplyAction()
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.Nil(t, p.BuildingAction)
 	})
 }
 
