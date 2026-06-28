@@ -28,7 +28,6 @@ func TestIT_BuildingActionRepository_Create(t *testing.T) {
 			Id:           actionId,
 			Planet:       planet.Id,
 			Building:     metalMineId,
-			CurrentLevel: 2,
 			DesiredLevel: 3,
 			CreatedAt:    someTime,
 			CompletedAt:  someTime.Add(1 * time.Hour),
@@ -55,7 +54,6 @@ func TestIT_BuildingActionRepository_Create(t *testing.T) {
 			Id:           actionId,
 			Planet:       planet.Id,
 			Building:     metalMineId,
-			CurrentLevel: 2,
 			DesiredLevel: 3,
 			CreatedAt:    someTime,
 			CompletedAt:  someTime.Add(1 * time.Hour),
@@ -91,7 +89,6 @@ func TestIT_BuildingActionRepository_Create(t *testing.T) {
 			Id:           actionId,
 			Planet:       planet.Id,
 			Building:     metalMineId,
-			CurrentLevel: 2,
 			DesiredLevel: 3,
 			CreatedAt:    someTime,
 			CompletedAt:  someTime.Add(1 * time.Hour),
@@ -127,7 +124,6 @@ func TestIT_BuildingActionRepository_Create(t *testing.T) {
 			Id:           actionId,
 			Planet:       planet.Id,
 			Building:     metalMineId,
-			CurrentLevel: 2,
 			DesiredLevel: 3,
 			CreatedAt:    someTime,
 			CompletedAt:  someTime.Add(1 * time.Hour),
@@ -163,7 +159,6 @@ func TestIT_BuildingActionRepository_Create(t *testing.T) {
 			Id:           actionId,
 			Planet:       planet.Id,
 			Building:     metalMineId,
-			CurrentLevel: 2,
 			DesiredLevel: 3,
 			CreatedAt:    someTime,
 			CompletedAt:  someTime.Add(1 * time.Hour),
@@ -203,7 +198,6 @@ func TestIT_BuildingActionRepository_Create(t *testing.T) {
 			Id:           actionId,
 			Planet:       planet.Id,
 			Building:     metalMineId,
-			CurrentLevel: 2,
 			DesiredLevel: 3,
 			CreatedAt:    someTime,
 			CompletedAt:  someTime.Add(1 * time.Hour),
@@ -236,7 +230,6 @@ func TestIT_BuildingActionRepository_Create(t *testing.T) {
 			Id:           actionId,
 			Planet:       planet.Id,
 			Building:     metalMineId,
-			CurrentLevel: 2,
 			DesiredLevel: 3,
 			CreatedAt:    someTime,
 			CompletedAt:  someTime.Add(1 * time.Hour),
@@ -269,7 +262,6 @@ func TestIT_BuildingActionRepository_Create(t *testing.T) {
 			Id:           uuid.New(),
 			Planet:       planet.Id,
 			Building:     metalMineId,
-			CurrentLevel: 4,
 			DesiredLevel: 5,
 			CreatedAt:    someTime,
 			CompletedAt:  someTime.Add(1 * time.Minute),
@@ -451,7 +443,6 @@ func TestIT_BuildingActionRepository_CreationDeletionWorkflow(t *testing.T) {
 			action: models.BuildingAction{
 				Id:           uuid.New(),
 				Building:     metalMineId,
-				CurrentLevel: 26,
 				DesiredLevel: 27,
 				CreatedAt:    time.Date(2024, time.December, 7, 20, 26, 47, 0, time.UTC),
 				CompletedAt:  time.Date(2024, time.December, 7, 21, 26, 47, 0, time.UTC),
@@ -511,7 +502,6 @@ func insertTestBuildingActionForPlanet(
 		Id:           uuid.New(),
 		Planet:       planetId,
 		Building:     metalMineId,
-		CurrentLevel: 4,
 		DesiredLevel: 5,
 		CreatedAt:    someTime,
 		CompletedAt:  someTime.Add(1*time.Hour + 2*time.Minute),
@@ -523,15 +513,14 @@ func insertTestBuildingActionForPlanet(
 	}
 
 	sqlQuery := `INSERT INTO building_action
-		(id, planet, building, current_level, desired_level, created_at, completed_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7)`
+		(id, planet, building, desired_level, created_at, completed_at)
+		VALUES ($1, $2, $3, $4, $5, $6)`
 	_, err := conn.Exec(
 		t.Context(),
 		sqlQuery,
 		action.Id,
 		action.Planet,
 		action.Building,
-		action.CurrentLevel,
 		action.DesiredLevel,
 		action.CreatedAt,
 		action.CompletedAt,

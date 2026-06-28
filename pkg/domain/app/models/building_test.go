@@ -27,11 +27,10 @@ func TestUnit_Building_CreateBuildingAction(t *testing.T) {
 			Id:           action.Id,
 			Planet:       planetId,
 			Building:     b.Id,
-			CurrentLevel: 4,
 			DesiredLevel: 5,
 
 			CreatedAt: someTime,
-			// Ignore the completion time here, there are dedicated tests
+			// Ignore the completion here, there are dedicated tests
 			CompletedAt: action.CompletedAt,
 
 			Costs: []BuildingActionCost{
@@ -59,7 +58,6 @@ func TestUnit_Building_CreateBuildingAction(t *testing.T) {
 			Id:           action.Id,
 			Planet:       planetId,
 			Building:     b.Id,
-			CurrentLevel: 4,
 			DesiredLevel: 5,
 
 			CreatedAt: someTime,
@@ -91,7 +89,6 @@ func TestUnit_Building_CreateBuildingAction(t *testing.T) {
 			Id:           action.Id,
 			Planet:       planetId,
 			Building:     b.Id,
-			CurrentLevel: 4,
 			DesiredLevel: 5,
 
 			CreatedAt: someTime,

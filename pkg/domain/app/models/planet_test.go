@@ -80,7 +80,6 @@ func TestUnit_Planet_AddBuildingAction(t *testing.T) {
 			Id:           p.BuildingAction.Id,
 			Planet:       p.Id,
 			Building:     b.Id,
-			CurrentLevel: p.Buildings[0].Level,
 			DesiredLevel: p.Buildings[0].Level + 1,
 			CreatedAt:    someTime,
 			CompletedAt:  someTime.Add(completionTime),
@@ -473,7 +472,6 @@ func TestUnit_Planet_ApplyAction(t *testing.T) {
 			},
 			BuildingAction: &BuildingAction{
 				Building:     metalMineId,
-				CurrentLevel: 1,
 				DesiredLevel: 2,
 				Productions: []BuildingActionResourceProduction{
 					{Resource: metalResourceId, Production: 45},
@@ -503,7 +501,6 @@ func TestUnit_Planet_ApplyAction(t *testing.T) {
 			},
 			BuildingAction: &BuildingAction{
 				Building:     metalMineId,
-				CurrentLevel: 1,
 				DesiredLevel: 2,
 				Productions: []BuildingActionResourceProduction{
 					{Resource: metalResourceId, Production: 45},
@@ -533,7 +530,6 @@ func TestUnit_Planet_ApplyAction(t *testing.T) {
 			},
 			BuildingAction: &BuildingAction{
 				Building:     metalMineId,
-				CurrentLevel: 1,
 				DesiredLevel: 2,
 				Productions:  []BuildingActionResourceProduction{},
 				CompletedAt:  t1,
@@ -560,7 +556,6 @@ func TestUnit_Planet_ApplyAction(t *testing.T) {
 			},
 			BuildingAction: &BuildingAction{
 				Building:     metalMineId,
-				CurrentLevel: 1,
 				DesiredLevel: 2,
 				Storages: []BuildingActionResourceStorage{
 					{Resource: metalResourceId, Storage: 2000},
@@ -589,7 +584,6 @@ func TestUnit_Planet_ApplyAction(t *testing.T) {
 			},
 			BuildingAction: &BuildingAction{
 				Building:     metalMineId,
-				CurrentLevel: 1,
 				DesiredLevel: 2,
 				Storages:     []BuildingActionResourceStorage{},
 				CompletedAt:  t1,
@@ -613,7 +607,6 @@ func TestUnit_Planet_ApplyAction(t *testing.T) {
 			},
 			BuildingAction: &BuildingAction{
 				Building:     crystalMineId,
-				CurrentLevel: 1,
 				DesiredLevel: 2,
 				CompletedAt:  t1,
 			},
@@ -637,7 +630,6 @@ func TestUnit_Planet_ApplyAction(t *testing.T) {
 			Version: 0,
 			BuildingAction: &BuildingAction{
 				Building:     crystalMineId,
-				CurrentLevel: 1,
 				DesiredLevel: 2,
 				CompletedAt:  t1,
 			},
@@ -658,7 +650,6 @@ func TestUnit_Planet_ApplyAction(t *testing.T) {
 			Version: 0,
 			BuildingAction: &BuildingAction{
 				Building:     crystalMineId,
-				CurrentLevel: 1,
 				DesiredLevel: 2,
 				CompletedAt:  t1,
 			},
@@ -679,7 +670,6 @@ func TestUnit_Planet_ApplyAction(t *testing.T) {
 			Version: 0,
 			BuildingAction: &BuildingAction{
 				Building:     crystalMineId,
-				CurrentLevel: 1,
 				DesiredLevel: 2,
 				CompletedAt:  t1,
 			},

@@ -54,7 +54,6 @@ func (b Building) CreateBuildingAction(
 		Id:           uuid.New(),
 		Planet:       planet,
 		Building:     b.Id,
-		CurrentLevel: desiredLevel - 1,
 		DesiredLevel: desiredLevel,
 
 		CreatedAt:   createdAt,

@@ -22,7 +22,6 @@ func ToBuildingActionResponse(action models.BuildingAction) dtos.BuildingActionD
 		Id:           action.Id,
 		Planet:       action.Planet,
 		Building:     action.Building,
-		CurrentLevel: action.CurrentLevel,
 		DesiredLevel: action.DesiredLevel,
 		CreatedAt:    action.CreatedAt,
 		CompletedAt:  action.CompletedAt,

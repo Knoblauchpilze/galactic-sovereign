@@ -11,7 +11,6 @@ type DbBuildingAction struct {
 	Id           uuid.UUID
 	Planet       uuid.UUID
 	Building     uuid.UUID
-	CurrentLevel int
 	DesiredLevel int
 
 	CreatedAt   time.Time
@@ -23,7 +22,6 @@ func (a DbBuildingAction) ToDomain() models.BuildingAction {
 		Id:           a.Id,
 		Planet:       a.Planet,
 		Building:     a.Building,
-		CurrentLevel: a.CurrentLevel,
 		DesiredLevel: a.DesiredLevel,
 
 		CreatedAt:   a.CreatedAt,

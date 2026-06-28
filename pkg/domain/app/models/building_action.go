@@ -11,8 +11,6 @@ type BuildingAction struct {
 	Planet   uuid.UUID
 	Building uuid.UUID
 
-	// TODO: Could be removed
-	CurrentLevel int
 	DesiredLevel int
 
 	CreatedAt   time.Time

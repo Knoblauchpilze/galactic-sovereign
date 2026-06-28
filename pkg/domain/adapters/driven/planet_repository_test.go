@@ -864,7 +864,6 @@ func addPlanetBuildingAction(t *testing.T, conn db.Connection, p *models.Planet)
 		Id:           uuid.New(),
 		Planet:       p.Id,
 		Building:     metalStorageId,
-		CurrentLevel: 0,
 		DesiredLevel: 1,
 		CreatedAt:    someTime,
 		CompletedAt:  someOtherTime,
@@ -876,15 +875,14 @@ func addPlanetBuildingAction(t *testing.T, conn db.Connection, p *models.Planet)
 	}
 
 	sqlQuery := `INSERT INTO building_action
-		(id, planet, building, current_level, desired_level, created_at, completed_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7)`
+		(id, planet, building, desired_level, created_at, completed_at)
+		VALUES ($1, $2, $3, $4, $5, $6)`
 	_, err := conn.Exec(
 		t.Context(),
 		sqlQuery,
 		action.Id,
 		p.Id,
 		action.Building,
-		action.CurrentLevel,
 		action.DesiredLevel,
 		action.CreatedAt,
 		action.CompletedAt,

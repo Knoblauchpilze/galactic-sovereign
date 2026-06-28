@@ -3,7 +3,6 @@ CREATE TABLE building_action(
   id uuid NOT NULL,
   planet uuid NOT NULL,
   building uuid NOT NULL,
-  current_level INTEGER NOT NULL,
   desired_level INTEGER NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
   completed_at TIMESTAMP WITH TIME ZONE NOT NULL,

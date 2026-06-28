@@ -63,7 +63,6 @@ func TestUnit_ManageBuildingAction_Create(t *testing.T) {
 			Id:           actual.Id,
 			Planet:       request.Planet,
 			Building:     request.Building,
-			CurrentLevel: planet.Buildings[0].Level,
 			DesiredLevel: planet.Buildings[0].Level + 1,
 			CreatedAt:    actual.CreatedAt,
 			CompletedAt:  actual.CreatedAt.Add(completionTime),
