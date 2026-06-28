@@ -19,7 +19,7 @@ import (
 
 func TestUnit_Planets_CreatePlanet(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	mockUsecase := drivingportstest.NewMockForManagingPlanet(ctrl)
+	mockUsecase := drivingportstest.NewMockForCreatingPlanet(ctrl)
 
 	dto := dtos.PlanetDtoRequest{
 		Player: uuid.New(),
