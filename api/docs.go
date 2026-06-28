@@ -46,9 +46,6 @@ const docTemplate = `{
                         "format": "date-time",
                         "type": "string"
                     },
-                    "currentLevel": {
-                        "type": "integer"
-                    },
                     "desiredLevel": {
                         "type": "integer"
                     },
@@ -86,7 +83,6 @@ const docTemplate = `{
                     "building",
                     "completedAt",
                     "createdAt",
-                    "currentLevel",
                     "desiredLevel",
                     "id",
                     "planet",
