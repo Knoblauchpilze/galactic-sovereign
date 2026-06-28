@@ -29,6 +29,7 @@ func NewBuildingActionUseCase(
 	}
 }
 
+// TODO: Should make the planet up to date and save it
 func (b *buildingActionUseCase) Create(ctx context.Context, req request.BuildingActionCreationRequest) (models.BuildingAction, error) {
 	planet, err := b.planetRepo.Get(ctx, req.Planet)
 	if err != nil {
@@ -57,6 +58,7 @@ func (b *buildingActionUseCase) Create(ctx context.Context, req request.Building
 	return *planet.BuildingAction, nil
 }
 
+// TODO: Should make the planet up to date and save it
 func (b *buildingActionUseCase) Delete(ctx context.Context, id uuid.UUID) error {
 	planet, err := b.planetRepo.GetByAction(ctx, id)
 	if err != nil {

@@ -15,10 +15,13 @@ import (
 	"github.com/labstack/echo/v5"
 )
 
-func PlanetEndpoints(usecase drivingports.ForManagingPlanet) rest.Routes {
+func PlanetEndpoints(
+	createUsecase drivingports.ForCreatingPlanet,
+	usecase drivingports.ForManagingPlanet,
+) rest.Routes {
 	var out rest.Routes
 
-	handler := generateHandler(createPlanet, usecase)
+	handler := generateHandler(createPlanet, createUsecase)
 	post := rest.NewRoute(http.MethodPost, "/planets", handler)
 	out = append(out, post)
 
@@ -48,7 +51,7 @@ func PlanetEndpoints(usecase drivingports.ForManagingPlanet) rest.Routes {
 //	@Failure		400		{object}	rest.ResponseEnvelope[string]
 //	@Failure		500		{object}	rest.ResponseEnvelope[string]
 //	@Router			/planets [post]
-func createPlanet(c *echo.Context, usecase drivingports.ForManagingPlanet) error {
+func createPlanet(c *echo.Context, usecase drivingports.ForCreatingPlanet) error {
 	var inputDto dtos.PlanetDtoRequest
 	err := c.Bind(&inputDto)
 	if err != nil {

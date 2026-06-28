@@ -52,9 +52,11 @@ func registerPlanetsRoutes(conn db.Connection, s server.Server, log *slog.Logger
 	playerRepo := drivenadapters.NewPlayerRepository(conn)
 	universeRepo := drivenadapters.NewUniverseRepository(conn)
 	planetRepo := drivenadapters.NewPlanetRepository(conn)
-	usecase := usecases.NewPlanetUseCase(playerRepo, universeRepo, planetRepo, planetRepo)
 
-	for _, route := range drivingadapters.PlanetEndpoints(usecase) {
+	createUsecase := usecases.NewCreatePlanetUseCase(playerRepo, universeRepo, planetRepo)
+	usecase := usecases.NewPlanetUseCase(planetRepo)
+
+	for _, route := range drivingadapters.PlanetEndpoints(createUsecase, usecase) {
 		if err := s.AddRoute(route); err != nil {
 			log.Error("Failed to register route", slog.String("route", route.Path()), slog.Any("error", err))
 		}
