@@ -13,8 +13,8 @@ import (
 const (
 	createBuildingActionQuery = `
 INSERT INTO
-	building_action (id, planet, building, current_level, desired_level, created_at, completed_at, version)
-	VALUES($1, $2, $3, $4, $5, $6, $7, $8)`
+	building_action (id, planet, building, current_level, desired_level, created_at, completed_at)
+	VALUES($1, $2, $3, $4, $5, $6, $7)`
 
 	createBuildingActionCostQuery = `
 INSERT INTO
@@ -39,8 +39,7 @@ SELECT
 	current_level,
 	desired_level,
 	created_at,
-	completed_at,
-	version
+	completed_at
 FROM
 	building_action
 WHERE
@@ -189,7 +188,6 @@ func createBuildingActionWithDetails(ctx context.Context, tx db.Transaction, act
 		action.DesiredLevel,
 		action.CreatedAt,
 		action.CompletedAt,
-		action.Version,
 	)
 	if err != nil {
 		return err

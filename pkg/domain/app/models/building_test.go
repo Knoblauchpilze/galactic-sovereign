@@ -31,10 +31,8 @@ func TestUnit_Building_CreateBuildingAction(t *testing.T) {
 			DesiredLevel: 5,
 
 			CreatedAt: someTime,
-			// Ignore the completion here, there are dedicated tests
+			// Ignore the completion time here, there are dedicated tests
 			CompletedAt: action.CompletedAt,
-
-			Version: 0,
 
 			Costs: []BuildingActionCost{
 				{
@@ -65,10 +63,8 @@ func TestUnit_Building_CreateBuildingAction(t *testing.T) {
 			DesiredLevel: 5,
 
 			CreatedAt: someTime,
-			// Ignore the completion here, there are dedicated tests
+			// Ignore the completion time here, there are dedicated tests
 			CompletedAt: action.CompletedAt,
-
-			Version: 0,
 
 			Costs: []BuildingActionCost{},
 			Productions: []BuildingActionResourceProduction{
@@ -99,10 +95,8 @@ func TestUnit_Building_CreateBuildingAction(t *testing.T) {
 			DesiredLevel: 5,
 
 			CreatedAt: someTime,
-			// Ignore the completion here, there are dedicated tests
+			// Ignore the completion time here, there are dedicated tests
 			CompletedAt: action.CompletedAt,
-
-			Version: 0,
 
 			Costs:       []BuildingActionCost{},
 			Productions: []BuildingActionResourceProduction{},

@@ -868,7 +868,6 @@ func addPlanetBuildingAction(t *testing.T, conn db.Connection, p *models.Planet)
 		DesiredLevel: 1,
 		CreatedAt:    someTime,
 		CompletedAt:  someOtherTime,
-		Version:      2,
 		// This is intentional: the details (e.g. costs, etc.) are returned as empty
 		// slices by the adapter
 		Costs:       []models.BuildingActionCost{},
@@ -877,8 +876,8 @@ func addPlanetBuildingAction(t *testing.T, conn db.Connection, p *models.Planet)
 	}
 
 	sqlQuery := `INSERT INTO building_action
-		(id, planet, building, current_level, desired_level, created_at, completed_at, version)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
+		(id, planet, building, current_level, desired_level, created_at, completed_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7)`
 	_, err := conn.Exec(
 		t.Context(),
 		sqlQuery,
@@ -889,7 +888,6 @@ func addPlanetBuildingAction(t *testing.T, conn db.Connection, p *models.Planet)
 		action.DesiredLevel,
 		action.CreatedAt,
 		action.CompletedAt,
-		action.Version,
 	)
 	require.NoError(t, err, "Actual err: %v", err)
 

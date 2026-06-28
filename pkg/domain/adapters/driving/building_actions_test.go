@@ -61,7 +61,6 @@ func TestUnit_BuildingActions_CreateBuildingAction(t *testing.T) {
 			DesiredLevel: 6,
 			CreatedAt:    someTime,
 			CompletedAt:  someOtherTime,
-			Version:      13,
 			Costs: []models.BuildingActionCost{
 				{
 					Resource: uuid.New(),

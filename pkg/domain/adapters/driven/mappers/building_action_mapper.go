@@ -16,8 +16,6 @@ type DbBuildingAction struct {
 
 	CreatedAt   time.Time
 	CompletedAt time.Time
-
-	Version int
 }
 
 func (a DbBuildingAction) ToDomain() models.BuildingAction {
@@ -30,7 +28,5 @@ func (a DbBuildingAction) ToDomain() models.BuildingAction {
 
 		CreatedAt:   a.CreatedAt,
 		CompletedAt: a.CompletedAt,
-
-		Version: a.Version,
 	}
 }

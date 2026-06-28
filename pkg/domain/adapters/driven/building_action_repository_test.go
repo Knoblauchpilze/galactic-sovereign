@@ -32,7 +32,6 @@ func TestIT_BuildingActionRepository_Create(t *testing.T) {
 			DesiredLevel: 3,
 			CreatedAt:    someTime,
 			CompletedAt:  someTime.Add(1 * time.Hour),
-			Version:      9,
 			Costs:        []models.BuildingActionCost{},
 			Storages:     []models.BuildingActionResourceStorage{},
 			Productions:  []models.BuildingActionResourceProduction{},
@@ -60,7 +59,6 @@ func TestIT_BuildingActionRepository_Create(t *testing.T) {
 			DesiredLevel: 3,
 			CreatedAt:    someTime,
 			CompletedAt:  someTime.Add(1 * time.Hour),
-			Version:      9,
 			Costs: []models.BuildingActionCost{
 				{
 					Resource: metalResourceId,
@@ -97,7 +95,6 @@ func TestIT_BuildingActionRepository_Create(t *testing.T) {
 			DesiredLevel: 3,
 			CreatedAt:    someTime,
 			CompletedAt:  someTime.Add(1 * time.Hour),
-			Version:      9,
 			Costs:        []models.BuildingActionCost{},
 			Storages: []models.BuildingActionResourceStorage{
 				{
@@ -134,7 +131,6 @@ func TestIT_BuildingActionRepository_Create(t *testing.T) {
 			DesiredLevel: 3,
 			CreatedAt:    someTime,
 			CompletedAt:  someTime.Add(1 * time.Hour),
-			Version:      9,
 			Costs:        []models.BuildingActionCost{},
 			Storages:     []models.BuildingActionResourceStorage{},
 			Productions: []models.BuildingActionResourceProduction{
@@ -171,7 +167,6 @@ func TestIT_BuildingActionRepository_Create(t *testing.T) {
 			DesiredLevel: 3,
 			CreatedAt:    someTime,
 			CompletedAt:  someTime.Add(1 * time.Hour),
-			Version:      9,
 			Costs: []models.BuildingActionCost{
 				{
 					Resource: crystalResourceId,
@@ -212,7 +207,6 @@ func TestIT_BuildingActionRepository_Create(t *testing.T) {
 			DesiredLevel: 3,
 			CreatedAt:    someTime,
 			CompletedAt:  someTime.Add(1 * time.Hour),
-			Version:      9,
 			Costs: []models.BuildingActionCost{
 				{
 					Resource: crystalResourceId,
@@ -246,7 +240,6 @@ func TestIT_BuildingActionRepository_Create(t *testing.T) {
 			DesiredLevel: 3,
 			CreatedAt:    someTime,
 			CompletedAt:  someTime.Add(1 * time.Hour),
-			Version:      9,
 			Costs: []models.BuildingActionCost{
 				{
 					Resource: crystalResourceId,
@@ -280,7 +273,6 @@ func TestIT_BuildingActionRepository_Create(t *testing.T) {
 			DesiredLevel: 5,
 			CreatedAt:    someTime,
 			CompletedAt:  someTime.Add(1 * time.Minute),
-			Version:      14,
 		}
 
 		err := repo.Create(t.Context(), planet)
@@ -463,7 +455,6 @@ func TestIT_BuildingActionRepository_CreationDeletionWorkflow(t *testing.T) {
 				DesiredLevel: 27,
 				CreatedAt:    time.Date(2024, time.December, 7, 20, 26, 47, 0, time.UTC),
 				CompletedAt:  time.Date(2024, time.December, 7, 21, 26, 47, 0, time.UTC),
-				Version:      17,
 				Costs:        []models.BuildingActionCost{},
 				Storages:     []models.BuildingActionResourceStorage{},
 				Productions:  []models.BuildingActionResourceProduction{},
@@ -524,7 +515,6 @@ func insertTestBuildingActionForPlanet(
 		DesiredLevel: 5,
 		CreatedAt:    someTime,
 		CompletedAt:  someTime.Add(1*time.Hour + 2*time.Minute),
-		Version:      3,
 		// This is intentional: the details (e.g. costs, productions, etc.) are returned as empty
 		// slices by the adapter
 		Costs:       []models.BuildingActionCost{},
@@ -533,8 +523,8 @@ func insertTestBuildingActionForPlanet(
 	}
 
 	sqlQuery := `INSERT INTO building_action
-		(id, planet, building, current_level, desired_level, created_at, completed_at, version)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
+		(id, planet, building, current_level, desired_level, created_at, completed_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7)`
 	_, err := conn.Exec(
 		t.Context(),
 		sqlQuery,
@@ -545,7 +535,6 @@ func insertTestBuildingActionForPlanet(
 		action.DesiredLevel,
 		action.CreatedAt,
 		action.CompletedAt,
-		action.Version,
 	)
 	require.NoError(t, err, "Actual err: %v", err)
 

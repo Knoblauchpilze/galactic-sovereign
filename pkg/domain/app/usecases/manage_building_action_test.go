@@ -67,7 +67,6 @@ func TestUnit_ManageBuildingAction_Create(t *testing.T) {
 			DesiredLevel: planet.Buildings[0].Level + 1,
 			CreatedAt:    actual.CreatedAt,
 			CompletedAt:  actual.CreatedAt.Add(completionTime),
-			Version:      0,
 			Costs: []models.BuildingActionCost{
 				{
 					Resource: metalResourceId,

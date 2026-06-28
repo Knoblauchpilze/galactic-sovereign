@@ -60,8 +60,6 @@ func (b Building) CreateBuildingAction(
 		CreatedAt:   createdAt,
 		CompletedAt: createdAt.Add(completionTime),
 
-		Version: 0,
-
 		Costs:       costs,
 		Storages:    b.determineActionResourceStorage(desiredLevel),
 		Productions: b.determineActionResourceProduction(desiredLevel),
