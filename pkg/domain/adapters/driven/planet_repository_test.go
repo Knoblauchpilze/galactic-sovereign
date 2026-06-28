@@ -8,7 +8,6 @@ import (
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
 	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
-	drivenports "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driven"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -679,7 +678,7 @@ func TestIT_PlanetRepository_CreationDeletionWorkflow(t *testing.T) {
 	}
 }
 
-func newTestPlanetRepository(t *testing.T) (drivenports.ForManagingPlanets, db.Connection) {
+func newTestPlanetRepository(t *testing.T) (*PlanetRepository, db.Connection) {
 	t.Helper()
 	conn := newTestConnection(t)
 	return NewPlanetRepository(conn), conn

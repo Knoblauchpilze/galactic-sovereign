@@ -7,7 +7,6 @@ import (
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driven/mappers"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
 	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
-	drivenports "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driven"
 	"github.com/google/uuid"
 )
 
@@ -189,19 +188,19 @@ WHERE
 	deletePlanetQuery                    = `DELETE FROM planet WHERE id = $1`
 )
 
-type planetRepositoryImpl struct {
+type PlanetRepository struct {
 	conn       db.Connection
 	actionRepo *buildingActionRepositoryImpl
 }
 
-func NewPlanetRepository(conn db.Connection) drivenports.ForManagingPlanets {
-	return &planetRepositoryImpl{
+func NewPlanetRepository(conn db.Connection) *PlanetRepository {
+	return &PlanetRepository{
 		conn:       conn,
 		actionRepo: &buildingActionRepositoryImpl{conn: conn},
 	}
 }
 
-func (r *planetRepositoryImpl) Create(ctx context.Context, planet models.Planet) error {
+func (r *PlanetRepository) Create(ctx context.Context, planet models.Planet) error {
 	tx, err := r.conn.BeginTx(ctx)
 	if err != nil {
 		return err
@@ -216,7 +215,7 @@ func (r *planetRepositoryImpl) Create(ctx context.Context, planet models.Planet)
 	return nil
 }
 
-func (r *planetRepositoryImpl) Get(ctx context.Context, id uuid.UUID) (models.Planet, error) {
+func (r *PlanetRepository) Get(ctx context.Context, id uuid.UUID) (models.Planet, error) {
 	tx, err := r.conn.BeginTx(ctx)
 	if err != nil {
 		return models.Planet{}, err
@@ -231,7 +230,7 @@ func (r *planetRepositoryImpl) Get(ctx context.Context, id uuid.UUID) (models.Pl
 	return loadPlanetDetails(ctx, tx, dbPlanet)
 }
 
-func (r *planetRepositoryImpl) GetByAction(ctx context.Context, action uuid.UUID) (models.Planet, error) {
+func (r *PlanetRepository) GetByAction(ctx context.Context, action uuid.UUID) (models.Planet, error) {
 	tx, err := r.conn.BeginTx(ctx)
 	if err != nil {
 		return models.Planet{}, err
@@ -246,7 +245,7 @@ func (r *planetRepositoryImpl) GetByAction(ctx context.Context, action uuid.UUID
 	return loadPlanetDetails(ctx, tx, dbPlanet)
 }
 
-func (r *planetRepositoryImpl) List(ctx context.Context) ([]models.Planet, error) {
+func (r *PlanetRepository) List(ctx context.Context) ([]models.Planet, error) {
 	tx, err := r.conn.BeginTx(ctx)
 	if err != nil {
 		return nil, err
@@ -271,7 +270,7 @@ func (r *planetRepositoryImpl) List(ctx context.Context) ([]models.Planet, error
 	return planets, nil
 }
 
-func (r *planetRepositoryImpl) ListForPlayer(ctx context.Context, player uuid.UUID) ([]models.Planet, error) {
+func (r *PlanetRepository) ListForPlayer(ctx context.Context, player uuid.UUID) ([]models.Planet, error) {
 	tx, err := r.conn.BeginTx(ctx)
 	if err != nil {
 		return nil, err
@@ -296,7 +295,7 @@ func (r *planetRepositoryImpl) ListForPlayer(ctx context.Context, player uuid.UU
 	return planets, nil
 }
 
-func (r *planetRepositoryImpl) Delete(ctx context.Context, id uuid.UUID) error {
+func (r *PlanetRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	tx, err := r.conn.BeginTx(ctx)
 	if err != nil {
 		return err
