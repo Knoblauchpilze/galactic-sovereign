@@ -164,11 +164,7 @@ golangci-lint --version
 
 This will install the executable in `/home/$USER/go/bin` which might or might not be in your path. To add it you can add `/home/knoblauch/$USER/go/bin` to the path.
 
-Once this is done, you can run the linters on the code by either running:
-```bash
-```
-
-Or use the dedicated make target:
+Once this is done, you can run the linters on the code by using the dedicated make target:
 ```bash
 make lint
 ```
