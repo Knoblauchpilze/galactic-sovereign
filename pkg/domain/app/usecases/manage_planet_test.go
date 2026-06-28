@@ -18,11 +18,12 @@ import (
 )
 
 type planetTestSuite struct {
-	ctrl             *gomock.Controller
-	mockPlayerRepo   *drivenportstest.MockForManagingPlayers
-	mockUniverseRepo *drivenportstest.MockForManagingUniverses
-	mockPlanetRepo   *drivenportstest.MockForManagingPlanets
-	usecase          drivingports.ForManagingPlanet
+	ctrl                 *gomock.Controller
+	mockPlayerRepo       *drivenportstest.MockForManagingPlayers
+	mockUniverseRepo     *drivenportstest.MockForManagingUniverses
+	mockCreatePlanetRepo *drivenportstest.MockForCreatingPlanets
+	mockPlanetRepo       *drivenportstest.MockForManagingPlanets
+	usecase              drivingports.ForManagingPlanet
 }
 
 func TestUnit_ManagePlanet_Create(t *testing.T) {
@@ -50,7 +51,7 @@ func TestUnit_ManagePlanet_Create(t *testing.T) {
 			Times(1).
 			Return(universe, nil)
 		var captured models.Planet
-		suite.mockPlanetRepo.EXPECT().
+		suite.mockCreatePlanetRepo.EXPECT().
 			Create(gomock.Any(), gomock.AssignableToTypeOf(captured)).
 			Times(1).
 			DoAndReturn(func(ctx context.Context, planet models.Planet) error {
@@ -99,7 +100,7 @@ func TestUnit_ManagePlanet_Create(t *testing.T) {
 			Times(1).
 			Return(universe, nil)
 		expectedErr := errors.New("stubbed error")
-		suite.mockPlanetRepo.EXPECT().
+		suite.mockCreatePlanetRepo.EXPECT().
 			Create(gomock.Any(), gomock.Any()).
 			Times(1).
 			Return(expectedErr)
@@ -259,12 +260,19 @@ func setupPlanetTestSuite(t *testing.T) *planetTestSuite {
 	mockPlayerRepo := drivenportstest.NewMockForManagingPlayers(ctrl)
 	mockUniverseRepo := drivenportstest.NewMockForManagingUniverses(ctrl)
 	mockPlanetRepo := drivenportstest.NewMockForManagingPlanets(ctrl)
+	mockCreatePlanetRepo := drivenportstest.NewMockForCreatingPlanets(ctrl)
 
 	return &planetTestSuite{
-		ctrl:             ctrl,
-		mockPlayerRepo:   mockPlayerRepo,
-		mockUniverseRepo: mockUniverseRepo,
-		mockPlanetRepo:   mockPlanetRepo,
-		usecase:          NewPlanetUseCase(mockPlayerRepo, mockUniverseRepo, mockPlanetRepo),
+		ctrl:                 ctrl,
+		mockPlayerRepo:       mockPlayerRepo,
+		mockUniverseRepo:     mockUniverseRepo,
+		mockCreatePlanetRepo: mockCreatePlanetRepo,
+		mockPlanetRepo:       mockPlanetRepo,
+		usecase: NewPlanetUseCase(
+			mockPlayerRepo,
+			mockUniverseRepo,
+			mockCreatePlanetRepo,
+			mockPlanetRepo,
+		),
 	}
 }

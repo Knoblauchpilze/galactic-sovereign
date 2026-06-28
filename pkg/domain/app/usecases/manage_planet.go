@@ -12,20 +12,23 @@ import (
 )
 
 type planetUseCase struct {
-	playerRepo   drivenports.ForManagingPlayers
-	universeRepo drivenports.ForManagingUniverses
-	planetRepo   drivenports.ForManagingPlanets
+	playerRepo       drivenports.ForManagingPlayers
+	universeRepo     drivenports.ForManagingUniverses
+	createPlanetRepo drivenports.ForCreatingPlanets
+	planetRepo       drivenports.ForManagingPlanets
 }
 
 func NewPlanetUseCase(
 	playerRepo drivenports.ForManagingPlayers,
 	universeRepo drivenports.ForManagingUniverses,
+	createPlanetRepo drivenports.ForCreatingPlanets,
 	planetRepo drivenports.ForManagingPlanets,
 ) drivingports.ForManagingPlanet {
 	return &planetUseCase{
-		playerRepo:   playerRepo,
-		universeRepo: universeRepo,
-		planetRepo:   planetRepo,
+		playerRepo:       playerRepo,
+		universeRepo:     universeRepo,
+		createPlanetRepo: createPlanetRepo,
+		planetRepo:       planetRepo,
 	}
 }
 
@@ -45,7 +48,7 @@ func (p *planetUseCase) Create(ctx context.Context, req request.PlanetCreationRe
 
 	planet := player.Colonize(universe)
 
-	err = p.planetRepo.Create(ctx, planet)
+	err = p.createPlanetRepo.Create(ctx, planet)
 	if err != nil {
 		return models.Planet{}, err
 	}
@@ -53,18 +56,22 @@ func (p *planetUseCase) Create(ctx context.Context, req request.PlanetCreationRe
 	return planet, nil
 }
 
+// TODO: Should make the planet up to date and save it
 func (p *planetUseCase) Get(ctx context.Context, id uuid.UUID) (models.Planet, error) {
 	return p.planetRepo.Get(ctx, id)
 }
 
+// TODO: Should make the planet up to date and save it
 func (p *planetUseCase) List(ctx context.Context) ([]models.Planet, error) {
 	return p.planetRepo.List(ctx)
 }
 
+// TODO: Should make the planet up to date and save it
 func (p *planetUseCase) ListForPlayer(ctx context.Context, player uuid.UUID) ([]models.Planet, error) {
 	return p.planetRepo.ListForPlayer(ctx, player)
 }
 
+// TODO: Should make the planet up to date and save it
 func (p *planetUseCase) Delete(ctx context.Context, id uuid.UUID) error {
 	return p.planetRepo.Delete(ctx, id)
 }

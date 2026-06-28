@@ -42,20 +42,6 @@ func (m *MockForManagingPlanets) EXPECT() *MockForManagingPlanetsMockRecorder {
 	return m.recorder
 }
 
-// Create mocks base method.
-func (m *MockForManagingPlanets) Create(ctx context.Context, planet models.Planet) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Create", ctx, planet)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// Create indicates an expected call of Create.
-func (mr *MockForManagingPlanetsMockRecorder) Create(ctx, planet any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockForManagingPlanets)(nil).Create), ctx, planet)
-}
-
 // Delete mocks base method.
 func (m *MockForManagingPlanets) Delete(ctx context.Context, id uuid.UUID) error {
 	m.ctrl.T.Helper()
