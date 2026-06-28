@@ -116,7 +116,6 @@ func (r *buildingActionRepositoryImpl) Create(
 	ctx context.Context,
 	planet models.Planet,
 ) error {
-	// TODO: Should be nil?
 	if planet.BuildingAction == nil {
 		return nil
 	}

@@ -222,6 +222,15 @@ func TestIT_BuildingActionRepository_Create(t *testing.T) {
 		assertPlanetResourceAmount(t, conn, planet.Id, crystalResourceId, float64(expectedAmount))
 	})
 
+	t.Run("does nothing when planet has no building action", func(t *testing.T) {
+		planet, _, _ := insertTestPlanetForPlayer(t, conn)
+		planet.Version++
+		planet.BuildingAction = nil
+
+		err := repo.Create(t.Context(), planet)
+		require.NoError(t, err, "Actual err: %v", err)
+	})
+
 	t.Run("returns error when planet has not the expected version", func(t *testing.T) {
 		actionId := uuid.New()
 		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetResource)
