@@ -1,5 +1,5 @@
 
-CREATE TABLE building (
+CREATE TABLE building(
   id uuid NOT NULL,
   name text NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
@@ -12,7 +12,7 @@ CREATE TRIGGER trigger_building_updated_at
   FOR EACH ROW
   EXECUTE FUNCTION update_updated_at();
 
-CREATE TABLE building_cost (
+CREATE TABLE building_cost(
   building uuid NOT NULL,
   resource uuid NOT NULL,
   cost INTEGER NOT NULL,
@@ -22,7 +22,7 @@ CREATE TABLE building_cost (
   UNIQUE (building, resource)
 );
 
-CREATE TABLE building_resource_production (
+CREATE TABLE building_resource_production(
   building uuid NOT NULL,
   resource uuid NOT NULL,
   base INTEGER NOT NULL,
@@ -32,7 +32,7 @@ CREATE TABLE building_resource_production (
   UNIQUE (building, resource)
 );
 
-CREATE TABLE building_resource_storage (
+CREATE TABLE building_resource_storage(
   building uuid NOT NULL,
   resource uuid NOT NULL,
   base INTEGER NOT NULL,

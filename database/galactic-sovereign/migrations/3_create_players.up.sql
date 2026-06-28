@@ -1,5 +1,5 @@
 
-CREATE TABLE player (
+CREATE TABLE player(
   id UUID NOT NULL,
   api_user UUID NOT NULL,
   universe UUID NOT NULL,
@@ -18,4 +18,4 @@ CREATE TRIGGER trigger_player_updated_at
   FOR EACH ROW
   EXECUTE FUNCTION update_updated_at();
 
-CREATE INDEX player_api_user_index ON player (api_user);
+CREATE INDEX player_api_user_index ON player(api_user);

@@ -1,24 +1,24 @@
 
 -- Resources
-INSERT INTO galactic_sovereign_schema.resource ("id", "name", "start_amount", "start_production", "start_storage")
+INSERT INTO galactic_sovereign_schema.resource("id", "name", "start_amount", "start_production", "start_storage")
   VALUES ('b4419b6b-b3bf-4576-aa92-055283addbc8', 'metal', 500, 30, 10000);
 
-INSERT INTO galactic_sovereign_schema.resource ("id", "name", "start_amount", "start_production", "start_storage")
+INSERT INTO galactic_sovereign_schema.resource("id", "name", "start_amount", "start_production", "start_storage")
   VALUES ('cd2ac9aa-9968-4ff5-b746-88f1f810fbb3', 'crystal', 500, 15, 10000);
 
 -- Buildings
 -- metal mine
-INSERT INTO galactic_sovereign_schema.building ("id", "name")
+INSERT INTO galactic_sovereign_schema.building("id", "name")
   VALUES ('d176e82d-f2ca-4611-996b-c4804096caef', 'metal mine');
 
-INSERT INTO galactic_sovereign_schema.building_cost ("building", "resource", "cost", "progress")
+INSERT INTO galactic_sovereign_schema.building_cost("building", "resource", "cost", "progress")
   VALUES (
     'd176e82d-f2ca-4611-996b-c4804096caef',
     'b4419b6b-b3bf-4576-aa92-055283addbc8',
     60,
     1.5
   );
-INSERT INTO galactic_sovereign_schema.building_cost ("building", "resource", "cost", "progress")
+INSERT INTO galactic_sovereign_schema.building_cost("building", "resource", "cost", "progress")
   VALUES (
     'd176e82d-f2ca-4611-996b-c4804096caef',
     'cd2ac9aa-9968-4ff5-b746-88f1f810fbb3',
@@ -26,7 +26,7 @@ INSERT INTO galactic_sovereign_schema.building_cost ("building", "resource", "co
     1.5
   );
 
-INSERT INTO galactic_sovereign_schema.building_resource_production ("building", "resource", "base", "progress")
+INSERT INTO galactic_sovereign_schema.building_resource_production("building", "resource", "base", "progress")
   VALUES (
     'd176e82d-f2ca-4611-996b-c4804096caef',
     'b4419b6b-b3bf-4576-aa92-055283addbc8',
@@ -35,17 +35,17 @@ INSERT INTO galactic_sovereign_schema.building_resource_production ("building", 
   );
 
 -- crystal mine
-INSERT INTO galactic_sovereign_schema.building ("id", "name")
+INSERT INTO galactic_sovereign_schema.building("id", "name")
   VALUES ('3904d34d-9a7e-47d4-a332-091700e2c5c3', 'crystal mine');
 
-INSERT INTO galactic_sovereign_schema.building_cost ("building", "resource", "cost", "progress")
+INSERT INTO galactic_sovereign_schema.building_cost("building", "resource", "cost", "progress")
   VALUES (
     '3904d34d-9a7e-47d4-a332-091700e2c5c3',
     'b4419b6b-b3bf-4576-aa92-055283addbc8',
     48,
     1.6
   );
-INSERT INTO galactic_sovereign_schema.building_cost ("building", "resource", "cost", "progress")
+INSERT INTO galactic_sovereign_schema.building_cost("building", "resource", "cost", "progress")
   VALUES (
     '3904d34d-9a7e-47d4-a332-091700e2c5c3',
     'cd2ac9aa-9968-4ff5-b746-88f1f810fbb3',
@@ -53,7 +53,7 @@ INSERT INTO galactic_sovereign_schema.building_cost ("building", "resource", "co
     1.6
   );
 
-INSERT INTO galactic_sovereign_schema.building_resource_production ("building", "resource", "base", "progress")
+INSERT INTO galactic_sovereign_schema.building_resource_production("building", "resource", "base", "progress")
   VALUES (
     '3904d34d-9a7e-47d4-a332-091700e2c5c3',
     'cd2ac9aa-9968-4ff5-b746-88f1f810fbb3',
@@ -62,10 +62,10 @@ INSERT INTO galactic_sovereign_schema.building_resource_production ("building", 
   );
 
 -- metal storage
-INSERT INTO galactic_sovereign_schema.building ("id", "name")
+INSERT INTO galactic_sovereign_schema.building("id", "name")
   VALUES ('22b4c0c3-c8e5-4493-89fc-522fdbb0beee', 'metal storage');
 
-INSERT INTO galactic_sovereign_schema.building_cost ("building", "resource", "cost", "progress")
+INSERT INTO galactic_sovereign_schema.building_cost("building", "resource", "cost", "progress")
   VALUES (
     '22b4c0c3-c8e5-4493-89fc-522fdbb0beee',
     'b4419b6b-b3bf-4576-aa92-055283addbc8',
@@ -73,7 +73,7 @@ INSERT INTO galactic_sovereign_schema.building_cost ("building", "resource", "co
     2.0
   );
 
-INSERT INTO galactic_sovereign_schema.building_resource_storage ("building", "resource", "base", "scale", "progress")
+INSERT INTO galactic_sovereign_schema.building_resource_storage("building", "resource", "base", "scale", "progress")
   VALUES (
     '22b4c0c3-c8e5-4493-89fc-522fdbb0beee',
     'b4419b6b-b3bf-4576-aa92-055283addbc8',
@@ -83,17 +83,17 @@ INSERT INTO galactic_sovereign_schema.building_resource_storage ("building", "re
   );
 
 -- crystal storage
-INSERT INTO galactic_sovereign_schema.building ("id", "name")
+INSERT INTO galactic_sovereign_schema.building("id", "name")
   VALUES ('d9c8df28-bb71-4be4-8702-ce2bea8bd943', 'crystal storage');
 
-INSERT INTO galactic_sovereign_schema.building_cost ("building", "resource", "cost", "progress")
+INSERT INTO galactic_sovereign_schema.building_cost("building", "resource", "cost", "progress")
   VALUES (
     'd9c8df28-bb71-4be4-8702-ce2bea8bd943',
     'b4419b6b-b3bf-4576-aa92-055283addbc8',
     1000,
     2.0
   );
-INSERT INTO galactic_sovereign_schema.building_cost ("building", "resource", "cost", "progress")
+INSERT INTO galactic_sovereign_schema.building_cost("building", "resource", "cost", "progress")
   VALUES (
     'd9c8df28-bb71-4be4-8702-ce2bea8bd943',
     'cd2ac9aa-9968-4ff5-b746-88f1f810fbb3',
@@ -101,7 +101,7 @@ INSERT INTO galactic_sovereign_schema.building_cost ("building", "resource", "co
     2.0
   );
 
-INSERT INTO galactic_sovereign_schema.building_resource_storage ("building", "resource", "base", "scale", "progress")
+INSERT INTO galactic_sovereign_schema.building_resource_storage("building", "resource", "base", "scale", "progress")
   VALUES (
     'd9c8df28-bb71-4be4-8702-ce2bea8bd943',
     'cd2ac9aa-9968-4ff5-b746-88f1f810fbb3',

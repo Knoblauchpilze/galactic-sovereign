@@ -1,5 +1,5 @@
 
-CREATE TABLE resource (
+CREATE TABLE resource(
   id uuid NOT NULL,
   name text,
   start_amount INTEGER NOT NULL,

@@ -1,5 +1,5 @@
 
-CREATE TABLE building_action (
+CREATE TABLE building_action(
   id uuid NOT NULL,
   planet uuid NOT NULL,
   building uuid NOT NULL,
@@ -14,9 +14,9 @@ CREATE TABLE building_action (
   UNIQUE (planet)
 );
 
-CREATE INDEX building_action_planet_index ON building_action (planet);
+CREATE INDEX building_action_planet_index ON building_action(planet);
 
-CREATE TABLE building_action_cost (
+CREATE TABLE building_action_cost(
   action uuid NOT NULL,
   resource uuid NOT NULL,
   amount INTEGER NOT NULL,
@@ -25,7 +25,7 @@ CREATE TABLE building_action_cost (
   UNIQUE (action, resource)
 );
 
-CREATE TABLE building_action_resource_production (
+CREATE TABLE building_action_resource_production(
   action uuid NOT NULL,
   resource uuid NOT NULL,
   production INTEGER NOT NULL,
@@ -34,7 +34,7 @@ CREATE TABLE building_action_resource_production (
   UNIQUE (action, resource)
 );
 
-CREATE TABLE building_action_resource_storage (
+CREATE TABLE building_action_resource_storage(
   action uuid NOT NULL,
   resource uuid NOT NULL,
   storage INTEGER NOT NULL,

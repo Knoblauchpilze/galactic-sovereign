@@ -1,6 +1,6 @@
 
 -- another-test-user@another-provider.com -> very-nice-pseudo / oberon
-INSERT INTO galactic_sovereign_schema.player ("id", "api_user", "universe", "name")
+INSERT INTO galactic_sovereign_schema.player("id", "api_user", "universe", "name")
   VALUES (
     'e8db2006-3e35-49cd-8e1f-726491660a00',
     '4f26321f-d0ea-46a3-83dd-6aa1c6053aaf',
@@ -9,7 +9,7 @@ INSERT INTO galactic_sovereign_schema.player ("id", "api_user", "universe", "nam
   );
 
 -- planet my-awesome-planet
-INSERT INTO galactic_sovereign_schema.planet ("id", "player", "name", "created_at", "updated_at")
+INSERT INTO galactic_sovereign_schema.planet("id", "player", "name", "created_at", "updated_at")
   VALUES (
     '00058def-e81d-43bb-aacf-a8402115449d',
     'e8db2006-3e35-49cd-8e1f-726491660a00',
@@ -17,33 +17,33 @@ INSERT INTO galactic_sovereign_schema.planet ("id", "player", "name", "created_a
     CURRENT_TIMESTAMP,
     CURRENT_TIMESTAMP
   );
-INSERT INTO galactic_sovereign_schema.homeworld ("player", "planet")
+INSERT INTO galactic_sovereign_schema.homeworld("player", "planet")
   VALUES (
     'e8db2006-3e35-49cd-8e1f-726491660a00',
     '00058def-e81d-43bb-aacf-a8402115449d'
   );
 
-INSERT INTO galactic_sovereign_schema.planet_resource ("planet", "resource", "amount")
+INSERT INTO galactic_sovereign_schema.planet_resource("planet", "resource", "amount")
   VALUES (
     '00058def-e81d-43bb-aacf-a8402115449d',
     'b4419b6b-b3bf-4576-aa92-055283addbc8',
     887
   );
-INSERT INTO galactic_sovereign_schema.planet_resource ("planet", "resource", "amount")
+INSERT INTO galactic_sovereign_schema.planet_resource("planet", "resource", "amount")
   VALUES (
     '00058def-e81d-43bb-aacf-a8402115449d',
     'cd2ac9aa-9968-4ff5-b746-88f1f810fbb3',
     332
   );
 
-INSERT INTO galactic_sovereign_schema.planet_resource_production ("planet", "building", "resource", "production")
+INSERT INTO galactic_sovereign_schema.planet_resource_production("planet", "building", "resource", "production")
   VALUES (
     '00058def-e81d-43bb-aacf-a8402115449d',
     NULL,
     'b4419b6b-b3bf-4576-aa92-055283addbc8',
     30
   );
-INSERT INTO galactic_sovereign_schema.planet_resource_production ("planet", "building", "resource", "production")
+INSERT INTO galactic_sovereign_schema.planet_resource_production("planet", "building", "resource", "production")
   VALUES (
     '00058def-e81d-43bb-aacf-a8402115449d',
     NULL,
@@ -51,38 +51,38 @@ INSERT INTO galactic_sovereign_schema.planet_resource_production ("planet", "bui
     15
   );
 
-INSERT INTO galactic_sovereign_schema.planet_resource_storage ("planet", "resource", "storage")
+INSERT INTO galactic_sovereign_schema.planet_resource_storage("planet", "resource", "storage")
   VALUES (
     '00058def-e81d-43bb-aacf-a8402115449d',
     'b4419b6b-b3bf-4576-aa92-055283addbc8',
     10000
   );
-INSERT INTO galactic_sovereign_schema.planet_resource_storage ("planet", "resource", "storage")
+INSERT INTO galactic_sovereign_schema.planet_resource_storage("planet", "resource", "storage")
   VALUES (
     '00058def-e81d-43bb-aacf-a8402115449d',
     'cd2ac9aa-9968-4ff5-b746-88f1f810fbb3',
     9000
   );
 
-INSERT INTO galactic_sovereign_schema.planet_building ("planet", "building", "level")
+INSERT INTO galactic_sovereign_schema.planet_building("planet", "building", "level")
   VALUES (
     '00058def-e81d-43bb-aacf-a8402115449d',
     'd176e82d-f2ca-4611-996b-c4804096caef',
     1
   );
-INSERT INTO galactic_sovereign_schema.planet_building ("planet", "building", "level")
+INSERT INTO galactic_sovereign_schema.planet_building("planet", "building", "level")
   VALUES (
     '00058def-e81d-43bb-aacf-a8402115449d',
     '3904d34d-9a7e-47d4-a332-091700e2c5c3',
     0
   );
-INSERT INTO galactic_sovereign_schema.planet_building ("planet", "building", "level")
+INSERT INTO galactic_sovereign_schema.planet_building("planet", "building", "level")
   VALUES (
     '00058def-e81d-43bb-aacf-a8402115449d',
     '22b4c0c3-c8e5-4493-89fc-522fdbb0beee',
     0
   );
-INSERT INTO galactic_sovereign_schema.planet_building ("planet", "building", "level")
+INSERT INTO galactic_sovereign_schema.planet_building("planet", "building", "level")
   VALUES (
     '00058def-e81d-43bb-aacf-a8402115449d',
     'd9c8df28-bb71-4be4-8702-ce2bea8bd943',
