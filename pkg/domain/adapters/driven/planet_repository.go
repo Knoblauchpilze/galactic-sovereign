@@ -179,6 +179,26 @@ WHERE
 	planet = $2
 	AND resource = $3
 	`
+	updatePlanetStoragesQuery = `
+UPDATE
+	planet_resource_storage
+SET
+	storage = $1
+WHERE
+	planet = $2
+	AND resource = $3
+	`
+	// https://wiki.postgresql.org/wiki/Is_distinct_from
+	updatePlanetProductionsQuery = `
+UPDATE
+	planet_resource_production
+SET
+	production = $1
+WHERE
+	planet = $2
+	AND resource = $3
+	AND building IS NOT DISTINCT FROM $4
+	`
 
 	deletePlanetBuildingsQuery           = `DELETE FROM planet_building WHERE planet = $1`
 	deletePlanetResourceProductionsQuery = `DELETE FROM planet_resource_production WHERE planet = $1`
@@ -447,6 +467,39 @@ func updatePlanetDetails(ctx context.Context, tx db.Transaction, planet models.P
 			r.Amount,
 			planet.Id,
 			r.Resource,
+		)
+		if err != nil {
+			return err
+		}
+		if affected != 1 {
+			return domainerrors.ErrNotFound
+		}
+	}
+
+	for _, s := range planet.Storages {
+		affected, err := tx.Exec(
+			ctx,
+			updatePlanetStoragesQuery,
+			s.Storage,
+			planet.Id,
+			s.Resource,
+		)
+		if err != nil {
+			return err
+		}
+		if affected != 1 {
+			return domainerrors.ErrNotFound
+		}
+	}
+
+	for _, p := range planet.Productions {
+		affected, err := tx.Exec(
+			ctx,
+			updatePlanetProductionsQuery,
+			p.Production,
+			planet.Id,
+			p.Resource,
+			p.Building,
 		)
 		if err != nil {
 			return err

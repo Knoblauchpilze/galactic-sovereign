@@ -195,9 +195,7 @@ func TestIT_BuildingActionRepository_Create(t *testing.T) {
 	t.Run("updates planet resources", func(t *testing.T) {
 		actionId := uuid.New()
 		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetResource)
-		// This is to make sure that the cost is not bigger than the amount of
-		// resources on the planet
-		require.LessOrEqual(t, 1000.0, planet.Resources[0].Amount)
+		require.NotEqual(t, 1000.0, planet.Resources[0].Amount)
 		planet.BuildingAction = &models.BuildingAction{
 			Id:           actionId,
 			Planet:       planet.Id,
@@ -205,12 +203,9 @@ func TestIT_BuildingActionRepository_Create(t *testing.T) {
 			DesiredLevel: 3,
 			CreatedAt:    someTime,
 			CompletedAt:  someTime.Add(1 * time.Hour),
-			Costs: []models.BuildingActionCost{
-				{
-					Resource: crystalResourceId,
-					Amount:   1000,
-				},
-			},
+			// This should probably reflect the value of 1000 set with the planet
+			// but as this does not play a role in the test it is left out
+			Costs:       []models.BuildingActionCost{},
 			Storages:    []models.BuildingActionResourceStorage{},
 			Productions: []models.BuildingActionResourceProduction{},
 		}
@@ -224,6 +219,91 @@ func TestIT_BuildingActionRepository_Create(t *testing.T) {
 
 		expectedAmount := planet.Resources[0].Amount
 		assertPlanetResourceAmount(t, conn, planet.Id, crystalResourceId, float64(expectedAmount))
+	})
+
+	t.Run("updates planet storages", func(t *testing.T) {
+		actionId := uuid.New()
+		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetStorage)
+		require.NotEqual(t, planet.Storages[0].Storage, 5000)
+		planet.Storages[0].Storage = 5000
+		planet.BuildingAction = &models.BuildingAction{
+			Id:           actionId,
+			Planet:       planet.Id,
+			Building:     metalMineId,
+			DesiredLevel: 3,
+			CreatedAt:    someTime,
+			CompletedAt:  someTime.Add(1 * time.Hour),
+			Costs:        []models.BuildingActionCost{},
+			// This should probably reflect the storage of 5000 set with the planet
+			// but as this does not play a role in the test it is left out
+			Storages:    []models.BuildingActionResourceStorage{},
+			Productions: []models.BuildingActionResourceProduction{},
+		}
+		planet.Version++
+
+		err := repo.Create(t.Context(), planet)
+		require.NoError(t, err, "Actual err: %v", err)
+		assertBuildingActionExists(t, conn, actionId)
+
+		assertPlanetResourceStorage(t, conn, planet.Id, crystalResourceId, 5000)
+	})
+
+	t.Run("updates planet productions", func(t *testing.T) {
+		actionId := uuid.New()
+		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetProduction)
+		require.NotEqual(t, 9874, planet.Productions[0].Production)
+		require.Nil(t, planet.Productions[0].Building)
+		planet.Productions[0].Production = 9874
+		planet.BuildingAction = &models.BuildingAction{
+			Id:           actionId,
+			Planet:       planet.Id,
+			Building:     metalMineId,
+			DesiredLevel: 3,
+			CreatedAt:    someTime,
+			CompletedAt:  someTime.Add(1 * time.Hour),
+			Costs:        []models.BuildingActionCost{},
+			Storages:     []models.BuildingActionResourceStorage{},
+			// This should probably reflect the production of 9874 set with the planet
+			// but as this does not play a role in the test it is left out
+			Productions: []models.BuildingActionResourceProduction{},
+		}
+		planet.Version++
+
+		err := repo.Create(t.Context(), planet)
+		require.NoError(t, err, "Actual err: %v", err)
+		assertBuildingActionExists(t, conn, actionId)
+
+		assertPlanetResourceProduction(t, conn, planet.Id, metalResourceId, nil, 9874)
+	})
+
+	t.Run("updates planet production for building", func(t *testing.T) {
+		actionId := uuid.New()
+		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetProductionForBuilding)
+		require.NotEqual(t, 9874, planet.Productions[0].Production)
+		require.NotNil(t, planet.Productions[0].Building)
+		planet.Productions[0].Production = 9874
+		planet.BuildingAction = &models.BuildingAction{
+			Id:           actionId,
+			Planet:       planet.Id,
+			Building:     crystalMineId,
+			DesiredLevel: 3,
+			CreatedAt:    someTime,
+			CompletedAt:  someTime.Add(1 * time.Hour),
+			Costs:        []models.BuildingActionCost{},
+			Storages:     []models.BuildingActionResourceStorage{},
+			// This should probably reflect the value of 9874 set with the planet
+			// but as this does not play a role in the test it is left out
+			Productions: []models.BuildingActionResourceProduction{},
+		}
+		planet.Version++
+
+		err := repo.Create(t.Context(), planet)
+		require.NoError(t, err, "Actual err: %v", err)
+		assertBuildingActionExists(t, conn, actionId)
+
+		assertPlanetResourceProduction(
+			t, conn, planet.Id, metalResourceId, &crystalMineId, 9874,
+		)
 	})
 
 	t.Run("does nothing when planet has no building action", func(t *testing.T) {
@@ -637,4 +717,34 @@ func assertPlanetResourceAmount(t *testing.T, conn db.Connection, planet uuid.UU
 	value, err := db.QueryOne[float64](t.Context(), conn, sqlQuery, planet, resource)
 	require.NoError(t, err, "Actual err: %v", err)
 	require.InDelta(t, amount, value, 0.00001)
+}
+
+func assertPlanetResourceStorage(t *testing.T, conn db.Connection, planet uuid.UUID, resource uuid.UUID, storage int) {
+	t.Helper()
+
+	sqlQuery := `SELECT storage FROM planet_resource_storage WHERE planet = $1 AND resource = $2`
+	value, err := db.QueryOne[int](t.Context(), conn, sqlQuery, planet, resource)
+	require.NoError(t, err, "Actual err: %v", err)
+	require.Equal(t, storage, value)
+}
+
+func assertPlanetResourceProduction(
+	t *testing.T,
+	conn db.Connection,
+	planet uuid.UUID,
+	resource uuid.UUID,
+	building *uuid.UUID,
+	production int,
+) {
+	t.Helper()
+
+	sqlQuery := `SELECT production
+		FROM planet_resource_production
+		WHERE
+			planet = $1
+			AND resource = $2
+			AND building IS NOT DISTINCT FROM $3`
+	value, err := db.QueryOne[int](t.Context(), conn, sqlQuery, planet, resource, building)
+	require.NoError(t, err, "Actual err: %v", err)
+	require.Equal(t, production, value)
 }
