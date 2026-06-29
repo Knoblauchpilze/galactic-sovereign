@@ -14,7 +14,6 @@ import (
 	reflect "reflect"
 
 	models "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
-	uuid "github.com/google/uuid"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -68,19 +67,4 @@ func (m *MockForManagingBuildingActions) Delete(ctx context.Context, planet mode
 func (mr *MockForManagingBuildingActionsMockRecorder) Delete(ctx, planet any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockForManagingBuildingActions)(nil).Delete), ctx, planet)
-}
-
-// Get mocks base method.
-func (m *MockForManagingBuildingActions) Get(ctx context.Context, id uuid.UUID) (models.BuildingAction, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", ctx, id)
-	ret0, _ := ret[0].(models.BuildingAction)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// Get indicates an expected call of Get.
-func (mr *MockForManagingBuildingActionsMockRecorder) Get(ctx, id any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockForManagingBuildingActions)(nil).Get), ctx, id)
 }

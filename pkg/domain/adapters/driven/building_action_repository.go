@@ -139,19 +139,6 @@ func (r *buildingActionRepositoryImpl) Create(
 	return nil
 }
 
-func (r *buildingActionRepositoryImpl) Get(
-	ctx context.Context,
-	id uuid.UUID,
-) (models.BuildingAction, error) {
-	tx, err := r.conn.BeginTx(ctx)
-	if err != nil {
-		return models.BuildingAction{}, err
-	}
-	defer tx.Close(ctx)
-
-	return loadBuildingActionAndDetails(ctx, tx, id)
-}
-
 func (r *buildingActionRepositoryImpl) Delete(
 	ctx context.Context,
 	planet models.Planet,
