@@ -242,12 +242,7 @@ func (r *PlanetRepository) Get(ctx context.Context, id uuid.UUID) (models.Planet
 	}
 	defer tx.Close(ctx)
 
-	dbPlanet, err := db.QueryOneTx[mappers.DbPlanet](ctx, tx, getPlanetQuery, id)
-	if err != nil {
-		return models.Planet{}, parseDbError(err)
-	}
-
-	return loadPlanetDetails(ctx, tx, dbPlanet)
+	return loadPlanetAndDetails(ctx, tx, id)
 }
 
 func (r *PlanetRepository) GetByAction(ctx context.Context, action uuid.UUID) (models.Planet, error) {
@@ -401,6 +396,19 @@ func createPlanetWithDetails(ctx context.Context, tx db.Transaction, planet mode
 	}
 
 	return nil
+}
+
+func loadPlanetAndDetails(
+	ctx context.Context,
+	tx db.Transaction,
+	id uuid.UUID,
+) (models.Planet, error) {
+	dbPlanet, err := db.QueryOneTx[mappers.DbPlanet](ctx, tx, getPlanetQuery, id)
+	if err != nil {
+		return models.Planet{}, parseDbError(err)
+	}
+
+	return loadPlanetDetails(ctx, tx, dbPlanet)
 }
 
 func loadPlanetDetails(ctx context.Context, tx db.Transaction, dbPlanet mappers.DbPlanet) (models.Planet, error) {
