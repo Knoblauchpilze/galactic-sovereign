@@ -415,10 +415,8 @@ func TestIT_BuildingActionRepository_Delete(t *testing.T) {
 
 	t.Run("updates planet version and updated at", func(t *testing.T) {
 		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetResource)
-		modifier := func(t *testing.T, conn db.Connection, a *models.BuildingAction) {
-			insertBuildingActionCost(t, conn, planet.Resources[0].Resource, a)
-		}
-		action := insertTestBuildingActionForPlanet(t, conn, planet.Id, modifier)
+		action := insertTestBuildingActionForPlanet(t, conn, planet.Id)
+		planet.BuildingAction = &action
 
 		newTime := time.Date(2026, time.June, 20, 15, 2, 25, 0, time.UTC)
 		require.NotEqual(t, planet.UpdatedAt, newTime)
@@ -440,10 +438,8 @@ func TestIT_BuildingActionRepository_Delete(t *testing.T) {
 
 	t.Run("updates planet resource", func(t *testing.T) {
 		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetResource)
-		modifier := func(t *testing.T, conn db.Connection, a *models.BuildingAction) {
-			insertBuildingActionCost(t, conn, planet.Resources[0].Resource, a)
-		}
-		action := insertTestBuildingActionForPlanet(t, conn, planet.Id, modifier)
+		action := insertTestBuildingActionForPlanet(t, conn, planet.Id)
+		planet.BuildingAction = &action
 
 		planet.Resources[0].Amount += 1000
 		planet.Version++
@@ -458,6 +454,61 @@ func TestIT_BuildingActionRepository_Delete(t *testing.T) {
 			planet.Id,
 			planet.Resources[0].Resource,
 			planet.Resources[0].Amount,
+		)
+	})
+
+	t.Run("updates planet storages", func(t *testing.T) {
+		actionId := uuid.New()
+		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetStorage)
+		action := insertTestBuildingActionForPlanet(t, conn, planet.Id)
+		planet.BuildingAction = &action
+
+		require.NotEqual(t, planet.Storages[0].Storage, 5000)
+		planet.Storages[0].Storage = 5000
+		planet.Version++
+
+		err := repo.Delete(t.Context(), planet)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assertBuildingActionDoesNotExist(t, conn, actionId)
+		assertPlanetResourceStorage(t, conn, planet.Id, crystalResourceId, 5000)
+	})
+
+	t.Run("updates planet productions", func(t *testing.T) {
+		actionId := uuid.New()
+		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetProduction)
+		action := insertTestBuildingActionForPlanet(t, conn, planet.Id)
+		planet.BuildingAction = &action
+
+		require.NotEqual(t, 9874, planet.Productions[0].Production)
+		require.Nil(t, planet.Productions[0].Building)
+		planet.Productions[0].Production = 9874
+		planet.Version++
+
+		err := repo.Delete(t.Context(), planet)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assertBuildingActionDoesNotExist(t, conn, actionId)
+		assertPlanetResourceProduction(t, conn, planet.Id, metalResourceId, nil, 9874)
+	})
+
+	t.Run("updates planet production for building", func(t *testing.T) {
+		actionId := uuid.New()
+		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetProductionForBuilding)
+		action := insertTestBuildingActionForPlanet(t, conn, planet.Id)
+		planet.BuildingAction = &action
+
+		require.NotEqual(t, 9874, planet.Productions[0].Production)
+		require.NotNil(t, planet.Productions[0].Building)
+		planet.Productions[0].Production = 9874
+		planet.Version++
+
+		err := repo.Delete(t.Context(), planet)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assertBuildingActionDoesNotExist(t, conn, actionId)
+		assertPlanetResourceProduction(
+			t, conn, planet.Id, metalResourceId, &crystalMineId, 9874,
 		)
 	})
 
