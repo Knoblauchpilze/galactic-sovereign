@@ -83,7 +83,7 @@ func doGet[T any](t *testing.T, url string) T {
 
 	resp, err := http.Get(url)
 	require.NoError(t, err, "GET %s: %v", url, err)
-	defer resp.Body.Close() //nolint:errcheck
+	defer resp.Body.Close() // nolint:errcheck
 	require.Equal(t, http.StatusOK, resp.StatusCode, "GET %s returned %d", url, resp.StatusCode)
 
 	return decodeResponseBody[T](t, resp.Body)
@@ -95,9 +95,9 @@ func doPost[T any](t *testing.T, url string, body any) T {
 	raw, err := json.Marshal(body)
 	require.NoError(t, err, "Actual err: %v", err)
 
-	resp, err := http.Post(url, "application/json", bytes.NewReader(raw)) //nolint:noctx
+	resp, err := http.Post(url, "application/json", bytes.NewReader(raw)) // nolint:noctx
 	require.NoError(t, err, "POST %s: %v", url, err)
-	defer resp.Body.Close() //nolint:errcheck
+	defer resp.Body.Close() // nolint:errcheck
 	require.Equal(t, http.StatusCreated, resp.StatusCode, "POST %s returned %d", url, resp.StatusCode)
 
 	return decodeResponseBody[T](t, resp.Body)
@@ -112,7 +112,7 @@ func doDelete(t *testing.T, url string) {
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	require.NoError(t, err, "DELETE %s: %v", url, err)
-	defer resp.Body.Close() //nolint:errcheck
+	defer resp.Body.Close() // nolint:errcheck
 	require.Equal(t, http.StatusNoContent, resp.StatusCode, "DELETE %s returned %d", url, resp.StatusCode)
 }
 
