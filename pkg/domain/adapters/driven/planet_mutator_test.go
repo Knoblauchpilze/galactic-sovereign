@@ -13,6 +13,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+var (
+	yetAnotherTime = time.Date(2026, time.June, 30, 8, 43, 1, 0, time.UTC)
+)
+
 func TestIT_PlanetMutator_Mutate(t *testing.T) {
 	adapter, conn := newTestPlanetMutator(t)
 	planetRepo := NewPlanetRepository(conn)
@@ -38,20 +42,37 @@ func TestIT_PlanetMutator_Mutate(t *testing.T) {
 
 	t.Run("returns mutated planet", func(t *testing.T) {
 		planet, _, _ := insertTestPlanetForPlayer(t, conn)
-		initialVersion := planet.Version
-
-		expected := []models.PlanetBuilding{{Building: metalMineId, Level: 5}}
+		require.NotEqual(t, planet.UpdatedAt, yetAnotherTime)
 
 		mutator := generateModifyingMutator(func(p *models.Planet) {
-			p.Buildings = expected
+			p.UpdatedAt = yetAnotherTime
 			p.Version++
 		})
 
 		returned, err := adapter.Mutate(t.Context(), planet.Id, mutator)
 		require.NoError(t, err, "Actual err: %v", err)
 
-		assert.Equal(t, initialVersion+1, returned.Version)
-		assert.Equal(t, expected, returned.Buildings)
+		assert.Equal(t, yetAnotherTime, returned.UpdatedAt)
+	})
+
+	t.Run("persists mutated planet", func(t *testing.T) {
+		planet, _, _ := insertTestPlanetForPlayer(t, conn)
+		require.NotEqual(t, planet.UpdatedAt, yetAnotherTime)
+
+		mutator := generateModifyingMutator(func(p *models.Planet) {
+			p.UpdatedAt = yetAnotherTime
+			p.Version++
+		})
+
+		_, err := adapter.Mutate(t.Context(), planet.Id, mutator)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		actual, err := planetRepo.Get(t.Context(), planet.Id)
+		require.NoError(t, err, "Actual err: %v", err)
+		expected := planet
+		expected.UpdatedAt = yetAnotherTime
+		expected.Version++
+		assert.Equal(t, expected, actual)
 	})
 
 	t.Run("persists mutated planet resources", func(t *testing.T) {
@@ -114,9 +135,12 @@ func TestIT_PlanetMutator_Mutate(t *testing.T) {
 	})
 
 	t.Run("persists additional planet productions for building", func(t *testing.T) {
-		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetProductionForBuilding)
-		require.NotEqual(t, metalMineId, planet.Productions[0].Building)
-		initial := planet.Productions[0].Production
+		planet, _, _ := insertTestPlanetForPlayer(
+			t, conn, addPlanetProduction, addPlanetProductionForBuilding,
+		)
+		require.NotEqual(t, metalMineId, planet.Productions[1].Building)
+		initial0 := planet.Productions[0].Production
+		initial1 := planet.Productions[1].Production
 
 		mutator := generateModifyingMutator(func(p *models.Planet) {
 			prod := models.PlanetResourceProduction{
@@ -132,12 +156,14 @@ func TestIT_PlanetMutator_Mutate(t *testing.T) {
 		require.NoError(t, err, "Actual err: %v", err)
 
 		expected := []models.PlanetResourceProduction{
-			{Resource: metalResourceId, Production: 39841},
+			{Resource: metalResourceId, Production: initial0},
+			{Resource: metalResourceId, Building: &crystalMineId, Production: initial1},
 			{Resource: crystalResourceId, Building: &metalMineId, Production: 354789},
 		}
 		assert.Equal(t, expected, returned.Productions)
-		assertPlanetResourceProduction(t, conn, planet.Id, metalResourceId, &crystalMineId, initial)
-		assertPlanetResourceProduction(t, conn, planet.Id, crystalResourceId, &metalMineId, 39841)
+		assertPlanetResourceProduction(t, conn, planet.Id, metalResourceId, nil, initial0)
+		assertPlanetResourceProduction(t, conn, planet.Id, metalResourceId, &crystalMineId, initial1)
+		assertPlanetResourceProduction(t, conn, planet.Id, crystalResourceId, &metalMineId, 354789)
 	})
 
 	t.Run("persists mutated planet storages", func(t *testing.T) {
@@ -337,6 +363,7 @@ func TestIT_PlanetMutator_Mutate(t *testing.T) {
 		assert.Equal(t, action, *actual.BuildingAction)
 	})
 
+	// TODO: Include an update to the completion time
 	t.Run("persists mutated planet with updated action", func(t *testing.T) {
 		planet, _, _ := insertTestPlanetForPlayer(t, conn)
 		insertTestBuildingActionForPlanet(t, conn, planet.Id)
@@ -440,6 +467,32 @@ func TestIT_PlanetMutator_Mutate(t *testing.T) {
 		_, err := adapter.Mutate(t.Context(), planet.Id, mutator)
 
 		assert.ErrorIs(t, domainerrors.ErrOptimisticLocking, err)
+	})
+
+	t.Run("returns error when new building is added", func(t *testing.T) {
+		planet, _, _ := insertTestPlanetForPlayer(t, conn)
+
+		mutator := generateModifyingMutator(func(p *models.Planet) {
+			p.Buildings = []models.PlanetBuilding{{Building: metalMineId, Level: 5}}
+			p.Version++
+		})
+
+		_, err := adapter.Mutate(t.Context(), planet.Id, mutator)
+
+		assert.ErrorIs(t, domainerrors.ErrBuildingNotFound, err)
+	})
+
+	t.Run("returns error when new storage is added", func(t *testing.T) {
+		planet, _, _ := insertTestPlanetForPlayer(t, conn)
+
+		mutator := generateModifyingMutator(func(p *models.Planet) {
+			p.Storages = []models.PlanetResourceStorage{{Resource: crystalResourceId, Storage: 5478}}
+			p.Version++
+		})
+
+		_, err := adapter.Mutate(t.Context(), planet.Id, mutator)
+
+		assert.ErrorIs(t, domainerrors.ErrResourceNotFound, err)
 	})
 }
 

@@ -5,9 +5,10 @@ import "github.com/Knoblauchpilze/backend-toolkit/pkg/errors"
 const (
 	resourceNotFound errors.ErrorCode = 600
 
-	buildingNotFound errors.ErrorCode = 602
-	universeNotFound errors.ErrorCode = 603
-	playerNotFound   errors.ErrorCode = 604
+	buildingNotFound       errors.ErrorCode = 602
+	universeNotFound       errors.ErrorCode = 603
+	playerNotFound         errors.ErrorCode = 604
+	planetResourceNotFound errors.ErrorCode = 605
 
 	nameAlreadyTaken           errors.ErrorCode = 610
 	actionAlreadyInProgress    errors.ErrorCode = 611
@@ -23,6 +24,7 @@ var (
 	ErrBuildingNotFound = errors.FromCode(buildingNotFound)
 	ErrUniverseNotFound = errors.FromCode(universeNotFound)
 	ErrPlayerNotFound   = errors.FromCode(playerNotFound)
+	ErrResourceNotFound = errors.FromCode(planetResourceNotFound)
 
 	ErrNameAlreadyTaken        = errors.FromCode(nameAlreadyTaken)
 	ErrActionAlreadyInProgress = errors.FromCode(actionAlreadyInProgress)
