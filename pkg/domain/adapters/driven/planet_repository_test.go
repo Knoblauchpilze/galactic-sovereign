@@ -971,6 +971,8 @@ func assertPlanetStorageDoesNotExist(t *testing.T, conn db.Connection, planet uu
 }
 
 func assertPlanetProductionDoesNotExist(t *testing.T, conn db.Connection, planet uuid.UUID) {
+	t.Helper()
+
 	sqlQuery := `SELECT COUNT(resource) FROM planet_resource_production WHERE planet = $1`
 	value, err := db.QueryOne[int](t.Context(), conn, sqlQuery, planet)
 	require.NoError(t, err, "Actual err: %v", err)
@@ -978,6 +980,8 @@ func assertPlanetProductionDoesNotExist(t *testing.T, conn db.Connection, planet
 }
 
 func assertPlanetBuildingDoesNotExist(t *testing.T, conn db.Connection, planet uuid.UUID) {
+	t.Helper()
+
 	sqlQuery := `SELECT COUNT(building) FROM planet_building WHERE planet = $1`
 	value, err := db.QueryOne[int](t.Context(), conn, sqlQuery, planet)
 	require.NoError(t, err, "Actual err: %v", err)

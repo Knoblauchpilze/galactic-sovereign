@@ -199,6 +199,14 @@ WHERE
 	AND resource = $3
 	AND building IS NOT DISTINCT FROM $4
 	`
+	updatePlanetBuildingsQuery = `
+UPDATE
+	planet_building
+SET
+	level = $1
+WHERE
+	planet = $2
+	AND building = $3`
 
 	deletePlanetBuildingsQuery           = `DELETE FROM planet_building WHERE planet = $1`
 	deletePlanetResourceProductionsQuery = `DELETE FROM planet_resource_production WHERE planet = $1`
@@ -515,6 +523,33 @@ func updatePlanetDetails(ctx context.Context, tx db.Transaction, planet models.P
 		if affected != 1 {
 			return domainerrors.ErrNotFound
 		}
+	}
+
+	for _, b := range planet.Buildings {
+		affected, err := tx.Exec(
+			ctx,
+			updatePlanetBuildingsQuery,
+			b.Level,
+			planet.Id,
+			b.Building,
+		)
+		if err != nil {
+			return err
+		}
+		if affected != 1 {
+			return domainerrors.ErrNotFound
+		}
+	}
+
+	var actionErr error
+	if planet.BuildingAction == nil {
+		actionErr = deleteBuildingActionAndDetailsForPlanet(ctx, tx, planet.Id)
+	} else {
+		actionErr = createBuildingActionWithDetails(ctx, tx, *planet.BuildingAction)
+
+	}
+	if actionErr != nil {
+		return actionErr
 	}
 
 	affected, err := tx.Exec(

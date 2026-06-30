@@ -106,6 +106,7 @@ type buildingActionRepositoryImpl struct {
 	conn db.Connection
 }
 
+// TODO: Deprecated, this should be removed when the planet mutator is ready
 func NewBuildingActionRepository(conn db.Connection) drivenports.ForManagingBuildingActions {
 	return &buildingActionRepositoryImpl{
 		conn: conn,
