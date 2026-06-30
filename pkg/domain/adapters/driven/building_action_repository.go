@@ -14,22 +14,22 @@ const (
 	createBuildingActionQuery = `
 INSERT INTO
 	building_action (id, planet, building, desired_level, created_at, completed_at)
-	VALUES($1, $2, $3, $4, $5, $6)`
+	VALUES ($1, $2, $3, $4, $5, $6)`
 
 	createBuildingActionCostQuery = `
 INSERT INTO
 	building_action_cost (action, resource, amount)
-	VALUES($1, $2, $3)`
+	VALUES ($1, $2, $3)`
 
 	createBuildingActionResourceStorageQuery = `
 INSERT INTO
 	building_action_resource_storage (action, resource, storage)
-	VALUES($1, $2, $3)`
+	VALUES ($1, $2, $3)`
 
 	createBuildingActionResourceProductionQuery = `
 INSERT INTO
 	building_action_resource_production (action, resource, production)
-	VALUES($1, $2, $3)`
+	VALUES ($1, $2, $3)`
 
 	getBuildingActionQuery = `
 SELECT

@@ -14,7 +14,7 @@ const (
 	createUniverseQuery = `
 INSERT INTO
 	universe (id, name, created_at)
-	VALUES($1, $2, $3)`
+	VALUES ($1, $2, $3)`
 
 	getUniverseQuery = `
 SELECT

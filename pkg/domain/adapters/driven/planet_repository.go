@@ -14,29 +14,29 @@ const (
 	createPlanetQuery = `
 INSERT INTO
 	planet (id, player, name, created_at, updated_at, version)
-	VALUES($1, $2, $3, $4, $5, $6)`
+	VALUES ($1, $2, $3, $4, $5, $6)`
 
-	createPlanetHomeworldQuery = `INSERT INTO homeworld (player, planet) VALUES($1, $2)`
+	createPlanetHomeworldQuery = `INSERT INTO homeworld (player, planet) VALUES ($1, $2)`
 
 	createPlanetResourceQuery = `
 INSERT INTO
 	planet_resource (planet, resource, amount)
-	VALUES($1, $2, $3)`
+	VALUES ($1, $2, $3)`
 
 	createPlanetResourceStorageQuery = `
 INSERT INTO
 	planet_resource_storage (planet, resource, storage)
-	VALUES($1, $2, $3)`
+	VALUES ($1, $2, $3)`
 
 	createPlanetResourceProductionQuery = `
 INSERT INTO
 	planet_resource_production (planet, building, resource, production)
-	VALUES($1, $2, $3, $4)`
+	VALUES ($1, $2, $3, $4)`
 
 	createPlanetBuildingQuery = `
 INSERT INTO
 	planet_building (planet, building, level)
-	VALUES($1, $2, $3)`
+	VALUES ($1, $2, $3)`
 
 	getPlanetQuery = `
 SELECT
@@ -189,16 +189,13 @@ WHERE
 	AND resource = $3
 	`
 	// https://wiki.postgresql.org/wiki/Is_distinct_from
-	updatePlanetProductionsQuery = `
-UPDATE
-	planet_resource_production
+	upsertPlanetProductionsQuery = `
+INSERT INTO
+	planet_resource_production (planet, resource, building, production)
+	VALUES ($1, $2, $3, $4)
+ON CONFLICT (planet, building, resource) DO UPDATE
 SET
-	production = $1
-WHERE
-	planet = $2
-	AND resource = $3
-	AND building IS NOT DISTINCT FROM $4
-	`
+	production = excluded.production`
 	updatePlanetBuildingsQuery = `
 UPDATE
 	planet_building
@@ -504,18 +501,18 @@ func updatePlanetDetails(ctx context.Context, tx db.Transaction, planet models.P
 			return err
 		}
 		if affected != 1 {
-			return domainerrors.ErrNotFound
+			return domainerrors.ErrResourceNotFound
 		}
 	}
 
 	for _, p := range planet.Productions {
 		affected, err := tx.Exec(
 			ctx,
-			updatePlanetProductionsQuery,
-			p.Production,
+			upsertPlanetProductionsQuery,
 			planet.Id,
 			p.Resource,
 			p.Building,
+			p.Production,
 		)
 		if err != nil {
 			return err
@@ -537,7 +534,7 @@ func updatePlanetDetails(ctx context.Context, tx db.Transaction, planet models.P
 			return err
 		}
 		if affected != 1 {
-			return domainerrors.ErrNotFound
+			return domainerrors.ErrBuildingNotFound
 		}
 	}
 
