@@ -542,7 +542,7 @@ func updatePlanetDetails(ctx context.Context, tx db.Transaction, planet models.P
 	if planet.BuildingAction == nil {
 		actionErr = deleteBuildingActionAndDetailsForPlanet(ctx, tx, planet.Id)
 	} else {
-		actionErr = createBuildingActionWithDetails(ctx, tx, *planet.BuildingAction)
+		actionErr = upsertBuildingActionWithDetails(ctx, tx, *planet.BuildingAction)
 
 	}
 	if actionErr != nil {

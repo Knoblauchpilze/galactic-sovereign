@@ -363,8 +363,165 @@ func TestIT_PlanetMutator_Mutate(t *testing.T) {
 		assert.Equal(t, action, *actual.BuildingAction)
 	})
 
-	// TODO: Include an update to the completion time
-	t.Run("persists mutated planet with updated action", func(t *testing.T) {
+	t.Run("persists mutated planet with updated completion time", func(t *testing.T) {
+		planet, _, _ := insertTestPlanetForPlayer(t, conn)
+		action := insertTestBuildingActionForPlanet(t, conn, planet.Id)
+		require.NotEqual(t, yetAnotherTime, action.CompletedAt)
+
+		mutator := generateModifyingMutator(func(p *models.Planet) {
+			p.BuildingAction.CompletedAt = yetAnotherTime
+			p.Version++
+		})
+
+		returned, err := adapter.Mutate(t.Context(), planet.Id, mutator)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		actual, err := planetRepo.Get(t.Context(), planet.Id)
+		require.NoError(t, err, "Actual err: %v", err)
+		assert.Equal(t, returned, actual)
+		require.NotNil(t, returned.BuildingAction)
+		assert.Equal(t, yetAnotherTime, returned.BuildingAction.CompletedAt)
+		require.NotNil(t, actual.BuildingAction)
+		assert.Equal(t, yetAnotherTime, actual.BuildingAction.CompletedAt)
+	})
+
+	t.Run("persists mutated planet without update to existing action costs", func(t *testing.T) {
+		planet, _, _ := insertTestPlanetForPlayer(t, conn)
+		action := insertTestBuildingActionForPlanet(t, conn, planet.Id, addBuildingActionCost)
+		require.Equal(t, metalResourceId, action.Costs[0].Resource)
+		require.NotEqual(t, 32, action.Costs[0].Amount)
+
+		costs := []models.BuildingActionCost{{Resource: metalResourceId, Amount: 32}}
+
+		mutator := generateModifyingMutator(func(p *models.Planet) {
+			p.BuildingAction.Costs = costs
+			p.Version++
+		})
+
+		returned, err := adapter.Mutate(t.Context(), planet.Id, mutator)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		actual, err := planetRepo.Get(t.Context(), planet.Id)
+		require.NoError(t, err, "Actual err: %v", err)
+		require.NotNil(t, returned.BuildingAction)
+		assert.Equal(t, costs, returned.BuildingAction.Costs)
+		require.NotNil(t, actual.BuildingAction)
+		assert.Equal(t, action.Costs, actual.BuildingAction.Costs)
+	})
+
+	t.Run("persists mutated planet with updated action and costs", func(t *testing.T) {
+		planet, _, _ := insertTestPlanetForPlayer(t, conn)
+		insertTestBuildingActionForPlanet(t, conn, planet.Id)
+
+		costs := []models.BuildingActionCost{
+			{
+				Resource: metalResourceId,
+				Amount:   45698,
+			},
+			{
+				Resource: crystalResourceId,
+				Amount:   120305,
+			},
+		}
+
+		mutator := generateModifyingMutator(func(p *models.Planet) {
+			p.BuildingAction.Costs = costs
+			p.Version++
+		})
+
+		returned, err := adapter.Mutate(t.Context(), planet.Id, mutator)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		actual, err := planetRepo.Get(t.Context(), planet.Id)
+		require.NoError(t, err, "Actual err: %v", err)
+		assert.Equal(t, returned, actual)
+		require.NotNil(t, returned.BuildingAction)
+		assert.Equal(t, costs, returned.BuildingAction.Costs)
+		require.NotNil(t, actual.BuildingAction)
+		assert.Equal(t, costs, actual.BuildingAction.Costs)
+	})
+
+	t.Run("persists mutated planet without update to existing action storages", func(t *testing.T) {
+		planet, _, _ := insertTestPlanetForPlayer(t, conn)
+		action := insertTestBuildingActionForPlanet(t, conn, planet.Id, addBuildingActionStorage)
+		require.Equal(t, crystalResourceId, action.Storages[0].Resource)
+		require.NotEqual(t, 32, action.Storages[0].Storage)
+
+		storages := []models.BuildingActionResourceStorage{{Resource: crystalResourceId, Storage: 32}}
+
+		mutator := generateModifyingMutator(func(p *models.Planet) {
+			p.BuildingAction.Storages = storages
+			p.Version++
+		})
+
+		returned, err := adapter.Mutate(t.Context(), planet.Id, mutator)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		actual, err := planetRepo.Get(t.Context(), planet.Id)
+		require.NoError(t, err, "Actual err: %v", err)
+		require.NotNil(t, returned.BuildingAction)
+		assert.Equal(t, storages, returned.BuildingAction.Storages)
+		require.NotNil(t, actual.BuildingAction)
+		assert.Equal(t, action.Storages, actual.BuildingAction.Storages)
+	})
+
+	t.Run("persists mutated planet with updated action and storages", func(t *testing.T) {
+		planet, _, _ := insertTestPlanetForPlayer(t, conn)
+		insertTestBuildingActionForPlanet(t, conn, planet.Id)
+
+		storages := []models.BuildingActionResourceStorage{
+			{
+				Resource: metalResourceId,
+				Storage:  123456,
+			},
+			{
+				Resource: crystalResourceId,
+				Storage:  987654,
+			},
+		}
+
+		mutator := generateModifyingMutator(func(p *models.Planet) {
+			p.BuildingAction.Storages = storages
+			p.Version++
+		})
+
+		returned, err := adapter.Mutate(t.Context(), planet.Id, mutator)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		actual, err := planetRepo.Get(t.Context(), planet.Id)
+		require.NoError(t, err, "Actual err: %v", err)
+		assert.Equal(t, returned, actual)
+		require.NotNil(t, returned.BuildingAction)
+		assert.Equal(t, storages, returned.BuildingAction.Storages)
+		require.NotNil(t, actual.BuildingAction)
+		assert.Equal(t, storages, actual.BuildingAction.Storages)
+	})
+
+	t.Run("persists mutated planet without update to existing action productions", func(t *testing.T) {
+		planet, _, _ := insertTestPlanetForPlayer(t, conn)
+		action := insertTestBuildingActionForPlanet(t, conn, planet.Id, addBuildingActionProduction)
+		require.Equal(t, crystalResourceId, action.Productions[0].Resource)
+		require.NotEqual(t, 32, action.Productions[0].Production)
+
+		productions := []models.BuildingActionResourceProduction{{Resource: crystalResourceId, Production: 32}}
+
+		mutator := generateModifyingMutator(func(p *models.Planet) {
+			p.BuildingAction.Productions = productions
+			p.Version++
+		})
+
+		returned, err := adapter.Mutate(t.Context(), planet.Id, mutator)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		actual, err := planetRepo.Get(t.Context(), planet.Id)
+		require.NoError(t, err, "Actual err: %v", err)
+		require.NotNil(t, returned.BuildingAction)
+		assert.Equal(t, productions, returned.BuildingAction.Productions)
+		require.NotNil(t, actual.BuildingAction)
+		assert.Equal(t, action.Productions, actual.BuildingAction.Productions)
+	})
+
+	t.Run("persists mutated planet with updated action and productions", func(t *testing.T) {
 		planet, _, _ := insertTestPlanetForPlayer(t, conn)
 		insertTestBuildingActionForPlanet(t, conn, planet.Id)
 

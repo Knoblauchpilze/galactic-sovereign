@@ -11,25 +11,34 @@ import (
 )
 
 const (
-	createBuildingActionQuery = `
+	upsertBuildingActionQuery = `
 INSERT INTO
 	building_action (id, planet, building, desired_level, created_at, completed_at)
-	VALUES ($1, $2, $3, $4, $5, $6)`
+	VALUES ($1, $2, $3, $4, $5, $6)
+ON CONFLICT (id) DO UPDATE
+SET
+	completed_at = excluded.completed_at`
 
-	createBuildingActionCostQuery = `
+	// For this query and the following ones, voluntarily doing nothing on conflict.
+	// This allows the action dependencies to behave as a single aggregate for which
+	// only the completion time can be updated.
+	upsertBuildingActionCostQuery = `
 INSERT INTO
 	building_action_cost (action, resource, amount)
-	VALUES ($1, $2, $3)`
+	VALUES ($1, $2, $3)
+ON CONFLICT (action, resource) DO NOTHING`
 
-	createBuildingActionResourceStorageQuery = `
+	upsertBuildingActionResourceStorageQuery = `
 INSERT INTO
 	building_action_resource_storage (action, resource, storage)
-	VALUES ($1, $2, $3)`
+	VALUES ($1, $2, $3)
+ON CONFLICT (action, resource) DO NOTHING`
 
-	createBuildingActionResourceProductionQuery = `
+	upsertBuildingActionResourceProductionQuery = `
 INSERT INTO
 	building_action_resource_production (action, resource, production)
-	VALUES ($1, $2, $3)`
+	VALUES ($1, $2, $3)
+ON CONFLICT (action, resource) DO NOTHING`
 
 	getBuildingActionQuery = `
 SELECT
@@ -127,7 +136,7 @@ func (r *buildingActionRepositoryImpl) Create(
 	}
 	defer tx.Close(ctx)
 
-	err = createBuildingActionWithDetails(ctx, tx, *planet.BuildingAction)
+	err = upsertBuildingActionWithDetails(ctx, tx, *planet.BuildingAction)
 	if err != nil {
 		return parseDbError(err)
 	}
@@ -163,10 +172,10 @@ func (r *buildingActionRepositoryImpl) Delete(
 	return nil
 }
 
-func createBuildingActionWithDetails(ctx context.Context, tx db.Transaction, action models.BuildingAction) error {
+func upsertBuildingActionWithDetails(ctx context.Context, tx db.Transaction, action models.BuildingAction) error {
 	_, err := tx.Exec(
 		ctx,
-		createBuildingActionQuery,
+		upsertBuildingActionQuery,
 		action.Id,
 		action.Planet,
 		action.Building,
@@ -181,7 +190,7 @@ func createBuildingActionWithDetails(ctx context.Context, tx db.Transaction, act
 	for _, c := range action.Costs {
 		_, err = tx.Exec(
 			ctx,
-			createBuildingActionCostQuery,
+			upsertBuildingActionCostQuery,
 			action.Id,
 			c.Resource,
 			c.Amount,
@@ -194,7 +203,7 @@ func createBuildingActionWithDetails(ctx context.Context, tx db.Transaction, act
 	for _, s := range action.Storages {
 		_, err = tx.Exec(
 			ctx,
-			createBuildingActionResourceStorageQuery,
+			upsertBuildingActionResourceStorageQuery,
 			action.Id,
 			s.Resource,
 			s.Storage,
@@ -207,7 +216,7 @@ func createBuildingActionWithDetails(ctx context.Context, tx db.Transaction, act
 	for _, p := range action.Productions {
 		_, err = tx.Exec(
 			ctx,
-			createBuildingActionResourceProductionQuery,
+			upsertBuildingActionResourceProductionQuery,
 			action.Id,
 			p.Resource,
 			p.Production,
