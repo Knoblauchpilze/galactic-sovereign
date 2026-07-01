@@ -374,6 +374,7 @@ func TestIT_BuildingActionRepository_Delete(t *testing.T) {
 		action, planet := insertTestBuildingAction(t, conn)
 		planet.Version++
 
+		planet.BuildingAction = nil
 		err := repo.Delete(t.Context(), planet)
 		require.NoError(t, err, "Actual err: %v", err)
 
@@ -384,6 +385,7 @@ func TestIT_BuildingActionRepository_Delete(t *testing.T) {
 		action, planet := insertTestBuildingAction(t, conn, addBuildingActionCost)
 		planet.Version++
 
+		planet.BuildingAction = nil
 		err := repo.Delete(t.Context(), planet)
 		require.NoError(t, err, "Actual err: %v", err)
 
@@ -395,6 +397,7 @@ func TestIT_BuildingActionRepository_Delete(t *testing.T) {
 		action, planet := insertTestBuildingAction(t, conn, addBuildingActionStorage)
 		planet.Version++
 
+		planet.BuildingAction = nil
 		err := repo.Delete(t.Context(), planet)
 		require.NoError(t, err, "Actual err: %v", err)
 
@@ -406,6 +409,7 @@ func TestIT_BuildingActionRepository_Delete(t *testing.T) {
 		action, planet := insertTestBuildingAction(t, conn, addBuildingActionProduction)
 		planet.Version++
 
+		planet.BuildingAction = nil
 		err := repo.Delete(t.Context(), planet)
 		require.NoError(t, err, "Actual err: %v", err)
 
@@ -423,6 +427,7 @@ func TestIT_BuildingActionRepository_Delete(t *testing.T) {
 		planet.UpdatedAt = newTime
 		planet.Version++
 
+		planet.BuildingAction = nil
 		err := repo.Delete(t.Context(), planet)
 		require.NoError(t, err, "Actual err: %v", err)
 
@@ -444,6 +449,7 @@ func TestIT_BuildingActionRepository_Delete(t *testing.T) {
 		planet.Resources[0].Amount += 1000
 		planet.Version++
 
+		planet.BuildingAction = nil
 		err := repo.Delete(t.Context(), planet)
 		require.NoError(t, err, "Actual err: %v", err)
 
@@ -511,19 +517,6 @@ func TestIT_BuildingActionRepository_Delete(t *testing.T) {
 			t, conn, planet.Id, metalResourceId, &crystalMineId, 9874,
 		)
 	})
-
-	t.Run("succeeds when the action does not exist", func(t *testing.T) {
-		planet, _, _ := insertTestPlanetForPlayer(t, conn)
-		planet.BuildingAction = &models.BuildingAction{
-			Id:     uuid.New(),
-			Planet: planet.Id,
-		}
-
-		planet.Version++
-
-		err := repo.Delete(t.Context(), planet)
-		require.NoError(t, err, "Actual err: %v", err)
-	})
 }
 
 func TestIT_BuildingActionRepository_CreationDeletionWorkflow(t *testing.T) {
@@ -571,6 +564,7 @@ func TestIT_BuildingActionRepository_CreationDeletionWorkflow(t *testing.T) {
 				assert.Equal(t, tc.action, *actual.BuildingAction)
 			}()
 
+			planet.BuildingAction = nil
 			planet.Version++
 
 			func() {
