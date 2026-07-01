@@ -6,7 +6,6 @@ import (
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driven/mappers"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
-	drivenports "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driven"
 	"github.com/google/uuid"
 )
 
@@ -64,17 +63,17 @@ WHERE
 	building = $1`
 )
 
-type buildingRepositoryImpl struct {
+type BuildingRepository struct {
 	conn db.Connection
 }
 
-func NewBuildingRepository(conn db.Connection) drivenports.ForListingBuildings {
-	return &buildingRepositoryImpl{
+func NewBuildingRepository(conn db.Connection) *BuildingRepository {
+	return &BuildingRepository{
 		conn: conn,
 	}
 }
 
-func (r *buildingRepositoryImpl) Get(ctx context.Context, id uuid.UUID) (models.Building, error) {
+func (r *BuildingRepository) Get(ctx context.Context, id uuid.UUID) (models.Building, error) {
 	tx, err := r.conn.BeginTx(ctx)
 	if err != nil {
 		return models.Building{}, err
@@ -87,16 +86,6 @@ func (r *buildingRepositoryImpl) Get(ctx context.Context, id uuid.UUID) (models.
 	}
 
 	return loadBuildingDetails(ctx, tx, dbBuilding)
-}
-
-func (r *buildingRepositoryImpl) List(ctx context.Context) ([]models.Building, error) {
-	tx, err := r.conn.BeginTx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	defer tx.Close(ctx)
-
-	return loadBuildings(ctx, tx)
 }
 
 func loadBuildings(ctx context.Context, tx db.Transaction) ([]models.Building, error) {

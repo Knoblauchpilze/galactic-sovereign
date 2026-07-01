@@ -7,7 +7,6 @@ import (
 	"github.com/google/uuid"
 )
 
-type ForListingBuildings interface {
+type ForFetchingBuilding interface {
 	Get(ctx context.Context, id uuid.UUID) (models.Building, error)
-	List(ctx context.Context) ([]models.Building, error)
 }

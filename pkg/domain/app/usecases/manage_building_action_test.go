@@ -27,7 +27,7 @@ func TestUnit_ManageBuildingAction_Create(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	mockActionRepo := drivenportstest.NewMockForManagingBuildingActions(ctrl)
 	mockPlanetRepo := drivenportstest.NewMockForManagingPlanets(ctrl)
-	mockBuildingRepo := drivenportstest.NewMockForListingBuildings(ctrl)
+	mockBuildingRepo := drivenportstest.NewMockForFetchingBuilding(ctrl)
 
 	t.Run("persists created building action", func(t *testing.T) {
 		planet := generateTestPlanet()
@@ -207,7 +207,7 @@ func TestUnit_ManageBuildingAction_Delete(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	mockActionRepo := drivenportstest.NewMockForManagingBuildingActions(ctrl)
 	mockPlanetRepo := drivenportstest.NewMockForManagingPlanets(ctrl)
-	mockBuildingRepo := drivenportstest.NewMockForListingBuildings(ctrl)
+	mockBuildingRepo := drivenportstest.NewMockForFetchingBuilding(ctrl)
 
 	t.Run("deletes existing building action", func(t *testing.T) {
 		actionId := uuid.New()

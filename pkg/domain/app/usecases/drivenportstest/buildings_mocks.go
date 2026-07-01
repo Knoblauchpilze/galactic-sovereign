@@ -18,32 +18,32 @@ import (
 	gomock "go.uber.org/mock/gomock"
 )
 
-// MockForListingBuildings is a mock of ForListingBuildings interface.
-type MockForListingBuildings struct {
+// MockForFetchingBuilding is a mock of ForFetchingBuilding interface.
+type MockForFetchingBuilding struct {
 	ctrl     *gomock.Controller
-	recorder *MockForListingBuildingsMockRecorder
+	recorder *MockForFetchingBuildingMockRecorder
 	isgomock struct{}
 }
 
-// MockForListingBuildingsMockRecorder is the mock recorder for MockForListingBuildings.
-type MockForListingBuildingsMockRecorder struct {
-	mock *MockForListingBuildings
+// MockForFetchingBuildingMockRecorder is the mock recorder for MockForFetchingBuilding.
+type MockForFetchingBuildingMockRecorder struct {
+	mock *MockForFetchingBuilding
 }
 
-// NewMockForListingBuildings creates a new mock instance.
-func NewMockForListingBuildings(ctrl *gomock.Controller) *MockForListingBuildings {
-	mock := &MockForListingBuildings{ctrl: ctrl}
-	mock.recorder = &MockForListingBuildingsMockRecorder{mock}
+// NewMockForFetchingBuilding creates a new mock instance.
+func NewMockForFetchingBuilding(ctrl *gomock.Controller) *MockForFetchingBuilding {
+	mock := &MockForFetchingBuilding{ctrl: ctrl}
+	mock.recorder = &MockForFetchingBuildingMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockForListingBuildings) EXPECT() *MockForListingBuildingsMockRecorder {
+func (m *MockForFetchingBuilding) EXPECT() *MockForFetchingBuildingMockRecorder {
 	return m.recorder
 }
 
 // Get mocks base method.
-func (m *MockForListingBuildings) Get(ctx context.Context, id uuid.UUID) (models.Building, error) {
+func (m *MockForFetchingBuilding) Get(ctx context.Context, id uuid.UUID) (models.Building, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Get", ctx, id)
 	ret0, _ := ret[0].(models.Building)
@@ -52,22 +52,7 @@ func (m *MockForListingBuildings) Get(ctx context.Context, id uuid.UUID) (models
 }
 
 // Get indicates an expected call of Get.
-func (mr *MockForListingBuildingsMockRecorder) Get(ctx, id any) *gomock.Call {
+func (mr *MockForFetchingBuildingMockRecorder) Get(ctx, id any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockForListingBuildings)(nil).Get), ctx, id)
-}
-
-// List mocks base method.
-func (m *MockForListingBuildings) List(ctx context.Context) ([]models.Building, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "List", ctx)
-	ret0, _ := ret[0].([]models.Building)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// List indicates an expected call of List.
-func (mr *MockForListingBuildingsMockRecorder) List(ctx any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockForListingBuildings)(nil).List), ctx)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockForFetchingBuilding)(nil).Get), ctx, id)
 }

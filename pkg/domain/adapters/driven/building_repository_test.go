@@ -8,7 +8,6 @@ import (
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
 	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
-	drivenports "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driven"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -30,6 +29,51 @@ func TestIT_BuildingRepository_Get(t *testing.T) {
 		assert.Equal(t, building, actual)
 	})
 
+	t.Run("gets a building with costs", func(t *testing.T) {
+		building := insertTestBuilding(t, conn, addBuildingCost)
+
+		actual, err := repo.Get(t.Context(), building.Id)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.Equal(t, building, actual)
+	})
+
+	t.Run("gets a building with production", func(t *testing.T) {
+		building := insertTestBuilding(t, conn, addBuildingProduction)
+
+		actual, err := repo.Get(t.Context(), building.Id)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.Equal(t, building, actual)
+	})
+
+	t.Run("gets a building with storage", func(t *testing.T) {
+		building := insertTestBuilding(t, conn, addBuildingStorage)
+
+		actual, err := repo.Get(t.Context(), building.Id)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.Equal(t, building, actual)
+	})
+
+	t.Run("gets a mine-like building", func(t *testing.T) {
+		building := insertTestBuilding(t, conn, addBuildingCost, addBuildingProduction)
+
+		actual, err := repo.Get(t.Context(), building.Id)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.Equal(t, building, actual)
+	})
+
+	t.Run("gets a hangar-like building", func(t *testing.T) {
+		building := insertTestBuilding(t, conn, addBuildingCost, addBuildingStorage)
+
+		actual, err := repo.Get(t.Context(), building.Id)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.Equal(t, building, actual)
+	})
+
 	t.Run("returns error when building does not exist", func(t *testing.T) {
 		id := uuid.MustParse("00000000-1111-2222-1111-000000000000")
 		_, err := repo.Get(t.Context(), id)
@@ -38,29 +82,7 @@ func TestIT_BuildingRepository_Get(t *testing.T) {
 	})
 }
 
-func TestIT_BuildingRepository_List(t *testing.T) {
-	repo, conn := newTestBuildingRepository(t)
-	b1 := insertTestBuilding(t, conn, addBuildingCost)
-	b2 := insertTestBuilding(t, conn, addBuildingProduction)
-	b3 := insertTestBuilding(t, conn, addBuildingStorage)
-
-	mineLikeBuilding := insertTestBuilding(t, conn, addBuildingCost, addBuildingProduction)
-	hangarLikeBuilding := insertTestBuilding(t, conn, addBuildingCost, addBuildingStorage)
-	fullCheckBuilding := insertTestBuilding(t, conn, addBuildingCost, addBuildingProduction, addBuildingStorage)
-
-	actual, err := repo.List(t.Context())
-	require.NoError(t, err, "Actual err: %v", err)
-
-	// The additional resources are buildings from the seed data
-	assert.Contains(t, actual, b1)
-	assert.Contains(t, actual, b2)
-	assert.Contains(t, actual, b3)
-	assert.Contains(t, actual, mineLikeBuilding)
-	assert.Contains(t, actual, hangarLikeBuilding)
-	assert.Contains(t, actual, fullCheckBuilding)
-}
-
-func newTestBuildingRepository(t *testing.T) (drivenports.ForListingBuildings, db.Connection) {
+func newTestBuildingRepository(t *testing.T) (*BuildingRepository, db.Connection) {
 	t.Helper()
 	conn := newTestConnection(t)
 	return NewBuildingRepository(conn), conn

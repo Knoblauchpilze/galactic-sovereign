@@ -14,13 +14,13 @@ import (
 type buildingActionUseCase struct {
 	actionRepo   drivenports.ForManagingBuildingActions
 	planetRepo   drivenports.ForManagingPlanets
-	buildingRepo drivenports.ForListingBuildings
+	buildingRepo drivenports.ForFetchingBuilding
 }
 
 func NewBuildingActionUseCase(
 	actionRepo drivenports.ForManagingBuildingActions,
 	planetRepo drivenports.ForManagingPlanets,
-	buildingRepo drivenports.ForListingBuildings,
+	buildingRepo drivenports.ForFetchingBuilding,
 ) drivingports.ForManagingBuildingAction {
 	return &buildingActionUseCase{
 		actionRepo:   actionRepo,
