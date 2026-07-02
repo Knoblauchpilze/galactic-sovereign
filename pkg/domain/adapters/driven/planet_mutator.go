@@ -50,5 +50,18 @@ func (m *PlanetMutator) Mutate(
 		return models.Planet{}, err
 	}
 
-	return planet, nil
+	// This second load is to make sure that the returned planet value
+	// corresponds to the up to date data stored in the DB. There is
+	// nothing preventing the mutation function to perform updates to
+	// the planet which are not reflected by the SQL queries (such as
+	// update to the identifier, etc.).
+	// A better solution would be to constrain the shape of the mutation
+	// function so that it can only perform valid modifications but this
+	// solution (reload the data form the DB) is acceptable.
+	out, err := loadPlanetAndDetails(ctx, tx, id)
+	if err != nil {
+		return models.Planet{}, err
+	}
+
+	return out, nil
 }

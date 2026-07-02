@@ -385,6 +385,8 @@ func TestIT_PlanetMutator_Mutate(t *testing.T) {
 		assert.Equal(t, yetAnotherTime, actual.BuildingAction.CompletedAt)
 	})
 
+	// Those tests are showing a limitation of the upsert strategy: new costs/productions/storages
+	// will be persisted by updates to the existing ones will not.
 	t.Run("persists mutated planet without update to existing action costs", func(t *testing.T) {
 		planet, _, _ := insertTestPlanetForPlayer(t, conn)
 		action := insertTestBuildingActionForPlanet(t, conn, planet.Id, addBuildingActionCost)
@@ -404,7 +406,7 @@ func TestIT_PlanetMutator_Mutate(t *testing.T) {
 		actual, err := planetRepo.Get(t.Context(), planet.Id)
 		require.NoError(t, err, "Actual err: %v", err)
 		require.NotNil(t, returned.BuildingAction)
-		assert.Equal(t, costs, returned.BuildingAction.Costs)
+		assert.Equal(t, action.Costs, returned.BuildingAction.Costs)
 		require.NotNil(t, actual.BuildingAction)
 		assert.Equal(t, action.Costs, actual.BuildingAction.Costs)
 	})
@@ -460,7 +462,7 @@ func TestIT_PlanetMutator_Mutate(t *testing.T) {
 		actual, err := planetRepo.Get(t.Context(), planet.Id)
 		require.NoError(t, err, "Actual err: %v", err)
 		require.NotNil(t, returned.BuildingAction)
-		assert.Equal(t, storages, returned.BuildingAction.Storages)
+		assert.Equal(t, action.Storages, returned.BuildingAction.Storages)
 		require.NotNil(t, actual.BuildingAction)
 		assert.Equal(t, action.Storages, actual.BuildingAction.Storages)
 	})
@@ -516,7 +518,7 @@ func TestIT_PlanetMutator_Mutate(t *testing.T) {
 		actual, err := planetRepo.Get(t.Context(), planet.Id)
 		require.NoError(t, err, "Actual err: %v", err)
 		require.NotNil(t, returned.BuildingAction)
-		assert.Equal(t, productions, returned.BuildingAction.Productions)
+		assert.Equal(t, action.Productions, returned.BuildingAction.Productions)
 		require.NotNil(t, actual.BuildingAction)
 		assert.Equal(t, action.Productions, actual.BuildingAction.Productions)
 	})
