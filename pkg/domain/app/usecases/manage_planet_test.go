@@ -4,8 +4,10 @@ import (
 	"context"
 	"errors"
 	"testing"
+	"time"
 
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
+	drivenports "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driven"
 	drivingports "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driving"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/usecases/drivenportstest"
 	"github.com/google/uuid"
@@ -14,23 +16,34 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
+var (
+	t1 = time.Date(2026, time.July, 3, 15, 58, 31, 0, time.UTC)
+	t2 = time.Date(2026, time.July, 3, 16, 58, 31, 0, time.UTC)
+	t3 = time.Date(2026, time.July, 3, 17, 58, 31, 0, time.UTC)
+	t4 = time.Date(2026, time.July, 3, 18, 58, 31, 0, time.UTC)
+
+	metalMineId = uuid.MustParse("d176e82d-f2ca-4611-996b-c4804096caef")
+)
+
 type planetTestSuite struct {
 	ctrl              *gomock.Controller
 	mockPlanetRepo    *drivenportstest.MockForManagingPlanets
 	mockPlanetMutator *drivenportstest.MockForMutatingPlanet
+	mockClock         *drivenportstest.MockForFetchingTime
 	usecase           drivingports.ForManagingPlanet
 }
 
 func TestUnit_ManagePlanet_Get(t *testing.T) {
-	t.Run("gets existing planet", func(t *testing.T) {
+	t.Run("gets existing planet through mutator", func(t *testing.T) {
 		suite := setupPlanetTestSuite(t)
 		expected := models.Planet{
 			Id:   uuid.New(),
 			Name: "my-planet",
 		}
 
-		suite.mockPlanetRepo.EXPECT().
-			Get(gomock.Any(), gomock.Eq(expected.Id)).
+		suite.mockClock.EXPECT().Now(gomock.Any()).Times(1).Return(t2)
+		suite.mockPlanetMutator.EXPECT().
+			Mutate(gomock.Any(), gomock.Eq(expected.Id), gomock.Any()).
 			Times(1).
 			Return(expected, nil)
 
@@ -40,11 +53,142 @@ func TestUnit_ManagePlanet_Get(t *testing.T) {
 		assert.Equal(t, expected, actual)
 	})
 
-	t.Run("returns error when repository fails", func(t *testing.T) {
+	t.Run("updates planet to current time", func(t *testing.T) {
 		suite := setupPlanetTestSuite(t)
+		planet := models.Planet{
+			Id:        uuid.New(),
+			Player:    uuid.New(),
+			Name:      "my-planet",
+			CreatedAt: t1,
+			UpdatedAt: t1,
+			Version:   2,
+		}
+
+		suite.mockClock.EXPECT().Now(gomock.Any()).Times(1).Return(t2)
+		suite.mockPlanetMutator.EXPECT().
+			Mutate(gomock.Any(), gomock.Eq(planet.Id), gomock.Any()).
+			Times(1).
+			DoAndReturn(
+				func(ctx context.Context, id uuid.UUID, m drivenports.PlanetMutator) (models.Planet, error) {
+					m(&planet)
+					return planet, nil
+				})
+
+		actual, err := suite.usecase.Get(context.Background(), planet.Id)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		expected := models.Planet{
+			Id:        planet.Id,
+			Player:    planet.Player,
+			Name:      planet.Name,
+			CreatedAt: t1,
+			UpdatedAt: t2,
+			Version:   3,
+		}
+		assert.Equal(t, expected, actual)
+	})
+
+	t.Run("does not apply action when current time is before completion time", func(t *testing.T) {
+		suite := setupPlanetTestSuite(t)
+		planet := models.Planet{
+			Id:        uuid.New(),
+			Player:    uuid.New(),
+			Name:      "my-planet",
+			CreatedAt: t1,
+			UpdatedAt: t1,
+			Version:   2,
+			BuildingAction: &models.BuildingAction{
+				Id:          uuid.New(),
+				CreatedAt:   t1,
+				CompletedAt: t3,
+			},
+		}
+
+		suite.mockClock.EXPECT().Now(gomock.Any()).Times(1).Return(t2)
+		suite.mockPlanetMutator.EXPECT().
+			Mutate(gomock.Any(), gomock.Eq(planet.Id), gomock.Any()).
+			Times(1).
+			DoAndReturn(
+				func(ctx context.Context, id uuid.UUID, m drivenports.PlanetMutator) (models.Planet, error) {
+					m(&planet)
+					return planet, nil
+				})
+
+		actual, err := suite.usecase.Get(context.Background(), planet.Id)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		expected := models.Planet{
+			Id:        planet.Id,
+			Player:    planet.Player,
+			Name:      planet.Name,
+			CreatedAt: t1,
+			UpdatedAt: t2,
+			Version:   3,
+			BuildingAction: &models.BuildingAction{
+				Id:          planet.BuildingAction.Id,
+				CreatedAt:   t1,
+				CompletedAt: t3,
+			},
+		}
+		assert.Equal(t, expected, actual)
+	})
+
+	t.Run("apply action when current time is after completion time", func(t *testing.T) {
+		suite := setupPlanetTestSuite(t)
+		planet := models.Planet{
+			Id:        uuid.New(),
+			Player:    uuid.New(),
+			Name:      "my-planet",
+			CreatedAt: t1,
+			UpdatedAt: t1,
+			Version:   2,
+			Buildings: []models.PlanetBuilding{
+				{Building: metalMineId, Level: 5},
+			},
+			BuildingAction: &models.BuildingAction{
+				Id:           uuid.New(),
+				Building:     metalMineId,
+				DesiredLevel: 6,
+				CreatedAt:    t1,
+				CompletedAt:  t3,
+			},
+		}
+
+		suite.mockClock.EXPECT().Now(gomock.Any()).Times(1).Return(t4)
+		suite.mockPlanetMutator.EXPECT().
+			Mutate(gomock.Any(), gomock.Eq(planet.Id), gomock.Any()).
+			Times(1).
+			DoAndReturn(
+				func(ctx context.Context, id uuid.UUID, m drivenports.PlanetMutator) (models.Planet, error) {
+					m(&planet)
+					return planet, nil
+				})
+
+		actual, err := suite.usecase.Get(context.Background(), planet.Id)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		expected := models.Planet{
+			Id:        planet.Id,
+			Player:    planet.Player,
+			Name:      planet.Name,
+			CreatedAt: t1,
+			UpdatedAt: t4,
+			Version:   5,
+			Buildings: []models.PlanetBuilding{
+				{Building: metalMineId, Level: 6},
+			},
+			BuildingAction: nil,
+		}
+		assert.Equal(t, expected, actual)
+	})
+
+	t.Run("returns error when mutator fails", func(t *testing.T) {
+		suite := setupPlanetTestSuite(t)
+
+		suite.mockClock.EXPECT().Now(gomock.Any()).Times(1).Return(t2)
 		expectedErr := errors.New("stubbed error")
-		suite.mockPlanetRepo.EXPECT().
-			Get(gomock.Any(), gomock.Any()).
+		suite.mockPlanetMutator.EXPECT().
+			Mutate(gomock.Any(), gomock.Any(), gomock.Any()).
 			Times(1).
 			Return(models.Planet{}, expectedErr)
 
@@ -169,11 +313,13 @@ func setupPlanetTestSuite(t *testing.T) *planetTestSuite {
 	ctrl := gomock.NewController(t)
 	mockPlanetRepo := drivenportstest.NewMockForManagingPlanets(ctrl)
 	mockPlanetMutator := drivenportstest.NewMockForMutatingPlanet(ctrl)
+	mockClock := drivenportstest.NewMockForFetchingTime(ctrl)
 
 	return &planetTestSuite{
 		ctrl:              ctrl,
 		mockPlanetRepo:    mockPlanetRepo,
 		mockPlanetMutator: mockPlanetMutator,
-		usecase:           NewPlanetUseCase(mockPlanetRepo, mockPlanetMutator),
+		mockClock:         mockClock,
+		usecase:           NewPlanetUseCase(mockPlanetRepo, mockPlanetMutator, mockClock),
 	}
 }

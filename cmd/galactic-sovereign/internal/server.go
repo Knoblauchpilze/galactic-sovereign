@@ -53,9 +53,10 @@ func registerPlanetsRoutes(conn db.Connection, s server.Server, log *slog.Logger
 	universeRepo := drivenadapters.NewUniverseRepository(conn)
 	planetRepo := drivenadapters.NewPlanetRepository(conn)
 	planetMutator := drivenadapters.NewPlanetMutator(conn)
+	clock := drivenadapters.NewTimeAdapter()
 
 	createUsecase := usecases.NewCreatePlanetUseCase(playerRepo, universeRepo, planetRepo)
-	usecase := usecases.NewPlanetUseCase(planetRepo, planetMutator)
+	usecase := usecases.NewPlanetUseCase(planetRepo, planetMutator, clock)
 
 	for _, route := range drivingadapters.PlanetEndpoints(createUsecase, usecase) {
 		if err := s.AddRoute(route); err != nil {
