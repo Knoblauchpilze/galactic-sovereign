@@ -204,3 +204,32 @@ make generate-api-spec
 ```
 
 This creates `api/swagger.yaml`.
+
+# Cheat sheet
+
+Create a new player:
+
+```bash
+curl -H 'Content-Type: application/json' \
+  http://localhost:60002/v1/galactic-sovereign/players \
+  -d '{"name":"toto-test","api_user":"9682f17b-f5f0-4eda-a747-2537d2151838","universe":"9682f17b-f5f0-4eda-a747-2537d2151837"}' \
+  | jq
+```
+
+Create a new planet for a player:
+
+```bash
+curl -H 'Content-Type: application/json' \
+  http://localhost:60002/v1/galactic-sovereign/planets \
+  -d '{"name":"planet-test","player":"THE-PLAYER-ID"}' \
+  | jq
+```
+
+Create a new building action for a planet:
+
+```bash
+curl -H 'Content-Type: application/json' \
+  http://localhost:60002/v1/galactic-sovereign/planets/ff7ea2c6-4f4b-4734-bfcf-cb9453bb5f6c/actions \
+  -d '{"building":"d176e82d-f2ca-4611-996b-c4804096caef"}' \
+  | jq
+```
