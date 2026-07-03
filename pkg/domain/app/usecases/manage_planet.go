@@ -10,12 +10,17 @@ import (
 )
 
 type planetUseCase struct {
-	planetRepo drivenports.ForManagingPlanets
+	planetRepo    drivenports.ForManagingPlanets
+	planetMutator drivenports.ForMutatingPlanet
 }
 
-func NewPlanetUseCase(planetRepo drivenports.ForManagingPlanets) drivingports.ForManagingPlanet {
+func NewPlanetUseCase(
+	planetRepo drivenports.ForManagingPlanets,
+	planetMutator drivenports.ForMutatingPlanet,
+) drivingports.ForManagingPlanet {
 	return &planetUseCase{
-		planetRepo: planetRepo,
+		planetRepo:    planetRepo,
+		planetMutator: planetMutator,
 	}
 }
 

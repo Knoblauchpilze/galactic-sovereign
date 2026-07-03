@@ -10,7 +10,7 @@ import (
 
 type PlanetMutator func(*models.Planet, time.Time) error
 
-type ForMutatingPlanets interface {
+type ForMutatingPlanet interface {
 	Mutate(
 		ctx context.Context,
 		id uuid.UUID,

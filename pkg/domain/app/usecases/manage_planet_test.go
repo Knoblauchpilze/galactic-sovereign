@@ -15,9 +15,10 @@ import (
 )
 
 type planetTestSuite struct {
-	ctrl           *gomock.Controller
-	mockPlanetRepo *drivenportstest.MockForManagingPlanets
-	usecase        drivingports.ForManagingPlanet
+	ctrl              *gomock.Controller
+	mockPlanetRepo    *drivenportstest.MockForManagingPlanets
+	mockPlanetMutator *drivenportstest.MockForMutatingPlanet
+	usecase           drivingports.ForManagingPlanet
 }
 
 func TestUnit_ManagePlanet_Get(t *testing.T) {
@@ -167,10 +168,12 @@ func setupPlanetTestSuite(t *testing.T) *planetTestSuite {
 
 	ctrl := gomock.NewController(t)
 	mockPlanetRepo := drivenportstest.NewMockForManagingPlanets(ctrl)
+	mockPlanetMutator := drivenportstest.NewMockForMutatingPlanet(ctrl)
 
 	return &planetTestSuite{
-		ctrl:           ctrl,
-		mockPlanetRepo: mockPlanetRepo,
-		usecase:        NewPlanetUseCase(mockPlanetRepo),
+		ctrl:              ctrl,
+		mockPlanetRepo:    mockPlanetRepo,
+		mockPlanetMutator: mockPlanetMutator,
+		usecase:           NewPlanetUseCase(mockPlanetRepo, mockPlanetMutator),
 	}
 }
