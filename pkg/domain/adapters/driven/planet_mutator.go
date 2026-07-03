@@ -35,7 +35,7 @@ func (m *PlanetMutator) Mutate(
 		return models.Planet{}, err
 	}
 
-	err = mutator(&planet, tx.TimeStamp())
+	err = mutator(&planet)
 	if err != nil {
 		// There's no point in checking the error here: it is not logged
 		// and there's already an error pending.

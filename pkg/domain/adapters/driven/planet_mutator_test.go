@@ -25,7 +25,7 @@ func TestIT_PlanetMutator_Mutate(t *testing.T) {
 		planet, _, _ := insertTestPlanetForPlayer(t, conn)
 
 		var captured models.Planet
-		mutator := func(p *models.Planet, t time.Time) error {
+		mutator := func(p *models.Planet) error {
 			captured = *p
 			p.Version++
 			return nil
@@ -662,7 +662,7 @@ func newTestPlanetMutator(t *testing.T) (*PlanetMutator, db.Connection) {
 }
 
 func generateModifyingMutator(modifier func(p *models.Planet)) drivenports.PlanetMutator {
-	return func(p *models.Planet, t time.Time) error {
+	return func(p *models.Planet) error {
 		modifier(p)
 		return nil
 	}
