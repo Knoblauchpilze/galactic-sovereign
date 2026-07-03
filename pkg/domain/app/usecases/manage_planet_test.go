@@ -70,8 +70,8 @@ func TestUnit_ManagePlanet_Get(t *testing.T) {
 			Times(1).
 			DoAndReturn(
 				func(ctx context.Context, id uuid.UUID, m drivenports.PlanetMutator) (models.Planet, error) {
-					m(&planet)
-					return planet, nil
+					err := m(&planet)
+					return planet, err
 				})
 
 		actual, err := suite.usecase.Get(context.Background(), planet.Id)
@@ -110,8 +110,8 @@ func TestUnit_ManagePlanet_Get(t *testing.T) {
 			Times(1).
 			DoAndReturn(
 				func(ctx context.Context, id uuid.UUID, m drivenports.PlanetMutator) (models.Planet, error) {
-					m(&planet)
-					return planet, nil
+					err := m(&planet)
+					return planet, err
 				})
 
 		actual, err := suite.usecase.Get(context.Background(), planet.Id)
@@ -160,8 +160,8 @@ func TestUnit_ManagePlanet_Get(t *testing.T) {
 			Times(1).
 			DoAndReturn(
 				func(ctx context.Context, id uuid.UUID, m drivenports.PlanetMutator) (models.Planet, error) {
-					m(&planet)
-					return planet, nil
+					err := m(&planet)
+					return planet, err
 				})
 
 		actual, err := suite.usecase.Get(context.Background(), planet.Id)
