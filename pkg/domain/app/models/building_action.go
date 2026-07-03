@@ -7,7 +7,8 @@ import (
 )
 
 type BuildingAction struct {
-	Id       uuid.UUID
+	Id uuid.UUID
+	// TODO: Could probably be removed
 	Planet   uuid.UUID
 	Building uuid.UUID
 
