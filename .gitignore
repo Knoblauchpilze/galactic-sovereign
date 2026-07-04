@@ -1,1 +1,4 @@
 .vscode
+# Contains the temp data describing the requests made to the server, such as
+# player creation, planet creation, etc.
+sandbox

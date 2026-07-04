@@ -14,7 +14,7 @@ type UniverseDtoResponse struct {
 	Id   uuid.UUID `json:"id" format:"uuid" binding:"required"`
 	Name string    `json:"name" example:"oberon" binding:"required"`
 
-	CreatedAt time.Time `json:"createdAt" format:"date-time" binding:"required"`
+	CreatedAt time.Time `json:"created_at" format:"date-time" binding:"required"`
 
 	Resources []ResourceDtoResponse `json:"resources" binding:"required"`
 	Buildings []BuildingDtoResponse `json:"buildings" binding:"required"`
@@ -28,13 +28,13 @@ type ResourceDtoResponse struct {
 	StartProduction int `json:"start_production" binding:"required"`
 	StartStorage    int `json:"start_storage" binding:"required"`
 
-	CreatedAt time.Time `json:"createdAt" format:"date-time" binding:"required"`
+	CreatedAt time.Time `json:"created_at" format:"date-time" binding:"required"`
 }
 
 type BuildingDtoResponse struct {
 	Id        uuid.UUID `json:"id" format:"uuid" binding:"required"`
 	Name      string    `json:"name" example:"metal mine" binding:"required"`
-	CreatedAt time.Time `json:"createdAt" format:"date-time" binding:"required"`
+	CreatedAt time.Time `json:"created_at" format:"date-time" binding:"required"`
 
 	Costs       []BuildingCostDtoResponse               `json:"costs" binding:"required"`
 	Productions []BuildingResourceProductionDtoResponse `json:"productions" binding:"required"`

@@ -18,7 +18,7 @@ type PlayerDtoResponse struct {
 	Universe uuid.UUID `json:"universe" format:"uuid" binding:"required"`
 	Name     string    `json:"name" example:"emperor palpatine" binding:"required"`
 
-	CreatedAt time.Time `json:"createdAt" format:"date-time" binding:"required"`
+	CreatedAt time.Time `json:"created_at" format:"date-time" binding:"required"`
 
 	Homeworld uuid.UUID   `json:"homeworld" format:"uuid" binding:"required"`
 	Planets   []uuid.UUID `json:"planets" format:"uuid" binding:"required"`

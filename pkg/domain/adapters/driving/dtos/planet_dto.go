@@ -16,8 +16,8 @@ type PlanetDtoResponse struct {
 	Name      string    `json:"name" example:"colony" binding:"required"`
 	Homeworld bool      `json:"homeworld" binding:"required"`
 
-	CreatedAt time.Time `json:"createdAt" format:"date-time" binding:"required"`
-	UpdatedAt time.Time `json:"updatedAt" format:"date-time" binding:"required"`
+	CreatedAt time.Time `json:"created_at" format:"date-time" binding:"required"`
+	UpdatedAt time.Time `json:"updated_at" format:"date-time" binding:"required"`
 
 	Resources   []PlanetResourceDtoResponse           `json:"resources" binding:"required"`
 	Storages    []PlanetResourceStorageDtoResponse    `json:"storages" binding:"required"`

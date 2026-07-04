@@ -14,10 +14,10 @@ type BuildingActionDtoResponse struct {
 	Id           uuid.UUID `json:"id" format:"uuid" binding:"required"`
 	Planet       uuid.UUID `json:"planet" format:"uuid" binding:"required"`
 	Building     uuid.UUID `json:"building" format:"uuid" binding:"required"`
-	DesiredLevel int       `json:"desiredLevel" binding:"required"`
+	DesiredLevel int       `json:"desired_level" binding:"required"`
 
-	CreatedAt   time.Time `json:"createdAt" format:"date-time" binding:"required"`
-	CompletedAt time.Time `json:"completedAt" format:"date-time" binding:"required"`
+	CreatedAt   time.Time `json:"created_at" format:"date-time" binding:"required"`
+	CompletedAt time.Time `json:"completed_at" format:"date-time" binding:"required"`
 
 	Costs       []BuildingActionCostDtoResponse       `json:"resources" binding:"required"`
 	Storages    []BuildingActionStorageDtoResponse    `json:"storages" binding:"required"`

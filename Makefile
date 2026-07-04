@@ -3,6 +3,9 @@ GIT_COMMIT_HASH=$(shell git rev-parse --short HEAD)
 SWAG_VERSION ?= v2.0.0-rc5
 GOLANGCI_LINT_VERSION ?= v2.12.2
 
+setup:
+	mkdir -p sandbox
+
 galactic-sovereign-service-build:
 	docker build \
 		--build-arg GIT_COMMIT_HASH=${GIT_COMMIT_HASH} \
