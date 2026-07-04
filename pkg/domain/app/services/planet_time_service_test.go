@@ -91,8 +91,7 @@ func TestUnit_AdvancePlanetToTime(t *testing.T) {
 			Id:        p.Id,
 			CreatedAt: p.CreatedAt,
 			UpdatedAt: t4,
-			// TODO: This will be an issue as it should only increment by one
-			Version: 6,
+			Version:   6,
 			Resources: []models.PlanetResource{
 				{Resource: metalResourceId, Amount: 1195},
 				{Resource: crystalResourceId, Amount: 3328},

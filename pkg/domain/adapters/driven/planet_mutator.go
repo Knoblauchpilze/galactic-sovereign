@@ -5,6 +5,7 @@ import (
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
+	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
 	drivenports "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driven"
 	"github.com/google/uuid"
 )
@@ -35,6 +36,8 @@ func (m *PlanetMutator) Mutate(
 		return models.Planet{}, err
 	}
 
+	expectedVersion := planet.Version
+
 	err = mutator(&planet)
 	if err != nil {
 		// There's no point in checking the error here: it is not logged
@@ -45,7 +48,11 @@ func (m *PlanetMutator) Mutate(
 		return models.Planet{}, err
 	}
 
-	err = updatePlanetDetails(ctx, tx, planet)
+	if planet.Version == expectedVersion {
+		return models.Planet{}, domainerrors.ErrMutationWithoutVersionBump
+	}
+
+	err = updatePlanetDetails(ctx, tx, planet, expectedVersion)
 	if err != nil {
 		return models.Planet{}, err
 	}

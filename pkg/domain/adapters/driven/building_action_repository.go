@@ -141,7 +141,7 @@ func (r *buildingActionRepositoryImpl) Create(
 		return parseDbError(err)
 	}
 
-	err = updatePlanetDetails(ctx, tx, planet)
+	err = updatePlanetDetails(ctx, tx, planet, planet.Version-1)
 	if err != nil {
 		return parseDbError(err)
 	}
@@ -164,7 +164,7 @@ func (r *buildingActionRepositoryImpl) Delete(
 		return err
 	}
 
-	err = updatePlanetDetails(ctx, tx, planet)
+	err = updatePlanetDetails(ctx, tx, planet, planet.Version-1)
 	if err != nil {
 		return parseDbError(err)
 	}

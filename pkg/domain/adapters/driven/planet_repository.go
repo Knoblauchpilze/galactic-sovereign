@@ -472,7 +472,12 @@ func loadPlanetDetails(ctx context.Context, tx db.Transaction, dbPlanet mappers.
 	return planet, nil
 }
 
-func updatePlanetDetails(ctx context.Context, tx db.Transaction, planet models.Planet) error {
+func updatePlanetDetails(
+	ctx context.Context,
+	tx db.Transaction,
+	planet models.Planet,
+	expectedVersion int,
+) error {
 	for _, r := range planet.Resources {
 		affected, err := tx.Exec(
 			ctx,
@@ -555,7 +560,7 @@ func updatePlanetDetails(ctx context.Context, tx db.Transaction, planet models.P
 		planet.Version,
 		planet.UpdatedAt,
 		planet.Id,
-		planet.Version-1,
+		expectedVersion,
 	)
 	if err != nil {
 		return err

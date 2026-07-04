@@ -17,6 +17,7 @@ const (
 	optimisticLockingException errors.ErrorCode = 614
 	planetNotUpToDate          errors.ErrorCode = 615
 	actionNotCompleted         errors.ErrorCode = 616
+	mutationWithoutVersionBump errors.ErrorCode = 617
 )
 
 var (
@@ -26,11 +27,12 @@ var (
 	ErrPlayerNotFound   = errors.FromCode(playerNotFound)
 	ErrResourceNotFound = errors.FromCode(planetResourceNotFound)
 
-	ErrNameAlreadyTaken        = errors.FromCode(nameAlreadyTaken)
-	ErrActionAlreadyInProgress = errors.FromCode(actionAlreadyInProgress)
-	ErrNoActionInProgress      = errors.FromCode(noActionInProgress)
-	ErrNotEnoughResources      = errors.FromCode(notEnoughResources)
-	ErrOptimisticLocking       = errors.FromCode(optimisticLockingException)
-	ErrPlanetNotUpToDate       = errors.FromCode(planetNotUpToDate)
-	ErrActionNotCompleted      = errors.FromCode(actionNotCompleted)
+	ErrNameAlreadyTaken           = errors.FromCode(nameAlreadyTaken)
+	ErrActionAlreadyInProgress    = errors.FromCode(actionAlreadyInProgress)
+	ErrNoActionInProgress         = errors.FromCode(noActionInProgress)
+	ErrNotEnoughResources         = errors.FromCode(notEnoughResources)
+	ErrOptimisticLocking          = errors.FromCode(optimisticLockingException)
+	ErrPlanetNotUpToDate          = errors.FromCode(planetNotUpToDate)
+	ErrActionNotCompleted         = errors.FromCode(actionNotCompleted)
+	ErrMutationWithoutVersionBump = errors.FromCode(mutationWithoutVersionBump)
 )

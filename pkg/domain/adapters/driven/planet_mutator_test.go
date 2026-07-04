@@ -625,7 +625,7 @@ func TestIT_PlanetMutator_Mutate(t *testing.T) {
 
 		_, err := adapter.Mutate(t.Context(), planet.Id, mutator)
 
-		assert.ErrorIs(t, domainerrors.ErrOptimisticLocking, err)
+		assert.ErrorIs(t, domainerrors.ErrMutationWithoutVersionBump, err)
 	})
 
 	t.Run("returns error when new building is added", func(t *testing.T) {
