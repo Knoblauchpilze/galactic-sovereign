@@ -64,7 +64,7 @@ func (p *Planet) AddBuildingAction(building Building) error {
 		return err
 	}
 
-	action := building.CreateBuildingAction(p.Id, pb.Level+1, p.UpdatedAt)
+	action := building.CreateBuildingAction(pb.Level+1, p.UpdatedAt)
 
 	if err := p.validateEnoughResources(action); err != nil {
 		return err

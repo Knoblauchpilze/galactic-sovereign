@@ -15,17 +15,14 @@ var (
 )
 
 func TestUnit_Building_CreateBuildingAction(t *testing.T) {
-	planetId := uuid.New()
-
 	t.Run("correctly calculates action costs", func(t *testing.T) {
 		b := generateTestBuilding(t, withBuildingCost)
 
-		action := b.CreateBuildingAction(planetId, 5, someTime)
+		action := b.CreateBuildingAction(5, someTime)
 
 		expected := BuildingAction{
 			// The identifier is generated
 			Id:           action.Id,
-			Planet:       planetId,
 			Building:     b.Id,
 			DesiredLevel: 5,
 
@@ -52,11 +49,10 @@ func TestUnit_Building_CreateBuildingAction(t *testing.T) {
 	t.Run("correctly calculates action resource productions", func(t *testing.T) {
 		b := generateTestBuilding(t, withBuildingProduction)
 
-		action := b.CreateBuildingAction(planetId, 5, someTime)
+		action := b.CreateBuildingAction(5, someTime)
 
 		expected := BuildingAction{
 			Id:           action.Id,
-			Planet:       planetId,
 			Building:     b.Id,
 			DesiredLevel: 5,
 
@@ -83,11 +79,10 @@ func TestUnit_Building_CreateBuildingAction(t *testing.T) {
 	t.Run("correctly calculates action resource storages", func(t *testing.T) {
 		b := generateTestBuilding(t, withBuildingStorage)
 
-		action := b.CreateBuildingAction(planetId, 5, someTime)
+		action := b.CreateBuildingAction(5, someTime)
 
 		expected := BuildingAction{
 			Id:           action.Id,
-			Planet:       planetId,
 			Building:     b.Id,
 			DesiredLevel: 5,
 
@@ -127,7 +122,7 @@ func TestUnit_Building_CreateBuildingAction(t *testing.T) {
 			Storages:    []BuildingResourceStorage{},
 		}
 
-		action := b.CreateBuildingAction(planetId, 5, someTime)
+		action := b.CreateBuildingAction(5, someTime)
 
 		assert.Equal(t, someTime, action.CreatedAt)
 		assert.Equal(t, someTime, action.CompletedAt)
@@ -150,7 +145,7 @@ func TestUnit_Building_CreateBuildingAction(t *testing.T) {
 			Storages:    []BuildingResourceStorage{},
 		}
 
-		action := b.CreateBuildingAction(planetId, 5, someTime)
+		action := b.CreateBuildingAction(5, someTime)
 
 		assert.Equal(t, someTime, action.CreatedAt)
 		assert.Equal(t, someTime, action.CompletedAt)
@@ -172,7 +167,7 @@ func TestUnit_Building_CreateBuildingAction(t *testing.T) {
 			Storages:    []BuildingResourceStorage{},
 		}
 
-		action := b.CreateBuildingAction(planetId, 5, someTime)
+		action := b.CreateBuildingAction(5, someTime)
 
 		completionTime := 262080 * time.Millisecond
 		assert.Equal(t, someTime, action.CreatedAt)
@@ -195,7 +190,7 @@ func TestUnit_Building_CreateBuildingAction(t *testing.T) {
 			Storages:    []BuildingResourceStorage{},
 		}
 
-		action := b.CreateBuildingAction(planetId, 5, someTime)
+		action := b.CreateBuildingAction(5, someTime)
 
 		completionTime := 948960 * time.Millisecond
 		assert.Equal(t, someTime, action.CreatedAt)
@@ -223,7 +218,7 @@ func TestUnit_Building_CreateBuildingAction(t *testing.T) {
 			Storages:    []BuildingResourceStorage{},
 		}
 
-		action := b.CreateBuildingAction(planetId, 5, someTime)
+		action := b.CreateBuildingAction(5, someTime)
 
 		completionTime := 1211040 * time.Millisecond
 		assert.Equal(t, someTime, action.CreatedAt)

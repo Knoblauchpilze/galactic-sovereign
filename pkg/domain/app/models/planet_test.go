@@ -78,7 +78,6 @@ func TestUnit_Planet_AddBuildingAction(t *testing.T) {
 		completionTime := 1199520 * time.Millisecond
 		expectedAction := &BuildingAction{
 			Id:           p.BuildingAction.Id,
-			Planet:       p.Id,
 			Building:     b.Id,
 			DesiredLevel: p.Buildings[0].Level + 1,
 			CreatedAt:    someTime,

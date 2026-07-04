@@ -547,7 +547,7 @@ func updatePlanetDetails(
 	if planet.BuildingAction == nil {
 		actionErr = deleteBuildingActionAndDetailsForPlanet(ctx, tx, planet.Id)
 	} else {
-		actionErr = upsertBuildingActionWithDetails(ctx, tx, *planet.BuildingAction)
+		actionErr = upsertBuildingActionWithDetails(ctx, tx, planet.Id, *planet.BuildingAction)
 
 	}
 	if actionErr != nil {

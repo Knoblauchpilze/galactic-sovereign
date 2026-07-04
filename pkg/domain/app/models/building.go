@@ -43,7 +43,6 @@ type BuildingResourceStorage struct {
 }
 
 func (b Building) CreateBuildingAction(
-	planet uuid.UUID,
 	desiredLevel int,
 	createdAt time.Time,
 ) BuildingAction {
@@ -52,7 +51,6 @@ func (b Building) CreateBuildingAction(
 
 	action := BuildingAction{
 		Id:           uuid.New(),
-		Planet:       planet,
 		Building:     b.Id,
 		DesiredLevel: desiredLevel,
 

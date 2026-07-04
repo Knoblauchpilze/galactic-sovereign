@@ -12,7 +12,6 @@ type BuildingActionDtoRequest struct {
 
 type BuildingActionDtoResponse struct {
 	Id           uuid.UUID `json:"id" format:"uuid" binding:"required"`
-	Planet       uuid.UUID `json:"planet" format:"uuid" binding:"required"`
 	Building     uuid.UUID `json:"building" format:"uuid" binding:"required"`
 	DesiredLevel int       `json:"desired_level" binding:"required"`
 

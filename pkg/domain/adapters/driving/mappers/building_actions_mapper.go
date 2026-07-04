@@ -20,7 +20,6 @@ func ToBuildingActionCreationRequest(
 func ToBuildingActionResponse(action models.BuildingAction) dtos.BuildingActionDtoResponse {
 	return dtos.BuildingActionDtoResponse{
 		Id:           action.Id,
-		Planet:       action.Planet,
 		Building:     action.Building,
 		DesiredLevel: action.DesiredLevel,
 		CreatedAt:    action.CreatedAt,

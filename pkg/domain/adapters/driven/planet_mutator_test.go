@@ -210,7 +210,6 @@ func TestIT_PlanetMutator_Mutate(t *testing.T) {
 
 		action := models.BuildingAction{
 			Id:           uuid.New(),
-			Planet:       planet.Id,
 			Building:     metalMineId,
 			DesiredLevel: 3,
 			CreatedAt:    someTime,
@@ -243,7 +242,6 @@ func TestIT_PlanetMutator_Mutate(t *testing.T) {
 
 		action := models.BuildingAction{
 			Id:           uuid.New(),
-			Planet:       planet.Id,
 			Building:     metalMineId,
 			DesiredLevel: 3,
 			CreatedAt:    someTime,
@@ -285,7 +283,6 @@ func TestIT_PlanetMutator_Mutate(t *testing.T) {
 
 		action := models.BuildingAction{
 			Id:           uuid.New(),
-			Planet:       planet.Id,
 			Building:     metalMineId,
 			DesiredLevel: 3,
 			CreatedAt:    someTime,
@@ -327,7 +324,6 @@ func TestIT_PlanetMutator_Mutate(t *testing.T) {
 
 		action := models.BuildingAction{
 			Id:           uuid.New(),
-			Planet:       planet.Id,
 			Building:     metalMineId,
 			DesiredLevel: 3,
 			CreatedAt:    someTime,

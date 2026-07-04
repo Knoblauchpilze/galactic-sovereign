@@ -9,7 +9,6 @@ import (
 
 type DbBuildingAction struct {
 	Id           uuid.UUID
-	Planet       uuid.UUID
 	Building     uuid.UUID
 	DesiredLevel int
 
@@ -20,7 +19,6 @@ type DbBuildingAction struct {
 func (a DbBuildingAction) ToDomain() models.BuildingAction {
 	return models.BuildingAction{
 		Id:           a.Id,
-		Planet:       a.Planet,
 		Building:     a.Building,
 		DesiredLevel: a.DesiredLevel,
 

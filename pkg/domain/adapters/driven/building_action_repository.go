@@ -43,7 +43,6 @@ ON CONFLICT (action, resource) DO NOTHING`
 	getBuildingActionQuery = `
 SELECT
 	id,
-	planet,
 	building,
 	desired_level,
 	created_at,
@@ -136,7 +135,7 @@ func (r *buildingActionRepositoryImpl) Create(
 	}
 	defer tx.Close(ctx)
 
-	err = upsertBuildingActionWithDetails(ctx, tx, *planet.BuildingAction)
+	err = upsertBuildingActionWithDetails(ctx, tx, planet.Id, *planet.BuildingAction)
 	if err != nil {
 		return parseDbError(err)
 	}
@@ -172,12 +171,17 @@ func (r *buildingActionRepositoryImpl) Delete(
 	return nil
 }
 
-func upsertBuildingActionWithDetails(ctx context.Context, tx db.Transaction, action models.BuildingAction) error {
+func upsertBuildingActionWithDetails(
+	ctx context.Context,
+	tx db.Transaction,
+	planet uuid.UUID,
+	action models.BuildingAction,
+) error {
 	_, err := tx.Exec(
 		ctx,
 		upsertBuildingActionQuery,
 		action.Id,
-		action.Planet,
+		planet,
 		action.Building,
 		action.DesiredLevel,
 		action.CreatedAt,

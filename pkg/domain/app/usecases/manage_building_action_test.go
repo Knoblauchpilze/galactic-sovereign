@@ -61,7 +61,6 @@ func TestUnit_ManageBuildingAction_Create(t *testing.T) {
 
 		expected := models.BuildingAction{
 			Id:           actual.Id,
-			Planet:       request.Planet,
 			Building:     request.Building,
 			DesiredLevel: planet.Buildings[0].Level + 1,
 			CreatedAt:    actual.CreatedAt,
@@ -136,7 +135,6 @@ func TestUnit_ManageBuildingAction_Create(t *testing.T) {
 			Buildings:      planet.Buildings,
 			BuildingAction: &actual,
 		}
-		assert.Equal(t, planet.Id, actual.Planet)
 		assert.Equal(t, expected, captured)
 	})
 

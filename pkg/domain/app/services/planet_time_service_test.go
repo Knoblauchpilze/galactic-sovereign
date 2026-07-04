@@ -144,7 +144,6 @@ func generateTestPlanet() models.Planet {
 func generateTestBuildingAction(p models.Planet) models.BuildingAction {
 	return models.BuildingAction{
 		Id:           uuid.New(),
-		Planet:       p.Id,
 		Building:     crystalMineId,
 		DesiredLevel: 3,
 		Storages: []models.BuildingActionResourceStorage{

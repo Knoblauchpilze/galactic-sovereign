@@ -21,18 +21,15 @@ components:
         building:
           format: uuid
           type: string
-        completedAt:
+        completed_at:
           format: date-time
           type: string
-        createdAt:
+        created_at:
           format: date-time
           type: string
-        desiredLevel:
+        desired_level:
           type: integer
         id:
-          format: uuid
-          type: string
-        planet:
           format: uuid
           type: string
         productions:
@@ -52,11 +49,10 @@ components:
           uniqueItems: false
       required:
       - building
-      - completedAt
-      - createdAt
-      - desiredLevel
+      - completed_at
+      - created_at
+      - desired_level
       - id
-      - planet
       - productions
       - resources
       - storages
@@ -98,7 +94,7 @@ components:
             $ref: '#/components/schemas/dtos.BuildingCostDtoResponse'
           type: array
           uniqueItems: false
-        createdAt:
+        created_at:
           format: date-time
           type: string
         id:
@@ -119,7 +115,7 @@ components:
           uniqueItems: false
       required:
       - costs
-      - createdAt
+      - created_at
       - id
       - name
       - productions
@@ -184,7 +180,7 @@ components:
             $ref: '#/components/schemas/dtos.PlanetBuildingDtoResponse'
           type: array
           uniqueItems: false
-        createdAt:
+        created_at:
           format: date-time
           type: string
         homeworld:
@@ -213,12 +209,12 @@ components:
             $ref: '#/components/schemas/dtos.PlanetResourceStorageDtoResponse'
           type: array
           uniqueItems: false
-        updatedAt:
+        updated_at:
           format: date-time
           type: string
       required:
       - buildings
-      - createdAt
+      - created_at
       - homeworld
       - id
       - name
@@ -226,7 +222,7 @@ components:
       - productions
       - resources
       - storages
-      - updatedAt
+      - updated_at
       type: object
     dtos.PlanetResourceDtoResponse:
       properties:
@@ -286,7 +282,7 @@ components:
         api_user:
           format: uuid
           type: string
-        createdAt:
+        created_at:
           format: date-time
           type: string
         homeworld:
@@ -309,7 +305,7 @@ components:
           type: string
       required:
       - api_user
-      - createdAt
+      - created_at
       - homeworld
       - id
       - name
@@ -318,7 +314,7 @@ components:
       type: object
     dtos.ResourceDtoResponse:
       properties:
-        createdAt:
+        created_at:
           format: date-time
           type: string
         id:
@@ -334,7 +330,7 @@ components:
         start_storage:
           type: integer
       required:
-      - createdAt
+      - created_at
       - id
       - name
       - start_amount
@@ -356,7 +352,7 @@ components:
             $ref: '#/components/schemas/dtos.BuildingDtoResponse'
           type: array
           uniqueItems: false
-        createdAt:
+        created_at:
           format: date-time
           type: string
         id:
@@ -372,7 +368,7 @@ components:
           uniqueItems: false
       required:
       - buildings
-      - createdAt
+      - created_at
       - id
       - name
       - resources

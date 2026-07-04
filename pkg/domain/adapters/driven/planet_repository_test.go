@@ -861,7 +861,6 @@ func addPlanetBuildingAction(t *testing.T, conn db.Connection, p *models.Planet)
 
 	action := models.BuildingAction{
 		Id:           uuid.New(),
-		Planet:       p.Id,
 		Building:     metalStorageId,
 		DesiredLevel: 1,
 		CreatedAt:    someTime,

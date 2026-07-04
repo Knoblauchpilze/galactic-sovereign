@@ -27,7 +27,6 @@ func TestIT_BuildingActionRepository_Create(t *testing.T) {
 		planet, _, _ := insertTestPlanetForPlayer(t, conn)
 		planet.BuildingAction = &models.BuildingAction{
 			Id:           actionId,
-			Planet:       planet.Id,
 			Building:     metalMineId,
 			DesiredLevel: 3,
 			CreatedAt:    someTime,
@@ -54,7 +53,6 @@ func TestIT_BuildingActionRepository_Create(t *testing.T) {
 		planet, _, _ := insertTestPlanetForPlayer(t, conn)
 		planet.BuildingAction = &models.BuildingAction{
 			Id:           actionId,
-			Planet:       planet.Id,
 			Building:     metalMineId,
 			DesiredLevel: 3,
 			CreatedAt:    someTime,
@@ -90,7 +88,6 @@ func TestIT_BuildingActionRepository_Create(t *testing.T) {
 		planet, _, _ := insertTestPlanetForPlayer(t, conn)
 		planet.BuildingAction = &models.BuildingAction{
 			Id:           actionId,
-			Planet:       planet.Id,
 			Building:     metalMineId,
 			DesiredLevel: 3,
 			CreatedAt:    someTime,
@@ -126,7 +123,6 @@ func TestIT_BuildingActionRepository_Create(t *testing.T) {
 		planet, _, _ := insertTestPlanetForPlayer(t, conn)
 		planet.BuildingAction = &models.BuildingAction{
 			Id:           actionId,
-			Planet:       planet.Id,
 			Building:     metalMineId,
 			DesiredLevel: 3,
 			CreatedAt:    someTime,
@@ -162,7 +158,6 @@ func TestIT_BuildingActionRepository_Create(t *testing.T) {
 		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetResource)
 		planet.BuildingAction = &models.BuildingAction{
 			Id:           actionId,
-			Planet:       planet.Id,
 			Building:     metalMineId,
 			DesiredLevel: 3,
 			CreatedAt:    someTime,
@@ -198,7 +193,6 @@ func TestIT_BuildingActionRepository_Create(t *testing.T) {
 		require.NotEqual(t, 1000.0, planet.Resources[0].Amount)
 		planet.BuildingAction = &models.BuildingAction{
 			Id:           actionId,
-			Planet:       planet.Id,
 			Building:     metalMineId,
 			DesiredLevel: 3,
 			CreatedAt:    someTime,
@@ -228,7 +222,6 @@ func TestIT_BuildingActionRepository_Create(t *testing.T) {
 		planet.Storages[0].Storage = 5000
 		planet.BuildingAction = &models.BuildingAction{
 			Id:           actionId,
-			Planet:       planet.Id,
 			Building:     metalMineId,
 			DesiredLevel: 3,
 			CreatedAt:    someTime,
@@ -256,7 +249,6 @@ func TestIT_BuildingActionRepository_Create(t *testing.T) {
 		planet.Productions[0].Production = 9874
 		planet.BuildingAction = &models.BuildingAction{
 			Id:           actionId,
-			Planet:       planet.Id,
 			Building:     metalMineId,
 			DesiredLevel: 3,
 			CreatedAt:    someTime,
@@ -284,7 +276,6 @@ func TestIT_BuildingActionRepository_Create(t *testing.T) {
 		planet.Productions[0].Production = 9874
 		planet.BuildingAction = &models.BuildingAction{
 			Id:           actionId,
-			Planet:       planet.Id,
 			Building:     crystalMineId,
 			DesiredLevel: 3,
 			CreatedAt:    someTime,
@@ -321,7 +312,6 @@ func TestIT_BuildingActionRepository_Create(t *testing.T) {
 		require.LessOrEqual(t, 1000.0, planet.Resources[0].Amount)
 		planet.BuildingAction = &models.BuildingAction{
 			Id:           actionId,
-			Planet:       planet.Id,
 			Building:     metalMineId,
 			DesiredLevel: 3,
 			CreatedAt:    someTime,
@@ -353,7 +343,6 @@ func TestIT_BuildingActionRepository_Create(t *testing.T) {
 		_, planet := insertTestBuildingAction(t, conn)
 		planet.BuildingAction = &models.BuildingAction{
 			Id:           uuid.New(),
-			Planet:       planet.Id,
 			Building:     metalMineId,
 			DesiredLevel: 5,
 			CreatedAt:    someTime,
@@ -547,7 +536,6 @@ func TestIT_BuildingActionRepository_CreationDeletionWorkflow(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			planet, _, _ := insertTestPlanetForPlayer(t, conn)
-			tc.action.Planet = planet.Id
 			planet.BuildingAction = &tc.action
 			planet.Version++
 
@@ -593,7 +581,6 @@ func insertTestBuildingActionForPlanet(
 
 	action := models.BuildingAction{
 		Id:           uuid.New(),
-		Planet:       planetId,
 		Building:     metalMineId,
 		DesiredLevel: 5,
 		CreatedAt:    someTime,
@@ -612,7 +599,7 @@ func insertTestBuildingActionForPlanet(
 		t.Context(),
 		sqlQuery,
 		action.Id,
-		action.Planet,
+		planetId,
 		action.Building,
 		action.DesiredLevel,
 		action.CreatedAt,

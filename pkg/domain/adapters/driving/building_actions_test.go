@@ -55,7 +55,6 @@ func TestUnit_BuildingActions_CreateBuildingAction(t *testing.T) {
 		expectedRequest := request.BuildingActionCreationRequest{Planet: sampleUuid, Building: dto.Building}
 		action := models.BuildingAction{
 			Id:           uuid.New(),
-			Planet:       sampleUuid,
 			Building:     dto.Building,
 			DesiredLevel: 6,
 			CreatedAt:    someTime,
@@ -96,7 +95,6 @@ func TestUnit_BuildingActions_CreateBuildingAction(t *testing.T) {
 		actual := decodeResponseBody[dtos.BuildingActionDtoResponse](t, rw)
 		expected := dtos.BuildingActionDtoResponse{
 			Id:           action.Id,
-			Planet:       action.Planet,
 			Building:     action.Building,
 			DesiredLevel: action.DesiredLevel,
 			CreatedAt:    action.CreatedAt,

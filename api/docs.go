@@ -38,22 +38,18 @@ const docTemplate = `{
                         "format": "uuid",
                         "type": "string"
                     },
-                    "completedAt": {
+                    "completed_at": {
                         "format": "date-time",
                         "type": "string"
                     },
-                    "createdAt": {
+                    "created_at": {
                         "format": "date-time",
                         "type": "string"
                     },
-                    "desiredLevel": {
+                    "desired_level": {
                         "type": "integer"
                     },
                     "id": {
-                        "format": "uuid",
-                        "type": "string"
-                    },
-                    "planet": {
                         "format": "uuid",
                         "type": "string"
                     },
@@ -81,11 +77,10 @@ const docTemplate = `{
                 },
                 "required": [
                     "building",
-                    "completedAt",
-                    "createdAt",
-                    "desiredLevel",
+                    "completed_at",
+                    "created_at",
+                    "desired_level",
                     "id",
-                    "planet",
                     "productions",
                     "resources",
                     "storages"
@@ -145,7 +140,7 @@ const docTemplate = `{
                         "type": "array",
                         "uniqueItems": false
                     },
-                    "createdAt": {
+                    "created_at": {
                         "format": "date-time",
                         "type": "string"
                     },
@@ -174,7 +169,7 @@ const docTemplate = `{
                 },
                 "required": [
                     "costs",
-                    "createdAt",
+                    "created_at",
                     "id",
                     "name",
                     "productions",
@@ -266,7 +261,7 @@ const docTemplate = `{
                         "type": "array",
                         "uniqueItems": false
                     },
-                    "createdAt": {
+                    "created_at": {
                         "format": "date-time",
                         "type": "string"
                     },
@@ -306,14 +301,14 @@ const docTemplate = `{
                         "type": "array",
                         "uniqueItems": false
                     },
-                    "updatedAt": {
+                    "updated_at": {
                         "format": "date-time",
                         "type": "string"
                     }
                 },
                 "required": [
                     "buildings",
-                    "createdAt",
+                    "created_at",
                     "homeworld",
                     "id",
                     "name",
@@ -321,7 +316,7 @@ const docTemplate = `{
                     "productions",
                     "resources",
                     "storages",
-                    "updatedAt"
+                    "updated_at"
                 ],
                 "type": "object"
             },
@@ -406,7 +401,7 @@ const docTemplate = `{
                         "format": "uuid",
                         "type": "string"
                     },
-                    "createdAt": {
+                    "created_at": {
                         "format": "date-time",
                         "type": "string"
                     },
@@ -437,7 +432,7 @@ const docTemplate = `{
                 },
                 "required": [
                     "api_user",
-                    "createdAt",
+                    "created_at",
                     "homeworld",
                     "id",
                     "name",
@@ -448,7 +443,7 @@ const docTemplate = `{
             },
             "dtos.ResourceDtoResponse": {
                 "properties": {
-                    "createdAt": {
+                    "created_at": {
                         "format": "date-time",
                         "type": "string"
                     },
@@ -471,7 +466,7 @@ const docTemplate = `{
                     }
                 },
                 "required": [
-                    "createdAt",
+                    "created_at",
                     "id",
                     "name",
                     "start_amount",
@@ -501,7 +496,7 @@ const docTemplate = `{
                         "type": "array",
                         "uniqueItems": false
                     },
-                    "createdAt": {
+                    "created_at": {
                         "format": "date-time",
                         "type": "string"
                     },
@@ -523,7 +518,7 @@ const docTemplate = `{
                 },
                 "required": [
                     "buildings",
-                    "createdAt",
+                    "created_at",
                     "id",
                     "name",
                     "resources"

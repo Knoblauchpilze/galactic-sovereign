@@ -55,7 +55,6 @@ func TestIT_Server_PlayerBuildingActionLifecycle(t *testing.T) {
 	assert.Len(t, action.Costs, 2)
 	assert.Len(t, action.Productions, 1)
 	assert.Empty(t, action.Storages)
-	assert.Equal(t, homeworld.Id, action.Planet)
 
 	homeworld = doGet[dtos.PlanetDtoResponse](
 		t, urlFor(conf, "planets", player.Homeworld.String()),
