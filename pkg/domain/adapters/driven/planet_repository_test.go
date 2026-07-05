@@ -398,35 +398,6 @@ func TestIT_PlanetRepository_GetByAction(t *testing.T) {
 	})
 }
 
-func TestIT_PlanetRepository_List(t *testing.T) {
-	repo, conn := newTestPlanetRepository(t)
-	p1, player1, _ := insertTestPlanetForPlayer(t, conn)
-	p2 := insertTestPlanet(t, conn, player1.Id)
-	p3, player2, _ := insertTestPlanetForPlayer(t, conn)
-	p4 := insertTestPlanet(t, conn, player2.Id)
-	p5 := insertTestPlanet(t, conn, player2.Id, addPlanetResource)
-	p6 := insertTestPlanet(t, conn, player2.Id, addPlanetStorage)
-	p7 := insertTestPlanet(t, conn, player2.Id, addPlanetProduction)
-	p8 := insertTestPlanet(t, conn, player2.Id, addPlanetProductionForBuilding)
-	p9 := insertTestPlanet(t, conn, player2.Id, addPlanetBuilding)
-	p10 := insertTestPlanet(t, conn, player2.Id, addPlanetBuildingAction)
-
-	actual, err := repo.List(t.Context())
-	require.NoError(t, err, "Actual err: %v", err)
-
-	// The additional resources are planet from the seed data
-	assert.Contains(t, actual, p1)
-	assert.Contains(t, actual, p2)
-	assert.Contains(t, actual, p3)
-	assert.Contains(t, actual, p4)
-	assert.Contains(t, actual, p5)
-	assert.Contains(t, actual, p6)
-	assert.Contains(t, actual, p7)
-	assert.Contains(t, actual, p8)
-	assert.Contains(t, actual, p9)
-	assert.Contains(t, actual, p10)
-}
-
 func TestIT_PlanetRepository_ListForPlayer(t *testing.T) {
 	repo, conn := newTestPlanetRepository(t)
 	p1, _, _ := insertTestPlanetForPlayer(t, conn)

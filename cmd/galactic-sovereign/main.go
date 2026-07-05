@@ -27,7 +27,7 @@ func determineConfigName() string {
 // @title			Galactic Sovereign API
 // @version		1.0
 // @description	REST API for the Galactic Sovereign backend service.
-// @servers.url /v1
+// @servers.url /v1/galactic-sovereign
 // @servers.description Base path for the galactic-sovereign API
 func main() {
 	log := logger.New(os.Stdout)

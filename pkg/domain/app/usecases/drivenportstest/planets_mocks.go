@@ -86,21 +86,6 @@ func (mr *MockForManagingPlanetsMockRecorder) GetByAction(ctx, action any) *gomo
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByAction", reflect.TypeOf((*MockForManagingPlanets)(nil).GetByAction), ctx, action)
 }
 
-// List mocks base method.
-func (m *MockForManagingPlanets) List(ctx context.Context) ([]models.Planet, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "List", ctx)
-	ret0, _ := ret[0].([]models.Planet)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// List indicates an expected call of List.
-func (mr *MockForManagingPlanetsMockRecorder) List(ctx any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockForManagingPlanets)(nil).List), ctx)
-}
-
 // ListForPlayer mocks base method.
 func (m *MockForManagingPlanets) ListForPlayer(ctx context.Context, player uuid.UUID) ([]uuid.UUID, error) {
 	m.ctrl.T.Helper()

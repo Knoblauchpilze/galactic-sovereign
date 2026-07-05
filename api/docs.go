@@ -815,55 +815,6 @@ const docTemplate = `{
             }
         },
         "/planets": {
-            "get": {
-                "description": "Returns planets, optionally filtered by player id.",
-                "parameters": [
-                    {
-                        "description": "Player id (UUID)",
-                        "in": "query",
-                        "name": "player",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/rest.ResponseEnvelope-array_dtos_PlanetDtoResponse"
-                                }
-                            }
-                        },
-                        "description": "OK"
-                    },
-                    "400": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/rest.ResponseEnvelope-string"
-                                }
-                            }
-                        },
-                        "description": "Bad Request"
-                    },
-                    "500": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/rest.ResponseEnvelope-string"
-                                }
-                            }
-                        },
-                        "description": "Internal Server Error"
-                    }
-                },
-                "summary": "List planets",
-                "tags": [
-                    "planets"
-                ]
-            },
             "post": {
                 "description": "Creates a planet from the provided payload.",
                 "requestBody": {
@@ -1344,6 +1295,59 @@ const docTemplate = `{
                 ]
             }
         },
+        "/players/{id}/planets": {
+            "get": {
+                "description": "Returns planets belonging to a player.",
+                "parameters": [
+                    {
+                        "description": "Player id (UUID)",
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "format": "uuid",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/rest.ResponseEnvelope-array_dtos_PlanetDtoResponse"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/rest.ResponseEnvelope-string"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/rest.ResponseEnvelope-string"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "summary": "List planets",
+                "tags": [
+                    "players"
+                ]
+            }
+        },
         "/universes": {
             "get": {
                 "description": "Returns all universes.",
@@ -1556,7 +1560,7 @@ const docTemplate = `{
     "servers": [
         {
             "description": "Base path for the galactic-sovereign API",
-            "url": "/v1"
+            "url": "/v1/galactic-sovereign"
         }
     ]
 }`

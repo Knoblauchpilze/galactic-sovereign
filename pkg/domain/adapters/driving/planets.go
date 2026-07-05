@@ -8,7 +8,6 @@ import (
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/rest"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driving/dtos"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driving/mappers"
-	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
 	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
 	drivingports "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driving"
 	"github.com/google/uuid"
@@ -29,8 +28,8 @@ func PlanetEndpoints(
 	get := rest.NewRoute(http.MethodGet, "/planets/:id", handler)
 	out = append(out, get)
 
-	handler = generateHandler(listPlanets, usecase)
-	list := rest.NewRoute(http.MethodGet, "/planets", handler)
+	handler = generateHandler(listPlanetsForPlayer, usecase)
+	list := rest.NewRoute(http.MethodGet, "/players/:id/planets", handler)
 	out = append(out, list)
 
 	handler = generateHandler(deletePlanet, usecase)
@@ -110,29 +109,25 @@ func getPlanet(c *echo.Context, usecase drivingports.ForManagingPlanet) error {
 	return c.JSON(http.StatusOK, out)
 }
 
-// listPlanets godoc
+// listPlanetsForPlayer godoc
 //
 //	@Summary		List planets
-//	@Description	Returns planets, optionally filtered by player id.
-//	@Tags			planets
+//	@Description	Returns planets belonging to a player.
+//	@Tags			players
 //	@Produce		json
-//	@Param			player	query		string	false	"Player id (UUID)"
+//	@Param			id	path		string	true	"Player id (UUID)"	Format(uuid)
 //	@Success		200		{object}	rest.ResponseEnvelope[[]dtos.PlanetDtoResponse]
 //	@Failure		400		{object}	rest.ResponseEnvelope[string]
 //	@Failure		500		{object}	rest.ResponseEnvelope[string]
-//	@Router			/planets [get]
-func listPlanets(c *echo.Context, usecase drivingports.ForManagingPlanet) error {
-	exists, playerId, err := fetchIdFromQueryParam("player", c)
+//	@Router			/players/{id}/planets [get]
+func listPlanetsForPlayer(c *echo.Context, usecase drivingports.ForManagingPlanet) error {
+	maybeId := c.Param("id")
+	playerId, err := uuid.Parse(maybeId)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, "invalid id syntax")
 	}
 
-	var planets []models.Planet
-	if exists {
-		planets, err = usecase.ListForPlayer(c.Request().Context(), playerId)
-	} else {
-		planets, err = usecase.List(c.Request().Context())
-	}
+	planets, err := usecase.ListForPlayer(c.Request().Context(), playerId)
 
 	if err != nil {
 		c.Logger().Error("Failed to list planets", slog.Any("error", err))

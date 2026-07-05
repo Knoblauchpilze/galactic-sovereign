@@ -282,113 +282,16 @@ func TestUnit_Planets_GetPlanet(t *testing.T) {
 	})
 }
 
-func TestUnit_Planets_ListPlanets(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	mockUsecase := drivingportstest.NewMockForManagingPlanet(ctrl)
-
-	t.Run("forwards listing to use case", func(t *testing.T) {
-		req := generateTestRequest(t, http.MethodGet)
-		ctx, rw := generateTestContextFromRequest(t, req)
-
-		planets := []models.Planet{
-			{Id: uuid.New(), Name: "planet-1", CreatedAt: someTime},
-			{Id: uuid.New(), Name: "planet-2", CreatedAt: someOtherTime},
-		}
-		mockUsecase.EXPECT().
-			List(gomock.Any()).
-			Times(1).
-			Return(planets, nil)
-
-		err := listPlanets(ctx, mockUsecase)
-		require.NoError(t, err, "Actual err: %v", err)
-
-		assert.Equal(t, http.StatusOK, rw.Code)
-		actual := decodeResponseBody[[]dtos.PlanetDtoResponse](t, rw)
-		expected := []dtos.PlanetDtoResponse{
-			{
-				Id:          planets[0].Id,
-				Name:        planets[0].Name,
-				CreatedAt:   planets[0].CreatedAt,
-				Resources:   []dtos.PlanetResourceDtoResponse{},
-				Storages:    []dtos.PlanetResourceStorageDtoResponse{},
-				Productions: []dtos.PlanetResourceProductionDtoResponse{},
-				Buildings:   []dtos.PlanetBuildingDtoResponse{},
-			},
-			{
-				Id:          planets[1].Id,
-				Name:        planets[1].Name,
-				CreatedAt:   planets[1].CreatedAt,
-				Resources:   []dtos.PlanetResourceDtoResponse{},
-				Storages:    []dtos.PlanetResourceStorageDtoResponse{},
-				Productions: []dtos.PlanetResourceProductionDtoResponse{},
-				Buildings:   []dtos.PlanetBuildingDtoResponse{},
-			},
-		}
-		assert.Equal(t, expected, actual)
-	})
-
-	t.Run("return empty slice when use case returns no planet", func(t *testing.T) {
-		req := generateTestRequest(t, http.MethodGet)
-		ctx, rw := generateTestContextFromRequest(t, req)
-
-		mockUsecase.EXPECT().
-			List(gomock.Any()).
-			Times(1).
-			Return([]models.Planet{}, nil)
-
-		err := listPlanets(ctx, mockUsecase)
-		require.NoError(t, err, "Actual err: %v", err)
-
-		assert.Equal(t, http.StatusOK, rw.Code)
-		actual := decodeResponseBody[[]dtos.PlanetDtoResponse](t, rw)
-		assert.Equal(t, []dtos.PlanetDtoResponse{}, actual)
-	})
-
-	t.Run("return empty slice when use case returns nil response", func(t *testing.T) {
-		req := generateTestRequest(t, http.MethodGet)
-		ctx, rw := generateTestContextFromRequest(t, req)
-
-		mockUsecase.EXPECT().
-			List(gomock.Any()).
-			Times(1).
-			Return(nil, nil)
-
-		err := listPlanets(ctx, mockUsecase)
-		require.NoError(t, err, "Actual err: %v", err)
-
-		assert.Equal(t, http.StatusOK, rw.Code)
-		actual := decodeResponseBody[[]dtos.PlanetDtoResponse](t, rw)
-		assert.Equal(t, []dtos.PlanetDtoResponse{}, actual)
-	})
-
-	t.Run("returns 500 when use cas fails", func(t *testing.T) {
-		req := generateTestRequest(t, http.MethodGet)
-		ctx, rw := generateTestContextFromRequest(t, req)
-
-		mockUsecase.EXPECT().
-			List(gomock.Any()).
-			Times(1).
-			Return([]models.Planet{}, errors.New("stubbed error"))
-
-		err := listPlanets(ctx, mockUsecase)
-		require.NoError(t, err, "Actual err: %v", err)
-
-		assert.Equal(t, http.StatusInternalServerError, rw.Code)
-		actual := decodeResponseBody[string](t, rw)
-		assert.Equal(t, "failed to list planets", actual)
-	})
-}
-
 func TestUnit_Planets_ListPlanets_ForPlayer(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	mockUsecase := drivingportstest.NewMockForManagingPlanet(ctrl)
 
 	t.Run("returns 400 when api user id is invalid", func(t *testing.T) {
 		req := generateTestRequest(t, http.MethodGet)
-		addQueryParam(t, req, "player", "not-a-uuid")
 		ctx, rw := generateTestContextFromRequest(t, req)
+		ctx.SetPathValues([]echo.PathValue{{Name: "id", Value: "not-a-uuid"}})
 
-		err := listPlanets(ctx, mockUsecase)
+		err := listPlanetsForPlayer(ctx, mockUsecase)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Equal(t, http.StatusBadRequest, rw.Code)
@@ -398,8 +301,7 @@ func TestUnit_Planets_ListPlanets_ForPlayer(t *testing.T) {
 
 	t.Run("forwards listing to use case", func(t *testing.T) {
 		req := generateTestRequest(t, http.MethodGet)
-		addQueryParam(t, req, "player", sampleUuid.String())
-		ctx, rw := generateTestContextFromRequest(t, req)
+		ctx, rw := generateTestContextFromRequest(t, req, addIdPathParam)
 
 		planets := []models.Planet{
 			{Id: uuid.New(), Name: "planet-1", CreatedAt: someTime},
@@ -410,7 +312,7 @@ func TestUnit_Planets_ListPlanets_ForPlayer(t *testing.T) {
 			Times(1).
 			Return(planets, nil)
 
-		err := listPlanets(ctx, mockUsecase)
+		err := listPlanetsForPlayer(ctx, mockUsecase)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Equal(t, http.StatusOK, rw.Code)
@@ -440,15 +342,14 @@ func TestUnit_Planets_ListPlanets_ForPlayer(t *testing.T) {
 
 	t.Run("return empty slice when use case returns no planet", func(t *testing.T) {
 		req := generateTestRequest(t, http.MethodGet)
-		addQueryParam(t, req, "player", sampleUuid.String())
-		ctx, rw := generateTestContextFromRequest(t, req)
+		ctx, rw := generateTestContextFromRequest(t, req, addIdPathParam)
 
 		mockUsecase.EXPECT().
 			ListForPlayer(gomock.Any(), gomock.Eq(sampleUuid)).
 			Times(1).
 			Return([]models.Planet{}, nil)
 
-		err := listPlanets(ctx, mockUsecase)
+		err := listPlanetsForPlayer(ctx, mockUsecase)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Equal(t, http.StatusOK, rw.Code)
@@ -458,15 +359,14 @@ func TestUnit_Planets_ListPlanets_ForPlayer(t *testing.T) {
 
 	t.Run("return empty slice when use case returns nil response", func(t *testing.T) {
 		req := generateTestRequest(t, http.MethodGet)
-		addQueryParam(t, req, "player", sampleUuid.String())
-		ctx, rw := generateTestContextFromRequest(t, req)
+		ctx, rw := generateTestContextFromRequest(t, req, addIdPathParam)
 
 		mockUsecase.EXPECT().
 			ListForPlayer(gomock.Any(), gomock.Eq(sampleUuid)).
 			Times(1).
 			Return(nil, nil)
 
-		err := listPlanets(ctx, mockUsecase)
+		err := listPlanetsForPlayer(ctx, mockUsecase)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Equal(t, http.StatusOK, rw.Code)
@@ -476,15 +376,14 @@ func TestUnit_Planets_ListPlanets_ForPlayer(t *testing.T) {
 
 	t.Run("returns 500 when use cas fails", func(t *testing.T) {
 		req := generateTestRequest(t, http.MethodGet)
-		addQueryParam(t, req, "player", sampleUuid.String())
-		ctx, rw := generateTestContextFromRequest(t, req)
+		ctx, rw := generateTestContextFromRequest(t, req, addIdPathParam)
 
 		mockUsecase.EXPECT().
 			ListForPlayer(gomock.Any(), gomock.Eq(sampleUuid)).
 			Times(1).
 			Return([]models.Planet{}, errors.New("stubbed error"))
 
-		err := listPlanets(ctx, mockUsecase)
+		err := listPlanetsForPlayer(ctx, mockUsecase)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Equal(t, http.StatusInternalServerError, rw.Code)

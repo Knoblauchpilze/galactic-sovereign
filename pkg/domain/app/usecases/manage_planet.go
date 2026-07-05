@@ -34,11 +34,6 @@ func (p *planetUseCase) Get(ctx context.Context, id uuid.UUID) (models.Planet, e
 	return p.planetMutator.Mutate(ctx, id, generateUpdateMutator(ctx, moment))
 }
 
-// TODO: Should make the planet up to date and save it
-func (p *planetUseCase) List(ctx context.Context) ([]models.Planet, error) {
-	return p.planetRepo.List(ctx)
-}
-
 func (p *planetUseCase) ListForPlayer(ctx context.Context, player uuid.UUID) ([]models.Planet, error) {
 	moment := p.clock.Now(ctx)
 

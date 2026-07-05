@@ -188,46 +188,6 @@ func TestUnit_ManagePlanet_Get(t *testing.T) {
 	})
 }
 
-func TestUnit_ManagePlanet_List(t *testing.T) {
-	t.Run("lists existing planets", func(t *testing.T) {
-		suite := setupPlanetTestSuite(t)
-		expected := []models.Planet{
-			{
-				Id:   uuid.New(),
-				Name: "planet-1",
-			},
-			{
-				Id:   uuid.New(),
-				Name: "planet-2",
-			},
-		}
-
-		suite.mockPlanetRepo.EXPECT().
-			List(gomock.Any()).
-			Times(1).
-			Return(expected, nil)
-
-		actual, err := suite.usecase.List(context.Background())
-		require.NoError(t, err, "Actual err: %v", err)
-
-		assert.Equal(t, expected, actual)
-	})
-
-	t.Run("returns error when repository fails", func(t *testing.T) {
-		suite := setupPlanetTestSuite(t)
-		expectedErr := errors.New("stubbed error")
-
-		suite.mockPlanetRepo.EXPECT().
-			List(gomock.Any()).
-			Times(1).
-			Return(nil, expectedErr)
-
-		_, err := suite.usecase.List(context.Background())
-
-		assert.ErrorIs(t, expectedErr, err, "Actual err: %v", err)
-	})
-}
-
 func TestUnit_ManagePlanet_ListForPlayer(t *testing.T) {
 	t.Run("lists existing planets through mutator", func(t *testing.T) {
 		suite := setupPlanetTestSuite(t)
