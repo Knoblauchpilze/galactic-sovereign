@@ -252,6 +252,7 @@ const docTemplate = `{
             "dtos.PlanetDtoResponse": {
                 "properties": {
                     "building_action": {
+                        "description": "TODO: Maybe this could be a full building action",
                         "type": "string"
                     },
                     "buildings": {
