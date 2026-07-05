@@ -138,21 +138,9 @@ ORDER BY
 
 	listPlanetForPlayerQuery = `
 SELECT
-	p.id,
-	p.player,
-	p.name,
-	CASE
-		WHEN h.planet IS NOT NULL THEN true
-		ELSE false
-	END AS homeworld,
-	p.created_at,
-	p.updated_at,
-	p.version,
-	ba.id AS building_action
+	p.id
 FROM
 	planet AS p
-	LEFT JOIN homeworld AS h ON h.planet = p.id
-	LEFT JOIN building_action AS ba ON ba.planet = p.id
 WHERE
 	p.player = $1
 ORDER BY
@@ -290,29 +278,8 @@ func (r *PlanetRepository) List(ctx context.Context) ([]models.Planet, error) {
 	return planets, nil
 }
 
-func (r *PlanetRepository) ListForPlayer(ctx context.Context, player uuid.UUID) ([]models.Planet, error) {
-	tx, err := r.conn.BeginTx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	defer tx.Close(ctx)
-
-	dbPlanets, err := db.QueryAllTx[mappers.DbPlanet](ctx, tx, listPlanetForPlayerQuery, player)
-	if err != nil {
-		return nil, err
-	}
-
-	planets := make([]models.Planet, 0, len(dbPlanets))
-	for id := range dbPlanets {
-		planet, err := loadPlanetDetails(ctx, tx, dbPlanets[id])
-		if err != nil {
-			return nil, err
-		}
-
-		planets = append(planets, planet)
-	}
-
-	return planets, nil
+func (r *PlanetRepository) ListForPlayer(ctx context.Context, player uuid.UUID) ([]uuid.UUID, error) {
+	return db.QueryAll[uuid.UUID](ctx, r.conn, listPlanetForPlayerQuery, player)
 }
 
 func (r *PlanetRepository) Delete(ctx context.Context, id uuid.UUID) error {

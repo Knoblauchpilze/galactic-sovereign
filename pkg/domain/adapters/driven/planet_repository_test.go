@@ -443,13 +443,13 @@ func TestIT_PlanetRepository_ListForPlayer(t *testing.T) {
 
 	// As all planets are registered with the same creation data their order is
 	// not deterministic.
-	assert.Contains(t, actual, p2)
-	assert.Contains(t, actual, p3)
-	assert.Contains(t, actual, p4)
-	assert.Contains(t, actual, p5)
-	assert.Contains(t, actual, p6)
-	assert.Contains(t, actual, p7)
-	assert.Contains(t, actual, p8)
+	assert.Contains(t, actual, p2.Id)
+	assert.Contains(t, actual, p3.Id)
+	assert.Contains(t, actual, p4.Id)
+	assert.Contains(t, actual, p5.Id)
+	assert.Contains(t, actual, p6.Id)
+	assert.Contains(t, actual, p7.Id)
+	assert.Contains(t, actual, p8.Id)
 	assert.NotContains(t, actual, p1)
 }
 

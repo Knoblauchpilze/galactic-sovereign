@@ -25,6 +25,8 @@ var (
 	metalMineId = uuid.MustParse("d176e82d-f2ca-4611-996b-c4804096caef")
 )
 
+type MutatorMock func(context.Context, uuid.UUID, drivenports.PlanetMutator) (models.Planet, error)
+
 type planetTestSuite struct {
 	ctrl              *gomock.Controller
 	mockPlanetRepo    *drivenportstest.MockForManagingPlanets
@@ -68,11 +70,7 @@ func TestUnit_ManagePlanet_Get(t *testing.T) {
 		suite.mockPlanetMutator.EXPECT().
 			Mutate(gomock.Any(), gomock.Eq(planet.Id), gomock.Any()).
 			Times(1).
-			DoAndReturn(
-				func(ctx context.Context, id uuid.UUID, m drivenports.PlanetMutator) (models.Planet, error) {
-					err := m(&planet)
-					return planet, err
-				})
+			DoAndReturn(generateApplyingMutatorMock(&planet))
 
 		actual, err := suite.usecase.Get(context.Background(), planet.Id)
 		require.NoError(t, err, "Actual err: %v", err)
@@ -108,11 +106,7 @@ func TestUnit_ManagePlanet_Get(t *testing.T) {
 		suite.mockPlanetMutator.EXPECT().
 			Mutate(gomock.Any(), gomock.Eq(planet.Id), gomock.Any()).
 			Times(1).
-			DoAndReturn(
-				func(ctx context.Context, id uuid.UUID, m drivenports.PlanetMutator) (models.Planet, error) {
-					err := m(&planet)
-					return planet, err
-				})
+			DoAndReturn(generateApplyingMutatorMock(&planet))
 
 		actual, err := suite.usecase.Get(context.Background(), planet.Id)
 		require.NoError(t, err, "Actual err: %v", err)
@@ -158,11 +152,7 @@ func TestUnit_ManagePlanet_Get(t *testing.T) {
 		suite.mockPlanetMutator.EXPECT().
 			Mutate(gomock.Any(), gomock.Eq(planet.Id), gomock.Any()).
 			Times(1).
-			DoAndReturn(
-				func(ctx context.Context, id uuid.UUID, m drivenports.PlanetMutator) (models.Planet, error) {
-					err := m(&planet)
-					return planet, err
-				})
+			DoAndReturn(generateApplyingMutatorMock(&planet))
 
 		actual, err := suite.usecase.Get(context.Background(), planet.Id)
 		require.NoError(t, err, "Actual err: %v", err)
@@ -239,28 +229,234 @@ func TestUnit_ManagePlanet_List(t *testing.T) {
 }
 
 func TestUnit_ManagePlanet_ListForPlayer(t *testing.T) {
-	t.Run("lists existing planets", func(t *testing.T) {
+	t.Run("lists existing planets through mutator", func(t *testing.T) {
 		suite := setupPlanetTestSuite(t)
 		player := uuid.New()
-		expected := []models.Planet{
-			{
-				Id:   uuid.New(),
-				Name: "planet-1",
-			},
-			{
-				Id:   uuid.New(),
-				Name: "planet-2",
-			},
-		}
+		p1 := models.Planet{Id: uuid.New(), Player: player, Name: "planet-1", CreatedAt: t1, UpdatedAt: t1}
+		p2 := models.Planet{Id: uuid.New(), Player: player, Name: "planet-2", CreatedAt: t1, UpdatedAt: t1}
 
+		suite.mockClock.EXPECT().Now(gomock.Any()).Times(1).Return(t2)
 		suite.mockPlanetRepo.EXPECT().
 			ListForPlayer(gomock.Any(), gomock.Eq(player)).
 			Times(1).
-			Return(expected, nil)
+			Return([]uuid.UUID{p1.Id, p2.Id}, nil)
+		suite.mockPlanetMutator.EXPECT().
+			Mutate(gomock.Any(), gomock.Eq(p1.Id), gomock.Any()).
+			Times(1).
+			Return(p1, nil)
+		suite.mockPlanetMutator.EXPECT().
+			Mutate(gomock.Any(), gomock.Eq(p2.Id), gomock.Any()).
+			Times(1).
+			Return(p2, nil)
 
 		actual, err := suite.usecase.ListForPlayer(context.Background(), player)
 		require.NoError(t, err, "Actual err: %v", err)
 
+		expected := []models.Planet{p1, p2}
+		assert.Equal(t, expected, actual)
+	})
+
+	t.Run("updates all planet to same time", func(t *testing.T) {
+		suite := setupPlanetTestSuite(t)
+		player := uuid.New()
+		p1 := models.Planet{
+			Id:        uuid.New(),
+			Player:    player,
+			Name:      "planet-1",
+			CreatedAt: t1,
+			UpdatedAt: t1,
+			Version:   2,
+		}
+		p2 := models.Planet{
+			Id:        uuid.New(),
+			Player:    player,
+			Name:      "planet-2",
+			CreatedAt: t1,
+			UpdatedAt: t1,
+			Version:   3,
+		}
+
+		suite.mockClock.EXPECT().Now(gomock.Any()).Times(1).Return(t2)
+		suite.mockPlanetRepo.EXPECT().
+			ListForPlayer(gomock.Any(), gomock.Eq(player)).
+			Times(1).
+			Return([]uuid.UUID{p1.Id, p2.Id}, nil)
+		suite.mockPlanetMutator.EXPECT().
+			Mutate(gomock.Any(), gomock.Eq(p1.Id), gomock.Any()).
+			Times(1).
+			DoAndReturn(generateApplyingMutatorMock(&p1))
+		suite.mockPlanetMutator.EXPECT().
+			Mutate(gomock.Any(), gomock.Eq(p2.Id), gomock.Any()).
+			Times(1).
+			DoAndReturn(generateApplyingMutatorMock(&p2))
+
+		actual, err := suite.usecase.ListForPlayer(context.Background(), player)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		expected := []models.Planet{
+			{
+				Id:        p1.Id,
+				Player:    player,
+				Name:      "planet-1",
+				Version:   3,
+				CreatedAt: t1,
+				UpdatedAt: t2,
+			},
+			{
+				Id:        p2.Id,
+				Player:    player,
+				Name:      "planet-2",
+				Version:   4,
+				CreatedAt: t1,
+				UpdatedAt: t2,
+			},
+		}
+		assert.Equal(t, expected, actual)
+	})
+
+	t.Run("does not apply action when current time is before completion time", func(t *testing.T) {
+		suite := setupPlanetTestSuite(t)
+		player := uuid.New()
+		p1 := models.Planet{
+			Id:        uuid.New(),
+			Player:    player,
+			Name:      "planet-1",
+			CreatedAt: t1,
+			UpdatedAt: t1,
+			Version:   2,
+			Buildings: []models.PlanetBuilding{
+				{Building: metalMineId, Level: 5},
+			},
+			BuildingAction: &models.BuildingAction{
+				Id:          uuid.New(),
+				CreatedAt:   t1,
+				CompletedAt: t3,
+			},
+		}
+		p2 := models.Planet{
+			Id:        uuid.New(),
+			Player:    player,
+			Name:      "planet-2",
+			CreatedAt: t1,
+			UpdatedAt: t1,
+			Version:   3,
+		}
+
+		suite.mockClock.EXPECT().Now(gomock.Any()).Times(1).Return(t2)
+		suite.mockPlanetRepo.EXPECT().
+			ListForPlayer(gomock.Any(), gomock.Eq(player)).
+			Times(1).
+			Return([]uuid.UUID{p1.Id, p2.Id}, nil)
+		suite.mockPlanetMutator.EXPECT().
+			Mutate(gomock.Any(), gomock.Eq(p1.Id), gomock.Any()).
+			Times(1).
+			DoAndReturn(generateApplyingMutatorMock(&p1))
+		suite.mockPlanetMutator.EXPECT().
+			Mutate(gomock.Any(), gomock.Eq(p2.Id), gomock.Any()).
+			Times(1).
+			DoAndReturn(generateApplyingMutatorMock(&p2))
+
+		actual, err := suite.usecase.ListForPlayer(context.Background(), player)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		expected := []models.Planet{
+			{
+				Id:        p1.Id,
+				Player:    player,
+				Name:      "planet-1",
+				Version:   3,
+				CreatedAt: t1,
+				UpdatedAt: t2,
+				Buildings: []models.PlanetBuilding{
+					{Building: metalMineId, Level: 5},
+				},
+				BuildingAction: &models.BuildingAction{
+					Id:          p1.BuildingAction.Id,
+					CreatedAt:   t1,
+					CompletedAt: t3,
+				},
+			},
+			{
+				Id:        p2.Id,
+				Player:    player,
+				Name:      "planet-2",
+				Version:   4,
+				CreatedAt: t1,
+				UpdatedAt: t2,
+			},
+		}
+		assert.Equal(t, expected, actual)
+	})
+
+	t.Run("apply action when current time is after completion time", func(t *testing.T) {
+		suite := setupPlanetTestSuite(t)
+		player := uuid.New()
+		p1 := models.Planet{
+			Id:        uuid.New(),
+			Player:    player,
+			Name:      "planet-1",
+			CreatedAt: t1,
+			UpdatedAt: t1,
+			Version:   2,
+			Buildings: []models.PlanetBuilding{
+				{Building: metalMineId, Level: 5},
+			},
+			BuildingAction: &models.BuildingAction{
+				Id:           uuid.New(),
+				Building:     metalMineId,
+				DesiredLevel: 6,
+				CreatedAt:    t1,
+				CompletedAt:  t3,
+			},
+		}
+		p2 := models.Planet{
+			Id:        uuid.New(),
+			Player:    player,
+			Name:      "planet-2",
+			CreatedAt: t1,
+			UpdatedAt: t1,
+			Version:   3,
+		}
+
+		suite.mockClock.EXPECT().Now(gomock.Any()).Times(1).Return(t4)
+		suite.mockPlanetRepo.EXPECT().
+			ListForPlayer(gomock.Any(), gomock.Eq(player)).
+			Times(1).
+			Return([]uuid.UUID{p1.Id, p2.Id}, nil)
+		suite.mockPlanetMutator.EXPECT().
+			Mutate(gomock.Any(), gomock.Eq(p1.Id), gomock.Any()).
+			Times(1).
+			DoAndReturn(generateApplyingMutatorMock(&p1))
+		suite.mockPlanetMutator.EXPECT().
+			Mutate(gomock.Any(), gomock.Eq(p2.Id), gomock.Any()).
+			Times(1).
+			DoAndReturn(generateApplyingMutatorMock(&p2))
+
+		actual, err := suite.usecase.ListForPlayer(context.Background(), player)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		expected := []models.Planet{
+			{
+				Id:        p1.Id,
+				Player:    player,
+				Name:      "planet-1",
+				Version:   5,
+				CreatedAt: t1,
+				UpdatedAt: t4,
+				Buildings: []models.PlanetBuilding{
+					{Building: metalMineId, Level: 6},
+				},
+				BuildingAction: nil,
+			},
+			{
+				Id:        p2.Id,
+				Player:    player,
+				Name:      "planet-2",
+				Version:   4,
+				CreatedAt: t1,
+				UpdatedAt: t4,
+			},
+		}
 		assert.Equal(t, expected, actual)
 	})
 
@@ -268,10 +464,15 @@ func TestUnit_ManagePlanet_ListForPlayer(t *testing.T) {
 		suite := setupPlanetTestSuite(t)
 		expectedErr := errors.New("stubbed error")
 
+		suite.mockClock.EXPECT().Now(gomock.Any()).Times(1).Return(t4)
 		suite.mockPlanetRepo.EXPECT().
 			ListForPlayer(gomock.Any(), gomock.Any()).
 			Times(1).
-			Return(nil, expectedErr)
+			Return([]uuid.UUID{uuid.New(), uuid.New()}, nil)
+		suite.mockPlanetMutator.EXPECT().
+			Mutate(gomock.Any(), gomock.Any(), gomock.Any()).
+			Times(1).
+			Return(models.Planet{}, expectedErr)
 
 		_, err := suite.usecase.ListForPlayer(context.Background(), uuid.New())
 
@@ -321,5 +522,14 @@ func setupPlanetTestSuite(t *testing.T) *planetTestSuite {
 		mockPlanetMutator: mockPlanetMutator,
 		mockClock:         mockClock,
 		usecase:           NewPlanetUseCase(mockPlanetRepo, mockPlanetMutator, mockClock),
+	}
+}
+
+// generateApplyingMutatorMock generates a function mock for the planet mutator
+// which applies the provided mutator to a known planet.
+func generateApplyingMutatorMock(p *models.Planet) MutatorMock {
+	return func(ctx context.Context, id uuid.UUID, m drivenports.PlanetMutator) (models.Planet, error) {
+		err := m(p)
+		return *p, err
 	}
 }

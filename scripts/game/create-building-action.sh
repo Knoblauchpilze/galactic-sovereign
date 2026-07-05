@@ -2,12 +2,11 @@
 
 # This identifier represents the metal mine
 BUILDING="d176e82d-f2ca-4611-996b-c4804096caef"
-PLAYER_ID=""
 PLANET_ID=""
 
-if [[ $# -ge 2 ]]; then
-  PLAYER_ID=${1}
-  echo "Using player id from input: ${PLAYER_ID}"
+if [[ $# -ge 1 ]]; then
+  PLANET_ID=${1}
+  echo "Using planet id from input: ${PLANET_ID}"
 else
   SAVED_PLAYER_FILE="sandbox/player.json"
 
@@ -17,12 +16,11 @@ else
     exit 1
   fi
 
-  PLAYER_ID=$(jq -r '.id' ${SAVED_PLAYER_FILE})
   PLANET_ID=$(jq -r '.homeworld' ${SAVED_PLAYER_FILE})
-  echo "Using player (${PLAYER_ID}) and planet (${PLANET_ID}) from file"
+  echo "Using player planet (${PLANET_ID}) from file"
 fi
 
-OUTPUT_FILE="/tmp/${PLAYER_NAME}.json"
+OUTPUT_FILE="/tmp/${PLANET_ID}.json"
 
 BODY="{\"building\":\"${BUILDING}\"}"
 
@@ -44,7 +42,7 @@ fi
 ACTION_ID=$(jq -r '.details.id' ${OUTPUT_FILE})
 COMPLETION_TIME=$(jq -r '.details.completed_at' ${OUTPUT_FILE})
 
-echo "Created building action ${PLAYER_ID}!"
+echo "Created building action ${ACTION_ID}!"
 echo "Completion time: ${COMPLETION_TIME}"
 
 SAVE_FILE="sandbox/building_action.json"

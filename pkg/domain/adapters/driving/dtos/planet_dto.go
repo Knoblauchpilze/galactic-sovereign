@@ -24,6 +24,7 @@ type PlanetDtoResponse struct {
 	Productions []PlanetResourceProductionDtoResponse `json:"productions" binding:"required"`
 	Buildings   []PlanetBuildingDtoResponse           `json:"buildings" binding:"required"`
 
+	// TODO: Maybe this could be a full building action
 	BuildingAction *uuid.UUID `json:"building_action,omitempty"`
 }
 

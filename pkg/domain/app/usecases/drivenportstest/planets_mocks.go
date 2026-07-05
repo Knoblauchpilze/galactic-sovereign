@@ -102,10 +102,10 @@ func (mr *MockForManagingPlanetsMockRecorder) List(ctx any) *gomock.Call {
 }
 
 // ListForPlayer mocks base method.
-func (m *MockForManagingPlanets) ListForPlayer(ctx context.Context, player uuid.UUID) ([]models.Planet, error) {
+func (m *MockForManagingPlanets) ListForPlayer(ctx context.Context, player uuid.UUID) ([]uuid.UUID, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListForPlayer", ctx, player)
-	ret0, _ := ret[0].([]models.Planet)
+	ret0, _ := ret[0].([]uuid.UUID)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
