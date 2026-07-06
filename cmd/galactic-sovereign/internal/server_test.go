@@ -60,7 +60,7 @@ func TestIT_Server_PlayerBuildingActionLifecycle(t *testing.T) {
 		t, urlFor(conf, "planets", player.Homeworld.String()),
 	)
 	require.NotNil(t, homeworld.BuildingAction)
-	assert.Equal(t, action.Id, *homeworld.BuildingAction)
+	assert.Equal(t, action, *homeworld.BuildingAction)
 
 	// Cancel the building action
 	doDelete(t, urlFor(conf, "actions", action.Id.String()))

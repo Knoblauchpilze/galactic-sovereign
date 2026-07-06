@@ -27,7 +27,8 @@ func ToPlanetResponse(planet models.Planet) dtos.PlanetDtoResponse {
 	}
 
 	if planet.BuildingAction != nil {
-		dto.BuildingAction = &planet.BuildingAction.Id
+		action := ToBuildingActionResponse(*planet.BuildingAction)
+		dto.BuildingAction = &action
 	}
 
 	return dto

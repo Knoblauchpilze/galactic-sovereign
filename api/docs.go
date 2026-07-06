@@ -42,6 +42,13 @@ const docTemplate = `{
                         "format": "date-time",
                         "type": "string"
                     },
+                    "costs": {
+                        "items": {
+                            "$ref": "#/components/schemas/dtos.BuildingActionCostDtoResponse"
+                        },
+                        "type": "array",
+                        "uniqueItems": false
+                    },
                     "created_at": {
                         "format": "date-time",
                         "type": "string"
@@ -60,13 +67,6 @@ const docTemplate = `{
                         "type": "array",
                         "uniqueItems": false
                     },
-                    "resources": {
-                        "items": {
-                            "$ref": "#/components/schemas/dtos.BuildingActionCostDtoResponse"
-                        },
-                        "type": "array",
-                        "uniqueItems": false
-                    },
                     "storages": {
                         "items": {
                             "$ref": "#/components/schemas/dtos.BuildingActionStorageDtoResponse"
@@ -78,11 +78,11 @@ const docTemplate = `{
                 "required": [
                     "building",
                     "completed_at",
+                    "costs",
                     "created_at",
                     "desired_level",
                     "id",
                     "productions",
-                    "resources",
                     "storages"
                 ],
                 "type": "object"
@@ -252,8 +252,7 @@ const docTemplate = `{
             "dtos.PlanetDtoResponse": {
                 "properties": {
                     "building_action": {
-                        "description": "TODO: Maybe this could be a full building action",
-                        "type": "string"
+                        "$ref": "#/components/schemas/dtos.BuildingActionDtoResponse"
                     },
                     "buildings": {
                         "items": {

@@ -18,7 +18,7 @@ type BuildingActionDtoResponse struct {
 	CreatedAt   time.Time `json:"created_at" format:"date-time" binding:"required"`
 	CompletedAt time.Time `json:"completed_at" format:"date-time" binding:"required"`
 
-	Costs       []BuildingActionCostDtoResponse       `json:"resources" binding:"required"`
+	Costs       []BuildingActionCostDtoResponse       `json:"costs" binding:"required"`
 	Storages    []BuildingActionStorageDtoResponse    `json:"storages" binding:"required"`
 	Productions []BuildingActionProductionDtoResponse `json:"productions" binding:"required"`
 }

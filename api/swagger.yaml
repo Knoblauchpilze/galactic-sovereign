@@ -24,6 +24,11 @@ components:
         completed_at:
           format: date-time
           type: string
+        costs:
+          items:
+            $ref: '#/components/schemas/dtos.BuildingActionCostDtoResponse'
+          type: array
+          uniqueItems: false
         created_at:
           format: date-time
           type: string
@@ -37,11 +42,6 @@ components:
             $ref: '#/components/schemas/dtos.BuildingActionProductionDtoResponse'
           type: array
           uniqueItems: false
-        resources:
-          items:
-            $ref: '#/components/schemas/dtos.BuildingActionCostDtoResponse'
-          type: array
-          uniqueItems: false
         storages:
           items:
             $ref: '#/components/schemas/dtos.BuildingActionStorageDtoResponse'
@@ -50,11 +50,11 @@ components:
       required:
       - building
       - completed_at
+      - costs
       - created_at
       - desired_level
       - id
       - productions
-      - resources
       - storages
       type: object
     dtos.BuildingActionProductionDtoResponse:
@@ -174,8 +174,7 @@ components:
     dtos.PlanetDtoResponse:
       properties:
         building_action:
-          description: 'TODO: Maybe this could be a full building action'
-          type: string
+          $ref: '#/components/schemas/dtos.BuildingActionDtoResponse'
         buildings:
           items:
             $ref: '#/components/schemas/dtos.PlanetBuildingDtoResponse'

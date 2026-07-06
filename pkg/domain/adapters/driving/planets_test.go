@@ -203,7 +203,12 @@ func TestUnit_Planets_GetPlanet(t *testing.T) {
 					Level:    planet.Buildings[0].Level,
 				},
 			},
-			BuildingAction: &sampleUuid,
+			BuildingAction: &dtos.BuildingActionDtoResponse{
+				Id:          sampleUuid,
+				Costs:       []dtos.BuildingActionCostDtoResponse{},
+				Storages:    []dtos.BuildingActionStorageDtoResponse{},
+				Productions: []dtos.BuildingActionProductionDtoResponse{},
+			},
 		}
 		assert.Equal(t, expected, actual)
 	})
