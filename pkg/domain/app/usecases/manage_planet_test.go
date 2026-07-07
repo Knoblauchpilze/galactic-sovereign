@@ -185,7 +185,7 @@ func TestUnit_ManagePlanet_Get(t *testing.T) {
 
 		_, err := suite.usecase.Get(t.Context(), uuid.New())
 
-		assert.ErrorIs(t, expectedErr, err, "Actual err: %v", err)
+		assert.ErrorIs(t, err, expectedErr, "Actual err: %v", err)
 	})
 
 	t.Run("returns error when planet is deleted during mutation", func(t *testing.T) {
@@ -452,7 +452,7 @@ func TestUnit_ManagePlanet_ListForPlayer(t *testing.T) {
 
 		_, err := suite.usecase.ListForPlayer(t.Context(), uuid.New())
 
-		assert.ErrorIs(t, expectedErr, err, "Actual err: %v", err)
+		assert.ErrorIs(t, err, expectedErr, "Actual err: %v", err)
 	})
 
 	t.Run("does not return planet when it is deleted during mutation", func(t *testing.T) {
@@ -523,7 +523,7 @@ func TestUnit_ManagePlanet_Delete(t *testing.T) {
 
 		err := suite.usecase.Delete(t.Context(), uuid.New())
 
-		assert.ErrorIs(t, expectedErr, err, "Actual err: %v", err)
+		assert.ErrorIs(t, err, expectedErr, "Actual err: %v", err)
 	})
 }
 

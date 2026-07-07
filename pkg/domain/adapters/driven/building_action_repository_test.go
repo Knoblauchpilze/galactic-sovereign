@@ -334,7 +334,7 @@ func TestIT_BuildingActionRepository_Create(t *testing.T) {
 
 		err := repo.Create(t.Context(), planet)
 
-		assert.ErrorIs(t, domainerrors.ErrOptimisticLocking, err, "Actual err: %v", err)
+		assert.ErrorIs(t, err, domainerrors.ErrOptimisticLocking, "Actual err: %v", err)
 		assertBuildingActionDoesNotExist(t, conn, actionId)
 		assertPlanetResourceAmount(t, conn, planet.Id, crystalResourceId, initialAmount)
 	})

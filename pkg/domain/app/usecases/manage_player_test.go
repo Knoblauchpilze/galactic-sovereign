@@ -116,7 +116,7 @@ func TestUnit_ManagePlayer_Create(t *testing.T) {
 
 		_, err := suite.usecase.Create(t.Context(), request)
 
-		assert.ErrorIs(t, domainerrors.ErrUniverseNotFound, err, "Actual err: %v", err)
+		assert.ErrorIs(t, err, domainerrors.ErrUniverseNotFound, "Actual err: %v", err)
 	})
 
 	t.Run("returns error when creation fails", func(t *testing.T) {
@@ -132,7 +132,7 @@ func TestUnit_ManagePlayer_Create(t *testing.T) {
 
 		_, err := suite.usecase.Create(t.Context(), request)
 
-		assert.ErrorIs(t, expectedErr, err, "Actual err: %v", err)
+		assert.ErrorIs(t, err, expectedErr, "Actual err: %v", err)
 	})
 }
 
@@ -167,7 +167,7 @@ func TestUnit_ManagePlayer_Get(t *testing.T) {
 
 		_, err := suite.usecase.Get(t.Context(), uuid.New())
 
-		assert.ErrorIs(t, expectedErr, err, "Actual err: %v", err)
+		assert.ErrorIs(t, err, expectedErr, "Actual err: %v", err)
 	})
 }
 
@@ -211,7 +211,7 @@ func TestUnit_ManagePlayer_List(t *testing.T) {
 
 		_, err := suite.usecase.List(t.Context())
 
-		assert.ErrorIs(t, expectedErr, err, "Actual err: %v", err)
+		assert.ErrorIs(t, err, expectedErr, "Actual err: %v", err)
 	})
 }
 
@@ -256,7 +256,7 @@ func TestUnit_ManagePlayer_ListForApiUser(t *testing.T) {
 
 		_, err := suite.usecase.ListForApiUser(t.Context(), uuid.New())
 
-		assert.ErrorIs(t, expectedErr, err, "Actual err: %v", err)
+		assert.ErrorIs(t, err, expectedErr, "Actual err: %v", err)
 	})
 }
 
@@ -306,7 +306,7 @@ func TestUnit_ManagePlayer_Delete(t *testing.T) {
 
 		err := suite.usecase.Delete(t.Context(), player.Id)
 
-		assert.ErrorIs(t, expectedErr, err, "Actual err: %v", err)
+		assert.ErrorIs(t, err, expectedErr, "Actual err: %v", err)
 	})
 }
 

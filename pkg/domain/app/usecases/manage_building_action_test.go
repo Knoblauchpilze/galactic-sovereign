@@ -197,7 +197,7 @@ func TestUnit_ManageBuildingAction_Create(t *testing.T) {
 		usecase := NewBuildingActionUseCase(mockActionRepo, mockPlanetRepo, mockBuildingRepo)
 		_, err := usecase.Create(t.Context(), request)
 
-		assert.ErrorIs(t, expectedErr, err, "Actual err: %v", err)
+		assert.ErrorIs(t, err, expectedErr, "Actual err: %v", err)
 	})
 }
 
@@ -354,7 +354,7 @@ func TestUnit_ManageBuildingAction_Delete(t *testing.T) {
 		usecase := NewBuildingActionUseCase(mockActionRepo, mockPlanetRepo, mockBuildingRepo)
 		err := usecase.Delete(t.Context(), actionId)
 
-		assert.ErrorIs(t, expectedErr, err, "Actual err: %v", err)
+		assert.ErrorIs(t, err, expectedErr, "Actual err: %v", err)
 	})
 }
 

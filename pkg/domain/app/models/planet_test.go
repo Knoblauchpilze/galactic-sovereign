@@ -26,7 +26,7 @@ func TestUnit_Planet_AddBuildingAction(t *testing.T) {
 
 		err := p.AddBuildingAction(b)
 
-		assert.ErrorIs(t, domainerrors.ErrActionAlreadyInProgress, err, "Actual err: %v", err)
+		assert.ErrorIs(t, err, domainerrors.ErrActionAlreadyInProgress, "Actual err: %v", err)
 		require.NotNil(t, p.BuildingAction)
 		assert.Equal(t, actionId, p.BuildingAction.Id)
 		assert.Equal(t, 3, p.Version)
@@ -62,7 +62,7 @@ func TestUnit_Planet_AddBuildingAction(t *testing.T) {
 
 		err := p.AddBuildingAction(b)
 
-		assert.ErrorIs(t, domainerrors.ErrBuildingNotFound, err, "Actual err: %v", err)
+		assert.ErrorIs(t, err, domainerrors.ErrBuildingNotFound, "Actual err: %v", err)
 		assert.Nil(t, p.BuildingAction)
 		assert.Equal(t, 3, p.Version)
 	})
@@ -174,7 +174,7 @@ func TestUnit_Planet_CancelBuildingAction(t *testing.T) {
 
 		err := p.CancelBuildingAction()
 
-		assert.ErrorIs(t, domainerrors.ErrNoActionInProgress, err, "Actual err: %v", err)
+		assert.ErrorIs(t, err, domainerrors.ErrNoActionInProgress, "Actual err: %v", err)
 	})
 
 	t.Run("resets building action in planet", func(t *testing.T) {
@@ -431,7 +431,7 @@ func TestUnit_Planet_UpdateToTime(t *testing.T) {
 
 		err := p.UpdateToTime(t3)
 
-		assert.ErrorIs(t, domainerrors.ErrPlanetNotUpToDate, err, "Actual err is: %v", err)
+		assert.ErrorIs(t, err, domainerrors.ErrPlanetNotUpToDate, "Actual err is: %v", err)
 	})
 }
 
@@ -444,7 +444,7 @@ func TestUnit_Planet_ApplyAction(t *testing.T) {
 
 		err := p.ApplyAction()
 
-		assert.ErrorIs(t, domainerrors.ErrNoActionInProgress, err, "Actual err: %v", err)
+		assert.ErrorIs(t, err, domainerrors.ErrNoActionInProgress, "Actual err: %v", err)
 	})
 
 	t.Run("returns error when planet update time is not matching action completion time", func(t *testing.T) {
@@ -457,7 +457,7 @@ func TestUnit_Planet_ApplyAction(t *testing.T) {
 
 		err := p.ApplyAction()
 
-		assert.ErrorIs(t, domainerrors.ErrActionNotCompleted, err, "Actual err: %v", err)
+		assert.ErrorIs(t, err, domainerrors.ErrActionNotCompleted, "Actual err: %v", err)
 	})
 
 	t.Run("applies resource production changes when applicable", func(t *testing.T) {

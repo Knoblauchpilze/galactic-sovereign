@@ -644,7 +644,7 @@ func TestIT_PlanetMutator_Mutate(t *testing.T) {
 
 		_, err := adapter.Mutate(t.Context(), planet.Id, mutator)
 
-		assert.ErrorIs(t, domainerrors.ErrMutationWithoutVersionBump, err)
+		assert.ErrorIs(t, err, domainerrors.ErrMutationWithoutVersionBump, "Actual err: %v", err)
 	})
 
 	t.Run("returns error when new building is added", func(t *testing.T) {
@@ -657,7 +657,7 @@ func TestIT_PlanetMutator_Mutate(t *testing.T) {
 
 		_, err := adapter.Mutate(t.Context(), planet.Id, mutator)
 
-		assert.ErrorIs(t, domainerrors.ErrBuildingNotFound, err)
+		assert.ErrorIs(t, err, domainerrors.ErrBuildingNotFound, "Actual err: %v", err)
 	})
 
 	t.Run("returns error when new storage is added", func(t *testing.T) {
@@ -670,7 +670,7 @@ func TestIT_PlanetMutator_Mutate(t *testing.T) {
 
 		_, err := adapter.Mutate(t.Context(), planet.Id, mutator)
 
-		assert.ErrorIs(t, domainerrors.ErrResourceNotFound, err)
+		assert.ErrorIs(t, err, domainerrors.ErrResourceNotFound, "Actual err: %v", err)
 	})
 }
 

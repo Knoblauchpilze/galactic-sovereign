@@ -56,7 +56,7 @@ func TestUnit_ManageUniverse_Create(t *testing.T) {
 		usecase := NewUniverseUseCase(mockRepo)
 		_, err := usecase.Create(t.Context(), request)
 
-		assert.ErrorIs(t, expectedErr, err, "Actual err: %v", err)
+		assert.ErrorIs(t, err, expectedErr, "Actual err: %v", err)
 	})
 }
 
@@ -92,7 +92,7 @@ func TestUnit_ManageUniverse_Get(t *testing.T) {
 		usecase := NewUniverseUseCase(mockRepo)
 		_, err := usecase.Get(t.Context(), uuid.New())
 
-		assert.ErrorIs(t, expectedErr, err, "Actual err: %v", err)
+		assert.ErrorIs(t, err, expectedErr, "Actual err: %v", err)
 	})
 }
 
@@ -135,7 +135,7 @@ func TestUnit_ManageUniverse_List(t *testing.T) {
 		usecase := NewUniverseUseCase(mockRepo)
 		_, err := usecase.List(t.Context())
 
-		assert.ErrorIs(t, expectedErr, err, "Actual err: %v", err)
+		assert.ErrorIs(t, err, expectedErr, "Actual err: %v", err)
 	})
 }
 
@@ -166,6 +166,6 @@ func TestUnit_ManageUniverse_Delete(t *testing.T) {
 		usecase := NewUniverseUseCase(mockRepo)
 		err := usecase.Delete(t.Context(), uuid.New())
 
-		assert.ErrorIs(t, expectedErr, err, "Actual err: %v", err)
+		assert.ErrorIs(t, err, expectedErr, "Actual err: %v", err)
 	})
 }

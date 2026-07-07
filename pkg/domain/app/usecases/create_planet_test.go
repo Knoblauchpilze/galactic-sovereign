@@ -84,7 +84,7 @@ func TestUnit_CreatePlanet_Create(t *testing.T) {
 
 		_, err := suite.usecase.Create(t.Context(), request)
 
-		assert.ErrorIs(t, domainerrors.ErrPlayerNotFound, err, "Actual err: %v", err)
+		assert.ErrorIs(t, err, domainerrors.ErrPlayerNotFound, "Actual err: %v", err)
 	})
 
 	t.Run("returns error when repository fails", func(t *testing.T) {
@@ -105,7 +105,7 @@ func TestUnit_CreatePlanet_Create(t *testing.T) {
 
 		_, err := suite.usecase.Create(t.Context(), request)
 
-		assert.ErrorIs(t, expectedErr, err, "Actual err: %v", err)
+		assert.ErrorIs(t, err, expectedErr, "Actual err: %v", err)
 	})
 }
 
