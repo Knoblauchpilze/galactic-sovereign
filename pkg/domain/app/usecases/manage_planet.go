@@ -32,7 +32,7 @@ func NewPlanetUseCase(
 
 func (p *planetUseCase) Get(ctx context.Context, id uuid.UUID) (models.Planet, error) {
 	moment := p.clock.Now(ctx)
-	result, err := p.planetMutator.Mutate(ctx, id, generateUpdateMutator(ctx, moment, false))
+	result, err := p.planetMutator.Mutate(ctx, id, generateUpdateMutator(moment))
 	if err != nil {
 		return models.Planet{}, err
 	}
@@ -55,7 +55,7 @@ func (p *planetUseCase) ListForPlayer(ctx context.Context, player uuid.UUID) ([]
 	out := make([]models.Planet, 0, len(ids))
 
 	for _, id := range ids {
-		result, err := p.planetMutator.Mutate(ctx, id, generateUpdateMutator(ctx, moment, false))
+		result, err := p.planetMutator.Mutate(ctx, id, generateUpdateMutator(moment))
 		if err != nil {
 			return nil, err
 		}
@@ -68,21 +68,38 @@ func (p *planetUseCase) ListForPlayer(ctx context.Context, player uuid.UUID) ([]
 	return out, nil
 }
 
-// TODO: Should make the planet up to date and save it
-// TODO: It is not needed to update: even when points are introduced, the
-// points will be added and immediately deleted. It makes sense to strenghten
-// the delete though so that a building action cannot be running when a planet
-// is deleted.
 func (p *planetUseCase) Delete(ctx context.Context, id uuid.UUID) error {
-	return p.planetRepo.Delete(ctx, id)
+	moment := p.clock.Now(ctx)
+
+	result, err := p.planetMutator.Mutate(ctx, id, generateDeleteMutator(moment))
+	if err != nil {
+		return err
+	}
+
+	if !result.Deleted {
+		return domainerrors.ErrPlanetDeletionFailed
+	}
+
+	return nil
 }
 
-func generateUpdateMutator(
-	ctx context.Context,
-	moment time.Time,
-	delete bool,
-) drivenports.PlanetMutator {
+func generateUpdateMutator(moment time.Time) drivenports.PlanetMutator {
 	return func(p *models.Planet) (bool, error) {
-		return delete, domainservices.AdvancePlanetToTime(ctx, p, moment)
+		return false, domainservices.AdvancePlanetToTime(p, moment)
+	}
+}
+
+func generateDeleteMutator(moment time.Time) drivenports.PlanetMutator {
+	return func(p *models.Planet) (bool, error) {
+		err := domainservices.AdvancePlanetToTime(p, moment)
+		if err != nil {
+			return false, err
+		}
+
+		if p.BuildingAction != nil {
+			return false, domainerrors.ErrActionNotCompleted
+		}
+
+		return true, nil
 	}
 }

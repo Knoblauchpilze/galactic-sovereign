@@ -31,7 +31,7 @@ func TestUnit_AdvancePlanetToTime(t *testing.T) {
 		initialStorages := slices.Clone(p.Storages)
 		initialProductions := slices.Clone(p.Productions)
 
-		err := AdvancePlanetToTime(t.Context(), &p, t4)
+		err := AdvancePlanetToTime(&p, t4)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		expected := models.Planet{
@@ -59,7 +59,7 @@ func TestUnit_AdvancePlanetToTime(t *testing.T) {
 		initialStorages := slices.Clone(p.Storages)
 		initialProductions := slices.Clone(p.Productions)
 
-		err := AdvancePlanetToTime(t.Context(), &p, t2)
+		err := AdvancePlanetToTime(&p, t2)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		expected := models.Planet{
@@ -84,7 +84,7 @@ func TestUnit_AdvancePlanetToTime(t *testing.T) {
 		action := generateTestBuildingAction(p)
 		p.BuildingAction = &action
 
-		err := AdvancePlanetToTime(t.Context(), &p, t4)
+		err := AdvancePlanetToTime(&p, t4)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		expected := models.Planet{

@@ -1,14 +1,12 @@
 package domainservices
 
 import (
-	"context"
 	"time"
 
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
 )
 
 func AdvancePlanetToTime(
-	ctx context.Context,
 	planet *models.Planet,
 	moment time.Time,
 ) error {

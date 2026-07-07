@@ -148,6 +148,7 @@ func listPlanetsForPlayer(c *echo.Context, usecase drivingports.ForManagingPlane
 //	@Param			id	path		string	true	"Planet id (UUID)"	Format(uuid)
 //	@Success		204	{string}	string
 //	@Failure		400	{object}	rest.ResponseEnvelope[string]
+//	@Failure		409	{object}	rest.ResponseEnvelope[string]
 //	@Failure		500	{object}	rest.ResponseEnvelope[string]
 //	@Router			/planets/{id} [delete]
 func deletePlanet(c *echo.Context, usecase drivingports.ForManagingPlanet) error {
@@ -159,6 +160,10 @@ func deletePlanet(c *echo.Context, usecase drivingports.ForManagingPlanet) error
 
 	err = usecase.Delete(c.Request().Context(), id)
 	if err != nil {
+		if err == domainerrors.ErrActionNotCompleted {
+			return c.JSON(http.StatusConflict, "action not completed")
+		}
+
 		c.Logger().Error("Failed to delete planet", slog.Any("error", err))
 		return c.JSON(http.StatusInternalServerError, "failed to delete planet")
 	}

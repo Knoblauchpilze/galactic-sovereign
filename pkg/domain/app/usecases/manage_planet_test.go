@@ -500,30 +500,48 @@ func TestUnit_ManagePlanet_ListForPlayer(t *testing.T) {
 }
 
 func TestUnit_ManagePlanet_Delete(t *testing.T) {
-	t.Run("deletes existing planet", func(t *testing.T) {
+	t.Run("deletes existing planet through mutator", func(t *testing.T) {
 		suite := setupPlanetTestSuite(t)
 		id := uuid.New()
 
-		suite.mockPlanetRepo.EXPECT().
-			Delete(gomock.Any(), gomock.Eq(id)).
+		suite.mockClock.EXPECT().Now(gomock.Any()).Times(1).Return(t2)
+		suite.mockPlanetMutator.EXPECT().
+			Mutate(gomock.Any(), gomock.Eq(id), gomock.Any()).
 			Times(1).
-			Return(nil)
+			Return(models.PlanetMutationResult{Deleted: true}, nil)
 
 		err := suite.usecase.Delete(t.Context(), id)
 		require.NoError(t, err, "Actual err: %v", err)
 	})
 
-	t.Run("returns error when repository fails", func(t *testing.T) {
+	t.Run("returns error when planet has a building action", func(t *testing.T) {
 		suite := setupPlanetTestSuite(t)
-		expectedErr := errors.New("stubbed error")
-		suite.mockPlanetRepo.EXPECT().
-			Delete(gomock.Any(), gomock.Any()).
+		id := uuid.New()
+
+		suite.mockClock.EXPECT().Now(gomock.Any()).Times(1).Return(t2)
+		suite.mockPlanetMutator.EXPECT().
+			Mutate(gomock.Any(), gomock.Eq(id), gomock.Any()).
 			Times(1).
-			Return(expectedErr)
+			Return(models.PlanetMutationResult{}, domainerrors.ErrActionNotCompleted)
 
-		err := suite.usecase.Delete(t.Context(), uuid.New())
+		err := suite.usecase.Delete(t.Context(), id)
 
-		assert.ErrorIs(t, err, expectedErr, "Actual err: %v", err)
+		assert.ErrorIs(t, err, domainerrors.ErrActionNotCompleted, "Actual err: %v", err)
+	})
+
+	t.Run("returns error when mutator returns no error but does not mark the planet as deleted", func(t *testing.T) {
+		suite := setupPlanetTestSuite(t)
+		id := uuid.New()
+
+		suite.mockClock.EXPECT().Now(gomock.Any()).Times(1).Return(t2)
+		suite.mockPlanetMutator.EXPECT().
+			Mutate(gomock.Any(), gomock.Eq(id), gomock.Any()).
+			Times(1).
+			Return(models.PlanetMutationResult{Deleted: false}, nil)
+
+		err := suite.usecase.Delete(t.Context(), id)
+
+		assert.ErrorIs(t, err, domainerrors.ErrPlanetDeletionFailed, "Actual err: %v", err)
 	})
 }
 

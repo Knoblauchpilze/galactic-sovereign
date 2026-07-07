@@ -18,6 +18,7 @@ const (
 	planetNotUpToDate          errors.ErrorCode = 615
 	actionNotCompleted         errors.ErrorCode = 616
 	mutationWithoutVersionBump errors.ErrorCode = 617
+	planetDeletionFailed       errors.ErrorCode = 618
 )
 
 var (
@@ -35,4 +36,5 @@ var (
 	ErrPlanetNotUpToDate          = errors.FromCode(planetNotUpToDate)
 	ErrActionNotCompleted         = errors.FromCode(actionNotCompleted)
 	ErrMutationWithoutVersionBump = errors.FromCode(mutationWithoutVersionBump)
+	ErrPlanetDeletionFailed       = errors.FromCode(planetDeletionFailed)
 )
