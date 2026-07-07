@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
-	"github.com/Knoblauchpilze/backend-toolkit/pkg/errors"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
 	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
 	drivenports "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driven"
@@ -52,8 +51,8 @@ func (m *PlanetMutator) Mutate(
 	out := models.PlanetMutationResult{Deleted: deleted}
 
 	if deleted {
-		// TODO: Should handle this
-		return out, errors.ErrNotImplemented
+		err = deletePlanetAndDetails(ctx, tx, id)
+		return out, err
 	}
 
 	out.Planet, err = saveAndReloadPlanet(ctx, tx, planet, expectedVersion)

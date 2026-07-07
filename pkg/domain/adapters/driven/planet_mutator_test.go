@@ -672,6 +672,90 @@ func TestIT_PlanetMutator_Mutate(t *testing.T) {
 
 		assert.ErrorIs(t, err, domainerrors.ErrResourceNotFound, "Actual err: %v", err)
 	})
+
+	t.Run("deletes planet when mutator indicates it", func(t *testing.T) {
+		planet, _, _ := insertTestPlanetForPlayer(t, conn)
+		require.NotEqual(t, planet.UpdatedAt, yetAnotherTime)
+
+		returned, err := adapter.Mutate(t.Context(), planet.Id, generateDeletingMutator())
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.True(t, returned.Deleted)
+		assertPlanetDoesNotExist(t, conn, planet.Id)
+	})
+
+	t.Run("deletes planet with resources when mutator indicates it", func(t *testing.T) {
+		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetResource)
+		require.NotEqual(t, planet.UpdatedAt, yetAnotherTime)
+
+		returned, err := adapter.Mutate(t.Context(), planet.Id, generateDeletingMutator())
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.True(t, returned.Deleted)
+		assertPlanetDoesNotExist(t, conn, planet.Id)
+		assertPlanetResourceDoesNotExist(t, conn, planet.Id)
+	})
+
+	t.Run("deletes planet with storages when mutator indicates it", func(t *testing.T) {
+		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetStorage)
+		require.NotEqual(t, planet.UpdatedAt, yetAnotherTime)
+
+		returned, err := adapter.Mutate(t.Context(), planet.Id, generateDeletingMutator())
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.True(t, returned.Deleted)
+		assertPlanetDoesNotExist(t, conn, planet.Id)
+		assertPlanetStorageDoesNotExist(t, conn, planet.Id)
+	})
+
+	t.Run("deletes planet with productions when mutator indicates it", func(t *testing.T) {
+		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetProduction)
+		require.NotEqual(t, planet.UpdatedAt, yetAnotherTime)
+
+		returned, err := adapter.Mutate(t.Context(), planet.Id, generateDeletingMutator())
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.True(t, returned.Deleted)
+		assertPlanetDoesNotExist(t, conn, planet.Id)
+		assertPlanetProductionDoesNotExist(t, conn, planet.Id)
+	})
+
+	t.Run("deletes planet with production for building when mutator indicates it", func(t *testing.T) {
+		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetProductionForBuilding)
+		require.NotEqual(t, planet.UpdatedAt, yetAnotherTime)
+
+		returned, err := adapter.Mutate(t.Context(), planet.Id, generateDeletingMutator())
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.True(t, returned.Deleted)
+		assertPlanetDoesNotExist(t, conn, planet.Id)
+		assertPlanetProductionDoesNotExist(t, conn, planet.Id)
+	})
+
+	t.Run("deletes planet with buildings when mutator indicates it", func(t *testing.T) {
+		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetBuilding)
+		require.NotEqual(t, planet.UpdatedAt, yetAnotherTime)
+
+		returned, err := adapter.Mutate(t.Context(), planet.Id, generateDeletingMutator())
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.True(t, returned.Deleted)
+		assertPlanetDoesNotExist(t, conn, planet.Id)
+		assertPlanetBuildingDoesNotExist(t, conn, planet.Id)
+	})
+
+	t.Run("deletes planet with building action when mutator indicates it", func(t *testing.T) {
+		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetBuildingAction)
+		require.NotEqual(t, planet.UpdatedAt, yetAnotherTime)
+
+		returned, err := adapter.Mutate(t.Context(), planet.Id, generateDeletingMutator())
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.True(t, returned.Deleted)
+		assertPlanetDoesNotExist(t, conn, planet.Id)
+		require.NotNil(t, planet.BuildingAction)
+		assertBuildingActionDoesNotExist(t, conn, planet.BuildingAction.Id)
+	})
 }
 
 func newTestPlanetMutator(t *testing.T) (*PlanetMutator, db.Connection) {
@@ -684,6 +768,12 @@ func generateModifyingMutator(modifier func(p *models.Planet)) drivenports.Plane
 	return func(p *models.Planet) (bool, error) {
 		modifier(p)
 		return false, nil
+	}
+}
+
+func generateDeletingMutator() drivenports.PlanetMutator {
+	return func(*models.Planet) (bool, error) {
+		return true, nil
 	}
 }
 
