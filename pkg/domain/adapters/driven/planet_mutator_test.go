@@ -25,10 +25,10 @@ func TestIT_PlanetMutator_Mutate(t *testing.T) {
 		planet, _, _ := insertTestPlanetForPlayer(t, conn)
 
 		var captured models.Planet
-		mutator := func(p *models.Planet) error {
+		mutator := func(p *models.Planet) (bool, error) {
 			captured = *p
 			p.Version++
-			return nil
+			return false, nil
 		}
 
 		returned, err := adapter.Mutate(t.Context(), planet.Id, mutator)
@@ -37,7 +37,8 @@ func TestIT_PlanetMutator_Mutate(t *testing.T) {
 		assert.Equal(t, planet, captured)
 		expected := planet
 		expected.Version++
-		assert.Equal(t, expected, returned)
+		assert.False(t, returned.Deleted)
+		assert.Equal(t, expected, returned.Planet)
 	})
 
 	t.Run("returns mutated planet", func(t *testing.T) {
@@ -52,7 +53,8 @@ func TestIT_PlanetMutator_Mutate(t *testing.T) {
 		returned, err := adapter.Mutate(t.Context(), planet.Id, mutator)
 		require.NoError(t, err, "Actual err: %v", err)
 
-		assert.Equal(t, yetAnotherTime, returned.UpdatedAt)
+		assert.False(t, returned.Deleted)
+		assert.Equal(t, yetAnotherTime, returned.Planet.UpdatedAt)
 	})
 
 	t.Run("persists mutated planet", func(t *testing.T) {
@@ -87,10 +89,11 @@ func TestIT_PlanetMutator_Mutate(t *testing.T) {
 		returned, err := adapter.Mutate(t.Context(), planet.Id, mutator)
 		require.NoError(t, err, "Actual err: %v", err)
 
+		assert.False(t, returned.Deleted)
 		expected := []models.PlanetResource{
 			{Resource: crystalResourceId, Amount: 5874},
 		}
-		assert.Equal(t, expected, returned.Resources)
+		assert.Equal(t, expected, returned.Planet.Resources)
 		assertPlanetResourceAmount(t, conn, planet.Id, crystalResourceId, 5874)
 	})
 
@@ -106,10 +109,11 @@ func TestIT_PlanetMutator_Mutate(t *testing.T) {
 		returned, err := adapter.Mutate(t.Context(), planet.Id, mutator)
 		require.NoError(t, err, "Actual err: %v", err)
 
+		assert.False(t, returned.Deleted)
 		expected := []models.PlanetResourceProduction{
 			{Resource: metalResourceId, Production: 39841},
 		}
-		assert.Equal(t, expected, returned.Productions)
+		assert.Equal(t, expected, returned.Planet.Productions)
 		assertPlanetResourceProduction(t, conn, planet.Id, metalResourceId, nil, 39841)
 	})
 
@@ -125,10 +129,11 @@ func TestIT_PlanetMutator_Mutate(t *testing.T) {
 		returned, err := adapter.Mutate(t.Context(), planet.Id, mutator)
 		require.NoError(t, err, "Actual err: %v", err)
 
+		assert.False(t, returned.Deleted)
 		expected := []models.PlanetResourceProduction{
 			{Resource: metalResourceId, Building: &crystalMineId, Production: 1235},
 		}
-		assert.Equal(t, expected, returned.Productions)
+		assert.Equal(t, expected, returned.Planet.Productions)
 		assertPlanetResourceProduction(
 			t, conn, planet.Id, metalResourceId, &crystalMineId, 1235,
 		)
@@ -155,12 +160,13 @@ func TestIT_PlanetMutator_Mutate(t *testing.T) {
 		returned, err := adapter.Mutate(t.Context(), planet.Id, mutator)
 		require.NoError(t, err, "Actual err: %v", err)
 
+		assert.False(t, returned.Deleted)
 		expected := []models.PlanetResourceProduction{
 			{Resource: metalResourceId, Production: initial0},
 			{Resource: metalResourceId, Building: &crystalMineId, Production: initial1},
 			{Resource: crystalResourceId, Building: &metalMineId, Production: 354789},
 		}
-		assert.Equal(t, expected, returned.Productions)
+		assert.Equal(t, expected, returned.Planet.Productions)
 		assertPlanetResourceProduction(t, conn, planet.Id, metalResourceId, nil, initial0)
 		assertPlanetResourceProduction(t, conn, planet.Id, metalResourceId, &crystalMineId, initial1)
 		assertPlanetResourceProduction(t, conn, planet.Id, crystalResourceId, &metalMineId, 354789)
@@ -178,10 +184,11 @@ func TestIT_PlanetMutator_Mutate(t *testing.T) {
 		returned, err := adapter.Mutate(t.Context(), planet.Id, mutator)
 		require.NoError(t, err, "Actual err: %v", err)
 
+		assert.False(t, returned.Deleted)
 		expected := []models.PlanetResourceStorage{
 			{Resource: crystalResourceId, Storage: 4598},
 		}
-		assert.Equal(t, expected, returned.Storages)
+		assert.Equal(t, expected, returned.Planet.Storages)
 		assertPlanetResourceStorage(t, conn, planet.Id, crystalResourceId, 4598)
 	})
 
@@ -197,10 +204,11 @@ func TestIT_PlanetMutator_Mutate(t *testing.T) {
 		returned, err := adapter.Mutate(t.Context(), planet.Id, mutator)
 		require.NoError(t, err, "Actual err: %v", err)
 
+		assert.False(t, returned.Deleted)
 		expected := []models.PlanetBuilding{
 			{Building: metalStorageId, Level: 6},
 		}
-		assert.Equal(t, expected, returned.Buildings)
+		assert.Equal(t, expected, returned.Planet.Buildings)
 		assertPlanetBuildingLevel(t, conn, planet.Id, metalStorageId, 6)
 	})
 
@@ -227,11 +235,12 @@ func TestIT_PlanetMutator_Mutate(t *testing.T) {
 		returned, err := adapter.Mutate(t.Context(), planet.Id, mutator)
 		require.NoError(t, err, "Actual err: %v", err)
 
+		assert.False(t, returned.Deleted)
 		actual, err := planetRepo.Get(t.Context(), planet.Id)
 		require.NoError(t, err, "Actual err: %v", err)
-		assert.Equal(t, returned, actual)
-		require.NotNil(t, returned.BuildingAction)
-		assert.Equal(t, action, *returned.BuildingAction)
+		assert.Equal(t, returned.Planet, actual)
+		require.NotNil(t, returned.Planet.BuildingAction)
+		assert.Equal(t, action, *returned.Planet.BuildingAction)
 		require.NotNil(t, actual.BuildingAction)
 		assert.Equal(t, action, *actual.BuildingAction)
 	})
@@ -268,11 +277,12 @@ func TestIT_PlanetMutator_Mutate(t *testing.T) {
 		returned, err := adapter.Mutate(t.Context(), planet.Id, mutator)
 		require.NoError(t, err, "Actual err: %v", err)
 
+		assert.False(t, returned.Deleted)
 		actual, err := planetRepo.Get(t.Context(), planet.Id)
 		require.NoError(t, err, "Actual err: %v", err)
-		assert.Equal(t, returned, actual)
-		require.NotNil(t, returned.BuildingAction)
-		assert.Equal(t, action, *returned.BuildingAction)
+		assert.Equal(t, returned.Planet, actual)
+		require.NotNil(t, returned.Planet.BuildingAction)
+		assert.Equal(t, action, *returned.Planet.BuildingAction)
 		require.NotNil(t, actual.BuildingAction)
 		assert.Equal(t, action, *actual.BuildingAction)
 	})
@@ -309,11 +319,12 @@ func TestIT_PlanetMutator_Mutate(t *testing.T) {
 		returned, err := adapter.Mutate(t.Context(), planet.Id, mutator)
 		require.NoError(t, err, "Actual err: %v", err)
 
+		assert.False(t, returned.Deleted)
 		actual, err := planetRepo.Get(t.Context(), planet.Id)
 		require.NoError(t, err, "Actual err: %v", err)
-		assert.Equal(t, returned, actual)
-		require.NotNil(t, returned.BuildingAction)
-		assert.Equal(t, action, *returned.BuildingAction)
+		assert.Equal(t, returned.Planet, actual)
+		require.NotNil(t, returned.Planet.BuildingAction)
+		assert.Equal(t, action, *returned.Planet.BuildingAction)
 		require.NotNil(t, actual.BuildingAction)
 		assert.Equal(t, action, *actual.BuildingAction)
 	})
@@ -350,11 +361,12 @@ func TestIT_PlanetMutator_Mutate(t *testing.T) {
 		returned, err := adapter.Mutate(t.Context(), planet.Id, mutator)
 		require.NoError(t, err, "Actual err: %v", err)
 
+		assert.False(t, returned.Deleted)
 		actual, err := planetRepo.Get(t.Context(), planet.Id)
 		require.NoError(t, err, "Actual err: %v", err)
-		assert.Equal(t, returned, actual)
-		require.NotNil(t, returned.BuildingAction)
-		assert.Equal(t, action, *returned.BuildingAction)
+		assert.Equal(t, returned.Planet, actual)
+		require.NotNil(t, returned.Planet.BuildingAction)
+		assert.Equal(t, action, *returned.Planet.BuildingAction)
 		require.NotNil(t, actual.BuildingAction)
 		assert.Equal(t, action, *actual.BuildingAction)
 	})
@@ -372,11 +384,12 @@ func TestIT_PlanetMutator_Mutate(t *testing.T) {
 		returned, err := adapter.Mutate(t.Context(), planet.Id, mutator)
 		require.NoError(t, err, "Actual err: %v", err)
 
+		assert.False(t, returned.Deleted)
 		actual, err := planetRepo.Get(t.Context(), planet.Id)
 		require.NoError(t, err, "Actual err: %v", err)
-		assert.Equal(t, returned, actual)
-		require.NotNil(t, returned.BuildingAction)
-		assert.Equal(t, yetAnotherTime, returned.BuildingAction.CompletedAt)
+		assert.Equal(t, returned.Planet, actual)
+		require.NotNil(t, returned.Planet.BuildingAction)
+		assert.Equal(t, yetAnotherTime, returned.Planet.BuildingAction.CompletedAt)
 		require.NotNil(t, actual.BuildingAction)
 		assert.Equal(t, yetAnotherTime, actual.BuildingAction.CompletedAt)
 	})
@@ -399,10 +412,11 @@ func TestIT_PlanetMutator_Mutate(t *testing.T) {
 		returned, err := adapter.Mutate(t.Context(), planet.Id, mutator)
 		require.NoError(t, err, "Actual err: %v", err)
 
+		assert.False(t, returned.Deleted)
 		actual, err := planetRepo.Get(t.Context(), planet.Id)
 		require.NoError(t, err, "Actual err: %v", err)
-		require.NotNil(t, returned.BuildingAction)
-		assert.Equal(t, action.Costs, returned.BuildingAction.Costs)
+		require.NotNil(t, returned.Planet.BuildingAction)
+		assert.Equal(t, action.Costs, returned.Planet.BuildingAction.Costs)
 		require.NotNil(t, actual.BuildingAction)
 		assert.Equal(t, action.Costs, actual.BuildingAction.Costs)
 	})
@@ -430,11 +444,12 @@ func TestIT_PlanetMutator_Mutate(t *testing.T) {
 		returned, err := adapter.Mutate(t.Context(), planet.Id, mutator)
 		require.NoError(t, err, "Actual err: %v", err)
 
+		assert.False(t, returned.Deleted)
 		actual, err := planetRepo.Get(t.Context(), planet.Id)
 		require.NoError(t, err, "Actual err: %v", err)
-		assert.Equal(t, returned, actual)
-		require.NotNil(t, returned.BuildingAction)
-		assert.Equal(t, costs, returned.BuildingAction.Costs)
+		assert.Equal(t, returned.Planet, actual)
+		require.NotNil(t, returned.Planet.BuildingAction)
+		assert.Equal(t, costs, returned.Planet.BuildingAction.Costs)
 		require.NotNil(t, actual.BuildingAction)
 		assert.Equal(t, costs, actual.BuildingAction.Costs)
 	})
@@ -455,10 +470,11 @@ func TestIT_PlanetMutator_Mutate(t *testing.T) {
 		returned, err := adapter.Mutate(t.Context(), planet.Id, mutator)
 		require.NoError(t, err, "Actual err: %v", err)
 
+		assert.False(t, returned.Deleted)
 		actual, err := planetRepo.Get(t.Context(), planet.Id)
 		require.NoError(t, err, "Actual err: %v", err)
-		require.NotNil(t, returned.BuildingAction)
-		assert.Equal(t, action.Storages, returned.BuildingAction.Storages)
+		require.NotNil(t, returned.Planet.BuildingAction)
+		assert.Equal(t, action.Storages, returned.Planet.BuildingAction.Storages)
 		require.NotNil(t, actual.BuildingAction)
 		assert.Equal(t, action.Storages, actual.BuildingAction.Storages)
 	})
@@ -486,11 +502,12 @@ func TestIT_PlanetMutator_Mutate(t *testing.T) {
 		returned, err := adapter.Mutate(t.Context(), planet.Id, mutator)
 		require.NoError(t, err, "Actual err: %v", err)
 
+		assert.False(t, returned.Deleted)
 		actual, err := planetRepo.Get(t.Context(), planet.Id)
 		require.NoError(t, err, "Actual err: %v", err)
-		assert.Equal(t, returned, actual)
-		require.NotNil(t, returned.BuildingAction)
-		assert.Equal(t, storages, returned.BuildingAction.Storages)
+		assert.Equal(t, returned.Planet, actual)
+		require.NotNil(t, returned.Planet.BuildingAction)
+		assert.Equal(t, storages, returned.Planet.BuildingAction.Storages)
 		require.NotNil(t, actual.BuildingAction)
 		assert.Equal(t, storages, actual.BuildingAction.Storages)
 	})
@@ -511,10 +528,11 @@ func TestIT_PlanetMutator_Mutate(t *testing.T) {
 		returned, err := adapter.Mutate(t.Context(), planet.Id, mutator)
 		require.NoError(t, err, "Actual err: %v", err)
 
+		assert.False(t, returned.Deleted)
 		actual, err := planetRepo.Get(t.Context(), planet.Id)
 		require.NoError(t, err, "Actual err: %v", err)
-		require.NotNil(t, returned.BuildingAction)
-		assert.Equal(t, action.Productions, returned.BuildingAction.Productions)
+		require.NotNil(t, returned.Planet.BuildingAction)
+		assert.Equal(t, action.Productions, returned.Planet.BuildingAction.Productions)
 		require.NotNil(t, actual.BuildingAction)
 		assert.Equal(t, action.Productions, actual.BuildingAction.Productions)
 	})
@@ -542,11 +560,12 @@ func TestIT_PlanetMutator_Mutate(t *testing.T) {
 		returned, err := adapter.Mutate(t.Context(), planet.Id, mutator)
 		require.NoError(t, err, "Actual err: %v", err)
 
+		assert.False(t, returned.Deleted)
 		actual, err := planetRepo.Get(t.Context(), planet.Id)
 		require.NoError(t, err, "Actual err: %v", err)
-		assert.Equal(t, returned, actual)
-		require.NotNil(t, returned.BuildingAction)
-		assert.Equal(t, productions, returned.BuildingAction.Productions)
+		assert.Equal(t, returned.Planet, actual)
+		require.NotNil(t, returned.Planet.BuildingAction)
+		assert.Equal(t, productions, returned.Planet.BuildingAction.Productions)
 		require.NotNil(t, actual.BuildingAction)
 		assert.Equal(t, productions, actual.BuildingAction.Productions)
 	})
@@ -562,8 +581,9 @@ func TestIT_PlanetMutator_Mutate(t *testing.T) {
 		returned, err := adapter.Mutate(t.Context(), planet.Id, mutator)
 		require.NoError(t, err, "Actual err: %v", err)
 
+		assert.False(t, returned.Deleted)
 		assertBuildingActionDoesNotExist(t, conn, action.Id)
-		assert.Nil(t, returned.BuildingAction)
+		assert.Nil(t, returned.Planet.BuildingAction)
 	})
 
 	t.Run("persists mutated planet with deleted action with costs", func(t *testing.T) {
@@ -577,9 +597,10 @@ func TestIT_PlanetMutator_Mutate(t *testing.T) {
 		returned, err := adapter.Mutate(t.Context(), planet.Id, mutator)
 		require.NoError(t, err, "Actual err: %v", err)
 
+		assert.False(t, returned.Deleted)
 		assertBuildingActionDoesNotExist(t, conn, action.Id)
 		assertBuildingActionCostDoesNotExist(t, conn, action.Id)
-		assert.Nil(t, returned.BuildingAction)
+		assert.Nil(t, returned.Planet.BuildingAction)
 	})
 
 	t.Run("persists mutated planet with deleted action with storages", func(t *testing.T) {
@@ -593,9 +614,10 @@ func TestIT_PlanetMutator_Mutate(t *testing.T) {
 		returned, err := adapter.Mutate(t.Context(), planet.Id, mutator)
 		require.NoError(t, err, "Actual err: %v", err)
 
+		assert.False(t, returned.Deleted)
 		assertBuildingActionDoesNotExist(t, conn, action.Id)
 		assertBuildingActionStorageDoesNotExist(t, conn, action.Id)
-		assert.Nil(t, returned.BuildingAction)
+		assert.Nil(t, returned.Planet.BuildingAction)
 	})
 
 	t.Run("persists mutated planet with deleted action with productions", func(t *testing.T) {
@@ -609,9 +631,10 @@ func TestIT_PlanetMutator_Mutate(t *testing.T) {
 		returned, err := adapter.Mutate(t.Context(), planet.Id, mutator)
 		require.NoError(t, err, "Actual err: %v", err)
 
+		assert.False(t, returned.Deleted)
 		assertBuildingActionDoesNotExist(t, conn, action.Id)
 		assertBuildingActionProductionDoesNotExist(t, conn, action.Id)
-		assert.Nil(t, returned.BuildingAction)
+		assert.Nil(t, returned.Planet.BuildingAction)
 	})
 
 	t.Run("returns error when mutator does not update version", func(t *testing.T) {
@@ -658,9 +681,9 @@ func newTestPlanetMutator(t *testing.T) (*PlanetMutator, db.Connection) {
 }
 
 func generateModifyingMutator(modifier func(p *models.Planet)) drivenports.PlanetMutator {
-	return func(p *models.Planet) error {
+	return func(p *models.Planet) (bool, error) {
 		modifier(p)
-		return nil
+		return false, nil
 	}
 }
 

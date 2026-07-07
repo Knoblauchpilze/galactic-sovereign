@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
+	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
 	drivenports "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driven"
 	drivingports "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driving"
 	domainservices "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/services"
@@ -31,7 +32,16 @@ func NewPlanetUseCase(
 
 func (p *planetUseCase) Get(ctx context.Context, id uuid.UUID) (models.Planet, error) {
 	moment := p.clock.Now(ctx)
-	return p.planetMutator.Mutate(ctx, id, generateUpdateMutator(ctx, moment))
+	result, err := p.planetMutator.Mutate(ctx, id, generateUpdateMutator(ctx, moment, false))
+	if err != nil {
+		return models.Planet{}, err
+	}
+
+	if result.Deleted {
+		return models.Planet{}, domainerrors.ErrNotFound
+	}
+
+	return result.Planet, nil
 }
 
 func (p *planetUseCase) ListForPlayer(ctx context.Context, player uuid.UUID) ([]models.Planet, error) {
@@ -45,12 +55,14 @@ func (p *planetUseCase) ListForPlayer(ctx context.Context, player uuid.UUID) ([]
 	out := make([]models.Planet, 0, len(ids))
 
 	for _, id := range ids {
-		planet, err := p.planetMutator.Mutate(ctx, id, generateUpdateMutator(ctx, moment))
+		result, err := p.planetMutator.Mutate(ctx, id, generateUpdateMutator(ctx, moment, false))
 		if err != nil {
 			return nil, err
 		}
 
-		out = append(out, planet)
+		if !result.Deleted {
+			out = append(out, result.Planet)
+		}
 	}
 
 	return out, nil
@@ -68,8 +80,9 @@ func (p *planetUseCase) Delete(ctx context.Context, id uuid.UUID) error {
 func generateUpdateMutator(
 	ctx context.Context,
 	moment time.Time,
+	delete bool,
 ) drivenports.PlanetMutator {
-	return func(p *models.Planet) error {
-		return domainservices.AdvancePlanetToTime(ctx, p, moment)
+	return func(p *models.Planet) (bool, error) {
+		return delete, domainservices.AdvancePlanetToTime(ctx, p, moment)
 	}
 }

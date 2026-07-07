@@ -44,10 +44,10 @@ func (m *MockForMutatingPlanet) EXPECT() *MockForMutatingPlanetMockRecorder {
 }
 
 // Mutate mocks base method.
-func (m *MockForMutatingPlanet) Mutate(ctx context.Context, id uuid.UUID, mutator drivenports.PlanetMutator) (models.Planet, error) {
+func (m *MockForMutatingPlanet) Mutate(ctx context.Context, id uuid.UUID, mutator drivenports.PlanetMutator) (models.PlanetMutationResult, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Mutate", ctx, id, mutator)
-	ret0, _ := ret[0].(models.Planet)
+	ret0, _ := ret[0].(models.PlanetMutationResult)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
+	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
 	drivenports "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driven"
 	drivingports "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driving"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/usecases/drivenportstest"
@@ -25,7 +26,7 @@ var (
 	metalMineId = uuid.MustParse("d176e82d-f2ca-4611-996b-c4804096caef")
 )
 
-type MutatorMock func(context.Context, uuid.UUID, drivenports.PlanetMutator) (models.Planet, error)
+type MutatorMock func(context.Context, uuid.UUID, drivenports.PlanetMutator) (models.PlanetMutationResult, error)
 
 type planetTestSuite struct {
 	ctrl              *gomock.Controller
@@ -47,7 +48,7 @@ func TestUnit_ManagePlanet_Get(t *testing.T) {
 		suite.mockPlanetMutator.EXPECT().
 			Mutate(gomock.Any(), gomock.Eq(expected.Id), gomock.Any()).
 			Times(1).
-			Return(expected, nil)
+			Return(generateMutationResult(expected), nil)
 
 		actual, err := suite.usecase.Get(context.Background(), expected.Id)
 		require.NoError(t, err, "Actual err: %v", err)
@@ -180,11 +181,26 @@ func TestUnit_ManagePlanet_Get(t *testing.T) {
 		suite.mockPlanetMutator.EXPECT().
 			Mutate(gomock.Any(), gomock.Any(), gomock.Any()).
 			Times(1).
-			Return(models.Planet{}, expectedErr)
+			Return(models.PlanetMutationResult{}, expectedErr)
 
 		_, err := suite.usecase.Get(context.Background(), uuid.New())
 
 		assert.ErrorIs(t, expectedErr, err, "Actual err: %v", err)
+	})
+
+	t.Run("returns error when planet is deleted during mutation", func(t *testing.T) {
+		suite := setupPlanetTestSuite(t)
+		planetId := uuid.New()
+
+		suite.mockClock.EXPECT().Now(gomock.Any()).Times(1).Return(t2)
+		suite.mockPlanetMutator.EXPECT().
+			Mutate(gomock.Any(), gomock.Eq(planetId), gomock.Any()).
+			Times(1).
+			Return(models.PlanetMutationResult{Deleted: true}, nil)
+
+		_, err := suite.usecase.Get(context.Background(), planetId)
+
+		assert.ErrorIs(t, err, domainerrors.ErrNotFound, "Actual err: %v", err)
 	})
 }
 
@@ -203,11 +219,11 @@ func TestUnit_ManagePlanet_ListForPlayer(t *testing.T) {
 		suite.mockPlanetMutator.EXPECT().
 			Mutate(gomock.Any(), gomock.Eq(p1.Id), gomock.Any()).
 			Times(1).
-			Return(p1, nil)
+			Return(generateMutationResult(p1), nil)
 		suite.mockPlanetMutator.EXPECT().
 			Mutate(gomock.Any(), gomock.Eq(p2.Id), gomock.Any()).
 			Times(1).
-			Return(p2, nil)
+			Return(generateMutationResult(p2), nil)
 
 		actual, err := suite.usecase.ListForPlayer(context.Background(), player)
 		require.NoError(t, err, "Actual err: %v", err)
@@ -432,11 +448,54 @@ func TestUnit_ManagePlanet_ListForPlayer(t *testing.T) {
 		suite.mockPlanetMutator.EXPECT().
 			Mutate(gomock.Any(), gomock.Any(), gomock.Any()).
 			Times(1).
-			Return(models.Planet{}, expectedErr)
+			Return(models.PlanetMutationResult{}, expectedErr)
 
 		_, err := suite.usecase.ListForPlayer(context.Background(), uuid.New())
 
 		assert.ErrorIs(t, expectedErr, err, "Actual err: %v", err)
+	})
+
+	t.Run("does not return planet when it is deleted during mutation", func(t *testing.T) {
+		suite := setupPlanetTestSuite(t)
+		player := uuid.New()
+		p1 := models.Planet{
+			Id:        uuid.New(),
+			Player:    player,
+			Name:      "planet-1",
+			CreatedAt: t1,
+			UpdatedAt: t1,
+			Version:   2,
+		}
+		p2 := uuid.New()
+
+		suite.mockClock.EXPECT().Now(gomock.Any()).Times(1).Return(t2)
+		suite.mockPlanetRepo.EXPECT().
+			ListForPlayer(gomock.Any(), gomock.Eq(player)).
+			Times(1).
+			Return([]uuid.UUID{p1.Id, p2}, nil)
+		suite.mockPlanetMutator.EXPECT().
+			Mutate(gomock.Any(), gomock.Eq(p1.Id), gomock.Any()).
+			Times(1).
+			DoAndReturn(generateApplyingMutatorMock(&p1))
+		suite.mockPlanetMutator.EXPECT().
+			Mutate(gomock.Any(), gomock.Eq(p2), gomock.Any()).
+			Times(1).
+			Return(models.PlanetMutationResult{Deleted: true}, nil)
+
+		actual, err := suite.usecase.ListForPlayer(context.Background(), player)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		expected := []models.Planet{
+			{
+				Id:        p1.Id,
+				Player:    player,
+				Name:      "planet-1",
+				Version:   3,
+				CreatedAt: t1,
+				UpdatedAt: t2,
+			},
+		}
+		assert.Equal(t, expected, actual)
 	})
 }
 
@@ -488,8 +547,22 @@ func setupPlanetTestSuite(t *testing.T) *planetTestSuite {
 // generateApplyingMutatorMock generates a function mock for the planet mutator
 // which applies the provided mutator to a known planet.
 func generateApplyingMutatorMock(p *models.Planet) MutatorMock {
-	return func(ctx context.Context, id uuid.UUID, m drivenports.PlanetMutator) (models.Planet, error) {
-		err := m(p)
-		return *p, err
+	return func(
+		ctx context.Context, id uuid.UUID, m drivenports.PlanetMutator,
+	) (models.PlanetMutationResult, error) {
+		deleted, err := m(p)
+		result := models.PlanetMutationResult{
+			Deleted: deleted,
+			Planet:  *p,
+		}
+
+		return result, err
+	}
+}
+
+func generateMutationResult(planet models.Planet) models.PlanetMutationResult {
+	return models.PlanetMutationResult{
+		Deleted: false,
+		Planet:  planet,
 	}
 }

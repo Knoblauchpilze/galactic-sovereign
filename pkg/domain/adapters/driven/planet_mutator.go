@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
+	"github.com/Knoblauchpilze/backend-toolkit/pkg/errors"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
 	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
 	drivenports "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driven"
@@ -24,35 +25,56 @@ func (m *PlanetMutator) Mutate(
 	ctx context.Context,
 	id uuid.UUID,
 	mutator drivenports.PlanetMutator,
-) (models.Planet, error) {
+) (models.PlanetMutationResult, error) {
 	tx, err := m.conn.BeginTx(ctx)
 	if err != nil {
-		return models.Planet{}, err
+		return models.PlanetMutationResult{}, err
 	}
 	defer tx.Close(ctx)
 
 	planet, err := loadPlanetAndDetails(ctx, tx, id)
 	if err != nil {
-		return models.Planet{}, err
+		return models.PlanetMutationResult{}, err
 	}
 
 	expectedVersion := planet.Version
 
-	err = mutator(&planet)
+	deleted, err := mutator(&planet)
 	if err != nil {
 		// There's no point in checking the error here: it is not logged
 		// and there's already an error pending.
 		// nolint:errcheck
 		tx.Rollback()
 
-		return models.Planet{}, err
+		return models.PlanetMutationResult{}, err
 	}
 
+	out := models.PlanetMutationResult{Deleted: deleted}
+
+	if deleted {
+		// TODO: Should handle this
+		return out, errors.ErrNotImplemented
+	}
+
+	out.Planet, err = saveAndReloadPlanet(ctx, tx, planet, expectedVersion)
+	if err != nil {
+		return out, err
+	}
+
+	return out, nil
+}
+
+func saveAndReloadPlanet(
+	ctx context.Context,
+	tx db.Transaction,
+	planet models.Planet,
+	expectedVersion int,
+) (models.Planet, error) {
 	if planet.Version == expectedVersion {
 		return models.Planet{}, domainerrors.ErrMutationWithoutVersionBump
 	}
 
-	err = updatePlanetDetails(ctx, tx, planet, expectedVersion)
+	err := updatePlanetDetails(ctx, tx, planet, expectedVersion)
 	if err != nil {
 		return models.Planet{}, err
 	}
@@ -65,7 +87,7 @@ func (m *PlanetMutator) Mutate(
 	// A better solution would be to constrain the shape of the mutation
 	// function so that it can only perform valid modifications but this
 	// solution (reload the data form the DB) is acceptable.
-	out, err := loadPlanetAndDetails(ctx, tx, id)
+	out, err := loadPlanetAndDetails(ctx, tx, planet.Id)
 	if err != nil {
 		return models.Planet{}, err
 	}
