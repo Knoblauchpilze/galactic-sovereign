@@ -1,7 +1,6 @@
 package usecases
 
 import (
-	"context"
 	"errors"
 	"testing"
 
@@ -21,7 +20,7 @@ func TestUnit_CheckHealth_Healthy(t *testing.T) {
 			Return(nil)
 
 		usecase := NewCheckHealthUseCase(mockChecker)
-		actual := usecase.Healthy(context.Background())
+		actual := usecase.Healthy(t.Context())
 
 		assert.True(t, actual)
 	})
@@ -33,7 +32,7 @@ func TestUnit_CheckHealth_Healthy(t *testing.T) {
 			Return(errors.New("stubbed error"))
 
 		usecase := NewCheckHealthUseCase(mockChecker)
-		actual := usecase.Healthy(context.Background())
+		actual := usecase.Healthy(t.Context())
 
 		assert.False(t, actual)
 	})

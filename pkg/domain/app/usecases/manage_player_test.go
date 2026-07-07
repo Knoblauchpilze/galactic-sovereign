@@ -65,7 +65,7 @@ func TestUnit_ManagePlayer_Create(t *testing.T) {
 
 		beforeInsertion := time.Now()
 
-		actual, err := suite.usecase.Create(context.Background(), request)
+		actual, err := suite.usecase.Create(t.Context(), request)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Equal(t, request.Name, captured.Name)
@@ -114,7 +114,7 @@ func TestUnit_ManagePlayer_Create(t *testing.T) {
 			Times(1).
 			Return(models.Universe{}, domainerrors.ErrNotFound)
 
-		_, err := suite.usecase.Create(context.Background(), request)
+		_, err := suite.usecase.Create(t.Context(), request)
 
 		assert.ErrorIs(t, domainerrors.ErrUniverseNotFound, err, "Actual err: %v", err)
 	})
@@ -130,7 +130,7 @@ func TestUnit_ManagePlayer_Create(t *testing.T) {
 			Times(1).
 			Return(expectedErr)
 
-		_, err := suite.usecase.Create(context.Background(), request)
+		_, err := suite.usecase.Create(t.Context(), request)
 
 		assert.ErrorIs(t, expectedErr, err, "Actual err: %v", err)
 	})
@@ -152,7 +152,7 @@ func TestUnit_ManagePlayer_Get(t *testing.T) {
 			Times(1).
 			Return(expected, nil)
 
-		actual, err := suite.usecase.Get(context.Background(), expected.Id)
+		actual, err := suite.usecase.Get(t.Context(), expected.Id)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Equal(t, expected, actual)
@@ -165,7 +165,7 @@ func TestUnit_ManagePlayer_Get(t *testing.T) {
 			Times(1).
 			Return(models.Player{}, expectedErr)
 
-		_, err := suite.usecase.Get(context.Background(), uuid.New())
+		_, err := suite.usecase.Get(t.Context(), uuid.New())
 
 		assert.ErrorIs(t, expectedErr, err, "Actual err: %v", err)
 	})
@@ -195,7 +195,7 @@ func TestUnit_ManagePlayer_List(t *testing.T) {
 			Times(1).
 			Return(expected, nil)
 
-		actual, err := suite.usecase.List(context.Background())
+		actual, err := suite.usecase.List(t.Context())
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Equal(t, expected, actual)
@@ -209,7 +209,7 @@ func TestUnit_ManagePlayer_List(t *testing.T) {
 			Times(1).
 			Return(nil, expectedErr)
 
-		_, err := suite.usecase.List(context.Background())
+		_, err := suite.usecase.List(t.Context())
 
 		assert.ErrorIs(t, expectedErr, err, "Actual err: %v", err)
 	})
@@ -240,7 +240,7 @@ func TestUnit_ManagePlayer_ListForApiUser(t *testing.T) {
 			Times(1).
 			Return(expected, nil)
 
-		actual, err := suite.usecase.ListForApiUser(context.Background(), apiUser)
+		actual, err := suite.usecase.ListForApiUser(t.Context(), apiUser)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Equal(t, expected, actual)
@@ -254,7 +254,7 @@ func TestUnit_ManagePlayer_ListForApiUser(t *testing.T) {
 			Times(1).
 			Return(nil, expectedErr)
 
-		_, err := suite.usecase.ListForApiUser(context.Background(), uuid.New())
+		_, err := suite.usecase.ListForApiUser(t.Context(), uuid.New())
 
 		assert.ErrorIs(t, expectedErr, err, "Actual err: %v", err)
 	})
@@ -275,7 +275,7 @@ func TestUnit_ManagePlayer_Delete(t *testing.T) {
 			Times(1).
 			Return(nil)
 
-		err := suite.usecase.Delete(context.Background(), player.Id)
+		err := suite.usecase.Delete(t.Context(), player.Id)
 		require.NoError(t, err, "Actual err: %v", err)
 	})
 
@@ -287,7 +287,7 @@ func TestUnit_ManagePlayer_Delete(t *testing.T) {
 			Times(1).
 			Return(models.Player{}, domainerrors.ErrNotFound)
 
-		err := suite.usecase.Delete(context.Background(), playerId)
+		err := suite.usecase.Delete(t.Context(), playerId)
 		require.NoError(t, err, "Actual err: %v", err)
 	})
 
@@ -304,7 +304,7 @@ func TestUnit_ManagePlayer_Delete(t *testing.T) {
 			Times(1).
 			Return(expectedErr)
 
-		err := suite.usecase.Delete(context.Background(), player.Id)
+		err := suite.usecase.Delete(t.Context(), player.Id)
 
 		assert.ErrorIs(t, expectedErr, err, "Actual err: %v", err)
 	})

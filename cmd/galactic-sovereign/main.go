@@ -24,7 +24,6 @@ func determineConfigName() string {
 	return os.Args[1]
 }
 
-// TODO: Replace context.Background() with t.Context()
 // TODO: Sanitize assert.ErrorIs (regex search: assert.ErrorIs\(.*\))
 
 // @title			Galactic Sovereign API

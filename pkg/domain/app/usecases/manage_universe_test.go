@@ -37,7 +37,7 @@ func TestUnit_ManageUniverse_Create(t *testing.T) {
 		beforeInsertion := time.Now()
 
 		usecase := NewUniverseUseCase(mockRepo)
-		actual, err := usecase.Create(context.Background(), request)
+		actual, err := usecase.Create(t.Context(), request)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Equal(t, request.Name, captured.Name)
@@ -54,7 +54,7 @@ func TestUnit_ManageUniverse_Create(t *testing.T) {
 			Return(expectedErr)
 
 		usecase := NewUniverseUseCase(mockRepo)
-		_, err := usecase.Create(context.Background(), request)
+		_, err := usecase.Create(t.Context(), request)
 
 		assert.ErrorIs(t, expectedErr, err, "Actual err: %v", err)
 	})
@@ -76,7 +76,7 @@ func TestUnit_ManageUniverse_Get(t *testing.T) {
 			Return(expected, nil)
 
 		usecase := NewUniverseUseCase(mockRepo)
-		actual, err := usecase.Get(context.Background(), expected.Id)
+		actual, err := usecase.Get(t.Context(), expected.Id)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Equal(t, expected, actual)
@@ -90,7 +90,7 @@ func TestUnit_ManageUniverse_Get(t *testing.T) {
 			Return(models.Universe{}, expectedErr)
 
 		usecase := NewUniverseUseCase(mockRepo)
-		_, err := usecase.Get(context.Background(), uuid.New())
+		_, err := usecase.Get(t.Context(), uuid.New())
 
 		assert.ErrorIs(t, expectedErr, err, "Actual err: %v", err)
 	})
@@ -118,7 +118,7 @@ func TestUnit_ManageUniverse_List(t *testing.T) {
 			Return(expected, nil)
 
 		usecase := NewUniverseUseCase(mockRepo)
-		actual, err := usecase.List(context.Background())
+		actual, err := usecase.List(t.Context())
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Equal(t, expected, actual)
@@ -133,7 +133,7 @@ func TestUnit_ManageUniverse_List(t *testing.T) {
 			Return(nil, expectedErr)
 
 		usecase := NewUniverseUseCase(mockRepo)
-		_, err := usecase.List(context.Background())
+		_, err := usecase.List(t.Context())
 
 		assert.ErrorIs(t, expectedErr, err, "Actual err: %v", err)
 	})
@@ -152,7 +152,7 @@ func TestUnit_ManageUniverse_Delete(t *testing.T) {
 			Return(nil)
 
 		usecase := NewUniverseUseCase(mockRepo)
-		err := usecase.Delete(context.Background(), id)
+		err := usecase.Delete(t.Context(), id)
 		require.NoError(t, err, "Actual err: %v", err)
 	})
 
@@ -164,7 +164,7 @@ func TestUnit_ManageUniverse_Delete(t *testing.T) {
 			Return(expectedErr)
 
 		usecase := NewUniverseUseCase(mockRepo)
-		err := usecase.Delete(context.Background(), uuid.New())
+		err := usecase.Delete(t.Context(), uuid.New())
 
 		assert.ErrorIs(t, expectedErr, err, "Actual err: %v", err)
 	})

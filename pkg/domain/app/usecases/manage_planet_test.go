@@ -50,7 +50,7 @@ func TestUnit_ManagePlanet_Get(t *testing.T) {
 			Times(1).
 			Return(generateMutationResult(expected), nil)
 
-		actual, err := suite.usecase.Get(context.Background(), expected.Id)
+		actual, err := suite.usecase.Get(t.Context(), expected.Id)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Equal(t, expected, actual)
@@ -73,7 +73,7 @@ func TestUnit_ManagePlanet_Get(t *testing.T) {
 			Times(1).
 			DoAndReturn(generateApplyingMutatorMock(&planet))
 
-		actual, err := suite.usecase.Get(context.Background(), planet.Id)
+		actual, err := suite.usecase.Get(t.Context(), planet.Id)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		expected := models.Planet{
@@ -109,7 +109,7 @@ func TestUnit_ManagePlanet_Get(t *testing.T) {
 			Times(1).
 			DoAndReturn(generateApplyingMutatorMock(&planet))
 
-		actual, err := suite.usecase.Get(context.Background(), planet.Id)
+		actual, err := suite.usecase.Get(t.Context(), planet.Id)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		expected := models.Planet{
@@ -155,7 +155,7 @@ func TestUnit_ManagePlanet_Get(t *testing.T) {
 			Times(1).
 			DoAndReturn(generateApplyingMutatorMock(&planet))
 
-		actual, err := suite.usecase.Get(context.Background(), planet.Id)
+		actual, err := suite.usecase.Get(t.Context(), planet.Id)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		expected := models.Planet{
@@ -183,7 +183,7 @@ func TestUnit_ManagePlanet_Get(t *testing.T) {
 			Times(1).
 			Return(models.PlanetMutationResult{}, expectedErr)
 
-		_, err := suite.usecase.Get(context.Background(), uuid.New())
+		_, err := suite.usecase.Get(t.Context(), uuid.New())
 
 		assert.ErrorIs(t, expectedErr, err, "Actual err: %v", err)
 	})
@@ -198,7 +198,7 @@ func TestUnit_ManagePlanet_Get(t *testing.T) {
 			Times(1).
 			Return(models.PlanetMutationResult{Deleted: true}, nil)
 
-		_, err := suite.usecase.Get(context.Background(), planetId)
+		_, err := suite.usecase.Get(t.Context(), planetId)
 
 		assert.ErrorIs(t, err, domainerrors.ErrNotFound, "Actual err: %v", err)
 	})
@@ -225,7 +225,7 @@ func TestUnit_ManagePlanet_ListForPlayer(t *testing.T) {
 			Times(1).
 			Return(generateMutationResult(p2), nil)
 
-		actual, err := suite.usecase.ListForPlayer(context.Background(), player)
+		actual, err := suite.usecase.ListForPlayer(t.Context(), player)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		expected := []models.Planet{p1, p2}
@@ -266,7 +266,7 @@ func TestUnit_ManagePlanet_ListForPlayer(t *testing.T) {
 			Times(1).
 			DoAndReturn(generateApplyingMutatorMock(&p2))
 
-		actual, err := suite.usecase.ListForPlayer(context.Background(), player)
+		actual, err := suite.usecase.ListForPlayer(t.Context(), player)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		expected := []models.Planet{
@@ -332,7 +332,7 @@ func TestUnit_ManagePlanet_ListForPlayer(t *testing.T) {
 			Times(1).
 			DoAndReturn(generateApplyingMutatorMock(&p2))
 
-		actual, err := suite.usecase.ListForPlayer(context.Background(), player)
+		actual, err := suite.usecase.ListForPlayer(t.Context(), player)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		expected := []models.Planet{
@@ -408,7 +408,7 @@ func TestUnit_ManagePlanet_ListForPlayer(t *testing.T) {
 			Times(1).
 			DoAndReturn(generateApplyingMutatorMock(&p2))
 
-		actual, err := suite.usecase.ListForPlayer(context.Background(), player)
+		actual, err := suite.usecase.ListForPlayer(t.Context(), player)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		expected := []models.Planet{
@@ -450,7 +450,7 @@ func TestUnit_ManagePlanet_ListForPlayer(t *testing.T) {
 			Times(1).
 			Return(models.PlanetMutationResult{}, expectedErr)
 
-		_, err := suite.usecase.ListForPlayer(context.Background(), uuid.New())
+		_, err := suite.usecase.ListForPlayer(t.Context(), uuid.New())
 
 		assert.ErrorIs(t, expectedErr, err, "Actual err: %v", err)
 	})
@@ -482,7 +482,7 @@ func TestUnit_ManagePlanet_ListForPlayer(t *testing.T) {
 			Times(1).
 			Return(models.PlanetMutationResult{Deleted: true}, nil)
 
-		actual, err := suite.usecase.ListForPlayer(context.Background(), player)
+		actual, err := suite.usecase.ListForPlayer(t.Context(), player)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		expected := []models.Planet{
@@ -509,7 +509,7 @@ func TestUnit_ManagePlanet_Delete(t *testing.T) {
 			Times(1).
 			Return(nil)
 
-		err := suite.usecase.Delete(context.Background(), id)
+		err := suite.usecase.Delete(t.Context(), id)
 		require.NoError(t, err, "Actual err: %v", err)
 	})
 
@@ -521,7 +521,7 @@ func TestUnit_ManagePlanet_Delete(t *testing.T) {
 			Times(1).
 			Return(expectedErr)
 
-		err := suite.usecase.Delete(context.Background(), uuid.New())
+		err := suite.usecase.Delete(t.Context(), uuid.New())
 
 		assert.ErrorIs(t, expectedErr, err, "Actual err: %v", err)
 	})

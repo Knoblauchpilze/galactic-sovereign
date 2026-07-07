@@ -56,7 +56,7 @@ func TestUnit_ManageBuildingAction_Create(t *testing.T) {
 		completionTime := 289440 * time.Millisecond
 
 		usecase := NewBuildingActionUseCase(mockActionRepo, mockPlanetRepo, mockBuildingRepo)
-		actual, err := usecase.Create(context.Background(), request)
+		actual, err := usecase.Create(t.Context(), request)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		expected := models.BuildingAction{
@@ -107,7 +107,7 @@ func TestUnit_ManageBuildingAction_Create(t *testing.T) {
 			})
 
 		usecase := NewBuildingActionUseCase(mockActionRepo, mockPlanetRepo, mockBuildingRepo)
-		actual, err := usecase.Create(context.Background(), request)
+		actual, err := usecase.Create(t.Context(), request)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		expected := models.Planet{
@@ -148,7 +148,7 @@ func TestUnit_ManageBuildingAction_Create(t *testing.T) {
 			Return(models.Planet{}, domainerrors.ErrNotFound)
 
 		usecase := NewBuildingActionUseCase(mockActionRepo, mockPlanetRepo, mockBuildingRepo)
-		_, err := usecase.Create(context.Background(), request)
+		_, err := usecase.Create(t.Context(), request)
 
 		assert.Equal(t, domainerrors.ErrNotFound, err, "Actual err: %v", err)
 	})
@@ -168,7 +168,7 @@ func TestUnit_ManageBuildingAction_Create(t *testing.T) {
 			Return(models.Building{}, domainerrors.ErrNotFound)
 
 		usecase := NewBuildingActionUseCase(mockActionRepo, mockPlanetRepo, mockBuildingRepo)
-		_, err := usecase.Create(context.Background(), request)
+		_, err := usecase.Create(t.Context(), request)
 
 		assert.Equal(t, domainerrors.ErrBuildingNotFound, err, "Actual err: %v", err)
 	})
@@ -195,7 +195,7 @@ func TestUnit_ManageBuildingAction_Create(t *testing.T) {
 			Return(expectedErr)
 
 		usecase := NewBuildingActionUseCase(mockActionRepo, mockPlanetRepo, mockBuildingRepo)
-		_, err := usecase.Create(context.Background(), request)
+		_, err := usecase.Create(t.Context(), request)
 
 		assert.ErrorIs(t, expectedErr, err, "Actual err: %v", err)
 	})
@@ -230,7 +230,7 @@ func TestUnit_ManageBuildingAction_Delete(t *testing.T) {
 			})
 
 		usecase := NewBuildingActionUseCase(mockActionRepo, mockPlanetRepo, mockBuildingRepo)
-		err := usecase.Delete(context.Background(), actionId)
+		err := usecase.Delete(t.Context(), actionId)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Nil(t, captured.BuildingAction)
@@ -280,7 +280,7 @@ func TestUnit_ManageBuildingAction_Delete(t *testing.T) {
 			})
 
 		usecase := NewBuildingActionUseCase(mockActionRepo, mockPlanetRepo, mockBuildingRepo)
-		err := usecase.Delete(context.Background(), actionId)
+		err := usecase.Delete(t.Context(), actionId)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		expectedPlanet := models.Planet{
@@ -315,7 +315,7 @@ func TestUnit_ManageBuildingAction_Delete(t *testing.T) {
 			Return(planet, nil)
 
 		usecase := NewBuildingActionUseCase(mockActionRepo, mockPlanetRepo, mockBuildingRepo)
-		err := usecase.Delete(context.Background(), actionId)
+		err := usecase.Delete(t.Context(), actionId)
 		require.NoError(t, err, "Actual err: %v", err)
 	})
 
@@ -328,7 +328,7 @@ func TestUnit_ManageBuildingAction_Delete(t *testing.T) {
 			Return(models.Planet{}, domainerrors.ErrNotFound)
 
 		usecase := NewBuildingActionUseCase(mockActionRepo, mockPlanetRepo, mockBuildingRepo)
-		err := usecase.Delete(context.Background(), actionId)
+		err := usecase.Delete(t.Context(), actionId)
 		require.NoError(t, err, "Actual err: %v", err)
 	})
 
@@ -352,7 +352,7 @@ func TestUnit_ManageBuildingAction_Delete(t *testing.T) {
 			Return(expectedErr)
 
 		usecase := NewBuildingActionUseCase(mockActionRepo, mockPlanetRepo, mockBuildingRepo)
-		err := usecase.Delete(context.Background(), actionId)
+		err := usecase.Delete(t.Context(), actionId)
 
 		assert.ErrorIs(t, expectedErr, err, "Actual err: %v", err)
 	})

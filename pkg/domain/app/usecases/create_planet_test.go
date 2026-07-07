@@ -59,7 +59,7 @@ func TestUnit_CreatePlanet_Create(t *testing.T) {
 
 		beforeInsertion := time.Now()
 
-		actual, err := suite.usecase.Create(context.Background(), request)
+		actual, err := suite.usecase.Create(t.Context(), request)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Equal(t, request.Player, captured.Player)
@@ -82,7 +82,7 @@ func TestUnit_CreatePlanet_Create(t *testing.T) {
 			Times(1).
 			Return(models.Player{}, domainerrors.ErrNotFound)
 
-		_, err := suite.usecase.Create(context.Background(), request)
+		_, err := suite.usecase.Create(t.Context(), request)
 
 		assert.ErrorIs(t, domainerrors.ErrPlayerNotFound, err, "Actual err: %v", err)
 	})
@@ -103,7 +103,7 @@ func TestUnit_CreatePlanet_Create(t *testing.T) {
 			Times(1).
 			Return(expectedErr)
 
-		_, err := suite.usecase.Create(context.Background(), request)
+		_, err := suite.usecase.Create(t.Context(), request)
 
 		assert.ErrorIs(t, expectedErr, err, "Actual err: %v", err)
 	})
