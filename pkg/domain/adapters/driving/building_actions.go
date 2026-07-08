@@ -13,10 +13,13 @@ import (
 	"github.com/labstack/echo/v5"
 )
 
-func BuildingActionEndpoints(usecase drivingports.ForManagingBuildingAction) rest.Routes {
+func BuildingActionEndpoints(
+	createUsecase drivingports.ForCreatingBuildingAction,
+	usecase drivingports.ForManagingBuildingAction,
+) rest.Routes {
 	var out rest.Routes
 
-	handler := generateHandler(createBuildingAction, usecase)
+	handler := generateHandler(createBuildingAction, createUsecase)
 	post := rest.NewRoute(http.MethodPost, "/planets/:id/actions", handler)
 	out = append(out, post)
 
@@ -41,7 +44,7 @@ func BuildingActionEndpoints(usecase drivingports.ForManagingBuildingAction) res
 //	@Failure		409		{object}	rest.ResponseEnvelope[string]
 //	@Failure		500		{object}	rest.ResponseEnvelope[string]
 //	@Router			/planets/{id}/actions [post]
-func createBuildingAction(c *echo.Context, usecase drivingports.ForManagingBuildingAction) error {
+func createBuildingAction(c *echo.Context, usecase drivingports.ForCreatingBuildingAction) error {
 	maybeId := c.Param("id")
 	planetId, err := uuid.Parse(maybeId)
 	if err != nil {
