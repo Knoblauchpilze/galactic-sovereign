@@ -377,6 +377,9 @@ func generateTestPlanet() models.Planet {
 				Level:    2,
 			},
 		},
+		CreatedAt: t1,
+		UpdatedAt: t1,
+		Version:   2,
 	}
 }
 
