@@ -204,6 +204,19 @@ func generateTestPlanet() models.Planet {
 	}
 }
 
+func generateTestPlanetWithAction(completionTime time.Time) models.Planet {
+	p := generateTestPlanet()
+	p.BuildingAction = &models.BuildingAction{
+		Id:           uuid.New(),
+		Building:     p.Buildings[0].Building,
+		DesiredLevel: p.Buildings[0].Level + 1,
+		CreatedAt:    t1,
+		CompletedAt:  completionTime,
+	}
+
+	return p
+}
+
 func generateTestBuilding(planet models.Planet) models.Building {
 	return models.Building{
 		Id: planet.Buildings[0].Building,

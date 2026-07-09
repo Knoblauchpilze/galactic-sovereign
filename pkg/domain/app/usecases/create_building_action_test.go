@@ -99,15 +99,8 @@ func TestUnit_CreateBuildingAction_Create(t *testing.T) {
 	t.Run("applies completed action and create a new one", func(t *testing.T) {
 		suite := setupCreateBuildingActionTestSuite(t)
 
-		planet := generateTestPlanet()
+		planet := generateTestPlanetWithAction(t2)
 		building := generateTestBuilding(planet)
-		planet.BuildingAction = &models.BuildingAction{
-			Id:           uuid.New(),
-			Building:     building.Id,
-			DesiredLevel: planet.Buildings[0].Level + 1,
-			CreatedAt:    t1,
-			CompletedAt:  t2,
-		}
 		request := generateTestBuildingActionRequest(planet)
 
 		initialVersion := planet.Version
@@ -198,15 +191,7 @@ func TestUnit_CreateBuildingAction_Create(t *testing.T) {
 	t.Run("returns error when planet already has an action running", func(t *testing.T) {
 		suite := setupCreateBuildingActionTestSuite(t)
 
-		planet := generateTestPlanet()
-		planet.UpdatedAt = t1
-		planet.Version = 2
-		planet.BuildingAction = &models.BuildingAction{
-			Id:          uuid.New(),
-			Building:    planet.Buildings[0].Building,
-			CreatedAt:   t1,
-			CompletedAt: t3,
-		}
+		planet := generateTestPlanetWithAction(t3)
 		building := generateTestBuilding(planet)
 		request := generateTestBuildingActionRequest(planet)
 
