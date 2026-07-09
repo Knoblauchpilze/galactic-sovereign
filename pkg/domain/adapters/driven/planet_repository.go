@@ -399,6 +399,7 @@ func updatePlanetDetails(
 	planet models.Planet,
 	expectedVersion int,
 ) error {
+	// TODO: this will not delete any resource production which was removed from the planet
 	for _, r := range planet.Resources {
 		affected, err := tx.Exec(
 			ctx,
