@@ -121,33 +121,6 @@ func NewBuildingActionRepository(conn db.Connection) drivenports.ForManagingBuil
 	}
 }
 
-func (r *buildingActionRepositoryImpl) Create(
-	ctx context.Context,
-	planet models.Planet,
-) error {
-	if planet.BuildingAction == nil {
-		return nil
-	}
-
-	tx, err := r.conn.BeginTx(ctx)
-	if err != nil {
-		return err
-	}
-	defer tx.Close(ctx)
-
-	err = upsertBuildingActionWithDetails(ctx, tx, planet.Id, *planet.BuildingAction)
-	if err != nil {
-		return parseDbError(err)
-	}
-
-	err = updatePlanetDetails(ctx, tx, planet, planet.Version-1)
-	if err != nil {
-		return parseDbError(err)
-	}
-
-	return nil
-}
-
 func (r *buildingActionRepositoryImpl) Delete(
 	ctx context.Context,
 	planet models.Planet,

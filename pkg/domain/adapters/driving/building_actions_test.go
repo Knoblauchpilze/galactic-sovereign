@@ -19,7 +19,7 @@ import (
 
 func TestUnit_BuildingActions_CreateBuildingAction(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	mockUsecase := drivingportstest.NewMockForManagingBuildingAction(ctrl)
+	mockUsecase := drivingportstest.NewMockForCreatingBuildingAction(ctrl)
 
 	t.Run("returns 400 when planet id is invalid", func(t *testing.T) {
 		dto := dtos.BuildingActionDtoRequest{Building: uuid.New()}

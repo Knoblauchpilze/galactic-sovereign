@@ -13,8 +13,6 @@ import (
 	context "context"
 	reflect "reflect"
 
-	models "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
-	request "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/request"
 	uuid "github.com/google/uuid"
 	gomock "go.uber.org/mock/gomock"
 )
@@ -41,21 +39,6 @@ func NewMockForManagingBuildingAction(ctrl *gomock.Controller) *MockForManagingB
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockForManagingBuildingAction) EXPECT() *MockForManagingBuildingActionMockRecorder {
 	return m.recorder
-}
-
-// Create mocks base method.
-func (m *MockForManagingBuildingAction) Create(ctx context.Context, req request.BuildingActionCreationRequest) (models.BuildingAction, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Create", ctx, req)
-	ret0, _ := ret[0].(models.BuildingAction)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// Create indicates an expected call of Create.
-func (mr *MockForManagingBuildingActionMockRecorder) Create(ctx, req any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockForManagingBuildingAction)(nil).Create), ctx, req)
 }
 
 // Delete mocks base method.

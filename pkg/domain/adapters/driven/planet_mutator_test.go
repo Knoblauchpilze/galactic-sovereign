@@ -758,6 +758,55 @@ func TestIT_PlanetMutator_Mutate(t *testing.T) {
 	})
 }
 
+func TestIT_PlanetMutator_ActionCreationDeletionWorkflow(t *testing.T) {
+	repo, conn := newTestPlanetRepository(t)
+	planetMutator := NewPlanetMutator(conn)
+
+	action := models.BuildingAction{
+		Id:           uuid.New(),
+		Building:     metalMineId,
+		DesiredLevel: 27,
+		CreatedAt:    time.Date(2024, time.December, 7, 20, 26, 47, 0, time.UTC),
+		CompletedAt:  time.Date(2024, time.December, 7, 21, 26, 47, 0, time.UTC),
+		Costs:        []models.BuildingActionCost{},
+		Storages:     []models.BuildingActionResourceStorage{},
+		Productions:  []models.BuildingActionResourceProduction{},
+	}
+
+	planet, _, _ := insertTestPlanetForPlayer(t, conn)
+
+	mutation := func(p *models.Planet) (bool, error) {
+		p.BuildingAction = &action
+		p.Version++
+		return false, nil
+	}
+	result, err := planetMutator.Mutate(t.Context(), planet.Id, mutation)
+	require.NoError(t, err, "Actual err: %v", err)
+	assert.False(t, result.Deleted)
+	require.NotNil(t, result.Planet.BuildingAction)
+	assert.Equal(t, action, *result.Planet.BuildingAction)
+	assertBuildingActionExists(t, conn, action.Id)
+
+	func() {
+		actual, err := repo.Get(t.Context(), planet.Id)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		require.NotNil(t, actual.BuildingAction)
+		assert.Equal(t, action, *actual.BuildingAction)
+	}()
+
+	mutation = func(p *models.Planet) (bool, error) {
+		p.BuildingAction = nil
+		p.Version++
+		return false, nil
+	}
+	result, err = planetMutator.Mutate(t.Context(), planet.Id, mutation)
+	require.NoError(t, err, "Actual err: %v", err)
+	assert.False(t, result.Deleted)
+	assert.Nil(t, result.Planet.BuildingAction)
+	assertBuildingActionDoesNotExist(t, conn, action.Id)
+}
+
 func newTestPlanetMutator(t *testing.T) (*PlanetMutator, db.Connection) {
 	t.Helper()
 	conn := newTestConnection(t)

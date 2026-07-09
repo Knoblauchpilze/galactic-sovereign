@@ -8,6 +8,5 @@ import (
 
 // TODO: This can be removed and replaced by a mutation of the planet
 type ForManagingBuildingActions interface {
-	Create(ctx context.Context, planet models.Planet) error
 	Delete(ctx context.Context, planet models.Planet) error
 }

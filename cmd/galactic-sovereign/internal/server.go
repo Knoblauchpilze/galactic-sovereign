@@ -73,7 +73,7 @@ func registerBuildingActionsRoutes(conn db.Connection, s server.Server, log *slo
 	clock := drivenadapters.NewTimeAdapter()
 
 	createUseCase := usecases.NewCreateBuildingActionUseCase(buildingRepo, planetMutator, clock)
-	usecase := usecases.NewBuildingActionUseCase(actionRepo, planetRepo, buildingRepo)
+	usecase := usecases.NewBuildingActionUseCase(actionRepo, planetRepo)
 
 	for _, route := range drivingadapters.BuildingActionEndpoints(createUseCase, usecase) {
 		if err := s.AddRoute(route); err != nil {
