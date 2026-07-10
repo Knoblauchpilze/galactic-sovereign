@@ -13,8 +13,6 @@ import (
 func CreateGameServer(conf server.Config, conn db.Connection, log *slog.Logger) server.Server {
 	s := server.NewWithLogger(conf, log)
 
-	// TODO: Some of the routes need to be restored under the game.NewResourceRoute
-	// wrapping to trigger the processing of actions (e.g. planets)
 	registerUniversesRoutes(conn, s, log)
 	registerPlayersRoutes(conn, s, log)
 	registerPlanetsRoutes(conn, s, log)
