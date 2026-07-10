@@ -212,7 +212,7 @@ func TestUnit_BuildingActions_CreateBuildingAction(t *testing.T) {
 
 func TestUnit_BuildingActions_DeleteBuildingAction(t *testing.T) {
 	ctrl := gomock.NewController(t)
-	mockUsecase := drivingportstest.NewMockForManagingBuildingAction(ctrl)
+	mockUsecase := drivingportstest.NewMockForDeletingBuildingAction(ctrl)
 
 	t.Run("returns 400 when id is invalid", func(t *testing.T) {
 		req := generateTestRequest(t, http.MethodDelete)
@@ -232,7 +232,7 @@ func TestUnit_BuildingActions_DeleteBuildingAction(t *testing.T) {
 		ctx, rw := generateTestContextFromRequest(t, req, addIdPathParam)
 
 		mockUsecase.EXPECT().
-			Delete(gomock.Any(), gomock.Eq(sampleUuid)).
+			DeleteForPlanet(gomock.Any(), gomock.Eq(sampleUuid)).
 			Times(1).
 			Return(nil)
 
@@ -242,12 +242,30 @@ func TestUnit_BuildingActions_DeleteBuildingAction(t *testing.T) {
 		assert.Equal(t, http.StatusNoContent, rw.Code)
 	})
 
+	t.Run("returns 404 when planet is not found", func(t *testing.T) {
+		dto := dtos.BuildingActionDtoRequest{Building: uuid.New()}
+		req := generateTestRequestWithJsonBody(t, http.MethodPost, dto)
+		ctx, rw := generateTestContextFromRequest(t, req, addIdPathParam)
+
+		mockUsecase.EXPECT().
+			DeleteForPlanet(gomock.Any(), gomock.Eq(sampleUuid)).
+			Times(1).
+			Return(domainerrors.ErrNotFound)
+
+		err := deleteBuildingAction(ctx, mockUsecase)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.Equal(t, http.StatusNotFound, rw.Code)
+		actual := decodeResponseBody[string](t, rw)
+		assert.Equal(t, "no such planet", actual)
+	})
+
 	t.Run("returns 500 when use case fails", func(t *testing.T) {
 		req := generateTestRequest(t, http.MethodDelete)
 		ctx, rw := generateTestContextFromRequest(t, req, addIdPathParam)
 
 		mockUsecase.EXPECT().
-			Delete(gomock.Any(), gomock.Any()).
+			DeleteForPlanet(gomock.Any(), gomock.Any()).
 			Times(1).
 			Return(errors.New("stubbed error"))
 

@@ -66,16 +66,14 @@ func registerPlanetsRoutes(conn db.Connection, s server.Server, log *slog.Logger
 }
 
 func registerBuildingActionsRoutes(conn db.Connection, s server.Server, log *slog.Logger) {
-	actionRepo := drivenadapters.NewBuildingActionRepository(conn)
-	planetRepo := drivenadapters.NewPlanetRepository(conn)
 	buildingRepo := drivenadapters.NewBuildingRepository(conn)
 	planetMutator := drivenadapters.NewPlanetMutator(conn)
 	clock := drivenadapters.NewTimeAdapter()
 
 	createUseCase := usecases.NewCreateBuildingActionUseCase(buildingRepo, planetMutator, clock)
-	usecase := usecases.NewBuildingActionUseCase(actionRepo, planetRepo)
+	deleteUsecase := usecases.NewDeleteBuildingActionUseCase(planetMutator, clock)
 
-	for _, route := range drivingadapters.BuildingActionEndpoints(createUseCase, usecase) {
+	for _, route := range drivingadapters.BuildingActionEndpoints(createUseCase, deleteUsecase) {
 		if err := s.AddRoute(route); err != nil {
 			log.Error("Failed to register route", slog.String("route", route.Path()), slog.Any("error", err))
 		}

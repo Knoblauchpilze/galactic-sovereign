@@ -15,7 +15,7 @@ import (
 
 func BuildingActionEndpoints(
 	createUsecase drivingports.ForCreatingBuildingAction,
-	usecase drivingports.ForManagingBuildingAction,
+	deleteUsecase drivingports.ForDeletingBuildingAction,
 ) rest.Routes {
 	var out rest.Routes
 
@@ -23,8 +23,8 @@ func BuildingActionEndpoints(
 	post := rest.NewRoute(http.MethodPost, "/planets/:id/actions", handler)
 	out = append(out, post)
 
-	handler = generateHandler(deleteBuildingAction, usecase)
-	delete := rest.NewRoute(http.MethodDelete, "/actions/:id", handler)
+	handler = generateHandler(deleteBuildingAction, deleteUsecase)
+	delete := rest.NewRoute(http.MethodDelete, "/planets/:id/actions", handler)
 	out = append(out, delete)
 
 	return out
@@ -86,24 +86,29 @@ func createBuildingAction(c *echo.Context, usecase drivingports.ForCreatingBuild
 
 // deleteBuildingAction godoc
 //
-//	@Summary		Delete building action
-//	@Description	Deletes an existing building action.
+//	@Summary		Delete building action for a planet
+//	@Description	Deletes an existing building action for a planet.
 //	@Tags			actions
 //	@Produce		json
-//	@Param			id	path		string	true	"Action id (UUID)"	Format(uuid)
+//	@Param			id	path		string	true	"Planet id (UUID)"	Format(uuid)
 //	@Success		204	{string}	string
 //	@Failure		400	{object}	rest.ResponseEnvelope[string]
+//	@Failure		404	{object}	rest.ResponseEnvelope[string]
 //	@Failure		500	{object}	rest.ResponseEnvelope[string]
-//	@Router			/actions/{id} [delete]
-func deleteBuildingAction(c *echo.Context, usecase drivingports.ForManagingBuildingAction) error {
+//	@Router			/planets/{id}/actions [delete]
+func deleteBuildingAction(c *echo.Context, usecase drivingports.ForDeletingBuildingAction) error {
 	maybeId := c.Param("id")
 	id, err := uuid.Parse(maybeId)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, "invalid id syntax")
 	}
 
-	err = usecase.Delete(c.Request().Context(), id)
+	err = usecase.DeleteForPlanet(c.Request().Context(), id)
 	if err != nil {
+		if err == domainerrors.ErrNotFound {
+			return c.JSON(http.StatusNotFound, "no such planet")
+		}
+
 		c.Logger().Error("Failed to delete building action", slog.Any("error", err))
 		return c.JSON(http.StatusInternalServerError, "failed to delete building action")
 	}

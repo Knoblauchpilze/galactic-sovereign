@@ -63,7 +63,7 @@ func TestIT_Server_PlayerBuildingActionLifecycle(t *testing.T) {
 	assert.Equal(t, action, *homeworld.BuildingAction)
 
 	// Cancel the building action
-	doDelete(t, urlFor(conf, "actions", action.Id.String()))
+	doDelete(t, urlFor(conf, "planets", homeworld.Id.String(), "actions"))
 
 	homeworld = doGet[dtos.PlanetDtoResponse](
 		t, urlFor(conf, "planets", player.Homeworld.String()),
