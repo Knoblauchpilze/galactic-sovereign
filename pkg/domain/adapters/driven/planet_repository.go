@@ -181,14 +181,12 @@ WHERE
 )
 
 type PlanetRepository struct {
-	conn       db.Connection
-	actionRepo *buildingActionRepositoryImpl
+	conn db.Connection
 }
 
 func NewPlanetRepository(conn db.Connection) *PlanetRepository {
 	return &PlanetRepository{
-		conn:       conn,
-		actionRepo: &buildingActionRepositoryImpl{conn: conn},
+		conn: conn,
 	}
 }
 

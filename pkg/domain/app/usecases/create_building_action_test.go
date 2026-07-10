@@ -276,3 +276,68 @@ func setupCreateBuildingActionTestSuite(t *testing.T) *createBuildingActionTestS
 		),
 	}
 }
+
+func generateTestPlanet() models.Planet {
+	return models.Planet{
+		Id: uuid.New(),
+		Resources: []models.PlanetResource{
+			{
+				Resource: metalResourceId,
+				Amount:   99999,
+			},
+			{
+				Resource: crystalResourceId,
+				Amount:   99999,
+			},
+		},
+		Buildings: []models.PlanetBuilding{
+			{
+				Building: uuid.New(),
+				Level:    2,
+			},
+		},
+		CreatedAt: t1,
+		UpdatedAt: t1,
+		Version:   2,
+	}
+}
+
+func generateTestPlanetWithAction(completionTime time.Time) models.Planet {
+	p := generateTestPlanet()
+	p.BuildingAction = &models.BuildingAction{
+		Id:           uuid.New(),
+		Building:     p.Buildings[0].Building,
+		DesiredLevel: p.Buildings[0].Level + 1,
+		CreatedAt:    t1,
+		CompletedAt:  completionTime,
+	}
+
+	return p
+}
+
+func generateTestBuilding(planet models.Planet) models.Building {
+	return models.Building{
+		Id: planet.Buildings[0].Building,
+		Costs: []models.BuildingCost{
+			{
+				Resource: metalResourceId,
+				Cost:     50,
+				Progress: 1.25,
+			},
+			{
+				Resource: crystalResourceId,
+				Cost:     67,
+				Progress: 1.36,
+			},
+		},
+	}
+}
+
+func generateTestBuildingActionRequest(
+	planet models.Planet,
+) request.BuildingActionCreationRequest {
+	return request.BuildingActionCreationRequest{
+		Planet:   planet.Id,
+		Building: planet.Buildings[0].Building,
+	}
+}

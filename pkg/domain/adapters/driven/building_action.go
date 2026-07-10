@@ -6,7 +6,6 @@ import (
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driven/mappers"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
-	drivenports "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driven"
 	"github.com/google/uuid"
 )
 
@@ -109,40 +108,6 @@ WHERE
 	AND ba.planet = $1`
 	deleteBuildingActionForPlanetQuery = `DELETE FROM building_action WHERE planet = $1`
 )
-
-type buildingActionRepositoryImpl struct {
-	conn db.Connection
-}
-
-// TODO: Deprecated, this should be removed when the planet mutator is ready
-func NewBuildingActionRepository(conn db.Connection) drivenports.ForManagingBuildingActions {
-	return &buildingActionRepositoryImpl{
-		conn: conn,
-	}
-}
-
-func (r *buildingActionRepositoryImpl) Delete(
-	ctx context.Context,
-	planet models.Planet,
-) error {
-	tx, err := r.conn.BeginTx(ctx)
-	if err != nil {
-		return err
-	}
-	defer tx.Close(ctx)
-
-	err = deleteBuildingActionAndDetailsForPlanet(ctx, tx, planet.Id)
-	if err != nil {
-		return err
-	}
-
-	err = updatePlanetDetails(ctx, tx, planet, planet.Version-1)
-	if err != nil {
-		return parseDbError(err)
-	}
-
-	return nil
-}
 
 func upsertBuildingActionWithDetails(
 	ctx context.Context,
