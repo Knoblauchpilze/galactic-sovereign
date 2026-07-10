@@ -76,7 +76,7 @@ func TestIT_PlayerRepository_Create(t *testing.T) {
 		assert.Equal(t, expectedPlayer, actual)
 
 		planetRepo := NewPlanetRepository(conn)
-		actualPlanet, err := planetRepo.Get(t.Context(), planet.Id)
+		actualPlanet, err := planetRepo.get(t.Context(), planet.Id)
 		require.NoError(t, err, "Actual err: %v", err)
 		assert.Equal(t, planet, actualPlanet)
 	})

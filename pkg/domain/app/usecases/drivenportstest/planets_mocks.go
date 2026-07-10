@@ -13,7 +13,6 @@ import (
 	context "context"
 	reflect "reflect"
 
-	models "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
 	uuid "github.com/google/uuid"
 	gomock "go.uber.org/mock/gomock"
 )
@@ -54,36 +53,6 @@ func (m *MockForManagingPlanets) Delete(ctx context.Context, id uuid.UUID) error
 func (mr *MockForManagingPlanetsMockRecorder) Delete(ctx, id any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockForManagingPlanets)(nil).Delete), ctx, id)
-}
-
-// Get mocks base method.
-func (m *MockForManagingPlanets) Get(ctx context.Context, id uuid.UUID) (models.Planet, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", ctx, id)
-	ret0, _ := ret[0].(models.Planet)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// Get indicates an expected call of Get.
-func (mr *MockForManagingPlanetsMockRecorder) Get(ctx, id any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockForManagingPlanets)(nil).Get), ctx, id)
-}
-
-// GetByAction mocks base method.
-func (m *MockForManagingPlanets) GetByAction(ctx context.Context, action uuid.UUID) (models.Planet, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetByAction", ctx, action)
-	ret0, _ := ret[0].(models.Planet)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetByAction indicates an expected call of GetByAction.
-func (mr *MockForManagingPlanetsMockRecorder) GetByAction(ctx, action any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByAction", reflect.TypeOf((*MockForManagingPlanets)(nil).GetByAction), ctx, action)
 }
 
 // ListForPlayer mocks base method.

@@ -205,7 +205,7 @@ func (r *PlanetRepository) Create(ctx context.Context, planet models.Planet) err
 	return nil
 }
 
-func (r *PlanetRepository) Get(ctx context.Context, id uuid.UUID) (models.Planet, error) {
+func (r *PlanetRepository) get(ctx context.Context, id uuid.UUID) (models.Planet, error) {
 	tx, err := r.conn.BeginTx(ctx)
 	if err != nil {
 		return models.Planet{}, err
@@ -213,21 +213,6 @@ func (r *PlanetRepository) Get(ctx context.Context, id uuid.UUID) (models.Planet
 	defer tx.Close(ctx)
 
 	return loadPlanetAndDetails(ctx, tx, id)
-}
-
-func (r *PlanetRepository) GetByAction(ctx context.Context, action uuid.UUID) (models.Planet, error) {
-	tx, err := r.conn.BeginTx(ctx)
-	if err != nil {
-		return models.Planet{}, err
-	}
-	defer tx.Close(ctx)
-
-	dbPlanet, err := db.QueryOneTx[mappers.DbPlanet](ctx, tx, getPlanetByActionQuery, action)
-	if err != nil {
-		return models.Planet{}, parseDbError(err)
-	}
-
-	return loadPlanetDetails(ctx, tx, dbPlanet)
 }
 
 func (r *PlanetRepository) ListForPlayer(ctx context.Context, player uuid.UUID) ([]uuid.UUID, error) {
