@@ -1,6 +1,7 @@
 package drivenadapters
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -795,6 +796,18 @@ func TestIT_PlanetMutator_Mutate(t *testing.T) {
 		assert.Equal(t, newAction, *actual.BuildingAction)
 	})
 
+	t.Run("returns error when planet does not exist", func(t *testing.T) {
+		mutator := generateModifyingMutator(func(p *models.Planet) {
+			p.UpdatedAt = yetAnotherTime
+			p.Version++
+		})
+
+		returned, err := adapter.Mutate(t.Context(), uuid.New(), mutator)
+
+		assert.False(t, returned.Deleted)
+		assert.ErrorIs(t, err, domainerrors.ErrNotFound, "Actual err: %v", err)
+	})
+
 	t.Run("returns error when mutator does not update version", func(t *testing.T) {
 		planet, _, _ := insertTestPlanetForPlayer(t, conn)
 
@@ -913,6 +926,75 @@ func TestIT_PlanetMutator_Mutate(t *testing.T) {
 		assertPlanetDoesNotExist(t, conn, planet.Id)
 		require.NotNil(t, planet.BuildingAction)
 		assertBuildingActionDoesNotExist(t, conn, planet.BuildingAction.Id)
+	})
+}
+
+func TestIT_PlanetMutator_Mutate_Concurrency(t *testing.T) {
+	adapter, conn := newTestPlanetMutator(t)
+
+	t.Run("blocks concurrent mutation for same planet", func(t *testing.T) {
+		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetResource)
+		require.NotEqual(t, 9876.0, planet.Resources[0].Amount)
+
+		enteredA := make(chan struct{})
+		releaseA := make(chan struct{})
+		enteredB := make(chan struct{})
+		doneA := make(chan error, 1)
+		doneB := make(chan error, 1)
+
+		go func() {
+			_, err := adapter.Mutate(t.Context(), planet.Id, func(p *models.Planet) (bool, error) {
+				close(enteredA)
+				<-releaseA
+				p.UpdatedAt = yetAnotherTime
+				p.Version++
+				return false, nil
+			})
+			doneA <- err
+		}()
+
+		<-enteredA
+
+		blockingCtx, cancel := context.WithTimeout(t.Context(), 100*time.Millisecond)
+		defer cancel()
+
+		go func() {
+			_, err := adapter.Mutate(blockingCtx, planet.Id, func(p *models.Planet) (bool, error) {
+				close(enteredB)
+				p.Resources[0].Amount = 9877.0
+				p.Version++
+				return false, nil
+			})
+			doneB <- err
+		}()
+
+		err := <-doneB
+		require.ErrorIs(
+			t, err, context.DeadlineExceeded, "Expected deadline exceeded, got err: %v", err,
+		)
+
+		select {
+		case <-enteredB:
+			t.Fatalf("second mutation reached callback even though first mutation held lock")
+		default:
+		}
+
+		close(releaseA)
+
+		err = <-doneA
+		require.NoError(t, err, "Actual err: %v", err)
+
+		result, err := adapter.Mutate(t.Context(), planet.Id, func(p *models.Planet) (bool, error) {
+			p.Version++
+			p.Resources[0].Amount = 9878.0
+			return false, nil
+		})
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.False(t, result.Deleted)
+		assert.Equal(t, yetAnotherTime, result.Planet.UpdatedAt)
+		assert.Equal(t, 9878.0, result.Planet.Resources[0].Amount)
+		assert.Equal(t, planet.Version+2, result.Planet.Version)
 	})
 }
 

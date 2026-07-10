@@ -10,6 +10,18 @@ import (
 	"github.com/google/uuid"
 )
 
+const (
+	lockPlanetForUpdateQuery = `
+SELECT
+	id
+FROM
+	planet
+WHERE
+	id = $1
+FOR UPDATE
+`
+)
+
 type PlanetMutator struct {
 	conn db.Connection
 }
@@ -30,6 +42,14 @@ func (m *PlanetMutator) Mutate(
 		return models.PlanetMutationResult{}, err
 	}
 	defer tx.Close(ctx)
+
+	actual, err := db.QueryOneTx[uuid.UUID](ctx, tx, lockPlanetForUpdateQuery, id)
+	if err != nil {
+		return models.PlanetMutationResult{}, parseDbError(err)
+	}
+	if actual != id {
+		return models.PlanetMutationResult{}, domainerrors.ErrNotFound
+	}
 
 	planet, err := loadPlanetAndDetails(ctx, tx, id)
 	if err != nil {
