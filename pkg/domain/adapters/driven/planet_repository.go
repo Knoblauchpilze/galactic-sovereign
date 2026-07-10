@@ -95,26 +95,6 @@ FROM
 WHERE
 	planet = $1`
 
-	getPlanetByActionQuery = `
-SELECT
-	p.id,
-	p.player,
-	p.name,
-	CASE
-		WHEN h.planet IS NOT NULL THEN true
-		ELSE false
-	END AS homeworld,
-	p.created_at,
-	p.updated_at,
-	p.version,
-	ba.id AS building_action
-FROM
-	planet AS p
-	LEFT JOIN homeworld AS h ON h.planet = p.id
-	LEFT JOIN building_action AS ba ON ba.planet = p.id
-WHERE
-	ba.id = $1`
-
 	listPlanetForPlayerQuery = `
 SELECT
 	p.id
