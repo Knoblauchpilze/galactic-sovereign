@@ -185,6 +185,8 @@ func (r *PlanetRepository) Create(ctx context.Context, planet models.Planet) err
 	return nil
 }
 
+// get utility function to be fetch a planet in tests. This is **not meant to be exposed**.
+// TODO: Maybe this could be replaced by a helper function in tests.
 func (r *PlanetRepository) get(ctx context.Context, id uuid.UUID) (models.Planet, error) {
 	tx, err := r.conn.BeginTx(ctx)
 	if err != nil {
