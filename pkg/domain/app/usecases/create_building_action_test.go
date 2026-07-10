@@ -95,7 +95,6 @@ func TestUnit_CreateBuildingAction_Create(t *testing.T) {
 		assert.Equal(t, initialVersion+2, planet.Version)
 	})
 
-	// TODO: This actually fails because the action is not deleted by the mutator
 	t.Run("applies completed action and create a new one", func(t *testing.T) {
 		suite := setupCreateBuildingActionTestSuite(t)
 

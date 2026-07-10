@@ -97,6 +97,27 @@ func TestIT_PlanetMutator_Mutate(t *testing.T) {
 		assertPlanetResourceAmount(t, conn, planet.Id, crystalResourceId, 5874)
 	})
 
+	t.Run("does not delete existing planet resource", func(t *testing.T) {
+		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetResource)
+		resource := planet.Resources[0].Resource
+		amount := planet.Resources[0].Amount
+
+		mutator := generateModifyingMutator(func(p *models.Planet) {
+			p.Resources = []models.PlanetResource{}
+			p.Version++
+		})
+
+		returned, err := adapter.Mutate(t.Context(), planet.Id, mutator)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.False(t, returned.Deleted)
+		expected := []models.PlanetResource{
+			{Resource: resource, Amount: amount},
+		}
+		assert.Equal(t, expected, returned.Planet.Resources)
+		assertPlanetResourceAmount(t, conn, planet.Id, resource, amount)
+	})
+
 	t.Run("persists mutated planet productions", func(t *testing.T) {
 		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetProduction)
 		require.NotEqual(t, 39841, planet.Productions[0].Production)
@@ -115,6 +136,54 @@ func TestIT_PlanetMutator_Mutate(t *testing.T) {
 		}
 		assert.Equal(t, expected, returned.Planet.Productions)
 		assertPlanetResourceProduction(t, conn, planet.Id, metalResourceId, nil, 39841)
+	})
+
+	t.Run("persists additional planet productions", func(t *testing.T) {
+		planet, _, _ := insertTestPlanetForPlayer(
+			t, conn, addPlanetProduction, addPlanetProductionForBuilding,
+		)
+		require.NotEqual(t, crystalResourceId, planet.Productions[0].Building)
+		initial0 := planet.Productions[0].Production
+		initial1 := planet.Productions[1].Production
+
+		mutator := generateModifyingMutator(func(p *models.Planet) {
+			prod := models.PlanetResourceProduction{
+				Resource:   crystalResourceId,
+				Production: 354789,
+			}
+			p.Productions = append(p.Productions, prod)
+			p.Version++
+		})
+
+		returned, err := adapter.Mutate(t.Context(), planet.Id, mutator)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.False(t, returned.Deleted)
+		expected := []models.PlanetResourceProduction{
+			{Resource: metalResourceId, Production: initial0},
+			{Resource: metalResourceId, Building: &crystalMineId, Production: initial1},
+			{Resource: crystalResourceId, Building: nil, Production: 354789},
+		}
+		assert.Equal(t, expected, returned.Planet.Productions)
+		assertPlanetResourceProduction(t, conn, planet.Id, metalResourceId, nil, initial0)
+		assertPlanetResourceProduction(t, conn, planet.Id, metalResourceId, &crystalMineId, initial1)
+		assertPlanetResourceProduction(t, conn, planet.Id, crystalResourceId, nil, 354789)
+	})
+
+	t.Run("persists deleted planet production", func(t *testing.T) {
+		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetProduction)
+
+		mutator := generateModifyingMutator(func(p *models.Planet) {
+			p.Productions = []models.PlanetResourceProduction{}
+			p.Version++
+		})
+
+		returned, err := adapter.Mutate(t.Context(), planet.Id, mutator)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.False(t, returned.Deleted)
+		assert.Equal(t, []models.PlanetResourceProduction{}, returned.Planet.Productions)
+		assertPlanetProductionDoesNotExist(t, conn, planet.Id)
 	})
 
 	t.Run("persists mutated planet production for building", func(t *testing.T) {
@@ -172,6 +241,22 @@ func TestIT_PlanetMutator_Mutate(t *testing.T) {
 		assertPlanetResourceProduction(t, conn, planet.Id, crystalResourceId, &metalMineId, 354789)
 	})
 
+	t.Run("persists deleted planet production for building", func(t *testing.T) {
+		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetProductionForBuilding)
+
+		mutator := generateModifyingMutator(func(p *models.Planet) {
+			p.Productions = []models.PlanetResourceProduction{}
+			p.Version++
+		})
+
+		returned, err := adapter.Mutate(t.Context(), planet.Id, mutator)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.False(t, returned.Deleted)
+		assert.Equal(t, []models.PlanetResourceProduction{}, returned.Planet.Productions)
+		assertPlanetProductionDoesNotExist(t, conn, planet.Id)
+	})
+
 	t.Run("persists mutated planet storages", func(t *testing.T) {
 		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetStorage)
 		require.NotEqual(t, 4598, planet.Storages[0].Storage)
@@ -192,6 +277,27 @@ func TestIT_PlanetMutator_Mutate(t *testing.T) {
 		assertPlanetResourceStorage(t, conn, planet.Id, crystalResourceId, 4598)
 	})
 
+	t.Run("does not delete existing planet storage", func(t *testing.T) {
+		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetStorage)
+		resource := planet.Storages[0].Resource
+		storage := planet.Storages[0].Storage
+
+		mutator := generateModifyingMutator(func(p *models.Planet) {
+			p.Storages = []models.PlanetResourceStorage{}
+			p.Version++
+		})
+
+		returned, err := adapter.Mutate(t.Context(), planet.Id, mutator)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.False(t, returned.Deleted)
+		expected := []models.PlanetResourceStorage{
+			{Resource: resource, Storage: storage},
+		}
+		assert.Equal(t, expected, returned.Planet.Storages)
+		assertPlanetResourceStorage(t, conn, planet.Id, resource, storage)
+	})
+
 	t.Run("persists mutated planet buildings", func(t *testing.T) {
 		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetBuilding)
 		require.NotEqual(t, 6, planet.Buildings[0].Level)
@@ -210,6 +316,27 @@ func TestIT_PlanetMutator_Mutate(t *testing.T) {
 		}
 		assert.Equal(t, expected, returned.Planet.Buildings)
 		assertPlanetBuildingLevel(t, conn, planet.Id, metalStorageId, 6)
+	})
+
+	t.Run("does not delete existing planet building", func(t *testing.T) {
+		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetBuilding)
+		building := planet.Buildings[0].Building
+		level := planet.Buildings[0].Level
+
+		mutator := generateModifyingMutator(func(p *models.Planet) {
+			p.Buildings = []models.PlanetBuilding{}
+			p.Version++
+		})
+
+		returned, err := adapter.Mutate(t.Context(), planet.Id, mutator)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.False(t, returned.Deleted)
+		expected := []models.PlanetBuilding{
+			{Building: building, Level: level},
+		}
+		assert.Equal(t, expected, returned.Planet.Buildings)
+		assertPlanetBuildingLevel(t, conn, planet.Id, building, level)
 	})
 
 	t.Run("persists mutated planet with action", func(t *testing.T) {
@@ -394,9 +521,7 @@ func TestIT_PlanetMutator_Mutate(t *testing.T) {
 		assert.Equal(t, yetAnotherTime, actual.BuildingAction.CompletedAt)
 	})
 
-	// Those tests are showing a limitation of the upsert strategy: new costs/productions/storages
-	// will be persisted by updates to the existing ones will not.
-	t.Run("persists mutated planet without update to existing action costs", func(t *testing.T) {
+	t.Run("persists mutated planet with update to existing action costs", func(t *testing.T) {
 		planet, _, _ := insertTestPlanetForPlayer(t, conn)
 		action := insertTestBuildingActionForPlanet(t, conn, planet.Id, addBuildingActionCost)
 		require.Equal(t, metalResourceId, action.Costs[0].Resource)
@@ -416,9 +541,9 @@ func TestIT_PlanetMutator_Mutate(t *testing.T) {
 		actual, err := planetRepo.Get(t.Context(), planet.Id)
 		require.NoError(t, err, "Actual err: %v", err)
 		require.NotNil(t, returned.Planet.BuildingAction)
-		assert.Equal(t, action.Costs, returned.Planet.BuildingAction.Costs)
+		assert.Equal(t, costs, returned.Planet.BuildingAction.Costs)
 		require.NotNil(t, actual.BuildingAction)
-		assert.Equal(t, action.Costs, actual.BuildingAction.Costs)
+		assert.Equal(t, costs, actual.BuildingAction.Costs)
 	})
 
 	t.Run("persists mutated planet with updated action and costs", func(t *testing.T) {
@@ -454,7 +579,7 @@ func TestIT_PlanetMutator_Mutate(t *testing.T) {
 		assert.Equal(t, costs, actual.BuildingAction.Costs)
 	})
 
-	t.Run("persists mutated planet without update to existing action storages", func(t *testing.T) {
+	t.Run("persists mutated planet with update to existing action storages", func(t *testing.T) {
 		planet, _, _ := insertTestPlanetForPlayer(t, conn)
 		action := insertTestBuildingActionForPlanet(t, conn, planet.Id, addBuildingActionStorage)
 		require.Equal(t, crystalResourceId, action.Storages[0].Resource)
@@ -474,9 +599,9 @@ func TestIT_PlanetMutator_Mutate(t *testing.T) {
 		actual, err := planetRepo.Get(t.Context(), planet.Id)
 		require.NoError(t, err, "Actual err: %v", err)
 		require.NotNil(t, returned.Planet.BuildingAction)
-		assert.Equal(t, action.Storages, returned.Planet.BuildingAction.Storages)
+		assert.Equal(t, storages, returned.Planet.BuildingAction.Storages)
 		require.NotNil(t, actual.BuildingAction)
-		assert.Equal(t, action.Storages, actual.BuildingAction.Storages)
+		assert.Equal(t, storages, actual.BuildingAction.Storages)
 	})
 
 	t.Run("persists mutated planet with updated action and storages", func(t *testing.T) {
@@ -512,7 +637,7 @@ func TestIT_PlanetMutator_Mutate(t *testing.T) {
 		assert.Equal(t, storages, actual.BuildingAction.Storages)
 	})
 
-	t.Run("persists mutated planet without update to existing action productions", func(t *testing.T) {
+	t.Run("persists mutated planet with update to existing action productions", func(t *testing.T) {
 		planet, _, _ := insertTestPlanetForPlayer(t, conn)
 		action := insertTestBuildingActionForPlanet(t, conn, planet.Id, addBuildingActionProduction)
 		require.Equal(t, crystalResourceId, action.Productions[0].Resource)
@@ -532,9 +657,9 @@ func TestIT_PlanetMutator_Mutate(t *testing.T) {
 		actual, err := planetRepo.Get(t.Context(), planet.Id)
 		require.NoError(t, err, "Actual err: %v", err)
 		require.NotNil(t, returned.Planet.BuildingAction)
-		assert.Equal(t, action.Productions, returned.Planet.BuildingAction.Productions)
+		assert.Equal(t, productions, returned.Planet.BuildingAction.Productions)
 		require.NotNil(t, actual.BuildingAction)
-		assert.Equal(t, action.Productions, actual.BuildingAction.Productions)
+		assert.Equal(t, productions, actual.BuildingAction.Productions)
 	})
 
 	t.Run("persists mutated planet with updated action and productions", func(t *testing.T) {
@@ -635,6 +760,39 @@ func TestIT_PlanetMutator_Mutate(t *testing.T) {
 		assertBuildingActionDoesNotExist(t, conn, action.Id)
 		assertBuildingActionProductionDoesNotExist(t, conn, action.Id)
 		assert.Nil(t, returned.Planet.BuildingAction)
+	})
+
+	t.Run("persists mutated planet with new action", func(t *testing.T) {
+		action, planet := insertTestBuildingAction(t, conn)
+		require.NotEqual(t, crystalMineId, action.Building)
+
+		newAction := models.BuildingAction{
+			Id:           uuid.New(),
+			Building:     crystalMineId,
+			DesiredLevel: 4,
+			CreatedAt:    someTime,
+			CompletedAt:  someTime.Add(1 * time.Hour),
+			Costs:        []models.BuildingActionCost{},
+			Storages:     []models.BuildingActionResourceStorage{},
+			Productions:  []models.BuildingActionResourceProduction{},
+		}
+
+		mutator := generateModifyingMutator(func(p *models.Planet) {
+			p.BuildingAction = &newAction
+			p.Version++
+		})
+
+		returned, err := adapter.Mutate(t.Context(), planet.Id, mutator)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.False(t, returned.Deleted)
+		actual, err := planetRepo.Get(t.Context(), planet.Id)
+		require.NoError(t, err, "Actual err: %v", err)
+		assert.Equal(t, returned.Planet, actual)
+		require.NotNil(t, returned.Planet.BuildingAction)
+		assert.Equal(t, newAction, *returned.Planet.BuildingAction)
+		require.NotNil(t, actual.BuildingAction)
+		assert.Equal(t, newAction, *actual.BuildingAction)
 	})
 
 	t.Run("returns error when mutator does not update version", func(t *testing.T) {

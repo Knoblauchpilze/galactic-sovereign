@@ -399,7 +399,6 @@ func updatePlanetDetails(
 	planet models.Planet,
 	expectedVersion int,
 ) error {
-	// TODO: this will not delete any resource production which was removed from the planet
 	for _, r := range planet.Resources {
 		affected, err := tx.Exec(
 			ctx,
@@ -432,21 +431,9 @@ func updatePlanetDetails(
 		}
 	}
 
-	for _, p := range planet.Productions {
-		affected, err := tx.Exec(
-			ctx,
-			upsertPlanetProductionsQuery,
-			planet.Id,
-			p.Resource,
-			p.Building,
-			p.Production,
-		)
-		if err != nil {
-			return err
-		}
-		if affected != 1 {
-			return domainerrors.ErrNotFound
-		}
+	err := recreateResourceProductions(ctx, tx, planet)
+	if err != nil {
+		return err
 	}
 
 	for _, b := range planet.Buildings {
@@ -465,15 +452,9 @@ func updatePlanetDetails(
 		}
 	}
 
-	var actionErr error
-	if planet.BuildingAction == nil {
-		actionErr = deleteBuildingActionAndDetailsForPlanet(ctx, tx, planet.Id)
-	} else {
-		actionErr = upsertBuildingActionWithDetails(ctx, tx, planet.Id, *planet.BuildingAction)
-
-	}
-	if actionErr != nil {
-		return actionErr
+	err = recreateBuildingAction(ctx, tx, planet)
+	if err != nil {
+		return err
 	}
 
 	affected, err := tx.Exec(
@@ -531,6 +512,53 @@ func deletePlanetAndDetails(ctx context.Context, tx db.Transaction, id uuid.UUID
 	_, err = tx.Exec(ctx, deletePlanetQuery, id)
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+// recreateResourceProductions deletes the resource production attached to a planet and recreate them
+// completely. It allows to handle cases where a mutator function removed some building production as
+// a building gets demolished.
+func recreateResourceProductions(ctx context.Context, tx db.Transaction, planet models.Planet) error {
+	_, err := tx.Exec(ctx, deletePlanetResourceProductionsQuery, planet.Id)
+	if err != nil {
+		return err
+	}
+
+	for _, p := range planet.Productions {
+		affected, err := tx.Exec(
+			ctx,
+			upsertPlanetProductionsQuery,
+			planet.Id,
+			p.Resource,
+			p.Building,
+			p.Production,
+		)
+		if err != nil {
+			return err
+		}
+		if affected != 1 {
+			return domainerrors.ErrNotFound
+		}
+	}
+
+	return nil
+}
+
+// recreateBuildingAction deletes the action first and recreate it completely: this allows to tackle
+// situations where the mutator completed an existing action and recreated a new one.
+func recreateBuildingAction(ctx context.Context, tx db.Transaction, planet models.Planet) error {
+	err := deleteBuildingActionAndDetailsForPlanet(ctx, tx, planet.Id)
+	if err != nil {
+		return err
+	}
+
+	if planet.BuildingAction != nil {
+		err = upsertBuildingActionWithDetails(ctx, tx, planet.Id, *planet.BuildingAction)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
