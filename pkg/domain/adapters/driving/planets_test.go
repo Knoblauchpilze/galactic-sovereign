@@ -446,6 +446,23 @@ func TestUnit_Planets_DeletePlanet(t *testing.T) {
 		assert.Equal(t, "action not completed", actual)
 	})
 
+	t.Run("returns 409 when use case returns homeworld cannot be deleted", func(t *testing.T) {
+		req := generateTestRequest(t, http.MethodDelete)
+		ctx, rw := generateTestContextFromRequest(t, req, addIdPathParam)
+
+		mockUsecase.EXPECT().
+			Delete(gomock.Any(), gomock.Eq(sampleUuid)).
+			Times(1).
+			Return(domainerrors.ErrHomeworldCannotBeDeleted)
+
+		err := deletePlanet(ctx, mockUsecase)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.Equal(t, http.StatusConflict, rw.Code)
+		actual := decodeResponseBody[string](t, rw)
+		assert.Equal(t, "homeworld cannot be deleted", actual)
+	})
+
 	t.Run("returns 500 when use case fails", func(t *testing.T) {
 		req := generateTestRequest(t, http.MethodDelete)
 		ctx, rw := generateTestContextFromRequest(t, req, addIdPathParam)

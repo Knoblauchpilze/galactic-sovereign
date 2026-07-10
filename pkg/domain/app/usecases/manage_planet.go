@@ -96,9 +96,10 @@ func generateDeleteMutator(moment time.Time) drivenports.PlanetMutator {
 			return false, err
 		}
 
-		// TODO: Should also check if there are other planets
-		// Alternatively a check that it's not the homeworld might be enough
-		// Changing the homeworld might be done through other means
+		if p.Homeworld {
+			return false, domainerrors.ErrHomeworldCannotBeDeleted
+		}
+
 		if p.BuildingAction != nil {
 			return false, domainerrors.ErrActionNotCompleted
 		}

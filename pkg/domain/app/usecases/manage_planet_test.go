@@ -546,6 +546,29 @@ func TestUnit_ManagePlanet_Delete(t *testing.T) {
 
 		assert.ErrorIs(t, err, domainerrors.ErrPlanetDeletionFailed, "Actual err: %v", err)
 	})
+
+	t.Run("returns error when homeworld is deleted", func(t *testing.T) {
+		suite := setupPlanetTestSuite(t)
+		planet := models.Planet{
+			Id:        uuid.New(),
+			Player:    uuid.New(),
+			Name:      "my-planet",
+			Homeworld: true,
+			CreatedAt: t1,
+			UpdatedAt: t1,
+			Version:   2,
+		}
+
+		suite.mockClock.EXPECT().Now(gomock.Any()).Times(1).Return(t2)
+		suite.mockPlanetMutator.EXPECT().
+			Mutate(gomock.Any(), gomock.Eq(planet.Id), gomock.Any()).
+			Times(1).
+			DoAndReturn(generateApplyingMutatorMock(&planet))
+
+		err := suite.usecase.Delete(t.Context(), planet.Id)
+
+		assert.ErrorIs(t, err, domainerrors.ErrHomeworldCannotBeDeleted, "Actual err: %v", err)
+	})
 }
 
 func setupPlanetTestSuite(t *testing.T) *planetTestSuite {

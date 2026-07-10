@@ -164,6 +164,10 @@ func deletePlanet(c *echo.Context, usecase drivingports.ForManagingPlanet) error
 			return c.JSON(http.StatusConflict, "action not completed")
 		}
 
+		if err == domainerrors.ErrHomeworldCannotBeDeleted {
+			return c.JSON(http.StatusConflict, "homeworld cannot be deleted")
+		}
+
 		c.Logger().Error("Failed to delete planet", slog.Any("error", err))
 		return c.JSON(http.StatusInternalServerError, "failed to delete planet")
 	}

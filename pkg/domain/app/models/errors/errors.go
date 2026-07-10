@@ -20,6 +20,7 @@ const (
 	mutationWithoutVersionBump errors.ErrorCode = 617
 	planetDeletionFailed       errors.ErrorCode = 618
 	resourceCreationFailed     errors.ErrorCode = 619
+	homeworldCannotBeDeleted   errors.ErrorCode = 620
 )
 
 var (
@@ -39,4 +40,5 @@ var (
 	ErrMutationWithoutVersionBump = errors.FromCode(mutationWithoutVersionBump)
 	ErrPlanetDeletionFailed       = errors.FromCode(planetDeletionFailed)
 	ErrResourceCreationFailed     = errors.FromCode(resourceCreationFailed)
+	ErrHomeworldCannotBeDeleted   = errors.FromCode(homeworldCannotBeDeleted)
 )
