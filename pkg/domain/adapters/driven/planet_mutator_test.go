@@ -1042,7 +1042,7 @@ func TestIT_PlanetMutator_Mutate_Concurrency(t *testing.T) {
 		close(releaseA)
 
 		err := <-doneA
-		require.NoError(t, err, "Actddual err: %v", err)
+		require.NoError(t, err, "Actual err: %v", err)
 
 		resultA, err := adapter.Mutate(t.Context(), planetA.Id, func(p *models.Planet) (bool, error) {
 			p.Version++
@@ -1054,6 +1054,69 @@ func TestIT_PlanetMutator_Mutate_Concurrency(t *testing.T) {
 		assertPlanetResourceAmount(
 			t, conn, planetB.Id, planetB.Resources[0].Resource, 8765.0,
 		)
+	})
+
+	t.Run("waiting mutation respects context timeout", func(t *testing.T) {
+		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetResource)
+
+		enteredA := make(chan struct{})
+		releaseA := make(chan struct{})
+		enteredB := make(chan struct{})
+		doneA := make(chan error, 1)
+		doneB := make(chan error, 1)
+
+		go func() {
+			_, err := adapter.Mutate(t.Context(), planet.Id, func(p *models.Planet) (bool, error) {
+				close(enteredA)
+				<-releaseA
+				p.UpdatedAt = yetAnotherTime
+				p.Version++
+				return false, nil
+			})
+			doneA <- err
+		}()
+
+		<-enteredA
+
+		blockingCtx, cancel := context.WithTimeout(t.Context(), 100*time.Millisecond)
+		defer cancel()
+
+		go func() {
+			_, err := adapter.Mutate(blockingCtx, planet.Id, func(p *models.Planet) (bool, error) {
+				close(enteredB)
+				p.Resources[0].Amount = 2222.0
+				p.Version++
+				return false, nil
+			})
+			doneB <- err
+		}()
+
+		errB := <-doneB
+		require.ErrorIs(
+			t, errB, context.DeadlineExceeded, "Expected deadline exceeded, got err: %v", errB,
+		)
+
+		select {
+		case <-enteredB:
+			t.Fatalf("waiting mutation callback should not be reached before lock is released")
+		default:
+		}
+
+		close(releaseA)
+
+		errA := <-doneA
+		require.NoError(t, errA, "Actual err: %v", errA)
+
+		result, err := adapter.Mutate(t.Context(), planet.Id, func(p *models.Planet) (bool, error) {
+			p.Resources[0].Amount = 3333.0
+			p.Version++
+			return false, nil
+		})
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.False(t, result.Deleted)
+		assert.Equal(t, yetAnotherTime, result.Planet.UpdatedAt)
+		assert.Equal(t, 3333.0, result.Planet.Resources[0].Amount)
 	})
 }
 
