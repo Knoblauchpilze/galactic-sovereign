@@ -996,6 +996,65 @@ func TestIT_PlanetMutator_Mutate_Concurrency(t *testing.T) {
 		assert.Equal(t, 9878.0, result.Planet.Resources[0].Amount)
 		assert.Equal(t, planet.Version+2, result.Planet.Version)
 	})
+
+	t.Run("does not block concurrent mutation for different planets", func(t *testing.T) {
+		planetA, _, _ := insertTestPlanetForPlayer(t, conn)
+		require.NotEqual(t, yetAnotherTime, planetA.UpdatedAt)
+		planetB, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetResource)
+		require.NotEqual(t, 8765.0, planetB.Resources[0].Amount)
+
+		enteredA := make(chan struct{})
+		releaseA := make(chan struct{})
+		doneA := make(chan error, 1)
+		doneB := make(chan error, 1)
+
+		go func() {
+			_, err := adapter.Mutate(t.Context(), planetA.Id, func(p *models.Planet) (bool, error) {
+				close(enteredA)
+				<-releaseA
+				p.UpdatedAt = yetAnotherTime
+				p.Version++
+				return false, nil
+			})
+			doneA <- err
+		}()
+
+		<-enteredA
+
+		go func() {
+			_, err := adapter.Mutate(t.Context(), planetB.Id, func(p *models.Planet) (bool, error) {
+				p.Resources[0].Amount = 8765.0
+				p.Version++
+				return false, nil
+			})
+			doneB <- err
+		}()
+
+		select {
+		case err := <-doneB:
+			require.NoError(t, err, "Actual err: %v", err)
+		case <-time.After(500 * time.Millisecond):
+			t.Fatalf("mutation on second planet was blocked while first planet was locked")
+		}
+
+		assertPlanetResourceAmount(t, conn, planetB.Id, crystalResourceId, 8765.0)
+
+		close(releaseA)
+
+		err := <-doneA
+		require.NoError(t, err, "Actddual err: %v", err)
+
+		resultA, err := adapter.Mutate(t.Context(), planetA.Id, func(p *models.Planet) (bool, error) {
+			p.Version++
+			return false, nil
+		})
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.Equal(t, yetAnotherTime, resultA.Planet.UpdatedAt)
+		assertPlanetResourceAmount(
+			t, conn, planetB.Id, planetB.Resources[0].Resource, 8765.0,
+		)
+	})
 }
 
 func TestIT_PlanetMutator_ActionCreationDeletionWorkflow(t *testing.T) {
