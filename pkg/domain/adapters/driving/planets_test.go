@@ -288,11 +288,11 @@ func TestUnit_Planets_GetPlanet(t *testing.T) {
 	})
 }
 
-func TestUnit_Planets_ListPlanets_ForPlayer(t *testing.T) {
+func TestUnit_Planets_ListPlanetsForPlayer(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	mockUsecase := drivingportstest.NewMockForManagingPlanet(ctrl)
 
-	t.Run("returns 400 when api user id is invalid", func(t *testing.T) {
+	t.Run("returns 400 when player id is invalid", func(t *testing.T) {
 		req := generateTestRequest(t, http.MethodGet)
 		ctx, rw := generateTestContextFromRequest(t, req)
 		ctx.SetPathValues([]echo.PathValue{{Name: "id", Value: "not-a-uuid"}})

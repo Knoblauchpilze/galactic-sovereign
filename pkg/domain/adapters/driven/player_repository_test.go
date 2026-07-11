@@ -7,7 +7,6 @@ import (
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
 	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
-	drivenports "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driven"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -191,29 +190,6 @@ func TestIT_PlayerRepository_Get(t *testing.T) {
 	})
 }
 
-func TestIT_PlayerRepository_List(t *testing.T) {
-	repo, conn := newTestPlayerRepository(t)
-	p1, universe := insertTestPlayerInUniverse(t, conn)
-	p2 := insertTestPlayer(t, conn, universe.Id)
-	p3 := insertTestPlayer(t, conn, universe.Id, addPlayerPlanet)
-
-	p4, _ := insertTestPlayerInUniverse(t, conn)
-	planet := insertTestPlanet(t, conn, p4.Id, addPlanetHomeworld)
-
-	actual, err := repo.List(t.Context())
-	require.NoError(t, err, "Actual err: %v", err)
-
-	// The additional resources are players from the seed data
-	assert.Contains(t, actual, p1)
-	assert.Contains(t, actual, p2)
-	assert.Contains(t, actual, p3)
-
-	expectedP4 := p4
-	expectedP4.Homeworld = planet.Id
-	expectedP4.Planets = []uuid.UUID{planet.Id}
-	assert.Contains(t, actual, expectedP4)
-}
-
 func TestIT_PlayerRepository_ListForApiUser(t *testing.T) {
 	repo, conn := newTestPlayerRepository(t)
 
@@ -299,7 +275,7 @@ func TestIT_PlayerRepository_Delete(t *testing.T) {
 	})
 }
 
-func newTestPlayerRepository(t *testing.T) (drivenports.ForManagingPlayers, db.Connection) {
+func newTestPlayerRepository(t *testing.T) (*PlayerRepository, db.Connection) {
 	t.Helper()
 	conn := newTestConnection(t)
 	return NewPlayerRepository(conn), conn

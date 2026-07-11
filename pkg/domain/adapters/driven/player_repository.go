@@ -6,7 +6,6 @@ import (
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driven/mappers"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
-	drivenports "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driven"
 	"github.com/google/uuid"
 )
 
@@ -42,22 +41,6 @@ ORDER BY
 	created_at,
 	name`
 
-	listPlayerQuery = `
-SELECT
-	p.id,
-	p.api_user,
-	p.universe,
-	p.name,
-	p.created_at,
-	p.version,
-	h.planet AS homeworld
-FROM
-	player AS p
-	LEFT JOIN homeworld AS h ON h.player = p.id
-ORDER BY
-	p.created_at,
-	p.name`
-
 	listPlayerForApiUserQuery = `
 SELECT
 	p.id,
@@ -79,17 +62,17 @@ ORDER BY
 	deletePlayerQuery = `DELETE FROM player WHERE id = $1`
 )
 
-type playerRepositoryImpl struct {
+type PlayerRepository struct {
 	conn db.Connection
 }
 
-func NewPlayerRepository(conn db.Connection) drivenports.ForManagingPlayers {
-	return &playerRepositoryImpl{
+func NewPlayerRepository(conn db.Connection) *PlayerRepository {
+	return &PlayerRepository{
 		conn: conn,
 	}
 }
 
-func (r *playerRepositoryImpl) Create(
+func (r *PlayerRepository) Create(
 	ctx context.Context,
 	player models.Player,
 	homeworld models.Planet,
@@ -113,7 +96,7 @@ func (r *playerRepositoryImpl) Create(
 	return nil
 }
 
-func (r *playerRepositoryImpl) Get(ctx context.Context, id uuid.UUID) (models.Player, error) {
+func (r *PlayerRepository) Get(ctx context.Context, id uuid.UUID) (models.Player, error) {
 	tx, err := r.conn.BeginTx(ctx)
 	if err != nil {
 		return models.Player{}, err
@@ -128,32 +111,7 @@ func (r *playerRepositoryImpl) Get(ctx context.Context, id uuid.UUID) (models.Pl
 	return loadPlayerDetails(ctx, tx, dbPlayer)
 }
 
-func (r *playerRepositoryImpl) List(ctx context.Context) ([]models.Player, error) {
-	tx, err := r.conn.BeginTx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	defer tx.Close(ctx)
-
-	dbPlayers, err := db.QueryAllTx[mappers.DbPlayer](ctx, tx, listPlayerQuery)
-	if err != nil {
-		return nil, err
-	}
-
-	players := make([]models.Player, 0, len(dbPlayers))
-	for id := range dbPlayers {
-		player, err := loadPlayerDetails(ctx, tx, dbPlayers[id])
-		if err != nil {
-			return nil, err
-		}
-
-		players = append(players, player)
-	}
-
-	return players, nil
-}
-
-func (r *playerRepositoryImpl) ListForApiUser(ctx context.Context, apiUser uuid.UUID) ([]models.Player, error) {
+func (r *PlayerRepository) ListForApiUser(ctx context.Context, apiUser uuid.UUID) ([]models.Player, error) {
 	tx, err := r.conn.BeginTx(ctx)
 	if err != nil {
 		return nil, err
@@ -178,7 +136,7 @@ func (r *playerRepositoryImpl) ListForApiUser(ctx context.Context, apiUser uuid.
 	return players, nil
 }
 
-func (r *playerRepositoryImpl) Delete(ctx context.Context, player models.Player) error {
+func (r *PlayerRepository) Delete(ctx context.Context, player models.Player) error {
 	tx, err := r.conn.BeginTx(ctx)
 	if err != nil {
 		return err

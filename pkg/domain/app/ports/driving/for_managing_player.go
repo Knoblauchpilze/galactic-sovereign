@@ -11,7 +11,6 @@ import (
 type ForManagingPlayer interface {
 	Create(ctx context.Context, req request.PlayerCreationRequest) (models.Player, error)
 	Get(ctx context.Context, id uuid.UUID) (models.Player, error)
-	List(ctx context.Context) ([]models.Player, error)
 	ListForApiUser(ctx context.Context, apiUser uuid.UUID) ([]models.Player, error)
 	Delete(ctx context.Context, id uuid.UUID) error
 }

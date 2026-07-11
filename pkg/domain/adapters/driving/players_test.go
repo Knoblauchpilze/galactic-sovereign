@@ -214,117 +214,16 @@ func TestUnit_Players_GetPlayer(t *testing.T) {
 	})
 }
 
-func TestUnit_Players_ListPlayers(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	mockUsecase := drivingportstest.NewMockForManagingPlayer(ctrl)
-
-	t.Run("forwards listing to use case", func(t *testing.T) {
-		req := generateTestRequest(t, http.MethodGet)
-		ctx, rw := generateTestContextFromRequest(t, req)
-
-		players := []models.Player{
-			{
-				Id:        uuid.New(),
-				Name:      "player-1",
-				CreatedAt: someTime,
-				Homeworld: uuid.New(),
-			},
-			{
-				Id:        uuid.New(),
-				Name:      "player-2",
-				CreatedAt: someOtherTime,
-				Planets:   []uuid.UUID{uuid.New()},
-			},
-		}
-		mockUsecase.EXPECT().
-			List(gomock.Any()).
-			Times(1).
-			Return(players, nil)
-
-		err := listPlayers(ctx, mockUsecase)
-		require.NoError(t, err, "Actual err: %v", err)
-
-		assert.Equal(t, http.StatusOK, rw.Code)
-		actual := decodeResponseBody[[]dtos.PlayerDtoResponse](t, rw)
-		expected := []dtos.PlayerDtoResponse{
-			{
-				Id:        players[0].Id,
-				Name:      players[0].Name,
-				CreatedAt: players[0].CreatedAt,
-				Homeworld: players[0].Homeworld,
-			},
-			{
-				Id:        players[1].Id,
-				Name:      players[1].Name,
-				CreatedAt: players[1].CreatedAt,
-				Planets:   players[1].Planets,
-			},
-		}
-		assert.Equal(t, expected, actual)
-	})
-
-	t.Run("return empty slice when use case returns no player", func(t *testing.T) {
-		req := generateTestRequest(t, http.MethodGet)
-		ctx, rw := generateTestContextFromRequest(t, req)
-
-		mockUsecase.EXPECT().
-			List(gomock.Any()).
-			Times(1).
-			Return([]models.Player{}, nil)
-
-		err := listPlayers(ctx, mockUsecase)
-		require.NoError(t, err, "Actual err: %v", err)
-
-		assert.Equal(t, http.StatusOK, rw.Code)
-		actual := decodeResponseBody[[]dtos.PlayerDtoResponse](t, rw)
-		assert.Equal(t, []dtos.PlayerDtoResponse{}, actual)
-	})
-
-	t.Run("return empty slice when use case returns nil response", func(t *testing.T) {
-		req := generateTestRequest(t, http.MethodGet)
-		ctx, rw := generateTestContextFromRequest(t, req)
-
-		mockUsecase.EXPECT().
-			List(gomock.Any()).
-			Times(1).
-			Return(nil, nil)
-
-		err := listPlayers(ctx, mockUsecase)
-		require.NoError(t, err, "Actual err: %v", err)
-
-		assert.Equal(t, http.StatusOK, rw.Code)
-		actual := decodeResponseBody[[]dtos.PlayerDtoResponse](t, rw)
-		assert.Equal(t, []dtos.PlayerDtoResponse{}, actual)
-	})
-
-	t.Run("returns 500 when use cas fails", func(t *testing.T) {
-		req := generateTestRequest(t, http.MethodGet)
-		ctx, rw := generateTestContextFromRequest(t, req)
-
-		mockUsecase.EXPECT().
-			List(gomock.Any()).
-			Times(1).
-			Return([]models.Player{}, errors.New("stubbed error"))
-
-		err := listPlayers(ctx, mockUsecase)
-		require.NoError(t, err, "Actual err: %v", err)
-
-		assert.Equal(t, http.StatusInternalServerError, rw.Code)
-		actual := decodeResponseBody[string](t, rw)
-		assert.Equal(t, "failed to list players", actual)
-	})
-}
-
-func TestUnit_Players_ListPlayers_ForApiUser(t *testing.T) {
+func TestUnit_Players_ListPlayersForApiUser(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	mockUsecase := drivingportstest.NewMockForManagingPlayer(ctrl)
 
 	t.Run("returns 400 when api user id is invalid", func(t *testing.T) {
 		req := generateTestRequest(t, http.MethodGet)
-		addQueryParam(t, req, "api_user", "not-a-uuid")
 		ctx, rw := generateTestContextFromRequest(t, req)
+		ctx.SetPathValues([]echo.PathValue{{Name: "id", Value: "not-a-uuid"}})
 
-		err := listPlayers(ctx, mockUsecase)
+		err := listPlayersForApiUser(ctx, mockUsecase)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Equal(t, http.StatusBadRequest, rw.Code)
@@ -334,18 +233,19 @@ func TestUnit_Players_ListPlayers_ForApiUser(t *testing.T) {
 
 	t.Run("forwards listing to use case", func(t *testing.T) {
 		req := generateTestRequest(t, http.MethodGet)
-		addQueryParam(t, req, "api_user", sampleUuid.String())
-		ctx, rw := generateTestContextFromRequest(t, req)
+		ctx, rw := generateTestContextFromRequest(t, req, addIdPathParam)
 
 		players := []models.Player{
 			{
 				Id:        uuid.New(),
+				ApiUser:   sampleUuid,
 				Name:      "player-1",
 				CreatedAt: someTime,
 				Planets:   []uuid.UUID{uuid.New()},
 			},
 			{
 				Id:        uuid.New(),
+				ApiUser:   sampleUuid,
 				Name:      "player-2",
 				CreatedAt: someOtherTime,
 			},
@@ -355,7 +255,7 @@ func TestUnit_Players_ListPlayers_ForApiUser(t *testing.T) {
 			Times(1).
 			Return(players, nil)
 
-		err := listPlayers(ctx, mockUsecase)
+		err := listPlayersForApiUser(ctx, mockUsecase)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Equal(t, http.StatusOK, rw.Code)
@@ -363,12 +263,14 @@ func TestUnit_Players_ListPlayers_ForApiUser(t *testing.T) {
 		expected := []dtos.PlayerDtoResponse{
 			{
 				Id:        players[0].Id,
+				ApiUser:   players[0].ApiUser,
 				Name:      players[0].Name,
 				CreatedAt: players[0].CreatedAt,
 				Planets:   players[0].Planets,
 			},
 			{
 				Id:        players[1].Id,
+				ApiUser:   players[1].ApiUser,
 				Name:      players[1].Name,
 				CreatedAt: players[1].CreatedAt,
 			},
@@ -378,15 +280,14 @@ func TestUnit_Players_ListPlayers_ForApiUser(t *testing.T) {
 
 	t.Run("return empty slice when use case returns no player", func(t *testing.T) {
 		req := generateTestRequest(t, http.MethodGet)
-		addQueryParam(t, req, "api_user", sampleUuid.String())
-		ctx, rw := generateTestContextFromRequest(t, req)
+		ctx, rw := generateTestContextFromRequest(t, req, addIdPathParam)
 
 		mockUsecase.EXPECT().
 			ListForApiUser(gomock.Any(), gomock.Eq(sampleUuid)).
 			Times(1).
 			Return([]models.Player{}, nil)
 
-		err := listPlayers(ctx, mockUsecase)
+		err := listPlayersForApiUser(ctx, mockUsecase)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Equal(t, http.StatusOK, rw.Code)
@@ -396,15 +297,14 @@ func TestUnit_Players_ListPlayers_ForApiUser(t *testing.T) {
 
 	t.Run("return empty slice when use case returns nil response", func(t *testing.T) {
 		req := generateTestRequest(t, http.MethodGet)
-		addQueryParam(t, req, "api_user", sampleUuid.String())
-		ctx, rw := generateTestContextFromRequest(t, req)
+		ctx, rw := generateTestContextFromRequest(t, req, addIdPathParam)
 
 		mockUsecase.EXPECT().
 			ListForApiUser(gomock.Any(), gomock.Eq(sampleUuid)).
 			Times(1).
 			Return(nil, nil)
 
-		err := listPlayers(ctx, mockUsecase)
+		err := listPlayersForApiUser(ctx, mockUsecase)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Equal(t, http.StatusOK, rw.Code)
@@ -414,15 +314,14 @@ func TestUnit_Players_ListPlayers_ForApiUser(t *testing.T) {
 
 	t.Run("returns 500 when use cas fails", func(t *testing.T) {
 		req := generateTestRequest(t, http.MethodGet)
-		addQueryParam(t, req, "api_user", sampleUuid.String())
-		ctx, rw := generateTestContextFromRequest(t, req)
+		ctx, rw := generateTestContextFromRequest(t, req, addIdPathParam)
 
 		mockUsecase.EXPECT().
 			ListForApiUser(gomock.Any(), gomock.Eq(sampleUuid)).
 			Times(1).
 			Return([]models.Player{}, errors.New("stubbed error"))
 
-		err := listPlayers(ctx, mockUsecase)
+		err := listPlayersForApiUser(ctx, mockUsecase)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Equal(t, http.StatusInternalServerError, rw.Code)

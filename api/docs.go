@@ -1020,55 +1020,6 @@ const docTemplate = `{
             }
         },
         "/players": {
-            "get": {
-                "description": "Returns players, optionally filtered by api_user.",
-                "parameters": [
-                    {
-                        "description": "API user id (UUID)",
-                        "in": "query",
-                        "name": "api_user",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/rest.ResponseEnvelope-array_dtos_PlayerDtoResponse"
-                                }
-                            }
-                        },
-                        "description": "OK"
-                    },
-                    "400": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/rest.ResponseEnvelope-string"
-                                }
-                            }
-                        },
-                        "description": "Bad Request"
-                    },
-                    "500": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/rest.ResponseEnvelope-string"
-                                }
-                            }
-                        },
-                        "description": "Internal Server Error"
-                    }
-                },
-                "summary": "List players",
-                "tags": [
-                    "players"
-                ]
-            },
             "post": {
                 "description": "Creates a player and its homeworld.",
                 "requestBody": {
@@ -1542,6 +1493,47 @@ const docTemplate = `{
                 "summary": "Get universe",
                 "tags": [
                     "universes"
+                ]
+            }
+        },
+        "/user/:id/players": {
+            "get": {
+                "description": "Returns players associated to an API user.",
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/rest.ResponseEnvelope-array_dtos_PlayerDtoResponse"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/rest.ResponseEnvelope-string"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/rest.ResponseEnvelope-string"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "summary": "List players belonging to a user",
+                "tags": [
+                    "players"
                 ]
             }
         }

@@ -9,7 +9,6 @@ import (
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
 	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/request"
-	drivingports "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driving"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/usecases/drivenportstest"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -22,7 +21,7 @@ type playerTestSuite struct {
 	mockPlayerRepo   *drivenportstest.MockForManagingPlayers
 	mockUniverseRepo *drivenportstest.MockForManagingUniverses
 	mockPlanetRepo   *drivenportstest.MockForManagingPlanets
-	usecase          drivingports.ForManagingPlayer
+	usecase          *PlayerUseCase
 }
 
 func TestUnit_ManagePlayer_Create(t *testing.T) {
@@ -166,50 +165,6 @@ func TestUnit_ManagePlayer_Get(t *testing.T) {
 			Return(models.Player{}, expectedErr)
 
 		_, err := suite.usecase.Get(t.Context(), uuid.New())
-
-		assert.ErrorIs(t, err, expectedErr, "Actual err: %v", err)
-	})
-}
-
-func TestUnit_ManagePlayer_List(t *testing.T) {
-	suite := setupPlayerTestSuite(t)
-
-	t.Run("lists existing players", func(t *testing.T) {
-		expected := []models.Player{
-			{
-				Id:       uuid.New(),
-				ApiUser:  uuid.New(),
-				Universe: uuid.New(),
-				Name:     "player-1",
-			},
-			{
-				Id:       uuid.New(),
-				ApiUser:  uuid.New(),
-				Universe: uuid.New(),
-				Name:     "player-2",
-			},
-		}
-
-		suite.mockPlayerRepo.EXPECT().
-			List(gomock.Any()).
-			Times(1).
-			Return(expected, nil)
-
-		actual, err := suite.usecase.List(t.Context())
-		require.NoError(t, err, "Actual err: %v", err)
-
-		assert.Equal(t, expected, actual)
-	})
-
-	t.Run("returns error when repository fails", func(t *testing.T) {
-		expectedErr := errors.New("stubbed error")
-
-		suite.mockPlayerRepo.EXPECT().
-			List(gomock.Any()).
-			Times(1).
-			Return(nil, expectedErr)
-
-		_, err := suite.usecase.List(t.Context())
 
 		assert.ErrorIs(t, err, expectedErr, "Actual err: %v", err)
 	})

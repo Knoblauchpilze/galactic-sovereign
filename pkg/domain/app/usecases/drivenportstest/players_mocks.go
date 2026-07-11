@@ -85,21 +85,6 @@ func (mr *MockForManagingPlayersMockRecorder) Get(ctx, id any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockForManagingPlayers)(nil).Get), ctx, id)
 }
 
-// List mocks base method.
-func (m *MockForManagingPlayers) List(ctx context.Context) ([]models.Player, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "List", ctx)
-	ret0, _ := ret[0].([]models.Player)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// List indicates an expected call of List.
-func (mr *MockForManagingPlayersMockRecorder) List(ctx any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockForManagingPlayers)(nil).List), ctx)
-}
-
 // ListForApiUser mocks base method.
 func (m *MockForManagingPlayers) ListForApiUser(ctx context.Context, apiUser uuid.UUID) ([]models.Player, error) {
 	m.ctrl.T.Helper()

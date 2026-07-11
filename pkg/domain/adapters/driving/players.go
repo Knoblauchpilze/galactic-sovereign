@@ -7,7 +7,6 @@ import (
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/rest"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driving/dtos"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driving/mappers"
-	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
 	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
 	drivingports "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driving"
 	"github.com/google/uuid"
@@ -25,8 +24,8 @@ func PlayerEndpoints(usecase drivingports.ForManagingPlayer) rest.Routes {
 	get := rest.NewRoute(http.MethodGet, "/players/:id", handler)
 	out = append(out, get)
 
-	handler = generateHandler(listPlayers, usecase)
-	list := rest.NewRoute(http.MethodGet, "/players", handler)
+	handler = generateHandler(listPlayersForApiUser, usecase)
+	list := rest.NewRoute(http.MethodGet, "/user/:id/players", handler)
 	out = append(out, list)
 
 	handler = generateHandler(deletePlayer, usecase)
@@ -107,30 +106,24 @@ func getPlayer(c *echo.Context, usecase drivingports.ForManagingPlayer) error {
 	return c.JSON(http.StatusOK, out)
 }
 
-// listPlayers godoc
+// listPlayersForApiUser godoc
 //
-//	@Summary		List players
-//	@Description	Returns players, optionally filtered by api_user.
+//	@Summary		List players belonging to a user
+//	@Description	Returns players associated to an API user.
 //	@Tags			players
 //	@Produce		json
-//	@Param			api_user	query		string	false	"API user id (UUID)"
 //	@Success		200			{object}	rest.ResponseEnvelope[[]dtos.PlayerDtoResponse]
 //	@Failure		400			{object}	rest.ResponseEnvelope[string]
 //	@Failure		500			{object}	rest.ResponseEnvelope[string]
-//	@Router			/players [get]
-func listPlayers(c *echo.Context, usecase drivingports.ForManagingPlayer) error {
-	exists, apiUser, err := fetchIdFromQueryParam("api_user", c)
+//	@Router			/user/:id/players [get]
+func listPlayersForApiUser(c *echo.Context, usecase drivingports.ForManagingPlayer) error {
+	maybeId := c.Param("id")
+	apiUserId, err := uuid.Parse(maybeId)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, "invalid id syntax")
 	}
 
-	var players []models.Player
-	if exists {
-		players, err = usecase.ListForApiUser(c.Request().Context(), apiUser)
-	} else {
-		players, err = usecase.List(c.Request().Context())
-	}
-
+	players, err := usecase.ListForApiUser(c.Request().Context(), apiUserId)
 	if err != nil {
 		c.Logger().Error("Failed to list players", slog.Any("error", err))
 		return c.JSON(http.StatusInternalServerError, "failed to list players")
