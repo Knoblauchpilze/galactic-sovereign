@@ -43,7 +43,7 @@ func PlanetEndpoints(
 //
 //	@Summary		Create planet
 //	@Description	Creates a planet for the player
-//	@Tags			planets
+//	@Tags			players
 //	@Produce		json
 //	@Success		201		{object}	rest.ResponseEnvelope[dtos.PlanetDtoResponse]
 //	@Failure		400		{object}	rest.ResponseEnvelope[string]

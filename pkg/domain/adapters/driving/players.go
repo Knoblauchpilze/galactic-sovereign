@@ -25,7 +25,7 @@ func PlayerEndpoints(usecase drivingports.ForManagingPlayer) rest.Routes {
 	out = append(out, get)
 
 	handler = generateHandler(listPlayersForApiUser, usecase)
-	list := rest.NewRoute(http.MethodGet, "/user/:id/players", handler)
+	list := rest.NewRoute(http.MethodGet, "/users/:id/players", handler)
 	out = append(out, list)
 
 	handler = generateHandler(deletePlayer, usecase)
@@ -110,12 +110,12 @@ func getPlayer(c *echo.Context, usecase drivingports.ForManagingPlayer) error {
 //
 //	@Summary		List players belonging to a user
 //	@Description	Returns players associated to an API user.
-//	@Tags			players
+//	@Tags			users
 //	@Produce		json
 //	@Success		200			{object}	rest.ResponseEnvelope[[]dtos.PlayerDtoResponse]
 //	@Failure		400			{object}	rest.ResponseEnvelope[string]
 //	@Failure		500			{object}	rest.ResponseEnvelope[string]
-//	@Router			/user/:id/players [get]
+//	@Router			/users/{id}/players [get]
 func listPlayersForApiUser(c *echo.Context, usecase drivingports.ForManagingPlayer) error {
 	maybeId := c.Param("id")
 	apiUserId, err := uuid.Parse(maybeId)

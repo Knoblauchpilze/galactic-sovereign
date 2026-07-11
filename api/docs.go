@@ -931,7 +931,7 @@ const docTemplate = `{
                 },
                 "summary": "Delete building action for a planet",
                 "tags": [
-                    "actions"
+                    "planets"
                 ]
             },
             "post": {
@@ -1015,7 +1015,7 @@ const docTemplate = `{
                 },
                 "summary": "Create building action",
                 "tags": [
-                    "actions"
+                    "planets"
                 ]
             }
         },
@@ -1285,7 +1285,7 @@ const docTemplate = `{
                 },
                 "summary": "Create planet",
                 "tags": [
-                    "planets"
+                    "players"
                 ]
             }
         },
@@ -1496,7 +1496,7 @@ const docTemplate = `{
                 ]
             }
         },
-        "/user/:id/players": {
+        "/users/{id}/players": {
             "get": {
                 "description": "Returns players associated to an API user.",
                 "responses": {
@@ -1533,7 +1533,7 @@ const docTemplate = `{
                 },
                 "summary": "List players belonging to a user",
                 "tags": [
-                    "players"
+                    "users"
                 ]
             }
         }

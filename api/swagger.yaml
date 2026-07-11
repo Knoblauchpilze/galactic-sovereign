@@ -646,7 +646,7 @@ paths:
           description: Internal Server Error
       summary: Delete building action for a planet
       tags:
-      - actions
+      - planets
     post:
       description: Creates a building action for the planet provided in path parameter.
         The planet field in the body is ignored and replaced with this path value.
@@ -700,7 +700,7 @@ paths:
           description: Internal Server Error
       summary: Create building action
       tags:
-      - actions
+      - planets
   /players:
     post:
       description: Creates a player and its homeworld.
@@ -868,7 +868,7 @@ paths:
           description: Internal Server Error
       summary: Create planet
       tags:
-      - planets
+      - players
   /universes:
     get:
       description: Returns all universes.
@@ -998,7 +998,7 @@ paths:
       summary: Get universe
       tags:
       - universes
-  /user/:id/players:
+  /users/{id}/players:
     get:
       description: Returns players associated to an API user.
       responses:
@@ -1022,7 +1022,7 @@ paths:
           description: Internal Server Error
       summary: List players belonging to a user
       tags:
-      - players
+      - users
 servers:
 - description: Base path for the galactic-sovereign API
   url: /v1/galactic-sovereign

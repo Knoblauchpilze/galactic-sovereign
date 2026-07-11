@@ -34,7 +34,7 @@ func BuildingActionEndpoints(
 //
 //	@Summary		Create building action
 //	@Description	Creates a building action for the planet provided in path parameter. The planet field in the body is ignored and replaced with this path value.
-//	@Tags			actions
+//	@Tags			planets
 //	@Produce		json
 //	@Param			id		path		string					true	"Planet id (UUID)"	Format(uuid)
 //	@Param			request	body		dtos.BuildingActionDtoRequest	true	"Building action payload"
@@ -88,7 +88,7 @@ func createBuildingAction(c *echo.Context, usecase drivingports.ForCreatingBuild
 //
 //	@Summary		Delete building action for a planet
 //	@Description	Deletes an existing building action for a planet.
-//	@Tags			actions
+//	@Tags			planets
 //	@Produce		json
 //	@Param			id	path		string	true	"Planet id (UUID)"	Format(uuid)
 //	@Success		204	{string}	string
