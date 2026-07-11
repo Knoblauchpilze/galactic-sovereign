@@ -3,14 +3,7 @@ package mappers
 import (
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driving/dtos"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
-	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/request"
 )
-
-func ToPlanetCreationRequest(dto dtos.PlanetDtoRequest) request.PlanetCreationRequest {
-	return request.PlanetCreationRequest{
-		Player: dto.Player,
-	}
-}
 
 func ToPlanetResponse(planet models.Planet) dtos.PlanetDtoResponse {
 	dto := dtos.PlanetDtoResponse{

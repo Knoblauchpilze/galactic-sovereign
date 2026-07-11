@@ -20,11 +20,9 @@ fi
 
 OUTPUT_FILE="/tmp/${PLAYER_NAME}.json"p
 
-BODY="{\"player\":\"${PLAYER_ID}\"}"
-
 curl -sH 'Content-Type: application/json' \
-  http://localhost:60002/v1/galactic-sovereign/planets \
-  -d ${BODY} \
+  -X POST \
+  http://localhost:60002/v1/galactic-sovereign/players/${PLAYER_ID}/planets \
   -o ${OUTPUT_FILE}
 
 STATUS=$(jq -r '.status' ${OUTPUT_FILE})

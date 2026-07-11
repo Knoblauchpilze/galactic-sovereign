@@ -6,9 +6,9 @@ import (
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/rest"
-	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driving/dtos"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driving/mappers"
 	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
+	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/request"
 	drivingports "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driving"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v5"
@@ -21,7 +21,7 @@ func PlanetEndpoints(
 	var out rest.Routes
 
 	handler := generateHandler(createPlanet, createUsecase)
-	post := rest.NewRoute(http.MethodPost, "/planets", handler)
+	post := rest.NewRoute(http.MethodPost, "/players/:id/planets", handler)
 	out = append(out, post)
 
 	handler = generateHandler(getPlanet, usecase)
@@ -42,22 +42,21 @@ func PlanetEndpoints(
 // createPlanet godoc
 //
 //	@Summary		Create planet
-//	@Description	Creates a planet from the provided payload.
+//	@Description	Creates a planet for the player
 //	@Tags			planets
 //	@Produce		json
-//	@Param			request	body		dtos.PlanetDtoRequest	true	"Planet payload"
 //	@Success		201		{object}	rest.ResponseEnvelope[dtos.PlanetDtoResponse]
 //	@Failure		400		{object}	rest.ResponseEnvelope[string]
 //	@Failure		500		{object}	rest.ResponseEnvelope[string]
-//	@Router			/planets [post]
+//	@Router			/players/{id}/planets [post]
 func createPlanet(c *echo.Context, usecase drivingports.ForCreatingPlanet) error {
-	var inputDto dtos.PlanetDtoRequest
-	err := c.Bind(&inputDto)
+	maybeId := c.Param("id")
+	playerId, err := uuid.Parse(maybeId)
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, "invalid planet syntax")
+		return c.JSON(http.StatusBadRequest, "invalid id syntax")
 	}
 
-	request := mappers.ToPlanetCreationRequest(inputDto)
+	request := request.PlanetCreationRequest{Player: playerId}
 	planet, err := usecase.Create(c.Request().Context(), request)
 	if err != nil {
 		if dbErr, ok := db.AsDatabaseError(err); ok && dbErr.Code == db.ErrUniqueConstraintViolation {

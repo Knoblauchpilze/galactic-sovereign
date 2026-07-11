@@ -6,10 +6,6 @@ import (
 	"github.com/google/uuid"
 )
 
-type PlanetDtoRequest struct {
-	Player uuid.UUID `json:"player" format:"uuid" binding:"required"`
-}
-
 type PlanetDtoResponse struct {
 	Id        uuid.UUID `json:"id" format:"uuid" binding:"required"`
 	Player    uuid.UUID `json:"player" format:"uuid" binding:"required"`

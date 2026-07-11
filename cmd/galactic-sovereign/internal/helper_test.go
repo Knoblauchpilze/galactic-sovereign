@@ -92,10 +92,15 @@ func doGet[T any](t *testing.T, url string) T {
 func doPost[T any](t *testing.T, url string, body any) T {
 	t.Helper()
 
-	raw, err := json.Marshal(body)
-	require.NoError(t, err, "Actual err: %v", err)
+	var payload io.Reader
+	if body != nil {
+		raw, err := json.Marshal(body)
+		require.NoError(t, err, "Actual err: %v", err)
 
-	resp, err := http.Post(url, "application/json", bytes.NewReader(raw)) // nolint:noctx
+		payload = bytes.NewReader(raw)
+	}
+
+	resp, err := http.Post(url, "application/json", payload) // nolint:noctx
 	require.NoError(t, err, "POST %s: %v", url, err)
 	defer resp.Body.Close() // nolint:errcheck
 	require.Equal(t, http.StatusCreated, resp.StatusCode, "POST %s returned %d", url, resp.StatusCode)

@@ -237,18 +237,6 @@ const docTemplate = `{
                 ],
                 "type": "object"
             },
-            "dtos.PlanetDtoRequest": {
-                "properties": {
-                    "player": {
-                        "format": "uuid",
-                        "type": "string"
-                    }
-                },
-                "required": [
-                    "player"
-                ],
-                "type": "object"
-            },
             "dtos.PlanetDtoResponse": {
                 "properties": {
                     "building_action": {
@@ -757,60 +745,6 @@ const docTemplate = `{
                 "summary": "Health check",
                 "tags": [
                     "healthcheck"
-                ]
-            }
-        },
-        "/planets": {
-            "post": {
-                "description": "Creates a planet from the provided payload.",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/dtos.PlanetDtoRequest",
-                                "summary": "request",
-                                "description": "Planet payload"
-                            }
-                        }
-                    },
-                    "description": "Planet payload",
-                    "required": true
-                },
-                "responses": {
-                    "201": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/rest.ResponseEnvelope-dtos_PlanetDtoResponse"
-                                }
-                            }
-                        },
-                        "description": "Created"
-                    },
-                    "400": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/rest.ResponseEnvelope-string"
-                                }
-                            }
-                        },
-                        "description": "Bad Request"
-                    },
-                    "500": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/rest.ResponseEnvelope-string"
-                                }
-                            }
-                        },
-                        "description": "Internal Server Error"
-                    }
-                },
-                "summary": "Create planet",
-                "tags": [
-                    "planets"
                 ]
             }
         },
@@ -1362,6 +1296,45 @@ const docTemplate = `{
                 "summary": "List planets",
                 "tags": [
                     "players"
+                ]
+            },
+            "post": {
+                "description": "Creates a planet for the player",
+                "responses": {
+                    "201": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/rest.ResponseEnvelope-dtos_PlanetDtoResponse"
+                                }
+                            }
+                        },
+                        "description": "Created"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/rest.ResponseEnvelope-string"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/rest.ResponseEnvelope-string"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "summary": "Create planet",
+                "tags": [
+                    "planets"
                 ]
             }
         },

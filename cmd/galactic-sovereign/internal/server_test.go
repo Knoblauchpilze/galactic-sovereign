@@ -90,9 +90,8 @@ func TestIT_Server_PlayerDeletionRemovesPlanets(t *testing.T) {
 	)
 
 	// Create a second planet
-	planetReq := dtos.PlanetDtoRequest{Player: player.Id}
 	planet := doPost[dtos.PlanetDtoResponse](
-		t, urlFor(conf, "planets"), planetReq,
+		t, urlFor(conf, "players", player.Id.String(), "planets"), nil,
 	)
 
 	homeworld := doGet[dtos.PlanetDtoResponse](

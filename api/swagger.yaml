@@ -163,14 +163,6 @@ components:
       - building
       - level
       type: object
-    dtos.PlanetDtoRequest:
-      properties:
-        player:
-          format: uuid
-          type: string
-      required:
-      - player
-      type: object
     dtos.PlanetDtoResponse:
       properties:
         building_action:
@@ -539,40 +531,6 @@ paths:
       summary: Health check
       tags:
       - healthcheck
-  /planets:
-    post:
-      description: Creates a planet from the provided payload.
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/dtos.PlanetDtoRequest'
-              description: Planet payload
-              summary: request
-        description: Planet payload
-        required: true
-      responses:
-        "201":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/rest.ResponseEnvelope-dtos_PlanetDtoResponse'
-          description: Created
-        "400":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/rest.ResponseEnvelope-string'
-          description: Bad Request
-        "500":
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/rest.ResponseEnvelope-string'
-          description: Internal Server Error
-      summary: Create planet
-      tags:
-      - planets
   /planets/{id}:
     delete:
       description: Deletes a planet by id.
@@ -917,6 +875,30 @@ paths:
       summary: List planets
       tags:
       - players
+    post:
+      description: Creates a planet for the player
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/rest.ResponseEnvelope-dtos_PlanetDtoResponse'
+          description: Created
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/rest.ResponseEnvelope-string'
+          description: Bad Request
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/rest.ResponseEnvelope-string'
+          description: Internal Server Error
+      summary: Create planet
+      tags:
+      - planets
   /universes:
     get:
       description: Returns all universes.

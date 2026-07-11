@@ -21,34 +21,34 @@ func TestUnit_Planets_CreatePlanet(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	mockUsecase := drivingportstest.NewMockForCreatingPlanet(ctrl)
 
-	dto := dtos.PlanetDtoRequest{
-		Player: uuid.New(),
-	}
+	planetId := uuid.New()
 
-	t.Run("returns 400 when body is invalid", func(t *testing.T) {
-		req := generateTestRequestWithJsonBody(t, http.MethodPost, "not-a-dto-request")
+	t.Run("returns 400 when id is invalid", func(t *testing.T) {
+		req := generateTestRequest(t, http.MethodPost)
 		ctx, rw := generateTestContextFromRequest(t, req)
+		ctx.SetPathValues([]echo.PathValue{{Name: "id", Value: "not-a-uuid"}})
 
 		err := createPlanet(ctx, mockUsecase)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Equal(t, http.StatusBadRequest, rw.Code)
 		actual := decodeResponseBody[string](t, rw)
-		assert.Equal(t, "invalid planet syntax", actual)
+		assert.Equal(t, "invalid id syntax", actual)
 	})
 
 	t.Run("forwards creation to use case", func(t *testing.T) {
-		req := generateTestRequestWithJsonBody(t, http.MethodPost, dto)
-		ctx, rw := generateTestContextFromRequest(t, req)
+		req := generateTestRequest(t, http.MethodPost)
+		ctx, rw := generateTestContextFromRequest(t, req, addIdPathParam)
 
 		expectedRequest := request.PlanetCreationRequest{
-			Player: dto.Player,
+			Player: sampleUuid,
 		}
 		mockUsecase.EXPECT().
 			Create(gomock.Any(), gomock.Eq(expectedRequest)).
 			Times(1).
 			Return(models.Planet{
-				Id:        sampleUuid,
+				Id:        planetId,
+				Player:    sampleUuid,
 				Name:      "my-planet",
 				CreatedAt: someTime,
 				Version:   0,
@@ -60,7 +60,8 @@ func TestUnit_Planets_CreatePlanet(t *testing.T) {
 		assert.Equal(t, http.StatusCreated, rw.Code)
 		actual := decodeResponseBody[dtos.PlanetDtoResponse](t, rw)
 		expected := dtos.PlanetDtoResponse{
-			Id:          sampleUuid,
+			Id:          planetId,
+			Player:      sampleUuid,
 			Name:        "my-planet",
 			CreatedAt:   someTime,
 			Resources:   []dtos.PlanetResourceDtoResponse{},
@@ -72,8 +73,8 @@ func TestUnit_Planets_CreatePlanet(t *testing.T) {
 	})
 
 	t.Run("returns 400 when player is not found", func(t *testing.T) {
-		req := generateTestRequestWithJsonBody(t, http.MethodPost, dto)
-		ctx, rw := generateTestContextFromRequest(t, req)
+		req := generateTestRequest(t, http.MethodPost)
+		ctx, rw := generateTestContextFromRequest(t, req, addIdPathParam)
 
 		mockUsecase.EXPECT().
 			Create(gomock.Any(), gomock.Any()).
@@ -89,8 +90,8 @@ func TestUnit_Planets_CreatePlanet(t *testing.T) {
 	})
 
 	t.Run("returns 500 when use case fails", func(t *testing.T) {
-		req := generateTestRequestWithJsonBody(t, http.MethodPost, dto)
-		ctx, rw := generateTestContextFromRequest(t, req)
+		req := generateTestRequest(t, http.MethodPost)
+		ctx, rw := generateTestContextFromRequest(t, req, addIdPathParam)
 
 		mockUsecase.EXPECT().
 			Create(gomock.Any(), gomock.Any()).
