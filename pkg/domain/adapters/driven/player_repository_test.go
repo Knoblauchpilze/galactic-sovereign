@@ -75,9 +75,7 @@ func TestIT_PlayerRepository_Create(t *testing.T) {
 		require.NoError(t, err, "Actual err: %v", err)
 		assert.Equal(t, expectedPlayer, actual)
 
-		planetRepo := NewPlanetRepository(conn)
-		actualPlanet, err := planetRepo.get(t.Context(), planet.Id)
-		require.NoError(t, err, "Actual err: %v", err)
+		actualPlanet := loadPlanetFromDb(t, conn, planet.Id)
 		assert.Equal(t, planet, actualPlanet)
 	})
 

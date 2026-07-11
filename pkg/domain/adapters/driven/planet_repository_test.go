@@ -7,7 +7,6 @@ import (
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
-	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -43,9 +42,7 @@ func TestIT_PlanetRepository_Create(t *testing.T) {
 		require.NoError(t, err, "Actual err: %v", err)
 		assertPlanetExists(t, conn, planet.Id)
 
-		actual, err := repo.get(t.Context(), planet.Id)
-		require.NoError(t, err, "Actual err: %v", err)
-
+		actual := loadPlanetFromDb(t, conn, planet.Id)
 		assert.Equal(t, planet, actual)
 	})
 
@@ -75,9 +72,7 @@ func TestIT_PlanetRepository_Create(t *testing.T) {
 		require.NoError(t, err, "Actual err: %v", err)
 		assertPlanetExists(t, conn, planet.Id)
 
-		actual, err := repo.get(t.Context(), planet.Id)
-		require.NoError(t, err, "Actual err: %v", err)
-
+		actual := loadPlanetFromDb(t, conn, planet.Id)
 		assert.Equal(t, planet, actual)
 	})
 
@@ -107,9 +102,7 @@ func TestIT_PlanetRepository_Create(t *testing.T) {
 		require.NoError(t, err, "Actual err: %v", err)
 		assertPlanetExists(t, conn, planet.Id)
 
-		actual, err := repo.get(t.Context(), planet.Id)
-		require.NoError(t, err, "Actual err: %v", err)
-
+		actual := loadPlanetFromDb(t, conn, planet.Id)
 		assert.Equal(t, planet, actual)
 	})
 
@@ -139,9 +132,7 @@ func TestIT_PlanetRepository_Create(t *testing.T) {
 		require.NoError(t, err, "Actual err: %v", err)
 		assertPlanetExists(t, conn, planet.Id)
 
-		actual, err := repo.get(t.Context(), planet.Id)
-		require.NoError(t, err, "Actual err: %v", err)
-
+		actual := loadPlanetFromDb(t, conn, planet.Id)
 		assert.Equal(t, planet, actual)
 	})
 
@@ -172,9 +163,7 @@ func TestIT_PlanetRepository_Create(t *testing.T) {
 		require.NoError(t, err, "Actual err: %v", err)
 		assertPlanetExists(t, conn, planet.Id)
 
-		actual, err := repo.get(t.Context(), planet.Id)
-		require.NoError(t, err, "Actual err: %v", err)
-
+		actual := loadPlanetFromDb(t, conn, planet.Id)
 		assert.Equal(t, planet, actual)
 	})
 
@@ -204,9 +193,7 @@ func TestIT_PlanetRepository_Create(t *testing.T) {
 		require.NoError(t, err, "Actual err: %v", err)
 		assertPlanetExists(t, conn, planet.Id)
 
-		actual, err := repo.get(t.Context(), planet.Id)
-		require.NoError(t, err, "Actual err: %v", err)
-
+		actual := loadPlanetFromDb(t, conn, planet.Id)
 		assert.Equal(t, planet, actual)
 	})
 
@@ -231,9 +218,7 @@ func TestIT_PlanetRepository_Create(t *testing.T) {
 		require.NoError(t, err, "Actual err: %v", err)
 		assertPlanetExists(t, conn, planet.Id)
 
-		actual, err := repo.get(t.Context(), planet.Id)
-		require.NoError(t, err, "Actual err: %v", err)
-
+		actual := loadPlanetFromDb(t, conn, planet.Id)
 		assert.Equal(t, planet, actual)
 	})
 
@@ -278,9 +263,7 @@ func TestIT_PlanetRepository_Create(t *testing.T) {
 		assertPlanetExists(t, conn, planet.Id)
 		assertPlanetIsHomeworld(t, conn, planet.Id, planet.Player)
 
-		actual, err := repo.get(t.Context(), planet.Id)
-		require.NoError(t, err, "Actual err: %v", err)
-
+		actual := loadPlanetFromDb(t, conn, planet.Id)
 		assert.Equal(t, planet, actual)
 	})
 
@@ -301,80 +284,6 @@ func TestIT_PlanetRepository_Create(t *testing.T) {
 		require.True(t, ok)
 		assert.Equal(t, db.ErrUniqueConstraintViolation, actual.Code, "Actual err: %v", err)
 		assertPlanetDoesNotExist(t, conn, planet.Id)
-	})
-}
-
-func TestIT_PlanetRepository_get(t *testing.T) {
-	repo, conn := newTestPlanetRepository(t)
-
-	t.Run("gets planet", func(t *testing.T) {
-		planet, _, _ := insertTestPlanetForPlayer(t, conn)
-
-		actual, err := repo.get(t.Context(), planet.Id)
-		require.NoError(t, err, "Actual err: %v", err)
-
-		assert.Equal(t, planet, actual)
-	})
-
-	t.Run("gets planet with resources", func(t *testing.T) {
-		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetResource)
-
-		actual, err := repo.get(t.Context(), planet.Id)
-		require.NoError(t, err, "Actual err: %v", err)
-
-		assert.Equal(t, planet, actual)
-	})
-
-	t.Run("gets planet with storages", func(t *testing.T) {
-		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetStorage)
-
-		actual, err := repo.get(t.Context(), planet.Id)
-		require.NoError(t, err, "Actual err: %v", err)
-
-		assert.Equal(t, planet, actual)
-	})
-
-	t.Run("gets planet with productions", func(t *testing.T) {
-		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetProduction)
-
-		actual, err := repo.get(t.Context(), planet.Id)
-		require.NoError(t, err, "Actual err: %v", err)
-
-		assert.Equal(t, planet, actual)
-	})
-
-	t.Run("gets planet with productions for building", func(t *testing.T) {
-		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetProductionForBuilding)
-
-		actual, err := repo.get(t.Context(), planet.Id)
-		require.NoError(t, err, "Actual err: %v", err)
-
-		assert.Equal(t, planet, actual)
-	})
-
-	t.Run("gets planet with buildings", func(t *testing.T) {
-		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetBuilding)
-
-		actual, err := repo.get(t.Context(), planet.Id)
-		require.NoError(t, err, "Actual err: %v", err)
-
-		assert.Equal(t, planet, actual)
-	})
-
-	t.Run("gets planet with building actions", func(t *testing.T) {
-		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetBuildingAction)
-
-		actual, err := repo.get(t.Context(), planet.Id)
-		require.NoError(t, err, "Actual err: %v", err)
-
-		assert.Equal(t, planet, actual)
-	})
-
-	t.Run("returns error when planet does not exist", func(t *testing.T) {
-		id := uuid.MustParse("00000000-1111-2222-1111-000000000000")
-		_, err := repo.get(t.Context(), id)
-
-		assert.ErrorIs(t, err, domainerrors.ErrNotFound, "Actual err: %v", err)
 	})
 }
 
@@ -613,9 +522,7 @@ func TestIT_PlanetRepository_CreationDeletionWorkflow(t *testing.T) {
 			}()
 
 			func() {
-				planetFromDb, err := repo.get(t.Context(), tc.planet.Id)
-				require.NoError(t, err, "Actual err: %v", err)
-
+				planetFromDb := loadPlanetFromDb(t, conn, tc.planet.Id)
 				assert.Equal(t, tc.planet, planetFromDb)
 			}()
 
@@ -864,6 +771,19 @@ func insertTestHomeworldPlanetForPlayer(
 	modifiers = append(modifiers, addPlanetHomeworld)
 	planet := insertTestPlanet(t, conn, player.Id, modifiers...)
 	return planet, player, universe
+}
+
+func loadPlanetFromDb(t *testing.T, conn db.Connection, id uuid.UUID) models.Planet {
+	t.Helper()
+
+	tx, err := conn.BeginTx(t.Context())
+	require.NoError(t, err, "Actual err: %v", err)
+	defer tx.Close(t.Context())
+
+	planet, err := loadPlanetAndDetails(t.Context(), tx, id)
+	require.NoError(t, err, "Actual err: %v", err)
+
+	return planet
 }
 
 func assertPlanetExists(t *testing.T, conn db.Connection, id uuid.UUID) {
