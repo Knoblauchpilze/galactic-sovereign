@@ -4,8 +4,8 @@ github.com/AdaLogics/go-fuzz-headers v0.0.0-20240806141605-e8a1dd7889d6 h1:He8af
 github.com/AdaLogics/go-fuzz-headers v0.0.0-20240806141605-e8a1dd7889d6/go.mod h1:8o94RPi1/7XTJvwPpRSzSUedZrtlirdB3r9Z20bi2f8=
 github.com/Azure/go-ansiterm v0.0.0-20250102033503-faa5f7b0171c h1:udKWzYgxTojEKWjV8V+WSxDXJ4NFATAsZjh8iIbsQIg=
 github.com/Azure/go-ansiterm v0.0.0-20250102033503-faa5f7b0171c/go.mod h1:xomTg63KZ2rFqZQzSB4Vz2SUXa1BpHTVz9L5PTmPC4E=
-github.com/Knoblauchpilze/backend-toolkit v0.6.6 h1:nzBxA6t8ycsP0T8TeNDd8XFnmbE0KixPMIskRlMvM48=
-github.com/Knoblauchpilze/backend-toolkit v0.6.6/go.mod h1:/FaiIBOkVmYkrfU9p3XeJGZONVRIrbVmUkZJyExZ5JI=
+github.com/Knoblauchpilze/backend-toolkit v0.7.0 h1:0i2kt6TU9pF5xBpt/NjNkBpJTgW331n1RXYL7RVnxOI=
+github.com/Knoblauchpilze/backend-toolkit v0.7.0/go.mod h1:/FaiIBOkVmYkrfU9p3XeJGZONVRIrbVmUkZJyExZ5JI=
 github.com/Knoblauchpilze/easy-assert v0.4.0 h1:+Eanp7k3nnaHPP3eLbif3qkTNx0rb/qq0lLCL0zO06E=
 github.com/Knoblauchpilze/easy-assert v0.4.0/go.mod h1:vFiqu9yxaa2pEFoz4eXp2tst7sn8U+CkT2dgppiEYTI=
 github.com/KyleBanks/depth v1.2.1 h1:5h8fQADFrWtarTdtDudMmGsC7GPbOAu6RVB3ffsVFHc=

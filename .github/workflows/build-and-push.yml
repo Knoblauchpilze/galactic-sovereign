@@ -222,7 +222,7 @@ jobs:
         # https://stackoverflow.com/questions/58862864/github-actions-ci-conditional-regex
         # https://stackoverflow.com/questions/4542732/how-do-i-negate-a-test-with-regular-expressions-in-a-bash-script
         run: |
-          if ! [[ '${{ steps.test-results.outputs.response_body }}' =~ ^\{\"requestId\":\"[0-9a-f-]+\",\"status\":\"SUCCESS\",\"details\":\[.*\]\}$ ]]; then
+          if ! [[ '${{ steps.test-results.outputs.response_body }}' =~ ^\{\"request_id\":\"[0-9a-f-]+\",\"status\":\"SUCCESS\",\"status_code\":200,\"details\":\[.*\]\}$ ]]; then
             echo "::error ::Expected http response to match expected syntax but it did not: ${{ steps.test-results.outputs.response_body }}!"
             exit 1
           fi

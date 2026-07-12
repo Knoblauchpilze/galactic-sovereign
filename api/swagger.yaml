@@ -372,16 +372,20 @@ components:
             $ref: '#/components/schemas/dtos.PlanetDtoResponse'
           type: array
           uniqueItems: false
-        requestId:
+        request_id:
           example: 669cd40f-ea15-40a8-ab03-81e704a3ecf9
           format: uuid
           type: string
         status:
           $ref: '#/components/schemas/rest.Status'
+        status_code:
+          example: 200
+          type: integer
       required:
       - details
-      - requestId
+      - request_id
       - status
+      - status_code
       type: object
     rest.ResponseEnvelope-array_dtos_PlayerDtoResponse:
       properties:
@@ -390,16 +394,20 @@ components:
             $ref: '#/components/schemas/dtos.PlayerDtoResponse'
           type: array
           uniqueItems: false
-        requestId:
+        request_id:
           example: 669cd40f-ea15-40a8-ab03-81e704a3ecf9
           format: uuid
           type: string
         status:
           $ref: '#/components/schemas/rest.Status'
+        status_code:
+          example: 200
+          type: integer
       required:
       - details
-      - requestId
+      - request_id
       - status
+      - status_code
       type: object
     rest.ResponseEnvelope-array_dtos_UniverseDtoResponse:
       properties:
@@ -408,91 +416,115 @@ components:
             $ref: '#/components/schemas/dtos.UniverseDtoResponse'
           type: array
           uniqueItems: false
-        requestId:
+        request_id:
           example: 669cd40f-ea15-40a8-ab03-81e704a3ecf9
           format: uuid
           type: string
         status:
           $ref: '#/components/schemas/rest.Status'
+        status_code:
+          example: 200
+          type: integer
       required:
       - details
-      - requestId
+      - request_id
       - status
+      - status_code
       type: object
     rest.ResponseEnvelope-dtos_BuildingActionDtoResponse:
       properties:
         details:
           $ref: '#/components/schemas/dtos.BuildingActionDtoResponse'
-        requestId:
+        request_id:
           example: 669cd40f-ea15-40a8-ab03-81e704a3ecf9
           format: uuid
           type: string
         status:
           $ref: '#/components/schemas/rest.Status'
+        status_code:
+          example: 200
+          type: integer
       required:
       - details
-      - requestId
+      - request_id
       - status
+      - status_code
       type: object
     rest.ResponseEnvelope-dtos_PlanetDtoResponse:
       properties:
         details:
           $ref: '#/components/schemas/dtos.PlanetDtoResponse'
-        requestId:
+        request_id:
           example: 669cd40f-ea15-40a8-ab03-81e704a3ecf9
           format: uuid
           type: string
         status:
           $ref: '#/components/schemas/rest.Status'
+        status_code:
+          example: 200
+          type: integer
       required:
       - details
-      - requestId
+      - request_id
       - status
+      - status_code
       type: object
     rest.ResponseEnvelope-dtos_PlayerDtoResponse:
       properties:
         details:
           $ref: '#/components/schemas/dtos.PlayerDtoResponse'
-        requestId:
+        request_id:
           example: 669cd40f-ea15-40a8-ab03-81e704a3ecf9
           format: uuid
           type: string
         status:
           $ref: '#/components/schemas/rest.Status'
+        status_code:
+          example: 200
+          type: integer
       required:
       - details
-      - requestId
+      - request_id
       - status
+      - status_code
       type: object
     rest.ResponseEnvelope-dtos_UniverseDtoResponse:
       properties:
         details:
           $ref: '#/components/schemas/dtos.UniverseDtoResponse'
-        requestId:
+        request_id:
           example: 669cd40f-ea15-40a8-ab03-81e704a3ecf9
           format: uuid
           type: string
         status:
           $ref: '#/components/schemas/rest.Status'
+        status_code:
+          example: 200
+          type: integer
       required:
       - details
-      - requestId
+      - request_id
       - status
+      - status_code
       type: object
     rest.ResponseEnvelope-string:
       properties:
         details:
           type: string
-        requestId:
+        request_id:
           example: 669cd40f-ea15-40a8-ab03-81e704a3ecf9
           format: uuid
           type: string
         status:
           $ref: '#/components/schemas/rest.Status'
+        status_code:
+          example: 200
+          type: integer
       required:
       - details
-      - requestId
+      - request_id
       - status
+      - status_code
       type: object
     rest.Status:
       enum:
