@@ -9,7 +9,6 @@ import (
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
 	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
 	drivenports "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driven"
-	drivingports "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driving"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/usecases/drivenportstest"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -36,7 +35,7 @@ type planetTestSuite struct {
 	mockPlanetRepo    *drivenportstest.MockForManagingPlanets
 	mockPlanetMutator *drivenportstest.MockForMutatingPlanet
 	mockClock         *drivenportstest.MockForFetchingTime
-	usecase           drivingports.ForManagingPlanet
+	usecase           *PlanetUseCase
 }
 
 func TestUnit_ManagePlanet_Get(t *testing.T) {

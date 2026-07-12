@@ -6,21 +6,20 @@ import (
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/request"
 	drivenports "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driven"
-	drivingports "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driving"
 	"github.com/google/uuid"
 )
 
-type universeUseCase struct {
+type UniverseUseCase struct {
 	repo drivenports.ForManagingUniverses
 }
 
-func NewUniverseUseCase(repo drivenports.ForManagingUniverses) drivingports.ForManagingUniverse {
-	return &universeUseCase{
+func NewUniverseUseCase(repo drivenports.ForManagingUniverses) *UniverseUseCase {
+	return &UniverseUseCase{
 		repo: repo,
 	}
 }
 
-func (u *universeUseCase) Create(ctx context.Context, req request.UniverseCreationRequest) (models.Universe, error) {
+func (u *UniverseUseCase) Create(ctx context.Context, req request.UniverseCreationRequest) (models.Universe, error) {
 	universe := request.FromUniverseCreationRequest(req)
 
 	err := u.repo.Create(ctx, universe)
@@ -31,15 +30,16 @@ func (u *universeUseCase) Create(ctx context.Context, req request.UniverseCreati
 	return universe, nil
 }
 
-func (u *universeUseCase) Get(ctx context.Context, id uuid.UUID) (models.Universe, error) {
+func (u *UniverseUseCase) Get(ctx context.Context, id uuid.UUID) (models.Universe, error) {
 	return u.repo.Get(ctx, id)
 }
 
-func (u *universeUseCase) List(ctx context.Context) ([]models.Universe, error) {
+func (u *UniverseUseCase) List(ctx context.Context) ([]models.Universe, error) {
 	return u.repo.List(ctx)
 }
 
-func (u *universeUseCase) Delete(ctx context.Context, id uuid.UUID) error {
+func (u *UniverseUseCase) Delete(ctx context.Context, id uuid.UUID) error {
+	// TODO: Should delete all players and planets
 	err := u.repo.Delete(ctx, id)
 	if err != nil {
 		return err

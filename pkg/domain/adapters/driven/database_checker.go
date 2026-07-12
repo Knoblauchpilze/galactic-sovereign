@@ -4,19 +4,18 @@ import (
 	"context"
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
-	drivenports "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driven"
 )
 
-type databaseChecker struct {
+type DatabaseChecker struct {
 	conn db.Connection
 }
 
-func NewDatabaseChecker(conn db.Connection) drivenports.ForCheckingDatabaseConnection {
-	return &databaseChecker{
+func NewDatabaseChecker(conn db.Connection) *DatabaseChecker {
+	return &DatabaseChecker{
 		conn: conn,
 	}
 }
 
-func (d *databaseChecker) Ping(ctx context.Context) error {
+func (d *DatabaseChecker) Ping(ctx context.Context) error {
 	return d.conn.Ping(ctx)
 }

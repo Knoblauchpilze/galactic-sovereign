@@ -7,12 +7,11 @@ import (
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
 	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
 	drivenports "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driven"
-	drivingports "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driving"
 	domainservices "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/services"
 	"github.com/google/uuid"
 )
 
-type planetUseCase struct {
+type PlanetUseCase struct {
 	planetRepo    drivenports.ForManagingPlanets
 	planetMutator drivenports.ForMutatingPlanet
 	clock         drivenports.ForFetchingTime
@@ -22,15 +21,15 @@ func NewPlanetUseCase(
 	planetRepo drivenports.ForManagingPlanets,
 	planetMutator drivenports.ForMutatingPlanet,
 	clock drivenports.ForFetchingTime,
-) drivingports.ForManagingPlanet {
-	return &planetUseCase{
+) *PlanetUseCase {
+	return &PlanetUseCase{
 		planetRepo:    planetRepo,
 		planetMutator: planetMutator,
 		clock:         clock,
 	}
 }
 
-func (p *planetUseCase) Get(ctx context.Context, id uuid.UUID) (models.Planet, error) {
+func (p *PlanetUseCase) Get(ctx context.Context, id uuid.UUID) (models.Planet, error) {
 	moment := p.clock.Now(ctx)
 	result, err := p.planetMutator.Mutate(ctx, id, generateUpdateMutator(moment))
 	if err != nil {
@@ -44,7 +43,7 @@ func (p *planetUseCase) Get(ctx context.Context, id uuid.UUID) (models.Planet, e
 	return result.Planet, nil
 }
 
-func (p *planetUseCase) ListForPlayer(ctx context.Context, player uuid.UUID) ([]models.Planet, error) {
+func (p *PlanetUseCase) ListForPlayer(ctx context.Context, player uuid.UUID) ([]models.Planet, error) {
 	moment := p.clock.Now(ctx)
 
 	ids, err := p.planetRepo.ListForPlayer(ctx, player)
@@ -68,7 +67,7 @@ func (p *planetUseCase) ListForPlayer(ctx context.Context, player uuid.UUID) ([]
 	return out, nil
 }
 
-func (p *planetUseCase) Delete(ctx context.Context, id uuid.UUID) error {
+func (p *PlanetUseCase) Delete(ctx context.Context, id uuid.UUID) error {
 	moment := p.clock.Now(ctx)
 
 	result, err := p.planetMutator.Mutate(ctx, id, generateDeleteMutator(moment))

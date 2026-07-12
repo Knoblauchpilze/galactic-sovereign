@@ -4,20 +4,19 @@ import (
 	"context"
 
 	drivenports "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driven"
-	drivingports "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driving"
 )
 
-type checkHealthUseCase struct {
+type CheckHealthUseCase struct {
 	checker drivenports.ForCheckingDatabaseConnection
 }
 
-func NewCheckHealthUseCase(checker drivenports.ForCheckingDatabaseConnection) drivingports.ForCheckingServiceHealth {
-	return &checkHealthUseCase{
+func NewCheckHealthUseCase(checker drivenports.ForCheckingDatabaseConnection) *CheckHealthUseCase {
+	return &CheckHealthUseCase{
 		checker: checker,
 	}
 }
 
-func (c *checkHealthUseCase) Healthy(ctx context.Context) bool {
+func (c *CheckHealthUseCase) Healthy(ctx context.Context) bool {
 	err := c.checker.Ping(ctx)
 	return err == nil
 }

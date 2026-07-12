@@ -7,7 +7,6 @@ import (
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
 	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
-	drivenports "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driven"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -130,7 +129,7 @@ func TestIT_UniverseRepository_Delete(t *testing.T) {
 	})
 }
 
-func newTestUniverseRepository(t *testing.T) (drivenports.ForManagingUniverses, db.Connection) {
+func newTestUniverseRepository(t *testing.T) (*UniverseRepository, db.Connection) {
 	t.Helper()
 	conn := newTestConnection(t)
 	return NewUniverseRepository(conn), conn

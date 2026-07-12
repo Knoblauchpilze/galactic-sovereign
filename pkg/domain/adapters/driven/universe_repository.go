@@ -6,7 +6,6 @@ import (
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driven/mappers"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
-	drivenports "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driven"
 	"github.com/google/uuid"
 )
 
@@ -56,22 +55,22 @@ ORDER BY
 	deleteUniverseQuery = `DELETE FROM universe WHERE id = $1`
 )
 
-type universeRepositoryImpl struct {
+type UniverseRepository struct {
 	conn db.Connection
 }
 
-func NewUniverseRepository(conn db.Connection) drivenports.ForManagingUniverses {
-	return &universeRepositoryImpl{
+func NewUniverseRepository(conn db.Connection) *UniverseRepository {
+	return &UniverseRepository{
 		conn: conn,
 	}
 }
 
-func (r *universeRepositoryImpl) Create(ctx context.Context, universe models.Universe) error {
+func (r *UniverseRepository) Create(ctx context.Context, universe models.Universe) error {
 	_, err := r.conn.Exec(ctx, createUniverseQuery, universe.Id, universe.Name, universe.CreatedAt.UTC())
 	return parseDbError(err)
 }
 
-func (r *universeRepositoryImpl) Get(ctx context.Context, id uuid.UUID) (models.Universe, error) {
+func (r *UniverseRepository) Get(ctx context.Context, id uuid.UUID) (models.Universe, error) {
 	tx, err := r.conn.BeginTx(ctx)
 	if err != nil {
 		return models.Universe{}, err
@@ -86,7 +85,7 @@ func (r *universeRepositoryImpl) Get(ctx context.Context, id uuid.UUID) (models.
 	return loadUniverseDetails(ctx, tx, dbUniverse)
 }
 
-func (r *universeRepositoryImpl) List(ctx context.Context) ([]models.Universe, error) {
+func (r *UniverseRepository) List(ctx context.Context) ([]models.Universe, error) {
 	tx, err := r.conn.BeginTx(ctx)
 	if err != nil {
 		return nil, err
@@ -111,7 +110,7 @@ func (r *universeRepositoryImpl) List(ctx context.Context) ([]models.Universe, e
 	return universes, nil
 }
 
-func (r *universeRepositoryImpl) Delete(ctx context.Context, id uuid.UUID) error {
+func (r *UniverseRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	_, err := r.conn.Exec(ctx, deleteUniverseQuery, id)
 	return err
 }
