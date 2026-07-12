@@ -127,6 +127,14 @@ func TestIT_UniverseRepository_Delete(t *testing.T) {
 		err := repo.Delete(t.Context(), nonExistingId)
 		require.NoError(t, err, "Actual err: %v", err)
 	})
+
+	t.Run("returns error when player still exists in universe", func(t *testing.T) {
+		_, universe := insertTestPlayerInUniverse(t, conn)
+
+		err := repo.Delete(t.Context(), universe.Id)
+
+		assert.ErrorIs(t, err, domainerrors.ErrUniverseIsNotEmpty)
+	})
 }
 
 func newTestUniverseRepository(t *testing.T) (*UniverseRepository, db.Connection) {

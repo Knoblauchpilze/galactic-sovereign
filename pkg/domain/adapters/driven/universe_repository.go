@@ -6,6 +6,7 @@ import (
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driven/mappers"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
+	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
 	"github.com/google/uuid"
 )
 
@@ -112,7 +113,20 @@ func (r *UniverseRepository) List(ctx context.Context) ([]models.Universe, error
 
 func (r *UniverseRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	_, err := r.conn.Exec(ctx, deleteUniverseQuery, id)
-	return err
+
+	if err != nil {
+		outErr := parseDbError(err)
+		// This error is returned when a player is still registered in a universe.
+		// As removing a universe is most likely a destructive operation, no cascade
+		// is implemented and so the error is returned as 'universe not empty'.
+		if outErr == domainerrors.ErrUniverseNotFound {
+			return domainerrors.ErrUniverseIsNotEmpty
+		}
+
+		return outErr
+	}
+
+	return nil
 }
 
 func loadUniverseDetails(ctx context.Context, tx db.Transaction, dbUniverse mappers.DbUniverse) (models.Universe, error) {

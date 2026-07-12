@@ -132,6 +132,7 @@ func listUniverses(c *echo.Context, usecase drivingports.ForManagingUniverse) er
 //	@Param			id	path		string	true	"Universe id (UUID)"	Format(uuid)
 //	@Success		204	{string}	string
 //	@Failure		400	{object}	rest.ResponseEnvelope[string]
+//	@Failure		409	{object}	rest.ResponseEnvelope[string]
 //	@Failure		500	{object}	rest.ResponseEnvelope[string]
 //	@Router			/universes/{id} [delete]
 func deleteUniverse(c *echo.Context, usecase drivingports.ForManagingUniverse) error {
@@ -143,6 +144,10 @@ func deleteUniverse(c *echo.Context, usecase drivingports.ForManagingUniverse) e
 
 	err = usecase.Delete(c.Request().Context(), id)
 	if err != nil {
+		if err == domainerrors.ErrUniverseIsNotEmpty {
+			return c.JSON(http.StatusConflict, "universe is not empty")
+		}
+
 		c.Logger().Error("Failed to delete universe", slog.Any("error", err))
 		return c.JSON(http.StatusInternalServerError, "failed to delete universe")
 	}

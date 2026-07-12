@@ -23,8 +23,19 @@ func parseDbError(err error) error {
 
 func parseFullDbError(err *db.DatabaseError) error {
 	switch err.Code {
+	case db.ErrForeignKeyValidation:
+		return parseForeignKeyConstraintViolation(err)
 	case db.ErrUniqueConstraintViolation:
 		return parseUniqueConstraintViolation(err)
+	default:
+		return err
+	}
+}
+
+func parseForeignKeyConstraintViolation(err *db.DatabaseError) error {
+	switch err.Constraint {
+	case "player_universe_fkey":
+		return domainerrors.ErrUniverseNotFound
 	default:
 		return err
 	}

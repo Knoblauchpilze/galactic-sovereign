@@ -414,6 +414,23 @@ func TestUnit_Universes_DeleteUniverse(t *testing.T) {
 		assert.Equal(t, http.StatusNoContent, rw.Code)
 	})
 
+	t.Run("returns 409 when universe is not empty", func(t *testing.T) {
+		req := generateTestRequest(t, http.MethodDelete)
+		ctx, rw := generateTestContextFromRequest(t, req, addIdPathParam)
+
+		mockUsecase.EXPECT().
+			Delete(gomock.Any(), gomock.Eq(sampleUuid)).
+			Times(1).
+			Return(domainerrors.ErrUniverseIsNotEmpty)
+
+		err := deleteUniverse(ctx, mockUsecase)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.Equal(t, http.StatusConflict, rw.Code)
+		actual := decodeResponseBody[string](t, rw)
+		assert.Equal(t, "universe is not empty", actual)
+	})
+
 	t.Run("returns 500 when use case fails", func(t *testing.T) {
 		req := generateTestRequest(t, http.MethodDelete)
 		ctx, rw := generateTestContextFromRequest(t, req, addIdPathParam)

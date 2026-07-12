@@ -21,6 +21,7 @@ const (
 	planetDeletionFailed       errors.ErrorCode = 618
 	resourceCreationFailed     errors.ErrorCode = 619
 	homeworldCannotBeDeleted   errors.ErrorCode = 620
+	universeIsNotEmpty         errors.ErrorCode = 621
 )
 
 var (
@@ -41,4 +42,5 @@ var (
 	ErrPlanetDeletionFailed       = errors.FromCode(planetDeletionFailed)
 	ErrResourceCreationFailed     = errors.FromCode(resourceCreationFailed)
 	ErrHomeworldCannotBeDeleted   = errors.FromCode(homeworldCannotBeDeleted)
+	ErrUniverseIsNotEmpty         = errors.FromCode(universeIsNotEmpty)
 )
