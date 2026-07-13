@@ -47,16 +47,13 @@ func registerPlayersRoutes(conn db.Connection, s server.Server, log *slog.Logger
 }
 
 func registerPlanetsRoutes(conn db.Connection, s server.Server, log *slog.Logger) {
-	playerRepo := drivenadapters.NewPlayerRepository(conn)
-	universeRepo := drivenadapters.NewUniverseRepository(conn)
 	planetRepo := drivenadapters.NewPlanetRepository(conn)
 	planetMutator := drivenadapters.NewPlanetMutator(conn)
 	clock := drivenadapters.NewTimeAdapter()
 
-	createUsecase := usecases.NewCreatePlanetUseCase(playerRepo, universeRepo, planetRepo)
 	usecase := usecases.NewPlanetUseCase(planetRepo, planetMutator, clock)
 
-	for _, route := range drivingadapters.PlanetEndpoints(createUsecase, usecase) {
+	for _, route := range drivingadapters.PlanetEndpoints(usecase) {
 		if err := s.AddRoute(route); err != nil {
 			log.Error("Failed to register route", slog.String("route", route.Path()), slog.Any("error", err))
 		}

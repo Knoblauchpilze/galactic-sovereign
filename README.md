@@ -209,11 +209,9 @@ This creates `api/swagger.yaml`.
 
 Scripts are provided to make easy to test common scenarios of the game. They live under [scripts/game](scripts/game). Those scripts allow to create players and building actions in a semi-automated way. To ensure that the scripts are working properly, it is recommended to first run once the make target `setup` to create the `sandbox` folder (or create it manually).
 
-The [create-player.sh](scripts/game/create-player.sh) script allows to create a player in the Oberon universe with a generated name. When the creation is successful, the data is saved in a shared folder (`sandbox`) in a file named `player.json`. This folder is added to the ignore list for git and allows to persist local data so that subsequent scripts can use it.
+The [create-player.sh](scripts/game/create-player.sh) script allows to create a player in the Oberon universe with a generated name. When the creation is successful, the data is saved in a shared folder (`sandbox`) in a file named `player.json`. This folder is added to the ignore list for git and allows to persist local data so that subsequent scripts can use it. Additionally, the script also persist information about the homeworld of the player in a dedicated file named `planet.json`.
 
 The [create-building-action.sh](scripts/game/create-building-action.sh) script allows to create a building action for a planet. The action is hardcoded for the metal mine and the player/planet can either be provided as inputs to the script or derived from the data available in the `sandbox`. The script persists a `building_action.json` file to the sandbox for subsequent use.
-
-The [create-planet.sh](scripts/game/create-planet.sh) script allows to create a planet for a player. The player is expected to either be provided as an input to the script or is derived from the data availablei n the `sandbox`. The script persists a `planet.json` file to the sandbox for subsequent use.
 
 A typical use case is visible below:
 
@@ -226,7 +224,4 @@ the-pc:/galactic-sovereign$ ./scripts/game/create-building-action.sh
 Using player and planet from file 0dcbf740-96d0-4b73-8350-0ba90b569202 (planet: 7ccda1c0-3f48-477d-908f-dd95b7594c07)
 Created building action 0dcbf740-96d0-4b73-8350-0ba90b569202!
 Completion time: 2026-07-04T08:56:48.640723Z
-the-pc:/galactic-sovereign$ ./scripts/game/create-planet.sh
-Using player from file 0dcbf740-96d0-4b73-8350-0ba90b569202!
-Created planet 10651ef1-fd91-4114-941f-167cd67f2a24!
 ```

@@ -4,27 +4,18 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/rest"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driving/mappers"
 	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
-	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/request"
 	drivingports "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driving"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v5"
 )
 
-func PlanetEndpoints(
-	createUsecase drivingports.ForCreatingPlanet,
-	usecase drivingports.ForManagingPlanet,
-) rest.Routes {
+func PlanetEndpoints(usecase drivingports.ForManagingPlanet) rest.Routes {
 	var out rest.Routes
 
-	handler := generateHandler(createPlanet, createUsecase)
-	post := rest.NewRoute(http.MethodPost, "/players/:id/planets", handler)
-	out = append(out, post)
-
-	handler = generateHandler(getPlanet, usecase)
+	handler := generateHandler(getPlanet, usecase)
 	get := rest.NewRoute(http.MethodGet, "/planets/:id", handler)
 	out = append(out, get)
 
@@ -37,42 +28,6 @@ func PlanetEndpoints(
 	out = append(out, delete)
 
 	return out
-}
-
-// createPlanet godoc
-//
-//	@Summary		Create planet
-//	@Description	Creates a planet for the player
-//	@Tags			players
-//	@Produce		json
-//	@Success		201		{object}	rest.ResponseEnvelope[dtos.PlanetDtoResponse]
-//	@Failure		400		{object}	rest.ResponseEnvelope[string]
-//	@Failure		500		{object}	rest.ResponseEnvelope[string]
-//	@Router			/players/{id}/planets [post]
-func createPlanet(c *echo.Context, usecase drivingports.ForCreatingPlanet) error {
-	maybeId := c.Param("id")
-	playerId, err := uuid.Parse(maybeId)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, "invalid id syntax")
-	}
-
-	request := request.PlanetCreationRequest{Player: playerId}
-	planet, err := usecase.Create(c.Request().Context(), request)
-	if err != nil {
-		if dbErr, ok := db.AsDatabaseError(err); ok && dbErr.Code == db.ErrUniqueConstraintViolation {
-			return c.JSON(http.StatusConflict, "name already used")
-		}
-
-		if err == domainerrors.ErrPlayerNotFound {
-			return c.JSON(http.StatusBadRequest, "no such player")
-		}
-
-		c.Logger().Error("Failed to create planet", slog.Any("error", err))
-		return c.JSON(http.StatusInternalServerError, "failed to create planet")
-	}
-
-	out := mappers.ToPlanetResponse(planet)
-	return c.JSON(http.StatusCreated, out)
 }
 
 // getPlanet godoc

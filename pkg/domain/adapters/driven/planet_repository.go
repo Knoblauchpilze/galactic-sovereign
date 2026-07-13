@@ -170,21 +170,6 @@ func NewPlanetRepository(conn db.Connection) *PlanetRepository {
 	}
 }
 
-func (r *PlanetRepository) Create(ctx context.Context, planet models.Planet) error {
-	tx, err := r.conn.BeginTx(ctx)
-	if err != nil {
-		return err
-	}
-	defer tx.Close(ctx)
-
-	err = createPlanetWithDetails(ctx, tx, planet)
-	if err != nil {
-		return parseDbError(err)
-	}
-
-	return nil
-}
-
 func (r *PlanetRepository) ListForPlayer(ctx context.Context, player uuid.UUID) ([]uuid.UUID, error) {
 	return db.QueryAll[uuid.UUID](ctx, r.conn, listPlanetForPlayerQuery, player)
 }

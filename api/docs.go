@@ -1288,45 +1288,6 @@ const docTemplate = `{
                 "tags": [
                     "players"
                 ]
-            },
-            "post": {
-                "description": "Creates a planet for the player",
-                "responses": {
-                    "201": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/rest.ResponseEnvelope-dtos_PlanetDtoResponse"
-                                }
-                            }
-                        },
-                        "description": "Created"
-                    },
-                    "400": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/rest.ResponseEnvelope-string"
-                                }
-                            }
-                        },
-                        "description": "Bad Request"
-                    },
-                    "500": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/rest.ResponseEnvelope-string"
-                                }
-                            }
-                        },
-                        "description": "Internal Server Error"
-                    }
-                },
-                "summary": "Create planet",
-                "tags": [
-                    "players"
-                ]
             }
         },
         "/universes": {

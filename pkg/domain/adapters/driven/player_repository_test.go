@@ -67,6 +67,7 @@ func TestIT_PlayerRepository_Create(t *testing.T) {
 		require.NoError(t, err, "Actual err: %v", err)
 		assertPlayerExists(t, conn, player.Id)
 		assertPlanetExists(t, conn, planet.Id)
+		assertPlanetIsHomeworld(t, conn, planet.Id, player.Id)
 
 		actual, err := repo.Get(t.Context(), player.Id)
 		expectedPlayer := player
@@ -272,6 +273,52 @@ func TestIT_PlayerRepository_Delete(t *testing.T) {
 
 		err := repo.Delete(t.Context(), player)
 		require.NoError(t, err, "Actual err: %v", err)
+	})
+}
+
+func TestIT_PlayerRepository_CreationDeletionWorkflow(t *testing.T) {
+	repo, conn := newTestPlayerRepository(t)
+
+	t.Run("creates a player with a homeworld", func(t *testing.T) {
+		universe := insertTestUniverse(t, conn)
+
+		planetId := uuid.New()
+		player := models.Player{
+			Id:        uuid.New(),
+			ApiUser:   uuid.New(),
+			Universe:  universe.Id,
+			Name:      "my-player",
+			Homeworld: planetId,
+			Planets:   []uuid.UUID{planetId},
+		}
+		planet := models.Planet{
+			Id:          planetId,
+			Player:      player.Id,
+			Name:        "homeworld",
+			Homeworld:   true,
+			Resources:   []models.PlanetResource{},
+			Storages:    []models.PlanetResourceStorage{},
+			Productions: []models.PlanetResourceProduction{},
+			Buildings:   []models.PlanetBuilding{},
+		}
+
+		func() {
+			err := repo.Create(t.Context(), player, planet)
+			require.NoError(t, err, "Actual err: %v", err)
+		}()
+
+		func() {
+			planetFromDb := loadPlanetFromDb(t, conn, planet.Id)
+			assert.Equal(t, planet, planetFromDb)
+		}()
+
+		func() {
+			err := repo.Delete(t.Context(), player)
+			require.NoError(t, err, "Actual err: %v", err)
+		}()
+
+		assertPlayerDoesNotExist(t, conn, player.Id)
+		assertPlanetDoesNotExist(t, conn, planet.Id)
 	})
 }
 

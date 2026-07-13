@@ -71,7 +71,7 @@ func TestIT_Server_PlayerBuildingActionLifecycle(t *testing.T) {
 	assert.Nil(t, homeworld.BuildingAction)
 }
 
-func TestIT_Server_PlayerDeletionRemovesPlanets(t *testing.T) {
+func TestIT_Server_PlayerDeletionRemovesPlanetsAndAction(t *testing.T) {
 	dbContainer := integrationdb.NewDatabaseSharedContainer(t)
 	conn := dbContainer.NewTestConnection(t)
 	conf := newTestServerConfig()
@@ -89,28 +89,27 @@ func TestIT_Server_PlayerDeletionRemovesPlanets(t *testing.T) {
 		t, urlFor(conf, "players"), playerReq,
 	)
 
-	// Create a second planet
-	planet := doPost[dtos.PlanetDtoResponse](
-		t, urlFor(conf, "players", player.Id.String(), "planets"), nil,
+	// Create a building action
+	actionReq := dtos.BuildingActionDtoRequest{Building: metalMineId}
+	action := doPost[dtos.BuildingActionDtoResponse](
+		t, urlFor(conf, "planets", player.Homeworld.String(), "actions"), actionReq,
 	)
 
 	homeworld := doGet[dtos.PlanetDtoResponse](
 		t, urlFor(conf, "planets", player.Homeworld.String()),
 	)
-	secondPlanet := doGet[dtos.PlanetDtoResponse](
-		t, urlFor(conf, "planets", planet.Id.String()),
-	)
 
 	assert.Equal(t, player.Id, homeworld.Player)
-	assert.Equal(t, player.Id, secondPlanet.Player)
 	assert.True(t, homeworld.Homeworld)
-	assert.False(t, secondPlanet.Homeworld)
+	require.NotNil(t, homeworld.BuildingAction)
+	assert.Equal(t, action.Id, homeworld.BuildingAction.Id)
+	assert.Equal(t, metalMineId, homeworld.BuildingAction.Building)
+	assert.Equal(t, 1, homeworld.BuildingAction.DesiredLevel)
 
 	// Delete the player
 	doDelete(t, urlFor(conf, "players", player.Id.String()))
 
 	assertGetStatus(t, urlFor(conf, "planets", homeworld.Id.String()), http.StatusNotFound)
-	assertGetStatus(t, urlFor(conf, "planets", secondPlanet.Id.String()), http.StatusNotFound)
 	assertGetStatus(t, urlFor(conf, "players", player.Id.String()), http.StatusNotFound)
 }
 
