@@ -2,6 +2,7 @@ package drivenadapters
 
 import (
 	"fmt"
+	"math/rand"
 	"testing"
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
@@ -17,8 +18,13 @@ func TestIT_UniverseRepository_Create(t *testing.T) {
 
 	t.Run("creates a universe", func(t *testing.T) {
 		universe := models.Universe{
-			Id:        uuid.New(),
-			Name:      fmt.Sprintf("universe-%s", uuid.NewString()),
+			Id:   uuid.New(),
+			Name: fmt.Sprintf("universe-%s", uuid.NewString()),
+			Topology: models.UniverseTopology{
+				Galaxies:     12,
+				SolarSystems: 487,
+				Orbits:       14,
+			},
 			CreatedAt: someTime,
 		}
 
@@ -147,8 +153,13 @@ func insertTestUniverse(t *testing.T, conn db.Connection) models.Universe {
 	t.Helper()
 
 	universe := models.Universe{
-		Id:        uuid.New(),
-		Name:      fmt.Sprintf("my-universe-%s", uuid.NewString()),
+		Id:   uuid.New(),
+		Name: fmt.Sprintf("my-universe-%s", uuid.NewString()),
+		Topology: models.UniverseTopology{
+			Galaxies:     rand.Intn(15),
+			SolarSystems: rand.Intn(800),
+			Orbits:       rand.Intn(15),
+		},
 		CreatedAt: someTime,
 	}
 
@@ -159,6 +170,18 @@ func insertTestUniverse(t *testing.T, conn db.Connection) models.Universe {
 		universe.Id,
 		universe.Name,
 		universe.CreatedAt,
+	)
+	require.NoError(t, err, "Actual err: %v", err)
+
+	sqlQuery = `INSERT INTO universe_topology (universe, galaxies, solar_systems, orbits)
+		VALUES ($1, $2, $3, $4)`
+	_, err = conn.Exec(
+		t.Context(),
+		sqlQuery,
+		universe.Id,
+		universe.Topology.Galaxies,
+		universe.Topology.SolarSystems,
+		universe.Topology.Orbits,
 	)
 	require.NoError(t, err, "Actual err: %v", err)
 

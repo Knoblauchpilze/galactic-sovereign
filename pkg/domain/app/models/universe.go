@@ -7,8 +7,9 @@ import (
 )
 
 type Universe struct {
-	Id   uuid.UUID
-	Name string
+	Id       uuid.UUID
+	Name     string
+	Topology UniverseTopology
 
 	CreatedAt time.Time
 
@@ -16,6 +17,12 @@ type Universe struct {
 
 	Resources []Resource
 	Buildings []Building
+}
+
+type UniverseTopology struct {
+	Galaxies     int
+	SolarSystems int
+	Orbits       int
 }
 
 func (u Universe) CreatePlanet(player uuid.UUID, homeworld bool) Planet {

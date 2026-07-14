@@ -18,14 +18,15 @@ INSERT INTO
 
 	getUniverseQuery = `
 SELECT
-	id,
-	name,
-	created_at,
-	version
+	u.id,
+	u.name,
+	u.created_at,
+	u.version
 FROM
-	universe
+	universe AS u
+	LEFT JOIN universe_topology AS ut ON ut.universe = u.id
 WHERE
-	id = $1`
+	u.id = $1`
 
 	listResourceQuery = `
 SELECT
@@ -43,15 +44,16 @@ ORDER BY
 
 	listUniverseQuery = `
 SELECT
-	id,
-	name,
-	created_at,
-	version
+	u.id,
+	u.name,
+	u.created_at,
+	u.version
 FROM
-	universe
+	universe AS u
+	LEFT JOIN universe_topology AS ut ON ut.universe = u.id
 ORDER BY
-	created_at,
-	name`
+	u.created_at,
+	u.name`
 
 	deleteUniverseQuery = `DELETE FROM universe WHERE id = $1`
 )
