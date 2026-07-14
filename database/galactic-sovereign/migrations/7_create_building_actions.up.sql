@@ -1,8 +1,8 @@
 
 CREATE TABLE building_action(
-  id uuid NOT NULL,
-  planet uuid NOT NULL,
-  building uuid NOT NULL,
+  id UUID NOT NULL,
+  planet UUID NOT NULL,
+  building UUID NOT NULL,
   desired_level INTEGER NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
   completed_at TIMESTAMP WITH TIME ZONE NOT NULL,
@@ -15,8 +15,8 @@ CREATE TABLE building_action(
 CREATE INDEX building_action_planet_index ON building_action(planet);
 
 CREATE TABLE building_action_cost(
-  action uuid NOT NULL,
-  resource uuid NOT NULL,
+  action UUID NOT NULL,
+  resource UUID NOT NULL,
   amount INTEGER NOT NULL,
   FOREIGN KEY (action) REFERENCES building_action(id),
   FOREIGN KEY (resource) REFERENCES resource(id),
@@ -24,8 +24,8 @@ CREATE TABLE building_action_cost(
 );
 
 CREATE TABLE building_action_resource_production(
-  action uuid NOT NULL,
-  resource uuid NOT NULL,
+  action UUID NOT NULL,
+  resource UUID NOT NULL,
   production INTEGER NOT NULL,
   FOREIGN KEY (action) REFERENCES building_action(id),
   FOREIGN KEY (resource) REFERENCES resource(id),
@@ -33,8 +33,8 @@ CREATE TABLE building_action_resource_production(
 );
 
 CREATE TABLE building_action_resource_storage(
-  action uuid NOT NULL,
-  resource uuid NOT NULL,
+  action UUID NOT NULL,
+  resource UUID NOT NULL,
   storage INTEGER NOT NULL,
   FOREIGN KEY (action) REFERENCES building_action(id),
   FOREIGN KEY (resource) REFERENCES resource(id),

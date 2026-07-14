@@ -1,7 +1,7 @@
 
 CREATE TABLE planet(
-  id uuid NOT NULL,
-  player uuid NOT NULL,
+  id UUID NOT NULL,
+  player UUID NOT NULL,
   name text NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
   updated_at TIMESTAMP WITH TIME ZONE NOT NULL,
@@ -11,8 +11,8 @@ CREATE TABLE planet(
 );
 
 CREATE TABLE homeworld(
-  player uuid NOT NULL,
-  planet uuid NOT NULL,
+  player UUID NOT NULL,
+  planet UUID NOT NULL,
   PRIMARY KEY (player, planet),
   UNIQUE (player),
   FOREIGN KEY (player) REFERENCES player(id),
@@ -20,8 +20,8 @@ CREATE TABLE homeworld(
 );
 
 CREATE TABLE planet_resource(
-  planet uuid NOT NULL,
-  resource uuid NOT NULL,
+  planet UUID NOT NULL,
+  resource UUID NOT NULL,
   amount NUMERIC(15, 5) NOT NULL,
   FOREIGN KEY (planet) REFERENCES planet(id),
   FOREIGN KEY (resource) REFERENCES resource(id),
@@ -31,9 +31,9 @@ CREATE TABLE planet_resource(
 CREATE INDEX planet_resource_planet_index ON planet_resource(planet);
 
 CREATE TABLE planet_resource_production(
-  planet uuid NOT NULL,
-  building uuid,
-  resource uuid NOT NULL,
+  planet UUID NOT NULL,
+  building UUID,
+  resource UUID NOT NULL,
   production INTEGER NOT NULL,
   FOREIGN KEY (planet) REFERENCES planet(id),
   FOREIGN KEY (building) REFERENCES building(id),
@@ -45,8 +45,8 @@ CREATE TABLE planet_resource_production(
 CREATE INDEX planet_resource_production_planet_index ON planet_resource_production(planet);
 
 CREATE TABLE planet_resource_storage(
-  planet uuid NOT NULL,
-  resource uuid NOT NULL,
+  planet UUID NOT NULL,
+  resource UUID NOT NULL,
   storage INTEGER NOT NULL,
   FOREIGN KEY (planet) REFERENCES planet(id),
   FOREIGN KEY (resource) REFERENCES resource(id),
@@ -56,8 +56,8 @@ CREATE TABLE planet_resource_storage(
 CREATE INDEX planet_resource_storage_planet_index ON planet_resource_storage(planet);
 
 CREATE TABLE planet_building(
-  planet uuid NOT NULL,
-  building uuid NOT NULL,
+  planet UUID NOT NULL,
+  building UUID NOT NULL,
   level INTEGER NOT NULL,
   FOREIGN KEY (planet) REFERENCES planet(id),
   FOREIGN KEY (building) REFERENCES building(id),

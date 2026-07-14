@@ -1,6 +1,6 @@
 
 CREATE TABLE resource(
-  id uuid NOT NULL,
+  id UUID NOT NULL,
   name text,
   start_amount INTEGER NOT NULL,
   start_production INTEGER NOT NULL,
