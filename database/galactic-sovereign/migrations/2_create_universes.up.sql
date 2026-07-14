@@ -9,6 +9,15 @@ CREATE TABLE universe(
   UNIQUE (name)
 );
 
+CREATE TABLE universe_topology (
+  universe UUID NOT NULL,
+  galaxies INTEGER NOT NULL,
+  solar_systems INTEGER NOT NULL,
+  orbits INTEGER NOT NULL,
+  UNIQUE (universe),
+  FOREIGN KEY (universe) REFERENCES universe(id)
+);
+
 CREATE TRIGGER trigger_universe_updated_at
   BEFORE UPDATE OR INSERT ON universe
   FOR EACH ROW
