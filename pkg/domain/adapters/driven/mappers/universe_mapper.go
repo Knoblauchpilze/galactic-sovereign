@@ -8,17 +8,25 @@ import (
 )
 
 type DbUniverse struct {
-	Id        uuid.UUID
-	Name      string
-	CreatedAt time.Time
-	Version   int
+	Id           uuid.UUID
+	Name         string
+	CreatedAt    time.Time
+	Version      int
+	Galaxies     int
+	SolarSystems int
+	Orbits       int
 }
 
-func (p DbUniverse) ToDomain() models.Universe {
+func (u DbUniverse) ToDomain() models.Universe {
 	return models.Universe{
-		Id:        p.Id,
-		Name:      p.Name,
-		CreatedAt: p.CreatedAt,
-		Version:   p.Version,
+		Id:   u.Id,
+		Name: u.Name,
+		Topology: models.UniverseTopology{
+			Galaxies:     u.Galaxies,
+			SolarSystems: u.SolarSystems,
+			Orbits:       u.Orbits,
+		},
+		CreatedAt: u.CreatedAt,
+		Version:   u.Version,
 	}
 }

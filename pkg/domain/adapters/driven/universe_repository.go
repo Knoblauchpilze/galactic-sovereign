@@ -16,15 +16,23 @@ INSERT INTO
 	universe (id, name, created_at)
 	VALUES ($1, $2, $3)`
 
+	createUniverseTopologyQuery = `
+INSERT INTO
+	universe_topology (universe, galaxies, solar_systems, orbits)
+	VALUES ($1, $2, $3, $4)`
+
 	getUniverseQuery = `
 SELECT
 	u.id,
 	u.name,
 	u.created_at,
-	u.version
+	u.version,
+	ut.galaxies,
+	ut.solar_systems,
+	ut.orbits
 FROM
 	universe AS u
-	LEFT JOIN universe_topology AS ut ON ut.universe = u.id
+	INNER JOIN universe_topology AS ut ON ut.universe = u.id
 WHERE
 	u.id = $1`
 
@@ -47,15 +55,19 @@ SELECT
 	u.id,
 	u.name,
 	u.created_at,
-	u.version
+	u.version,
+	ut.galaxies,
+	ut.solar_systems,
+	ut.orbits
 FROM
 	universe AS u
-	LEFT JOIN universe_topology AS ut ON ut.universe = u.id
+	INNER JOIN universe_topology AS ut ON ut.universe = u.id
 ORDER BY
 	u.created_at,
 	u.name`
 
-	deleteUniverseQuery = `DELETE FROM universe WHERE id = $1`
+	deleteUniverseTopologyQuery = `DELETE FROM universe_topology WHERE universe = $1`
+	deleteUniverseQuery         = `DELETE FROM universe WHERE id = $1`
 )
 
 type UniverseRepository struct {
@@ -69,8 +81,30 @@ func NewUniverseRepository(conn db.Connection) *UniverseRepository {
 }
 
 func (r *UniverseRepository) Create(ctx context.Context, universe models.Universe) error {
-	_, err := r.conn.Exec(ctx, createUniverseQuery, universe.Id, universe.Name, universe.CreatedAt.UTC())
-	return parseDbError(err)
+	tx, err := r.conn.BeginTx(ctx)
+	if err != nil {
+		return err
+	}
+	defer tx.Close(ctx)
+
+	_, err = r.conn.Exec(ctx, createUniverseQuery, universe.Id, universe.Name, universe.CreatedAt.UTC())
+	if err != nil {
+		return parseDbError(err)
+	}
+
+	_, err = r.conn.Exec(
+		ctx,
+		createUniverseTopologyQuery,
+		universe.Id,
+		universe.Topology.Galaxies,
+		universe.Topology.SolarSystems,
+		universe.Topology.Orbits,
+	)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (r *UniverseRepository) Get(ctx context.Context, id uuid.UUID) (models.Universe, error) {
@@ -114,8 +148,18 @@ func (r *UniverseRepository) List(ctx context.Context) ([]models.Universe, error
 }
 
 func (r *UniverseRepository) Delete(ctx context.Context, id uuid.UUID) error {
-	_, err := r.conn.Exec(ctx, deleteUniverseQuery, id)
+	tx, err := r.conn.BeginTx(ctx)
+	if err != nil {
+		return err
+	}
+	defer tx.Close(ctx)
 
+	_, err = tx.Exec(ctx, deleteUniverseTopologyQuery, id)
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.Exec(ctx, deleteUniverseQuery, id)
 	if err != nil {
 		outErr := parseDbError(err)
 		// This error is returned when a player is still registered in a universe.
