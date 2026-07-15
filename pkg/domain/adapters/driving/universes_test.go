@@ -38,6 +38,8 @@ func TestUnit_Universes_CreateUniverse(t *testing.T) {
 		req := generateTestRequestWithJsonBody(t, http.MethodPost, dto)
 		ctx, rw := generateTestContextFromRequest(t, req)
 
+		buildingId := uuid.New()
+
 		expectedRequest := request.UniverseCreationRequest{Name: dto.Name}
 		mockUsecase.EXPECT().
 			Create(gomock.Any(), gomock.Eq(expectedRequest)).
@@ -55,6 +57,13 @@ func TestUnit_Universes_CreateUniverse(t *testing.T) {
 						StartProduction: 47,
 						StartStorage:    1055,
 						CreatedAt:       someOtherTime,
+					},
+				},
+				Buildings: []models.Building{
+					{
+						Id:        buildingId,
+						Name:      "building",
+						CreatedAt: someTime,
 					},
 				},
 			}, nil)
@@ -76,6 +85,13 @@ func TestUnit_Universes_CreateUniverse(t *testing.T) {
 					StartProduction: 47,
 					StartStorage:    1055,
 					CreatedAt:       someOtherTime,
+				},
+			},
+			Buildings: []dtos.BuildingDtoResponse{
+				{
+					Id:        buildingId,
+					Name:      "building",
+					CreatedAt: someTime,
 				},
 			},
 		}
@@ -295,12 +311,14 @@ func TestUnit_Universes_ListUniverses(t *testing.T) {
 				Name:      "universe-1",
 				CreatedAt: someTime,
 				Resources: []models.Resource{},
+				Buildings: []models.Building{},
 			},
 			{
 				Id:        uuid.New(),
 				Name:      "universe-2",
 				CreatedAt: someOtherTime,
 				Resources: []models.Resource{},
+				Buildings: []models.Building{},
 			},
 		}
 		mockUsecase.EXPECT().
@@ -319,12 +337,14 @@ func TestUnit_Universes_ListUniverses(t *testing.T) {
 				Name:      universes[0].Name,
 				CreatedAt: universes[0].CreatedAt,
 				Resources: []dtos.ResourceDtoResponse{},
+				Buildings: []dtos.BuildingDtoResponse{},
 			},
 			{
 				Id:        universes[1].Id,
 				Name:      universes[1].Name,
 				CreatedAt: universes[1].CreatedAt,
 				Resources: []dtos.ResourceDtoResponse{},
+				Buildings: []dtos.BuildingDtoResponse{},
 			},
 		}
 		assert.Equal(t, expected, actual)

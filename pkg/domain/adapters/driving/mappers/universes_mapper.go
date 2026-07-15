@@ -75,10 +75,6 @@ func toBuildingResponse(
 func toBuildingsResponse(
 	buildings []models.Building,
 ) []dtos.BuildingDtoResponse {
-	if buildings == nil {
-		return nil
-	}
-
 	out := make([]dtos.BuildingDtoResponse, 0, len(buildings))
 
 	for _, b := range buildings {
