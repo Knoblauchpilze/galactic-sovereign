@@ -83,7 +83,7 @@ DELETE FROM
 	building_action_resource_production AS barpd
 USING
 	building_action_resource_production AS barp
-	LEFT JOIN building_action AS ba ON ba.id = barp.action
+	INNER JOIN building_action AS ba ON ba.id = barp.action
 WHERE
 	barpd.action = barp.action
 	AND ba.planet = $1`
@@ -92,7 +92,7 @@ DELETE FROM
 	building_action_resource_storage AS barsd
 USING
 	building_action_resource_storage AS bars
-	LEFT JOIN building_action AS ba ON ba.id = bars.action
+	INNER JOIN building_action AS ba ON ba.id = bars.action
 WHERE
 	barsd.action = bars.action
 	AND ba.planet = $1`
@@ -102,7 +102,7 @@ DELETE FROM
 	building_action_cost AS bacd
 USING
 	building_action_cost AS bac
-	LEFT JOIN building_action AS ba ON ba.id = bac.action
+	INNER JOIN building_action AS ba ON ba.id = bac.action
 WHERE
 	bacd.action = bac.action
 	AND ba.planet = $1`

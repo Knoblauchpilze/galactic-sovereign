@@ -26,7 +26,7 @@ SELECT
 	h.planet AS homeworld
 FROM
 	player AS p
-	LEFT JOIN homeworld AS h ON h.player = p.id
+	INNER JOIN homeworld AS h ON h.player = p.id
 WHERE
 	p.id = $1`
 
@@ -52,7 +52,7 @@ SELECT
 	h.planet AS homeworld
 FROM
 	player AS p
-	LEFT JOIN homeworld AS h ON h.player = p.id
+	INNER JOIN homeworld AS h ON h.player = p.id
 WHERE
 	p.api_user = $1
 ORDER BY
@@ -83,7 +83,15 @@ func (r *PlayerRepository) Create(
 	}
 	defer tx.Close(ctx)
 
-	_, err = r.conn.Exec(ctx, createPlayerQuery, player.Id, player.ApiUser, player.Universe, player.Name, player.CreatedAt)
+	_, err = r.conn.Exec(
+		ctx,
+		createPlayerQuery,
+		player.Id,
+		player.ApiUser,
+		player.Universe,
+		player.Name,
+		player.CreatedAt.UTC(),
+	)
 	if err != nil {
 		return parseDbError(err)
 	}

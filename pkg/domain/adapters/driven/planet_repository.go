@@ -53,7 +53,7 @@ SELECT
 	ba.id AS building_action
 FROM
 	planet AS p
-	LEFT JOIN homeworld AS h ON h.planet = p.id
+	INNER JOIN homeworld AS h ON h.planet = p.id
 	LEFT JOIN building_action AS ba ON ba.planet = p.id
 WHERE
 	p.id = $1`
@@ -191,8 +191,8 @@ func createPlanetWithDetails(ctx context.Context, tx db.Transaction, planet mode
 		planet.Id,
 		planet.Player,
 		planet.Name,
-		planet.CreatedAt,
-		planet.UpdatedAt,
+		planet.CreatedAt.UTC(),
+		planet.UpdatedAt.UTC(),
 		planet.Version,
 	)
 	if err != nil {
