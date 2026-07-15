@@ -53,7 +53,7 @@ SELECT
 	ba.id AS building_action
 FROM
 	planet AS p
-	INNER JOIN homeworld AS h ON h.planet = p.id
+	LEFT JOIN homeworld AS h ON h.planet = p.id
 	LEFT JOIN building_action AS ba ON ba.planet = p.id
 WHERE
 	p.id = $1`
