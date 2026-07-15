@@ -6,6 +6,8 @@ import (
 	"github.com/google/uuid"
 )
 
+// TODO: Should include the topology
+
 type UniverseDtoRequest struct {
 	Name string `json:"name" example:"aquarius" binding:"required"`
 }

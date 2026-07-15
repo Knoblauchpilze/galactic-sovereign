@@ -15,6 +15,7 @@ INSERT INTO
 	player (id, api_user, universe, name, created_at)
 	VALUES ($1, $2, $3, $4, $5)`
 
+	// TODO: Should be an INNER JOIN as there is always a homeworld
 	getPlayerQuery = `
 SELECT
 	p.id,
@@ -26,7 +27,7 @@ SELECT
 	h.planet AS homeworld
 FROM
 	player AS p
-	INNER JOIN homeworld AS h ON h.player = p.id
+	LEFT JOIN homeworld AS h ON h.player = p.id
 WHERE
 	p.id = $1`
 
@@ -41,6 +42,7 @@ ORDER BY
 	created_at,
 	name`
 
+	// TODO: Should be an INNER JOIN as there is always a homeworld
 	listPlayerForApiUserQuery = `
 SELECT
 	p.id,
@@ -52,7 +54,7 @@ SELECT
 	h.planet AS homeworld
 FROM
 	player AS p
-	INNER JOIN homeworld AS h ON h.player = p.id
+	LEFT JOIN homeworld AS h ON h.player = p.id
 WHERE
 	p.api_user = $1
 ORDER BY
