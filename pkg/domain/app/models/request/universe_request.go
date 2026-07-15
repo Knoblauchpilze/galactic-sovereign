@@ -8,7 +8,10 @@ import (
 )
 
 type UniverseCreationRequest struct {
-	Name string
+	Name         string
+	Galaxies     int
+	SolarSystems int
+	Orbits       int
 }
 
 func FromUniverseCreationRequest(universe UniverseCreationRequest) models.Universe {
@@ -16,6 +19,11 @@ func FromUniverseCreationRequest(universe UniverseCreationRequest) models.Univer
 	return models.Universe{
 		Id:   uuid.New(),
 		Name: universe.Name,
+		Topology: models.UniverseTopology{
+			Galaxies:     universe.Galaxies,
+			SolarSystems: universe.SolarSystems,
+			Orbits:       universe.Orbits,
+		},
 
 		CreatedAt: t,
 
