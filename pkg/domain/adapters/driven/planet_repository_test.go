@@ -412,6 +412,10 @@ func addPlanetBuildingAction(t *testing.T, conn db.Connection, p *models.Planet)
 	p.BuildingAction = &action
 }
 
+// insertTestPlanetForPlayer creates a test planet. The returned planet belongs
+// to a fresh player registered in a fresh universe.
+// The player also has a homeworld: this is a necessary precondition to make the
+// tests realistic.
 func insertTestPlanetForPlayer(
 	t *testing.T,
 	conn db.Connection,
@@ -421,9 +425,16 @@ func insertTestPlanetForPlayer(
 
 	player, universe := insertTestPlayerInUniverse(t, conn)
 	planet := insertTestPlanet(t, conn, player.Id, modifiers...)
+
+	player.Planets = append(player.Planets, planet.Id)
+
 	return planet, player, universe
 }
 
+// insertTestHomeworldPlanetForPlayer creates a test homeworld. The returned planet
+// belongs to a fresh player registered in a fresh universe. It is the homeworld of
+// the player and the player has no other planet.
+// The modifiers are applied to the homeworld.
 func insertTestHomeworldPlanetForPlayer(
 	t *testing.T,
 	conn db.Connection,
@@ -432,8 +443,12 @@ func insertTestHomeworldPlanetForPlayer(
 	t.Helper()
 
 	player, universe := insertTestPlayerInUniverse(t, conn)
-	modifiers = append(modifiers, addPlanetHomeworld)
-	planet := insertTestPlanet(t, conn, player.Id, modifiers...)
+	planet := loadPlanetFromDb(t, conn, player.Homeworld)
+
+	for _, modifier := range modifiers {
+		modifier(t, conn, &planet)
+	}
+
 	return planet, player, universe
 }
 

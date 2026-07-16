@@ -145,12 +145,13 @@ func TestIT_PlayerRepository_Create(t *testing.T) {
 func TestIT_PlayerRepository_Get(t *testing.T) {
 	repo, conn := newTestPlayerRepository(t)
 
-	t.Run("gets a player", func(t *testing.T) {
+	t.Run("gets a player with a homeworld", func(t *testing.T) {
 		player, _ := insertTestPlayerInUniverse(t, conn)
 
 		actual, err := repo.Get(t.Context(), player.Id)
 		require.NoError(t, err, "Actual err: %v", err)
 
+		require.Len(t, player.Planets, 1)
 		assert.Equal(t, player, actual)
 	})
 
@@ -161,26 +162,6 @@ func TestIT_PlayerRepository_Get(t *testing.T) {
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Equal(t, player, actual)
-	})
-
-	t.Run("gets a player with a homeworld", func(t *testing.T) {
-		player, _ := insertTestPlayerInUniverse(t, conn)
-		planet := insertTestPlanet(t, conn, player.Id, addPlanetHomeworld)
-
-		actual, err := repo.Get(t.Context(), player.Id)
-		require.NoError(t, err, "Actual err: %v", err)
-
-		expected := models.Player{
-			Id:        player.Id,
-			ApiUser:   player.ApiUser,
-			Universe:  player.Universe,
-			Name:      player.Name,
-			CreatedAt: player.CreatedAt,
-			Version:   player.Version,
-			Homeworld: planet.Id,
-			Planets:   []uuid.UUID{planet.Id},
-		}
-		assert.Equal(t, expected, actual)
 	})
 
 	t.Run("returns error when player does not exist", func(t *testing.T) {
@@ -194,29 +175,15 @@ func TestIT_PlayerRepository_Get(t *testing.T) {
 func TestIT_PlayerRepository_ListForApiUser(t *testing.T) {
 	repo, conn := newTestPlayerRepository(t)
 
-	t.Run("lists player for an API user", func(t *testing.T) {
+	t.Run("lists player with a homeworld for an API user", func(t *testing.T) {
 		p1, universe := insertTestPlayerInUniverse(t, conn)
 		insertTestPlayer(t, conn, universe.Id)
 
 		actual, err := repo.ListForApiUser(t.Context(), p1.ApiUser)
 		require.NoError(t, err, "Actual err: %v", err)
 
+		require.Len(t, p1.Planets, 1)
 		assert.Equal(t, []models.Player{p1}, actual)
-	})
-
-	t.Run("lists player with a homeworld", func(t *testing.T) {
-		p1, universe := insertTestPlayerInUniverse(t, conn)
-		planet := insertTestPlanet(t, conn, p1.Id, addPlanetHomeworld)
-
-		insertTestPlayer(t, conn, universe.Id)
-
-		actual, err := repo.ListForApiUser(t.Context(), p1.ApiUser)
-		require.NoError(t, err, "Actual err: %v", err)
-
-		expectedP1 := p1
-		expectedP1.Homeworld = planet.Id
-		expectedP1.Planets = []uuid.UUID{planet.Id}
-		assert.Equal(t, []models.Player{expectedP1}, actual)
 	})
 
 	t.Run("lists player with planets for an API user", func(t *testing.T) {
@@ -243,22 +210,21 @@ func TestIT_PlayerRepository_Delete(t *testing.T) {
 	})
 
 	t.Run("deletes a player with planet", func(t *testing.T) {
-		player, _ := insertTestPlayerInUniverse(t, conn)
-
-		planet := insertTestPlanet(t, conn, player.Id)
-		player.Planets = []uuid.UUID{planet.Id}
+		player, _ := insertTestPlayerInUniverse(t, conn, addPlayerPlanet)
 
 		err := repo.Delete(t.Context(), player)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assertPlayerDoesNotExist(t, conn, player.Id)
-		assertPlanetDoesNotExist(t, conn, planet.Id)
+		for _, planetId := range player.Planets {
+			assertPlanetDoesNotExist(t, conn, planetId)
+		}
 	})
 
 	t.Run("deletes a player with a building action", func(t *testing.T) {
 		player, _ := insertTestPlayerInUniverse(t, conn)
 		planet := insertTestPlanet(t, conn, player.Id, addPlanetBuildingAction)
-		player.Planets = []uuid.UUID{planet.Id}
+		player.Planets = append(player.Planets, planet.Id)
 
 		err := repo.Delete(t.Context(), player)
 		require.NoError(t, err, "Actual err: %v", err)
@@ -367,6 +333,10 @@ func insertTestPlayer(
 	return player
 }
 
+// insertTestPlayerInUniverse creates a new player registered in a fresh universe.
+// The player is also attached a homeworld without any modifiers (e.g. no resources
+// or buildings). The homeworld is accessible via the Homeworld property. It mimics
+// what happens during real player creation.
 func insertTestPlayerInUniverse(
 	t *testing.T,
 	conn db.Connection,
@@ -374,6 +344,11 @@ func insertTestPlayerInUniverse(
 ) (models.Player, models.Universe) {
 	universe := insertTestUniverse(t, conn)
 	player := insertTestPlayer(t, conn, universe.Id, modifiers...)
+	homeworld := insertTestPlanet(t, conn, player.Id, addPlanetHomeworld)
+
+	player.Homeworld = homeworld.Id
+	player.Planets = append(player.Planets, homeworld.Id)
+
 	return player, universe
 }
 
