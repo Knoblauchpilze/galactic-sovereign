@@ -9,6 +9,11 @@ import (
 func ToUniverseCreationRequest(dto dtos.UniverseDtoRequest) request.UniverseCreationRequest {
 	return request.UniverseCreationRequest{
 		Name: dto.Name,
+		Topology: request.TopologyRequest{
+			Galaxies:     dto.Topology.Galaxies,
+			SolarSystems: dto.Topology.SolarSystems,
+			Orbits:       dto.Topology.Orbits,
+		},
 	}
 }
 
@@ -17,6 +22,7 @@ func ToUniverseResponse(universe models.Universe) dtos.UniverseDtoResponse {
 		Id:        universe.Id,
 		Name:      universe.Name,
 		CreatedAt: universe.CreatedAt,
+		Topology:  toTopologyResponse(universe.Topology),
 		Resources: toResourcesResponse(universe.Resources),
 		Buildings: toBuildingsResponse(universe.Buildings),
 	}
@@ -31,6 +37,14 @@ func ToUniversesResponse(universes []models.Universe) []dtos.UniverseDtoResponse
 	}
 
 	return out
+}
+
+func toTopologyResponse(topology models.UniverseTopology) dtos.TopologyDtoResponse {
+	return dtos.TopologyDtoResponse{
+		Galaxies:     topology.Galaxies,
+		SolarSystems: topology.SolarSystems,
+		Orbits:       topology.Orbits,
+	}
 }
 
 func toResourceResponse(

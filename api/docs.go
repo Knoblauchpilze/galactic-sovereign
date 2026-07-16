@@ -463,15 +463,60 @@ const docTemplate = `{
                 ],
                 "type": "object"
             },
+            "dtos.TopologyDtoRequest": {
+                "properties": {
+                    "galaxies": {
+                        "minimum": 1,
+                        "type": "integer"
+                    },
+                    "orbits": {
+                        "minimum": 1,
+                        "type": "integer"
+                    },
+                    "solar_systems": {
+                        "minimum": 1,
+                        "type": "integer"
+                    }
+                },
+                "required": [
+                    "galaxies",
+                    "orbits",
+                    "solar_systems"
+                ],
+                "type": "object"
+            },
+            "dtos.TopologyDtoResponse": {
+                "properties": {
+                    "galaxies": {
+                        "type": "integer"
+                    },
+                    "orbits": {
+                        "type": "integer"
+                    },
+                    "solar_systems": {
+                        "type": "integer"
+                    }
+                },
+                "required": [
+                    "galaxies",
+                    "orbits",
+                    "solar_systems"
+                ],
+                "type": "object"
+            },
             "dtos.UniverseDtoRequest": {
                 "properties": {
                     "name": {
                         "example": "aquarius",
                         "type": "string"
+                    },
+                    "topology": {
+                        "$ref": "#/components/schemas/dtos.TopologyDtoRequest"
                     }
                 },
                 "required": [
-                    "name"
+                    "name",
+                    "topology"
                 ],
                 "type": "object"
             },
@@ -502,6 +547,9 @@ const docTemplate = `{
                         },
                         "type": "array",
                         "uniqueItems": false
+                    },
+                    "topology": {
+                        "$ref": "#/components/schemas/dtos.TopologyDtoResponse"
                     }
                 },
                 "required": [
@@ -509,7 +557,8 @@ const docTemplate = `{
                     "created_at",
                     "id",
                     "name",
-                    "resources"
+                    "resources",
+                    "topology"
                 ],
                 "type": "object"
             },

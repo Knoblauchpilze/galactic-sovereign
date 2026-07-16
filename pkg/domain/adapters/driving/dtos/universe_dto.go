@@ -6,10 +6,15 @@ import (
 	"github.com/google/uuid"
 )
 
-// TODO: Should include the topology
-
 type UniverseDtoRequest struct {
-	Name string `json:"name" example:"aquarius" binding:"required"`
+	Name     string             `json:"name" example:"aquarius" binding:"required"`
+	Topology TopologyDtoRequest `json:"topology" binding:"required"`
+}
+
+type TopologyDtoRequest struct {
+	Galaxies     int `json:"galaxies" binding:"required" minimum:"1"`
+	SolarSystems int `json:"solar_systems" binding:"required" minimum:"1"`
+	Orbits       int `json:"orbits" binding:"required" minimum:"1"`
 }
 
 type UniverseDtoResponse struct {
@@ -18,8 +23,16 @@ type UniverseDtoResponse struct {
 
 	CreatedAt time.Time `json:"created_at" format:"date-time" binding:"required"`
 
+	Topology TopologyDtoResponse `json:"topology" binding:"required"`
+
 	Resources []ResourceDtoResponse `json:"resources" binding:"required"`
 	Buildings []BuildingDtoResponse `json:"buildings" binding:"required"`
+}
+
+type TopologyDtoResponse struct {
+	Galaxies     int `json:"galaxies" binding:"required"`
+	SolarSystems int `json:"solar_systems" binding:"required"`
+	Orbits       int `json:"orbits" binding:"required"`
 }
 
 type ResourceDtoResponse struct {

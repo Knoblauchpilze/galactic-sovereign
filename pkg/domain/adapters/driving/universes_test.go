@@ -34,13 +34,19 @@ func TestUnit_Universes_CreateUniverse(t *testing.T) {
 	})
 
 	t.Run("forwards creation to use case", func(t *testing.T) {
-		dto := dtos.UniverseDtoRequest{Name: "my-universe"}
+		dto := sampleUniverseDtoRequest()
 		req := generateTestRequestWithJsonBody(t, http.MethodPost, dto)
 		ctx, rw := generateTestContextFromRequest(t, req)
 
 		buildingId := uuid.New()
 
-		expectedRequest := request.UniverseCreationRequest{Name: dto.Name}
+		expectedRequest := request.UniverseCreationRequest{Name: dto.Name,
+			Topology: request.TopologyRequest{
+				Galaxies:     dto.Topology.Galaxies,
+				SolarSystems: dto.Topology.SolarSystems,
+				Orbits:       dto.Topology.Orbits,
+			},
+		}
 		mockUsecase.EXPECT().
 			Create(gomock.Any(), gomock.Eq(expectedRequest)).
 			Times(1).
@@ -49,6 +55,11 @@ func TestUnit_Universes_CreateUniverse(t *testing.T) {
 				Name:      dto.Name,
 				CreatedAt: someTime,
 				Version:   0,
+				Topology: models.UniverseTopology{
+					Galaxies:     dto.Topology.Galaxies,
+					SolarSystems: dto.Topology.SolarSystems,
+					Orbits:       dto.Topology.Orbits,
+				},
 				Resources: []models.Resource{
 					{
 						Id:              sampleResourceId,
@@ -77,6 +88,11 @@ func TestUnit_Universes_CreateUniverse(t *testing.T) {
 			Id:        sampleUuid,
 			Name:      dto.Name,
 			CreatedAt: someTime,
+			Topology: dtos.TopologyDtoResponse{
+				Galaxies:     dto.Topology.Galaxies,
+				SolarSystems: dto.Topology.SolarSystems,
+				Orbits:       dto.Topology.Orbits,
+			},
 			Resources: []dtos.ResourceDtoResponse{
 				{
 					Id:              sampleResourceId,
@@ -99,7 +115,7 @@ func TestUnit_Universes_CreateUniverse(t *testing.T) {
 	})
 
 	t.Run("returns 409 when name is already taken", func(t *testing.T) {
-		dto := dtos.UniverseDtoRequest{Name: "my-universe"}
+		dto := sampleUniverseDtoRequest()
 		req := generateTestRequestWithJsonBody(t, http.MethodPost, dto)
 		ctx, rw := generateTestContextFromRequest(t, req)
 
@@ -117,7 +133,7 @@ func TestUnit_Universes_CreateUniverse(t *testing.T) {
 	})
 
 	t.Run("returns 500 when use case fails", func(t *testing.T) {
-		dto := dtos.UniverseDtoRequest{Name: "my-universe"}
+		dto := sampleUniverseDtoRequest()
 		req := generateTestRequestWithJsonBody(t, http.MethodPost, dto)
 		ctx, rw := generateTestContextFromRequest(t, req)
 
@@ -467,4 +483,15 @@ func TestUnit_Universes_DeleteUniverse(t *testing.T) {
 		actual := decodeResponseBody[string](t, rw)
 		assert.Equal(t, "failed to delete universe", actual)
 	})
+}
+
+func sampleUniverseDtoRequest() dtos.UniverseDtoRequest {
+	return dtos.UniverseDtoRequest{
+		Name: "my-universe",
+		Topology: dtos.TopologyDtoRequest{
+			Galaxies:     36,
+			SolarSystems: 24,
+			Orbits:       70,
+		},
+	}
 }
