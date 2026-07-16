@@ -39,7 +39,6 @@ func (u *UniverseUseCase) List(ctx context.Context) ([]models.Universe, error) {
 }
 
 func (u *UniverseUseCase) Delete(ctx context.Context, id uuid.UUID) error {
-	// TODO: Should delete all players and planets
 	err := u.repo.Delete(ctx, id)
 	if err != nil {
 		return err
