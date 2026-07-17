@@ -12,11 +12,7 @@ func TestUnit_Universe_CreatePlanet(t *testing.T) {
 	playerId := uuid.New()
 
 	t.Run("creates a homeworld belonging to the player", func(t *testing.T) {
-		u := Universe{
-			Id:        uuid.New(),
-			Resources: generateTestResources(),
-			Buildings: generateTestBuildings(),
-		}
+		u := sampleUniverse()
 
 		beforeCreation := time.Now()
 		actual := u.CreatePlanet(playerId, true)
@@ -31,11 +27,7 @@ func TestUnit_Universe_CreatePlanet(t *testing.T) {
 	})
 
 	t.Run("creates a colony belonging to the player", func(t *testing.T) {
-		u := Universe{
-			Id:        uuid.New(),
-			Resources: generateTestResources(),
-			Buildings: generateTestBuildings(),
-		}
+		u := sampleUniverse()
 
 		beforeCreation := time.Now()
 		actual := u.CreatePlanet(playerId, false)
@@ -50,11 +42,7 @@ func TestUnit_Universe_CreatePlanet(t *testing.T) {
 	})
 
 	t.Run("assigns start amount for each resource", func(t *testing.T) {
-		u := Universe{
-			Id:        uuid.New(),
-			Resources: generateTestResources(),
-			Buildings: generateTestBuildings(),
-		}
+		u := sampleUniverse()
 
 		actual := u.CreatePlanet(playerId, false)
 
@@ -72,11 +60,7 @@ func TestUnit_Universe_CreatePlanet(t *testing.T) {
 	})
 
 	t.Run("assigns start storage for each resource", func(t *testing.T) {
-		u := Universe{
-			Id:        uuid.New(),
-			Resources: generateTestResources(),
-			Buildings: generateTestBuildings(),
-		}
+		u := sampleUniverse()
 
 		actual := u.CreatePlanet(playerId, false)
 
@@ -94,11 +78,7 @@ func TestUnit_Universe_CreatePlanet(t *testing.T) {
 	})
 
 	t.Run("assigns start production for each resource", func(t *testing.T) {
-		u := Universe{
-			Id:        uuid.New(),
-			Resources: generateTestResources(),
-			Buildings: generateTestBuildings(),
-		}
+		u := sampleUniverse()
 
 		actual := u.CreatePlanet(playerId, false)
 
@@ -116,11 +96,7 @@ func TestUnit_Universe_CreatePlanet(t *testing.T) {
 	})
 
 	t.Run("creates each building with level 0", func(t *testing.T) {
-		u := Universe{
-			Id:        uuid.New(),
-			Resources: generateTestResources(),
-			Buildings: generateTestBuildings(),
-		}
+		u := sampleUniverse()
 
 		actual := u.CreatePlanet(playerId, false)
 
@@ -136,9 +112,32 @@ func TestUnit_Universe_CreatePlanet(t *testing.T) {
 		}
 		assert.Equal(t, expected, actual.Buildings)
 	})
+
+	t.Run("creates a planet at a free spot", func(t *testing.T) {
+		u := sampleUniverse()
+		u.OccupancyMap = OccupancyMap{
+			Topology: UniverseTopology{
+				Galaxies:     1,
+				SolarSystems: 1,
+				Orbits:       2,
+			},
+			UsedSlots: map[Coordinate]struct{}{
+				{Galaxy: 0, SolarSystem: 0, Position: 1}: {},
+			},
+		}
+
+		actual := u.CreatePlanet(playerId, false)
+
+		expected := Coordinate{
+			Galaxy:      0,
+			SolarSystem: 0,
+			Position:    0,
+		}
+		assert.Equal(t, expected, actual.Coordinate)
+	})
 }
 
-func generateTestResources() []Resource {
+func sampleResources() []Resource {
 	return []Resource{
 		{
 			Id:              metalResourceId,
@@ -155,7 +154,7 @@ func generateTestResources() []Resource {
 	}
 }
 
-func generateTestBuildings() []Building {
+func sampleBuildings() []Building {
 	return []Building{
 		{
 			Id: uuid.New(),
@@ -177,5 +176,25 @@ func generateTestBuildings() []Building {
 				},
 			},
 		},
+	}
+}
+
+func sampleOccupancyMap() OccupancyMap {
+	return OccupancyMap{
+		Topology: UniverseTopology{
+			Galaxies:     5,
+			SolarSystems: 281,
+			Orbits:       26,
+		},
+		UsedSlots: make(map[Coordinate]struct{}),
+	}
+}
+
+func sampleUniverse() Universe {
+	return Universe{
+		Id:           uuid.New(),
+		Resources:    sampleResources(),
+		Buildings:    sampleBuildings(),
+		OccupancyMap: sampleOccupancyMap(),
 	}
 }

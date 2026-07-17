@@ -22,7 +22,7 @@ const (
 	resourceCreationFailed     errors.ErrorCode = 619
 	homeworldCannotBeDeleted   errors.ErrorCode = 620
 	universeIsNotEmpty         errors.ErrorCode = 621
-	cooridnateAlreadyUsed      errors.ErrorCode = 622
+	coordinateAlreadyUsed      errors.ErrorCode = 622
 )
 
 var (
@@ -44,5 +44,5 @@ var (
 	ErrResourceCreationFailed     = errors.FromCode(resourceCreationFailed)
 	ErrHomeworldCannotBeDeleted   = errors.FromCode(homeworldCannotBeDeleted)
 	ErrUniverseIsNotEmpty         = errors.FromCode(universeIsNotEmpty)
-	ErrCoordinateAlreadyUsed      = errors.FromCode(cooridnateAlreadyUsed)
+	ErrCoordinateAlreadyUsed      = errors.FromCode(coordinateAlreadyUsed)
 )
