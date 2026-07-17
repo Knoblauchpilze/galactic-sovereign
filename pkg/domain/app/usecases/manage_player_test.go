@@ -38,6 +38,14 @@ func TestUnit_ManagePlayer_Create(t *testing.T) {
 			},
 		},
 		Buildings: []models.Building{{Id: uuid.New()}},
+		OccupancyMap: models.OccupancyMap{
+			Topology: models.UniverseTopology{
+				Galaxies:     2,
+				SolarSystems: 14,
+				Orbits:       17,
+			},
+			UsedSlots: make(map[models.Coordinate]struct{}),
+		},
 	}
 
 	request := request.PlayerCreationRequest{

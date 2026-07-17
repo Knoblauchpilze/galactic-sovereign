@@ -8,11 +8,7 @@ import (
 )
 
 func TestUnit_Player_CreateHomeworld(t *testing.T) {
-	u := Universe{
-		Id:        uuid.New(),
-		Resources: sampleResources(),
-		Buildings: sampleBuildings(),
-	}
+	u := sampleUniverse()
 
 	t.Run("creates a homeworld belonging to the player", func(t *testing.T) {
 		p := Player{
@@ -46,11 +42,7 @@ func TestUnit_Player_CreateHomeworld(t *testing.T) {
 }
 
 func TestUnit_Player_Colonize(t *testing.T) {
-	u := Universe{
-		Id:        uuid.New(),
-		Resources: sampleResources(),
-		Buildings: sampleBuildings(),
-	}
+	u := sampleUniverse()
 
 	t.Run("creates a planet belonging to the player", func(t *testing.T) {
 		p := Player{
