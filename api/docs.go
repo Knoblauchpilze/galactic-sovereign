@@ -278,6 +278,10 @@ const docTemplate = `{
                         "format": "date-time",
                         "type": "string"
                     },
+                    "fields": {
+                        "minimum": 1,
+                        "type": "integer"
+                    },
                     "homeworld": {
                         "type": "boolean"
                     },
@@ -323,6 +327,7 @@ const docTemplate = `{
                     "buildings",
                     "coordinate",
                     "created_at",
+                    "fields",
                     "homeworld",
                     "id",
                     "name",

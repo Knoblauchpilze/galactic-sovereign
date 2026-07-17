@@ -3,6 +3,7 @@ CREATE TABLE planet(
   id UUID NOT NULL,
   player UUID NOT NULL,
   name text NOT NULL,
+  fields INTEGER NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
   updated_at TIMESTAMP WITH TIME ZONE NOT NULL,
   version INTEGER DEFAULT 0,

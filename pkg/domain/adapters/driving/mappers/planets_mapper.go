@@ -16,6 +16,7 @@ func ToPlanetResponse(planet models.Planet) dtos.PlanetDtoResponse {
 			SolarSystem: planet.Coordinate.SolarSystem,
 			Position:    planet.Coordinate.Position,
 		},
+		Fields:      planet.Fields,
 		CreatedAt:   planet.CreatedAt,
 		UpdatedAt:   planet.UpdatedAt,
 		Resources:   toPlanetResourcesResponse(planet.Resources),

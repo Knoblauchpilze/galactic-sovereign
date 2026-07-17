@@ -9,11 +9,12 @@ INSERT INTO galactic_sovereign_schema.player("id", "api_user", "universe", "name
   );
 
 -- planet deut-factory
-INSERT INTO galactic_sovereign_schema.planet("id", "player", "name", "created_at", "updated_at")
+INSERT INTO galactic_sovereign_schema.planet("id", "player", "name", "fields", "created_at", "updated_at")
   VALUES (
     '717ffa52-89bd-42eb-b34d-0f994a032e35',
     '2bab9414-7972-4483-a8b4-fdd169d0b073',
     'deut-factory',
+    104,
     CURRENT_TIMESTAMP,
     CURRENT_TIMESTAMP
   );

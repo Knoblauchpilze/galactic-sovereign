@@ -193,6 +193,9 @@ components:
         created_at:
           format: date-time
           type: string
+        fields:
+          minimum: 1
+          type: integer
         homeworld:
           type: boolean
         id:
@@ -226,6 +229,7 @@ components:
       - buildings
       - coordinate
       - created_at
+      - fields
       - homeworld
       - id
       - name

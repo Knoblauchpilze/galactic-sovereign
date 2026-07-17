@@ -14,6 +14,7 @@ type Planet struct {
 	Name       string
 	Homeworld  bool
 	Coordinate Coordinate
+	Fields     int
 
 	CreatedAt time.Time
 	UpdatedAt time.Time

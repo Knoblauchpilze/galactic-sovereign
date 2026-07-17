@@ -31,6 +31,7 @@ func (u Universe) CreatePlanet(player uuid.UUID, homeworld bool) Planet {
 	createdAt := time.Now()
 
 	coordinate := u.OccupancyMap.PickPosition()
+	fields := coordinate.Fields(homeworld)
 
 	planetResources := make([]PlanetResource, 0, len(u.Resources))
 	planetStorages := make([]PlanetResourceStorage, 0, len(u.Resources))
@@ -76,6 +77,7 @@ func (u Universe) CreatePlanet(player uuid.UUID, homeworld bool) Planet {
 		Name:           name,
 		Homeworld:      homeworld,
 		Coordinate:     coordinate,
+		Fields:         fields,
 		CreatedAt:      createdAt,
 		UpdatedAt:      createdAt,
 		Version:        0,

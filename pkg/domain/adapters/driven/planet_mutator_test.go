@@ -60,8 +60,10 @@ func TestIT_PlanetMutator_Mutate(t *testing.T) {
 	t.Run("persists mutated planet", func(t *testing.T) {
 		planet, _, _ := insertTestPlanetForPlayer(t, conn)
 		require.NotEqual(t, planet.UpdatedAt, yetAnotherTime)
+		require.NotEqual(t, 326, planet.Fields)
 
 		mutator := generateModifyingMutator(func(p *models.Planet) {
+			p.Fields = 326
 			p.UpdatedAt = yetAnotherTime
 			p.Version++
 		})
@@ -71,6 +73,7 @@ func TestIT_PlanetMutator_Mutate(t *testing.T) {
 
 		actual := loadPlanetFromDb(t, conn, planet.Id)
 		expected := planet
+		expected.Fields = 326
 		expected.UpdatedAt = yetAnotherTime
 		expected.Version++
 		assert.Equal(t, expected, actual)

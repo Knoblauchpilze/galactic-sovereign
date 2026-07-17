@@ -13,8 +13,8 @@ import (
 const (
 	createPlanetQuery = `
 INSERT INTO
-	planet (id, player, name, created_at, updated_at, version)
-	VALUES ($1, $2, $3, $4, $5, $6)`
+	planet (id, player, name, fields, created_at, updated_at, version)
+	VALUES ($1, $2, $3, $4, $5, $6, $7)`
 
 	createPlanetHomeworldQuery = `INSERT INTO homeworld (player, planet) VALUES ($1, $2)`
 
@@ -62,6 +62,7 @@ SELECT
 	pc.galaxy,
 	pc.solar_system,
 	pc.position,
+	p.fields,
 	p.created_at,
 	p.updated_at,
 	p.version,
@@ -126,11 +127,12 @@ ORDER BY
 UPDATE
 	planet
 SET
-	version = $1,
-	updated_at = $2
+	fields = $1,
+	version = $2,
+	updated_at = $3
 WHERE
-	id = $3
-	AND version = $4
+	id = $4
+	AND version = $5
 	`
 
 	updatePlanetResourcesQuery = `
@@ -208,6 +210,7 @@ func createPlanetWithDetails(ctx context.Context, tx db.Transaction, planet mode
 		planet.Id,
 		planet.Player,
 		planet.Name,
+		planet.Fields,
 		planet.CreatedAt.UTC(),
 		planet.UpdatedAt.UTC(),
 		planet.Version,
@@ -428,6 +431,7 @@ func updatePlanetDetails(
 	affected, err := tx.Exec(
 		ctx,
 		updatePlanetQuery,
+		planet.Fields,
 		planet.Version,
 		planet.UpdatedAt,
 		planet.Id,

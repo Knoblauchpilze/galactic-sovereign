@@ -9,11 +9,12 @@ INSERT INTO galactic_sovereign_schema.player("id", "api_user", "universe", "name
   );
 
 -- planet homeworld
-INSERT INTO galactic_sovereign_schema.planet("id", "player", "name", "created_at", "updated_at")
+INSERT INTO galactic_sovereign_schema.planet("id", "player", "name", "fields", "created_at", "updated_at")
   VALUES (
     '167bd268-6ae7-4cf4-a359-9534beabfeff',
     '92a686c0-9a0a-4bc3-aa1b-9a57ed7f09d5',
     'homeworld',
+    163,
     CURRENT_TIMESTAMP,
     CURRENT_TIMESTAMP
   );
@@ -96,11 +97,12 @@ INSERT INTO galactic_sovereign_schema.planet_building("planet", "building", "lev
   );
 
 -- planet colony
-INSERT INTO galactic_sovereign_schema.planet("id", "player", "name", "created_at", "updated_at")
+INSERT INTO galactic_sovereign_schema.planet("id", "player", "name", "fields", "created_at", "updated_at")
   VALUES (
     '110cdf6f-2103-4e34-924f-fd57eb87ea3e',
     '92a686c0-9a0a-4bc3-aa1b-9a57ed7f09d5',
     'colony',
+    95,
     CURRENT_TIMESTAMP,
     CURRENT_TIMESTAMP
   );

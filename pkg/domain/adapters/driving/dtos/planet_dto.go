@@ -12,6 +12,7 @@ type PlanetDtoResponse struct {
 	Name       string                `json:"name" example:"colony" binding:"required"`
 	Homeworld  bool                  `json:"homeworld" binding:"required"`
 	Coordinate CoordinateDtoResponse `json:"coordinate" binding:"required"`
+	Fields     int                   `json:"fields" binding:"required" minimum:"1"`
 
 	CreatedAt time.Time `json:"created_at" format:"date-time" binding:"required"`
 	UpdatedAt time.Time `json:"updated_at" format:"date-time" binding:"required"`

@@ -17,6 +17,8 @@ type DbPlanet struct {
 	SolarSystem int
 	Position    int
 
+	Fields int
+
 	CreatedAt time.Time
 	UpdatedAt time.Time
 
@@ -36,6 +38,7 @@ func (p DbPlanet) ToDomain() models.Planet {
 			SolarSystem: p.SolarSystem,
 			Position:    p.Position,
 		},
+		Fields:    p.Fields,
 		CreatedAt: p.CreatedAt,
 		UpdatedAt: p.UpdatedAt,
 		Version:   p.Version,

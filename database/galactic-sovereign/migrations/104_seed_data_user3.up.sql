@@ -9,11 +9,12 @@ INSERT INTO galactic_sovereign_schema.player("id", "api_user", "universe", "name
   );
 
 -- planet my-awesome-planet
-INSERT INTO galactic_sovereign_schema.planet("id", "player", "name", "created_at", "updated_at")
+INSERT INTO galactic_sovereign_schema.planet("id", "player", "name", "fields", "created_at", "updated_at")
   VALUES (
     '00058def-e81d-43bb-aacf-a8402115449d',
     'e8db2006-3e35-49cd-8e1f-726491660a00',
     'my-awesome-planet',
+    195,
     CURRENT_TIMESTAMP,
     CURRENT_TIMESTAMP
   );

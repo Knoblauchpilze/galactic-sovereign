@@ -224,6 +224,7 @@ func insertTestPlanet(
 			SolarSystem: 1 + rand.Intn(421),
 			Position:    1 + rand.Intn(36),
 		},
+		Fields:    rand.Intn(211),
 		CreatedAt: someTime,
 		UpdatedAt: someOtherTime,
 		Version:   7,
@@ -235,14 +236,15 @@ func insertTestPlanet(
 		Buildings:   []models.PlanetBuilding{},
 	}
 
-	sqlQuery := `INSERT INTO planet (id, player, name, created_at, updated_at, version)
-		VALUES ($1, $2, $3, $4, $5, $6)`
+	sqlQuery := `INSERT INTO planet (id, player, name, fields, created_at, updated_at, version)
+		VALUES ($1, $2, $3, $4, $5, $6, $7)`
 	_, err := conn.Exec(
 		t.Context(),
 		sqlQuery,
 		planet.Id,
 		planet.Player,
 		planet.Name,
+		planet.Fields,
 		planet.CreatedAt,
 		planet.UpdatedAt,
 		planet.Version,

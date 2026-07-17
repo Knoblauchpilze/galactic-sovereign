@@ -45,6 +45,7 @@ func TestUnit_Planets_GetPlanet(t *testing.T) {
 				SolarSystem: 151,
 				Position:    12,
 			},
+			Fields:    147,
 			CreatedAt: someTime,
 			UpdatedAt: someOtherTime,
 			Resources: []models.PlanetResource{
@@ -98,6 +99,7 @@ func TestUnit_Planets_GetPlanet(t *testing.T) {
 				SolarSystem: 151,
 				Position:    12,
 			},
+			Fields:    147,
 			CreatedAt: planet.CreatedAt,
 			UpdatedAt: planet.UpdatedAt,
 			Resources: []dtos.PlanetResourceDtoResponse{

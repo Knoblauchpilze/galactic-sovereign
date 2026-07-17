@@ -2,6 +2,7 @@ package drivenadapters
 
 import (
 	"fmt"
+	"math/rand"
 	"testing"
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
@@ -39,6 +40,7 @@ func TestIT_PlayerRepository_Create(t *testing.T) {
 				SolarSystem: 147,
 				Position:    17,
 			},
+			Fields:    128,
 			CreatedAt: someTime,
 			UpdatedAt: someOtherTime,
 			Version:   0,
@@ -403,15 +405,17 @@ func addPlayerPlanet(t *testing.T, conn db.Connection, p *models.Player) {
 	t.Helper()
 
 	planetId := uuid.New()
+	fields := rand.Intn(138)
 
-	sqlQuery := `INSERT INTO planet (id, player, name, created_at, updated_at, version)
-		VALUES ($1, $2, $3, $4, $5, $6)`
+	sqlQuery := `INSERT INTO planet (id, player, name, fields, created_at, updated_at, version)
+		VALUES ($1, $2, $3, $4, $5, $6, $7)`
 	_, err := conn.Exec(
 		t.Context(),
 		sqlQuery,
 		planetId,
 		p.Id,
 		fmt.Sprintf("my-planet-%s", planetId.String()),
+		fields,
 		someTime,
 		someOtherTime,
 		8,
