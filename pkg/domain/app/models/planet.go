@@ -9,10 +9,11 @@ import (
 )
 
 type Planet struct {
-	Id        uuid.UUID
-	Player    uuid.UUID
-	Name      string
-	Homeworld bool
+	Id         uuid.UUID
+	Player     uuid.UUID
+	Name       string
+	Homeworld  bool
+	Coordinate Coordinate
 
 	CreatedAt time.Time
 	UpdatedAt time.Time

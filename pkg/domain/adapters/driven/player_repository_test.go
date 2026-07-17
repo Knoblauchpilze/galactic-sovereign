@@ -32,8 +32,13 @@ func TestIT_PlayerRepository_Create(t *testing.T) {
 		planet := models.Planet{
 			Id:        planetId,
 			Player:    player.Id,
-			Name:      fmt.Sprintf("planetr-%s", uuid.NewString()),
+			Name:      fmt.Sprintf("planet-%s", uuid.NewString()),
 			Homeworld: true,
+			Coordinate: models.Coordinate{
+				Galaxy:      36,
+				SolarSystem: 147,
+				Position:    17,
+			},
 			CreatedAt: someTime,
 			UpdatedAt: someOtherTime,
 			Version:   0,
@@ -91,10 +96,15 @@ func TestIT_PlayerRepository_Create(t *testing.T) {
 			Planets:   []uuid.UUID{uuid.New()},
 		}
 		planet := models.Planet{
-			Id:          uuid.New(),
-			Player:      player.Id,
-			Name:        fmt.Sprintf("planetr-%s", uuid.NewString()),
-			Homeworld:   true,
+			Id:        uuid.New(),
+			Player:    player.Id,
+			Name:      fmt.Sprintf("planet-%s", uuid.NewString()),
+			Homeworld: true,
+			Coordinate: models.Coordinate{
+				Galaxy:      36,
+				SolarSystem: 147,
+				Position:    17,
+			},
 			CreatedAt:   someTime,
 			UpdatedAt:   someOtherTime,
 			Version:     0,
@@ -124,7 +134,7 @@ func TestIT_PlayerRepository_Create(t *testing.T) {
 		planet := models.Planet{
 			Id:          uuid.New(),
 			Player:      player.Id,
-			Name:        fmt.Sprintf("planetr-%s", uuid.NewString()),
+			Name:        fmt.Sprintf("planet-%s", uuid.NewString()),
 			Homeworld:   true,
 			CreatedAt:   someTime,
 			UpdatedAt:   someOtherTime,
@@ -138,6 +148,37 @@ func TestIT_PlayerRepository_Create(t *testing.T) {
 		err := repo.Create(t.Context(), newPlayer, planet)
 
 		assert.Equal(t, domainerrors.ErrNameAlreadyTaken, err, "Actual err: %v", err)
+		assertPlayerDoesNotExist(t, conn, newPlayer.Id)
+	})
+
+	t.Run("returns error when planet with same coordinates already exist", func(t *testing.T) {
+		planet, _, universe := insertTestPlanetForPlayer(t, conn)
+
+		newPlayer := models.Player{
+			Id:        uuid.New(),
+			ApiUser:   uuid.New(),
+			Universe:  universe.Id,
+			Name:      "another-name",
+			CreatedAt: someTime,
+		}
+		homeworld := models.Planet{
+			Id:          uuid.New(),
+			Player:      newPlayer.Id,
+			Name:        fmt.Sprintf("planet-%s", uuid.NewString()),
+			Homeworld:   true,
+			Coordinate:  planet.Coordinate,
+			CreatedAt:   someTime,
+			UpdatedAt:   someOtherTime,
+			Version:     0,
+			Resources:   []models.PlanetResource{},
+			Storages:    []models.PlanetResourceStorage{},
+			Productions: []models.PlanetResourceProduction{},
+			Buildings:   []models.PlanetBuilding{},
+		}
+
+		err := repo.Create(t.Context(), newPlayer, homeworld)
+
+		assert.Equal(t, domainerrors.ErrCoordinateAlreadyUsed, err, "Actual err: %v", err)
 		assertPlayerDoesNotExist(t, conn, newPlayer.Id)
 	})
 }
@@ -160,6 +201,8 @@ func TestIT_PlayerRepository_Get(t *testing.T) {
 
 		actual, err := repo.Get(t.Context(), player.Id)
 		require.NoError(t, err, "Actual err: %v", err)
+
+		fmt.Printf("actual planets: %+v\n", actual.Planets)
 
 		assert.Equal(t, player, actual)
 	})
@@ -343,11 +386,22 @@ func insertTestPlayerInUniverse(
 	modifiers ...func(*testing.T, db.Connection, *models.Player),
 ) (models.Player, models.Universe) {
 	universe := insertTestUniverse(t, conn)
-	player := insertTestPlayer(t, conn, universe.Id, modifiers...)
+	player := insertTestPlayer(t, conn, universe.Id)
 	homeworld := insertTestPlanet(t, conn, player.Id, addPlanetHomeworld)
 
 	player.Homeworld = homeworld.Id
 	player.Planets = append(player.Planets, homeworld.Id)
+
+	fmt.Printf("homeworld: %s\n", homeworld.Id)
+	fmt.Printf("planets: %d\n", len(player.Planets))
+
+	// Modifiers are applied after the creation of the homeworld to give them a
+	// realistic view of the player
+	for _, modifier := range modifiers {
+		modifier(t, conn, &player)
+	}
+
+	fmt.Printf("planets: %+v\n", player.Planets)
 
 	return player, universe
 }

@@ -49,6 +49,8 @@ func parseUniqueConstraintViolation(err *db.DatabaseError) error {
 		return domainerrors.ErrNameAlreadyTaken
 	case "building_action_planet_key":
 		return domainerrors.ErrActionAlreadyInProgress
+	case "planet_coordinate_universe_galaxy_solar_system_position_key":
+		return domainerrors.ErrCoordinateAlreadyUsed
 	default:
 		return err
 	}

@@ -6,6 +6,7 @@ import (
 )
 
 func ToPlanetResponse(planet models.Planet) dtos.PlanetDtoResponse {
+	// TODO: Should include the planet coordinate
 	dto := dtos.PlanetDtoResponse{
 		Id:          planet.Id,
 		Player:      planet.Player,

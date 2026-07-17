@@ -5,6 +5,7 @@ DELETE FROM planet_resource_storage WHERE planet = '110cdf6f-2103-4e34-924f-fd57
 DELETE FROM planet_resource_production WHERE planet = '110cdf6f-2103-4e34-924f-fd57eb87ea3e';
 DELETE FROM planet_resource WHERE planet = '110cdf6f-2103-4e34-924f-fd57eb87ea3e';
 
+DELETE FROM planet_coordinate WHERE planet = '110cdf6f-2103-4e34-924f-fd57eb87ea3e';
 DELETE FROM homeworld WHERE planet = '110cdf6f-2103-4e34-924f-fd57eb87ea3e';
 DELETE FROM planet WHERE id = '110cdf6f-2103-4e34-924f-fd57eb87ea3e';
 
@@ -14,6 +15,7 @@ DELETE FROM planet_resource_storage WHERE planet = '167bd268-6ae7-4cf4-a359-9534
 DELETE FROM planet_resource_production WHERE planet = '167bd268-6ae7-4cf4-a359-9534beabfeff';
 DELETE FROM planet_resource WHERE planet = '167bd268-6ae7-4cf4-a359-9534beabfeff';
 
+DELETE FROM planet_coordinate WHERE planet = '167bd268-6ae7-4cf4-a359-9534beabfeff';
 DELETE FROM homeworld WHERE planet = '167bd268-6ae7-4cf4-a359-9534beabfeff';
 DELETE FROM planet WHERE id = '167bd268-6ae7-4cf4-a359-9534beabfeff';
 

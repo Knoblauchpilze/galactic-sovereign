@@ -22,6 +22,12 @@ INSERT INTO galactic_sovereign_schema.homeworld("player", "planet")
     '2bab9414-7972-4483-a8b4-fdd169d0b073',
     '717ffa52-89bd-42eb-b34d-0f994a032e35'
   );
+INSERT INTO galactic_sovereign_schema.planet_coordinate("planet", "universe", "galaxy", "solar_system", "position")
+  VALUES (
+    '717ffa52-89bd-42eb-b34d-0f994a032e35',
+    '0ac6c027-11d6-47e6-ab15-514cfac48200',
+    1, 85, 10
+  );
 
 INSERT INTO galactic_sovereign_schema.planet_resource("planet", "resource", "amount")
   VALUES (

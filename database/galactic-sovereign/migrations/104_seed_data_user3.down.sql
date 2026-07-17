@@ -5,6 +5,7 @@ DELETE FROM planet_resource_storage WHERE planet = '00058def-e81d-43bb-aacf-a840
 DELETE FROM planet_resource_production WHERE planet = '00058def-e81d-43bb-aacf-a8402115449d';
 DELETE FROM planet_resource WHERE planet = '00058def-e81d-43bb-aacf-a8402115449d';
 
+DELETE FROM planet_coordinate WHERE planet = '00058def-e81d-43bb-aacf-a8402115449d';
 DELETE FROM homeworld WHERE planet = '00058def-e81d-43bb-aacf-a8402115449d';
 DELETE FROM planet WHERE id = '00058def-e81d-43bb-aacf-a8402115449d';
 

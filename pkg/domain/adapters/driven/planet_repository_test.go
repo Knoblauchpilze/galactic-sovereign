@@ -219,6 +219,11 @@ func insertTestPlanet(
 		Player:    player,
 		Name:      fmt.Sprintf("my-planet-%s", uuid.NewString()),
 		Homeworld: false,
+		Coordinate: models.Coordinate{
+			Galaxy:      1 + rand.Intn(15),
+			SolarSystem: 1 + rand.Intn(421),
+			Position:    1 + rand.Intn(36),
+		},
 		CreatedAt: someTime,
 		UpdatedAt: someOtherTime,
 		Version:   7,
@@ -241,6 +246,19 @@ func insertTestPlanet(
 		planet.CreatedAt,
 		planet.UpdatedAt,
 		planet.Version,
+	)
+	require.NoError(t, err, "Actual err: %v", err)
+
+	sqlQuery = `INSERT INTO planet_coordinate (planet, universe, galaxy, solar_system, position)
+		SELECT $1, universe, $2, $3, $4 FROM player WHERE id = $5`
+	_, err = conn.Exec(
+		t.Context(),
+		sqlQuery,
+		planet.Id,
+		planet.Coordinate.Galaxy,
+		planet.Coordinate.SolarSystem,
+		planet.Coordinate.Position,
+		player,
 	)
 	require.NoError(t, err, "Actual err: %v", err)
 

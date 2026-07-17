@@ -32,14 +32,16 @@ WHERE
 
 	listPlanetIdsForPlayerQuery = `
 SELECT
-	id
+	p.id
 FROM
-	planet
+	planet AS p
+	LEFT JOIN homeworld AS h ON h.planet = p.id
 WHERE
-	player = $1
+	p.player = $1
 ORDER BY
-	created_at,
-	name`
+	h.planet IS NOT NULL DESC,
+	p.created_at ASC,
+	p.name`
 
 	listPlayerForApiUserQuery = `
 SELECT
@@ -83,7 +85,7 @@ func (r *PlayerRepository) Create(
 	}
 	defer tx.Close(ctx)
 
-	_, err = r.conn.Exec(
+	_, err = tx.Exec(
 		ctx,
 		createPlayerQuery,
 		player.Id,

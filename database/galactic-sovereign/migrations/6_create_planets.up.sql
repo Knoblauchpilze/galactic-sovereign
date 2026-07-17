@@ -19,7 +19,7 @@ CREATE TABLE homeworld(
   FOREIGN KEY (planet) REFERENCES planet(id)
 );
 
-CREATE TABLE planet_position(
+CREATE TABLE planet_coordinate(
   planet UUID NOT NULL,
   universe UUID NOT NULL,
   galaxy INTEGER NOT NULL,
@@ -31,8 +31,8 @@ CREATE TABLE planet_position(
   UNIQUE (universe, galaxy, solar_system, position)
 );
 
-CREATE INDEX planet_position_planet_index ON planet_position(planet);
-CREATE INDEX planet_position_universe_index ON planet_position(universe);
+CREATE INDEX planet_coordinate_planet_index ON planet_coordinate(planet);
+CREATE INDEX planet_coordinate_universe_index ON planet_coordinate(universe);
 
 CREATE TABLE planet_resource(
   planet UUID NOT NULL,

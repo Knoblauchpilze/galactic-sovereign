@@ -18,6 +18,18 @@ INSERT INTO
 
 	createPlanetHomeworldQuery = `INSERT INTO homeworld (player, planet) VALUES ($1, $2)`
 
+	createPlanetCoordinateQuery = `INSERT INTO planet_coordinate (planet, universe, galaxy, solar_system, position)
+		SELECT
+			$1,
+			universe,
+			$2,
+			$3,
+			$4
+		FROM
+			player
+		WHERE
+			id = $5`
+
 	createPlanetResourceQuery = `
 INSERT INTO
 	planet_resource (planet, resource, amount)
@@ -47,6 +59,9 @@ SELECT
 		WHEN h.planet IS NOT NULL THEN true
 		ELSE false
 	END AS homeworld,
+	pc.galaxy,
+	pc.solar_system,
+	pc.position,
 	p.created_at,
 	p.updated_at,
 	p.version,
@@ -54,6 +69,7 @@ SELECT
 FROM
 	planet AS p
 	LEFT JOIN homeworld AS h ON h.planet = p.id
+	INNER JOIN planet_coordinate AS pc ON pc.planet = p.id
 	LEFT JOIN building_action AS ba ON ba.planet = p.id
 WHERE
 	p.id = $1`
@@ -156,6 +172,7 @@ WHERE
 	deletePlanetResourceProductionsQuery = `DELETE FROM planet_resource_production WHERE planet = $1`
 	deletePlanetResourceStoragesQuery    = `DELETE FROM planet_resource_storage WHERE planet = $1`
 	deletePlanetResourcesQuery           = `DELETE FROM planet_resource WHERE planet = $1`
+	deletePlanetCoordinateQuery          = `DELETE FROM planet_coordinate WHERE planet = $1`
 	deletePlanetHomeworldQuery           = `DELETE FROM homeworld WHERE planet = $1`
 	deletePlanetQuery                    = `DELETE FROM planet WHERE id = $1`
 )
@@ -204,6 +221,19 @@ func createPlanetWithDetails(ctx context.Context, tx db.Transaction, planet mode
 		if err != nil {
 			return err
 		}
+	}
+
+	_, err = tx.Exec(
+		ctx,
+		createPlanetCoordinateQuery,
+		planet.Id,
+		planet.Coordinate.Galaxy,
+		planet.Coordinate.SolarSystem,
+		planet.Coordinate.Position,
+		planet.Player,
+	)
+	if err != nil {
+		return err
 	}
 
 	for _, r := range planet.Resources {
@@ -438,6 +468,11 @@ func deletePlanetAndDetails(ctx context.Context, tx db.Transaction, id uuid.UUID
 	}
 
 	_, err = tx.Exec(ctx, deletePlanetResourcesQuery, id)
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.Exec(ctx, deletePlanetCoordinateQuery, id)
 	if err != nil {
 		return err
 	}

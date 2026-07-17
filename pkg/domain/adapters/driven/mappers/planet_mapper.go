@@ -13,6 +13,10 @@ type DbPlanet struct {
 	Name      string
 	Homeworld bool
 
+	Galaxy      int
+	SolarSystem int
+	Position    int
+
 	CreatedAt time.Time
 	UpdatedAt time.Time
 
@@ -27,6 +31,11 @@ func (p DbPlanet) ToDomain() models.Planet {
 		Player:    p.Player,
 		Name:      p.Name,
 		Homeworld: p.Homeworld,
+		Coordinate: models.Coordinate{
+			Galaxy:      p.Galaxy,
+			SolarSystem: p.SolarSystem,
+			Position:    p.Position,
+		},
 		CreatedAt: p.CreatedAt,
 		UpdatedAt: p.UpdatedAt,
 		Version:   p.Version,

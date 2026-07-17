@@ -22,6 +22,12 @@ INSERT INTO galactic_sovereign_schema.homeworld("player", "planet")
     '92a686c0-9a0a-4bc3-aa1b-9a57ed7f09d5',
     '167bd268-6ae7-4cf4-a359-9534beabfeff'
   );
+INSERT INTO galactic_sovereign_schema.planet_coordinate("planet", "universe", "galaxy", "solar_system", "position")
+  VALUES (
+    '167bd268-6ae7-4cf4-a359-9534beabfeff',
+    '9682f17b-f5f0-4eda-a747-2537d2151837',
+    1, 1, 1
+  );
 
 INSERT INTO galactic_sovereign_schema.planet_resource("planet", "resource", "amount")
   VALUES (
@@ -97,6 +103,12 @@ INSERT INTO galactic_sovereign_schema.planet("id", "player", "name", "created_at
     'colony',
     CURRENT_TIMESTAMP,
     CURRENT_TIMESTAMP
+  );
+INSERT INTO galactic_sovereign_schema.planet_coordinate("planet", "universe", "galaxy", "solar_system", "position")
+  VALUES (
+    '110cdf6f-2103-4e34-924f-fd57eb87ea3e',
+    '9682f17b-f5f0-4eda-a747-2537d2151837',
+    1, 2, 3
   );
 
 INSERT INTO galactic_sovereign_schema.planet_resource("planet", "resource", "amount")
