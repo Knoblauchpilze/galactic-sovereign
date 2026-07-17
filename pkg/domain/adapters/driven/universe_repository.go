@@ -50,6 +50,16 @@ ORDER BY
 	created_at,
 	resource`
 
+	listUsedCoordinateQuery = `
+SELECT
+	galaxy,
+	solar_system,
+	position
+FROM
+	planet_coordinate
+WHERE
+	universe = $1`
+
 	listUniverseQuery = `
 SELECT
 	u.id,
@@ -193,5 +203,33 @@ func loadUniverseDetails(ctx context.Context, tx db.Transaction, dbUniverse mapp
 		return universe, err
 	}
 
+	universe.OccupancyMap, err = loadOccupancyMap(ctx, tx, universe.Id, universe.Topology)
+	if err != nil {
+		return universe, err
+	}
+
 	return universe, nil
+}
+
+func loadOccupancyMap(
+	ctx context.Context,
+	tx db.Transaction,
+	universe uuid.UUID,
+	topology models.UniverseTopology,
+) (models.OccupancyMap, error) {
+	occupancy := models.OccupancyMap{
+		Topology:  topology,
+		UsedSlots: make(map[models.Coordinate]struct{}),
+	}
+
+	slots, err := db.QueryAllTx[models.Coordinate](ctx, tx, listUsedCoordinateQuery, universe)
+	if err != nil {
+		return models.OccupancyMap{}, nil
+	}
+
+	for _, c := range slots {
+		occupancy.UsedSlots[c] = struct{}{}
+	}
+
+	return occupancy, nil
 }

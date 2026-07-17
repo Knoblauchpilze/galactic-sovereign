@@ -35,7 +35,12 @@ func TestIT_UniverseRepository_Create(t *testing.T) {
 		actual, err := repo.Get(t.Context(), universe.Id)
 		require.NoError(t, err, "Actual err: %v", err)
 
-		assertEqualIgnoringFields(t, actual, universe, "Buildings", "Resources")
+		expected := universe
+		expected.OccupancyMap = models.OccupancyMap{
+			Topology:  universe.Topology,
+			UsedSlots: make(map[models.Coordinate]struct{}),
+		}
+		assertEqualIgnoringFields(t, actual, expected, "Buildings", "Resources")
 	})
 
 	t.Run("returns error when universe with same name already exists", func(t *testing.T) {
@@ -85,6 +90,30 @@ func TestIT_UniverseRepository_Get(t *testing.T) {
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Contains(t, actual.Buildings, building)
+	})
+
+	t.Run("gets a universe with occupied slots", func(t *testing.T) {
+		u1 := insertTestUniverse(t, conn)
+		p1 := insertTestPlayer(t, conn, u1.Id)
+		planet1 := insertTestPlanet(t, conn, p1.Id)
+
+		u2 := insertTestUniverse(t, conn)
+		p2 := insertTestPlayer(t, conn, u2.Id)
+		planet2 := insertTestPlanet(t, conn, p2.Id)
+		require.NotEqual(t, planet1.Coordinate, planet2.Coordinate)
+
+		actual, err := repo.Get(t.Context(), u1.Id)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		expected := u1
+		expected.OccupancyMap = models.OccupancyMap{
+			Topology: u1.Topology,
+			UsedSlots: map[models.Coordinate]struct{}{
+				planet1.Coordinate: {},
+			},
+		}
+
+		assertEqualIgnoringFields(t, actual, expected, "Buildings", "Resources")
 	})
 
 	t.Run("returns error when universe does not exist", func(t *testing.T) {
@@ -152,15 +181,21 @@ func newTestUniverseRepository(t *testing.T) (*UniverseRepository, db.Connection
 func insertTestUniverse(t *testing.T, conn db.Connection) models.Universe {
 	t.Helper()
 
+	topology := models.UniverseTopology{
+		Galaxies:     rand.Intn(15),
+		SolarSystems: rand.Intn(800),
+		Orbits:       rand.Intn(15),
+	}
+
 	universe := models.Universe{
-		Id:   uuid.New(),
-		Name: fmt.Sprintf("my-universe-%s", uuid.NewString()),
-		Topology: models.UniverseTopology{
-			Galaxies:     rand.Intn(15),
-			SolarSystems: rand.Intn(800),
-			Orbits:       rand.Intn(15),
-		},
+		Id:        uuid.New(),
+		Name:      fmt.Sprintf("my-universe-%s", uuid.NewString()),
+		Topology:  topology,
 		CreatedAt: someTime,
+		OccupancyMap: models.OccupancyMap{
+			Topology:  topology,
+			UsedSlots: make(map[models.Coordinate]struct{}),
+		},
 	}
 
 	sqlQuery := `INSERT INTO universe (id, name, created_at) VALUES ($1, $2, $3)`

@@ -202,8 +202,6 @@ func TestIT_PlayerRepository_Get(t *testing.T) {
 		actual, err := repo.Get(t.Context(), player.Id)
 		require.NoError(t, err, "Actual err: %v", err)
 
-		fmt.Printf("actual planets: %+v\n", actual.Planets)
-
 		assert.Equal(t, player, actual)
 	})
 
@@ -392,16 +390,11 @@ func insertTestPlayerInUniverse(
 	player.Homeworld = homeworld.Id
 	player.Planets = append(player.Planets, homeworld.Id)
 
-	fmt.Printf("homeworld: %s\n", homeworld.Id)
-	fmt.Printf("planets: %d\n", len(player.Planets))
-
 	// Modifiers are applied after the creation of the homeworld to give them a
 	// realistic view of the player
 	for _, modifier := range modifiers {
 		modifier(t, conn, &player)
 	}
-
-	fmt.Printf("planets: %+v\n", player.Planets)
 
 	return player, universe
 }

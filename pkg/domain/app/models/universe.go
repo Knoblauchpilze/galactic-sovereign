@@ -17,6 +17,8 @@ type Universe struct {
 
 	Resources []Resource
 	Buildings []Building
+
+	OccupancyMap OccupancyMap
 }
 
 type UniverseTopology struct {
