@@ -38,8 +38,13 @@ func TestUnit_Planets_GetPlanet(t *testing.T) {
 		ctx, rw := generateTestContextFromRequest(t, req, addIdPathParam)
 
 		planet := models.Planet{
-			Id:        uuid.New(),
-			Name:      "planet-1",
+			Id:   uuid.New(),
+			Name: "planet-1",
+			Coordinate: models.Coordinate{
+				Galaxy:      36,
+				SolarSystem: 151,
+				Position:    12,
+			},
 			CreatedAt: someTime,
 			UpdatedAt: someOtherTime,
 			Resources: []models.PlanetResource{
@@ -86,8 +91,13 @@ func TestUnit_Planets_GetPlanet(t *testing.T) {
 		assert.Equal(t, http.StatusOK, rw.Code)
 		actual := decodeResponseBody[dtos.PlanetDtoResponse](t, rw)
 		expected := dtos.PlanetDtoResponse{
-			Id:        planet.Id,
-			Name:      planet.Name,
+			Id:   planet.Id,
+			Name: planet.Name,
+			Coordinate: dtos.CoordinateDtoResponse{
+				Galaxy:      36,
+				SolarSystem: 151,
+				Position:    12,
+			},
 			CreatedAt: planet.CreatedAt,
 			UpdatedAt: planet.UpdatedAt,
 			Resources: []dtos.PlanetResourceDtoResponse{

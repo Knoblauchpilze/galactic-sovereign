@@ -6,12 +6,16 @@ import (
 )
 
 func ToPlanetResponse(planet models.Planet) dtos.PlanetDtoResponse {
-	// TODO: Should include the planet coordinate
 	dto := dtos.PlanetDtoResponse{
-		Id:          planet.Id,
-		Player:      planet.Player,
-		Name:        planet.Name,
-		Homeworld:   planet.Homeworld,
+		Id:        planet.Id,
+		Player:    planet.Player,
+		Name:      planet.Name,
+		Homeworld: planet.Homeworld,
+		Coordinate: dtos.CoordinateDtoResponse{
+			Galaxy:      planet.Coordinate.Galaxy,
+			SolarSystem: planet.Coordinate.SolarSystem,
+			Position:    planet.Coordinate.Position,
+		},
 		CreatedAt:   planet.CreatedAt,
 		UpdatedAt:   planet.UpdatedAt,
 		Resources:   toPlanetResourcesResponse(planet.Resources),

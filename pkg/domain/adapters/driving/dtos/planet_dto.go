@@ -7,10 +7,11 @@ import (
 )
 
 type PlanetDtoResponse struct {
-	Id        uuid.UUID `json:"id" format:"uuid" binding:"required"`
-	Player    uuid.UUID `json:"player" format:"uuid" binding:"required"`
-	Name      string    `json:"name" example:"colony" binding:"required"`
-	Homeworld bool      `json:"homeworld" binding:"required"`
+	Id         uuid.UUID             `json:"id" format:"uuid" binding:"required"`
+	Player     uuid.UUID             `json:"player" format:"uuid" binding:"required"`
+	Name       string                `json:"name" example:"colony" binding:"required"`
+	Homeworld  bool                  `json:"homeworld" binding:"required"`
+	Coordinate CoordinateDtoResponse `json:"coordinate" binding:"required"`
 
 	CreatedAt time.Time `json:"created_at" format:"date-time" binding:"required"`
 	UpdatedAt time.Time `json:"updated_at" format:"date-time" binding:"required"`
@@ -21,6 +22,12 @@ type PlanetDtoResponse struct {
 	Buildings   []PlanetBuildingDtoResponse           `json:"buildings" binding:"required"`
 
 	BuildingAction *BuildingActionDtoResponse `json:"building_action,omitempty"`
+}
+
+type CoordinateDtoResponse struct {
+	Galaxy      int `json:"galaxy" binding:"required" minimum:"1"`
+	SolarSystem int `json:"solar_system" binding:"required" minimum:"1"`
+	Position    int `json:"position" binding:"required" minimum:"1"`
 }
 
 type PlanetResourceDtoResponse struct {

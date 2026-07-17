@@ -221,6 +221,28 @@ const docTemplate = `{
                 ],
                 "type": "object"
             },
+            "dtos.CoordinateDtoResponse": {
+                "properties": {
+                    "galaxy": {
+                        "minimum": 1,
+                        "type": "integer"
+                    },
+                    "position": {
+                        "minimum": 1,
+                        "type": "integer"
+                    },
+                    "solar_system": {
+                        "minimum": 1,
+                        "type": "integer"
+                    }
+                },
+                "required": [
+                    "galaxy",
+                    "position",
+                    "solar_system"
+                ],
+                "type": "object"
+            },
             "dtos.PlanetBuildingDtoResponse": {
                 "properties": {
                     "building": {
@@ -248,6 +270,9 @@ const docTemplate = `{
                         },
                         "type": "array",
                         "uniqueItems": false
+                    },
+                    "coordinate": {
+                        "$ref": "#/components/schemas/dtos.CoordinateDtoResponse"
                     },
                     "created_at": {
                         "format": "date-time",
@@ -296,6 +321,7 @@ const docTemplate = `{
                 },
                 "required": [
                     "buildings",
+                    "coordinate",
                     "created_at",
                     "homeworld",
                     "id",
