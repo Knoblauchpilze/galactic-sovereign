@@ -55,6 +55,19 @@ func TestUnit_Planet_AddBuildingAction(t *testing.T) {
 		assert.Equal(t, 3, p.Version)
 	})
 
+	t.Run("returns error when planet has no field available", func(t *testing.T) {
+		p := generateTestPlanet(t, withPlanetBuilding)
+		p.Fields = p.Buildings[0].Level
+
+		b := generateTestBuilding(t)
+
+		err := p.AddBuildingAction(b)
+
+		assert.ErrorIs(t, err, domainerrors.ErrAllFieldsUsed, "Actual err: %v", err)
+		assert.Nil(t, p.BuildingAction)
+		assert.Equal(t, 3, p.Version)
+	})
+
 	t.Run("returns error when building does not exist on planet", func(t *testing.T) {
 		p := generateTestPlanet(t, withPlanetBuilding)
 
@@ -690,6 +703,7 @@ func generateTestPlanet(
 
 	p := Planet{
 		Id:        uuid.New(),
+		Fields:    100,
 		UpdatedAt: someTime,
 		Version:   3,
 	}

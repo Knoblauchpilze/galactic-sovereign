@@ -66,6 +66,10 @@ func (p *Planet) AddBuildingAction(building Building) error {
 		return err
 	}
 
+	if !p.fieldsAvailable() {
+		return domainerrors.ErrAllFieldsUsed
+	}
+
 	action := building.CreateBuildingAction(pb.Level+1, p.UpdatedAt)
 
 	if err := p.validateEnoughResources(action); err != nil {
@@ -179,6 +183,25 @@ func (p *Planet) ApplyAction() error {
 	return nil
 }
 
+func (p *Planet) findBuildingById(id uuid.UUID) (PlanetBuilding, error) {
+	for _, b := range p.Buildings {
+		if b.Building == id {
+			return b, nil
+		}
+	}
+
+	return PlanetBuilding{}, domainerrors.ErrBuildingNotFound
+}
+
+func (p *Planet) fieldsAvailable() bool {
+	used := 0
+	for _, b := range p.Buildings {
+		used += b.Level
+	}
+
+	return used < p.Fields
+}
+
 func (p *Planet) validateEnoughResources(
 	action BuildingAction,
 ) error {
@@ -271,14 +294,4 @@ func (p *Planet) updateStorages() {
 		id := temp[s.Resource]
 		p.Storages[id].Storage = s.Storage
 	}
-}
-
-func (p *Planet) findBuildingById(id uuid.UUID) (PlanetBuilding, error) {
-	for _, b := range p.Buildings {
-		if b.Building == id {
-			return b, nil
-		}
-	}
-
-	return PlanetBuilding{}, domainerrors.ErrBuildingNotFound
 }

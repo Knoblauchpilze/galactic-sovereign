@@ -121,6 +121,7 @@ func TestUnit_CreateBuildingAction_Create(t *testing.T) {
 		completionTime := 381600 * time.Millisecond
 		expected := models.Planet{
 			Id:        planet.Id,
+			Fields:    100,
 			CreatedAt: t1,
 			UpdatedAt: t3,
 			// Update to current time, action completion, update to current time and
@@ -254,6 +255,29 @@ func TestUnit_CreateBuildingAction_Create(t *testing.T) {
 
 		assert.ErrorIs(t, err, domainerrors.ErrBuildingNotFound, "Actual err: %v", err)
 	})
+
+	t.Run("returns error when planet has no fields available", func(t *testing.T) {
+		suite := setupCreateBuildingActionTestSuite(t)
+
+		planet := generateTestPlanet()
+		planet.Fields = planet.Buildings[0].Level
+		building := generateTestBuilding(planet)
+		request := generateTestBuildingActionRequest(planet)
+
+		suite.mockClock.EXPECT().Now(gomock.Any()).Times(1).Return(t2)
+		suite.mockBuildingRepo.EXPECT().
+			Get(gomock.Any(), building.Id).
+			Times(1).
+			Return(building, nil)
+		suite.mockMutator.EXPECT().
+			Mutate(gomock.Any(), planet.Id, gomock.Any()).
+			Times(1).
+			DoAndReturn(generateApplyingMutatorMock(&planet))
+
+		_, err := suite.usecase.Create(t.Context(), request)
+
+		assert.ErrorIs(t, err, domainerrors.ErrAllFieldsUsed, "Actual err: %v", err)
+	})
 }
 
 func setupCreateBuildingActionTestSuite(t *testing.T) *createBuildingActionTestSuite {
@@ -279,7 +303,8 @@ func setupCreateBuildingActionTestSuite(t *testing.T) *createBuildingActionTestS
 
 func generateTestPlanet() models.Planet {
 	return models.Planet{
-		Id: uuid.New(),
+		Id:     uuid.New(),
+		Fields: 100,
 		Resources: []models.PlanetResource{
 			{
 				Resource: metalResourceId,

@@ -137,6 +137,24 @@ func TestUnit_BuildingActions_CreateBuildingAction(t *testing.T) {
 		assert.Equal(t, "action already in progress", actual)
 	})
 
+	t.Run("returns 409 when all planet fields are used", func(t *testing.T) {
+		dto := dtos.BuildingActionDtoRequest{Building: uuid.New()}
+		req := generateTestRequestWithJsonBody(t, http.MethodPost, dto)
+		ctx, rw := generateTestContextFromRequest(t, req, addIdPathParam)
+
+		mockUsecase.EXPECT().
+			Create(gomock.Any(), gomock.Any()).
+			Times(1).
+			Return(models.BuildingAction{}, domainerrors.ErrAllFieldsUsed)
+
+		err := createBuildingAction(ctx, mockUsecase)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.Equal(t, http.StatusConflict, rw.Code)
+		actual := decodeResponseBody[string](t, rw)
+		assert.Equal(t, "all fields are used", actual)
+	})
+
 	t.Run("returns 404 when planet is not found", func(t *testing.T) {
 		dto := dtos.BuildingActionDtoRequest{Building: uuid.New()}
 		req := generateTestRequestWithJsonBody(t, http.MethodPost, dto)

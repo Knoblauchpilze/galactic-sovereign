@@ -23,6 +23,7 @@ const (
 	homeworldCannotBeDeleted   errors.ErrorCode = 620
 	universeIsNotEmpty         errors.ErrorCode = 621
 	coordinateAlreadyUsed      errors.ErrorCode = 622
+	allFieldsUsed              errors.ErrorCode = 623
 )
 
 var (
@@ -45,4 +46,5 @@ var (
 	ErrHomeworldCannotBeDeleted   = errors.FromCode(homeworldCannotBeDeleted)
 	ErrUniverseIsNotEmpty         = errors.FromCode(universeIsNotEmpty)
 	ErrCoordinateAlreadyUsed      = errors.FromCode(coordinateAlreadyUsed)
+	ErrAllFieldsUsed              = errors.FromCode(allFieldsUsed)
 )
