@@ -41,7 +41,7 @@ func TestIT_Server_PlayerBuildingActionLifecycle(t *testing.T) {
 	assert.Equal(t, "homeworld", homeworld.Name)
 	assert.Equal(t, player.Id, homeworld.Player)
 	assert.Len(t, homeworld.Resources, 3)
-	assert.Len(t, homeworld.Buildings, 6)
+	assert.Len(t, homeworld.Buildings, 7)
 	assert.Nil(t, homeworld.BuildingAction)
 
 	// Create a building action on the planet

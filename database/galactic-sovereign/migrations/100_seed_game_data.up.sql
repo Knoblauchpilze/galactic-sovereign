@@ -168,3 +168,28 @@ INSERT INTO galactic_sovereign_schema.building_resource_storage("building", "res
     1.833195476
   );
 
+-- shipyard
+INSERT INTO galactic_sovereign_schema.building("id", "name")
+  VALUES ('58d75842-6dc0-4ac0-b36d-55f91b8d060d', 'shipyard');
+
+INSERT INTO galactic_sovereign_schema.building_cost("building", "resource", "cost", "progress")
+  VALUES (
+    '58d75842-6dc0-4ac0-b36d-55f91b8d060d',
+    'b4419b6b-b3bf-4576-aa92-055283addbc8',
+    400,
+    2.0
+  );
+INSERT INTO galactic_sovereign_schema.building_cost("building", "resource", "cost", "progress")
+  VALUES (
+    '58d75842-6dc0-4ac0-b36d-55f91b8d060d',
+    'cd2ac9aa-9968-4ff5-b746-88f1f810fbb3',
+    200,
+    2.0
+  );
+INSERT INTO galactic_sovereign_schema.building_cost("building", "resource", "cost", "progress")
+  VALUES (
+    '58d75842-6dc0-4ac0-b36d-55f91b8d060d',
+    '9665303f-d37f-41e3-ad12-70f8ba8edd14',
+    100,
+    2.0
+  );
