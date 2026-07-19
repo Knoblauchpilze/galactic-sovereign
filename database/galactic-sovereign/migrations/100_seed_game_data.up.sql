@@ -6,6 +6,9 @@ INSERT INTO galactic_sovereign_schema.resource("id", "name", "start_amount", "st
 INSERT INTO galactic_sovereign_schema.resource("id", "name", "start_amount", "start_production", "start_storage")
   VALUES ('cd2ac9aa-9968-4ff5-b746-88f1f810fbb3', 'crystal', 500, 15, 10000);
 
+INSERT INTO galactic_sovereign_schema.resource("id", "name", "start_amount", "start_production", "start_storage")
+  VALUES ('9665303f-d37f-41e3-ad12-70f8ba8edd14', 'deuterium', 0, 0, 10000);
+
 -- Buildings
 -- metal mine
 INSERT INTO galactic_sovereign_schema.building("id", "name")
