@@ -42,6 +42,12 @@ INSERT INTO galactic_sovereign_schema.planet_resource("planet", "resource", "amo
     'cd2ac9aa-9968-4ff5-b746-88f1f810fbb3',
     517
   );
+INSERT INTO galactic_sovereign_schema.planet_resource("planet", "resource", "amount")
+  VALUES (
+    '167bd268-6ae7-4cf4-a359-9534beabfeff',
+    '9665303f-d37f-41e3-ad12-70f8ba8edd14',
+    0
+  );
 
 INSERT INTO galactic_sovereign_schema.planet_resource_production("planet", "building", "resource", "production")
   VALUES (
@@ -56,6 +62,13 @@ INSERT INTO galactic_sovereign_schema.planet_resource_production("planet", "buil
     NULL,
     'cd2ac9aa-9968-4ff5-b746-88f1f810fbb3',
     15
+  );
+INSERT INTO galactic_sovereign_schema.planet_resource_production("planet", "building", "resource", "production")
+  VALUES (
+    '167bd268-6ae7-4cf4-a359-9534beabfeff',
+    NULL,
+    '9665303f-d37f-41e3-ad12-70f8ba8edd14',
+    0
   );
 
 INSERT INTO galactic_sovereign_schema.planet_resource_storage("planet", "resource", "storage")
@@ -131,6 +144,12 @@ INSERT INTO galactic_sovereign_schema.planet_resource("planet", "resource", "amo
     'cd2ac9aa-9968-4ff5-b746-88f1f810fbb3',
     500
   );
+INSERT INTO galactic_sovereign_schema.planet_resource("planet", "resource", "amount")
+  VALUES (
+    '110cdf6f-2103-4e34-924f-fd57eb87ea3e',
+    '9665303f-d37f-41e3-ad12-70f8ba8edd14',
+    0
+  );
 
 INSERT INTO galactic_sovereign_schema.planet_resource_production("planet", "building", "resource", "production")
   VALUES (
@@ -145,6 +164,13 @@ INSERT INTO galactic_sovereign_schema.planet_resource_production("planet", "buil
     NULL,
     'cd2ac9aa-9968-4ff5-b746-88f1f810fbb3',
     15
+  );
+INSERT INTO galactic_sovereign_schema.planet_resource_production("planet", "building", "resource", "production")
+  VALUES (
+    '110cdf6f-2103-4e34-924f-fd57eb87ea3e',
+    NULL,
+    '9665303f-d37f-41e3-ad12-70f8ba8edd14',
+    0
   );
 
 INSERT INTO galactic_sovereign_schema.planet_resource_storage("planet", "resource", "storage")
