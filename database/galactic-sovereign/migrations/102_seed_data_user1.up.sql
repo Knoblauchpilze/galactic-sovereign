@@ -70,6 +70,12 @@ INSERT INTO galactic_sovereign_schema.planet_resource_storage("planet", "resourc
     'cd2ac9aa-9968-4ff5-b746-88f1f810fbb3',
     9000
   );
+INSERT INTO galactic_sovereign_schema.planet_resource_storage("planet", "resource", "storage")
+  VALUES (
+    '167bd268-6ae7-4cf4-a359-9534beabfeff',
+    '9665303f-d37f-41e3-ad12-70f8ba8edd14',
+    10000
+  );
 
 INSERT INTO galactic_sovereign_schema.planet_building("planet", "building", "level")
   VALUES (
@@ -152,6 +158,12 @@ INSERT INTO galactic_sovereign_schema.planet_resource_storage("planet", "resourc
     '110cdf6f-2103-4e34-924f-fd57eb87ea3e',
     'cd2ac9aa-9968-4ff5-b746-88f1f810fbb3',
     9000
+  );
+INSERT INTO galactic_sovereign_schema.planet_resource_storage("planet", "resource", "storage")
+  VALUES (
+    '110cdf6f-2103-4e34-924f-fd57eb87ea3e',
+    '9665303f-d37f-41e3-ad12-70f8ba8edd14',
+    10000
   );
 
 INSERT INTO galactic_sovereign_schema.planet_building("planet", "building", "level")

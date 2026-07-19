@@ -64,6 +64,33 @@ INSERT INTO galactic_sovereign_schema.building_resource_production("building", "
     1.1
   );
 
+-- deuterium synthetizer
+INSERT INTO galactic_sovereign_schema.building("id", "name")
+  VALUES ('54a0ce97-bf8b-4fae-ba6e-caa9ae96265f', 'deuterium synthetizer');
+
+INSERT INTO galactic_sovereign_schema.building_cost("building", "resource", "cost", "progress")
+  VALUES (
+    '54a0ce97-bf8b-4fae-ba6e-caa9ae96265f',
+    'b4419b6b-b3bf-4576-aa92-055283addbc8',
+    225,
+    1.5
+  );
+INSERT INTO galactic_sovereign_schema.building_cost("building", "resource", "cost", "progress")
+  VALUES (
+    '54a0ce97-bf8b-4fae-ba6e-caa9ae96265f',
+    'cd2ac9aa-9968-4ff5-b746-88f1f810fbb3',
+    75,
+    1.5
+  );
+
+INSERT INTO galactic_sovereign_schema.building_resource_production("building", "resource", "base", "progress")
+  VALUES (
+    '54a0ce97-bf8b-4fae-ba6e-caa9ae96265f',
+    '9665303f-d37f-41e3-ad12-70f8ba8edd14',
+    10,
+    1.1
+  );
+
 -- metal storage
 INSERT INTO galactic_sovereign_schema.building("id", "name")
   VALUES ('22b4c0c3-c8e5-4493-89fc-522fdbb0beee', 'metal storage');
@@ -112,3 +139,32 @@ INSERT INTO galactic_sovereign_schema.building_resource_storage("building", "res
     2.5,
     1.833195476
   );
+
+-- deuterium tank
+INSERT INTO galactic_sovereign_schema.building("id", "name")
+  VALUES ('6b81a99f-d826-475b-8dd5-d066b501b1df', 'deuterium tank');
+
+INSERT INTO galactic_sovereign_schema.building_cost("building", "resource", "cost", "progress")
+  VALUES (
+    '6b81a99f-d826-475b-8dd5-d066b501b1df',
+    'b4419b6b-b3bf-4576-aa92-055283addbc8',
+    1000,
+    2.0
+  );
+INSERT INTO galactic_sovereign_schema.building_cost("building", "resource", "cost", "progress")
+  VALUES (
+    '6b81a99f-d826-475b-8dd5-d066b501b1df',
+    'cd2ac9aa-9968-4ff5-b746-88f1f810fbb3',
+    1000,
+    2.0
+  );
+
+INSERT INTO galactic_sovereign_schema.building_resource_storage("building", "resource", "base", "scale", "progress")
+  VALUES (
+    '6b81a99f-d826-475b-8dd5-d066b501b1df',
+    '9665303f-d37f-41e3-ad12-70f8ba8edd14',
+    5000,
+    2.5,
+    1.833195476
+  );
+

@@ -70,6 +70,12 @@ INSERT INTO galactic_sovereign_schema.planet_resource_storage("planet", "resourc
     'cd2ac9aa-9968-4ff5-b746-88f1f810fbb3',
     9000
   );
+INSERT INTO galactic_sovereign_schema.planet_resource_storage("planet", "resource", "storage")
+  VALUES (
+    '717ffa52-89bd-42eb-b34d-0f994a032e35',
+    '9665303f-d37f-41e3-ad12-70f8ba8edd14',
+    10000
+  );
 
 INSERT INTO galactic_sovereign_schema.planet_building("planet", "building", "level")
   VALUES (
