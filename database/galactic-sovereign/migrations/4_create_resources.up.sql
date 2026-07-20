@@ -5,6 +5,7 @@ CREATE TABLE resource(
   start_amount INTEGER NOT NULL,
   start_production INTEGER NOT NULL,
   start_storage INTEGER NOT NULL,
+  build_time_hours_per_unit NUMERIC(15, 5) NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
