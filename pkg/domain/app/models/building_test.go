@@ -106,16 +106,35 @@ func TestUnit_Building_CreateBuildingAction(t *testing.T) {
 		assert.Equal(t, expected, action)
 	})
 
-	t.Run("correctly calculates completion time when no metal nor crystal is used", func(t *testing.T) {
+	t.Run("correctly calculates completion time based on build time per unit", func(t *testing.T) {
 		b := Building{
 			Id:        buildingId,
 			Name:      "test-building",
 			CreatedAt: someTime,
 			Costs: []BuildingCost{
 				{
-					Resource: uuid.New(),
-					Cost:     36,
-					Progress: 1.5,
+					Resource:              uuid.New(),
+					Cost:                  36,
+					Progress:              1.5,
+					BuildTimeHoursPerUnit: 1,
+				},
+				{
+					Resource:              uuid.New(),
+					Cost:                  15,
+					Progress:              1.2,
+					BuildTimeHoursPerUnit: 36,
+				},
+				{
+					Resource:              uuid.New(),
+					Cost:                  100,
+					Progress:              1.8,
+					BuildTimeHoursPerUnit: 0.04,
+				},
+				{
+					Resource:              uuid.New(),
+					Cost:                  150,
+					Progress:              1.01,
+					BuildTimeHoursPerUnit: 0,
 				},
 			},
 			Productions: []BuildingResourceProduction{},
@@ -124,15 +143,29 @@ func TestUnit_Building_CreateBuildingAction(t *testing.T) {
 
 		action := b.CreateBuildingAction(5, someTime)
 
-		assert.Equal(t, someTime, action.CreatedAt)
-		assert.Equal(t, someTime, action.CompletedAt)
 		expectedCosts := []BuildingActionCost{
 			{
 				Resource: b.Costs[0].Resource,
 				Amount:   182,
 			},
+			{
+				Resource: b.Costs[1].Resource,
+				Amount:   31,
+			},
+			{
+				Resource: b.Costs[2].Resource,
+				Amount:   1049,
+			},
+			{
+				Resource: b.Costs[3].Resource,
+				Amount:   156,
+			},
 		}
 		assert.Equal(t, expectedCosts, action.Costs)
+
+		completionTime := 4823856 * time.Second
+		assert.Equal(t, someTime, action.CreatedAt)
+		assert.Equal(t, someTime.Add(completionTime), action.CompletedAt)
 	})
 
 	t.Run("correctly calculates completion time when no resource is used", func(t *testing.T) {
@@ -151,16 +184,17 @@ func TestUnit_Building_CreateBuildingAction(t *testing.T) {
 		assert.Equal(t, someTime, action.CompletedAt)
 	})
 
-	t.Run("correctly calculates completion time for metal usage", func(t *testing.T) {
+	t.Run("correctly calculates completion time when single resource is used", func(t *testing.T) {
 		b := Building{
 			Id:        buildingId,
 			Name:      "test-building",
 			CreatedAt: someTime,
 			Costs: []BuildingCost{
 				{
-					Resource: metalResourceId,
-					Cost:     36,
-					Progress: 1.5,
+					Resource:              uuid.New(),
+					Cost:                  36,
+					Progress:              1.5,
+					BuildTimeHoursPerUnit: 0.0004,
 				},
 			},
 			Productions: []BuildingResourceProduction{},
@@ -174,16 +208,17 @@ func TestUnit_Building_CreateBuildingAction(t *testing.T) {
 		assert.Equal(t, someTime.Add(completionTime), action.CompletedAt)
 	})
 
-	t.Run("correctly calculates completion time for crystal usage", func(t *testing.T) {
+	t.Run("correctly calculates completion time when resource has no build time", func(t *testing.T) {
 		b := Building{
 			Id:        buildingId,
 			Name:      "test-building",
 			CreatedAt: someTime,
 			Costs: []BuildingCost{
 				{
-					Resource: crystalResourceId,
-					Cost:     79,
-					Progress: 1.7,
+					Resource:              crystalResourceId,
+					Cost:                  79,
+					Progress:              1.7,
+					BuildTimeHoursPerUnit: 0.0,
 				},
 			},
 			Productions: []BuildingResourceProduction{},
@@ -192,37 +227,8 @@ func TestUnit_Building_CreateBuildingAction(t *testing.T) {
 
 		action := b.CreateBuildingAction(5, someTime)
 
-		completionTime := 948960 * time.Millisecond
 		assert.Equal(t, someTime, action.CreatedAt)
-		assert.Equal(t, someTime.Add(completionTime), action.CompletedAt)
-	})
-
-	t.Run("correctly calculates completion time when metal and crystal are used", func(t *testing.T) {
-		b := Building{
-			Id:        buildingId,
-			Name:      "test-building",
-			CreatedAt: someTime,
-			Costs: []BuildingCost{
-				{
-					Resource: metalResourceId,
-					Cost:     36,
-					Progress: 1.5,
-				},
-				{
-					Resource: crystalResourceId,
-					Cost:     79,
-					Progress: 1.7,
-				},
-			},
-			Productions: []BuildingResourceProduction{},
-			Storages:    []BuildingResourceStorage{},
-		}
-
-		action := b.CreateBuildingAction(5, someTime)
-
-		completionTime := 1211040 * time.Millisecond
-		assert.Equal(t, someTime, action.CreatedAt)
-		assert.Equal(t, someTime.Add(completionTime), action.CompletedAt)
+		assert.Equal(t, someTime, action.CompletedAt)
 	})
 }
 
@@ -253,14 +259,16 @@ func withBuildingCost(t *testing.T, b *Building) {
 
 	b.Costs = []BuildingCost{
 		{
-			Resource: metalResourceId,
-			Cost:     36,
-			Progress: 1.5,
+			Resource:              metalResourceId,
+			Cost:                  36,
+			Progress:              1.5,
+			BuildTimeHoursPerUnit: 0.0004,
 		},
 		{
-			Resource: crystalResourceId,
-			Cost:     78,
-			Progress: 1.7,
+			Resource:              crystalResourceId,
+			Cost:                  78,
+			Progress:              1.7,
+			BuildTimeHoursPerUnit: 0.0004,
 		},
 	}
 }

@@ -130,7 +130,8 @@ func addBuildingCost(t *testing.T, conn db.Connection, b *models.Building) {
 		Resource: metalResourceId,
 		Cost:     rand.Intn(897),
 		// Progress is stored with 5 decimals in the DB
-		Progress: randFloat(t, 10, 100, 5),
+		Progress:              randFloat(t, 10, 100, 5),
+		BuildTimeHoursPerUnit: 0.0004,
 	}
 
 	sqlQuery := `INSERT INTO building_cost (building, resource, cost, progress)

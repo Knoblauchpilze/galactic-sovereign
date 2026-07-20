@@ -345,14 +345,16 @@ func generateTestBuilding(planet models.Planet) models.Building {
 		Id: planet.Buildings[0].Building,
 		Costs: []models.BuildingCost{
 			{
-				Resource: metalResourceId,
-				Cost:     50,
-				Progress: 1.25,
+				Resource:              metalResourceId,
+				Cost:                  50,
+				Progress:              1.25,
+				BuildTimeHoursPerUnit: 0.0004,
 			},
 			{
-				Resource: crystalResourceId,
-				Cost:     67,
-				Progress: 1.36,
+				Resource:              crystalResourceId,
+				Cost:                  67,
+				Progress:              1.36,
+				BuildTimeHoursPerUnit: 0.0004,
 			},
 		},
 	}

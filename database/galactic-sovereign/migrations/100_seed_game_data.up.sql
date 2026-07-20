@@ -1,5 +1,6 @@
 
 -- Resources
+-- https://ogame.fandom.com/wiki/Buildings
 INSERT INTO galactic_sovereign_schema.resource("id", "name", "start_amount", "start_production", "start_storage", "build_time_hours_per_unit")
   VALUES ('b4419b6b-b3bf-4576-aa92-055283addbc8', 'metal', 500, 30, 10000, 1.0/2500.0);
 

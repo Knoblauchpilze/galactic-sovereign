@@ -7,12 +7,6 @@ import (
 	"github.com/google/uuid"
 )
 
-const (
-	// This describes how many resources can be 'metabolized' by the planet in an
-	// hour in the form of a building.
-	resourceUnitsPerHour float64 = 2500.0
-)
-
 type Building struct {
 	Id        uuid.UUID
 	Name      string
@@ -24,9 +18,10 @@ type Building struct {
 }
 
 type BuildingCost struct {
-	Resource uuid.UUID
-	Cost     int
-	Progress float64
+	Resource              uuid.UUID
+	Cost                  int
+	Progress              float64
+	BuildTimeHoursPerUnit float64
 }
 
 type BuildingResourceProduction struct {
@@ -47,7 +42,7 @@ func (b Building) CreateBuildingAction(
 	createdAt time.Time,
 ) BuildingAction {
 	costs := b.determineActionCost(desiredLevel)
-	completionTime := determineCompletionTime(costs)
+	completionTime := b.determineCompletionTime(costs)
 
 	action := BuildingAction{
 		Id:           uuid.New(),
@@ -129,26 +124,23 @@ func (b Building) determineActionResourceStorage(
 	return storages
 }
 
-func determineCompletionTime(
+func (b Building) determineCompletionTime(
 	costs []BuildingActionCost,
 ) time.Duration {
-	// https://ogame.fandom.com/wiki/Buildings
-	metal := findResourceById(costs, metalResourceId)
-	crystal := findResourceById(costs, crystalResourceId)
+	temp := make(map[uuid.UUID]BuildingCost)
+	for _, cost := range b.Costs {
+		temp[cost.Resource] = cost
+	}
 
-	buildTimeHour := (metal + crystal) / resourceUnitsPerHour
+	buildTimeHour := 0.0
+	for _, cost := range costs {
+		resourceCost := temp[cost.Resource]
+		resourceBuildTime := float64(cost.Amount) * resourceCost.BuildTimeHoursPerUnit
+
+		buildTimeHour += resourceBuildTime
+	}
 
 	nanoSeconds := math.Ceil(buildTimeHour * float64(time.Hour.Nanoseconds()))
 
 	return time.Duration(nanoSeconds)
-}
-
-func findResourceById(resources []BuildingActionCost, id uuid.UUID) float64 {
-	for _, r := range resources {
-		if r.Resource == id {
-			return float64(r.Amount)
-		}
-	}
-
-	return 0
 }

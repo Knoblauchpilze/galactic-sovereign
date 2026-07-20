@@ -33,13 +33,15 @@ ORDER BY
 
 	listBuildingCostForBuildingQuery = `
 SELECT
-	resource,
-	cost,
-	progress
+	bc.resource,
+	bc.cost,
+	bc.progress,
+	r.build_time_hours_per_unit
 FROM
-	building_cost
+	building_cost AS bc
+	INNER JOIN resource AS r ON r.id = bc.resource
 WHERE
-	building = $1`
+	bc.building = $1`
 
 	listBuildingResourceProductionForBuildingQuery = `
 SELECT

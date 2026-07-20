@@ -28,7 +28,10 @@ func NewPlayerUseCase(
 	}
 }
 
-func (p *PlayerUseCase) Create(ctx context.Context, req request.PlayerCreationRequest) (models.Player, error) {
+func (p *PlayerUseCase) Create(
+	ctx context.Context,
+	req request.PlayerCreationRequest,
+) (models.Player, error) {
 	player := request.FromPlayerCreationRequest(req)
 
 	universe, err := p.universeRepo.Get(ctx, player.Universe)
@@ -41,6 +44,7 @@ func (p *PlayerUseCase) Create(ctx context.Context, req request.PlayerCreationRe
 
 	homeworld := player.CreateHomeworld(universe)
 
+	// TODO: Could be that the planet was used, in which case an optimistic lock error will be returned
 	err = p.playerRepo.Create(ctx, player, homeworld)
 	if err != nil {
 		return models.Player{}, err
