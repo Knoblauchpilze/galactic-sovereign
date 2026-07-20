@@ -51,12 +51,13 @@ func toResourceResponse(
 	resource models.Resource,
 ) dtos.ResourceDtoResponse {
 	return dtos.ResourceDtoResponse{
-		Id:              resource.Id,
-		Name:            resource.Name,
-		StartAmount:     resource.StartAmount,
-		StartProduction: resource.StartProduction,
-		StartStorage:    resource.StartStorage,
-		CreatedAt:       resource.CreatedAt,
+		Id:                    resource.Id,
+		Name:                  resource.Name,
+		StartAmount:           resource.StartAmount,
+		StartProduction:       resource.StartProduction,
+		StartStorage:          resource.StartStorage,
+		BuildTimeHoursPerUnit: resource.BuildTimeHoursPerUnit,
+		CreatedAt:             resource.CreatedAt,
 	}
 }
 

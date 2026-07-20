@@ -43,6 +43,7 @@ SELECT
 	start_amount,
 	start_production,
 	start_storage,
+	build_time_hours_per_unit,
 	created_at
 FROM
 	resource

@@ -183,12 +183,13 @@ func TestUnit_Universes_GetUniverse(t *testing.T) {
 			CreatedAt: someTime,
 			Resources: []models.Resource{
 				{
-					Id:              sampleResourceId,
-					Name:            "resource",
-					StartAmount:     26,
-					StartProduction: 47,
-					StartStorage:    1055,
-					CreatedAt:       someOtherTime,
+					Id:                    sampleResourceId,
+					Name:                  "resource",
+					StartAmount:           26,
+					StartProduction:       47,
+					StartStorage:          1055,
+					BuildTimeHoursPerUnit: 36.256,
+					CreatedAt:             someOtherTime,
 				},
 			},
 			Buildings: []models.Building{
@@ -237,12 +238,13 @@ func TestUnit_Universes_GetUniverse(t *testing.T) {
 			CreatedAt: universe.CreatedAt,
 			Resources: []dtos.ResourceDtoResponse{
 				{
-					Id:              sampleResourceId,
-					Name:            "resource",
-					StartAmount:     26,
-					StartProduction: 47,
-					StartStorage:    1055,
-					CreatedAt:       someOtherTime,
+					Id:                    sampleResourceId,
+					Name:                  "resource",
+					StartAmount:           26,
+					StartProduction:       47,
+					StartStorage:          1055,
+					BuildTimeHoursPerUnit: 36.256,
+					CreatedAt:             someOtherTime,
 				},
 			},
 			Buildings: []dtos.BuildingDtoResponse{
@@ -326,7 +328,17 @@ func TestUnit_Universes_ListUniverses(t *testing.T) {
 				Id:        uuid.New(),
 				Name:      "universe-1",
 				CreatedAt: someTime,
-				Resources: []models.Resource{},
+				Resources: []models.Resource{
+					{
+						Id:                    uuid.New(),
+						Name:                  "my-resource",
+						StartAmount:           36,
+						StartProduction:       15,
+						StartStorage:          1000,
+						BuildTimeHoursPerUnit: 0.01478,
+						CreatedAt:             someOtherTime,
+					},
+				},
 				Buildings: []models.Building{},
 			},
 			{
@@ -352,7 +364,17 @@ func TestUnit_Universes_ListUniverses(t *testing.T) {
 				Id:        universes[0].Id,
 				Name:      universes[0].Name,
 				CreatedAt: universes[0].CreatedAt,
-				Resources: []dtos.ResourceDtoResponse{},
+				Resources: []dtos.ResourceDtoResponse{
+					{
+						Id:                    universes[0].Resources[0].Id,
+						Name:                  universes[0].Resources[0].Name,
+						StartAmount:           universes[0].Resources[0].StartAmount,
+						StartProduction:       universes[0].Resources[0].StartProduction,
+						StartStorage:          universes[0].Resources[0].StartStorage,
+						BuildTimeHoursPerUnit: universes[0].Resources[0].BuildTimeHoursPerUnit,
+						CreatedAt:             universes[0].Resources[0].CreatedAt,
+					},
+				},
 				Buildings: []dtos.BuildingDtoResponse{},
 			},
 			{

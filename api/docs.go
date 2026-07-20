@@ -462,6 +462,10 @@ const docTemplate = `{
             },
             "dtos.ResourceDtoResponse": {
                 "properties": {
+                    "build_time_hours_per_unit": {
+                        "minimum": 1,
+                        "type": "number"
+                    },
                     "created_at": {
                         "format": "date-time",
                         "type": "string"
@@ -475,16 +479,20 @@ const docTemplate = `{
                         "type": "string"
                     },
                     "start_amount": {
+                        "minimum": 1,
                         "type": "integer"
                     },
                     "start_production": {
+                        "minimum": 0,
                         "type": "integer"
                     },
                     "start_storage": {
+                        "minimum": 1,
                         "type": "integer"
                     }
                 },
                 "required": [
+                    "build_time_hours_per_unit",
                     "created_at",
                     "id",
                     "name",
@@ -519,12 +527,15 @@ const docTemplate = `{
             "dtos.TopologyDtoResponse": {
                 "properties": {
                     "galaxies": {
+                        "minimum": 1,
                         "type": "integer"
                     },
                     "orbits": {
+                        "minimum": 1,
                         "type": "integer"
                     },
                     "solar_systems": {
+                        "minimum": 1,
                         "type": "integer"
                     }
                 },
