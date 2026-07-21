@@ -136,11 +136,10 @@ func (b Building) determineCompletionTime(
 	for _, cost := range costs {
 		resourceCost := temp[cost.Resource]
 		resourceBuildTime := float64(cost.Amount) * resourceCost.BuildTimeHoursPerUnit
-
 		buildTimeHour += resourceBuildTime
 	}
 
-	nanoSeconds := math.Ceil(buildTimeHour * float64(time.Hour.Nanoseconds()))
+	nanoSeconds := math.Floor(buildTimeHour * float64(time.Hour.Nanoseconds()))
 
 	return time.Duration(nanoSeconds)
 }
