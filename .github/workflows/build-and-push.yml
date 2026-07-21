@@ -49,7 +49,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - name: Setup Go
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@v7
         with:
           go-version: "1.26.0"
       - name: Run tests with coverage
@@ -67,7 +67,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - name: Setup Go
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@v7
         with:
           go-version: "1.26.0"
       - name: Run tests with coverage
@@ -131,7 +131,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - name: Setup Go
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@v7
         with:
           go-version: "1.26.0"
       - name: Install migrate tool
