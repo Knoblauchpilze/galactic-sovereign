@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v5"
 	"github.com/stretchr/testify/require"
@@ -64,6 +65,24 @@ func generateTestContextFromRequest(
 	}
 
 	return ctx, rw
+}
+
+func createTestGinRouterWithHandler(
+	t *testing.T,
+	handler gin.HandlerFunc,
+	middlewares ...gin.HandlerFunc,
+) *gin.Engine {
+	t.Helper()
+
+	r := gin.New()
+
+	for _, middleware := range middlewares {
+		r.Use(middleware)
+	}
+
+	r.GET("/", handler)
+
+	return r
 }
 
 func addIdPathParam(t *testing.T, c *echo.Context) {
