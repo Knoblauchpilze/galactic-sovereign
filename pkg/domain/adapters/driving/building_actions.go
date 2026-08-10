@@ -9,15 +9,15 @@ import (
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driving/mappers"
 	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
 	drivingports "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driving"
+	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"github.com/labstack/echo/v5"
 )
 
 func BuildingActionEndpoints(
 	createUsecase drivingports.ForCreatingBuildingAction,
 	deleteUsecase drivingports.ForDeletingBuildingAction,
-) rest.Routes {
-	var out rest.Routes
+) Routes {
+	var out Routes
 
 	handler := generateHandler(createBuildingAction, createUsecase)
 	post := rest.NewRoute(http.MethodPost, "/planets/:id/actions", handler)
@@ -44,48 +44,56 @@ func BuildingActionEndpoints(
 //	@Failure		409		{object}	rest.ResponseEnvelope[string]
 //	@Failure		500		{object}	rest.ResponseEnvelope[string]
 //	@Router			/planets/{id}/actions [post]
-func createBuildingAction(c *echo.Context, usecase drivingports.ForCreatingBuildingAction) error {
+func createBuildingAction(c *gin.Context, usecase drivingports.ForCreatingBuildingAction) {
 	maybeId := c.Param("id")
 	planetId, err := uuid.Parse(maybeId)
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, "invalid id syntax")
+		c.AbortWithStatusJSON(http.StatusBadRequest, "invalid id syntax")
+		return
 	}
 
 	var inputDto dtos.BuildingActionDtoRequest
 	err = c.Bind(&inputDto)
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, "invalid building action syntax")
+		c.AbortWithStatusJSON(http.StatusBadRequest, "invalid building action syntax")
+		return
 	}
 
 	request := mappers.ToBuildingActionCreationRequest(planetId, inputDto)
-	action, err := usecase.Create(c.Request().Context(), request)
+	action, err := usecase.Create(c.Request.Context(), request)
 	if err != nil {
 		if err == domainerrors.ErrActionAlreadyInProgress {
-			return c.JSON(http.StatusConflict, "action already in progress")
+			c.AbortWithStatusJSON(http.StatusConflict, "action already in progress")
+			return
 		}
 
 		if err == domainerrors.ErrNotFound {
-			return c.JSON(http.StatusNotFound, "no such planet")
+			c.AbortWithStatusJSON(http.StatusNotFound, "no such planet")
+			return
 		}
 
 		if err == domainerrors.ErrBuildingNotFound {
-			return c.JSON(http.StatusBadRequest, "no such building")
+			c.AbortWithStatusJSON(http.StatusBadRequest, "no such building")
+			return
 		}
 
 		if err == domainerrors.ErrNotEnoughResources {
-			return c.JSON(http.StatusBadRequest, "not enough resources")
+			c.AbortWithStatusJSON(http.StatusBadRequest, "not enough resources")
+			return
 		}
 
 		if err == domainerrors.ErrAllFieldsUsed {
-			return c.JSON(http.StatusConflict, "all fields are used")
+			c.AbortWithStatusJSON(http.StatusConflict, "all fields are used")
+			return
 		}
 
-		c.Logger().Error("Failed to create building action", slog.Any("error", err))
-		return c.JSON(http.StatusInternalServerError, "failed to create building action")
+		logError(c.Request, "Failed to create building action", slog.Any("error", err))
+		c.AbortWithStatusJSON(http.StatusInternalServerError, "failed to create building action")
+		return
 	}
 
 	out := mappers.ToBuildingActionResponse(action)
-	return c.JSON(http.StatusCreated, out)
+	c.JSON(http.StatusCreated, out)
 }
 
 // deleteBuildingAction godoc
@@ -100,22 +108,25 @@ func createBuildingAction(c *echo.Context, usecase drivingports.ForCreatingBuild
 //	@Failure		404	{object}	rest.ResponseEnvelope[string]
 //	@Failure		500	{object}	rest.ResponseEnvelope[string]
 //	@Router			/planets/{id}/actions [delete]
-func deleteBuildingAction(c *echo.Context, usecase drivingports.ForDeletingBuildingAction) error {
+func deleteBuildingAction(c *gin.Context, usecase drivingports.ForDeletingBuildingAction) {
 	maybeId := c.Param("id")
 	id, err := uuid.Parse(maybeId)
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, "invalid id syntax")
+		c.AbortWithStatusJSON(http.StatusBadRequest, "invalid id syntax")
+		return
 	}
 
-	err = usecase.DeleteForPlanet(c.Request().Context(), id)
+	err = usecase.DeleteForPlanet(c.Request.Context(), id)
 	if err != nil {
 		if err == domainerrors.ErrNotFound {
-			return c.JSON(http.StatusNotFound, "no such planet")
+			c.AbortWithStatusJSON(http.StatusNotFound, "no such planet")
+			return
 		}
 
-		c.Logger().Error("Failed to delete building action", slog.Any("error", err))
-		return c.JSON(http.StatusInternalServerError, "failed to delete building action")
+		logError(c.Request, "Failed to delete building action", slog.Any("error", err))
+		c.AbortWithStatusJSON(http.StatusInternalServerError, "failed to delete building action")
+		return
 	}
 
-	return c.NoContent(http.StatusNoContent)
+	c.Status(http.StatusNoContent)
 }
