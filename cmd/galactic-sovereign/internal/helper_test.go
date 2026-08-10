@@ -58,7 +58,7 @@ func newTestServerConfig() server.Config {
 
 // asyncStartServer starts the server in a goroutine and registers shutdown via
 // t.Cleanup, so callers only need to invoke this helper.
-func asyncStartServer(t *testing.T, s server.Server) {
+func asyncStartServer(t *testing.T, s *server.Server) {
 	t.Helper()
 
 	done := make(chan struct{})
