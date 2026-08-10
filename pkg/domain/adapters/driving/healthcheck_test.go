@@ -28,7 +28,7 @@ func TestUnit_Healthcheck_Healthcheck(t *testing.T) {
 			healthcheck,
 			mockUsecase,
 		)
-		r := createTestGinRouterWithHandler(t, handler)
+		r := createTestGinRouter(t, http.MethodGet, "/", handler)
 
 		req := generateTestRequest(t, http.MethodGet)
 		rw := httptest.NewRecorder()
@@ -49,7 +49,7 @@ func TestUnit_Healthcheck_Healthcheck(t *testing.T) {
 			healthcheck,
 			mockUsecase,
 		)
-		r := createTestGinRouterWithHandler(t, handler)
+		r := createTestGinRouter(t, http.MethodGet, "/", handler)
 
 		req := generateTestRequest(t, http.MethodGet)
 		rw := httptest.NewRecorder()

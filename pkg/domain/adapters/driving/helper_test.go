@@ -3,6 +3,7 @@ package drivingadapters
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -22,11 +23,26 @@ var (
 	sampleResourceId = uuid.New()
 )
 
-func generateTestRequest(t *testing.T, method string) *http.Request {
+func generateTestRequest(
+	t *testing.T,
+	method string,
+	modifiers ...func(*testing.T, *http.Request),
+) *http.Request {
 	t.Helper()
 
 	req := httptest.NewRequest(method, "/", nil)
+
+	for _, modifier := range modifiers {
+		modifier(t, req)
+	}
+
 	return req
+}
+
+func addSampleUuidPathParam(t *testing.T, req *http.Request) {
+	t.Helper()
+
+	req.URL.Path = fmt.Sprintf("/%s", sampleUuid)
 }
 
 func addQueryParam(t *testing.T, req *http.Request, key string, value string) {
@@ -67,8 +83,10 @@ func generateTestContextFromRequest(
 	return ctx, rw
 }
 
-func createTestGinRouterWithHandler(
+func createTestGinRouter(
 	t *testing.T,
+	method string,
+	path string,
 	handler gin.HandlerFunc,
 	middlewares ...gin.HandlerFunc,
 ) *gin.Engine {
@@ -80,7 +98,7 @@ func createTestGinRouterWithHandler(
 		r.Use(middleware)
 	}
 
-	r.GET("/", handler)
+	r.Handle(method, path, handler)
 
 	return r
 }
