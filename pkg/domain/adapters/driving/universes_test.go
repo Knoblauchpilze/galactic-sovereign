@@ -2,6 +2,7 @@ package drivingadapters
 
 import (
 	"net/http"
+	"net/http/httptest"
 	"testing"
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/errors"
@@ -10,23 +11,29 @@ import (
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
 	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/request"
+	drivingports "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driving"
+	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"github.com/labstack/echo/v5"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 )
 
 func TestUnit_Universes_CreateUniverse(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
 	ctrl := gomock.NewController(t)
 	mockUsecase := drivingportstest.NewMockForManagingUniverse(ctrl)
 
 	t.Run("returns 400 when body is invalid", func(t *testing.T) {
-		req := generateTestRequestWithJsonBody(t, http.MethodPost, "not-a-dto-request")
-		ctx, rw := generateTestContextFromRequest(t, req)
+		handler := generateHandler[drivingports.ForManagingUniverse](
+			createUniverse,
+			mockUsecase,
+		)
+		r := createTestGinRouter(t, http.MethodPost, "/", handler)
 
-		err := createUniverse(ctx, mockUsecase)
-		require.NoError(t, err, "Actual err: %v", err)
+		req := generateTestRequestWithJsonBody(t, http.MethodPost, "not-a-dto-request")
+		rw := httptest.NewRecorder()
+		r.ServeHTTP(rw, req)
 
 		assert.Equal(t, http.StatusBadRequest, rw.Code)
 		actual := decodeResponseBody[string](t, rw)
@@ -35,8 +42,6 @@ func TestUnit_Universes_CreateUniverse(t *testing.T) {
 
 	t.Run("forwards creation to use case", func(t *testing.T) {
 		dto := sampleUniverseDtoRequest()
-		req := generateTestRequestWithJsonBody(t, http.MethodPost, dto)
-		ctx, rw := generateTestContextFromRequest(t, req)
 
 		buildingId := uuid.New()
 
@@ -79,8 +84,15 @@ func TestUnit_Universes_CreateUniverse(t *testing.T) {
 				},
 			}, nil)
 
-		err := createUniverse(ctx, mockUsecase)
-		require.NoError(t, err, "Actual err: %v", err)
+		handler := generateHandler[drivingports.ForManagingUniverse](
+			createUniverse,
+			mockUsecase,
+		)
+		r := createTestGinRouter(t, http.MethodPost, "/", handler)
+
+		req := generateTestRequestWithJsonBody(t, http.MethodPost, dto)
+		rw := httptest.NewRecorder()
+		r.ServeHTTP(rw, req)
 
 		assert.Equal(t, http.StatusCreated, rw.Code)
 		actual := decodeResponseBody[dtos.UniverseDtoResponse](t, rw)
@@ -116,16 +128,21 @@ func TestUnit_Universes_CreateUniverse(t *testing.T) {
 
 	t.Run("returns 409 when name is already taken", func(t *testing.T) {
 		dto := sampleUniverseDtoRequest()
-		req := generateTestRequestWithJsonBody(t, http.MethodPost, dto)
-		ctx, rw := generateTestContextFromRequest(t, req)
 
 		mockUsecase.EXPECT().
 			Create(gomock.Any(), gomock.Any()).
 			Times(1).
 			Return(models.Universe{}, domainerrors.ErrNameAlreadyTaken)
 
-		err := createUniverse(ctx, mockUsecase)
-		require.NoError(t, err, "Actual err: %v", err)
+		handler := generateHandler[drivingports.ForManagingUniverse](
+			createUniverse,
+			mockUsecase,
+		)
+		r := createTestGinRouter(t, http.MethodPost, "/", handler)
+
+		req := generateTestRequestWithJsonBody(t, http.MethodPost, dto)
+		rw := httptest.NewRecorder()
+		r.ServeHTTP(rw, req)
 
 		assert.Equal(t, http.StatusConflict, rw.Code)
 		actual := decodeResponseBody[string](t, rw)
@@ -134,16 +151,21 @@ func TestUnit_Universes_CreateUniverse(t *testing.T) {
 
 	t.Run("returns 500 when use case fails", func(t *testing.T) {
 		dto := sampleUniverseDtoRequest()
-		req := generateTestRequestWithJsonBody(t, http.MethodPost, dto)
-		ctx, rw := generateTestContextFromRequest(t, req)
 
 		mockUsecase.EXPECT().
 			Create(gomock.Any(), gomock.Any()).
 			Times(1).
 			Return(models.Universe{}, errors.New("stubbed error"))
 
-		err := createUniverse(ctx, mockUsecase)
-		require.NoError(t, err, "Actual err: %v", err)
+		handler := generateHandler[drivingports.ForManagingUniverse](
+			createUniverse,
+			mockUsecase,
+		)
+		r := createTestGinRouter(t, http.MethodPost, "/", handler)
+
+		req := generateTestRequestWithJsonBody(t, http.MethodPost, dto)
+		rw := httptest.NewRecorder()
+		r.ServeHTTP(rw, req)
 
 		assert.Equal(t, http.StatusInternalServerError, rw.Code)
 		actual := decodeResponseBody[string](t, rw)
@@ -152,16 +174,21 @@ func TestUnit_Universes_CreateUniverse(t *testing.T) {
 }
 
 func TestUnit_Universes_GetUniverse(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
 	ctrl := gomock.NewController(t)
 	mockUsecase := drivingportstest.NewMockForManagingUniverse(ctrl)
 
 	t.Run("returns 400 when id is invalid", func(t *testing.T) {
-		req := generateTestRequest(t, http.MethodGet)
-		ctx, rw := generateTestContextFromRequest(t, req)
-		ctx.SetPathValues([]echo.PathValue{{Name: "id", Value: "not-a-uuid"}})
+		handler := generateHandler[drivingports.ForManagingUniverse](
+			getUniverse,
+			mockUsecase,
+		)
+		r := createTestGinRouter(t, http.MethodGet, "/:id", handler)
 
-		err := getUniverse(ctx, mockUsecase)
-		require.NoError(t, err, "Actual err: %v", err)
+		req := httptest.NewRequest(http.MethodGet, "/not-a-uuid", nil)
+		rw := httptest.NewRecorder()
+		r.ServeHTTP(rw, req)
 
 		assert.Equal(t, http.StatusBadRequest, rw.Code)
 		actual := decodeResponseBody[string](t, rw)
@@ -169,9 +196,6 @@ func TestUnit_Universes_GetUniverse(t *testing.T) {
 	})
 
 	t.Run("forwards fetching to use case", func(t *testing.T) {
-		req := generateTestRequest(t, http.MethodGet)
-		ctx, rw := generateTestContextFromRequest(t, req, addIdPathParam)
-
 		buildingId := uuid.New()
 		buildingCostResourceId := uuid.New()
 		buildingProductionResourceId := uuid.New()
@@ -227,8 +251,15 @@ func TestUnit_Universes_GetUniverse(t *testing.T) {
 			Times(1).
 			Return(universe, nil)
 
-		err := getUniverse(ctx, mockUsecase)
-		require.NoError(t, err, "Actual err: %v", err)
+		handler := generateHandler[drivingports.ForManagingUniverse](
+			getUniverse,
+			mockUsecase,
+		)
+		r := createTestGinRouter(t, http.MethodGet, "/:id", handler)
+
+		req := generateTestRequest(t, http.MethodGet, addSampleUuidPathParam)
+		rw := httptest.NewRecorder()
+		r.ServeHTTP(rw, req)
 
 		assert.Equal(t, http.StatusOK, rw.Code)
 		actual := decodeResponseBody[dtos.UniverseDtoResponse](t, rw)
@@ -281,16 +312,20 @@ func TestUnit_Universes_GetUniverse(t *testing.T) {
 	})
 
 	t.Run("returns 404 when universe does not exist", func(t *testing.T) {
-		req := generateTestRequest(t, http.MethodGet)
-		ctx, rw := generateTestContextFromRequest(t, req, addIdPathParam)
-
 		mockUsecase.EXPECT().
 			Get(gomock.Any(), gomock.Eq(sampleUuid)).
 			Times(1).
 			Return(models.Universe{}, domainerrors.ErrNotFound)
 
-		err := getUniverse(ctx, mockUsecase)
-		require.NoError(t, err, "Actual err: %v", err)
+		handler := generateHandler[drivingports.ForManagingUniverse](
+			getUniverse,
+			mockUsecase,
+		)
+		r := createTestGinRouter(t, http.MethodGet, "/:id", handler)
+
+		req := generateTestRequest(t, http.MethodGet, addSampleUuidPathParam)
+		rw := httptest.NewRecorder()
+		r.ServeHTTP(rw, req)
 
 		assert.Equal(t, http.StatusNotFound, rw.Code)
 		actual := decodeResponseBody[string](t, rw)
@@ -298,16 +333,20 @@ func TestUnit_Universes_GetUniverse(t *testing.T) {
 	})
 
 	t.Run("returns 500 when use case fails", func(t *testing.T) {
-		req := generateTestRequest(t, http.MethodGet)
-		ctx, rw := generateTestContextFromRequest(t, req, addIdPathParam)
-
 		mockUsecase.EXPECT().
 			Get(gomock.Any(), gomock.Any()).
 			Times(1).
 			Return(models.Universe{}, errors.New("stubbed error"))
 
-		err := getUniverse(ctx, mockUsecase)
-		require.NoError(t, err, "Actual err: %v", err)
+		handler := generateHandler[drivingports.ForManagingUniverse](
+			getUniverse,
+			mockUsecase,
+		)
+		r := createTestGinRouter(t, http.MethodGet, "/:id", handler)
+
+		req := generateTestRequest(t, http.MethodGet, addSampleUuidPathParam)
+		rw := httptest.NewRecorder()
+		r.ServeHTTP(rw, req)
 
 		assert.Equal(t, http.StatusInternalServerError, rw.Code)
 		actual := decodeResponseBody[string](t, rw)
@@ -316,13 +355,12 @@ func TestUnit_Universes_GetUniverse(t *testing.T) {
 }
 
 func TestUnit_Universes_ListUniverses(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
 	ctrl := gomock.NewController(t)
 	mockUsecase := drivingportstest.NewMockForManagingUniverse(ctrl)
 
 	t.Run("forwards listing to use case", func(t *testing.T) {
-		req := generateTestRequest(t, http.MethodGet)
-		ctx, rw := generateTestContextFromRequest(t, req)
-
 		universes := []models.Universe{
 			{
 				Id:        uuid.New(),
@@ -354,8 +392,15 @@ func TestUnit_Universes_ListUniverses(t *testing.T) {
 			Times(1).
 			Return(universes, nil)
 
-		err := listUniverses(ctx, mockUsecase)
-		require.NoError(t, err, "Actual err: %v", err)
+		handler := generateHandler[drivingports.ForManagingUniverse](
+			listUniverses,
+			mockUsecase,
+		)
+		r := createTestGinRouter(t, http.MethodGet, "/", handler)
+
+		req := generateTestRequest(t, http.MethodGet)
+		rw := httptest.NewRecorder()
+		r.ServeHTTP(rw, req)
 
 		assert.Equal(t, http.StatusOK, rw.Code)
 		actual := decodeResponseBody[[]dtos.UniverseDtoResponse](t, rw)
@@ -389,16 +434,20 @@ func TestUnit_Universes_ListUniverses(t *testing.T) {
 	})
 
 	t.Run("return empty slice when use case returns no universe", func(t *testing.T) {
-		req := generateTestRequest(t, http.MethodGet)
-		ctx, rw := generateTestContextFromRequest(t, req)
-
 		mockUsecase.EXPECT().
 			List(gomock.Any()).
 			Times(1).
 			Return([]models.Universe{}, nil)
 
-		err := listUniverses(ctx, mockUsecase)
-		require.NoError(t, err, "Actual err: %v", err)
+		handler := generateHandler[drivingports.ForManagingUniverse](
+			listUniverses,
+			mockUsecase,
+		)
+		r := createTestGinRouter(t, http.MethodGet, "/", handler)
+
+		req := generateTestRequest(t, http.MethodGet)
+		rw := httptest.NewRecorder()
+		r.ServeHTTP(rw, req)
 
 		assert.Equal(t, http.StatusOK, rw.Code)
 		actual := decodeResponseBody[[]dtos.UniverseDtoResponse](t, rw)
@@ -406,16 +455,20 @@ func TestUnit_Universes_ListUniverses(t *testing.T) {
 	})
 
 	t.Run("return empty slice when use case returns nil response", func(t *testing.T) {
-		req := generateTestRequest(t, http.MethodGet)
-		ctx, rw := generateTestContextFromRequest(t, req)
-
 		mockUsecase.EXPECT().
 			List(gomock.Any()).
 			Times(1).
 			Return(nil, nil)
 
-		err := listUniverses(ctx, mockUsecase)
-		require.NoError(t, err, "Actual err: %v", err)
+		handler := generateHandler[drivingports.ForManagingUniverse](
+			listUniverses,
+			mockUsecase,
+		)
+		r := createTestGinRouter(t, http.MethodGet, "/", handler)
+
+		req := generateTestRequest(t, http.MethodGet)
+		rw := httptest.NewRecorder()
+		r.ServeHTTP(rw, req)
 
 		assert.Equal(t, http.StatusOK, rw.Code)
 		actual := decodeResponseBody[[]dtos.UniverseDtoResponse](t, rw)
@@ -423,16 +476,20 @@ func TestUnit_Universes_ListUniverses(t *testing.T) {
 	})
 
 	t.Run("returns 500 when use cas fails", func(t *testing.T) {
-		req := generateTestRequest(t, http.MethodGet)
-		ctx, rw := generateTestContextFromRequest(t, req)
-
 		mockUsecase.EXPECT().
 			List(gomock.Any()).
 			Times(1).
 			Return([]models.Universe{}, errors.New("stubbed error"))
 
-		err := listUniverses(ctx, mockUsecase)
-		require.NoError(t, err, "Actual err: %v", err)
+		handler := generateHandler[drivingports.ForManagingUniverse](
+			listUniverses,
+			mockUsecase,
+		)
+		r := createTestGinRouter(t, http.MethodGet, "/", handler)
+
+		req := generateTestRequest(t, http.MethodGet)
+		rw := httptest.NewRecorder()
+		r.ServeHTTP(rw, req)
 
 		assert.Equal(t, http.StatusInternalServerError, rw.Code)
 		actual := decodeResponseBody[string](t, rw)
@@ -441,16 +498,21 @@ func TestUnit_Universes_ListUniverses(t *testing.T) {
 }
 
 func TestUnit_Universes_DeleteUniverse(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
 	ctrl := gomock.NewController(t)
 	mockUsecase := drivingportstest.NewMockForManagingUniverse(ctrl)
 
 	t.Run("returns 400 when id is invalid", func(t *testing.T) {
-		req := generateTestRequest(t, http.MethodDelete)
-		ctx, rw := generateTestContextFromRequest(t, req)
-		ctx.SetPathValues([]echo.PathValue{{Name: "id", Value: "not-a-uuid"}})
+		handler := generateHandler[drivingports.ForManagingUniverse](
+			deleteUniverse,
+			mockUsecase,
+		)
+		r := createTestGinRouter(t, http.MethodDelete, "/:id", handler)
 
-		err := deleteUniverse(ctx, mockUsecase)
-		require.NoError(t, err, "Actual err: %v", err)
+		req := httptest.NewRequest(http.MethodDelete, "/not-a-uuid", nil)
+		rw := httptest.NewRecorder()
+		r.ServeHTTP(rw, req)
 
 		assert.Equal(t, http.StatusBadRequest, rw.Code)
 		actual := decodeResponseBody[string](t, rw)
@@ -458,31 +520,39 @@ func TestUnit_Universes_DeleteUniverse(t *testing.T) {
 	})
 
 	t.Run("forwards deletion to use case", func(t *testing.T) {
-		req := generateTestRequest(t, http.MethodDelete)
-		ctx, rw := generateTestContextFromRequest(t, req, addIdPathParam)
-
 		mockUsecase.EXPECT().
 			Delete(gomock.Any(), gomock.Eq(sampleUuid)).
 			Times(1).
 			Return(nil)
 
-		err := deleteUniverse(ctx, mockUsecase)
-		require.NoError(t, err, "Actual err: %v", err)
+		handler := generateHandler[drivingports.ForManagingUniverse](
+			deleteUniverse,
+			mockUsecase,
+		)
+		r := createTestGinRouter(t, http.MethodDelete, "/:id", handler)
+
+		req := generateTestRequest(t, http.MethodDelete, addSampleUuidPathParam)
+		rw := httptest.NewRecorder()
+		r.ServeHTTP(rw, req)
 
 		assert.Equal(t, http.StatusNoContent, rw.Code)
 	})
 
 	t.Run("returns 409 when universe is not empty", func(t *testing.T) {
-		req := generateTestRequest(t, http.MethodDelete)
-		ctx, rw := generateTestContextFromRequest(t, req, addIdPathParam)
-
 		mockUsecase.EXPECT().
 			Delete(gomock.Any(), gomock.Eq(sampleUuid)).
 			Times(1).
 			Return(domainerrors.ErrUniverseIsNotEmpty)
 
-		err := deleteUniverse(ctx, mockUsecase)
-		require.NoError(t, err, "Actual err: %v", err)
+		handler := generateHandler[drivingports.ForManagingUniverse](
+			deleteUniverse,
+			mockUsecase,
+		)
+		r := createTestGinRouter(t, http.MethodDelete, "/:id", handler)
+
+		req := generateTestRequest(t, http.MethodDelete, addSampleUuidPathParam)
+		rw := httptest.NewRecorder()
+		r.ServeHTTP(rw, req)
 
 		assert.Equal(t, http.StatusConflict, rw.Code)
 		actual := decodeResponseBody[string](t, rw)
@@ -490,16 +560,20 @@ func TestUnit_Universes_DeleteUniverse(t *testing.T) {
 	})
 
 	t.Run("returns 500 when use case fails", func(t *testing.T) {
-		req := generateTestRequest(t, http.MethodDelete)
-		ctx, rw := generateTestContextFromRequest(t, req, addIdPathParam)
-
 		mockUsecase.EXPECT().
 			Delete(gomock.Any(), gomock.Any()).
 			Times(1).
 			Return(errors.New("stubbed error"))
 
-		err := deleteUniverse(ctx, mockUsecase)
-		require.NoError(t, err, "Actual err: %v", err)
+		handler := generateHandler[drivingports.ForManagingUniverse](
+			deleteUniverse,
+			mockUsecase,
+		)
+		r := createTestGinRouter(t, http.MethodDelete, "/:id", handler)
+
+		req := generateTestRequest(t, http.MethodDelete, addSampleUuidPathParam)
+		rw := httptest.NewRecorder()
+		r.ServeHTTP(rw, req)
 
 		assert.Equal(t, http.StatusInternalServerError, rw.Code)
 		actual := decodeResponseBody[string](t, rw)
