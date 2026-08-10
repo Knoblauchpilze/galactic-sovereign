@@ -186,7 +186,7 @@ func TestUnit_Universes_GetUniverse(t *testing.T) {
 		)
 		r := createTestGinRouter(t, http.MethodGet, "/:id", handler)
 
-		req := httptest.NewRequest(http.MethodGet, "/not-a-uuid", nil)
+		req := generateTestRequest(t, http.MethodGet, addInvalidUuidPathParam)
 		rw := httptest.NewRecorder()
 		r.ServeHTTP(rw, req)
 
@@ -510,7 +510,7 @@ func TestUnit_Universes_DeleteUniverse(t *testing.T) {
 		)
 		r := createTestGinRouter(t, http.MethodDelete, "/:id", handler)
 
-		req := httptest.NewRequest(http.MethodDelete, "/not-a-uuid", nil)
+		req := generateTestRequest(t, http.MethodDelete, addInvalidUuidPathParam)
 		rw := httptest.NewRecorder()
 		r.ServeHTTP(rw, req)
 
