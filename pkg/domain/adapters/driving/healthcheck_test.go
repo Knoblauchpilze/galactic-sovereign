@@ -30,7 +30,7 @@ func TestUnit_Healthcheck_Healthcheck(t *testing.T) {
 		)
 		r := createTestGinRouterWithHandler(t, handler)
 
-		req := httptest.NewRequest(http.MethodGet, "http://example.com/", nil)
+		req := generateTestRequest(t, http.MethodGet)
 		rw := httptest.NewRecorder()
 		r.ServeHTTP(rw, req)
 
@@ -51,7 +51,7 @@ func TestUnit_Healthcheck_Healthcheck(t *testing.T) {
 		)
 		r := createTestGinRouterWithHandler(t, handler)
 
-		req := httptest.NewRequest(http.MethodGet, "http://example.com/", nil)
+		req := generateTestRequest(t, http.MethodGet)
 		rw := httptest.NewRecorder()
 		r.ServeHTTP(rw, req)
 
