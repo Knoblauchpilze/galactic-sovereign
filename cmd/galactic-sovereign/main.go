@@ -13,6 +13,7 @@ import (
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/rest"
 	_ "github.com/Knoblauchpilze/galactic-sovereign/api"
 	"github.com/Knoblauchpilze/galactic-sovereign/cmd/galactic-sovereign/internal"
+	"github.com/gin-gonic/gin"
 	swaggerfiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
@@ -33,6 +34,8 @@ func determineConfigName() string {
 func main() {
 	log := logger.New(os.Stdout)
 
+	gin.SetMode(gin.ReleaseMode)
+
 	conf, err := config.Load(determineConfigName(), internal.DefaultConfig())
 	if err != nil {
 		log.Error("Failed to load configuration", slog.Any("error", err))
@@ -48,7 +51,7 @@ func main() {
 
 	s := internal.CreateGameServer(conf.Server, conn, log)
 
-	swaggerUi := rest.NewRawRoute(http.MethodGet, "/swagger/*", ginSwagger.WrapHandler(swaggerfiles.Handler))
+	swaggerUi := rest.NewRawRoute(http.MethodGet, "/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 	if err := s.AddRoute(swaggerUi); err != nil {
 		log.Error("Failed to register route", slog.String("route", swaggerUi.Path()), slog.Any("error", err))
 		os.Exit(1)
