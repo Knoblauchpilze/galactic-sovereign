@@ -5,14 +5,15 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
 
+	"github.com/Knoblauchpilze/backend-toolkit/pkg/rest"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"github.com/labstack/echo/v5"
 	"github.com/stretchr/testify/require"
 )
 
@@ -30,7 +31,8 @@ func generateTestRequest(
 ) *http.Request {
 	t.Helper()
 
-	req := httptest.NewRequest(method, "/", nil)
+	ctx := rest.WithContextLogger(t.Context(), slog.Default())
+	req := httptest.NewRequestWithContext(ctx, method, "/", nil)
 
 	for _, modifier := range modifiers {
 		modifier(t, req)
@@ -57,42 +59,15 @@ func addRequestPath(t *testing.T, req *http.Request, path string, args ...any) {
 	req.URL.Path = fmt.Sprintf(path, args...)
 }
 
-func addQueryParam(t *testing.T, req *http.Request, key string, value string) {
-	t.Helper()
-
-	q := req.URL.Query()
-	q.Add(key, value)
-
-	req.URL.RawQuery = q.Encode()
-}
-
 func generateTestRequestWithJsonBody[T any](
 	t *testing.T,
 	method string,
 	data T,
 ) *http.Request {
-	req := httptest.NewRequest(method, "/", encodeBody(t, data))
+	ctx := rest.WithContextLogger(t.Context(), slog.Default())
+	req := httptest.NewRequestWithContext(ctx, method, "/", encodeBody(t, data))
 	req.Header.Set("Content-Type", "application/json")
 	return req
-}
-
-func generateTestContextFromRequest(
-	t *testing.T,
-	req *http.Request,
-	modifiers ...func(*testing.T, *echo.Context),
-) (*echo.Context, *httptest.ResponseRecorder) {
-	t.Helper()
-
-	e := echo.New()
-	rw := httptest.NewRecorder()
-
-	ctx := e.NewContext(req, rw)
-
-	for _, modifier := range modifiers {
-		modifier(t, ctx)
-	}
-
-	return ctx, rw
 }
 
 func createTestGinRouter(
@@ -113,12 +88,6 @@ func createTestGinRouter(
 	r.Handle(method, path, handler)
 
 	return r
-}
-
-func addIdPathParam(t *testing.T, c *echo.Context) {
-	t.Helper()
-
-	c.SetPathValues([]echo.PathValue{{Name: "id", Value: sampleUuid.String()}})
 }
 
 func decodeResponseBody[T any](t *testing.T, w *httptest.ResponseRecorder) T {
