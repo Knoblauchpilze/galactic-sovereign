@@ -51,6 +51,12 @@ func addInvalidUuidPathParam(t *testing.T, req *http.Request) {
 	req.URL.Path = "/not-a-uuid"
 }
 
+func addRequestPath(t *testing.T, req *http.Request, path string, args ...any) {
+	t.Helper()
+
+	req.URL.Path = fmt.Sprintf(path, args...)
+}
+
 func addQueryParam(t *testing.T, req *http.Request, key string, value string) {
 	t.Helper()
 
