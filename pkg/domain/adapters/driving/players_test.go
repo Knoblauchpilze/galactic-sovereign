@@ -2,6 +2,7 @@ package drivingadapters
 
 import (
 	"net/http"
+	"net/http/httptest"
 	"testing"
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/errors"
@@ -10,14 +11,16 @@ import (
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
 	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/request"
+	drivingports "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driving"
+	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"github.com/labstack/echo/v5"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 )
 
 func TestUnit_Players_CreatePlayer(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
 	ctrl := gomock.NewController(t)
 	mockUsecase := drivingportstest.NewMockForManagingPlayer(ctrl)
 
@@ -28,11 +31,15 @@ func TestUnit_Players_CreatePlayer(t *testing.T) {
 	}
 
 	t.Run("returns 400 when body is invalid", func(t *testing.T) {
-		req := generateTestRequestWithJsonBody(t, http.MethodPost, "not-a-dto-request")
-		ctx, rw := generateTestContextFromRequest(t, req)
+		handler := generateHandler[drivingports.ForManagingPlayer](
+			createPlayer,
+			mockUsecase,
+		)
+		r := createTestGinRouter(t, http.MethodPost, "/", handler)
 
-		err := createPlayer(ctx, mockUsecase)
-		require.NoError(t, err, "Actual err: %v", err)
+		req := generateTestRequestWithJsonBody(t, http.MethodPost, "not-a-dto-request")
+		rw := httptest.NewRecorder()
+		r.ServeHTTP(rw, req)
 
 		assert.Equal(t, http.StatusBadRequest, rw.Code)
 		actual := decodeResponseBody[string](t, rw)
@@ -40,16 +47,20 @@ func TestUnit_Players_CreatePlayer(t *testing.T) {
 	})
 
 	t.Run("returns 409 whan name already exists", func(t *testing.T) {
-		req := generateTestRequestWithJsonBody(t, http.MethodPost, dto)
-		ctx, rw := generateTestContextFromRequest(t, req)
-
 		mockUsecase.EXPECT().
 			Create(gomock.Any(), gomock.Any()).
 			Times(1).
 			Return(models.Player{}, domainerrors.ErrNameAlreadyTaken)
 
-		err := createPlayer(ctx, mockUsecase)
-		require.NoError(t, err, "Actual err: %v", err)
+		handler := generateHandler[drivingports.ForManagingPlayer](
+			createPlayer,
+			mockUsecase,
+		)
+		r := createTestGinRouter(t, http.MethodPost, "/", handler)
+
+		req := generateTestRequestWithJsonBody(t, http.MethodPost, dto)
+		rw := httptest.NewRecorder()
+		r.ServeHTTP(rw, req)
 
 		assert.Equal(t, http.StatusConflict, rw.Code)
 		actual := decodeResponseBody[string](t, rw)
@@ -57,9 +68,6 @@ func TestUnit_Players_CreatePlayer(t *testing.T) {
 	})
 
 	t.Run("forwards creation to use case", func(t *testing.T) {
-		req := generateTestRequestWithJsonBody(t, http.MethodPost, dto)
-		ctx, rw := generateTestContextFromRequest(t, req)
-
 		expectedRequest := request.PlayerCreationRequest{
 			ApiUser:  dto.ApiUser,
 			Universe: dto.Universe,
@@ -77,8 +85,15 @@ func TestUnit_Players_CreatePlayer(t *testing.T) {
 				Version:   0,
 			}, nil)
 
-		err := createPlayer(ctx, mockUsecase)
-		require.NoError(t, err, "Actual err: %v", err)
+		handler := generateHandler[drivingports.ForManagingPlayer](
+			createPlayer,
+			mockUsecase,
+		)
+		r := createTestGinRouter(t, http.MethodPost, "/", handler)
+
+		req := generateTestRequestWithJsonBody(t, http.MethodPost, dto)
+		rw := httptest.NewRecorder()
+		r.ServeHTTP(rw, req)
 
 		assert.Equal(t, http.StatusCreated, rw.Code)
 		actual := decodeResponseBody[dtos.PlayerDtoResponse](t, rw)
@@ -93,16 +108,20 @@ func TestUnit_Players_CreatePlayer(t *testing.T) {
 	})
 
 	t.Run("returns 400 when universe is not found", func(t *testing.T) {
-		req := generateTestRequestWithJsonBody(t, http.MethodPost, dto)
-		ctx, rw := generateTestContextFromRequest(t, req)
-
 		mockUsecase.EXPECT().
 			Create(gomock.Any(), gomock.Any()).
 			Times(1).
 			Return(models.Player{}, domainerrors.ErrUniverseNotFound)
 
-		err := createPlayer(ctx, mockUsecase)
-		require.NoError(t, err, "Actual err: %v", err)
+		handler := generateHandler[drivingports.ForManagingPlayer](
+			createPlayer,
+			mockUsecase,
+		)
+		r := createTestGinRouter(t, http.MethodPost, "/", handler)
+
+		req := generateTestRequestWithJsonBody(t, http.MethodPost, dto)
+		rw := httptest.NewRecorder()
+		r.ServeHTTP(rw, req)
 
 		assert.Equal(t, http.StatusBadRequest, rw.Code)
 		actual := decodeResponseBody[string](t, rw)
@@ -110,16 +129,20 @@ func TestUnit_Players_CreatePlayer(t *testing.T) {
 	})
 
 	t.Run("returns 500 when use case fails", func(t *testing.T) {
-		req := generateTestRequestWithJsonBody(t, http.MethodPost, dto)
-		ctx, rw := generateTestContextFromRequest(t, req)
-
 		mockUsecase.EXPECT().
 			Create(gomock.Any(), gomock.Any()).
 			Times(1).
 			Return(models.Player{}, errors.New("stubbed error"))
 
-		err := createPlayer(ctx, mockUsecase)
-		require.NoError(t, err, "Actual err: %v", err)
+		handler := generateHandler[drivingports.ForManagingPlayer](
+			createPlayer,
+			mockUsecase,
+		)
+		r := createTestGinRouter(t, http.MethodPost, "/", handler)
+
+		req := generateTestRequestWithJsonBody(t, http.MethodPost, dto)
+		rw := httptest.NewRecorder()
+		r.ServeHTTP(rw, req)
 
 		assert.Equal(t, http.StatusInternalServerError, rw.Code)
 		actual := decodeResponseBody[string](t, rw)
@@ -128,16 +151,21 @@ func TestUnit_Players_CreatePlayer(t *testing.T) {
 }
 
 func TestUnit_Players_GetPlayer(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
 	ctrl := gomock.NewController(t)
 	mockUsecase := drivingportstest.NewMockForManagingPlayer(ctrl)
 
 	t.Run("returns 400 when id is invalid", func(t *testing.T) {
-		req := generateTestRequest(t, http.MethodGet)
-		ctx, rw := generateTestContextFromRequest(t, req)
-		ctx.SetPathValues([]echo.PathValue{{Name: "id", Value: "not-a-uuid"}})
+		handler := generateHandler[drivingports.ForManagingPlayer](
+			getPlayer,
+			mockUsecase,
+		)
+		r := createTestGinRouter(t, http.MethodGet, "/:id", handler)
 
-		err := getPlayer(ctx, mockUsecase)
-		require.NoError(t, err, "Actual err: %v", err)
+		req := generateTestRequest(t, http.MethodGet, addInvalidUuidPathParam)
+		rw := httptest.NewRecorder()
+		r.ServeHTTP(rw, req)
 
 		assert.Equal(t, http.StatusBadRequest, rw.Code)
 		actual := decodeResponseBody[string](t, rw)
@@ -145,9 +173,6 @@ func TestUnit_Players_GetPlayer(t *testing.T) {
 	})
 
 	t.Run("forwards fetching to use case", func(t *testing.T) {
-		req := generateTestRequest(t, http.MethodGet)
-		ctx, rw := generateTestContextFromRequest(t, req, addIdPathParam)
-
 		player := models.Player{
 			Id:        uuid.New(),
 			ApiUser:   uuid.New(),
@@ -162,8 +187,15 @@ func TestUnit_Players_GetPlayer(t *testing.T) {
 			Times(1).
 			Return(player, nil)
 
-		err := getPlayer(ctx, mockUsecase)
-		require.NoError(t, err, "Actual err: %v", err)
+		handler := generateHandler[drivingports.ForManagingPlayer](
+			getPlayer,
+			mockUsecase,
+		)
+		r := createTestGinRouter(t, http.MethodGet, "/:id", handler)
+
+		req := generateTestRequest(t, http.MethodGet, addSampleUuidPathParam)
+		rw := httptest.NewRecorder()
+		r.ServeHTTP(rw, req)
 
 		assert.Equal(t, http.StatusOK, rw.Code)
 		actual := decodeResponseBody[dtos.PlayerDtoResponse](t, rw)
@@ -180,16 +212,20 @@ func TestUnit_Players_GetPlayer(t *testing.T) {
 	})
 
 	t.Run("returns 404 when player does not exist", func(t *testing.T) {
-		req := generateTestRequest(t, http.MethodGet)
-		ctx, rw := generateTestContextFromRequest(t, req, addIdPathParam)
-
 		mockUsecase.EXPECT().
 			Get(gomock.Any(), gomock.Eq(sampleUuid)).
 			Times(1).
 			Return(models.Player{}, domainerrors.ErrNotFound)
 
-		err := getPlayer(ctx, mockUsecase)
-		require.NoError(t, err, "Actual err: %v", err)
+		handler := generateHandler[drivingports.ForManagingPlayer](
+			getPlayer,
+			mockUsecase,
+		)
+		r := createTestGinRouter(t, http.MethodGet, "/:id", handler)
+
+		req := generateTestRequest(t, http.MethodGet, addSampleUuidPathParam)
+		rw := httptest.NewRecorder()
+		r.ServeHTTP(rw, req)
 
 		assert.Equal(t, http.StatusNotFound, rw.Code)
 		actual := decodeResponseBody[string](t, rw)
@@ -197,16 +233,20 @@ func TestUnit_Players_GetPlayer(t *testing.T) {
 	})
 
 	t.Run("returns 500 when use case fails", func(t *testing.T) {
-		req := generateTestRequest(t, http.MethodGet)
-		ctx, rw := generateTestContextFromRequest(t, req, addIdPathParam)
-
 		mockUsecase.EXPECT().
 			Get(gomock.Any(), gomock.Any()).
 			Times(1).
 			Return(models.Player{}, errors.New("stubbed error"))
 
-		err := getPlayer(ctx, mockUsecase)
-		require.NoError(t, err, "Actual err: %v", err)
+		handler := generateHandler[drivingports.ForManagingPlayer](
+			getPlayer,
+			mockUsecase,
+		)
+		r := createTestGinRouter(t, http.MethodGet, "/:id", handler)
+
+		req := generateTestRequest(t, http.MethodGet, addSampleUuidPathParam)
+		rw := httptest.NewRecorder()
+		r.ServeHTTP(rw, req)
 
 		assert.Equal(t, http.StatusInternalServerError, rw.Code)
 		actual := decodeResponseBody[string](t, rw)
@@ -215,16 +255,22 @@ func TestUnit_Players_GetPlayer(t *testing.T) {
 }
 
 func TestUnit_Players_ListPlayersForApiUser(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
 	ctrl := gomock.NewController(t)
 	mockUsecase := drivingportstest.NewMockForManagingPlayer(ctrl)
 
 	t.Run("returns 400 when api user id is invalid", func(t *testing.T) {
-		req := generateTestRequest(t, http.MethodGet)
-		ctx, rw := generateTestContextFromRequest(t, req)
-		ctx.SetPathValues([]echo.PathValue{{Name: "id", Value: "not-a-uuid"}})
+		handler := generateHandler[drivingports.ForManagingPlayer](
+			listPlayersForApiUser,
+			mockUsecase,
+		)
+		r := createTestGinRouter(t, http.MethodGet, "/users/:id/players", handler)
 
-		err := listPlayersForApiUser(ctx, mockUsecase)
-		require.NoError(t, err, "Actual err: %v", err)
+		req := generateTestRequest(t, http.MethodGet)
+		addRequestPath(t, req, "/users/not-a-uuid/players")
+		rw := httptest.NewRecorder()
+		r.ServeHTTP(rw, req)
 
 		assert.Equal(t, http.StatusBadRequest, rw.Code)
 		actual := decodeResponseBody[string](t, rw)
@@ -232,9 +278,6 @@ func TestUnit_Players_ListPlayersForApiUser(t *testing.T) {
 	})
 
 	t.Run("forwards listing to use case", func(t *testing.T) {
-		req := generateTestRequest(t, http.MethodGet)
-		ctx, rw := generateTestContextFromRequest(t, req, addIdPathParam)
-
 		players := []models.Player{
 			{
 				Id:        uuid.New(),
@@ -255,8 +298,16 @@ func TestUnit_Players_ListPlayersForApiUser(t *testing.T) {
 			Times(1).
 			Return(players, nil)
 
-		err := listPlayersForApiUser(ctx, mockUsecase)
-		require.NoError(t, err, "Actual err: %v", err)
+		handler := generateHandler[drivingports.ForManagingPlayer](
+			listPlayersForApiUser,
+			mockUsecase,
+		)
+		r := createTestGinRouter(t, http.MethodGet, "/users/:id/players", handler)
+
+		req := generateTestRequest(t, http.MethodGet)
+		addRequestPath(t, req, "/users/%s/players", sampleUuid)
+		rw := httptest.NewRecorder()
+		r.ServeHTTP(rw, req)
 
 		assert.Equal(t, http.StatusOK, rw.Code)
 		actual := decodeResponseBody[[]dtos.PlayerDtoResponse](t, rw)
@@ -279,16 +330,21 @@ func TestUnit_Players_ListPlayersForApiUser(t *testing.T) {
 	})
 
 	t.Run("return empty slice when use case returns no player", func(t *testing.T) {
-		req := generateTestRequest(t, http.MethodGet)
-		ctx, rw := generateTestContextFromRequest(t, req, addIdPathParam)
-
 		mockUsecase.EXPECT().
 			ListForApiUser(gomock.Any(), gomock.Eq(sampleUuid)).
 			Times(1).
 			Return([]models.Player{}, nil)
 
-		err := listPlayersForApiUser(ctx, mockUsecase)
-		require.NoError(t, err, "Actual err: %v", err)
+		handler := generateHandler[drivingports.ForManagingPlayer](
+			listPlayersForApiUser,
+			mockUsecase,
+		)
+		r := createTestGinRouter(t, http.MethodGet, "/users/:id/players", handler)
+
+		req := generateTestRequest(t, http.MethodGet)
+		addRequestPath(t, req, "/users/%s/players", sampleUuid)
+		rw := httptest.NewRecorder()
+		r.ServeHTTP(rw, req)
 
 		assert.Equal(t, http.StatusOK, rw.Code)
 		actual := decodeResponseBody[[]dtos.PlayerDtoResponse](t, rw)
@@ -296,16 +352,21 @@ func TestUnit_Players_ListPlayersForApiUser(t *testing.T) {
 	})
 
 	t.Run("return empty slice when use case returns nil response", func(t *testing.T) {
-		req := generateTestRequest(t, http.MethodGet)
-		ctx, rw := generateTestContextFromRequest(t, req, addIdPathParam)
-
 		mockUsecase.EXPECT().
 			ListForApiUser(gomock.Any(), gomock.Eq(sampleUuid)).
 			Times(1).
 			Return(nil, nil)
 
-		err := listPlayersForApiUser(ctx, mockUsecase)
-		require.NoError(t, err, "Actual err: %v", err)
+		handler := generateHandler[drivingports.ForManagingPlayer](
+			listPlayersForApiUser,
+			mockUsecase,
+		)
+		r := createTestGinRouter(t, http.MethodGet, "/users/:id/players", handler)
+
+		req := generateTestRequest(t, http.MethodGet)
+		addRequestPath(t, req, "/users/%s/players", sampleUuid)
+		rw := httptest.NewRecorder()
+		r.ServeHTTP(rw, req)
 
 		assert.Equal(t, http.StatusOK, rw.Code)
 		actual := decodeResponseBody[[]dtos.PlayerDtoResponse](t, rw)
@@ -313,16 +374,21 @@ func TestUnit_Players_ListPlayersForApiUser(t *testing.T) {
 	})
 
 	t.Run("returns 500 when use cas fails", func(t *testing.T) {
-		req := generateTestRequest(t, http.MethodGet)
-		ctx, rw := generateTestContextFromRequest(t, req, addIdPathParam)
-
 		mockUsecase.EXPECT().
 			ListForApiUser(gomock.Any(), gomock.Eq(sampleUuid)).
 			Times(1).
 			Return([]models.Player{}, errors.New("stubbed error"))
 
-		err := listPlayersForApiUser(ctx, mockUsecase)
-		require.NoError(t, err, "Actual err: %v", err)
+		handler := generateHandler[drivingports.ForManagingPlayer](
+			listPlayersForApiUser,
+			mockUsecase,
+		)
+		r := createTestGinRouter(t, http.MethodGet, "/users/:id/players", handler)
+
+		req := generateTestRequest(t, http.MethodGet)
+		addRequestPath(t, req, "/users/%s/players", sampleUuid)
+		rw := httptest.NewRecorder()
+		r.ServeHTTP(rw, req)
 
 		assert.Equal(t, http.StatusInternalServerError, rw.Code)
 		actual := decodeResponseBody[string](t, rw)
@@ -331,16 +397,21 @@ func TestUnit_Players_ListPlayersForApiUser(t *testing.T) {
 }
 
 func TestUnit_Players_DeletePlayer(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
 	ctrl := gomock.NewController(t)
 	mockUsecase := drivingportstest.NewMockForManagingPlayer(ctrl)
 
 	t.Run("returns 400 when id is invalid", func(t *testing.T) {
-		req := generateTestRequest(t, http.MethodDelete)
-		ctx, rw := generateTestContextFromRequest(t, req)
-		ctx.SetPathValues([]echo.PathValue{{Name: "id", Value: "not-a-uuid"}})
+		handler := generateHandler[drivingports.ForManagingPlayer](
+			deletePlayer,
+			mockUsecase,
+		)
+		r := createTestGinRouter(t, http.MethodDelete, "/:id", handler)
 
-		err := deletePlayer(ctx, mockUsecase)
-		require.NoError(t, err, "Actual err: %v", err)
+		req := generateTestRequest(t, http.MethodDelete, addInvalidUuidPathParam)
+		rw := httptest.NewRecorder()
+		r.ServeHTTP(rw, req)
 
 		assert.Equal(t, http.StatusBadRequest, rw.Code)
 		actual := decodeResponseBody[string](t, rw)
@@ -348,31 +419,39 @@ func TestUnit_Players_DeletePlayer(t *testing.T) {
 	})
 
 	t.Run("forwards deletion to use case", func(t *testing.T) {
-		req := generateTestRequest(t, http.MethodDelete)
-		ctx, rw := generateTestContextFromRequest(t, req, addIdPathParam)
-
 		mockUsecase.EXPECT().
 			Delete(gomock.Any(), gomock.Eq(sampleUuid)).
 			Times(1).
 			Return(nil)
 
-		err := deletePlayer(ctx, mockUsecase)
-		require.NoError(t, err, "Actual err: %v", err)
+		handler := generateHandler[drivingports.ForManagingPlayer](
+			deletePlayer,
+			mockUsecase,
+		)
+		r := createTestGinRouter(t, http.MethodDelete, "/:id", handler)
+
+		req := generateTestRequest(t, http.MethodDelete, addSampleUuidPathParam)
+		rw := httptest.NewRecorder()
+		r.ServeHTTP(rw, req)
 
 		assert.Equal(t, http.StatusNoContent, rw.Code)
 	})
 
 	t.Run("returns 500 when use case fails", func(t *testing.T) {
-		req := generateTestRequest(t, http.MethodDelete)
-		ctx, rw := generateTestContextFromRequest(t, req, addIdPathParam)
-
 		mockUsecase.EXPECT().
 			Delete(gomock.Any(), gomock.Any()).
 			Times(1).
 			Return(errors.New("stubbed error"))
 
-		err := deletePlayer(ctx, mockUsecase)
-		require.NoError(t, err, "Actual err: %v", err)
+		handler := generateHandler[drivingports.ForManagingPlayer](
+			deletePlayer,
+			mockUsecase,
+		)
+		r := createTestGinRouter(t, http.MethodDelete, "/:id", handler)
+
+		req := generateTestRequest(t, http.MethodDelete, addSampleUuidPathParam)
+		rw := httptest.NewRecorder()
+		r.ServeHTTP(rw, req)
 
 		assert.Equal(t, http.StatusInternalServerError, rw.Code)
 		actual := decodeResponseBody[string](t, rw)

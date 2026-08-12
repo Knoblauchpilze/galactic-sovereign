@@ -2,29 +2,37 @@ package drivingadapters
 
 import (
 	"net/http"
+	"net/http/httptest"
 	"testing"
 
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driving/drivingportstest"
+	drivingports "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driving"
+	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 )
 
 func TestUnit_Healthcheck_Healthcheck(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
 	ctrl := gomock.NewController(t)
 	mockUsecase := drivingportstest.NewMockForCheckingServiceHealth(ctrl)
 
 	t.Run("returns 200 when service is healthy", func(t *testing.T) {
-		req := generateTestRequest(t, http.MethodGet)
-		ctx, rw := generateTestContextFromRequest(t, req)
-
 		mockUsecase.EXPECT().
 			Healthy(gomock.Any()).
 			Times(1).
 			Return(true)
 
-		err := healthcheck(ctx, mockUsecase)
-		require.NoError(t, err, "Actual err: %v", err)
+		handler := generateHandler[drivingports.ForCheckingServiceHealth](
+			healthcheck,
+			mockUsecase,
+		)
+		r := createTestGinRouter(t, http.MethodGet, "/", handler)
+
+		req := generateTestRequest(t, http.MethodGet)
+		rw := httptest.NewRecorder()
+		r.ServeHTTP(rw, req)
 
 		assert.Equal(t, http.StatusOK, rw.Code)
 		actual := decodeResponseBody[string](t, rw)
@@ -32,16 +40,20 @@ func TestUnit_Healthcheck_Healthcheck(t *testing.T) {
 	})
 
 	t.Run("returns 503 when service is not healthy", func(t *testing.T) {
-		req := generateTestRequest(t, http.MethodGet)
-		ctx, rw := generateTestContextFromRequest(t, req)
-
 		mockUsecase.EXPECT().
 			Healthy(gomock.Any()).
 			Times(1).
 			Return(false)
 
-		err := healthcheck(ctx, mockUsecase)
-		require.NoError(t, err, "Actual err: %v", err)
+		handler := generateHandler[drivingports.ForCheckingServiceHealth](
+			healthcheck,
+			mockUsecase,
+		)
+		r := createTestGinRouter(t, http.MethodGet, "/", handler)
+
+		req := generateTestRequest(t, http.MethodGet)
+		rw := httptest.NewRecorder()
+		r.ServeHTTP(rw, req)
 
 		assert.Equal(t, http.StatusServiceUnavailable, rw.Code)
 		actual := decodeResponseBody[string](t, rw)

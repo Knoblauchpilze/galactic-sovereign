@@ -8,12 +8,12 @@ import (
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driving/mappers"
 	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
 	drivingports "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driving"
+	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"github.com/labstack/echo/v5"
 )
 
-func PlanetEndpoints(usecase drivingports.ForManagingPlanet) rest.Routes {
-	var out rest.Routes
+func PlanetEndpoints(usecase drivingports.ForManagingPlanet) Routes {
+	var out Routes
 
 	handler := generateHandler(getPlanet, usecase)
 	get := rest.NewRoute(http.MethodGet, "/planets/:id", handler)
@@ -42,25 +42,28 @@ func PlanetEndpoints(usecase drivingports.ForManagingPlanet) rest.Routes {
 //	@Failure		404	{object}	rest.ResponseEnvelope[string]
 //	@Failure		500	{object}	rest.ResponseEnvelope[string]
 //	@Router			/planets/{id} [get]
-func getPlanet(c *echo.Context, usecase drivingports.ForManagingPlanet) error {
+func getPlanet(c *gin.Context, usecase drivingports.ForManagingPlanet) {
 	maybeId := c.Param("id")
 	id, err := uuid.Parse(maybeId)
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, "invalid id syntax")
+		c.AbortWithStatusJSON(http.StatusBadRequest, "invalid id syntax")
+		return
 	}
 
-	planet, err := usecase.Get(c.Request().Context(), id)
+	planet, err := usecase.Get(c.Request.Context(), id)
 	if err != nil {
 		if err == domainerrors.ErrNotFound {
-			return c.JSON(http.StatusNotFound, "no such planet")
+			c.AbortWithStatusJSON(http.StatusNotFound, "no such planet")
+			return
 		}
 
-		c.Logger().Error("Failed to get planet", slog.Any("error", err))
-		return c.JSON(http.StatusInternalServerError, "failed to get planet")
+		logError(c.Request, "Failed to get planet", slog.Any("error", err))
+		c.AbortWithStatusJSON(http.StatusInternalServerError, "failed to get planet")
+		return
 	}
 
 	out := mappers.ToPlanetResponse(planet)
-	return c.JSON(http.StatusOK, out)
+	c.JSON(http.StatusOK, out)
 }
 
 // listPlanetsForPlayer godoc
@@ -74,23 +77,25 @@ func getPlanet(c *echo.Context, usecase drivingports.ForManagingPlanet) error {
 //	@Failure		400		{object}	rest.ResponseEnvelope[string]
 //	@Failure		500		{object}	rest.ResponseEnvelope[string]
 //	@Router			/players/{id}/planets [get]
-func listPlanetsForPlayer(c *echo.Context, usecase drivingports.ForManagingPlanet) error {
+func listPlanetsForPlayer(c *gin.Context, usecase drivingports.ForManagingPlanet) {
 	maybeId := c.Param("id")
 	playerId, err := uuid.Parse(maybeId)
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, "invalid id syntax")
+		c.AbortWithStatusJSON(http.StatusBadRequest, "invalid id syntax")
+		return
 	}
 
-	planets, err := usecase.ListForPlayer(c.Request().Context(), playerId)
+	planets, err := usecase.ListForPlayer(c.Request.Context(), playerId)
 
 	if err != nil {
-		c.Logger().Error("Failed to list planets", slog.Any("error", err))
-		return c.JSON(http.StatusInternalServerError, "failed to list planets")
+		logError(c.Request, "Failed to list planets", slog.Any("error", err))
+		c.AbortWithStatusJSON(http.StatusInternalServerError, "failed to list planets")
+		return
 	}
 
 	out := mappers.ToPlanetsResponse(planets)
 
-	return c.JSON(http.StatusOK, out)
+	c.JSON(http.StatusOK, out)
 }
 
 // deletePlanet godoc
@@ -105,26 +110,30 @@ func listPlanetsForPlayer(c *echo.Context, usecase drivingports.ForManagingPlane
 //	@Failure		409	{object}	rest.ResponseEnvelope[string]
 //	@Failure		500	{object}	rest.ResponseEnvelope[string]
 //	@Router			/planets/{id} [delete]
-func deletePlanet(c *echo.Context, usecase drivingports.ForManagingPlanet) error {
+func deletePlanet(c *gin.Context, usecase drivingports.ForManagingPlanet) {
 	maybeId := c.Param("id")
 	id, err := uuid.Parse(maybeId)
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, "invalid id syntax")
+		c.AbortWithStatusJSON(http.StatusBadRequest, "invalid id syntax")
+		return
 	}
 
-	err = usecase.Delete(c.Request().Context(), id)
+	err = usecase.Delete(c.Request.Context(), id)
 	if err != nil {
 		if err == domainerrors.ErrActionNotCompleted {
-			return c.JSON(http.StatusConflict, "action not completed")
+			c.AbortWithStatusJSON(http.StatusConflict, "action not completed")
+			return
 		}
 
 		if err == domainerrors.ErrHomeworldCannotBeDeleted {
-			return c.JSON(http.StatusConflict, "homeworld cannot be deleted")
+			c.AbortWithStatusJSON(http.StatusConflict, "homeworld cannot be deleted")
+			return
 		}
 
-		c.Logger().Error("Failed to delete planet", slog.Any("error", err))
-		return c.JSON(http.StatusInternalServerError, "failed to delete planet")
+		logError(c.Request, "Failed to delete planet", slog.Any("error", err))
+		c.AbortWithStatusJSON(http.StatusInternalServerError, "failed to delete planet")
+		return
 	}
 
-	return c.NoContent(http.StatusNoContent)
+	c.Status(http.StatusNoContent)
 }

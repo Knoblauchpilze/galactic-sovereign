@@ -2,6 +2,7 @@ package drivingadapters
 
 import (
 	"net/http"
+	"net/http/httptest"
 	"testing"
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/errors"
@@ -9,24 +10,29 @@ import (
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driving/dtos"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
 	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
+	drivingports "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driving"
+	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"github.com/labstack/echo/v5"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 )
 
 func TestUnit_Planets_GetPlanet(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
 	ctrl := gomock.NewController(t)
 	mockUsecase := drivingportstest.NewMockForManagingPlanet(ctrl)
 
 	t.Run("returns 400 when id is invalid", func(t *testing.T) {
-		req := generateTestRequest(t, http.MethodGet)
-		ctx, rw := generateTestContextFromRequest(t, req)
-		ctx.SetPathValues([]echo.PathValue{{Name: "id", Value: "not-a-uuid"}})
+		handler := generateHandler[drivingports.ForManagingPlanet](
+			getPlanet,
+			mockUsecase,
+		)
+		r := createTestGinRouter(t, http.MethodGet, "/:id", handler)
 
-		err := getPlanet(ctx, mockUsecase)
-		require.NoError(t, err, "Actual err: %v", err)
+		req := generateTestRequest(t, http.MethodGet, addInvalidUuidPathParam)
+		rw := httptest.NewRecorder()
+		r.ServeHTTP(rw, req)
 
 		assert.Equal(t, http.StatusBadRequest, rw.Code)
 		actual := decodeResponseBody[string](t, rw)
@@ -34,9 +40,6 @@ func TestUnit_Planets_GetPlanet(t *testing.T) {
 	})
 
 	t.Run("forwards fetching to use case", func(t *testing.T) {
-		req := generateTestRequest(t, http.MethodGet)
-		ctx, rw := generateTestContextFromRequest(t, req, addIdPathParam)
-
 		planet := models.Planet{
 			Id:   uuid.New(),
 			Name: "planet-1",
@@ -86,8 +89,15 @@ func TestUnit_Planets_GetPlanet(t *testing.T) {
 			Times(1).
 			Return(planet, nil)
 
-		err := getPlanet(ctx, mockUsecase)
-		require.NoError(t, err, "Actual err: %v", err)
+		handler := generateHandler[drivingports.ForManagingPlanet](
+			getPlanet,
+			mockUsecase,
+		)
+		r := createTestGinRouter(t, http.MethodGet, "/:id", handler)
+
+		req := generateTestRequest(t, http.MethodGet, addSampleUuidPathParam)
+		rw := httptest.NewRecorder()
+		r.ServeHTTP(rw, req)
 
 		assert.Equal(t, http.StatusOK, rw.Code)
 		actual := decodeResponseBody[dtos.PlanetDtoResponse](t, rw)
@@ -136,9 +146,6 @@ func TestUnit_Planets_GetPlanet(t *testing.T) {
 	})
 
 	t.Run("correctly ignores building action when not provided", func(t *testing.T) {
-		req := generateTestRequest(t, http.MethodGet)
-		ctx, rw := generateTestContextFromRequest(t, req, addIdPathParam)
-
 		planet := models.Planet{
 			Id:             uuid.New(),
 			Name:           "planet-1",
@@ -155,8 +162,15 @@ func TestUnit_Planets_GetPlanet(t *testing.T) {
 			Times(1).
 			Return(planet, nil)
 
-		err := getPlanet(ctx, mockUsecase)
-		require.NoError(t, err, "Actual err: %v", err)
+		handler := generateHandler[drivingports.ForManagingPlanet](
+			getPlanet,
+			mockUsecase,
+		)
+		r := createTestGinRouter(t, http.MethodGet, "/:id", handler)
+
+		req := generateTestRequest(t, http.MethodGet, addSampleUuidPathParam)
+		rw := httptest.NewRecorder()
+		r.ServeHTTP(rw, req)
 
 		assert.Equal(t, http.StatusOK, rw.Code)
 		actual := decodeResponseBody[dtos.PlanetDtoResponse](t, rw)
@@ -175,16 +189,20 @@ func TestUnit_Planets_GetPlanet(t *testing.T) {
 	})
 
 	t.Run("returns 404 when planet does not exist", func(t *testing.T) {
-		req := generateTestRequest(t, http.MethodGet)
-		ctx, rw := generateTestContextFromRequest(t, req, addIdPathParam)
-
 		mockUsecase.EXPECT().
 			Get(gomock.Any(), gomock.Eq(sampleUuid)).
 			Times(1).
 			Return(models.Planet{}, domainerrors.ErrNotFound)
 
-		err := getPlanet(ctx, mockUsecase)
-		require.NoError(t, err, "Actual err: %v", err)
+		handler := generateHandler[drivingports.ForManagingPlanet](
+			getPlanet,
+			mockUsecase,
+		)
+		r := createTestGinRouter(t, http.MethodGet, "/:id", handler)
+
+		req := generateTestRequest(t, http.MethodGet, addSampleUuidPathParam)
+		rw := httptest.NewRecorder()
+		r.ServeHTTP(rw, req)
 
 		assert.Equal(t, http.StatusNotFound, rw.Code)
 		actual := decodeResponseBody[string](t, rw)
@@ -192,16 +210,20 @@ func TestUnit_Planets_GetPlanet(t *testing.T) {
 	})
 
 	t.Run("returns 500 when use case fails", func(t *testing.T) {
-		req := generateTestRequest(t, http.MethodGet)
-		ctx, rw := generateTestContextFromRequest(t, req, addIdPathParam)
-
 		mockUsecase.EXPECT().
 			Get(gomock.Any(), gomock.Any()).
 			Times(1).
 			Return(models.Planet{}, errors.New("stubbed error"))
 
-		err := getPlanet(ctx, mockUsecase)
-		require.NoError(t, err, "Actual err: %v", err)
+		handler := generateHandler[drivingports.ForManagingPlanet](
+			getPlanet,
+			mockUsecase,
+		)
+		r := createTestGinRouter(t, http.MethodGet, "/:id", handler)
+
+		req := generateTestRequest(t, http.MethodGet, addSampleUuidPathParam)
+		rw := httptest.NewRecorder()
+		r.ServeHTTP(rw, req)
 
 		assert.Equal(t, http.StatusInternalServerError, rw.Code)
 		actual := decodeResponseBody[string](t, rw)
@@ -210,16 +232,22 @@ func TestUnit_Planets_GetPlanet(t *testing.T) {
 }
 
 func TestUnit_Planets_ListPlanetsForPlayer(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
 	ctrl := gomock.NewController(t)
 	mockUsecase := drivingportstest.NewMockForManagingPlanet(ctrl)
 
 	t.Run("returns 400 when player id is invalid", func(t *testing.T) {
-		req := generateTestRequest(t, http.MethodGet)
-		ctx, rw := generateTestContextFromRequest(t, req)
-		ctx.SetPathValues([]echo.PathValue{{Name: "id", Value: "not-a-uuid"}})
+		handler := generateHandler[drivingports.ForManagingPlanet](
+			listPlanetsForPlayer,
+			mockUsecase,
+		)
+		r := createTestGinRouter(t, http.MethodGet, "/players/:id/planets", handler)
 
-		err := listPlanetsForPlayer(ctx, mockUsecase)
-		require.NoError(t, err, "Actual err: %v", err)
+		req := generateTestRequest(t, http.MethodGet)
+		addRequestPath(t, req, "/players/not-a-uuid/planets")
+		rw := httptest.NewRecorder()
+		r.ServeHTTP(rw, req)
 
 		assert.Equal(t, http.StatusBadRequest, rw.Code)
 		actual := decodeResponseBody[string](t, rw)
@@ -227,9 +255,6 @@ func TestUnit_Planets_ListPlanetsForPlayer(t *testing.T) {
 	})
 
 	t.Run("forwards listing to use case", func(t *testing.T) {
-		req := generateTestRequest(t, http.MethodGet)
-		ctx, rw := generateTestContextFromRequest(t, req, addIdPathParam)
-
 		planets := []models.Planet{
 			{Id: uuid.New(), Name: "planet-1", CreatedAt: someTime},
 			{Id: uuid.New(), Name: "planet-2", CreatedAt: someOtherTime},
@@ -239,8 +264,16 @@ func TestUnit_Planets_ListPlanetsForPlayer(t *testing.T) {
 			Times(1).
 			Return(planets, nil)
 
-		err := listPlanetsForPlayer(ctx, mockUsecase)
-		require.NoError(t, err, "Actual err: %v", err)
+		handler := generateHandler[drivingports.ForManagingPlanet](
+			listPlanetsForPlayer,
+			mockUsecase,
+		)
+		r := createTestGinRouter(t, http.MethodGet, "/players/:id/planets", handler)
+
+		req := generateTestRequest(t, http.MethodGet)
+		addRequestPath(t, req, "/players/%s/planets", sampleUuid)
+		rw := httptest.NewRecorder()
+		r.ServeHTTP(rw, req)
 
 		assert.Equal(t, http.StatusOK, rw.Code)
 		actual := decodeResponseBody[[]dtos.PlanetDtoResponse](t, rw)
@@ -268,16 +301,21 @@ func TestUnit_Planets_ListPlanetsForPlayer(t *testing.T) {
 	})
 
 	t.Run("return empty slice when use case returns no planet", func(t *testing.T) {
-		req := generateTestRequest(t, http.MethodGet)
-		ctx, rw := generateTestContextFromRequest(t, req, addIdPathParam)
-
 		mockUsecase.EXPECT().
 			ListForPlayer(gomock.Any(), gomock.Eq(sampleUuid)).
 			Times(1).
 			Return([]models.Planet{}, nil)
 
-		err := listPlanetsForPlayer(ctx, mockUsecase)
-		require.NoError(t, err, "Actual err: %v", err)
+		handler := generateHandler[drivingports.ForManagingPlanet](
+			listPlanetsForPlayer,
+			mockUsecase,
+		)
+		r := createTestGinRouter(t, http.MethodGet, "/players/:id/planets", handler)
+
+		req := generateTestRequest(t, http.MethodGet)
+		addRequestPath(t, req, "/players/%s/planets", sampleUuid)
+		rw := httptest.NewRecorder()
+		r.ServeHTTP(rw, req)
 
 		assert.Equal(t, http.StatusOK, rw.Code)
 		actual := decodeResponseBody[[]dtos.PlanetDtoResponse](t, rw)
@@ -285,16 +323,21 @@ func TestUnit_Planets_ListPlanetsForPlayer(t *testing.T) {
 	})
 
 	t.Run("return empty slice when use case returns nil response", func(t *testing.T) {
-		req := generateTestRequest(t, http.MethodGet)
-		ctx, rw := generateTestContextFromRequest(t, req, addIdPathParam)
-
 		mockUsecase.EXPECT().
 			ListForPlayer(gomock.Any(), gomock.Eq(sampleUuid)).
 			Times(1).
 			Return(nil, nil)
 
-		err := listPlanetsForPlayer(ctx, mockUsecase)
-		require.NoError(t, err, "Actual err: %v", err)
+		handler := generateHandler[drivingports.ForManagingPlanet](
+			listPlanetsForPlayer,
+			mockUsecase,
+		)
+		r := createTestGinRouter(t, http.MethodGet, "/players/:id/planets", handler)
+
+		req := generateTestRequest(t, http.MethodGet)
+		addRequestPath(t, req, "/players/%s/planets", sampleUuid)
+		rw := httptest.NewRecorder()
+		r.ServeHTTP(rw, req)
 
 		assert.Equal(t, http.StatusOK, rw.Code)
 		actual := decodeResponseBody[[]dtos.PlanetDtoResponse](t, rw)
@@ -302,16 +345,21 @@ func TestUnit_Planets_ListPlanetsForPlayer(t *testing.T) {
 	})
 
 	t.Run("returns 500 when use cas fails", func(t *testing.T) {
-		req := generateTestRequest(t, http.MethodGet)
-		ctx, rw := generateTestContextFromRequest(t, req, addIdPathParam)
-
 		mockUsecase.EXPECT().
 			ListForPlayer(gomock.Any(), gomock.Eq(sampleUuid)).
 			Times(1).
 			Return([]models.Planet{}, errors.New("stubbed error"))
 
-		err := listPlanetsForPlayer(ctx, mockUsecase)
-		require.NoError(t, err, "Actual err: %v", err)
+		handler := generateHandler[drivingports.ForManagingPlanet](
+			listPlanetsForPlayer,
+			mockUsecase,
+		)
+		r := createTestGinRouter(t, http.MethodGet, "/players/:id/planets", handler)
+
+		req := generateTestRequest(t, http.MethodGet)
+		addRequestPath(t, req, "/players/%s/planets", sampleUuid)
+		rw := httptest.NewRecorder()
+		r.ServeHTTP(rw, req)
 
 		assert.Equal(t, http.StatusInternalServerError, rw.Code)
 		actual := decodeResponseBody[string](t, rw)
@@ -320,16 +368,21 @@ func TestUnit_Planets_ListPlanetsForPlayer(t *testing.T) {
 }
 
 func TestUnit_Planets_DeletePlanet(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
 	ctrl := gomock.NewController(t)
 	mockUsecase := drivingportstest.NewMockForManagingPlanet(ctrl)
 
 	t.Run("returns 400 when id is invalid", func(t *testing.T) {
-		req := generateTestRequest(t, http.MethodDelete)
-		ctx, rw := generateTestContextFromRequest(t, req)
-		ctx.SetPathValues([]echo.PathValue{{Name: "id", Value: "not-a-uuid"}})
+		handler := generateHandler[drivingports.ForManagingPlanet](
+			deletePlanet,
+			mockUsecase,
+		)
+		r := createTestGinRouter(t, http.MethodDelete, "/:id", handler)
 
-		err := deletePlanet(ctx, mockUsecase)
-		require.NoError(t, err, "Actual err: %v", err)
+		req := generateTestRequest(t, http.MethodDelete, addInvalidUuidPathParam)
+		rw := httptest.NewRecorder()
+		r.ServeHTTP(rw, req)
 
 		assert.Equal(t, http.StatusBadRequest, rw.Code)
 		actual := decodeResponseBody[string](t, rw)
@@ -337,31 +390,39 @@ func TestUnit_Planets_DeletePlanet(t *testing.T) {
 	})
 
 	t.Run("forwards deletion to use case", func(t *testing.T) {
-		req := generateTestRequest(t, http.MethodDelete)
-		ctx, rw := generateTestContextFromRequest(t, req, addIdPathParam)
-
 		mockUsecase.EXPECT().
 			Delete(gomock.Any(), gomock.Eq(sampleUuid)).
 			Times(1).
 			Return(nil)
 
-		err := deletePlanet(ctx, mockUsecase)
-		require.NoError(t, err, "Actual err: %v", err)
+		handler := generateHandler[drivingports.ForManagingPlanet](
+			deletePlanet,
+			mockUsecase,
+		)
+		r := createTestGinRouter(t, http.MethodDelete, "/:id", handler)
+
+		req := generateTestRequest(t, http.MethodDelete, addSampleUuidPathParam)
+		rw := httptest.NewRecorder()
+		r.ServeHTTP(rw, req)
 
 		assert.Equal(t, http.StatusNoContent, rw.Code)
 	})
 
 	t.Run("returns 409 when use case returns action is not completed", func(t *testing.T) {
-		req := generateTestRequest(t, http.MethodDelete)
-		ctx, rw := generateTestContextFromRequest(t, req, addIdPathParam)
-
 		mockUsecase.EXPECT().
 			Delete(gomock.Any(), gomock.Eq(sampleUuid)).
 			Times(1).
 			Return(domainerrors.ErrActionNotCompleted)
 
-		err := deletePlanet(ctx, mockUsecase)
-		require.NoError(t, err, "Actual err: %v", err)
+		handler := generateHandler[drivingports.ForManagingPlanet](
+			deletePlanet,
+			mockUsecase,
+		)
+		r := createTestGinRouter(t, http.MethodDelete, "/:id", handler)
+
+		req := generateTestRequest(t, http.MethodDelete, addSampleUuidPathParam)
+		rw := httptest.NewRecorder()
+		r.ServeHTTP(rw, req)
 
 		assert.Equal(t, http.StatusConflict, rw.Code)
 		actual := decodeResponseBody[string](t, rw)
@@ -369,16 +430,20 @@ func TestUnit_Planets_DeletePlanet(t *testing.T) {
 	})
 
 	t.Run("returns 409 when use case returns homeworld cannot be deleted", func(t *testing.T) {
-		req := generateTestRequest(t, http.MethodDelete)
-		ctx, rw := generateTestContextFromRequest(t, req, addIdPathParam)
-
 		mockUsecase.EXPECT().
 			Delete(gomock.Any(), gomock.Eq(sampleUuid)).
 			Times(1).
 			Return(domainerrors.ErrHomeworldCannotBeDeleted)
 
-		err := deletePlanet(ctx, mockUsecase)
-		require.NoError(t, err, "Actual err: %v", err)
+		handler := generateHandler[drivingports.ForManagingPlanet](
+			deletePlanet,
+			mockUsecase,
+		)
+		r := createTestGinRouter(t, http.MethodDelete, "/:id", handler)
+
+		req := generateTestRequest(t, http.MethodDelete, addSampleUuidPathParam)
+		rw := httptest.NewRecorder()
+		r.ServeHTTP(rw, req)
 
 		assert.Equal(t, http.StatusConflict, rw.Code)
 		actual := decodeResponseBody[string](t, rw)
@@ -386,16 +451,20 @@ func TestUnit_Planets_DeletePlanet(t *testing.T) {
 	})
 
 	t.Run("returns 500 when use case fails", func(t *testing.T) {
-		req := generateTestRequest(t, http.MethodDelete)
-		ctx, rw := generateTestContextFromRequest(t, req, addIdPathParam)
-
 		mockUsecase.EXPECT().
 			Delete(gomock.Any(), gomock.Any()).
 			Times(1).
 			Return(errors.New("stubbed error"))
 
-		err := deletePlanet(ctx, mockUsecase)
-		require.NoError(t, err, "Actual err: %v", err)
+		handler := generateHandler[drivingports.ForManagingPlanet](
+			deletePlanet,
+			mockUsecase,
+		)
+		r := createTestGinRouter(t, http.MethodDelete, "/:id", handler)
+
+		req := generateTestRequest(t, http.MethodDelete, addSampleUuidPathParam)
+		rw := httptest.NewRecorder()
+		r.ServeHTTP(rw, req)
 
 		assert.Equal(t, http.StatusInternalServerError, rw.Code)
 		actual := decodeResponseBody[string](t, rw)

@@ -2,6 +2,7 @@ package drivingadapters
 
 import (
 	"net/http"
+	"net/http/httptest"
 	"testing"
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/errors"
@@ -10,25 +11,31 @@ import (
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
 	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/request"
+	drivingports "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driving"
+	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"github.com/labstack/echo/v5"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 )
 
 func TestUnit_BuildingActions_CreateBuildingAction(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
 	ctrl := gomock.NewController(t)
 	mockUsecase := drivingportstest.NewMockForCreatingBuildingAction(ctrl)
 
 	t.Run("returns 400 when planet id is invalid", func(t *testing.T) {
 		dto := dtos.BuildingActionDtoRequest{Building: uuid.New()}
-		req := generateTestRequestWithJsonBody(t, http.MethodPost, dto)
-		ctx, rw := generateTestContextFromRequest(t, req)
-		ctx.SetPathValues([]echo.PathValue{{Name: "id", Value: "not-a-uuid"}})
+		handler := generateHandler[drivingports.ForCreatingBuildingAction](
+			createBuildingAction,
+			mockUsecase,
+		)
+		r := createTestGinRouter(t, http.MethodPost, "/planets/:id/actions", handler)
 
-		err := createBuildingAction(ctx, mockUsecase)
-		require.NoError(t, err, "Actual err: %v", err)
+		req := generateTestRequestWithJsonBody(t, http.MethodPost, dto)
+		addRequestPath(t, req, "/planets/%s/actions", "not-a-uuid")
+		rw := httptest.NewRecorder()
+		r.ServeHTTP(rw, req)
 
 		assert.Equal(t, http.StatusBadRequest, rw.Code)
 		actual := decodeResponseBody[string](t, rw)
@@ -36,11 +43,16 @@ func TestUnit_BuildingActions_CreateBuildingAction(t *testing.T) {
 	})
 
 	t.Run("returns 400 when body is invalid", func(t *testing.T) {
-		req := generateTestRequestWithJsonBody(t, http.MethodPost, "not-a-dto-request")
-		ctx, rw := generateTestContextFromRequest(t, req, addIdPathParam)
+		handler := generateHandler[drivingports.ForCreatingBuildingAction](
+			createBuildingAction,
+			mockUsecase,
+		)
+		r := createTestGinRouter(t, http.MethodPost, "/planets/:id/actions", handler)
 
-		err := createBuildingAction(ctx, mockUsecase)
-		require.NoError(t, err, "Actual err: %v", err)
+		req := generateTestRequestWithJsonBody(t, http.MethodPost, "not-a-dto-request")
+		addRequestPath(t, req, "/planets/%s/actions", sampleUuid)
+		rw := httptest.NewRecorder()
+		r.ServeHTTP(rw, req)
 
 		assert.Equal(t, http.StatusBadRequest, rw.Code)
 		actual := decodeResponseBody[string](t, rw)
@@ -49,8 +61,6 @@ func TestUnit_BuildingActions_CreateBuildingAction(t *testing.T) {
 
 	t.Run("forwards creation to use case", func(t *testing.T) {
 		dto := dtos.BuildingActionDtoRequest{Building: uuid.New()}
-		req := generateTestRequestWithJsonBody(t, http.MethodPost, dto)
-		ctx, rw := generateTestContextFromRequest(t, req, addIdPathParam)
 
 		expectedRequest := request.BuildingActionCreationRequest{Planet: sampleUuid, Building: dto.Building}
 		action := models.BuildingAction{
@@ -88,8 +98,16 @@ func TestUnit_BuildingActions_CreateBuildingAction(t *testing.T) {
 			Times(1).
 			Return(action, nil)
 
-		err := createBuildingAction(ctx, mockUsecase)
-		require.NoError(t, err, "Actual err: %v", err)
+		handler := generateHandler[drivingports.ForCreatingBuildingAction](
+			createBuildingAction,
+			mockUsecase,
+		)
+		r := createTestGinRouter(t, http.MethodPost, "/planets/:id/actions", handler)
+
+		req := generateTestRequestWithJsonBody(t, http.MethodPost, dto)
+		addRequestPath(t, req, "/planets/%s/actions", sampleUuid)
+		rw := httptest.NewRecorder()
+		r.ServeHTTP(rw, req)
 
 		assert.Equal(t, http.StatusCreated, rw.Code)
 		actual := decodeResponseBody[dtos.BuildingActionDtoResponse](t, rw)
@@ -121,16 +139,22 @@ func TestUnit_BuildingActions_CreateBuildingAction(t *testing.T) {
 
 	t.Run("returns 409 when action already exists", func(t *testing.T) {
 		dto := dtos.BuildingActionDtoRequest{Building: uuid.New()}
-		req := generateTestRequestWithJsonBody(t, http.MethodPost, dto)
-		ctx, rw := generateTestContextFromRequest(t, req, addIdPathParam)
 
 		mockUsecase.EXPECT().
 			Create(gomock.Any(), gomock.Any()).
 			Times(1).
 			Return(models.BuildingAction{}, domainerrors.ErrActionAlreadyInProgress)
 
-		err := createBuildingAction(ctx, mockUsecase)
-		require.NoError(t, err, "Actual err: %v", err)
+		handler := generateHandler[drivingports.ForCreatingBuildingAction](
+			createBuildingAction,
+			mockUsecase,
+		)
+		r := createTestGinRouter(t, http.MethodPost, "/planets/:id/actions", handler)
+
+		req := generateTestRequestWithJsonBody(t, http.MethodPost, dto)
+		addRequestPath(t, req, "/planets/%s/actions", sampleUuid)
+		rw := httptest.NewRecorder()
+		r.ServeHTTP(rw, req)
 
 		assert.Equal(t, http.StatusConflict, rw.Code)
 		actual := decodeResponseBody[string](t, rw)
@@ -139,16 +163,22 @@ func TestUnit_BuildingActions_CreateBuildingAction(t *testing.T) {
 
 	t.Run("returns 409 when all planet fields are used", func(t *testing.T) {
 		dto := dtos.BuildingActionDtoRequest{Building: uuid.New()}
-		req := generateTestRequestWithJsonBody(t, http.MethodPost, dto)
-		ctx, rw := generateTestContextFromRequest(t, req, addIdPathParam)
 
 		mockUsecase.EXPECT().
 			Create(gomock.Any(), gomock.Any()).
 			Times(1).
 			Return(models.BuildingAction{}, domainerrors.ErrAllFieldsUsed)
 
-		err := createBuildingAction(ctx, mockUsecase)
-		require.NoError(t, err, "Actual err: %v", err)
+		handler := generateHandler[drivingports.ForCreatingBuildingAction](
+			createBuildingAction,
+			mockUsecase,
+		)
+		r := createTestGinRouter(t, http.MethodPost, "/planets/:id/actions", handler)
+
+		req := generateTestRequestWithJsonBody(t, http.MethodPost, dto)
+		addRequestPath(t, req, "/planets/%s/actions", sampleUuid)
+		rw := httptest.NewRecorder()
+		r.ServeHTTP(rw, req)
 
 		assert.Equal(t, http.StatusConflict, rw.Code)
 		actual := decodeResponseBody[string](t, rw)
@@ -157,16 +187,22 @@ func TestUnit_BuildingActions_CreateBuildingAction(t *testing.T) {
 
 	t.Run("returns 404 when planet is not found", func(t *testing.T) {
 		dto := dtos.BuildingActionDtoRequest{Building: uuid.New()}
-		req := generateTestRequestWithJsonBody(t, http.MethodPost, dto)
-		ctx, rw := generateTestContextFromRequest(t, req, addIdPathParam)
 
 		mockUsecase.EXPECT().
 			Create(gomock.Any(), gomock.Any()).
 			Times(1).
 			Return(models.BuildingAction{}, domainerrors.ErrNotFound)
 
-		err := createBuildingAction(ctx, mockUsecase)
-		require.NoError(t, err, "Actual err: %v", err)
+		handler := generateHandler[drivingports.ForCreatingBuildingAction](
+			createBuildingAction,
+			mockUsecase,
+		)
+		r := createTestGinRouter(t, http.MethodPost, "/planets/:id/actions", handler)
+
+		req := generateTestRequestWithJsonBody(t, http.MethodPost, dto)
+		addRequestPath(t, req, "/planets/%s/actions", sampleUuid)
+		rw := httptest.NewRecorder()
+		r.ServeHTTP(rw, req)
 
 		assert.Equal(t, http.StatusNotFound, rw.Code)
 		actual := decodeResponseBody[string](t, rw)
@@ -175,16 +211,22 @@ func TestUnit_BuildingActions_CreateBuildingAction(t *testing.T) {
 
 	t.Run("returns 400 when building is not found", func(t *testing.T) {
 		dto := dtos.BuildingActionDtoRequest{Building: uuid.New()}
-		req := generateTestRequestWithJsonBody(t, http.MethodPost, dto)
-		ctx, rw := generateTestContextFromRequest(t, req, addIdPathParam)
 
 		mockUsecase.EXPECT().
 			Create(gomock.Any(), gomock.Any()).
 			Times(1).
 			Return(models.BuildingAction{}, domainerrors.ErrBuildingNotFound)
 
-		err := createBuildingAction(ctx, mockUsecase)
-		require.NoError(t, err, "Actual err: %v", err)
+		handler := generateHandler[drivingports.ForCreatingBuildingAction](
+			createBuildingAction,
+			mockUsecase,
+		)
+		r := createTestGinRouter(t, http.MethodPost, "/planets/:id/actions", handler)
+
+		req := generateTestRequestWithJsonBody(t, http.MethodPost, dto)
+		addRequestPath(t, req, "/planets/%s/actions", sampleUuid)
+		rw := httptest.NewRecorder()
+		r.ServeHTTP(rw, req)
 
 		assert.Equal(t, http.StatusBadRequest, rw.Code)
 		actual := decodeResponseBody[string](t, rw)
@@ -193,16 +235,22 @@ func TestUnit_BuildingActions_CreateBuildingAction(t *testing.T) {
 
 	t.Run("returns 400 when not enough resources are on the planet", func(t *testing.T) {
 		dto := dtos.BuildingActionDtoRequest{Building: uuid.New()}
-		req := generateTestRequestWithJsonBody(t, http.MethodPost, dto)
-		ctx, rw := generateTestContextFromRequest(t, req, addIdPathParam)
 
 		mockUsecase.EXPECT().
 			Create(gomock.Any(), gomock.Any()).
 			Times(1).
 			Return(models.BuildingAction{}, domainerrors.ErrNotEnoughResources)
 
-		err := createBuildingAction(ctx, mockUsecase)
-		require.NoError(t, err, "Actual err: %v", err)
+		handler := generateHandler[drivingports.ForCreatingBuildingAction](
+			createBuildingAction,
+			mockUsecase,
+		)
+		r := createTestGinRouter(t, http.MethodPost, "/planets/:id/actions", handler)
+
+		req := generateTestRequestWithJsonBody(t, http.MethodPost, dto)
+		addRequestPath(t, req, "/planets/%s/actions", sampleUuid)
+		rw := httptest.NewRecorder()
+		r.ServeHTTP(rw, req)
 
 		assert.Equal(t, http.StatusBadRequest, rw.Code)
 		actual := decodeResponseBody[string](t, rw)
@@ -211,16 +259,22 @@ func TestUnit_BuildingActions_CreateBuildingAction(t *testing.T) {
 
 	t.Run("returns 500 when use case fails", func(t *testing.T) {
 		dto := dtos.BuildingActionDtoRequest{Building: uuid.New()}
-		req := generateTestRequestWithJsonBody(t, http.MethodPost, dto)
-		ctx, rw := generateTestContextFromRequest(t, req, addIdPathParam)
 
 		mockUsecase.EXPECT().
 			Create(gomock.Any(), gomock.Any()).
 			Times(1).
 			Return(models.BuildingAction{}, errors.New("stubbed error"))
 
-		err := createBuildingAction(ctx, mockUsecase)
-		require.NoError(t, err, "Actual err: %v", err)
+		handler := generateHandler[drivingports.ForCreatingBuildingAction](
+			createBuildingAction,
+			mockUsecase,
+		)
+		r := createTestGinRouter(t, http.MethodPost, "/planets/:id/actions", handler)
+
+		req := generateTestRequestWithJsonBody(t, http.MethodPost, dto)
+		addRequestPath(t, req, "/planets/%s/actions", sampleUuid)
+		rw := httptest.NewRecorder()
+		r.ServeHTTP(rw, req)
 
 		assert.Equal(t, http.StatusInternalServerError, rw.Code)
 		actual := decodeResponseBody[string](t, rw)
@@ -229,16 +283,22 @@ func TestUnit_BuildingActions_CreateBuildingAction(t *testing.T) {
 }
 
 func TestUnit_BuildingActions_DeleteBuildingAction(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
 	ctrl := gomock.NewController(t)
 	mockUsecase := drivingportstest.NewMockForDeletingBuildingAction(ctrl)
 
 	t.Run("returns 400 when id is invalid", func(t *testing.T) {
-		req := generateTestRequest(t, http.MethodDelete)
-		ctx, rw := generateTestContextFromRequest(t, req)
-		ctx.SetPathValues([]echo.PathValue{{Name: "id", Value: "not-a-uuid"}})
+		handler := generateHandler[drivingports.ForDeletingBuildingAction](
+			deleteBuildingAction,
+			mockUsecase,
+		)
+		r := createTestGinRouter(t, http.MethodDelete, "/planets/:id/actions", handler)
 
-		err := deleteBuildingAction(ctx, mockUsecase)
-		require.NoError(t, err, "Actual err: %v", err)
+		req := generateTestRequest(t, http.MethodDelete)
+		addRequestPath(t, req, "/planets/%s/actions", "not-a-uuid")
+		rw := httptest.NewRecorder()
+		r.ServeHTTP(rw, req)
 
 		assert.Equal(t, http.StatusBadRequest, rw.Code)
 		actual := decodeResponseBody[string](t, rw)
@@ -246,32 +306,41 @@ func TestUnit_BuildingActions_DeleteBuildingAction(t *testing.T) {
 	})
 
 	t.Run("forwards deletion to use case", func(t *testing.T) {
-		req := generateTestRequest(t, http.MethodDelete)
-		ctx, rw := generateTestContextFromRequest(t, req, addIdPathParam)
-
 		mockUsecase.EXPECT().
 			DeleteForPlanet(gomock.Any(), gomock.Eq(sampleUuid)).
 			Times(1).
 			Return(nil)
 
-		err := deleteBuildingAction(ctx, mockUsecase)
-		require.NoError(t, err, "Actual err: %v", err)
+		handler := generateHandler[drivingports.ForDeletingBuildingAction](
+			deleteBuildingAction,
+			mockUsecase,
+		)
+		r := createTestGinRouter(t, http.MethodDelete, "/planets/:id/actions", handler)
+
+		req := generateTestRequest(t, http.MethodDelete)
+		addRequestPath(t, req, "/planets/%s/actions", sampleUuid)
+		rw := httptest.NewRecorder()
+		r.ServeHTTP(rw, req)
 
 		assert.Equal(t, http.StatusNoContent, rw.Code)
 	})
 
 	t.Run("returns 404 when planet is not found", func(t *testing.T) {
-		dto := dtos.BuildingActionDtoRequest{Building: uuid.New()}
-		req := generateTestRequestWithJsonBody(t, http.MethodPost, dto)
-		ctx, rw := generateTestContextFromRequest(t, req, addIdPathParam)
-
 		mockUsecase.EXPECT().
 			DeleteForPlanet(gomock.Any(), gomock.Eq(sampleUuid)).
 			Times(1).
 			Return(domainerrors.ErrNotFound)
 
-		err := deleteBuildingAction(ctx, mockUsecase)
-		require.NoError(t, err, "Actual err: %v", err)
+		handler := generateHandler[drivingports.ForDeletingBuildingAction](
+			deleteBuildingAction,
+			mockUsecase,
+		)
+		r := createTestGinRouter(t, http.MethodDelete, "/planets/:id/actions", handler)
+
+		req := generateTestRequest(t, http.MethodDelete)
+		addRequestPath(t, req, "/planets/%s/actions", sampleUuid)
+		rw := httptest.NewRecorder()
+		r.ServeHTTP(rw, req)
 
 		assert.Equal(t, http.StatusNotFound, rw.Code)
 		actual := decodeResponseBody[string](t, rw)
@@ -279,16 +348,21 @@ func TestUnit_BuildingActions_DeleteBuildingAction(t *testing.T) {
 	})
 
 	t.Run("returns 500 when use case fails", func(t *testing.T) {
-		req := generateTestRequest(t, http.MethodDelete)
-		ctx, rw := generateTestContextFromRequest(t, req, addIdPathParam)
-
 		mockUsecase.EXPECT().
 			DeleteForPlanet(gomock.Any(), gomock.Any()).
 			Times(1).
 			Return(errors.New("stubbed error"))
 
-		err := deleteBuildingAction(ctx, mockUsecase)
-		require.NoError(t, err, "Actual err: %v", err)
+		handler := generateHandler[drivingports.ForDeletingBuildingAction](
+			deleteBuildingAction,
+			mockUsecase,
+		)
+		r := createTestGinRouter(t, http.MethodDelete, "/planets/:id/actions", handler)
+
+		req := generateTestRequest(t, http.MethodDelete)
+		addRequestPath(t, req, "/planets/%s/actions", sampleUuid)
+		rw := httptest.NewRecorder()
+		r.ServeHTTP(rw, req)
 
 		assert.Equal(t, http.StatusInternalServerError, rw.Code)
 		actual := decodeResponseBody[string](t, rw)

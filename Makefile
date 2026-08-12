@@ -3,6 +3,9 @@ GIT_COMMIT_HASH=$(shell git rev-parse --short HEAD)
 SWAG_VERSION ?= v2.0.0-rc5
 GOLANGCI_LINT_VERSION ?= v2.12.2
 
+SERVER_PORT=60003
+DATABASE_PASSWORD="manager_password"
+
 setup:
 	mkdir -p sandbox
 
@@ -12,6 +15,14 @@ galactic-sovereign-service-build:
 		--tag totocorpsoftwareinc/galactic-sovereign-service:${GIT_COMMIT_HASH} \
 		-f build/galactic-sovereign-service/Dockerfile \
 		.
+
+galactic-sovereign-service-run:
+	docker run \
+		--network=host \
+		-e ENV_SERVER_PORT=${SERVER_PORT} \
+		-e ENV_DATABASE_HOST=localhost \
+		-e ENV_DATABASE_PASSWORD=${DATABASE_PASSWORD} \
+		totocorpsoftwareinc/galactic-sovereign-service:${GIT_COMMIT_HASH}
 
 generate-mocks:
 	go generate ./...

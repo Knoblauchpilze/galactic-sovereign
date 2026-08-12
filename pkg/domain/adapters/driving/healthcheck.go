@@ -5,11 +5,11 @@ import (
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/rest"
 	drivingports "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driving"
-	"github.com/labstack/echo/v5"
+	"github.com/gin-gonic/gin"
 )
 
-func HealthcheckEndpoints(usecase drivingports.ForCheckingServiceHealth) rest.Routes {
-	var out rest.Routes
+func HealthcheckEndpoints(usecase drivingports.ForCheckingServiceHealth) Routes {
+	var out Routes
 
 	handler := generateHandler(healthcheck, usecase)
 	get := rest.NewRoute(http.MethodGet, "/healthcheck", handler)
@@ -27,12 +27,13 @@ func HealthcheckEndpoints(usecase drivingports.ForCheckingServiceHealth) rest.Ro
 //	@Success		200	{object}	rest.ResponseEnvelope[string]	"OK"
 //	@Failure		503	{object}	rest.ResponseEnvelope[string]
 //	@Router			/healthcheck [get]
-func healthcheck(c *echo.Context, usecase drivingports.ForCheckingServiceHealth) error {
-	healthy := usecase.Healthy(c.Request().Context())
+func healthcheck(c *gin.Context, usecase drivingports.ForCheckingServiceHealth) {
+	healthy := usecase.Healthy(c.Request.Context())
 
 	if !healthy {
-		return c.JSON(http.StatusServiceUnavailable, "KO")
+		c.JSON(http.StatusServiceUnavailable, "KO")
+		return
 	}
 
-	return c.JSON(http.StatusOK, "OK")
+	c.JSON(http.StatusOK, "OK")
 }

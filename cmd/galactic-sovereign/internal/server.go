@@ -10,7 +10,7 @@ import (
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/usecases"
 )
 
-func CreateGameServer(conf server.Config, conn db.Connection, log *slog.Logger) server.Server {
+func CreateGameServer(conf server.Config, conn db.Connection, log *slog.Logger) *server.Server {
 	s := server.NewWithLogger(conf, log)
 
 	registerUniversesRoutes(conn, s, log)
@@ -22,7 +22,7 @@ func CreateGameServer(conf server.Config, conn db.Connection, log *slog.Logger) 
 	return s
 }
 
-func registerUniversesRoutes(conn db.Connection, s server.Server, log *slog.Logger) {
+func registerUniversesRoutes(conn db.Connection, s *server.Server, log *slog.Logger) {
 	repo := drivenadapters.NewUniverseRepository(conn)
 	usecase := usecases.NewUniverseUseCase(repo)
 
@@ -33,7 +33,7 @@ func registerUniversesRoutes(conn db.Connection, s server.Server, log *slog.Logg
 	}
 }
 
-func registerPlayersRoutes(conn db.Connection, s server.Server, log *slog.Logger) {
+func registerPlayersRoutes(conn db.Connection, s *server.Server, log *slog.Logger) {
 	playerRepo := drivenadapters.NewPlayerRepository(conn)
 	universeRepo := drivenadapters.NewUniverseRepository(conn)
 	planetRepo := drivenadapters.NewPlanetRepository(conn)
@@ -46,7 +46,7 @@ func registerPlayersRoutes(conn db.Connection, s server.Server, log *slog.Logger
 	}
 }
 
-func registerPlanetsRoutes(conn db.Connection, s server.Server, log *slog.Logger) {
+func registerPlanetsRoutes(conn db.Connection, s *server.Server, log *slog.Logger) {
 	planetRepo := drivenadapters.NewPlanetRepository(conn)
 	planetMutator := drivenadapters.NewPlanetMutator(conn)
 	clock := drivenadapters.NewTimeAdapter()
@@ -60,7 +60,7 @@ func registerPlanetsRoutes(conn db.Connection, s server.Server, log *slog.Logger
 	}
 }
 
-func registerBuildingActionsRoutes(conn db.Connection, s server.Server, log *slog.Logger) {
+func registerBuildingActionsRoutes(conn db.Connection, s *server.Server, log *slog.Logger) {
 	buildingRepo := drivenadapters.NewBuildingRepository(conn)
 	planetMutator := drivenadapters.NewPlanetMutator(conn)
 	clock := drivenadapters.NewTimeAdapter()
@@ -75,7 +75,7 @@ func registerBuildingActionsRoutes(conn db.Connection, s server.Server, log *slo
 	}
 }
 
-func registerHealthRoutes(conn db.Connection, s server.Server, log *slog.Logger) {
+func registerHealthRoutes(conn db.Connection, s *server.Server, log *slog.Logger) {
 	checker := drivenadapters.NewDatabaseChecker(conn)
 	usecase := usecases.NewCheckHealthUseCase(checker)
 

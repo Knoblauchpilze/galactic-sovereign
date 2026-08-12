@@ -9,12 +9,12 @@ import (
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driving/mappers"
 	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
 	drivingports "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driving"
+	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"github.com/labstack/echo/v5"
 )
 
-func PlayerEndpoints(usecase drivingports.ForManagingPlayer) rest.Routes {
-	var out rest.Routes
+func PlayerEndpoints(usecase drivingports.ForManagingPlayer) Routes {
+	var out Routes
 
 	handler := generateHandler(createPlayer, usecase)
 	post := rest.NewRoute(http.MethodPost, "/players", handler)
@@ -47,30 +47,34 @@ func PlayerEndpoints(usecase drivingports.ForManagingPlayer) rest.Routes {
 //	@Failure		409		{object}	rest.ResponseEnvelope[string]
 //	@Failure		500		{object}	rest.ResponseEnvelope[string]
 //	@Router			/players [post]
-func createPlayer(c *echo.Context, usecase drivingports.ForManagingPlayer) error {
+func createPlayer(c *gin.Context, usecase drivingports.ForManagingPlayer) {
 	var inputDto dtos.PlayerDtoRequest
 	err := c.Bind(&inputDto)
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, "invalid player syntax")
+		c.AbortWithStatusJSON(http.StatusBadRequest, "invalid player syntax")
+		return
 	}
 
 	request := mappers.ToPlayerCreationRequest(inputDto)
-	player, err := usecase.Create(c.Request().Context(), request)
+	player, err := usecase.Create(c.Request.Context(), request)
 	if err != nil {
 		if err == domainerrors.ErrNameAlreadyTaken {
-			return c.JSON(http.StatusConflict, "name already used")
+			c.AbortWithStatusJSON(http.StatusConflict, "name already used")
+			return
 		}
 
 		if err == domainerrors.ErrUniverseNotFound {
-			return c.JSON(http.StatusBadRequest, "no such universe")
+			c.AbortWithStatusJSON(http.StatusBadRequest, "no such universe")
+			return
 		}
 
-		c.Logger().Error("Failed to create player", slog.Any("error", err))
-		return c.JSON(http.StatusInternalServerError, "failed to create player")
+		logError(c.Request, "Failed to create player", slog.Any("error", err))
+		c.AbortWithStatusJSON(http.StatusInternalServerError, "failed to create player")
+		return
 	}
 
 	out := mappers.ToPlayerResponse(player)
-	return c.JSON(http.StatusCreated, out)
+	c.JSON(http.StatusCreated, out)
 }
 
 // getPlayer godoc
@@ -85,25 +89,28 @@ func createPlayer(c *echo.Context, usecase drivingports.ForManagingPlayer) error
 //	@Failure		404	{object}	rest.ResponseEnvelope[string]
 //	@Failure		500	{object}	rest.ResponseEnvelope[string]
 //	@Router			/players/{id} [get]
-func getPlayer(c *echo.Context, usecase drivingports.ForManagingPlayer) error {
+func getPlayer(c *gin.Context, usecase drivingports.ForManagingPlayer) {
 	maybeId := c.Param("id")
 	id, err := uuid.Parse(maybeId)
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, "invalid id syntax")
+		c.AbortWithStatusJSON(http.StatusBadRequest, "invalid id syntax")
+		return
 	}
 
-	player, err := usecase.Get(c.Request().Context(), id)
+	player, err := usecase.Get(c.Request.Context(), id)
 	if err != nil {
 		if err == domainerrors.ErrNotFound {
-			return c.JSON(http.StatusNotFound, "no such player")
+			c.AbortWithStatusJSON(http.StatusNotFound, "no such player")
+			return
 		}
 
-		c.Logger().Error("Failed to get player", slog.Any("error", err))
-		return c.JSON(http.StatusInternalServerError, "failed to get player")
+		logError(c.Request, "Failed to get player", slog.Any("error", err))
+		c.AbortWithStatusJSON(http.StatusInternalServerError, "failed to get player")
+		return
 	}
 
 	out := mappers.ToPlayerResponse(player)
-	return c.JSON(http.StatusOK, out)
+	c.JSON(http.StatusOK, out)
 }
 
 // listPlayersForApiUser godoc
@@ -116,22 +123,24 @@ func getPlayer(c *echo.Context, usecase drivingports.ForManagingPlayer) error {
 //	@Failure		400			{object}	rest.ResponseEnvelope[string]
 //	@Failure		500			{object}	rest.ResponseEnvelope[string]
 //	@Router			/users/{id}/players [get]
-func listPlayersForApiUser(c *echo.Context, usecase drivingports.ForManagingPlayer) error {
+func listPlayersForApiUser(c *gin.Context, usecase drivingports.ForManagingPlayer) {
 	maybeId := c.Param("id")
 	apiUserId, err := uuid.Parse(maybeId)
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, "invalid id syntax")
+		c.AbortWithStatusJSON(http.StatusBadRequest, "invalid id syntax")
+		return
 	}
 
-	players, err := usecase.ListForApiUser(c.Request().Context(), apiUserId)
+	players, err := usecase.ListForApiUser(c.Request.Context(), apiUserId)
 	if err != nil {
-		c.Logger().Error("Failed to list players", slog.Any("error", err))
-		return c.JSON(http.StatusInternalServerError, "failed to list players")
+		logError(c.Request, "Failed to list players", slog.Any("error", err))
+		c.AbortWithStatusJSON(http.StatusInternalServerError, "failed to list players")
+		return
 	}
 
 	out := mappers.ToPlayersResponse(players)
 
-	return c.JSON(http.StatusOK, out)
+	c.JSON(http.StatusOK, out)
 }
 
 // deletePlayer godoc
@@ -145,18 +154,20 @@ func listPlayersForApiUser(c *echo.Context, usecase drivingports.ForManagingPlay
 //	@Failure		400	{object}	rest.ResponseEnvelope[string]
 //	@Failure		500	{object}	rest.ResponseEnvelope[string]
 //	@Router			/players/{id} [delete]
-func deletePlayer(c *echo.Context, usecase drivingports.ForManagingPlayer) error {
+func deletePlayer(c *gin.Context, usecase drivingports.ForManagingPlayer) {
 	maybeId := c.Param("id")
 	id, err := uuid.Parse(maybeId)
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, "invalid id syntax")
+		c.AbortWithStatusJSON(http.StatusBadRequest, "invalid id syntax")
+		return
 	}
 
-	err = usecase.Delete(c.Request().Context(), id)
+	err = usecase.Delete(c.Request.Context(), id)
 	if err != nil {
-		c.Logger().Error("Failed to delete player", slog.Any("error", err))
-		return c.JSON(http.StatusInternalServerError, "failed to delete player")
+		logError(c.Request, "Failed to delete player", slog.Any("error", err))
+		c.AbortWithStatusJSON(http.StatusInternalServerError, "failed to delete player")
+		return
 	}
 
-	return c.NoContent(http.StatusNoContent)
+	c.Status(http.StatusNoContent)
 }

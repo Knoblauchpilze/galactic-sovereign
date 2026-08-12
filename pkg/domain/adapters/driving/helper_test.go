@@ -3,14 +3,17 @@ package drivingadapters
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
 
+	"github.com/Knoblauchpilze/backend-toolkit/pkg/rest"
+	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"github.com/labstack/echo/v5"
 	"github.com/stretchr/testify/require"
 )
 
@@ -21,20 +24,39 @@ var (
 	sampleResourceId = uuid.New()
 )
 
-func generateTestRequest(t *testing.T, method string) *http.Request {
+func generateTestRequest(
+	t *testing.T,
+	method string,
+	modifiers ...func(*testing.T, *http.Request),
+) *http.Request {
 	t.Helper()
 
-	req := httptest.NewRequest(method, "/", nil)
+	ctx := rest.WithContextLogger(t.Context(), slog.Default())
+	req := httptest.NewRequestWithContext(ctx, method, "/", nil)
+
+	for _, modifier := range modifiers {
+		modifier(t, req)
+	}
+
 	return req
 }
 
-func addQueryParam(t *testing.T, req *http.Request, key string, value string) {
+func addSampleUuidPathParam(t *testing.T, req *http.Request) {
 	t.Helper()
 
-	q := req.URL.Query()
-	q.Add(key, value)
+	req.URL.Path = fmt.Sprintf("/%s", sampleUuid)
+}
 
-	req.URL.RawQuery = q.Encode()
+func addInvalidUuidPathParam(t *testing.T, req *http.Request) {
+	t.Helper()
+
+	req.URL.Path = "/not-a-uuid"
+}
+
+func addRequestPath(t *testing.T, req *http.Request, path string, args ...any) {
+	t.Helper()
+
+	req.URL.Path = fmt.Sprintf(path, args...)
 }
 
 func generateTestRequestWithJsonBody[T any](
@@ -42,34 +64,30 @@ func generateTestRequestWithJsonBody[T any](
 	method string,
 	data T,
 ) *http.Request {
-	req := httptest.NewRequest(method, "/", encodeBody(t, data))
+	ctx := rest.WithContextLogger(t.Context(), slog.Default())
+	req := httptest.NewRequestWithContext(ctx, method, "/", encodeBody(t, data))
 	req.Header.Set("Content-Type", "application/json")
 	return req
 }
 
-func generateTestContextFromRequest(
+func createTestGinRouter(
 	t *testing.T,
-	req *http.Request,
-	modifiers ...func(*testing.T, *echo.Context),
-) (*echo.Context, *httptest.ResponseRecorder) {
+	method string,
+	path string,
+	handler gin.HandlerFunc,
+	middlewares ...gin.HandlerFunc,
+) *gin.Engine {
 	t.Helper()
 
-	e := echo.New()
-	rw := httptest.NewRecorder()
+	r := gin.New()
 
-	ctx := e.NewContext(req, rw)
-
-	for _, modifier := range modifiers {
-		modifier(t, ctx)
+	for _, middleware := range middlewares {
+		r.Use(middleware)
 	}
 
-	return ctx, rw
-}
+	r.Handle(method, path, handler)
 
-func addIdPathParam(t *testing.T, c *echo.Context) {
-	t.Helper()
-
-	c.SetPathValues([]echo.PathValue{{Name: "id", Value: sampleUuid.String()}})
+	return r
 }
 
 func decodeResponseBody[T any](t *testing.T, w *httptest.ResponseRecorder) T {

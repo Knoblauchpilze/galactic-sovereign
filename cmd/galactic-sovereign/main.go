@@ -3,17 +3,14 @@ package main
 import (
 	"context"
 	"log/slog"
-	"net/http"
 	"os"
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/config"
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/logger"
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/process"
-	"github.com/Knoblauchpilze/backend-toolkit/pkg/rest"
-	_ "github.com/Knoblauchpilze/galactic-sovereign/api"
 	"github.com/Knoblauchpilze/galactic-sovereign/cmd/galactic-sovereign/internal"
-	echoSwagger "github.com/swaggo/echo-swagger/v2"
+	"github.com/gin-gonic/gin"
 )
 
 func determineConfigName() string {
@@ -32,6 +29,8 @@ func determineConfigName() string {
 func main() {
 	log := logger.New(os.Stdout)
 
+	gin.SetMode(gin.ReleaseMode)
+
 	conf, err := config.Load(determineConfigName(), internal.DefaultConfig())
 	if err != nil {
 		log.Error("Failed to load configuration", slog.Any("error", err))
@@ -47,10 +46,15 @@ func main() {
 
 	s := internal.CreateGameServer(conf.Server, conn, log)
 
-	swaggerUi := rest.NewRawRoute(http.MethodGet, "/swagger/*", echoSwagger.WrapHandlerV3)
-	if err := s.AddRoute(swaggerUi); err != nil {
-		log.Error("Failed to register route", slog.String("route", swaggerUi.Path()), slog.Any("error", err))
+	swaggerRoutes, err := internal.SwaggerEndpoints(conf.Server)
+	if err != nil {
+		log.Error("Failed to create swagger routes", slog.Any("error", err))
 		os.Exit(1)
+	}
+	for _, route := range swaggerRoutes {
+		if err := s.AddRoute(route); err != nil {
+			log.Error("Failed to register route", slog.String("route", route.Path()), slog.Any("error", err))
+		}
 	}
 
 	wait, err := process.StartWithSignalHandler(context.Background(), s)
