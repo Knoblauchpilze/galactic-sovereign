@@ -40,6 +40,25 @@ func TestUnit_Universes_CreateUniverse(t *testing.T) {
 		assert.Equal(t, "invalid universe syntax", actual)
 	})
 
+	t.Run("returns 400 when name is empty", func(t *testing.T) {
+		dto := sampleUniverseDtoRequest()
+		dto.Name = ""
+
+		handler := generateHandler[drivingports.ForManagingUniverse](
+			createUniverse,
+			mockUsecase,
+		)
+		r := createTestGinRouter(t, http.MethodPost, "/", handler)
+
+		req := generateTestRequestWithJsonBody(t, http.MethodPost, dto)
+		rw := httptest.NewRecorder()
+		r.ServeHTTP(rw, req)
+
+		assert.Equal(t, http.StatusBadRequest+1, rw.Code)
+		actual := decodeResponseBody[string](t, rw)
+		assert.Equal(t, "invalid universe syntax", actual)
+	})
+
 	t.Run("forwards creation to use case", func(t *testing.T) {
 		dto := sampleUniverseDtoRequest()
 

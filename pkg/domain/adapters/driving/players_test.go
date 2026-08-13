@@ -46,6 +46,25 @@ func TestUnit_Players_CreatePlayer(t *testing.T) {
 		assert.Equal(t, "invalid player syntax", actual)
 	})
 
+	t.Run("returns 400 when name is empty", func(t *testing.T) {
+		playerDto := dto
+		playerDto.Name = ""
+
+		handler := generateHandler[drivingports.ForManagingPlayer](
+			createPlayer,
+			mockUsecase,
+		)
+		r := createTestGinRouter(t, http.MethodPost, "/", handler)
+
+		req := generateTestRequestWithJsonBody(t, http.MethodPost, playerDto)
+		rw := httptest.NewRecorder()
+		r.ServeHTTP(rw, req)
+
+		assert.Equal(t, http.StatusBadRequest, rw.Code)
+		actual := decodeResponseBody[string](t, rw)
+		assert.Equal(t, "invalid player syntax", actual)
+	})
+
 	t.Run("returns 409 whan name already exists", func(t *testing.T) {
 		mockUsecase.EXPECT().
 			Create(gomock.Any(), gomock.Any()).
