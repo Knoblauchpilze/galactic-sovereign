@@ -54,7 +54,7 @@ func TestUnit_Universes_CreateUniverse(t *testing.T) {
 		rw := httptest.NewRecorder()
 		r.ServeHTTP(rw, req)
 
-		assert.Equal(t, http.StatusBadRequest+1, rw.Code)
+		assert.Equal(t, http.StatusBadRequest, rw.Code)
 		actual := decodeResponseBody[string](t, rw)
 		assert.Equal(t, "invalid universe syntax", actual)
 	})
