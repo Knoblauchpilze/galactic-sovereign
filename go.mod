@@ -105,7 +105,7 @@ require (
 )
 
 require (
-	github.com/Knoblauchpilze/backend-toolkit v0.8.0
+	github.com/Knoblauchpilze/backend-toolkit v0.8.1
 	github.com/Knoblauchpilze/easy-assert v0.4.0
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
 	github.com/jackc/pgx/v5 v5.10.0 // indirect
