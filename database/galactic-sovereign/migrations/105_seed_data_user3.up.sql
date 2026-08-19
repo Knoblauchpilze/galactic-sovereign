@@ -105,6 +105,12 @@ INSERT INTO galactic_sovereign_schema.planet_building("planet", "building", "lev
 INSERT INTO galactic_sovereign_schema.planet_building("planet", "building", "level")
   VALUES (
     '00058def-e81d-43bb-aacf-a8402115449d',
+    '54a0ce97-bf8b-4fae-ba6e-caa9ae96265f',
+    0
+  );
+INSERT INTO galactic_sovereign_schema.planet_building("planet", "building", "level")
+  VALUES (
+    '00058def-e81d-43bb-aacf-a8402115449d',
     '22b4c0c3-c8e5-4493-89fc-522fdbb0beee',
     0
   );
@@ -112,5 +118,17 @@ INSERT INTO galactic_sovereign_schema.planet_building("planet", "building", "lev
   VALUES (
     '00058def-e81d-43bb-aacf-a8402115449d',
     'd9c8df28-bb71-4be4-8702-ce2bea8bd943',
+    0
+  );
+INSERT INTO galactic_sovereign_schema.planet_building("planet", "building", "level")
+  VALUES (
+    '00058def-e81d-43bb-aacf-a8402115449d',
+    '6b81a99f-d826-475b-8dd5-d066b501b1df',
+    0
+  );
+INSERT INTO galactic_sovereign_schema.planet_building("planet", "building", "level")
+  VALUES (
+    '00058def-e81d-43bb-aacf-a8402115449d',
+    '58d75842-6dc0-4ac0-b36d-55f91b8d060d',
     0
   );
