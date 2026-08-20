@@ -79,7 +79,12 @@ func TestUnit_ManagePlayer_Create(t *testing.T) {
 		assert.True(t, beforeInsertion.Before(captured.CreatedAt))
 		assert.Equal(t, 0, captured.Version)
 		assert.Equal(t, captured, actual)
-		assert.Equal(t, []uuid.UUID{capturedHomeworld.Id}, captured.Planets)
+
+		expectedPlanet := models.PlayerPlanet{
+			Id:         capturedHomeworld.Id,
+			Coordinate: capturedHomeworld.Coordinate,
+		}
+		assert.Equal(t, []models.PlayerPlanet{expectedPlanet}, captured.Planets)
 
 		assert.Equal(t, captured.Id, capturedHomeworld.Player)
 		assert.True(t, capturedHomeworld.Homeworld)
