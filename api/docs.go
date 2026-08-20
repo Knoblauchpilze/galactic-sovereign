@@ -438,8 +438,7 @@ const docTemplate = `{
                     },
                     "planets": {
                         "items": {
-                            "format": "uuid",
-                            "type": "string"
+                            "$ref": "#/components/schemas/dtos.PlayerPlanetDtoResponse"
                         },
                         "type": "array",
                         "uniqueItems": false
@@ -457,6 +456,23 @@ const docTemplate = `{
                     "name",
                     "planets",
                     "universe"
+                ],
+                "type": "object"
+            },
+            "dtos.PlayerPlanetDtoResponse": {
+                "format": "uuid",
+                "properties": {
+                    "coordinate": {
+                        "$ref": "#/components/schemas/dtos.CoordinateDtoResponse"
+                    },
+                    "id": {
+                        "format": "uuid",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "coordinate",
+                    "id"
                 ],
                 "type": "object"
             },

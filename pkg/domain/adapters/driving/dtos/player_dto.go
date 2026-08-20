@@ -26,5 +26,5 @@ type PlayerDtoResponse struct {
 
 type PlayerPlanetDtoResponse struct {
 	Id         uuid.UUID             `json:"id" format:"uuid" binding:"required"`
-	Coordinate CoordinateDtoResponse `json:"coordinate" format:"uuid" binding:"required"`
+	Coordinate CoordinateDtoResponse `json:"coordinate" binding:"required"`
 }
