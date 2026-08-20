@@ -63,7 +63,10 @@ func TestUnit_Player_Colonize(t *testing.T) {
 		assert.False(t, actual.Homeworld)
 		assert.Equal(t, "colony", actual.Name)
 		assert.NotEqual(t, actual.Id, p.Homeworld)
-		assert.Equal(t, []uuid.UUID{actual.Id}, p.Planets)
+
+		assert.Len(t, p.Planets, 1)
+		assert.Equal(t, actual.Id, p.Planets[0].Id)
+		assertPlanetIsWithinRange(t, p.Planets[0], u.Topology)
 	})
 
 	t.Run("assigns planet when slice is nil", func(t *testing.T) {
@@ -79,23 +82,25 @@ func TestUnit_Player_Colonize(t *testing.T) {
 		assert.False(t, actual.Homeworld)
 		assert.Equal(t, "colony", actual.Name)
 		assert.NotEqual(t, actual.Id, p.Homeworld)
-		assert.Equal(t, []uuid.UUID{actual.Id}, p.Planets)
+
+		assert.Len(t, p.Planets, 1)
+		assert.Equal(t, actual.Id, p.Planets[0].Id)
+		assertPlanetIsWithinRange(t, p.Planets[0], u.Topology)
 	})
 
 	t.Run("assigns planet when multiple planets already exist", func(t *testing.T) {
-		homeworldId := uuid.New()
+		homeworld := PlayerPlanet{
+			Id: uuid.New(),
+			Coordinate: Coordinate{Galaxy: 2,
+				SolarSystem: 12,
+				Position:    14,
+			},
+		}
+
 		p := Player{
 			Id:        uuid.New(),
-			Homeworld: homeworldId,
-			Planets: []PlayerPlanet{
-				{
-					Id: homeworldId,
-					Coordinate: Coordinate{Galaxy: 2,
-						SolarSystem: 12,
-						Position:    14,
-					},
-				},
-			},
+			Homeworld: homeworld.Id,
+			Planets:   []PlayerPlanet{homeworld},
 		}
 
 		actual := p.Colonize(u)
@@ -105,7 +110,10 @@ func TestUnit_Player_Colonize(t *testing.T) {
 		assert.Equal(t, "colony", actual.Name)
 		assert.NotEqual(t, actual.Id, p.Homeworld)
 
-		assert.Equal(t, []uuid.UUID{homeworldId, actual.Id}, p.Planets)
+		assert.Len(t, p.Planets, 2)
+		assert.Equal(t, homeworld, p.Planets[0])
+		assert.Equal(t, actual.Id, p.Planets[1].Id)
+		assertPlanetIsWithinRange(t, p.Planets[1], u.Topology)
 	})
 }
 
@@ -116,10 +124,10 @@ func assertPlanetIsWithinRange(
 ) {
 	t.Helper()
 
-	assert.Greater(t, actual.Coordinate.Galaxy, 0)
-	assert.Less(t, actual.Coordinate.Galaxy, topology.Galaxies)
-	assert.Greater(t, actual.Coordinate.SolarSystem, 0)
-	assert.Less(t, actual.Coordinate.SolarSystem, topology.SolarSystems)
-	assert.Greater(t, actual.Coordinate.Position, 0)
-	assert.Less(t, actual.Coordinate.Position, topology.Orbits)
+	assert.GreaterOrEqual(t, actual.Coordinate.Galaxy, 0, "Galaxy is not within bounds: %v, %v", actual.Coordinate, topology)
+	assert.Less(t, actual.Coordinate.Galaxy, topology.Galaxies, "Galaxy is not within bounds: %v, %v", actual.Coordinate, topology)
+	assert.GreaterOrEqual(t, actual.Coordinate.SolarSystem, 0, "Solar system is not within bounds: %v, %v", actual.Coordinate, topology)
+	assert.Less(t, actual.Coordinate.SolarSystem, topology.SolarSystems, "Solar system is not within bounds: %v, %v", actual.Coordinate, topology)
+	assert.GreaterOrEqual(t, actual.Coordinate.Position, 0, "Orbit is not within bounds: %v, %v", actual.Coordinate, topology)
+	assert.Less(t, actual.Coordinate.Position, topology.Orbits, "Orbit is not within bounds: %v, %v", actual.Coordinate, topology)
 }

@@ -191,10 +191,12 @@ func sampleOccupancyMap() OccupancyMap {
 }
 
 func sampleUniverse() Universe {
+	occupancyMap := sampleOccupancyMap()
 	return Universe{
 		Id:           uuid.New(),
+		Topology:     occupancyMap.Topology,
 		Resources:    sampleResources(),
 		Buildings:    sampleBuildings(),
-		OccupancyMap: sampleOccupancyMap(),
+		OccupancyMap: occupancyMap,
 	}
 }
