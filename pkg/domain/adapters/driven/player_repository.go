@@ -30,12 +30,16 @@ FROM
 WHERE
 	p.id = $1`
 
-	listPlanetIdsForPlayerQuery = `
+	listPlayerPlanetForPlayerQuery = `
 SELECT
-	p.id
+	p.id,
+	pc.galaxy,
+	pc.solar_system,
+	pc.position
 FROM
 	planet AS p
 	LEFT JOIN homeworld AS h ON h.planet = p.id
+	INNER JOIN planet_coordinate AS pc ON pc.planet = p.id
 WHERE
 	p.player = $1
 ORDER BY
@@ -154,7 +158,7 @@ func (r *PlayerRepository) Delete(ctx context.Context, player models.Player) err
 	defer tx.Close(ctx)
 
 	for _, p := range player.Planets {
-		err = deletePlanetAndDetails(ctx, tx, p)
+		err = deletePlanetAndDetails(ctx, tx, p.Id)
 		if err != nil {
 			return parseDbError(err)
 		}
@@ -172,14 +176,18 @@ func loadPlayerDetails(ctx context.Context, tx db.Transaction, dbPlayer mappers.
 	player := dbPlayer.ToDomain()
 
 	var err error
-	player.Planets, err = db.QueryAllTx[uuid.UUID](
+	dbPlanets, err := db.QueryAllTx[mappers.DbPlayerPlanet](
 		ctx,
 		tx,
-		listPlanetIdsForPlayerQuery,
+		listPlayerPlanetForPlayerQuery,
 		dbPlayer.Id,
 	)
 	if err != nil {
 		return player, err
+	}
+
+	for _, planet := range dbPlanets {
+		player.Planets = append(player.Planets, planet.ToDomain())
 	}
 
 	return player, nil

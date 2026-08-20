@@ -446,7 +446,11 @@ func insertTestPlanetForPlayer(
 	player, universe := insertTestPlayerInUniverse(t, conn)
 	planet := insertTestPlanet(t, conn, player.Id, modifiers...)
 
-	player.Planets = append(player.Planets, planet.Id)
+	playerPlanet := models.PlayerPlanet{
+		Id:         planet.Id,
+		Coordinate: planet.Coordinate,
+	}
+	player.Planets = append(player.Planets, playerPlanet)
 
 	return planet, player, universe
 }
