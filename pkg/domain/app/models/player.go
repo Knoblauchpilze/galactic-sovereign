@@ -11,6 +11,11 @@ const (
 	planetDefaultName    string = "colony"
 )
 
+type PlayerPlanet struct {
+	Id         uuid.UUID
+	Coordinate Coordinate
+}
+
 type Player struct {
 	Id       uuid.UUID
 	ApiUser  uuid.UUID
@@ -22,7 +27,7 @@ type Player struct {
 	Version int
 
 	Homeworld uuid.UUID
-	Planets   []uuid.UUID
+	Planets   []PlayerPlanet
 }
 
 func (p *Player) CreateHomeworld(
@@ -31,7 +36,12 @@ func (p *Player) CreateHomeworld(
 	planet := universe.CreatePlanet(p.Id, true)
 
 	p.Homeworld = planet.Id
-	p.Planets = []uuid.UUID{planet.Id}
+	p.Planets = []PlayerPlanet{
+		{
+			Id:         planet.Id,
+			Coordinate: planet.Coordinate,
+		},
+	}
 
 	return planet
 }
@@ -41,7 +51,10 @@ func (p *Player) Colonize(
 ) Planet {
 	planet := universe.CreatePlanet(p.Id, false)
 
-	p.Planets = append(p.Planets, planet.Id)
+	p.Planets = append(p.Planets, PlayerPlanet{
+		Id:         planet.Id,
+		Coordinate: planet.Coordinate,
+	})
 
 	return planet
 }
