@@ -31,7 +31,8 @@ func TestIT_Server_PlayerBuildingActionLifecycle(t *testing.T) {
 	)
 	assert.Equal(t, oberonUniverseId, player.Universe)
 	assert.Equal(t, "test-player", player.Name)
-	assert.Equal(t, []uuid.UUID{player.Homeworld}, player.Planets)
+	assert.Len(t, player.Planets, 1)
+	assert.Equal(t, player.Homeworld, player.Planets[0].Id)
 
 	// Get the homeworld and assert basic properties
 	homeworld := doGet[dtos.PlanetDtoResponse](

@@ -122,6 +122,7 @@ func TestUnit_Players_CreatePlayer(t *testing.T) {
 			Universe:  dto.Universe,
 			Name:      dto.Name,
 			CreatedAt: someTime,
+			Planets:   []dtos.PlayerPlanetDtoResponse{},
 		}
 		assert.Equal(t, expected, actual)
 	})
@@ -199,7 +200,16 @@ func TestUnit_Players_GetPlayer(t *testing.T) {
 			Name:      "player-1",
 			CreatedAt: someTime,
 			Homeworld: uuid.New(),
-			Planets:   []uuid.UUID{uuid.New()},
+			Planets: []models.PlayerPlanet{
+				{
+					Id: uuid.New(),
+					Coordinate: models.Coordinate{
+						Galaxy:      2,
+						SolarSystem: 32,
+						Position:    8,
+					},
+				},
+			},
 		}
 		mockUsecase.EXPECT().
 			Get(gomock.Any(), gomock.Eq(sampleUuid)).
@@ -225,7 +235,16 @@ func TestUnit_Players_GetPlayer(t *testing.T) {
 			Name:      player.Name,
 			CreatedAt: player.CreatedAt,
 			Homeworld: player.Homeworld,
-			Planets:   player.Planets,
+			Planets: []dtos.PlayerPlanetDtoResponse{
+				{
+					Id: player.Planets[0].Id,
+					Coordinate: dtos.CoordinateDtoResponse{
+						Galaxy:      player.Planets[0].Coordinate.Galaxy,
+						SolarSystem: player.Planets[0].Coordinate.SolarSystem,
+						Position:    player.Planets[0].Coordinate.Position,
+					},
+				},
+			},
 		}
 		assert.Equal(t, expected, actual)
 	})
@@ -303,7 +322,16 @@ func TestUnit_Players_ListPlayersForApiUser(t *testing.T) {
 				ApiUser:   sampleUuid,
 				Name:      "player-1",
 				CreatedAt: someTime,
-				Planets:   []uuid.UUID{uuid.New()},
+				Planets: []models.PlayerPlanet{
+					{
+						Id: uuid.New(),
+						Coordinate: models.Coordinate{
+							Galaxy:      36,
+							SolarSystem: 498,
+							Position:    5,
+						},
+					},
+				},
 			},
 			{
 				Id:        uuid.New(),
@@ -336,13 +364,23 @@ func TestUnit_Players_ListPlayersForApiUser(t *testing.T) {
 				ApiUser:   players[0].ApiUser,
 				Name:      players[0].Name,
 				CreatedAt: players[0].CreatedAt,
-				Planets:   players[0].Planets,
+				Planets: []dtos.PlayerPlanetDtoResponse{
+					{
+						Id: players[0].Planets[0].Id,
+						Coordinate: dtos.CoordinateDtoResponse{
+							Galaxy:      players[0].Planets[0].Coordinate.Galaxy,
+							SolarSystem: players[0].Planets[0].Coordinate.SolarSystem,
+							Position:    players[0].Planets[0].Coordinate.Position,
+						},
+					},
+				},
 			},
 			{
 				Id:        players[1].Id,
 				ApiUser:   players[1].ApiUser,
 				Name:      players[1].Name,
 				CreatedAt: players[1].CreatedAt,
+				Planets:   []dtos.PlayerPlanetDtoResponse{},
 			},
 		}
 		assert.Equal(t, expected, actual)

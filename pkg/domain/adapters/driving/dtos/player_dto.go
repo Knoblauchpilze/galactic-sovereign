@@ -20,6 +20,11 @@ type PlayerDtoResponse struct {
 
 	CreatedAt time.Time `json:"created_at" format:"date-time" binding:"required"`
 
-	Homeworld uuid.UUID   `json:"homeworld" format:"uuid" binding:"required"`
-	Planets   []uuid.UUID `json:"planets" format:"uuid" binding:"required"`
+	Homeworld uuid.UUID                 `json:"homeworld" format:"uuid" binding:"required"`
+	Planets   []PlayerPlanetDtoResponse `json:"planets" format:"uuid" binding:"required"`
+}
+
+type PlayerPlanetDtoResponse struct {
+	Id         uuid.UUID             `json:"id" format:"uuid" binding:"required"`
+	Coordinate CoordinateDtoResponse `json:"coordinate" format:"uuid" binding:"required"`
 }

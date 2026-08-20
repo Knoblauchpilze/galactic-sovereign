@@ -22,8 +22,34 @@ func ToPlayerResponse(player models.Player) dtos.PlayerDtoResponse {
 		Name:      player.Name,
 		CreatedAt: player.CreatedAt,
 		Homeworld: player.Homeworld,
-		Planets:   player.Planets,
+		Planets:   toPlayerPlanetsResponse(player.Planets),
 	}
+}
+
+func toPlayerPlanetResponse(
+	planet models.PlayerPlanet,
+) dtos.PlayerPlanetDtoResponse {
+	return dtos.PlayerPlanetDtoResponse{
+		Id: planet.Id,
+		Coordinate: dtos.CoordinateDtoResponse{
+			Galaxy:      planet.Coordinate.Galaxy,
+			SolarSystem: planet.Coordinate.SolarSystem,
+			Position:    planet.Coordinate.Position,
+		},
+	}
+}
+
+func toPlayerPlanetsResponse(
+	planets []models.PlayerPlanet,
+) []dtos.PlayerPlanetDtoResponse {
+	out := make([]dtos.PlayerPlanetDtoResponse, 0, len(planets))
+
+	for _, p := range planets {
+		dto := toPlayerPlanetResponse(p)
+		out = append(out, dto)
+	}
+
+	return out
 }
 
 func ToPlayersResponse(players []models.Player) []dtos.PlayerDtoResponse {
