@@ -2,7 +2,6 @@ package drivenadapters
 
 import (
 	"fmt"
-	"math/rand"
 	"testing"
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
@@ -28,7 +27,7 @@ func TestIT_PlayerRepository_Create(t *testing.T) {
 			Name:      fmt.Sprintf("player-%s", uuid.NewString()),
 			CreatedAt: someTime,
 			Homeworld: planetId,
-			Planets:   []uuid.UUID{planetId},
+			Planets:   []models.PlayerPlanet{{Id: planetId}},
 		}
 		planet := models.Planet{
 			Id:        planetId,
@@ -78,7 +77,12 @@ func TestIT_PlayerRepository_Create(t *testing.T) {
 
 		actual, err := repo.Get(t.Context(), player.Id)
 		expectedPlayer := player
-		expectedPlayer.Planets = []uuid.UUID{planet.Id}
+		expectedPlayer.Planets = []models.PlayerPlanet{
+			{
+				Id:         planet.Id,
+				Coordinate: planet.Coordinate,
+			},
+		}
 		require.NoError(t, err, "Actual err: %v", err)
 		assert.Equal(t, expectedPlayer, actual)
 
@@ -95,7 +99,7 @@ func TestIT_PlayerRepository_Create(t *testing.T) {
 			Universe:  universe.Id,
 			Name:      fmt.Sprintf("player-%s", uuid.NewString()),
 			CreatedAt: someTime,
-			Planets:   []uuid.UUID{uuid.New()},
+			Planets:   []models.PlayerPlanet{{Id: uuid.New()}},
 		}
 		planet := models.Planet{
 			Id:        uuid.New(),
@@ -120,7 +124,7 @@ func TestIT_PlayerRepository_Create(t *testing.T) {
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assertPlayerExists(t, conn, player.Id)
-		assertPlanetDoesNotExist(t, conn, player.Planets[0])
+		assertPlanetDoesNotExist(t, conn, player.Planets[0].Id)
 	})
 
 	t.Run("returns error when player with same name already exists", func(t *testing.T) {
@@ -259,15 +263,15 @@ func TestIT_PlayerRepository_Delete(t *testing.T) {
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assertPlayerDoesNotExist(t, conn, player.Id)
-		for _, planetId := range player.Planets {
-			assertPlanetDoesNotExist(t, conn, planetId)
+		for _, planet := range player.Planets {
+			assertPlanetDoesNotExist(t, conn, planet.Id)
 		}
 	})
 
 	t.Run("deletes a player with a building action", func(t *testing.T) {
 		player, _ := insertTestPlayerInUniverse(t, conn)
 		planet := insertTestPlanet(t, conn, player.Id, addPlanetBuildingAction)
-		player.Planets = append(player.Planets, planet.Id)
+		player.Planets = append(player.Planets, models.PlayerPlanet{Id: planet.Id, Coordinate: planet.Coordinate})
 
 		err := repo.Delete(t.Context(), player)
 		require.NoError(t, err, "Actual err: %v", err)
@@ -298,7 +302,7 @@ func TestIT_PlayerRepository_CreationDeletionWorkflow(t *testing.T) {
 			Universe:  universe.Id,
 			Name:      "my-player",
 			Homeworld: planetId,
-			Planets:   []uuid.UUID{planetId},
+			Planets:   []models.PlayerPlanet{{Id: planetId}},
 		}
 		planet := models.Planet{
 			Id:          planetId,
@@ -353,7 +357,7 @@ func insertTestPlayer(
 		CreatedAt: someTime,
 		// This is intentional: the details (e.g. planets, etc.) are returned as empty
 		// slices by the adapter
-		Planets: []uuid.UUID{},
+		Planets: []models.PlayerPlanet{},
 	}
 
 	sqlQuery := `INSERT INTO player (id, api_user, universe, name, created_at)
@@ -390,7 +394,11 @@ func insertTestPlayerInUniverse(
 	homeworld := insertTestPlanet(t, conn, player.Id, addPlanetHomeworld)
 
 	player.Homeworld = homeworld.Id
-	player.Planets = append(player.Planets, homeworld.Id)
+	playerPlanet := models.PlayerPlanet{
+		Id:         homeworld.Id,
+		Coordinate: homeworld.Coordinate,
+	}
+	player.Planets = append(player.Planets, playerPlanet)
 
 	// Modifiers are applied after the creation of the homeworld to give them a
 	// realistic view of the player
@@ -404,25 +412,13 @@ func insertTestPlayerInUniverse(
 func addPlayerPlanet(t *testing.T, conn db.Connection, p *models.Player) {
 	t.Helper()
 
-	planetId := uuid.New()
-	fields := rand.Intn(138)
+	planet := insertTestPlanet(t, conn, p.Id)
 
-	sqlQuery := `INSERT INTO planet (id, player, name, fields, created_at, updated_at, version)
-		VALUES ($1, $2, $3, $4, $5, $6, $7)`
-	_, err := conn.Exec(
-		t.Context(),
-		sqlQuery,
-		planetId,
-		p.Id,
-		fmt.Sprintf("my-planet-%s", planetId.String()),
-		fields,
-		someTime,
-		someOtherTime,
-		8,
-	)
-	require.NoError(t, err, "Actual err: %v", err)
-
-	p.Planets = append(p.Planets, planetId)
+	playerPlanet := models.PlayerPlanet{
+		Id:         planet.Id,
+		Coordinate: planet.Coordinate,
+	}
+	p.Planets = append(p.Planets, playerPlanet)
 }
 
 func assertPlayerExists(t *testing.T, conn db.Connection, id uuid.UUID) {
