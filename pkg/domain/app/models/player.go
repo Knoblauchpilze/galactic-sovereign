@@ -13,6 +13,7 @@ const (
 
 type PlayerPlanet struct {
 	Id         uuid.UUID
+	Name       string
 	Coordinate Coordinate
 }
 
@@ -39,6 +40,7 @@ func (p *Player) CreateHomeworld(
 	p.Planets = []PlayerPlanet{
 		{
 			Id:         planet.Id,
+			Name:       planet.Name,
 			Coordinate: planet.Coordinate,
 		},
 	}
@@ -53,6 +55,7 @@ func (p *Player) Colonize(
 
 	p.Planets = append(p.Planets, PlayerPlanet{
 		Id:         planet.Id,
+		Name:       planet.Name,
 		Coordinate: planet.Coordinate,
 	})
 

@@ -334,9 +334,13 @@ components:
         id:
           format: uuid
           type: string
+        name:
+          example: homeworld
+          type: string
       required:
       - coordinate
       - id
+      - name
       type: object
     dtos.ResourceDtoResponse:
       properties:

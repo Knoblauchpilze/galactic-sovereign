@@ -8,6 +8,8 @@ import (
 type DbPlayerPlanet struct {
 	Id uuid.UUID
 
+	Name string
+
 	Galaxy      int
 	SolarSystem int
 	Position    int
@@ -15,7 +17,8 @@ type DbPlayerPlanet struct {
 
 func (p DbPlayerPlanet) ToDomain() models.PlayerPlanet {
 	return models.PlayerPlanet{
-		Id: p.Id,
+		Id:   p.Id,
+		Name: p.Name,
 		Coordinate: models.Coordinate{
 			Galaxy:      p.Galaxy,
 			SolarSystem: p.SolarSystem,

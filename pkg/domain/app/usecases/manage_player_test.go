@@ -82,6 +82,7 @@ func TestUnit_ManagePlayer_Create(t *testing.T) {
 
 		expectedPlanet := models.PlayerPlanet{
 			Id:         capturedHomeworld.Id,
+			Name:       capturedHomeworld.Name,
 			Coordinate: capturedHomeworld.Coordinate,
 		}
 		assert.Equal(t, []models.PlayerPlanet{expectedPlanet}, captured.Planets)

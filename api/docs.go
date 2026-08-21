@@ -468,11 +468,16 @@ const docTemplate = `{
                     "id": {
                         "format": "uuid",
                         "type": "string"
+                    },
+                    "name": {
+                        "example": "homeworld",
+                        "type": "string"
                     }
                 },
                 "required": [
                     "coordinate",
-                    "id"
+                    "id",
+                    "name"
                 ],
                 "type": "object"
             },

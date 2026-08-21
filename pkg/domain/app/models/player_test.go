@@ -25,6 +25,7 @@ func TestUnit_Player_CreateHomeworld(t *testing.T) {
 
 		assert.Len(t, p.Planets, 1)
 		assert.Equal(t, actual.Id, p.Planets[0].Id)
+		assert.Equal(t, actual.Name, p.Planets[0].Name)
 		assertPlanetIsWithinRange(t, p.Planets[0], u.Topology)
 	})
 
@@ -43,6 +44,7 @@ func TestUnit_Player_CreateHomeworld(t *testing.T) {
 
 		assert.Len(t, p.Planets, 1)
 		assert.Equal(t, actual.Id, p.Planets[0].Id)
+		assert.Equal(t, actual.Name, p.Planets[0].Name)
 		assertPlanetIsWithinRange(t, p.Planets[0], u.Topology)
 	})
 }
@@ -66,6 +68,7 @@ func TestUnit_Player_Colonize(t *testing.T) {
 
 		assert.Len(t, p.Planets, 1)
 		assert.Equal(t, actual.Id, p.Planets[0].Id)
+		assert.Equal(t, actual.Name, p.Planets[0].Name)
 		assertPlanetIsWithinRange(t, p.Planets[0], u.Topology)
 	})
 
@@ -85,12 +88,14 @@ func TestUnit_Player_Colonize(t *testing.T) {
 
 		assert.Len(t, p.Planets, 1)
 		assert.Equal(t, actual.Id, p.Planets[0].Id)
+		assert.Equal(t, actual.Name, p.Planets[0].Name)
 		assertPlanetIsWithinRange(t, p.Planets[0], u.Topology)
 	})
 
 	t.Run("assigns planet when multiple planets already exist", func(t *testing.T) {
 		homeworld := PlayerPlanet{
-			Id: uuid.New(),
+			Id:   uuid.New(),
+			Name: "homeworld",
 			Coordinate: Coordinate{Galaxy: 2,
 				SolarSystem: 12,
 				Position:    14,
@@ -113,6 +118,7 @@ func TestUnit_Player_Colonize(t *testing.T) {
 		assert.Len(t, p.Planets, 2)
 		assert.Equal(t, homeworld, p.Planets[0])
 		assert.Equal(t, actual.Id, p.Planets[1].Id)
+		assert.Equal(t, actual.Name, p.Planets[1].Name)
 		assertPlanetIsWithinRange(t, p.Planets[1], u.Topology)
 	})
 }

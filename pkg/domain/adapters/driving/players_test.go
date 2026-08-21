@@ -202,7 +202,8 @@ func TestUnit_Players_GetPlayer(t *testing.T) {
 			Homeworld: uuid.New(),
 			Planets: []models.PlayerPlanet{
 				{
-					Id: uuid.New(),
+					Id:   uuid.New(),
+					Name: "best planet",
 					Coordinate: models.Coordinate{
 						Galaxy:      2,
 						SolarSystem: 32,
@@ -237,7 +238,8 @@ func TestUnit_Players_GetPlayer(t *testing.T) {
 			Homeworld: player.Homeworld,
 			Planets: []dtos.PlayerPlanetDtoResponse{
 				{
-					Id: player.Planets[0].Id,
+					Id:   player.Planets[0].Id,
+					Name: player.Planets[0].Name,
 					Coordinate: dtos.CoordinateDtoResponse{
 						Galaxy:      player.Planets[0].Coordinate.Galaxy,
 						SolarSystem: player.Planets[0].Coordinate.SolarSystem,
@@ -324,7 +326,8 @@ func TestUnit_Players_ListPlayersForApiUser(t *testing.T) {
 				CreatedAt: someTime,
 				Planets: []models.PlayerPlanet{
 					{
-						Id: uuid.New(),
+						Id:   uuid.New(),
+						Name: "colony",
 						Coordinate: models.Coordinate{
 							Galaxy:      36,
 							SolarSystem: 498,
@@ -366,7 +369,8 @@ func TestUnit_Players_ListPlayersForApiUser(t *testing.T) {
 				CreatedAt: players[0].CreatedAt,
 				Planets: []dtos.PlayerPlanetDtoResponse{
 					{
-						Id: players[0].Planets[0].Id,
+						Id:   players[0].Planets[0].Id,
+						Name: players[0].Planets[0].Name,
 						Coordinate: dtos.CoordinateDtoResponse{
 							Galaxy:      players[0].Planets[0].Coordinate.Galaxy,
 							SolarSystem: players[0].Planets[0].Coordinate.SolarSystem,

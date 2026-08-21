@@ -33,6 +33,7 @@ WHERE
 	listPlayerPlanetForPlayerQuery = `
 SELECT
 	p.id,
+	p.name,
 	pc.galaxy,
 	pc.solar_system,
 	pc.position

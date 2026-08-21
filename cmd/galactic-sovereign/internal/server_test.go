@@ -33,6 +33,7 @@ func TestIT_Server_PlayerBuildingActionLifecycle(t *testing.T) {
 	assert.Equal(t, "test-player", player.Name)
 	assert.Len(t, player.Planets, 1)
 	assert.Equal(t, player.Homeworld, player.Planets[0].Id)
+	assert.Equal(t, "homeworld", player.Planets[0].Name)
 
 	// Get the homeworld and assert basic properties
 	homeworld := doGet[dtos.PlanetDtoResponse](

@@ -30,7 +30,8 @@ func toPlayerPlanetResponse(
 	planet models.PlayerPlanet,
 ) dtos.PlayerPlanetDtoResponse {
 	return dtos.PlayerPlanetDtoResponse{
-		Id: planet.Id,
+		Id:   planet.Id,
+		Name: planet.Name,
 		Coordinate: dtos.CoordinateDtoResponse{
 			Galaxy:      planet.Coordinate.Galaxy,
 			SolarSystem: planet.Coordinate.SolarSystem,

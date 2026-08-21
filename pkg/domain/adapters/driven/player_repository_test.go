@@ -80,6 +80,7 @@ func TestIT_PlayerRepository_Create(t *testing.T) {
 		expectedPlayer.Planets = []models.PlayerPlanet{
 			{
 				Id:         planet.Id,
+				Name:       planet.Name,
 				Coordinate: planet.Coordinate,
 			},
 		}
@@ -396,6 +397,7 @@ func insertTestPlayerInUniverse(
 	player.Homeworld = homeworld.Id
 	playerPlanet := models.PlayerPlanet{
 		Id:         homeworld.Id,
+		Name:       homeworld.Name,
 		Coordinate: homeworld.Coordinate,
 	}
 	player.Planets = append(player.Planets, playerPlanet)
@@ -416,6 +418,7 @@ func addPlayerPlanet(t *testing.T, conn db.Connection, p *models.Player) {
 
 	playerPlanet := models.PlayerPlanet{
 		Id:         planet.Id,
+		Name:       planet.Name,
 		Coordinate: planet.Coordinate,
 	}
 	p.Planets = append(p.Planets, playerPlanet)

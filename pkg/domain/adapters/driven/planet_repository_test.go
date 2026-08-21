@@ -448,6 +448,7 @@ func insertTestPlanetForPlayer(
 
 	playerPlanet := models.PlayerPlanet{
 		Id:         planet.Id,
+		Name:       planet.Name,
 		Coordinate: planet.Coordinate,
 	}
 	player.Planets = append(player.Planets, playerPlanet)
