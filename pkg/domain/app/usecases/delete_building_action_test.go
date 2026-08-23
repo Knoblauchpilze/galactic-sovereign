@@ -23,7 +23,7 @@ func TestUnit_DeleteBuildingAction_DeleteForPlanet(t *testing.T) {
 	t.Run("persists deleted building action", func(t *testing.T) {
 		suite := setupDeleteBuildingActionTestSuite(t)
 
-		planet := generateTestPlanetWithAction(t2)
+		planet := generateTestPlanetWithAction(t3)
 
 		suite.mockClock.EXPECT().Now(gomock.Any()).Times(1).Return(t2)
 		suite.mockMutator.EXPECT().
@@ -40,7 +40,7 @@ func TestUnit_DeleteBuildingAction_DeleteForPlanet(t *testing.T) {
 	t.Run("updates planet to current time", func(t *testing.T) {
 		suite := setupDeleteBuildingActionTestSuite(t)
 
-		planet := generateTestPlanetWithAction(t2)
+		planet := generateTestPlanetWithAction(t3)
 		planet.UpdatedAt = t1
 
 		suite.mockClock.EXPECT().Now(gomock.Any()).Times(1).Return(t2)

@@ -51,8 +51,14 @@ func generateActionDeletionMutator(moment time.Time) drivenports.PlanetMutator {
 			return false, err
 		}
 
-		p.BuildingAction = nil
-		p.Version++
+		err = p.CancelBuildingAction()
+		if err != nil {
+			if err == domainerrors.ErrNoActionInProgress {
+				return false, nil
+			}
+
+			return false, err
+		}
 
 		return false, nil
 	}
