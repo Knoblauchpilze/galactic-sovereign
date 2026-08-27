@@ -17,6 +17,7 @@ type Universe struct {
 
 	Resources []Resource
 	Buildings []Building
+	Ships     []Ship
 
 	OccupancyMap OccupancyMap
 }

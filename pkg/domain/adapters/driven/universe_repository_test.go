@@ -40,7 +40,7 @@ func TestIT_UniverseRepository_Create(t *testing.T) {
 			Topology:  universe.Topology,
 			UsedSlots: make(map[models.Coordinate]struct{}),
 		}
-		assertEqualIgnoringFields(t, actual, expected, "Buildings", "Resources")
+		assertEqualIgnoringFields(t, actual, expected, "Resources", "Buildings", "Ships")
 	})
 
 	t.Run("returns error when universe with same name already exists", func(t *testing.T) {
@@ -69,7 +69,7 @@ func TestIT_UniverseRepository_Get(t *testing.T) {
 		actual, err := repo.Get(t.Context(), universe.Id)
 		require.NoError(t, err, "Actual err: %v", err)
 
-		assertEqualIgnoringFields(t, actual, universe, "Buildings", "Resources")
+		assertEqualIgnoringFields(t, actual, universe, "Resources", "Buildings", "Ships")
 	})
 
 	t.Run("gets a universe with resources", func(t *testing.T) {
@@ -90,6 +90,16 @@ func TestIT_UniverseRepository_Get(t *testing.T) {
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Contains(t, actual.Buildings, building)
+	})
+
+	t.Run("gets a universe with ships", func(t *testing.T) {
+		universe := insertTestUniverse(t, conn)
+		ship := insertTestShip(t, conn)
+
+		actual, err := repo.Get(t.Context(), universe.Id)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.Contains(t, actual.Ships, ship)
 	})
 
 	t.Run("gets a universe with occupied slots", func(t *testing.T) {
@@ -113,7 +123,7 @@ func TestIT_UniverseRepository_Get(t *testing.T) {
 			},
 		}
 
-		assertEqualIgnoringFields(t, actual, expected, "Buildings", "Resources")
+		assertEqualIgnoringFields(t, actual, expected, "Resources", "Buildings", "Ships")
 	})
 
 	t.Run("returns error when universe does not exist", func(t *testing.T) {
@@ -135,8 +145,8 @@ func TestIT_UniverseRepository_List(t *testing.T) {
 	require.NoError(t, err, "Actual err: %v", err)
 
 	// The additional resources are the universes from the seed data
-	assertContainsIgnoringFields(t, actual, u1, "Buildings", "Resources")
-	assertContainsIgnoringFields(t, actual, u2, "Buildings", "Resources")
+	assertContainsIgnoringFields(t, actual, u1, "Resources", "Buildings", "Ships")
+	assertContainsIgnoringFields(t, actual, u2, "Resources", "Buildings", "Ships")
 
 	for _, u := range actual {
 		assert.Contains(t, u.Resources, resource)
@@ -252,6 +262,32 @@ func insertTestResource(t *testing.T, conn db.Connection) models.Resource {
 	require.NoError(t, err, "Actual err: %v", err)
 
 	return resource
+}
+
+func insertTestShip(t *testing.T, conn db.Connection) models.Ship {
+	t.Helper()
+
+	ship := models.Ship{
+		Id:        uuid.New(),
+		Name:      fmt.Sprintf("my-ship-%s", uuid.NewString()),
+		CreatedAt: someTime,
+		// This is intentional: the details (e.g. costs) are returned as empty
+		// slices by the adapter
+		Costs: []models.ShipCost{},
+	}
+
+	sqlQuery := `INSERT INTO ship (id, name, created_at)
+		VALUES ($1, $2, $3)`
+	_, err := conn.Exec(
+		t.Context(),
+		sqlQuery,
+		ship.Id,
+		ship.Name,
+		ship.CreatedAt,
+	)
+	require.NoError(t, err, "Actual err: %v", err)
+
+	return ship
 }
 
 func assertUniverseExists(t *testing.T, conn db.Connection, id uuid.UUID) {

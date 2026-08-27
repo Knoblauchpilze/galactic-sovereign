@@ -51,6 +51,26 @@ ORDER BY
 	created_at,
 	resource`
 
+	listShipQuery = `
+SELECT
+	id,
+	name,
+	created_at
+FROM
+	ship
+ORDER BY
+	created_at,
+	name`
+
+	listShipCostForShipQuery = `
+SELECT
+	sc.resource,
+	sc.cost
+FROM
+	ship_cost AS sc
+WHERE
+	sc.ship = $1`
+
 	listUsedCoordinateQuery = `
 SELECT
 	galaxy,
@@ -204,12 +224,53 @@ func loadUniverseDetails(ctx context.Context, tx db.Transaction, dbUniverse mapp
 		return universe, err
 	}
 
+	universe.Ships, err = loadShips(ctx, tx)
+	if err != nil {
+		return universe, err
+	}
+
 	universe.OccupancyMap, err = loadOccupancyMap(ctx, tx, universe.Id, universe.Topology)
 	if err != nil {
 		return universe, err
 	}
 
 	return universe, nil
+}
+
+func loadShips(ctx context.Context, tx db.Transaction) ([]models.Ship, error) {
+	dbShips, err := db.QueryAllTx[mappers.DbShip](ctx, tx, listShipQuery)
+	if err != nil {
+		return nil, err
+	}
+
+	ships := make([]models.Ship, 0, len(dbShips))
+	for id := range dbShips {
+		ship, err := loadShipDetails(ctx, tx, dbShips[id])
+		if err != nil {
+			return nil, err
+		}
+
+		ships = append(ships, ship)
+	}
+
+	return ships, nil
+}
+
+func loadShipDetails(ctx context.Context, tx db.Transaction, dbShip mappers.DbShip) (models.Ship, error) {
+	ship := dbShip.ToDomain()
+
+	var err error
+	ship.Costs, err = db.QueryAllTx[models.ShipCost](
+		ctx,
+		tx,
+		listShipCostForShipQuery,
+		dbShip.Id,
+	)
+	if err != nil {
+		return ship, err
+	}
+
+	return ship, nil
 }
 
 func loadOccupancyMap(
