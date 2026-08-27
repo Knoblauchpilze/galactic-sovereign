@@ -63,6 +63,7 @@ func TestUnit_Universes_CreateUniverse(t *testing.T) {
 		dto := sampleUniverseDtoRequest()
 
 		buildingId := uuid.New()
+		shipId := uuid.New()
 
 		expectedRequest := request.UniverseCreationRequest{Name: dto.Name,
 			Topology: request.TopologyRequest{
@@ -99,6 +100,13 @@ func TestUnit_Universes_CreateUniverse(t *testing.T) {
 						Id:        buildingId,
 						Name:      "building",
 						CreatedAt: someTime,
+					},
+				},
+				Ships: []models.Ship{
+					{
+						Id:        shipId,
+						Name:      "ship",
+						CreatedAt: yetAnotherTime,
 					},
 				},
 			}, nil)
@@ -139,6 +147,13 @@ func TestUnit_Universes_CreateUniverse(t *testing.T) {
 					Id:        buildingId,
 					Name:      "building",
 					CreatedAt: someTime,
+				},
+			},
+			Ships: []dtos.ShipDtoResponse{
+				{
+					Id:        shipId,
+					Name:      "ship",
+					CreatedAt: yetAnotherTime,
 				},
 			},
 		}
@@ -219,6 +234,8 @@ func TestUnit_Universes_GetUniverse(t *testing.T) {
 		buildingCostResourceId := uuid.New()
 		buildingProductionResourceId := uuid.New()
 		buildingStorageResourceId := uuid.New()
+		shipId := uuid.New()
+		shipCostResourceId := uuid.New()
 
 		universe := models.Universe{
 			Id:        uuid.New(),
@@ -260,6 +277,19 @@ func TestUnit_Universes_GetUniverse(t *testing.T) {
 							Base:     5000,
 							Scale:    2.5,
 							Progress: 1.833,
+						},
+					},
+				},
+			},
+			Ships: []models.Ship{
+				{
+					Id:        shipId,
+					Name:      "ship",
+					CreatedAt: yetAnotherTime,
+					Costs: []models.ShipCost{
+						{
+							Resource: shipCostResourceId,
+							Cost:     389,
 						},
 					},
 				},
@@ -322,6 +352,19 @@ func TestUnit_Universes_GetUniverse(t *testing.T) {
 							Base:     5000,
 							Scale:    2.5,
 							Progress: 1.833,
+						},
+					},
+				},
+			},
+			Ships: []dtos.ShipDtoResponse{
+				{
+					Id:        shipId,
+					Name:      "ship",
+					CreatedAt: yetAnotherTime,
+					Costs: []dtos.ShipCostDtoResponse{
+						{
+							Resource: shipCostResourceId,
+							Cost:     389,
 						},
 					},
 				},
@@ -404,6 +447,19 @@ func TestUnit_Universes_ListUniverses(t *testing.T) {
 				CreatedAt: someOtherTime,
 				Resources: []models.Resource{},
 				Buildings: []models.Building{},
+				Ships: []models.Ship{
+					{
+						Id:        uuid.New(),
+						Name:      "ship",
+						CreatedAt: yetAnotherTime,
+						Costs: []models.ShipCost{
+							{
+								Resource: uuid.New(),
+								Cost:     389,
+							},
+						},
+					},
+				},
 			},
 		}
 		mockUsecase.EXPECT().
@@ -440,6 +496,7 @@ func TestUnit_Universes_ListUniverses(t *testing.T) {
 					},
 				},
 				Buildings: []dtos.BuildingDtoResponse{},
+				Ships:     []dtos.ShipDtoResponse{},
 			},
 			{
 				Id:        universes[1].Id,
@@ -447,6 +504,19 @@ func TestUnit_Universes_ListUniverses(t *testing.T) {
 				CreatedAt: universes[1].CreatedAt,
 				Resources: []dtos.ResourceDtoResponse{},
 				Buildings: []dtos.BuildingDtoResponse{},
+				Ships: []dtos.ShipDtoResponse{
+					{
+						Id:        universes[1].Ships[0].Id,
+						Name:      universes[1].Ships[0].Name,
+						CreatedAt: universes[1].Ships[0].CreatedAt,
+						Costs: []dtos.ShipCostDtoResponse{
+							{
+								Resource: universes[1].Ships[0].Costs[0].Resource,
+								Cost:     universes[1].Ships[0].Costs[0].Cost,
+							},
+						},
+					},
+				},
 			},
 		}
 		assert.Equal(t, expected, actual)

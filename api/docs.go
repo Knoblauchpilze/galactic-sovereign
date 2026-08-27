@@ -523,6 +523,52 @@ const docTemplate = `{
                 ],
                 "type": "object"
             },
+            "dtos.ShipCostDtoResponse": {
+                "properties": {
+                    "cost": {
+                        "type": "integer"
+                    },
+                    "resource": {
+                        "format": "uuid",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "cost",
+                    "resource"
+                ],
+                "type": "object"
+            },
+            "dtos.ShipDtoResponse": {
+                "properties": {
+                    "costs": {
+                        "items": {
+                            "$ref": "#/components/schemas/dtos.ShipCostDtoResponse"
+                        },
+                        "type": "array",
+                        "uniqueItems": false
+                    },
+                    "created_at": {
+                        "format": "date-time",
+                        "type": "string"
+                    },
+                    "id": {
+                        "format": "uuid",
+                        "type": "string"
+                    },
+                    "name": {
+                        "example": "light fighter",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "costs",
+                    "created_at",
+                    "id",
+                    "name"
+                ],
+                "type": "object"
+            },
             "dtos.TopologyDtoRequest": {
                 "properties": {
                     "galaxies": {
@@ -611,6 +657,13 @@ const docTemplate = `{
                         "type": "array",
                         "uniqueItems": false
                     },
+                    "ships": {
+                        "items": {
+                            "$ref": "#/components/schemas/dtos.ShipDtoResponse"
+                        },
+                        "type": "array",
+                        "uniqueItems": false
+                    },
                     "topology": {
                         "$ref": "#/components/schemas/dtos.TopologyDtoResponse"
                     }
@@ -621,6 +674,7 @@ const docTemplate = `{
                     "id",
                     "name",
                     "resources",
+                    "ships",
                     "topology"
                 ],
                 "type": "object"

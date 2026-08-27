@@ -27,6 +27,7 @@ type UniverseDtoResponse struct {
 
 	Resources []ResourceDtoResponse `json:"resources" binding:"required"`
 	Buildings []BuildingDtoResponse `json:"buildings" binding:"required"`
+	Ships     []ShipDtoResponse     `json:"ships" binding:"required"`
 }
 
 type TopologyDtoResponse struct {
@@ -75,4 +76,17 @@ type BuildingResourceStorageDtoResponse struct {
 	Base     int       `json:"base" binding:"required"`
 	Scale    float64   `json:"scale" binding:"required"`
 	Progress float64   `json:"progress" binding:"required"`
+}
+
+type ShipDtoResponse struct {
+	Id        uuid.UUID `json:"id" format:"uuid" binding:"required"`
+	Name      string    `json:"name" example:"light fighter" binding:"required"`
+	CreatedAt time.Time `json:"created_at" format:"date-time" binding:"required"`
+
+	Costs []ShipCostDtoResponse `json:"costs" binding:"required"`
+}
+
+type ShipCostDtoResponse struct {
+	Resource uuid.UUID `json:"resource" format:"uuid" binding:"required"`
+	Cost     int       `json:"cost" binding:"required"`
 }

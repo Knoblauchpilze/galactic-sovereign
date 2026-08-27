@@ -25,6 +25,7 @@ func ToUniverseResponse(universe models.Universe) dtos.UniverseDtoResponse {
 		Topology:  toTopologyResponse(universe.Topology),
 		Resources: toResourcesResponse(universe.Resources),
 		Buildings: toBuildingsResponse(universe.Buildings),
+		Ships:     toShipsResponse(universe.Ships),
 	}
 }
 
@@ -176,6 +177,56 @@ func toBuildingStoragesResponse(
 
 	for _, s := range storages {
 		dto := toBuildingStorageResponse(s)
+		out = append(out, dto)
+	}
+
+	return out
+}
+
+func toShipResponse(
+	ship models.Ship,
+) dtos.ShipDtoResponse {
+	return dtos.ShipDtoResponse{
+		Id:        ship.Id,
+		Name:      ship.Name,
+		CreatedAt: ship.CreatedAt,
+		Costs:     toShipCostsResponse(ship.Costs),
+	}
+}
+
+func toShipsResponse(
+	ships []models.Ship,
+) []dtos.ShipDtoResponse {
+	out := make([]dtos.ShipDtoResponse, 0, len(ships))
+
+	for _, s := range ships {
+		dto := toShipResponse(s)
+		out = append(out, dto)
+	}
+
+	return out
+}
+
+func toShipCostResponse(
+	cost models.ShipCost,
+) dtos.ShipCostDtoResponse {
+	return dtos.ShipCostDtoResponse{
+		Resource: cost.Resource,
+		Cost:     cost.Cost,
+	}
+}
+
+func toShipCostsResponse(
+	costs []models.ShipCost,
+) []dtos.ShipCostDtoResponse {
+	if costs == nil {
+		return nil
+	}
+
+	out := make([]dtos.ShipCostDtoResponse, 0, len(costs))
+
+	for _, c := range costs {
+		dto := toShipCostResponse(c)
 		out = append(out, dto)
 	}
 

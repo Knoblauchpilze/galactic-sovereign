@@ -20,6 +20,7 @@ import (
 var (
 	someTime         = time.Date(2026, time.June, 4, 21, 52, 44, 0, time.UTC)
 	someOtherTime    = time.Date(2026, time.June, 5, 18, 13, 10, 0, time.UTC)
+	yetAnotherTime   = time.Date(2026, time.August, 27, 8, 34, 45, 0, time.UTC)
 	sampleUuid       = uuid.New()
 	sampleResourceId = uuid.New()
 )
