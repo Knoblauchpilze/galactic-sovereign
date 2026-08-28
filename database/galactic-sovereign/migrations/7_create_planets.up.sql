@@ -32,9 +32,6 @@ CREATE TABLE planet_coordinate(
   UNIQUE (universe, galaxy, solar_system, position)
 );
 
-CREATE INDEX planet_coordinate_planet_index ON planet_coordinate(planet);
-CREATE INDEX planet_coordinate_universe_index ON planet_coordinate(universe);
-
 CREATE TABLE planet_resource(
   planet UUID NOT NULL,
   resource UUID NOT NULL,
@@ -43,8 +40,6 @@ CREATE TABLE planet_resource(
   FOREIGN KEY (resource) REFERENCES resource(id),
   UNIQUE (planet, resource)
 );
-
-CREATE INDEX planet_resource_planet_index ON planet_resource(planet);
 
 CREATE TABLE planet_resource_production(
   planet UUID NOT NULL,
@@ -58,8 +53,6 @@ CREATE TABLE planet_resource_production(
   UNIQUE NULLS NOT DISTINCT (planet, building, resource)
 );
 
-CREATE INDEX planet_resource_production_planet_index ON planet_resource_production(planet);
-
 CREATE TABLE planet_resource_storage(
   planet UUID NOT NULL,
   resource UUID NOT NULL,
@@ -68,8 +61,6 @@ CREATE TABLE planet_resource_storage(
   FOREIGN KEY (resource) REFERENCES resource(id),
   UNIQUE (planet, resource)
 );
-
-CREATE INDEX planet_resource_storage_planet_index ON planet_resource_storage(planet);
 
 CREATE TABLE planet_building(
   planet UUID NOT NULL,
@@ -80,4 +71,11 @@ CREATE TABLE planet_building(
   UNIQUE (planet, building)
 );
 
-CREATE INDEX planet_building_planet_index ON planet_building(planet);
+CREATE TABLE planet_ship(
+  planet UUID NOT NULL,
+  ship UUID NOT NULL,
+  count INTEGER NOT NULL,
+  FOREIGN KEY (planet) REFERENCES planet(id),
+  FOREIGN KEY (ship) REFERENCES ship(id),
+  UNIQUE (planet, ship)
+);

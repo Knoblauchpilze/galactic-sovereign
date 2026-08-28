@@ -1,4 +1,5 @@
 
+DROP TABLE planet_ship;
 DROP TABLE planet_building;
 DROP TABLE planet_resource_storage;
 DROP TABLE planet_resource_production;
