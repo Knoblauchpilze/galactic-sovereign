@@ -1059,13 +1059,6 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "204": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "string"
-                                }
-                            }
-                        },
                         "description": "No Content"
                     },
                     "400": {
@@ -1183,13 +1176,6 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "204": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "string"
-                                }
-                            }
-                        },
                         "description": "No Content"
                     },
                     "400": {
@@ -1394,13 +1380,6 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "204": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "string"
-                                }
-                            }
-                        },
                         "description": "No Content"
                     },
                     "400": {
@@ -1654,13 +1633,6 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "204": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "string"
-                                }
-                            }
-                        },
                         "description": "No Content"
                     },
                     "400": {

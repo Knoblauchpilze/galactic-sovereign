@@ -137,7 +137,7 @@ func listUniverses(c *gin.Context, usecase drivingports.ForManagingUniverse) {
 //	@Tags			universes
 //	@Produce		json
 //	@Param			id	path		string	true	"Universe id (UUID)"	Format(uuid)
-//	@Success		204	{string}	string
+//	@Success		204
 //	@Failure		400	{object}	rest.ResponseEnvelope[string]
 //	@Failure		409	{object}	rest.ResponseEnvelope[string]
 //	@Failure		500	{object}	rest.ResponseEnvelope[string]

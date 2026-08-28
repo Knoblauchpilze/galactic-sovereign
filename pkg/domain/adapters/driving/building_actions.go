@@ -103,7 +103,7 @@ func createBuildingAction(c *gin.Context, usecase drivingports.ForCreatingBuildi
 //	@Tags			planets
 //	@Produce		json
 //	@Param			id	path		string	true	"Planet id (UUID)"	Format(uuid)
-//	@Success		204	{string}	string
+//	@Success		204
 //	@Failure		400	{object}	rest.ResponseEnvelope[string]
 //	@Failure		404	{object}	rest.ResponseEnvelope[string]
 //	@Failure		500	{object}	rest.ResponseEnvelope[string]
