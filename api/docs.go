@@ -311,6 +311,13 @@ const docTemplate = `{
                         "type": "array",
                         "uniqueItems": false
                     },
+                    "ships": {
+                        "items": {
+                            "$ref": "#/components/schemas/dtos.PlanetShipDtoResponse"
+                        },
+                        "type": "array",
+                        "uniqueItems": false
+                    },
                     "storages": {
                         "items": {
                             "$ref": "#/components/schemas/dtos.PlanetResourceStorageDtoResponse"
@@ -334,6 +341,7 @@ const docTemplate = `{
                     "player",
                     "productions",
                     "resources",
+                    "ships",
                     "storages",
                     "updated_at"
                 ],
@@ -389,6 +397,22 @@ const docTemplate = `{
                 "required": [
                     "resource",
                     "storage"
+                ],
+                "type": "object"
+            },
+            "dtos.PlanetShipDtoResponse": {
+                "properties": {
+                    "count": {
+                        "type": "integer"
+                    },
+                    "ship": {
+                        "format": "uuid",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "count",
+                    "ship"
                 ],
                 "type": "object"
             },

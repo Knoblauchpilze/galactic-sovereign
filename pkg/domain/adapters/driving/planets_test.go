@@ -80,6 +80,12 @@ func TestUnit_Planets_GetPlanet(t *testing.T) {
 					Level:    14,
 				},
 			},
+			Ships: []models.PlanetShip{
+				{
+					Ship:  uuid.New(),
+					Count: 78,
+				},
+			},
 			BuildingAction: &models.BuildingAction{
 				Id: sampleUuid,
 			},
@@ -135,6 +141,12 @@ func TestUnit_Planets_GetPlanet(t *testing.T) {
 					Level:    planet.Buildings[0].Level,
 				},
 			},
+			Ships: []dtos.PlanetShipDtoResponse{
+				{
+					Ship:  planet.Ships[0].Ship,
+					Count: planet.Ships[0].Count,
+				},
+			},
 			BuildingAction: &dtos.BuildingActionDtoResponse{
 				Id:          sampleUuid,
 				Costs:       []dtos.BuildingActionCostDtoResponse{},
@@ -155,6 +167,7 @@ func TestUnit_Planets_GetPlanet(t *testing.T) {
 			Storages:       []models.PlanetResourceStorage{},
 			Productions:    []models.PlanetResourceProduction{},
 			Buildings:      []models.PlanetBuilding{},
+			Ships:          []models.PlanetShip{},
 			BuildingAction: nil,
 		}
 		mockUsecase.EXPECT().
@@ -183,6 +196,7 @@ func TestUnit_Planets_GetPlanet(t *testing.T) {
 			Storages:       []dtos.PlanetResourceStorageDtoResponse{},
 			Productions:    []dtos.PlanetResourceProductionDtoResponse{},
 			Buildings:      []dtos.PlanetBuildingDtoResponse{},
+			Ships:          []dtos.PlanetShipDtoResponse{},
 			BuildingAction: nil,
 		}
 		assert.Equal(t, expected, actual)
@@ -286,6 +300,7 @@ func TestUnit_Planets_ListPlanetsForPlayer(t *testing.T) {
 				Storages:    []dtos.PlanetResourceStorageDtoResponse{},
 				Productions: []dtos.PlanetResourceProductionDtoResponse{},
 				Buildings:   []dtos.PlanetBuildingDtoResponse{},
+				Ships:       []dtos.PlanetShipDtoResponse{},
 			},
 			{
 				Id:          planets[1].Id,
@@ -295,6 +310,7 @@ func TestUnit_Planets_ListPlanetsForPlayer(t *testing.T) {
 				Storages:    []dtos.PlanetResourceStorageDtoResponse{},
 				Productions: []dtos.PlanetResourceProductionDtoResponse{},
 				Buildings:   []dtos.PlanetBuildingDtoResponse{},
+				Ships:       []dtos.PlanetShipDtoResponse{},
 			},
 		}
 		assert.Equal(t, expected, actual)

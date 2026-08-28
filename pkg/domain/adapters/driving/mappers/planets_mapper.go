@@ -23,6 +23,7 @@ func ToPlanetResponse(planet models.Planet) dtos.PlanetDtoResponse {
 		Storages:    toPlanetStoragesResponse(planet.Storages),
 		Productions: toPlanetProductionsResponse(planet.Productions),
 		Buildings:   toPlanetBuildingsResponse(planet.Buildings),
+		Ships:       toPlanetShipsResponse(planet.Ships),
 	}
 
 	if planet.BuildingAction != nil {
@@ -116,6 +117,28 @@ func toPlanetBuildingsResponse(
 
 	for _, b := range buildings {
 		dto := toPlanetBuildingResponse(b)
+		out = append(out, dto)
+	}
+
+	return out
+}
+
+func toPlanetShipResponse(
+	ship models.PlanetShip,
+) dtos.PlanetShipDtoResponse {
+	return dtos.PlanetShipDtoResponse{
+		Ship:  ship.Ship,
+		Count: ship.Count,
+	}
+}
+
+func toPlanetShipsResponse(
+	ships []models.PlanetShip,
+) []dtos.PlanetShipDtoResponse {
+	out := make([]dtos.PlanetShipDtoResponse, 0, len(ships))
+
+	for _, s := range ships {
+		dto := toPlanetShipResponse(s)
 		out = append(out, dto)
 	}
 

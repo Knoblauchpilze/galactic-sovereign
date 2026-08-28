@@ -21,6 +21,7 @@ type PlanetDtoResponse struct {
 	Storages    []PlanetResourceStorageDtoResponse    `json:"storages" binding:"required"`
 	Productions []PlanetResourceProductionDtoResponse `json:"productions" binding:"required"`
 	Buildings   []PlanetBuildingDtoResponse           `json:"buildings" binding:"required"`
+	Ships       []PlanetShipDtoResponse               `json:"ships" binding:"required"`
 
 	BuildingAction *BuildingActionDtoResponse `json:"building_action,omitempty"`
 }
@@ -50,4 +51,9 @@ type PlanetResourceProductionDtoResponse struct {
 type PlanetBuildingDtoResponse struct {
 	Building uuid.UUID `json:"building" format:"uuid" binding:"required"`
 	Level    int       `json:"level" binding:"required"`
+}
+
+type PlanetShipDtoResponse struct {
+	Ship  uuid.UUID `json:"ship" format:"uuid" binding:"required"`
+	Count int       `json:"count" binding:"required"`
 }
