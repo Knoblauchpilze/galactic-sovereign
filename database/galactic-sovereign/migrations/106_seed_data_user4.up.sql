@@ -132,3 +132,16 @@ INSERT INTO galactic_sovereign_schema.planet_building("planet", "building", "lev
     '58d75842-6dc0-4ac0-b36d-55f91b8d060d',
     0
   );
+
+INSERT INTO galactic_sovereign_schema.planet_ship("planet", "ship", "count")
+  VALUES (
+    '717ffa52-89bd-42eb-b34d-0f994a032e35',
+    'c0978950-601e-4d35-9c7c-28df69d2cd0e',
+    0
+  );
+INSERT INTO galactic_sovereign_schema.planet_ship("planet", "ship", "count")
+  VALUES (
+    '717ffa52-89bd-42eb-b34d-0f994a032e35',
+    'a31de13b-5905-4468-99c5-d1d1e529b36e',
+    0
+  );

@@ -133,6 +133,19 @@ INSERT INTO galactic_sovereign_schema.planet_building("planet", "building", "lev
     0
   );
 
+INSERT INTO galactic_sovereign_schema.planet_ship("planet", "ship", "count")
+  VALUES (
+    '167bd268-6ae7-4cf4-a359-9534beabfeff',
+    'c0978950-601e-4d35-9c7c-28df69d2cd0e',
+    0
+  );
+INSERT INTO galactic_sovereign_schema.planet_ship("planet", "ship", "count")
+  VALUES (
+    '167bd268-6ae7-4cf4-a359-9534beabfeff',
+    'a31de13b-5905-4468-99c5-d1d1e529b36e',
+    0
+  );
+
 -- planet colony
 INSERT INTO galactic_sovereign_schema.planet("id", "player", "name", "fields", "created_at", "updated_at")
   VALUES (
@@ -250,5 +263,18 @@ INSERT INTO galactic_sovereign_schema.planet_building("planet", "building", "lev
   VALUES (
     '110cdf6f-2103-4e34-924f-fd57eb87ea3e',
     '58d75842-6dc0-4ac0-b36d-55f91b8d060d',
+    0
+  );
+
+INSERT INTO galactic_sovereign_schema.planet_ship("planet", "ship", "count")
+  VALUES (
+    '110cdf6f-2103-4e34-924f-fd57eb87ea3e',
+    'c0978950-601e-4d35-9c7c-28df69d2cd0e',
+    0
+  );
+INSERT INTO galactic_sovereign_schema.planet_ship("planet", "ship", "count")
+  VALUES (
+    '110cdf6f-2103-4e34-924f-fd57eb87ea3e',
+    'a31de13b-5905-4468-99c5-d1d1e529b36e',
     0
   );

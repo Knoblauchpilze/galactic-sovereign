@@ -1,5 +1,6 @@
 
 -- planet deut-factory
+DELETE FROM planet_ship WHERE planet = '717ffa52-89bd-42eb-b34d-0f994a032e35';
 DELETE FROM planet_building WHERE planet = '717ffa52-89bd-42eb-b34d-0f994a032e35';
 DELETE FROM planet_resource_storage WHERE planet = '717ffa52-89bd-42eb-b34d-0f994a032e35';
 DELETE FROM planet_resource_production WHERE planet = '717ffa52-89bd-42eb-b34d-0f994a032e35';

@@ -1,5 +1,6 @@
 
 -- planet a-new-beginning
+DELETE FROM planet_ship WHERE planet = 'fafd18e9-2db6-439a-aaf3-010771d694c9';
 DELETE FROM planet_building WHERE planet = 'fafd18e9-2db6-439a-aaf3-010771d694c9';
 DELETE FROM planet_resource_storage WHERE planet = 'fafd18e9-2db6-439a-aaf3-010771d694c9';
 DELETE FROM planet_resource_production WHERE planet = 'fafd18e9-2db6-439a-aaf3-010771d694c9';

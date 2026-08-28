@@ -1,5 +1,6 @@
 
 -- planet my-awesome-planet
+DELETE FROM planet_ship WHERE planet = '00058def-e81d-43bb-aacf-a8402115449d';
 DELETE FROM planet_building WHERE planet = '00058def-e81d-43bb-aacf-a8402115449d';
 DELETE FROM planet_resource_storage WHERE planet = '00058def-e81d-43bb-aacf-a8402115449d';
 DELETE FROM planet_resource_production WHERE planet = '00058def-e81d-43bb-aacf-a8402115449d';
