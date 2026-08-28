@@ -563,6 +563,23 @@ const docTemplate = `{
                 ],
                 "type": "object"
             },
+            "dtos.ShipDtoRequest": {
+                "properties": {
+                    "count": {
+                        "minimum": 1,
+                        "type": "integer"
+                    },
+                    "ship": {
+                        "format": "uuid",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "count",
+                    "ship"
+                ],
+                "type": "object"
+            },
             "dtos.ShipDtoResponse": {
                 "properties": {
                     "costs": {
@@ -975,6 +992,53 @@ const docTemplate = `{
                 "summary": "Health check",
                 "tags": [
                     "healthcheck"
+                ]
+            }
+        },
+        "/planets/:id/ships": {
+            "post": {
+                "description": "Creates a ship on a planet.",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/dtos.ShipDtoRequest",
+                                "summary": "request",
+                                "description": "Ship payload"
+                            }
+                        }
+                    },
+                    "description": "Ship payload",
+                    "required": true
+                },
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/rest.ResponseEnvelope-string"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/rest.ResponseEnvelope-string"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "summary": "Create ship",
+                "tags": [
+                    "planets"
                 ]
             }
         },

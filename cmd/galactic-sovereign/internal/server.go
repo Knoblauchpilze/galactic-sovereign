@@ -17,6 +17,7 @@ func CreateGameServer(conf server.Config, conn db.Connection, log *slog.Logger) 
 	registerPlayersRoutes(conn, s, log)
 	registerPlanetsRoutes(conn, s, log)
 	registerBuildingActionsRoutes(conn, s, log)
+	registerShipsRoutes(conn, s, log)
 	registerHealthRoutes(conn, s, log)
 
 	return s
@@ -69,6 +70,16 @@ func registerBuildingActionsRoutes(conn db.Connection, s *server.Server, log *sl
 	deleteUsecase := usecases.NewDeleteBuildingActionUseCase(planetMutator, clock)
 
 	for _, route := range drivingadapters.BuildingActionEndpoints(createUseCase, deleteUsecase) {
+		if err := s.AddRoute(route); err != nil {
+			log.Error("Failed to register route", slog.String("route", route.Path()), slog.Any("error", err))
+		}
+	}
+}
+
+func registerShipsRoutes(conn db.Connection, s *server.Server, log *slog.Logger) {
+	createUseCase := usecases.NewCreateShipUseCase()
+
+	for _, route := range drivingadapters.ShipEndpoints(createUseCase) {
 		if err := s.AddRoute(route); err != nil {
 			log.Error("Failed to register route", slog.String("route", route.Path()), slog.Any("error", err))
 		}

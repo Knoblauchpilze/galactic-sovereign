@@ -5,5 +5,5 @@ import (
 )
 
 type PlanetCreationRequest struct {
-	Player uuid.UUID `json:"player" format:"uuid"`
+	Player uuid.UUID
 }

@@ -5,6 +5,6 @@ import (
 )
 
 type BuildingActionCreationRequest struct {
-	Planet   uuid.UUID `json:"planet" format:"uuid"`
-	Building uuid.UUID `json:"building" format:"uuid"`
+	Planet   uuid.UUID
+	Building uuid.UUID
 }
