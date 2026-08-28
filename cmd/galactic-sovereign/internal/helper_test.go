@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"math/rand/v2"
+	"math/rand"
 	"net/http"
 	"os"
 	"testing"
@@ -51,7 +51,7 @@ func urlFor(conf server.Config, segments ...string) string {
 func newTestServerConfig() server.Config {
 	return server.Config{
 		BasePath:        "/v1/galactic-sovereign",
-		Port:            uint16(60010 + rand.IntN(200)),
+		Port:            uint16(60010 + rand.Intn(200)),
 		ShutdownTimeout: 500 * time.Millisecond,
 	}
 }

@@ -24,8 +24,8 @@ type Planet struct {
 	Resources   []PlanetResource
 	Storages    []PlanetResourceStorage
 	Productions []PlanetResourceProduction
-
-	Buildings []PlanetBuilding
+	Buildings   []PlanetBuilding
+	Ships       []PlanetShip
 
 	BuildingAction *BuildingAction
 }
@@ -49,6 +49,11 @@ type PlanetResourceProduction struct {
 type PlanetBuilding struct {
 	Building uuid.UUID
 	Level    int
+}
+
+type PlanetShip struct {
+	Ship  uuid.UUID
+	Count int
 }
 
 // AddBuildingAction adds a building action to the planet.

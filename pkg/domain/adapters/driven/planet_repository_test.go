@@ -16,6 +16,7 @@ var (
 	crystalResourceId = uuid.MustParse("cd2ac9aa-9968-4ff5-b746-88f1f810fbb3")
 	crystalMineId     = uuid.MustParse("3904d34d-9a7e-47d4-a332-091700e2c5c3")
 	metalStorageId    = uuid.MustParse("22b4c0c3-c8e5-4493-89fc-522fdbb0beee")
+	lightFighterId    = uuid.MustParse("a31de13b-5905-4468-99c5-d1d1e529b36e")
 )
 
 func TestIT_PlanetRepository_ListForPlayer(t *testing.T) {
@@ -27,6 +28,7 @@ func TestIT_PlanetRepository_ListForPlayer(t *testing.T) {
 	p5 := insertTestPlanet(t, conn, player1.Id, addPlanetProduction)
 	p6 := insertTestPlanet(t, conn, player1.Id, addPlanetProductionForBuilding)
 	p7 := insertTestPlanet(t, conn, player1.Id, addPlanetBuilding)
+	p9 := insertTestPlanet(t, conn, player1.Id, addPlanetShip)
 	p8 := insertTestPlanet(t, conn, player1.Id, addPlanetBuildingAction)
 
 	actual, err := repo.ListForPlayer(t.Context(), player1.Id)
@@ -41,6 +43,7 @@ func TestIT_PlanetRepository_ListForPlayer(t *testing.T) {
 	assert.Contains(t, actual, p6.Id)
 	assert.Contains(t, actual, p7.Id)
 	assert.Contains(t, actual, p8.Id)
+	assert.Contains(t, actual, p9.Id)
 	assert.NotContains(t, actual, p1)
 }
 
@@ -171,6 +174,27 @@ func TestIT_PlanetRepository_Delete(t *testing.T) {
 		assertPlanetBuildingDoesNotExist(t, conn, planet.Id)
 	})
 
+	t.Run("deletes planet with ships", func(t *testing.T) {
+		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetShip)
+
+		err := repo.Delete(t.Context(), planet.Id)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assertPlanetDoesNotExist(t, conn, planet.Id)
+		assertPlanetShipDoesNotExist(t, conn, planet.Id)
+	})
+
+	t.Run("deletes homeworld with ships", func(t *testing.T) {
+		planet, _, _ := insertTestHomeworldPlanetForPlayer(t, conn, addPlanetShip)
+
+		err := repo.Delete(t.Context(), planet.Id)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assertPlanetDoesNotExist(t, conn, planet.Id)
+		assertPlanetIsNotHomeworld(t, conn, planet.Id)
+		assertPlanetShipDoesNotExist(t, conn, planet.Id)
+	})
+
 	t.Run("deletes planet with building actions", func(t *testing.T) {
 		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetBuildingAction)
 
@@ -234,6 +258,7 @@ func insertTestPlanet(
 		Storages:    []models.PlanetResourceStorage{},
 		Productions: []models.PlanetResourceProduction{},
 		Buildings:   []models.PlanetBuilding{},
+		Ships:       []models.PlanetShip{},
 	}
 
 	sqlQuery := `INSERT INTO planet (id, player, name, fields, created_at, updated_at, version)
@@ -432,6 +457,28 @@ func addPlanetBuildingAction(t *testing.T, conn db.Connection, p *models.Planet)
 	p.BuildingAction = &action
 }
 
+func addPlanetShip(t *testing.T, conn db.Connection, p *models.Planet) {
+	t.Helper()
+
+	ship := models.PlanetShip{
+		Ship:  lightFighterId,
+		Count: 5 + rand.Intn(26),
+	}
+
+	sqlQuery := `INSERT INTO planet_ship (planet, ship, count)
+		VALUES ($1, $2, $3)`
+	_, err := conn.Exec(
+		t.Context(),
+		sqlQuery,
+		p.Id,
+		ship.Ship,
+		ship.Count,
+	)
+	require.NoError(t, err, "Actual err: %v", err)
+
+	p.Ships = append(p.Ships, ship)
+}
+
 // insertTestPlanetForPlayer creates a test planet. The returned planet belongs
 // to a fresh player registered in a fresh universe.
 // The player also has a homeworld: this is a necessary precondition to make the
@@ -557,6 +604,15 @@ func assertPlanetBuildingDoesNotExist(t *testing.T, conn db.Connection, planet u
 	t.Helper()
 
 	sqlQuery := `SELECT COUNT(building) FROM planet_building WHERE planet = $1`
+	value, err := db.QueryOne[int](t.Context(), conn, sqlQuery, planet)
+	require.NoError(t, err, "Actual err: %v", err)
+	require.Zero(t, value)
+}
+
+func assertPlanetShipDoesNotExist(t *testing.T, conn db.Connection, planet uuid.UUID) {
+	t.Helper()
+
+	sqlQuery := `SELECT COUNT(ship) FROM planet_ship WHERE planet = $1`
 	value, err := db.QueryOne[int](t.Context(), conn, sqlQuery, planet)
 	require.NoError(t, err, "Actual err: %v", err)
 	require.Zero(t, value)

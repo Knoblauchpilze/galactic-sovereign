@@ -6,9 +6,10 @@ const (
 	resourceNotFound errors.ErrorCode = 600
 
 	buildingNotFound       errors.ErrorCode = 602
-	universeNotFound       errors.ErrorCode = 603
-	playerNotFound         errors.ErrorCode = 604
-	planetResourceNotFound errors.ErrorCode = 605
+	shipNotFound           errors.ErrorCode = 603
+	universeNotFound       errors.ErrorCode = 604
+	playerNotFound         errors.ErrorCode = 605
+	planetResourceNotFound errors.ErrorCode = 606
 
 	nameAlreadyTaken           errors.ErrorCode = 610
 	actionAlreadyInProgress    errors.ErrorCode = 611
@@ -29,6 +30,7 @@ const (
 var (
 	ErrNotFound         = errors.FromCode(resourceNotFound)
 	ErrBuildingNotFound = errors.FromCode(buildingNotFound)
+	ErrShipNotFound     = errors.FromCode(shipNotFound)
 	ErrUniverseNotFound = errors.FromCode(universeNotFound)
 	ErrPlayerNotFound   = errors.FromCode(playerNotFound)
 	ErrResourceNotFound = errors.FromCode(planetResourceNotFound)

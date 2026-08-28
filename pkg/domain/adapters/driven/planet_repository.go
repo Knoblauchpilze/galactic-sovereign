@@ -112,6 +112,15 @@ FROM
 WHERE
 	planet = $1`
 
+	listPlanetShipForPlanetQuery = `
+SELECT
+	ship,
+	count
+FROM
+	planet_ship
+WHERE
+	planet = $1`
+
 	listPlanetForPlayerQuery = `
 SELECT
 	p.id
@@ -161,6 +170,7 @@ INSERT INTO
 ON CONFLICT (planet, building, resource) DO UPDATE
 SET
 	production = excluded.production`
+
 	updatePlanetBuildingsQuery = `
 UPDATE
 	planet_building
@@ -170,6 +180,16 @@ WHERE
 	planet = $2
 	AND building = $3`
 
+	updatePlanetShipsQuery = `
+UPDATE
+	planet_ship
+SET
+	count = $1
+WHERE
+	planet = $2
+	AND ship = $3`
+
+	deletePlanetShipsQuery               = `DELETE FROM planet_ship WHERE planet = $1`
 	deletePlanetBuildingsQuery           = `DELETE FROM planet_building WHERE planet = $1`
 	deletePlanetResourceProductionsQuery = `DELETE FROM planet_resource_production WHERE planet = $1`
 	deletePlanetResourceStoragesQuery    = `DELETE FROM planet_resource_storage WHERE planet = $1`
@@ -352,6 +372,16 @@ func loadPlanetDetails(ctx context.Context, tx db.Transaction, dbPlanet mappers.
 		return planet, err
 	}
 
+	planet.Ships, err = db.QueryAllTx[models.PlanetShip](
+		ctx,
+		tx,
+		listPlanetShipForPlanetQuery,
+		dbPlanet.Id,
+	)
+	if err != nil {
+		return planet, err
+	}
+
 	if dbPlanet.BuildingAction != nil {
 		action, err := loadBuildingActionAndDetails(ctx, tx, *dbPlanet.BuildingAction)
 		if err != nil {
@@ -423,6 +453,22 @@ func updatePlanetDetails(
 		}
 	}
 
+	for _, s := range planet.Ships {
+		affected, err := tx.Exec(
+			ctx,
+			updatePlanetShipsQuery,
+			s.Count,
+			planet.Id,
+			s.Ship,
+		)
+		if err != nil {
+			return err
+		}
+		if affected != 1 {
+			return domainerrors.ErrShipNotFound
+		}
+	}
+
 	err = recreateBuildingAction(ctx, tx, planet)
 	if err != nil {
 		return err
@@ -452,6 +498,11 @@ func updatePlanetDetails(
 
 func deletePlanetAndDetails(ctx context.Context, tx db.Transaction, id uuid.UUID) error {
 	err := deleteBuildingActionAndDetailsForPlanet(ctx, tx, id)
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.Exec(ctx, deletePlanetShipsQuery, id)
 	if err != nil {
 		return err
 	}

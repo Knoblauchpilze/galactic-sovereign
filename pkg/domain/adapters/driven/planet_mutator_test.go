@@ -341,6 +341,47 @@ func TestIT_PlanetMutator_Mutate(t *testing.T) {
 		assertPlanetBuildingLevel(t, conn, planet.Id, building, level)
 	})
 
+	t.Run("persists mutated planet ships", func(t *testing.T) {
+		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetShip)
+		require.NotEqual(t, 776, planet.Ships[0].Count)
+
+		mutator := generateModifyingMutator(func(p *models.Planet) {
+			p.Ships[0].Count = 776
+			p.Version++
+		})
+
+		returned, err := adapter.Mutate(t.Context(), planet.Id, mutator)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.False(t, returned.Deleted)
+		expected := []models.PlanetShip{
+			{Ship: lightFighterId, Count: 776},
+		}
+		assert.Equal(t, expected, returned.Planet.Ships)
+		assertPlanetShipCount(t, conn, planet.Id, lightFighterId, 776)
+	})
+
+	t.Run("does not delete existing planet ship", func(t *testing.T) {
+		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetShip)
+		ship := planet.Ships[0].Ship
+		count := planet.Ships[0].Count
+
+		mutator := generateModifyingMutator(func(p *models.Planet) {
+			p.Ships = []models.PlanetShip{}
+			p.Version++
+		})
+
+		returned, err := adapter.Mutate(t.Context(), planet.Id, mutator)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.False(t, returned.Deleted)
+		expected := []models.PlanetShip{
+			{Ship: ship, Count: count},
+		}
+		assert.Equal(t, expected, returned.Planet.Ships)
+		assertPlanetShipCount(t, conn, planet.Id, ship, count)
+	})
+
 	t.Run("persists mutated planet with action", func(t *testing.T) {
 		planet, _, _ := insertTestPlanetForPlayer(t, conn)
 		require.Nil(t, planet.BuildingAction)
@@ -807,6 +848,19 @@ func TestIT_PlanetMutator_Mutate(t *testing.T) {
 		assert.ErrorIs(t, err, domainerrors.ErrMutationWithoutVersionBump, "Actual err: %v", err)
 	})
 
+	t.Run("returns error when new storage is added", func(t *testing.T) {
+		planet, _, _ := insertTestPlanetForPlayer(t, conn)
+
+		mutator := generateModifyingMutator(func(p *models.Planet) {
+			p.Storages = []models.PlanetResourceStorage{{Resource: crystalResourceId, Storage: 5478}}
+			p.Version++
+		})
+
+		_, err := adapter.Mutate(t.Context(), planet.Id, mutator)
+
+		assert.ErrorIs(t, err, domainerrors.ErrResourceNotFound, "Actual err: %v", err)
+	})
+
 	t.Run("returns error when new building is added", func(t *testing.T) {
 		planet, _, _ := insertTestPlanetForPlayer(t, conn)
 
@@ -820,17 +874,17 @@ func TestIT_PlanetMutator_Mutate(t *testing.T) {
 		assert.ErrorIs(t, err, domainerrors.ErrBuildingNotFound, "Actual err: %v", err)
 	})
 
-	t.Run("returns error when new storage is added", func(t *testing.T) {
+	t.Run("returns error when new ship is added", func(t *testing.T) {
 		planet, _, _ := insertTestPlanetForPlayer(t, conn)
 
 		mutator := generateModifyingMutator(func(p *models.Planet) {
-			p.Storages = []models.PlanetResourceStorage{{Resource: crystalResourceId, Storage: 5478}}
+			p.Ships = []models.PlanetShip{{Ship: lightFighterId, Count: 34}}
 			p.Version++
 		})
 
 		_, err := adapter.Mutate(t.Context(), planet.Id, mutator)
 
-		assert.ErrorIs(t, err, domainerrors.ErrResourceNotFound, "Actual err: %v", err)
+		assert.ErrorIs(t, err, domainerrors.ErrShipNotFound, "Actual err: %v", err)
 	})
 
 	t.Run("deletes planet when mutator indicates it", func(t *testing.T) {
@@ -902,6 +956,18 @@ func TestIT_PlanetMutator_Mutate(t *testing.T) {
 		assert.True(t, returned.Deleted)
 		assertPlanetDoesNotExist(t, conn, planet.Id)
 		assertPlanetBuildingDoesNotExist(t, conn, planet.Id)
+	})
+
+	t.Run("deletes planet with ships when mutator indicates it", func(t *testing.T) {
+		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetShip)
+		require.NotEqual(t, planet.UpdatedAt, yetAnotherTime)
+
+		returned, err := adapter.Mutate(t.Context(), planet.Id, generateDeletingMutator())
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.True(t, returned.Deleted)
+		assertPlanetDoesNotExist(t, conn, planet.Id)
+		assertPlanetShipDoesNotExist(t, conn, planet.Id)
 	})
 
 	t.Run("deletes planet with building action when mutator indicates it", func(t *testing.T) {
@@ -1183,4 +1249,13 @@ func assertPlanetBuildingLevel(t *testing.T, conn db.Connection, planet uuid.UUI
 	value, err := db.QueryOne[int](t.Context(), conn, sqlQuery, planet, building)
 	require.NoError(t, err, "Actual err: %v", err)
 	require.Equal(t, level, value)
+}
+
+func assertPlanetShipCount(t *testing.T, conn db.Connection, planet uuid.UUID, ship uuid.UUID, count int) {
+	t.Helper()
+
+	sqlQuery := `SELECT count FROM planet_ship WHERE planet = $1 AND ship = $2`
+	value, err := db.QueryOne[int](t.Context(), conn, sqlQuery, planet, ship)
+	require.NoError(t, err, "Actual err: %v", err)
+	require.Equal(t, count, value)
 }
