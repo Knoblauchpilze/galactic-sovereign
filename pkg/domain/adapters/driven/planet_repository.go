@@ -50,6 +50,11 @@ INSERT INTO
 	planet_building (planet, building, level)
 	VALUES ($1, $2, $3)`
 
+	createPlanetShipQuery = `
+INSERT INTO
+	planet_ship (planet, ship, count)
+	VALUES ($1, $2, $3)`
+
 	getPlanetQuery = `
 SELECT
 	p.id,
@@ -306,6 +311,19 @@ func createPlanetWithDetails(ctx context.Context, tx db.Transaction, planet mode
 			planet.Id,
 			b.Building,
 			b.Level,
+		)
+		if err != nil {
+			return err
+		}
+	}
+
+	for _, s := range planet.Ships {
+		_, err := tx.Exec(
+			ctx,
+			createPlanetShipQuery,
+			planet.Id,
+			s.Ship,
+			s.Count,
 		)
 		if err != nil {
 			return err

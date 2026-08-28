@@ -113,6 +113,24 @@ func TestUnit_Universe_CreatePlanet(t *testing.T) {
 		assert.Equal(t, expected, actual.Buildings)
 	})
 
+	t.Run("creates each ship with level 0", func(t *testing.T) {
+		u := sampleUniverse()
+
+		actual := u.CreatePlanet(playerId, false)
+
+		expected := []PlanetShip{
+			{
+				Ship:  u.Ships[0].Id,
+				Count: 0,
+			},
+			{
+				Ship:  u.Ships[1].Id,
+				Count: 0,
+			},
+		}
+		assert.Equal(t, expected, actual.Ships)
+	})
+
 	t.Run("creates a planet at a free spot", func(t *testing.T) {
 		u := sampleUniverse()
 		u.OccupancyMap = OccupancyMap{
@@ -179,6 +197,29 @@ func sampleBuildings() []Building {
 	}
 }
 
+func sampleShips() []Ship {
+	return []Ship{
+		{
+			Id: uuid.New(),
+			Costs: []ShipCost{
+				{
+					Resource: metalResourceId,
+					Cost:     987,
+				},
+			},
+		},
+		{
+			Id: uuid.New(),
+			Costs: []ShipCost{
+				{
+					Resource: crystalResourceId,
+					Cost:     1234,
+				},
+			},
+		},
+	}
+}
+
 func sampleOccupancyMap() OccupancyMap {
 	return OccupancyMap{
 		Topology: UniverseTopology{
@@ -197,6 +238,7 @@ func sampleUniverse() Universe {
 		Topology:     occupancyMap.Topology,
 		Resources:    sampleResources(),
 		Buildings:    sampleBuildings(),
+		Ships:        sampleShips(),
 		OccupancyMap: occupancyMap,
 	}
 }

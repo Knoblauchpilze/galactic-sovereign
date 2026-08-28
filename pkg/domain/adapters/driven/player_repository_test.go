@@ -67,6 +67,12 @@ func TestIT_PlayerRepository_Create(t *testing.T) {
 					Level:    2,
 				},
 			},
+			Ships: []models.PlanetShip{
+				{
+					Ship:  lightFighterId,
+					Count: 23,
+				},
+			},
 		}
 
 		err := repo.Create(t.Context(), player, planet)
@@ -314,6 +320,7 @@ func TestIT_PlayerRepository_CreationDeletionWorkflow(t *testing.T) {
 			Storages:    []models.PlanetResourceStorage{},
 			Productions: []models.PlanetResourceProduction{},
 			Buildings:   []models.PlanetBuilding{},
+			Ships:       []models.PlanetShip{},
 		}
 
 		func() {

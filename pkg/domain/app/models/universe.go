@@ -38,6 +38,7 @@ func (u Universe) CreatePlanet(player uuid.UUID, homeworld bool) Planet {
 	planetStorages := make([]PlanetResourceStorage, 0, len(u.Resources))
 	planetProductions := make([]PlanetResourceProduction, 0, len(u.Resources))
 	planetBuildings := make([]PlanetBuilding, 0, len(u.Buildings))
+	planetShips := make([]PlanetShip, 0, len(u.Ships))
 
 	for _, r := range u.Resources {
 		pr := PlanetResource{
@@ -67,6 +68,14 @@ func (u Universe) CreatePlanet(player uuid.UUID, homeworld bool) Planet {
 		planetBuildings = append(planetBuildings, pb)
 	}
 
+	for _, s := range u.Ships {
+		ps := PlanetShip{
+			Ship:  s.Id,
+			Count: 0,
+		}
+		planetShips = append(planetShips, ps)
+	}
+
 	name := homeworldDefaultName
 	if !homeworld {
 		name = planetDefaultName
@@ -86,6 +95,7 @@ func (u Universe) CreatePlanet(player uuid.UUID, homeworld bool) Planet {
 		Storages:       planetStorages,
 		Productions:    planetProductions,
 		Buildings:      planetBuildings,
+		Ships:          planetShips,
 		BuildingAction: nil,
 	}
 }
