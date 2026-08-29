@@ -2,6 +2,7 @@ package drivenadapters
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driven/mappers"
@@ -36,10 +37,10 @@ SELECT
 	bc.resource,
 	bc.cost,
 	bc.progress,
-	r.build_time_hours_per_unit
+	r.hours_per_unit AS build_time_hours_per_unit
 FROM
 	building_cost AS bc
-	INNER JOIN resource AS r ON r.id = bc.resource
+	INNER JOIN resource_metabolization_rate_building AS r ON r.resource = bc.resource
 WHERE
 	bc.building = $1`
 
@@ -120,6 +121,7 @@ func loadBuildingDetails(ctx context.Context, tx db.Transaction, dbBuilding mapp
 		dbBuilding.Id,
 	)
 	if err != nil {
+		fmt.Printf("error: %+v\n", err)
 		return building, err
 	}
 

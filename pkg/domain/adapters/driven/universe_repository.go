@@ -2,6 +2,7 @@ package drivenadapters
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driven/mappers"
@@ -43,7 +44,6 @@ SELECT
 	start_amount,
 	start_production,
 	start_storage,
-	build_time_hours_per_unit,
 	created_at
 FROM
 	resource
@@ -65,9 +65,11 @@ ORDER BY
 	listShipCostForShipQuery = `
 SELECT
 	sc.resource,
-	sc.cost
+	sc.cost,
+	r.hours_per_unit AS build_time_hours_per_unit
 FROM
 	ship_cost AS sc
+	INNER JOIN resource_metabolization_rate_ship AS r ON r.resource = sc.resource
 WHERE
 	sc.ship = $1`
 
@@ -216,16 +218,19 @@ func loadUniverseDetails(ctx context.Context, tx db.Transaction, dbUniverse mapp
 		listResourceQuery,
 	)
 	if err != nil {
+		fmt.Printf("error 1: %+v\n", err)
 		return universe, err
 	}
 
 	universe.Buildings, err = loadBuildings(ctx, tx)
 	if err != nil {
+		fmt.Printf("error 2: %+v\n", err)
 		return universe, err
 	}
 
 	universe.Ships, err = loadShips(ctx, tx)
 	if err != nil {
+		fmt.Printf("error 3: %+v\n", err)
 		return universe, err
 	}
 
@@ -247,6 +252,7 @@ func loadShips(ctx context.Context, tx db.Transaction) ([]models.Ship, error) {
 	for id := range dbShips {
 		ship, err := loadShipDetails(ctx, tx, dbShips[id])
 		if err != nil {
+			fmt.Printf("error 4: %+v\n", err)
 			return nil, err
 		}
 
@@ -267,6 +273,7 @@ func loadShipDetails(ctx context.Context, tx db.Transaction, dbShip mappers.DbSh
 		dbShip.Id,
 	)
 	if err != nil {
+		fmt.Printf("error 5: %+v\n", err)
 		return ship, err
 	}
 
