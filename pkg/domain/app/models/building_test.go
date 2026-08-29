@@ -106,7 +106,7 @@ func TestUnit_Building_CreateBuildingAction(t *testing.T) {
 		assert.Equal(t, expected, action)
 	})
 
-	t.Run("correctly calculates completion time based on build time per unit", func(t *testing.T) {
+	t.Run("correctly calculates costs based on build time per unit", func(t *testing.T) {
 		b := Building{
 			Id:        buildingId,
 			Name:      "test-building",
@@ -229,6 +229,48 @@ func TestUnit_Building_CreateBuildingAction(t *testing.T) {
 
 		assert.Equal(t, someTime, action.CreatedAt)
 		assert.Equal(t, someTime, action.CompletedAt)
+	})
+
+	t.Run("correctly calculates completion time when multiple resources are used", func(t *testing.T) {
+		b := Building{
+			Id:        buildingId,
+			Name:      "test-building",
+			CreatedAt: someTime,
+			Costs: []BuildingCost{
+				{
+					Resource:              uuid.New(),
+					Cost:                  12,
+					Progress:              1.5,
+					BuildTimeHoursPerUnit: 1,
+				},
+				{
+					Resource:              uuid.New(),
+					Cost:                  87,
+					Progress:              1.2,
+					BuildTimeHoursPerUnit: 36,
+				},
+				{
+					Resource:              uuid.New(),
+					Cost:                  106,
+					Progress:              1.8,
+					BuildTimeHoursPerUnit: 0.04,
+				},
+				{
+					Resource:              uuid.New(),
+					Cost:                  201,
+					Progress:              1.01,
+					BuildTimeHoursPerUnit: 0,
+				},
+			},
+			Productions: []BuildingResourceProduction{},
+			Storages:    []BuildingResourceStorage{},
+		}
+
+		action := b.CreateBuildingAction(5, someTime)
+
+		completionTime := 23704128 * time.Second
+		assert.Equal(t, someTime, action.CreatedAt)
+		assert.Equal(t, someTime.Add(completionTime), action.CompletedAt)
 	})
 }
 

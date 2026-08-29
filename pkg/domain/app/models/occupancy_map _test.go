@@ -30,7 +30,7 @@ func TestUnit_OccupancyMap_PickPosition(t *testing.T) {
 				Orbits:       2,
 			},
 			UsedSlots: map[Coordinate]struct{}{
-				Coordinate{Galaxy: 0, SolarSystem: 0, Position: 0}: struct{}{},
+				{Galaxy: 0, SolarSystem: 0, Position: 0}: struct{}{},
 			},
 		}
 
