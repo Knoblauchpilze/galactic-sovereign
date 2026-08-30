@@ -23,7 +23,7 @@ CREATE TABLE resource_metabolization_rate_building(
   UNIQUE (resource)
 );
 
-CREATE TABLE resource_metabolization_rate_ship(
+CREATE TABLE resource_metabolization_rate_shipyard(
   resource UUID NOT NULL,
   hours_per_unit NUMERIC(15, 5) NOT NULL,
   FOREIGN KEY (resource) REFERENCES resource(id),

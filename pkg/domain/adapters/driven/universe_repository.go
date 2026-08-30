@@ -71,7 +71,7 @@ SELECT
 	r.hours_per_unit AS build_time_hours_per_unit
 FROM
 	ship_cost AS sc
-	INNER JOIN resource_metabolization_rate_ship AS r ON r.resource = sc.resource
+	INNER JOIN resource_metabolization_rate_shipyard AS r ON r.resource = sc.resource
 WHERE
 	sc.ship = $1`
 
