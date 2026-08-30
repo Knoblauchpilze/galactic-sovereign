@@ -1,4 +1,6 @@
 
+DELETE FROM ship_action;
+
 DELETE FROM building_action_resource_storage;
 DELETE FROM building_action_resource_production;
 DELETE FROM building_action_cost;
