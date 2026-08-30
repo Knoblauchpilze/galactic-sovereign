@@ -237,12 +237,13 @@ func insertTestResource(t *testing.T, conn db.Connection) models.Resource {
 	t.Helper()
 
 	resource := models.Resource{
-		Id:              uuid.New(),
-		Name:            fmt.Sprintf("my-resource-%s", uuid.NewString()),
-		StartAmount:     456,
-		StartProduction: 321,
-		StartStorage:    778899,
-		CreatedAt:       someTime,
+		Id:                            uuid.New(),
+		Name:                          fmt.Sprintf("my-resource-%s", uuid.NewString()),
+		StartAmount:                   456,
+		StartProduction:               321,
+		StartStorage:                  778899,
+		BuildingBuildTimeHoursPerUnit: 1.2564,
+		CreatedAt:                     someTime,
 	}
 
 	sqlQuery := `INSERT INTO resource (id, name, start_amount, start_production, start_storage, created_at)
@@ -256,6 +257,16 @@ func insertTestResource(t *testing.T, conn db.Connection) models.Resource {
 		resource.StartProduction,
 		resource.StartStorage,
 		resource.CreatedAt,
+	)
+	require.NoError(t, err, "Actual err: %v", err)
+
+	sqlQuery = `INSERT INTO resource_metabolization_rate_building (resource, hours_per_unit)
+		VALUES ($1, $2)`
+	_, err = conn.Exec(
+		t.Context(),
+		sqlQuery,
+		resource.Id,
+		resource.BuildingBuildTimeHoursPerUnit,
 	)
 	require.NoError(t, err, "Actual err: %v", err)
 

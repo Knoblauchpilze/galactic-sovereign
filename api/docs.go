@@ -507,6 +507,10 @@ const docTemplate = `{
             },
             "dtos.ResourceDtoResponse": {
                 "properties": {
+                    "building_build_time_hours_per_unit": {
+                        "minimum": 1,
+                        "type": "number"
+                    },
                     "created_at": {
                         "format": "date-time",
                         "type": "string"
@@ -533,6 +537,7 @@ const docTemplate = `{
                     }
                 },
                 "required": [
+                    "building_build_time_hours_per_unit",
                     "created_at",
                     "id",
                     "name",
