@@ -126,6 +126,19 @@ FROM
 WHERE
 	planet = $1`
 
+	listShipActionForPlanetQuery = `
+SELECT
+	id,
+	ship,
+	count,
+	created_at,
+	next_completion_at,
+	completed_at
+FROM
+	ship_action
+WHERE
+	planet = $1`
+
 	listPlanetForPlayerQuery = `
 SELECT
 	p.id
@@ -407,6 +420,16 @@ func loadPlanetDetails(ctx context.Context, tx db.Transaction, dbPlanet mappers.
 		}
 
 		planet.BuildingAction = &action
+	}
+
+	planet.ShipActions, err = db.QueryAllTx[models.ShipAction](
+		ctx,
+		tx,
+		listShipActionForPlanetQuery,
+		dbPlanet.Id,
+	)
+	if err != nil {
+		return planet, err
 	}
 
 	return planet, nil

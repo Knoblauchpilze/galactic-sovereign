@@ -28,6 +28,7 @@ type Planet struct {
 	Ships       []PlanetShip
 
 	BuildingAction *BuildingAction
+	ShipActions    []ShipAction
 }
 
 type PlanetResource struct {

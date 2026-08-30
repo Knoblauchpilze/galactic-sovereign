@@ -17,6 +17,7 @@ var (
 	crystalMineId     = uuid.MustParse("3904d34d-9a7e-47d4-a332-091700e2c5c3")
 	metalStorageId    = uuid.MustParse("22b4c0c3-c8e5-4493-89fc-522fdbb0beee")
 	lightFighterId    = uuid.MustParse("a31de13b-5905-4468-99c5-d1d1e529b36e")
+	smallCargoId      = uuid.MustParse("c0978950-601e-4d35-9c7c-28df69d2cd0e")
 )
 
 func TestIT_PlanetRepository_ListForPlayer(t *testing.T) {
@@ -28,8 +29,9 @@ func TestIT_PlanetRepository_ListForPlayer(t *testing.T) {
 	p5 := insertTestPlanet(t, conn, player1.Id, addPlanetProduction)
 	p6 := insertTestPlanet(t, conn, player1.Id, addPlanetProductionForBuilding)
 	p7 := insertTestPlanet(t, conn, player1.Id, addPlanetBuilding)
-	p9 := insertTestPlanet(t, conn, player1.Id, addPlanetShip)
 	p8 := insertTestPlanet(t, conn, player1.Id, addPlanetBuildingAction)
+	p9 := insertTestPlanet(t, conn, player1.Id, addPlanetShip)
+	p10 := insertTestPlanet(t, conn, player1.Id, addPlanetShipAction)
 
 	actual, err := repo.ListForPlayer(t.Context(), player1.Id)
 	require.NoError(t, err, "Actual err: %v", err)
@@ -44,6 +46,7 @@ func TestIT_PlanetRepository_ListForPlayer(t *testing.T) {
 	assert.Contains(t, actual, p7.Id)
 	assert.Contains(t, actual, p8.Id)
 	assert.Contains(t, actual, p9.Id)
+	assert.Contains(t, actual, p10.Id)
 	assert.NotContains(t, actual, p1)
 }
 
@@ -259,6 +262,7 @@ func insertTestPlanet(
 		Productions: []models.PlanetResourceProduction{},
 		Buildings:   []models.PlanetBuilding{},
 		Ships:       []models.PlanetShip{},
+		ShipActions: []models.ShipAction{},
 	}
 
 	sqlQuery := `INSERT INTO planet (id, player, name, fields, created_at, updated_at, version)
@@ -477,6 +481,37 @@ func addPlanetShip(t *testing.T, conn db.Connection, p *models.Planet) {
 	require.NoError(t, err, "Actual err: %v", err)
 
 	p.Ships = append(p.Ships, ship)
+}
+
+func addPlanetShipAction(t *testing.T, conn db.Connection, p *models.Planet) {
+	t.Helper()
+
+	action := models.ShipAction{
+		Id:               uuid.New(),
+		Ship:             smallCargoId,
+		Count:            rand.Intn(14),
+		CreatedAt:        someTime,
+		NextCompletionAt: someOtherTime,
+		CompletedAt:      someLaterTime,
+	}
+
+	sqlQuery := `INSERT INTO ship_action
+		(id, planet, ship, count, created_at, next_completion_at, completed_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7)`
+	_, err := conn.Exec(
+		t.Context(),
+		sqlQuery,
+		action.Id,
+		p.Id,
+		action.Ship,
+		action.Count,
+		action.CreatedAt,
+		action.NextCompletionAt,
+		action.CompletedAt,
+	)
+	require.NoError(t, err, "Actual err: %v", err)
+
+	p.ShipActions = append(p.ShipActions, action)
 }
 
 // insertTestPlanetForPlayer creates a test planet. The returned planet belongs
