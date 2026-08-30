@@ -198,7 +198,7 @@ func TestIT_PlanetRepository_Delete(t *testing.T) {
 		assertPlanetShipDoesNotExist(t, conn, planet.Id)
 	})
 
-	t.Run("deletes planet with building actions", func(t *testing.T) {
+	t.Run("deletes planet with building action", func(t *testing.T) {
 		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetBuildingAction)
 
 		err := repo.Delete(t.Context(), planet.Id)
@@ -208,7 +208,7 @@ func TestIT_PlanetRepository_Delete(t *testing.T) {
 		assertBuildingActionDoesNotExist(t, conn, planet.BuildingAction.Id)
 	})
 
-	t.Run("deletes homeworld with building actions", func(t *testing.T) {
+	t.Run("deletes homeworld with building action", func(t *testing.T) {
 		planet, _, _ := insertTestHomeworldPlanetForPlayer(t, conn, addPlanetBuildingAction)
 
 		err := repo.Delete(t.Context(), planet.Id)
@@ -217,6 +217,27 @@ func TestIT_PlanetRepository_Delete(t *testing.T) {
 		assertPlanetDoesNotExist(t, conn, planet.Id)
 		assertPlanetIsNotHomeworld(t, conn, planet.Id)
 		assertBuildingActionDoesNotExist(t, conn, planet.BuildingAction.Id)
+	})
+
+	t.Run("deletes planet with ship action", func(t *testing.T) {
+		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetShipAction)
+
+		err := repo.Delete(t.Context(), planet.Id)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assertPlanetDoesNotExist(t, conn, planet.Id)
+		assertShipActionDoesNotExist(t, conn, planet.Id)
+	})
+
+	t.Run("deletes homeworld with ship action", func(t *testing.T) {
+		planet, _, _ := insertTestHomeworldPlanetForPlayer(t, conn, addPlanetShipAction)
+
+		err := repo.Delete(t.Context(), planet.Id)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assertPlanetDoesNotExist(t, conn, planet.Id)
+		assertPlanetIsNotHomeworld(t, conn, planet.Id)
+		assertShipActionDoesNotExist(t, conn, planet.Id)
 	})
 
 	t.Run("succeeds when the planet does not exist", func(t *testing.T) {

@@ -233,6 +233,7 @@ func (r *PlanetRepository) ListForPlayer(ctx context.Context, player uuid.UUID) 
 }
 
 func (r *PlanetRepository) Delete(ctx context.Context, id uuid.UUID) error {
+	// TODO: Should probably use the mutator instead.
 	tx, err := r.conn.BeginTx(ctx)
 	if err != nil {
 		return err
