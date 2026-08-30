@@ -826,6 +826,106 @@ func TestIT_PlanetMutator_Mutate(t *testing.T) {
 		assert.Equal(t, newAction, *actual.BuildingAction)
 	})
 
+	t.Run("persists mutated planet with ship action", func(t *testing.T) {
+		planet, _, _ := insertTestPlanetForPlayer(t, conn)
+		require.Empty(t, planet.ShipActions)
+
+		action := models.ShipAction{
+			Id:               uuid.New(),
+			Ship:             lightFighterId,
+			Count:            3,
+			CreatedAt:        someTime,
+			NextCompletionAt: someTime.Add(1 * time.Hour),
+			CompletedAt:      someTime.Add(3 * time.Hour),
+			Costs:            []models.ShipActionCost{},
+		}
+
+		mutator := generateModifyingMutator(func(p *models.Planet) {
+			p.ShipActions = append(p.ShipActions, action)
+			p.Version++
+		})
+
+		returned, err := adapter.Mutate(t.Context(), planet.Id, mutator)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.False(t, returned.Deleted)
+		actual := loadPlanetFromDb(t, conn, planet.Id)
+		assert.Equal(t, returned.Planet, actual)
+		require.NotEmpty(t, returned.Planet.ShipActions)
+		assert.Equal(t, action, returned.Planet.ShipActions[0])
+		require.NotEmpty(t, actual.ShipActions)
+		assert.Equal(t, action, actual.ShipActions[0])
+	})
+
+	t.Run("persists mutated planet with updated completion time", func(t *testing.T) {
+		planet, _, _ := insertTestPlanetForPlayer(t, conn)
+		action := insertTestBuildingActionForPlanet(t, conn, planet.Id)
+		require.NotEqual(t, yetAnotherTime, action.CompletedAt)
+
+		mutator := generateModifyingMutator(func(p *models.Planet) {
+			p.BuildingAction.CompletedAt = yetAnotherTime
+			p.Version++
+		})
+
+		returned, err := adapter.Mutate(t.Context(), planet.Id, mutator)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.False(t, returned.Deleted)
+		actual := loadPlanetFromDb(t, conn, planet.Id)
+		assert.Equal(t, returned.Planet, actual)
+		require.NotNil(t, returned.Planet.BuildingAction)
+		assert.Equal(t, yetAnotherTime, returned.Planet.BuildingAction.CompletedAt)
+		require.NotNil(t, actual.BuildingAction)
+		assert.Equal(t, yetAnotherTime, actual.BuildingAction.CompletedAt)
+	})
+
+	t.Run("persists mutated planet with deleted ship action", func(t *testing.T) {
+		_, planet := insertTestShipAction(t, conn)
+
+		mutator := generateModifyingMutator(func(p *models.Planet) {
+			p.ShipActions = nil
+			p.Version++
+		})
+
+		returned, err := adapter.Mutate(t.Context(), planet.Id, mutator)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.False(t, returned.Deleted)
+		assertShipActionDoesNotExist(t, conn, planet.Id)
+		assert.Nil(t, returned.Planet.ShipActions)
+	})
+
+	t.Run("persists mutated planet with new ship action", func(t *testing.T) {
+		action, planet := insertTestShipAction(t, conn)
+		require.NotEqual(t, lightFighterId, action.Ship)
+
+		newAction := models.ShipAction{
+			Id:               uuid.New(),
+			Ship:             lightFighterId,
+			Count:            30,
+			CreatedAt:        someTime,
+			NextCompletionAt: someTime.Add(2 * time.Minute),
+			CompletedAt:      someTime.Add(1 * time.Hour),
+			Costs:            []models.ShipActionCost{},
+		}
+
+		mutator := generateModifyingMutator(func(p *models.Planet) {
+			p.ShipActions = []models.ShipAction{newAction}
+			p.Version++
+		})
+
+		returned, err := adapter.Mutate(t.Context(), planet.Id, mutator)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.False(t, returned.Deleted)
+		actual := loadPlanetFromDb(t, conn, planet.Id)
+		assert.Equal(t, returned.Planet, actual)
+		require.NotEmpty(t, returned.Planet.ShipActions)
+		assert.Equal(t, newAction, returned.Planet.ShipActions[0])
+		require.NotEmpty(t, actual.ShipActions)
+		assert.Equal(t, newAction, actual.ShipActions[0])
+	})
+
 	t.Run("returns error when planet does not exist", func(t *testing.T) {
 		mutator := generateModifyingMutator(func(p *models.Planet) {
 			p.UpdatedAt = yetAnotherTime
@@ -1258,4 +1358,57 @@ func assertPlanetShipCount(t *testing.T, conn db.Connection, planet uuid.UUID, s
 	value, err := db.QueryOne[int](t.Context(), conn, sqlQuery, planet, ship)
 	require.NoError(t, err, "Actual err: %v", err)
 	require.Equal(t, count, value)
+}
+
+func insertTestShipActionForPlanet(
+	t *testing.T,
+	conn db.Connection,
+	planetId uuid.UUID,
+	modifiers ...func(*testing.T, db.Connection, *models.ShipAction),
+) models.ShipAction {
+	t.Helper()
+
+	action := models.ShipAction{
+		Id:               uuid.New(),
+		Ship:             lightFighterId,
+		Count:            5,
+		CreatedAt:        someTime,
+		NextCompletionAt: someTime.Add(5 * time.Minute),
+		CompletedAt:      someTime.Add(25 * time.Minute),
+	}
+
+	sqlQuery := `INSERT INTO ship_action
+		(id, planet, ship, count, created_at, next_completion_at, completed_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7)`
+	_, err := conn.Exec(
+		t.Context(),
+		sqlQuery,
+		action.Id,
+		planetId,
+		action.Ship,
+		action.Count,
+		action.CreatedAt,
+		action.NextCompletionAt,
+		action.CompletedAt,
+	)
+	require.NoError(t, err, "Actual err: %v", err)
+
+	for _, modifier := range modifiers {
+		modifier(t, conn, &action)
+	}
+
+	return action
+}
+
+func insertTestShipAction(
+	t *testing.T,
+	conn db.Connection,
+	modifiers ...func(*testing.T, db.Connection, *models.ShipAction),
+) (models.ShipAction, models.Planet) {
+	t.Helper()
+
+	planet, _, _ := insertTestPlanetForPlayer(t, conn)
+	action := insertTestShipActionForPlanet(t, conn, planet.Id, modifiers...)
+	planet.ShipActions = append(planet.ShipActions, action)
+	return action, planet
 }

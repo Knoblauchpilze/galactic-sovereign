@@ -424,14 +424,18 @@ func loadPlanetDetails(ctx context.Context, tx db.Transaction, dbPlanet mappers.
 		planet.BuildingAction = &action
 	}
 
-	planet.ShipActions, err = db.QueryAllTx[models.ShipAction](
+	dbShipActions, err := db.QueryAllTx[mappers.DbShipAction](
 		ctx,
 		tx,
-		listShipActionForPlanetQuery,
+		listPlanetShipForPlanetQuery,
 		dbPlanet.Id,
 	)
 	if err != nil {
 		return planet, err
+	}
+
+	for _, dbShipAction := range dbShipActions {
+		planet.ShipActions = append(planet.ShipActions, dbShipAction.ToDomain())
 	}
 
 	return planet, nil
