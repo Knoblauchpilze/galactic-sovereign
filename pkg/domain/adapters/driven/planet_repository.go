@@ -207,6 +207,7 @@ WHERE
 	planet = $2
 	AND ship = $3`
 
+	deleteShipActionForPlanetQuery       = `DELETE FROM ship_action WHERE planet = $1`
 	deletePlanetShipsQuery               = `DELETE FROM planet_ship WHERE planet = $1`
 	deletePlanetBuildingsQuery           = `DELETE FROM planet_building WHERE planet = $1`
 	deletePlanetResourceProductionsQuery = `DELETE FROM planet_resource_production WHERE planet = $1`
@@ -538,7 +539,12 @@ func updatePlanetDetails(
 }
 
 func deletePlanetAndDetails(ctx context.Context, tx db.Transaction, id uuid.UUID) error {
-	err := deleteBuildingActionAndDetailsForPlanet(ctx, tx, id)
+	_, err := tx.Exec(ctx, deleteShipActionForPlanetQuery, id)
+	if err != nil {
+		return err
+	}
+
+	err = deleteBuildingActionAndDetailsForPlanet(ctx, tx, id)
 	if err != nil {
 		return err
 	}

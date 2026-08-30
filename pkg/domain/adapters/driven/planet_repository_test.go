@@ -652,3 +652,12 @@ func assertPlanetShipDoesNotExist(t *testing.T, conn db.Connection, planet uuid.
 	require.NoError(t, err, "Actual err: %v", err)
 	require.Zero(t, value)
 }
+
+func assertShipActionDoesNotExist(t *testing.T, conn db.Connection, planet uuid.UUID) {
+	t.Helper()
+
+	sqlQuery := `SELECT COUNT(*) FROM ship_action WHERE planet = $1`
+	value, err := db.QueryOne[int](t.Context(), conn, sqlQuery, planet)
+	require.NoError(t, err, "Actual err: %v", err)
+	require.Zero(t, value)
+}
