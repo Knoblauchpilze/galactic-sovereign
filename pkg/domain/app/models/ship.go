@@ -1,7 +1,6 @@
 package models
 
 import (
-	"fmt"
 	"math"
 	"time"
 
@@ -59,7 +58,6 @@ func (s Ship) determineActionCost(
 			Resource: baseCost.Resource,
 			Amount:   baseCost.Cost * count,
 		}
-		fmt.Printf("cost: %+v, count: %v, total: %v\n", baseCost, count, cost.Amount)
 		costs = append(costs, cost)
 	}
 
@@ -76,7 +74,6 @@ func (s Ship) determineBuildTime() time.Duration {
 	for _, baseCost := range s.Costs {
 		resourceBuildTime := float64(baseCost.Cost) * baseCost.BuildTimeHoursPerUnit
 		buildTimeHour += resourceBuildTime
-		fmt.Printf("cost: %+v, time: %v, total: %v\n", baseCost, resourceBuildTime, buildTimeHour)
 	}
 
 	nanoSeconds := math.Floor(buildTimeHour * float64(time.Hour.Nanoseconds()))

@@ -2,7 +2,6 @@ package drivenadapters
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driven/mappers"
@@ -121,7 +120,6 @@ func loadBuildingDetails(ctx context.Context, tx db.Transaction, dbBuilding mapp
 		dbBuilding.Id,
 	)
 	if err != nil {
-		fmt.Printf("error: %+v\n", err)
 		return building, err
 	}
 
