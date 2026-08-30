@@ -243,6 +243,7 @@ func insertTestResource(t *testing.T, conn db.Connection) models.Resource {
 		StartProduction:               321,
 		StartStorage:                  778899,
 		BuildingBuildTimeHoursPerUnit: 1.2564,
+		ShipyardBuildTimeHoursPerUnit: 0.6231,
 		CreatedAt:                     someTime,
 	}
 
@@ -267,6 +268,16 @@ func insertTestResource(t *testing.T, conn db.Connection) models.Resource {
 		sqlQuery,
 		resource.Id,
 		resource.BuildingBuildTimeHoursPerUnit,
+	)
+	require.NoError(t, err, "Actual err: %v", err)
+
+	sqlQuery = `INSERT INTO resource_metabolization_rate_shipyard (resource, hours_per_unit)
+		VALUES ($1, $2)`
+	_, err = conn.Exec(
+		t.Context(),
+		sqlQuery,
+		resource.Id,
+		resource.ShipyardBuildTimeHoursPerUnit,
 	)
 	require.NoError(t, err, "Actual err: %v", err)
 

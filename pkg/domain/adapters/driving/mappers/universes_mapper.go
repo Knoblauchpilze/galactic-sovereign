@@ -58,6 +58,7 @@ func toResourceResponse(
 		StartProduction:               resource.StartProduction,
 		StartStorage:                  resource.StartStorage,
 		BuildingBuildTimeHoursPerUnit: resource.BuildingBuildTimeHoursPerUnit,
+		ShipyardBuildTimeHoursPerUnit: resource.ShipyardBuildTimeHoursPerUnit,
 		CreatedAt:                     resource.CreatedAt,
 	}
 }

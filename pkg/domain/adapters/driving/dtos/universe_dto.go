@@ -45,6 +45,7 @@ type ResourceDtoResponse struct {
 	StartStorage    int `json:"start_storage" binding:"required" minimum:"1"`
 
 	BuildingBuildTimeHoursPerUnit float64 `json:"building_build_time_hours_per_unit" binding:"required" minimum:"1"`
+	ShipyardBuildTimeHoursPerUnit float64 `json:"shipyard_build_time_hours_per_unit" binding:"required" minimum:"1"`
 
 	CreatedAt time.Time `json:"created_at" format:"date-time" binding:"required"`
 }

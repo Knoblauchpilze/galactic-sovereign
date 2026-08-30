@@ -19,5 +19,10 @@ type Resource struct {
 	// resource it will take 3 hours to be built.
 	BuildingBuildTimeHoursPerUnit float64
 
+	// Defines how long each unit of a resource takes to be transformed into
+	// a ship. A value of 1 means that if a ship costs 3 unit of the resource
+	// it will take 3 hours to be built.
+	ShipyardBuildTimeHoursPerUnit float64
+
 	CreatedAt time.Time
 }

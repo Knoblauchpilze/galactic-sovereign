@@ -523,6 +523,10 @@ const docTemplate = `{
                         "example": "metal",
                         "type": "string"
                     },
+                    "shipyard_build_time_hours_per_unit": {
+                        "minimum": 1,
+                        "type": "number"
+                    },
                     "start_amount": {
                         "minimum": 1,
                         "type": "integer"
@@ -541,6 +545,7 @@ const docTemplate = `{
                     "created_at",
                     "id",
                     "name",
+                    "shipyard_build_time_hours_per_unit",
                     "start_amount",
                     "start_production",
                     "start_storage"

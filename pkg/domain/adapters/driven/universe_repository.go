@@ -45,10 +45,12 @@ SELECT
 	r.start_production,
 	r.start_storage,
 	mb.hours_per_unit AS building_build_time_hours_per_unit,
+	ms.hours_per_unit AS shipyard_build_time_hours_per_unit,
 	r.created_at
 FROM
 	resource AS r
 	INNER JOIN resource_metabolization_rate_building AS mb ON mb.resource = r.id
+	INNER JOIN resource_metabolization_rate_shipyard AS ms ON ms.resource = r.id
 ORDER BY
 	r.created_at,
 	r.name`
