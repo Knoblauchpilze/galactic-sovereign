@@ -28,7 +28,7 @@ func AdvancePlanetToTime(
 		return err
 	}
 
-	err = planet.ApplyAction()
+	err = planet.ApplyBuildingAction()
 	if err != nil {
 		return err
 	}

@@ -164,7 +164,7 @@ func (p *Planet) UpdateToTime(moment time.Time) error {
 	return nil
 }
 
-func (p *Planet) ApplyAction() error {
+func (p *Planet) ApplyBuildingAction() error {
 	if p.BuildingAction == nil {
 		return domainerrors.ErrNoActionInProgress
 	}

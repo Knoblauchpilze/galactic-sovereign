@@ -448,14 +448,14 @@ func TestUnit_Planet_UpdateToTime(t *testing.T) {
 	})
 }
 
-func TestUnit_Planet_ApplyAction(t *testing.T) {
+func TestUnit_Planet_ApplyBuildingAction(t *testing.T) {
 	t1 := time.Date(2026, time.June, 26, 8, 41, 30, 0, time.UTC)
 	t2 := time.Date(2026, time.June, 26, 8, 42, 30, 0, time.UTC)
 
 	t.Run("returns error when no action is in progress", func(t *testing.T) {
 		p := Planet{BuildingAction: nil}
 
-		err := p.ApplyAction()
+		err := p.ApplyBuildingAction()
 
 		assert.ErrorIs(t, err, domainerrors.ErrNoActionInProgress, "Actual err: %v", err)
 	})
@@ -468,7 +468,7 @@ func TestUnit_Planet_ApplyAction(t *testing.T) {
 			UpdatedAt: t1,
 		}
 
-		err := p.ApplyAction()
+		err := p.ApplyBuildingAction()
 
 		assert.ErrorIs(t, err, domainerrors.ErrActionNotCompleted, "Actual err: %v", err)
 	})
@@ -493,7 +493,7 @@ func TestUnit_Planet_ApplyAction(t *testing.T) {
 			UpdatedAt: t1,
 		}
 
-		err := p.ApplyAction()
+		err := p.ApplyBuildingAction()
 		require.NoError(t, err, "Actual err: %v", err)
 
 		expected := []PlanetResourceProduction{
@@ -522,7 +522,7 @@ func TestUnit_Planet_ApplyAction(t *testing.T) {
 			UpdatedAt: t1,
 		}
 
-		err := p.ApplyAction()
+		err := p.ApplyBuildingAction()
 		require.NoError(t, err, "Actual err: %v", err)
 
 		expected := []PlanetResourceProduction{
@@ -549,7 +549,7 @@ func TestUnit_Planet_ApplyAction(t *testing.T) {
 			UpdatedAt: t1,
 		}
 
-		err := p.ApplyAction()
+		err := p.ApplyBuildingAction()
 		require.NoError(t, err, "Actual err: %v", err)
 
 		expected := []PlanetResourceProduction{
@@ -577,7 +577,7 @@ func TestUnit_Planet_ApplyAction(t *testing.T) {
 			UpdatedAt: t1,
 		}
 
-		err := p.ApplyAction()
+		err := p.ApplyBuildingAction()
 		require.NoError(t, err, "Actual err: %v", err)
 
 		expected := []PlanetResourceStorage{
@@ -603,7 +603,7 @@ func TestUnit_Planet_ApplyAction(t *testing.T) {
 			UpdatedAt: t1,
 		}
 
-		err := p.ApplyAction()
+		err := p.ApplyBuildingAction()
 		require.NoError(t, err, "Actual err: %v", err)
 
 		expected := []PlanetResourceStorage{
@@ -625,7 +625,7 @@ func TestUnit_Planet_ApplyAction(t *testing.T) {
 			UpdatedAt: t1,
 		}
 
-		err := p.ApplyAction()
+		err := p.ApplyBuildingAction()
 		require.NoError(t, err, "Actual err: %v", err)
 
 		expected := []PlanetBuilding{
@@ -648,7 +648,7 @@ func TestUnit_Planet_ApplyAction(t *testing.T) {
 			UpdatedAt: t1,
 		}
 
-		err := p.ApplyAction()
+		err := p.ApplyBuildingAction()
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Equal(t, 1, p.Version)
@@ -668,7 +668,7 @@ func TestUnit_Planet_ApplyAction(t *testing.T) {
 			UpdatedAt: t1,
 		}
 
-		err := p.ApplyAction()
+		err := p.ApplyBuildingAction()
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Equal(t, t1, p.UpdatedAt)
@@ -688,7 +688,7 @@ func TestUnit_Planet_ApplyAction(t *testing.T) {
 			UpdatedAt: t1,
 		}
 
-		err := p.ApplyAction()
+		err := p.ApplyBuildingAction()
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Nil(t, p.BuildingAction)
