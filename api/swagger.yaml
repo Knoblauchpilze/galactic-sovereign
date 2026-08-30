@@ -362,7 +362,7 @@ components:
     dtos.ResourceDtoResponse:
       properties:
         building_build_time_hours_per_unit:
-          minimum: 1
+          minimum: 0
           type: number
         created_at:
           format: date-time
@@ -374,7 +374,7 @@ components:
           example: metal
           type: string
         shipyard_build_time_hours_per_unit:
-          minimum: 1
+          minimum: 0
           type: number
         start_amount:
           minimum: 1

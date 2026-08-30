@@ -508,7 +508,7 @@ const docTemplate = `{
             "dtos.ResourceDtoResponse": {
                 "properties": {
                     "building_build_time_hours_per_unit": {
-                        "minimum": 1,
+                        "minimum": 0,
                         "type": "number"
                     },
                     "created_at": {
@@ -524,7 +524,7 @@ const docTemplate = `{
                         "type": "string"
                     },
                     "shipyard_build_time_hours_per_unit": {
-                        "minimum": 1,
+                        "minimum": 0,
                         "type": "number"
                     },
                     "start_amount": {
