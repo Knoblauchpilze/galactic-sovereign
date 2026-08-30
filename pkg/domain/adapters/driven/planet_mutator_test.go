@@ -837,7 +837,6 @@ func TestIT_PlanetMutator_Mutate(t *testing.T) {
 			CreatedAt:        someTime,
 			NextCompletionAt: someTime.Add(1 * time.Hour),
 			CompletedAt:      someTime.Add(3 * time.Hour),
-			Costs:            []models.ShipActionCost{},
 		}
 
 		mutator := generateModifyingMutator(func(p *models.Planet) {
@@ -892,21 +891,20 @@ func TestIT_PlanetMutator_Mutate(t *testing.T) {
 
 		assert.False(t, returned.Deleted)
 		assertShipActionDoesNotExist(t, conn, planet.Id)
-		assert.Nil(t, returned.Planet.ShipActions)
+		assert.Equal(t, []models.ShipAction{}, returned.Planet.ShipActions)
 	})
 
 	t.Run("persists mutated planet with new ship action", func(t *testing.T) {
 		action, planet := insertTestShipAction(t, conn)
-		require.NotEqual(t, lightFighterId, action.Ship)
+		require.NotEqual(t, smallCargoId, action.Ship)
 
 		newAction := models.ShipAction{
 			Id:               uuid.New(),
-			Ship:             lightFighterId,
+			Ship:             smallCargoId,
 			Count:            30,
 			CreatedAt:        someTime,
 			NextCompletionAt: someTime.Add(2 * time.Minute),
 			CompletedAt:      someTime.Add(1 * time.Hour),
-			Costs:            []models.ShipActionCost{},
 		}
 
 		mutator := generateModifyingMutator(func(p *models.Planet) {

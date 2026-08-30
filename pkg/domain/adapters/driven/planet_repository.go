@@ -126,19 +126,6 @@ FROM
 WHERE
 	planet = $1`
 
-	listShipActionForPlanetQuery = `
-SELECT
-	id,
-	ship,
-	count,
-	created_at,
-	next_completion_at,
-	completed_at
-FROM
-	ship_action
-WHERE
-	planet = $1`
-
 	listPlanetForPlayerQuery = `
 SELECT
 	p.id
@@ -207,7 +194,6 @@ WHERE
 	planet = $2
 	AND ship = $3`
 
-	deleteShipActionForPlanetQuery       = `DELETE FROM ship_action WHERE planet = $1`
 	deletePlanetShipsQuery               = `DELETE FROM planet_ship WHERE planet = $1`
 	deletePlanetBuildingsQuery           = `DELETE FROM planet_building WHERE planet = $1`
 	deletePlanetResourceProductionsQuery = `DELETE FROM planet_resource_production WHERE planet = $1`
@@ -424,18 +410,9 @@ func loadPlanetDetails(ctx context.Context, tx db.Transaction, dbPlanet mappers.
 		planet.BuildingAction = &action
 	}
 
-	dbShipActions, err := db.QueryAllTx[mappers.DbShipAction](
-		ctx,
-		tx,
-		listPlanetShipForPlanetQuery,
-		dbPlanet.Id,
-	)
+	planet.ShipActions, err = loadShipActionAndDetailsForPlanet(ctx, tx, dbPlanet.Id)
 	if err != nil {
 		return planet, err
-	}
-
-	for _, dbShipAction := range dbShipActions {
-		planet.ShipActions = append(planet.ShipActions, dbShipAction.ToDomain())
 	}
 
 	return planet, nil
@@ -521,6 +498,11 @@ func updatePlanetDetails(
 		return err
 	}
 
+	err = recreateShipActions(ctx, tx, planet)
+	if err != nil {
+		return err
+	}
+
 	affected, err := tx.Exec(
 		ctx,
 		updatePlanetQuery,
@@ -544,7 +526,7 @@ func updatePlanetDetails(
 }
 
 func deletePlanetAndDetails(ctx context.Context, tx db.Transaction, id uuid.UUID) error {
-	_, err := tx.Exec(ctx, deleteShipActionForPlanetQuery, id)
+	err := deleteShipActionAndDetailsForPlanet(ctx, tx, id)
 	if err != nil {
 		return err
 	}
@@ -636,6 +618,24 @@ func recreateBuildingAction(ctx context.Context, tx db.Transaction, planet model
 
 	if planet.BuildingAction != nil {
 		err = upsertBuildingActionWithDetails(ctx, tx, planet.Id, *planet.BuildingAction)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// recreateShipActions deletes the ship actions first and recreate them completely: this allows to
+// tackle situations where the mutator completed existing actions and created new ones.
+func recreateShipActions(ctx context.Context, tx db.Transaction, planet models.Planet) error {
+	err := deleteShipActionAndDetailsForPlanet(ctx, tx, planet.Id)
+	if err != nil {
+		return err
+	}
+
+	for _, action := range planet.ShipActions {
+		err = upsertShipActionWithDetails(ctx, tx, planet.Id, action)
 		if err != nil {
 			return err
 		}
