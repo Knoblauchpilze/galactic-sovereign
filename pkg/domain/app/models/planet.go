@@ -170,7 +170,7 @@ func (p *Planet) ApplyBuildingAction() error {
 	}
 
 	if p.BuildingAction.CompletedAt != p.UpdatedAt {
-		return domainerrors.ErrActionNotCompleted
+		return domainerrors.ErrBuildingActionNotCompleted
 	}
 
 	p.updateProductions()

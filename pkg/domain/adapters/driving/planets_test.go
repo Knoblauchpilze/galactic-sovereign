@@ -428,7 +428,7 @@ func TestUnit_Planets_DeletePlanet(t *testing.T) {
 		mockUsecase.EXPECT().
 			Delete(gomock.Any(), gomock.Eq(sampleUuid)).
 			Times(1).
-			Return(domainerrors.ErrActionNotCompleted)
+			Return(domainerrors.ErrBuildingActionNotCompleted)
 
 		handler := generateHandler[drivingports.ForManagingPlanet](
 			deletePlanet,

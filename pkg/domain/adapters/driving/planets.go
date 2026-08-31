@@ -120,7 +120,7 @@ func deletePlanet(c *gin.Context, usecase drivingports.ForManagingPlanet) {
 
 	err = usecase.Delete(c.Request.Context(), id)
 	if err != nil {
-		if err == domainerrors.ErrActionNotCompleted {
+		if err == domainerrors.ErrBuildingActionNotCompleted {
 			c.AbortWithStatusJSON(http.StatusConflict, "action not completed")
 			return
 		}

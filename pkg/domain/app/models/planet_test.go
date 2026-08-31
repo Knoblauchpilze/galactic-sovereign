@@ -470,7 +470,7 @@ func TestUnit_Planet_ApplyBuildingAction(t *testing.T) {
 
 		err := p.ApplyBuildingAction()
 
-		assert.ErrorIs(t, err, domainerrors.ErrActionNotCompleted, "Actual err: %v", err)
+		assert.ErrorIs(t, err, domainerrors.ErrBuildingActionNotCompleted, "Actual err: %v", err)
 	})
 
 	t.Run("applies resource production changes when applicable", func(t *testing.T) {

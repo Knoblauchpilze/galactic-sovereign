@@ -100,7 +100,7 @@ func generateDeleteMutator(moment time.Time) drivenports.PlanetMutator {
 		}
 
 		if p.BuildingAction != nil {
-			return false, domainerrors.ErrActionNotCompleted
+			return false, domainerrors.ErrBuildingActionNotCompleted
 		}
 
 		return true, nil

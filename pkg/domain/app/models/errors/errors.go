@@ -17,7 +17,7 @@ const (
 	notEnoughResources         errors.ErrorCode = 613
 	optimisticLockingException errors.ErrorCode = 614
 	planetNotUpToDate          errors.ErrorCode = 615
-	actionNotCompleted         errors.ErrorCode = 616
+	buildingActionNotCompleted errors.ErrorCode = 616
 	mutationWithoutVersionBump errors.ErrorCode = 617
 	planetDeletionFailed       errors.ErrorCode = 618
 	resourceCreationFailed     errors.ErrorCode = 619
@@ -25,6 +25,7 @@ const (
 	universeIsNotEmpty         errors.ErrorCode = 621
 	coordinateAlreadyUsed      errors.ErrorCode = 622
 	allFieldsUsed              errors.ErrorCode = 623
+	shipActionNotCompleted     errors.ErrorCode = 624
 )
 
 var (
@@ -41,7 +42,7 @@ var (
 	ErrNotEnoughResources         = errors.FromCode(notEnoughResources)
 	ErrOptimisticLocking          = errors.FromCode(optimisticLockingException)
 	ErrPlanetNotUpToDate          = errors.FromCode(planetNotUpToDate)
-	ErrActionNotCompleted         = errors.FromCode(actionNotCompleted)
+	ErrBuildingActionNotCompleted = errors.FromCode(buildingActionNotCompleted)
 	ErrMutationWithoutVersionBump = errors.FromCode(mutationWithoutVersionBump)
 	ErrPlanetDeletionFailed       = errors.FromCode(planetDeletionFailed)
 	ErrResourceCreationFailed     = errors.FromCode(resourceCreationFailed)
@@ -49,4 +50,5 @@ var (
 	ErrUniverseIsNotEmpty         = errors.FromCode(universeIsNotEmpty)
 	ErrCoordinateAlreadyUsed      = errors.FromCode(coordinateAlreadyUsed)
 	ErrAllFieldsUsed              = errors.FromCode(allFieldsUsed)
+	ErrShipActionNotCompleted     = errors.FromCode(shipActionNotCompleted)
 )
