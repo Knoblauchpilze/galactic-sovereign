@@ -103,6 +103,10 @@ func generateDeleteMutator(moment time.Time) drivenports.PlanetMutator {
 			return false, domainerrors.ErrBuildingActionNotCompleted
 		}
 
+		if len(p.ShipActions) > 0 {
+			return false, domainerrors.ErrShipActionNotCompleted
+		}
+
 		return true, nil
 	}
 }

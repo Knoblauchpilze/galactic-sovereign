@@ -531,6 +531,21 @@ func TestUnit_ManagePlanet_Delete(t *testing.T) {
 		assert.ErrorIs(t, err, domainerrors.ErrBuildingActionNotCompleted, "Actual err: %v", err)
 	})
 
+	t.Run("returns error when planet has ship action", func(t *testing.T) {
+		suite := setupPlanetTestSuite(t)
+		id := uuid.New()
+
+		suite.mockClock.EXPECT().Now(gomock.Any()).Times(1).Return(t2)
+		suite.mockPlanetMutator.EXPECT().
+			Mutate(gomock.Any(), gomock.Eq(id), gomock.Any()).
+			Times(1).
+			Return(models.PlanetMutationResult{}, domainerrors.ErrShipActionNotCompleted)
+
+		err := suite.usecase.Delete(t.Context(), id)
+
+		assert.ErrorIs(t, err, domainerrors.ErrShipActionNotCompleted, "Actual err: %v", err)
+	})
+
 	t.Run("returns error when mutator returns no error but does not mark the planet as deleted", func(t *testing.T) {
 		suite := setupPlanetTestSuite(t)
 		id := uuid.New()
