@@ -225,7 +225,7 @@ func withShipCost(t *testing.T, s *Ship) {
 		{
 			Resource:              crystalResourceId,
 			Cost:                  78,
-			BuildTimeHoursPerUnit: 0.0004,
+			BuildTimeHoursPerUnit: 0.1,
 		},
 	}
 }

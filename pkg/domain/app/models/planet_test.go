@@ -12,8 +12,10 @@ import (
 )
 
 var (
-	crystalMineId = uuid.MustParse("3904d34d-9a7e-47d4-a332-091700e2c5c3")
-	metalMineId   = uuid.MustParse("d176e82d-f2ca-4611-996b-c4804096caef")
+	crystalMineId  = uuid.MustParse("3904d34d-9a7e-47d4-a332-091700e2c5c3")
+	metalMineId    = uuid.MustParse("d176e82d-f2ca-4611-996b-c4804096caef")
+	lightFighterId = uuid.MustParse("a31de13b-5905-4468-99c5-d1d1e529b36e")
+	smallCargoId   = uuid.MustParse("c0978950-601e-4d35-9c7c-28df69d2cd0e")
 )
 
 func TestUnit_Planet_AddBuildingAction(t *testing.T) {
@@ -294,6 +296,152 @@ func TestUnit_Planet_CancelBuildingAction(t *testing.T) {
 
 		err := p.CancelBuildingAction()
 		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.Equal(t, someTime, p.UpdatedAt)
+	})
+}
+
+func TestUnit_Planet_AddShipAction(t *testing.T) {
+	t.Run("returns error when planet does not have enough resources", func(t *testing.T) {
+		p := generateTestPlanet(t, withPlanetShip)
+		p.Resources = []PlanetResource{
+			{
+				Resource: metalResourceId,
+				Amount:   189,
+			},
+			{
+				Resource: crystalResourceId,
+				// Needed value: 234
+				Amount: 233,
+			},
+		}
+
+		s := generateTestShip(t, withShipCost)
+
+		err := p.AddShipAction(s, 3)
+
+		assert.ErrorIs(t, err, domainerrors.ErrNotEnoughResources, "Actual err: %v", err)
+		assert.Empty(t, p.ShipActions)
+		assert.Equal(t, 3, p.Version)
+	})
+
+	t.Run("assigns ship action to planet", func(t *testing.T) {
+		p := generateTestPlanet(t, withPlanetShip, withManyResources)
+		s := generateTestShip(t, withShipCost)
+
+		err := p.AddShipAction(s, 3)
+		require.NoError(t, err, "Actual err: %v", err)
+		require.NotEmpty(t, p.ShipActions)
+
+		completionTime := 28131840 * time.Millisecond
+		expectedAction := ShipAction{
+			Id:               p.ShipActions[0].Id,
+			Ship:             s.Id,
+			Count:            3,
+			CreatedAt:        someTime,
+			NextCompletionAt: someTime.Add(completionTime),
+			CompletedAt:      someTime.Add(3 * completionTime),
+			Costs: []ShipActionCost{
+				{
+					Resource: metalResourceId,
+					Amount:   108,
+				},
+				{
+					Resource: crystalResourceId,
+					Amount:   234,
+				},
+			},
+		}
+		assert.Equal(t, []ShipAction{expectedAction}, p.ShipActions)
+	})
+
+	t.Run("creates new ship action when one already exists", func(t *testing.T) {
+		p := generateTestPlanet(t, withPlanetShip, withManyResources)
+		action1 := ShipAction{
+			Id:               uuid.New(),
+			Ship:             smallCargoId,
+			Count:            2,
+			CreatedAt:        someTime.Add(-3 * time.Hour),
+			NextCompletionAt: someTime.Add(-2 * time.Hour),
+			CompletedAt:      someTime.Add(-1 * time.Hour),
+		}
+		p.ShipActions = []ShipAction{action1}
+
+		s := generateTestShip(t, withShipCost)
+
+		err := p.AddShipAction(s, 3)
+		require.NoError(t, err, "Actual err: %v", err)
+		require.NotEmpty(t, p.ShipActions)
+
+		completionTime := 28131840 * time.Millisecond
+		expectedAction := ShipAction{
+			Id:               p.ShipActions[1].Id,
+			Ship:             s.Id,
+			Count:            3,
+			CreatedAt:        someTime,
+			NextCompletionAt: someTime.Add(completionTime),
+			CompletedAt:      someTime.Add(3 * completionTime),
+			Costs: []ShipActionCost{
+				{
+					Resource: metalResourceId,
+					Amount:   108,
+				},
+				{
+					Resource: crystalResourceId,
+					Amount:   234,
+				},
+			},
+		}
+		assert.Equal(t, []ShipAction{action1, expectedAction}, p.ShipActions)
+	})
+
+	t.Run("deducts action costs from the available planet resources", func(t *testing.T) {
+		p := generateTestPlanet(t, withPlanetShip, withManyResources)
+		s := generateTestShip(t, withShipCost)
+
+		initialResources := slices.Clone(p.Resources)
+
+		err := p.AddShipAction(s, 2)
+		require.NoError(t, err, "Actual err: %v", err)
+		require.NotEmpty(t, p.ShipActions)
+
+		expectedMetalAmount := initialResources[0].Amount - float64(p.ShipActions[0].Costs[0].Amount)
+		expectedCrystalAmount := initialResources[1].Amount - float64(p.ShipActions[0].Costs[1].Amount)
+		expectedResources := []PlanetResource{
+			{
+				Resource: metalResourceId,
+				Amount:   expectedMetalAmount,
+			},
+			{
+				Resource: crystalResourceId,
+				Amount:   expectedCrystalAmount,
+			},
+		}
+		assert.Equal(t, expectedResources, p.Resources)
+	})
+
+	t.Run("bumps version by one", func(t *testing.T) {
+		p := generateTestPlanet(t, withPlanetShip, withManyResources)
+		p.UpdatedAt = someTime
+		s := generateTestShip(t, withShipCost)
+
+		initialVersion := p.Version
+
+		err := p.AddShipAction(s, 1)
+		require.NoError(t, err, "Actual err: %v", err)
+		require.NotEmpty(t, p.ShipActions)
+
+		assert.Equal(t, initialVersion+1, p.Version)
+	})
+
+	t.Run("does not bump updated at field", func(t *testing.T) {
+		p := generateTestPlanet(t, withPlanetShip, withManyResources)
+		p.UpdatedAt = someTime
+		s := generateTestShip(t, withShipCost)
+
+		err := p.AddShipAction(s, 1)
+		require.NoError(t, err, "Actual err: %v", err)
+		require.NotEmpty(t, p.ShipActions)
 
 		assert.Equal(t, someTime, p.UpdatedAt)
 	})
@@ -736,6 +884,15 @@ func withPlanetBuilding(t *testing.T, p *Planet) {
 		{
 			Building: buildingId,
 			Level:    4,
+		},
+	}
+}
+
+func withPlanetShip(t *testing.T, p *Planet) {
+	p.Ships = []PlanetShip{
+		{
+			Ship:  lightFighterId,
+			Count: 4,
 		},
 	}
 }

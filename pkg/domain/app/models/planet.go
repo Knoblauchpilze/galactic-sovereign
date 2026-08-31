@@ -78,11 +78,11 @@ func (p *Planet) AddBuildingAction(building Building) error {
 
 	action := building.CreateBuildingAction(pb.Level+1, p.UpdatedAt)
 
-	if err := p.validateEnoughResources(action); err != nil {
+	if err := p.validateEnoughResourcesForBuildingAction(action); err != nil {
 		return err
 	}
 
-	p.deductResources(action)
+	p.deductBuildingActionResources(action)
 
 	p.BuildingAction = &action
 
@@ -106,6 +106,27 @@ func (p *Planet) CancelBuildingAction() error {
 	p.creditResources(*p.BuildingAction)
 
 	p.BuildingAction = nil
+
+	p.Version++
+
+	return nil
+}
+
+// AddShipAction adds a ship action to the planet.
+// The action will be added with a creation date equal to the UpdatedAt
+// field of the planet. This means that prior to calling this function,
+// callers are expected to trigger UpdateToTime to the desired time.
+// The UpdatedAt field will not be updated.
+func (p *Planet) AddShipAction(ship Ship, count int) error {
+	action := ship.CreateShipAction(count, p.UpdatedAt)
+
+	if err := p.validateEnoughResourcesForShipAction(action); err != nil {
+		return err
+	}
+
+	p.deductShipActionResources(action)
+
+	p.ShipActions = append(p.ShipActions, action)
 
 	p.Version++
 
@@ -208,7 +229,7 @@ func (p *Planet) fieldsAvailable() bool {
 	return used < p.Fields
 }
 
-func (p *Planet) validateEnoughResources(
+func (p *Planet) validateEnoughResourcesForBuildingAction(
 	action BuildingAction,
 ) error {
 	temp := make(map[uuid.UUID]PlanetResource)
@@ -226,10 +247,44 @@ func (p *Planet) validateEnoughResources(
 	return nil
 }
 
-func (p *Planet) deductResources(
+func (p *Planet) deductBuildingActionResources(
 	action BuildingAction,
 ) {
 	temp := make(map[uuid.UUID]BuildingActionCost)
+	for _, cost := range action.Costs {
+		temp[cost.Resource] = cost
+	}
+
+	for id, resource := range p.Resources {
+		cost, ok := temp[resource.Resource]
+		if ok {
+			p.Resources[id].Amount -= float64(cost.Amount)
+		}
+	}
+}
+
+func (p *Planet) validateEnoughResourcesForShipAction(
+	action ShipAction,
+) error {
+	temp := make(map[uuid.UUID]PlanetResource)
+	for _, resource := range p.Resources {
+		temp[resource.Resource] = resource
+	}
+
+	for _, cost := range action.Costs {
+		actual, ok := temp[cost.Resource]
+		if !ok || actual.Amount < float64(cost.Amount) {
+			return domainerrors.ErrNotEnoughResources
+		}
+	}
+
+	return nil
+}
+
+func (p *Planet) deductShipActionResources(
+	action ShipAction,
+) {
+	temp := make(map[uuid.UUID]ShipActionCost)
 	for _, cost := range action.Costs {
 		temp[cost.Resource] = cost
 	}
