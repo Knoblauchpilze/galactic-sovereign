@@ -1002,7 +1002,7 @@ const docTemplate = `{
         },
         "/planets/:id/ships": {
             "post": {
-                "description": "Creates a ship on a planet.",
+                "description": "Creates a ship action on a planet.",
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -1041,7 +1041,7 @@ const docTemplate = `{
                         "description": "Internal Server Error"
                     }
                 },
-                "summary": "Create ship",
+                "summary": "Create ship action",
                 "tags": [
                     "planets"
                 ]

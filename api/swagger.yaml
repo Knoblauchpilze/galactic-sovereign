@@ -720,7 +720,7 @@ paths:
       - healthcheck
   /planets/:id/ships:
     post:
-      description: Creates a ship on a planet.
+      description: Creates a ship action on a planet.
       requestBody:
         content:
           application/json:
@@ -745,7 +745,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/rest.ResponseEnvelope-string'
           description: Internal Server Error
-      summary: Create ship
+      summary: Create ship action
       tags:
       - planets
   /planets/{id}:
