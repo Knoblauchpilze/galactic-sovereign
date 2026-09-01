@@ -44,7 +44,7 @@ func (b *CreateBuildingActionUseCase) Create(
 		return models.BuildingAction{}, err
 	}
 
-	mutator := generateActionMutator(moment, building)
+	mutator := generateBuildingActionMutator(moment, building)
 	result, err := b.planetMutator.Mutate(ctx, req.Planet, mutator)
 	if err != nil {
 		return models.BuildingAction{}, err
@@ -60,7 +60,7 @@ func (b *CreateBuildingActionUseCase) Create(
 	return *result.Planet.BuildingAction, nil
 }
 
-func generateActionMutator(moment time.Time, building models.Building) drivenports.PlanetMutator {
+func generateBuildingActionMutator(moment time.Time, building models.Building) drivenports.PlanetMutator {
 	return func(p *models.Planet) (bool, error) {
 		err := domainservices.AdvancePlanetToTime(p, moment)
 		if err != nil {
