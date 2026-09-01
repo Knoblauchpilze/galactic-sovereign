@@ -26,7 +26,7 @@ func TestUnit_CreateBuildingAction_Create(t *testing.T) {
 	t.Run("persists created building action", func(t *testing.T) {
 		suite := setupCreateBuildingActionTestSuite(t)
 
-		planet := generateTestPlanet()
+		planet := generateTestPlanetWithBuilding()
 		building := generateTestBuilding(planet)
 		request := generateTestBuildingActionRequest(planet)
 
@@ -71,7 +71,7 @@ func TestUnit_CreateBuildingAction_Create(t *testing.T) {
 	t.Run("updates planet to current time", func(t *testing.T) {
 		suite := setupCreateBuildingActionTestSuite(t)
 
-		planet := generateTestPlanet()
+		planet := generateTestPlanetWithBuilding()
 		building := generateTestBuilding(planet)
 		request := generateTestBuildingActionRequest(planet)
 
@@ -169,7 +169,7 @@ func TestUnit_CreateBuildingAction_Create(t *testing.T) {
 	t.Run("returns error when planet is deleted", func(t *testing.T) {
 		suite := setupCreateBuildingActionTestSuite(t)
 
-		planet := generateTestPlanet()
+		planet := generateTestPlanetWithBuilding()
 		building := generateTestBuilding(planet)
 		request := generateTestBuildingActionRequest(planet)
 
@@ -259,7 +259,7 @@ func TestUnit_CreateBuildingAction_Create(t *testing.T) {
 	t.Run("returns error when planet has no fields available", func(t *testing.T) {
 		suite := setupCreateBuildingActionTestSuite(t)
 
-		planet := generateTestPlanet()
+		planet := generateTestPlanetWithBuilding()
 		planet.Fields = planet.Buildings[0].Level
 		building := generateTestBuilding(planet)
 		request := generateTestBuildingActionRequest(planet)
@@ -301,7 +301,7 @@ func setupCreateBuildingActionTestSuite(t *testing.T) *createBuildingActionTestS
 	}
 }
 
-func generateTestPlanet() models.Planet {
+func generateTestPlanetWithBuilding() models.Planet {
 	return models.Planet{
 		Id:     uuid.New(),
 		Fields: 100,
@@ -328,7 +328,7 @@ func generateTestPlanet() models.Planet {
 }
 
 func generateTestPlanetWithAction(completionTime time.Time) models.Planet {
-	p := generateTestPlanet()
+	p := generateTestPlanetWithBuilding()
 	p.BuildingAction = &models.BuildingAction{
 		Id:           uuid.New(),
 		Building:     p.Buildings[0].Building,

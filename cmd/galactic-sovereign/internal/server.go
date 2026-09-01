@@ -77,7 +77,11 @@ func registerBuildingActionsRoutes(conn db.Connection, s *server.Server, log *sl
 }
 
 func registerShipsRoutes(conn db.Connection, s *server.Server, log *slog.Logger) {
-	createUseCase := usecases.NewCreateShipUseCase()
+	shipRepo := drivenadapters.NewShipRepository(conn)
+	planetMutator := drivenadapters.NewPlanetMutator(conn)
+	clock := drivenadapters.NewTimeAdapter()
+
+	createUseCase := usecases.NewCreateShipActionUseCase(shipRepo, planetMutator, clock)
 
 	for _, route := range drivingadapters.ShipActionEndpoints(createUseCase) {
 		if err := s.AddRoute(route); err != nil {

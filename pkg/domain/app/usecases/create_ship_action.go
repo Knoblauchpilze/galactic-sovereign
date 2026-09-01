@@ -5,15 +5,28 @@ import (
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/errors"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/request"
+	drivenports "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driven"
 )
 
-type CreateShipUseCase struct{}
-
-func NewCreateShipUseCase() *CreateShipUseCase {
-	return &CreateShipUseCase{}
+type CreateShipActionUseCase struct {
+	shipRepo      drivenports.ForFetchingShip
+	planetMutator drivenports.ForMutatingPlanet
+	clock         drivenports.ForFetchingTime
 }
 
-func (b *CreateShipUseCase) Create(
+func NewCreateShipActionUseCase(
+	shipRepo drivenports.ForFetchingShip,
+	planetMutator drivenports.ForMutatingPlanet,
+	clock drivenports.ForFetchingTime,
+) *CreateShipActionUseCase {
+	return &CreateShipActionUseCase{
+		shipRepo:      shipRepo,
+		planetMutator: planetMutator,
+		clock:         clock,
+	}
+}
+
+func (b *CreateShipActionUseCase) Create(
 	ctx context.Context,
 	req request.ShipActionCreationRequest,
 ) error {
