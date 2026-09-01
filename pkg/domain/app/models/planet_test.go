@@ -373,9 +373,9 @@ func TestUnit_Planet_AddShipAction(t *testing.T) {
 			Id:               uuid.New(),
 			Ship:             smallCargoId,
 			Count:            2,
-			CreatedAt:        someTime.Add(-3 * time.Hour),
-			NextCompletionAt: someTime.Add(-2 * time.Hour),
-			CompletedAt:      someTime.Add(-1 * time.Hour),
+			CreatedAt:        someTime,
+			NextCompletionAt: someTime.Add(1 * time.Hour),
+			CompletedAt:      someTime.Add(2 * time.Hour),
 		}
 		p.ShipActions = []ShipAction{action1}
 
@@ -390,9 +390,9 @@ func TestUnit_Planet_AddShipAction(t *testing.T) {
 			Id:               p.ShipActions[1].Id,
 			Ship:             s.Id,
 			Count:            3,
-			CreatedAt:        someTime,
-			NextCompletionAt: someTime.Add(completionTime),
-			CompletedAt:      someTime.Add(3 * completionTime),
+			CreatedAt:        action1.CompletedAt,
+			NextCompletionAt: action1.CompletedAt.Add(completionTime),
+			CompletedAt:      action1.CompletedAt.Add(3 * completionTime),
 			Costs: []ShipActionCost{
 				{
 					Resource: metalResourceId,

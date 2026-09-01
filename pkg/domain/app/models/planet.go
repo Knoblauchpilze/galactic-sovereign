@@ -123,7 +123,8 @@ func (p *Planet) AddShipAction(ship Ship, count int) error {
 		return err
 	}
 
-	action := ship.CreateShipAction(count, p.UpdatedAt)
+	nextActionStartTime := p.determineShipActionStartTime()
+	action := ship.CreateShipAction(count, nextActionStartTime)
 
 	if err := p.validateEnoughResourcesForShipAction(action); err != nil {
 		return err
@@ -276,6 +277,21 @@ func (p *Planet) validateShipExists(id uuid.UUID) error {
 	}
 
 	return domainerrors.ErrShipNotFound
+}
+
+func (p *Planet) determineShipActionStartTime() time.Time {
+	if len(p.ShipActions) == 0 {
+		return p.UpdatedAt
+	}
+
+	earliest := p.UpdatedAt
+	for _, action := range p.ShipActions {
+		if action.CompletedAt.After(earliest) {
+			earliest = action.CompletedAt
+		}
+	}
+
+	return earliest
 }
 
 func (p *Planet) validateEnoughResourcesForShipAction(
