@@ -284,32 +284,6 @@ func insertTestResource(t *testing.T, conn db.Connection) models.Resource {
 	return resource
 }
 
-func insertTestShip(t *testing.T, conn db.Connection) models.Ship {
-	t.Helper()
-
-	ship := models.Ship{
-		Id:        uuid.New(),
-		Name:      fmt.Sprintf("my-ship-%s", uuid.NewString()),
-		CreatedAt: someTime,
-		// This is intentional: the details (e.g. costs) are returned as empty
-		// slices by the adapter
-		Costs: []models.ShipCost{},
-	}
-
-	sqlQuery := `INSERT INTO ship (id, name, created_at)
-		VALUES ($1, $2, $3)`
-	_, err := conn.Exec(
-		t.Context(),
-		sqlQuery,
-		ship.Id,
-		ship.Name,
-		ship.CreatedAt,
-	)
-	require.NoError(t, err, "Actual err: %v", err)
-
-	return ship
-}
-
 func assertUniverseExists(t *testing.T, conn db.Connection, id uuid.UUID) {
 	t.Helper()
 
