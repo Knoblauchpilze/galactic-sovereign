@@ -13,6 +13,7 @@ import (
 	context "context"
 	reflect "reflect"
 
+	models "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
 	request "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/request"
 	gomock "go.uber.org/mock/gomock"
 )
@@ -42,11 +43,12 @@ func (m *MockForCreatingShipAction) EXPECT() *MockForCreatingShipActionMockRecor
 }
 
 // Create mocks base method.
-func (m *MockForCreatingShipAction) Create(ctx context.Context, req request.ShipActionCreationRequest) error {
+func (m *MockForCreatingShipAction) Create(ctx context.Context, req request.ShipActionCreationRequest) (models.ShipAction, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Create", ctx, req)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret0, _ := ret[0].(models.ShipAction)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // Create indicates an expected call of Create.

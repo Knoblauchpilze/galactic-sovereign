@@ -49,7 +49,8 @@ func createShipAction(c *gin.Context, usecase drivingports.ForCreatingShipAction
 	}
 
 	request := mappers.ToShipCreationRequest(planetId, inputDto)
-	err = usecase.Create(c.Request.Context(), request)
+	// TODO: Handle return value
+	_, err = usecase.Create(c.Request.Context(), request)
 	if err != nil {
 		// TODO: Handle other errors
 
