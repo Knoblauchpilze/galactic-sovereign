@@ -20,10 +20,10 @@ func TestUnit_Ships_CreateShip(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	ctrl := gomock.NewController(t)
-	mockUsecase := drivingportstest.NewMockForCreatingShip(ctrl)
+	mockUsecase := drivingportstest.NewMockForCreatingShipAction(ctrl)
 
 	t.Run("returns 400 when planet id is invalid", func(t *testing.T) {
-		handler := generateHandler[drivingports.ForCreatingShip](
+		handler := generateHandler[drivingports.ForCreatingShipAction](
 			createShip,
 			mockUsecase,
 		)
@@ -41,7 +41,7 @@ func TestUnit_Ships_CreateShip(t *testing.T) {
 	})
 
 	t.Run("returns 400 when body is invalid", func(t *testing.T) {
-		handler := generateHandler[drivingports.ForCreatingShip](
+		handler := generateHandler[drivingports.ForCreatingShipAction](
 			createShip,
 			mockUsecase,
 		)
@@ -58,7 +58,7 @@ func TestUnit_Ships_CreateShip(t *testing.T) {
 	})
 
 	t.Run("returns 400 when ship count is zero", func(t *testing.T) {
-		handler := generateHandler[drivingports.ForCreatingShip](
+		handler := generateHandler[drivingports.ForCreatingShipAction](
 			createShip,
 			mockUsecase,
 		)
@@ -76,7 +76,7 @@ func TestUnit_Ships_CreateShip(t *testing.T) {
 	})
 
 	t.Run("returns 400 when ship count is negative", func(t *testing.T) {
-		handler := generateHandler[drivingports.ForCreatingShip](
+		handler := generateHandler[drivingports.ForCreatingShipAction](
 			createShip,
 			mockUsecase,
 		)
@@ -96,7 +96,7 @@ func TestUnit_Ships_CreateShip(t *testing.T) {
 	t.Run("forwards creation to use case", func(t *testing.T) {
 		dto := dtos.ShipDtoRequest{Ship: uuid.New(), Count: 4}
 
-		expectedRequest := request.ShipCreationRequest{
+		expectedRequest := request.ShipActionCreationRequest{
 			Planet: sampleUuid,
 			Ship:   dto.Ship,
 			Count:  dto.Count,
@@ -107,7 +107,7 @@ func TestUnit_Ships_CreateShip(t *testing.T) {
 			Times(1).
 			Return(nil)
 
-		handler := generateHandler[drivingports.ForCreatingShip](
+		handler := generateHandler[drivingports.ForCreatingShipAction](
 			createShip,
 			mockUsecase,
 		)
@@ -127,7 +127,7 @@ func TestUnit_Ships_CreateShip(t *testing.T) {
 			Times(1).
 			Return(errors.New("stubbed error"))
 
-		handler := generateHandler[drivingports.ForCreatingShip](
+		handler := generateHandler[drivingports.ForCreatingShipAction](
 			createShip,
 			mockUsecase,
 		)

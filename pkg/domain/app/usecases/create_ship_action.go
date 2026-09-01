@@ -15,7 +15,7 @@ func NewCreateShipUseCase() *CreateShipUseCase {
 
 func (b *CreateShipUseCase) Create(
 	ctx context.Context,
-	req request.ShipCreationRequest,
+	req request.ShipActionCreationRequest,
 ) error {
 	return errors.ErrNotImplemented
 }

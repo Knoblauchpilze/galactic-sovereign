@@ -9,8 +9,8 @@ import (
 func ToShipCreationRequest(
 	planetId uuid.UUID,
 	dto dtos.ShipDtoRequest,
-) request.ShipCreationRequest {
-	return request.ShipCreationRequest{
+) request.ShipActionCreationRequest {
+	return request.ShipActionCreationRequest{
 		Planet: planetId,
 		Ship:   dto.Ship,
 		Count:  dto.Count,
