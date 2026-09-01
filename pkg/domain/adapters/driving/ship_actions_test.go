@@ -8,6 +8,7 @@ import (
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/errors"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driving/drivingportstest"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driving/dtos"
+	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/request"
 	drivingports "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driving"
 	"github.com/gin-gonic/gin"
@@ -105,7 +106,7 @@ func TestUnit_Ships_CreateShipAction(t *testing.T) {
 		mockUsecase.EXPECT().
 			Create(gomock.Any(), gomock.Eq(expectedRequest)).
 			Times(1).
-			Return(nil)
+			Return(models.ShipAction{}, nil)
 
 		handler := generateHandler[drivingports.ForCreatingShipAction](
 			createShipAction,
@@ -125,7 +126,7 @@ func TestUnit_Ships_CreateShipAction(t *testing.T) {
 		mockUsecase.EXPECT().
 			Create(gomock.Any(), gomock.Any()).
 			Times(1).
-			Return(errors.New("stubbed error"))
+			Return(models.ShipAction{}, errors.New("stubbed error"))
 
 		handler := generateHandler[drivingports.ForCreatingShipAction](
 			createShipAction,
