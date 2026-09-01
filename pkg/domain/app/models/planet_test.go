@@ -325,6 +325,18 @@ func TestUnit_Planet_AddShipAction(t *testing.T) {
 		assert.Equal(t, 3, p.Version)
 	})
 
+	t.Run("returns error when building does not exist on planet", func(t *testing.T) {
+		p := generateTestPlanet(t, withPlanetShip)
+
+		s := Ship{Id: uuid.New()}
+
+		err := p.AddShipAction(s, 1)
+
+		assert.ErrorIs(t, err, domainerrors.ErrShipNotFound, "Actual err: %v", err)
+		assert.Empty(t, p.ShipActions)
+		assert.Equal(t, 3, p.Version)
+	})
+
 	t.Run("assigns ship action to planet", func(t *testing.T) {
 		p := generateTestPlanet(t, withPlanetShip, withManyResources)
 		s := generateTestShip(t, withShipCost)

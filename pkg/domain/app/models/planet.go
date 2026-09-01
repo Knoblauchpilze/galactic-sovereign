@@ -118,6 +118,11 @@ func (p *Planet) CancelBuildingAction() error {
 // callers are expected to trigger UpdateToTime to the desired time.
 // The UpdatedAt field will not be updated.
 func (p *Planet) AddShipAction(ship Ship, count int) error {
+	err := p.validateShipExists(ship.Id)
+	if err != nil {
+		return err
+	}
+
 	action := ship.CreateShipAction(count, p.UpdatedAt)
 
 	if err := p.validateEnoughResourcesForShipAction(action); err != nil {
@@ -261,6 +266,16 @@ func (p *Planet) deductBuildingActionResources(
 			p.Resources[id].Amount -= float64(cost.Amount)
 		}
 	}
+}
+
+func (p *Planet) validateShipExists(id uuid.UUID) error {
+	for _, s := range p.Ships {
+		if s.Ship == id {
+			return nil
+		}
+	}
+
+	return domainerrors.ErrShipNotFound
 }
 
 func (p *Planet) validateEnoughResourcesForShipAction(
