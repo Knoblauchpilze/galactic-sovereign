@@ -23,7 +23,7 @@ func TestUnit_DeleteBuildingAction_DeleteForPlanet(t *testing.T) {
 	t.Run("persists deleted building action", func(t *testing.T) {
 		suite := setupDeleteBuildingActionTestSuite(t)
 
-		planet := generateTestPlanetWithAction(t3)
+		planet := generateTestPlanetWithBuildingAction(t3)
 
 		suite.mockClock.EXPECT().Now(gomock.Any()).Times(1).Return(t2)
 		suite.mockMutator.EXPECT().
@@ -40,7 +40,7 @@ func TestUnit_DeleteBuildingAction_DeleteForPlanet(t *testing.T) {
 	t.Run("updates planet to current time", func(t *testing.T) {
 		suite := setupDeleteBuildingActionTestSuite(t)
 
-		planet := generateTestPlanetWithAction(t3)
+		planet := generateTestPlanetWithBuildingAction(t3)
 		planet.UpdatedAt = t1
 
 		suite.mockClock.EXPECT().Now(gomock.Any()).Times(1).Return(t2)
@@ -58,7 +58,7 @@ func TestUnit_DeleteBuildingAction_DeleteForPlanet(t *testing.T) {
 	t.Run("applies completed action", func(t *testing.T) {
 		suite := setupDeleteBuildingActionTestSuite(t)
 
-		planet := generateTestPlanet()
+		planet := generateTestPlanetWithBuilding()
 		require.NotEqual(t, 5, planet.Buildings[0].Level)
 		planet.UpdatedAt = t1
 		planet.BuildingAction = &models.BuildingAction{
@@ -86,7 +86,7 @@ func TestUnit_DeleteBuildingAction_DeleteForPlanet(t *testing.T) {
 	t.Run("returns no error when planet has no building action", func(t *testing.T) {
 		suite := setupDeleteBuildingActionTestSuite(t)
 
-		planet := generateTestPlanet()
+		planet := generateTestPlanetWithBuilding()
 
 		suite.mockClock.EXPECT().Now(gomock.Any()).Times(1).Return(t2)
 		suite.mockMutator.EXPECT().
@@ -103,7 +103,7 @@ func TestUnit_DeleteBuildingAction_DeleteForPlanet(t *testing.T) {
 	t.Run("returns error when planet is deleted", func(t *testing.T) {
 		suite := setupDeleteBuildingActionTestSuite(t)
 
-		planet := generateTestPlanet()
+		planet := generateTestPlanetWithBuilding()
 
 		suite.mockClock.EXPECT().Now(gomock.Any()).Times(1).Return(t2)
 		suite.mockMutator.EXPECT().

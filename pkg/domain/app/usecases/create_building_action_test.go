@@ -98,7 +98,7 @@ func TestUnit_CreateBuildingAction_Create(t *testing.T) {
 	t.Run("applies completed action and create a new one", func(t *testing.T) {
 		suite := setupCreateBuildingActionTestSuite(t)
 
-		planet := generateTestPlanetWithAction(t2)
+		planet := generateTestPlanetWithBuildingAction(t2)
 		building := generateTestBuilding(planet)
 		request := generateTestBuildingActionRequest(planet)
 
@@ -191,7 +191,7 @@ func TestUnit_CreateBuildingAction_Create(t *testing.T) {
 	t.Run("returns error when planet already has an action running", func(t *testing.T) {
 		suite := setupCreateBuildingActionTestSuite(t)
 
-		planet := generateTestPlanetWithAction(t3)
+		planet := generateTestPlanetWithBuildingAction(t3)
 		building := generateTestBuilding(planet)
 		request := generateTestBuildingActionRequest(planet)
 
@@ -327,7 +327,7 @@ func generateTestPlanetWithBuilding() models.Planet {
 	}
 }
 
-func generateTestPlanetWithAction(completionTime time.Time) models.Planet {
+func generateTestPlanetWithBuildingAction(completionTime time.Time) models.Planet {
 	p := generateTestPlanetWithBuilding()
 	p.BuildingAction = &models.BuildingAction{
 		Id:           uuid.New(),
