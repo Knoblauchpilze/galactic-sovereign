@@ -200,7 +200,7 @@ func generateTestShip(
 	t.Helper()
 
 	s := Ship{
-		Id:        shipId,
+		Id:        lightFighterId,
 		Name:      "test-ship",
 		CreatedAt: someTime,
 		Costs:     []ShipCost{},
