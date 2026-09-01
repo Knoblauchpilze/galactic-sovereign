@@ -16,7 +16,7 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
-func TestUnit_Ships_CreateShip(t *testing.T) {
+func TestUnit_Ships_CreateShipAction(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	ctrl := gomock.NewController(t)
@@ -24,7 +24,7 @@ func TestUnit_Ships_CreateShip(t *testing.T) {
 
 	t.Run("returns 400 when planet id is invalid", func(t *testing.T) {
 		handler := generateHandler[drivingports.ForCreatingShipAction](
-			createShip,
+			createShipAction,
 			mockUsecase,
 		)
 		r := createTestGinRouter(t, http.MethodPost, "/planets/:id/ships", handler)
@@ -42,7 +42,7 @@ func TestUnit_Ships_CreateShip(t *testing.T) {
 
 	t.Run("returns 400 when body is invalid", func(t *testing.T) {
 		handler := generateHandler[drivingports.ForCreatingShipAction](
-			createShip,
+			createShipAction,
 			mockUsecase,
 		)
 		r := createTestGinRouter(t, http.MethodPost, "/planets/:id/ships", handler)
@@ -59,7 +59,7 @@ func TestUnit_Ships_CreateShip(t *testing.T) {
 
 	t.Run("returns 400 when ship count is zero", func(t *testing.T) {
 		handler := generateHandler[drivingports.ForCreatingShipAction](
-			createShip,
+			createShipAction,
 			mockUsecase,
 		)
 		r := createTestGinRouter(t, http.MethodPost, "/planets/:id/ships", handler)
@@ -77,7 +77,7 @@ func TestUnit_Ships_CreateShip(t *testing.T) {
 
 	t.Run("returns 400 when ship count is negative", func(t *testing.T) {
 		handler := generateHandler[drivingports.ForCreatingShipAction](
-			createShip,
+			createShipAction,
 			mockUsecase,
 		)
 		r := createTestGinRouter(t, http.MethodPost, "/planets/:id/ships", handler)
@@ -108,7 +108,7 @@ func TestUnit_Ships_CreateShip(t *testing.T) {
 			Return(nil)
 
 		handler := generateHandler[drivingports.ForCreatingShipAction](
-			createShip,
+			createShipAction,
 			mockUsecase,
 		)
 		r := createTestGinRouter(t, http.MethodPost, "/planets/:id/ships", handler)
@@ -128,7 +128,7 @@ func TestUnit_Ships_CreateShip(t *testing.T) {
 			Return(errors.New("stubbed error"))
 
 		handler := generateHandler[drivingports.ForCreatingShipAction](
-			createShip,
+			createShipAction,
 			mockUsecase,
 		)
 		r := createTestGinRouter(t, http.MethodPost, "/planets/:id/ships", handler)

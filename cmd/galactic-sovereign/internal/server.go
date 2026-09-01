@@ -79,7 +79,7 @@ func registerBuildingActionsRoutes(conn db.Connection, s *server.Server, log *sl
 func registerShipsRoutes(conn db.Connection, s *server.Server, log *slog.Logger) {
 	createUseCase := usecases.NewCreateShipUseCase()
 
-	for _, route := range drivingadapters.ShipEndpoints(createUseCase) {
+	for _, route := range drivingadapters.ShipActionEndpoints(createUseCase) {
 		if err := s.AddRoute(route); err != nil {
 			log.Error("Failed to register route", slog.String("route", route.Path()), slog.Any("error", err))
 		}

@@ -12,20 +12,20 @@ import (
 	"github.com/google/uuid"
 )
 
-func ShipEndpoints(usecase drivingports.ForCreatingShip) Routes {
+func ShipActionEndpoints(usecase drivingports.ForCreatingShipAction) Routes {
 	var out Routes
 
-	handler := generateHandler(createShip, usecase)
+	handler := generateHandler(createShipAction, usecase)
 	post := rest.NewRoute(http.MethodPost, "/planets/:id/ships", handler)
 	out = append(out, post)
 
 	return out
 }
 
-// createShip godoc
+// createShipAction godoc
 //
-//	@Summary		Create ship
-//	@Description	Creates a ship on a planet.
+//	@Summary		Create ship action
+//	@Description	Creates a ship action on a planet.
 //	@Tags			planets
 //	@Produce		json
 //	@Param			request	body		dtos.ShipDtoRequest	true	"Ship payload"
@@ -33,7 +33,7 @@ func ShipEndpoints(usecase drivingports.ForCreatingShip) Routes {
 //	@Failure		400		{object}	rest.ResponseEnvelope[string]
 //	@Failure		500		{object}	rest.ResponseEnvelope[string]
 //	@Router			/planets/:id/ships [post]
-func createShip(c *gin.Context, usecase drivingports.ForCreatingShip) {
+func createShipAction(c *gin.Context, usecase drivingports.ForCreatingShipAction) {
 	maybeId := c.Param("id")
 	planetId, err := uuid.Parse(maybeId)
 	if err != nil {
