@@ -30,6 +30,10 @@ type ShipAction struct {
 	// on the planet the action belongs to.
 	CompletedAt time.Time
 
+	// Costs are currently only available when the action is first created. When
+	// it is persisted by the adapter, the costs are lost because they do not
+	// play a relevant role once the action has been created as it cannot be
+	// cancelled.
 	Costs []ShipActionCost
 }
 
