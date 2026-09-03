@@ -932,7 +932,7 @@ func TestUnit_Planet_ApplyShipAction(t *testing.T) {
 			{
 				Ship:               smallCargoId,
 				Count:              1,
-				NextCompletionAt:   t2,
+				NextCompletionAt:   t1.Add(duration),
 				UnitCompletionTime: duration,
 			},
 		}
