@@ -3,6 +3,7 @@ package models
 import (
 	"time"
 
+	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
 	"github.com/google/uuid"
 )
 
@@ -40,4 +41,18 @@ type ShipAction struct {
 type ShipActionCost struct {
 	Resource uuid.UUID
 	Amount   int
+}
+
+// TODO: Add tests for this
+func (a *ShipAction) CompleteOne() error {
+	if a.Count == 0 {
+		return domainerrors.ErrShipActionAlreadyCompleted
+	}
+
+	// TODO: Should also bump the NextCompletionAt
+	// TODO: The problem is that there's no way to no the individual completion time
+	// Probably CompletedAt could be removed and repurposed to hold the individual
+	// completion time
+	a.Count--
+	return nil
 }

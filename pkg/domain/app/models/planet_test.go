@@ -855,6 +855,197 @@ func TestUnit_Planet_ApplyBuildingAction(t *testing.T) {
 	})
 }
 
+func TestUnit_Planet_ApplyShipAction(t *testing.T) {
+	t1 := time.Date(2026, time.September, 3, 8, 17, 30, 0, time.UTC)
+	t2 := time.Date(2026, time.September, 3, 8, 18, 30, 0, time.UTC)
+	t3 := time.Date(2026, time.September, 3, 8, 19, 30, 0, time.UTC)
+
+	t.Run("returns error when no action is in progress", func(t *testing.T) {
+		p := Planet{ShipActions: nil}
+		err := p.ApplyShipAction()
+		assert.ErrorIs(t, err, domainerrors.ErrNoActionInProgress, "Actual err: %v", err)
+
+		p = Planet{ShipActions: []ShipAction{}}
+		err = p.ApplyShipAction()
+		assert.ErrorIs(t, err, domainerrors.ErrNoActionInProgress, "Actual err: %v", err)
+	})
+
+	t.Run("returns error when planet update time is not matching action completion time", func(t *testing.T) {
+		p := Planet{
+			ShipActions: []ShipAction{
+				{
+					NextCompletionAt: t2,
+					CompletedAt:      t3,
+				},
+			},
+			UpdatedAt: t1,
+		}
+
+		err := p.ApplyShipAction()
+
+		assert.ErrorIs(t, err, domainerrors.ErrShipActionNotCompleted, "Actual err: %v", err)
+	})
+
+	t.Run("registers new ships when completion succeeds", func(t *testing.T) {
+		p := Planet{
+			Ships: []PlanetShip{
+				{Ship: smallCargoId, Count: 1},
+			},
+			ShipActions: []ShipAction{
+				{
+					Ship:             smallCargoId,
+					Count:            2,
+					NextCompletionAt: t1,
+					CompletedAt:      t2,
+				},
+			},
+			UpdatedAt: t1,
+		}
+
+		err := p.ApplyShipAction()
+		require.NoError(t, err, "Actual err: %v", err)
+
+		expected := []PlanetShip{{Ship: smallCargoId, Count: 2}}
+		assert.Equal(t, expected, p.Ships)
+	})
+
+	t.Run("prepares the ship action for the next completion when not completed", func(t *testing.T) {
+		p := Planet{
+			Ships: []PlanetShip{
+				{Ship: smallCargoId, Count: 1},
+			},
+			ShipActions: []ShipAction{
+				{
+					Ship:             smallCargoId,
+					Count:            2,
+					NextCompletionAt: t1,
+					CompletedAt:      t2,
+				},
+			},
+			UpdatedAt: t1,
+		}
+
+		err := p.ApplyShipAction()
+		require.NoError(t, err, "Actual err: %v", err)
+
+		expected := []ShipAction{
+			{
+				Ship:             smallCargoId,
+				Count:            1,
+				NextCompletionAt: t2,
+				CompletedAt:      t2,
+			},
+		}
+		assert.Equal(t, expected, p.ShipActions)
+	})
+
+	t.Run("removes ship action from planet when fully completed", func(t *testing.T) {
+		p := Planet{
+			Ships: []PlanetShip{
+				{Ship: lightFighterId, Count: 1},
+			},
+			Version: 0,
+			ShipActions: []ShipAction{
+				{
+					Ship:             lightFighterId,
+					Count:            1,
+					NextCompletionAt: t1,
+					CompletedAt:      t1,
+				},
+			},
+			UpdatedAt: t1,
+		}
+
+		err := p.ApplyShipAction()
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.Empty(t, p.ShipActions)
+	})
+
+	t.Run("leaves other ship actions unchanged when one is removed", func(t *testing.T) {
+		p := Planet{
+			Ships: []PlanetShip{
+				{Ship: lightFighterId, Count: 1},
+			},
+			Version: 0,
+			ShipActions: []ShipAction{
+				{
+					Ship:             lightFighterId,
+					Count:            1,
+					NextCompletionAt: t1,
+					CompletedAt:      t1,
+				},
+				{
+					Ship:             smallCargoId,
+					Count:            1,
+					NextCompletionAt: t2,
+					CompletedAt:      t2,
+				},
+			},
+			UpdatedAt: t1,
+		}
+
+		err := p.ApplyShipAction()
+		require.NoError(t, err, "Actual err: %v", err)
+
+		expected := []ShipAction{
+			{
+				Ship:             smallCargoId,
+				Count:            1,
+				NextCompletionAt: t2,
+				CompletedAt:      t2,
+			},
+		}
+		assert.Equal(t, expected, p.ShipActions)
+	})
+
+	t.Run("bumps version by one", func(t *testing.T) {
+		p := Planet{
+			Ships: []PlanetShip{
+				{Ship: lightFighterId, Count: 1},
+			},
+			Version: 0,
+			ShipActions: []ShipAction{
+				{
+					Ship:             lightFighterId,
+					Count:            2,
+					NextCompletionAt: t1,
+					CompletedAt:      t2,
+				},
+			},
+			UpdatedAt: t1,
+		}
+
+		err := p.ApplyShipAction()
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.Equal(t, 1, p.Version)
+	})
+
+	t.Run("does not change updated at field", func(t *testing.T) {
+		p := Planet{
+			Ships: []PlanetShip{
+				{Ship: lightFighterId, Count: 1},
+			},
+			Version: 0,
+			ShipActions: []ShipAction{
+				{
+					Ship:             lightFighterId,
+					Count:            2,
+					NextCompletionAt: t1,
+					CompletedAt:      t2,
+				},
+			},
+			UpdatedAt: t1,
+		}
+
+		err := p.ApplyShipAction()
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.Equal(t, t1, p.UpdatedAt)
+	})
+}
+
 func generateTestPlanet(
 	t *testing.T,
 	modifiers ...func(*testing.T, *Planet),

@@ -26,6 +26,7 @@ const (
 	coordinateAlreadyUsed      errors.ErrorCode = 622
 	allFieldsUsed              errors.ErrorCode = 623
 	shipActionNotCompleted     errors.ErrorCode = 624
+	shipActionAlreadyCompleted errors.ErrorCode = 625
 )
 
 var (
@@ -51,4 +52,5 @@ var (
 	ErrCoordinateAlreadyUsed      = errors.FromCode(coordinateAlreadyUsed)
 	ErrAllFieldsUsed              = errors.FromCode(allFieldsUsed)
 	ErrShipActionNotCompleted     = errors.FromCode(shipActionNotCompleted)
+	ErrShipActionAlreadyCompleted = errors.FromCode(shipActionAlreadyCompleted)
 )

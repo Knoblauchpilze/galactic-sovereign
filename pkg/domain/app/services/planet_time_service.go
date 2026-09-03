@@ -1,6 +1,7 @@
 package domainservices
 
 import (
+	"sort"
 	"time"
 
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
@@ -10,33 +11,51 @@ func AdvancePlanetToTime(
 	planet *models.Planet,
 	moment time.Time,
 ) error {
-	if planet.BuildingAction == nil {
-		return planet.UpdateToTime(moment)
+	events := buildEventsTimelineUntil(planet, moment)
+
+	for _, event := range events {
+		planet.UpdateToTime(event.completionTime)
+
+		err := event.apply(planet)
+		if err != nil {
+			return err
+		}
 	}
 
-	// TODO: Maybe it would be nicer to have a slice of completionEvent
-	// This slice is populated once based by checking the building action
-	// and potentially other things (e.g. technology)
-	// Each completion event is attached an apply function. This apply
-	// function can either be a buildingApplier, or something else.
-	if planet.BuildingAction.CompletedAt.After(moment) {
-		return planet.UpdateToTime(moment)
+	return planet.UpdateToTime(moment)
+}
+
+type completionEvent struct {
+	completionTime time.Time
+	apply          func(*models.Planet) error
+}
+
+func buildEventsTimelineUntil(planet *models.Planet, target time.Time) []completionEvent {
+	var out []completionEvent
+
+	if planet.BuildingAction != nil && planet.BuildingAction.CompletedAt.Before(target) {
+		event := completionEvent{
+			completionTime: planet.BuildingAction.CompletedAt,
+			apply:          func(p *models.Planet) error { return p.ApplyBuildingAction() },
+		}
+
+		out = append(out, event)
 	}
 
-	err := planet.UpdateToTime(planet.BuildingAction.CompletedAt)
-	if err != nil {
-		return err
+	for _, action := range planet.ShipActions {
+		if action.NextCompletionAt.Before(target) {
+			event := completionEvent{
+				completionTime: action.NextCompletionAt,
+				apply:          func(p *models.Planet) error { return p.ApplyShipAction() },
+			}
+
+			out = append(out, event)
+		}
 	}
 
-	err = planet.ApplyBuildingAction()
-	if err != nil {
-		return err
-	}
+	sort.Slice(out, func(i, j int) bool {
+		return out[i].completionTime.Before(out[j].completionTime)
+	})
 
-	err = planet.UpdateToTime(moment)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return out
 }

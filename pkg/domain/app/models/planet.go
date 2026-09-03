@@ -216,6 +216,36 @@ func (p *Planet) ApplyBuildingAction() error {
 	return nil
 }
 
+func (p *Planet) ApplyShipAction() error {
+	if len(p.ShipActions) == 0 {
+		return domainerrors.ErrNoActionInProgress
+	}
+
+	action := &p.ShipActions[0]
+	if action.NextCompletionAt != p.UpdatedAt {
+		return domainerrors.ErrShipActionNotCompleted
+	}
+
+	for id := range p.Ships {
+		if p.Ships[id].Ship == action.Ship {
+			p.Ships[id].Count++
+		}
+	}
+
+	err := action.CompleteOne()
+	if err != nil {
+		return err
+	}
+
+	if action.Count == 0 {
+		p.ShipActions = p.ShipActions[1:]
+	}
+
+	p.Version++
+
+	return nil
+}
+
 func (p *Planet) findBuildingById(id uuid.UUID) (PlanetBuilding, error) {
 	for _, b := range p.Buildings {
 		if b.Building == id {
