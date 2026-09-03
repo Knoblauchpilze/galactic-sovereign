@@ -107,7 +107,7 @@ func TestUnit_Ship_CreateShipAction(t *testing.T) {
 
 		assert.Equal(t, someTime, action.CreatedAt)
 		assert.Equal(t, someTime, action.NextCompletionAt)
-		assert.Equal(t, 0, action.UnitCompletionTime)
+		assert.Equal(t, time.Duration(0), action.UnitCompletionTime)
 	})
 
 	t.Run("correctly calculates completion time when single resource is used", func(t *testing.T) {
@@ -150,7 +150,7 @@ func TestUnit_Ship_CreateShipAction(t *testing.T) {
 
 		assert.Equal(t, someTime, action.CreatedAt)
 		assert.Equal(t, someTime, action.NextCompletionAt)
-		assert.Equal(t, 0, action.UnitCompletionTime)
+		assert.Equal(t, time.Duration(0), action.UnitCompletionTime)
 	})
 
 	t.Run("correctly calculates completion time when multiple resources are used", func(t *testing.T) {
