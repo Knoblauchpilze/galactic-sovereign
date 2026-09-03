@@ -128,7 +128,7 @@ func TestUnit_AdvancePlanetToTime(t *testing.T) {
 
 	t.Run("updates planet to time when ship action finishes after requested time", func(t *testing.T) {
 		p := generateTestPlanet()
-		action := generateTestShipAction()
+		action := generateTestShipAction(2)
 		p.ShipActions = append(p.ShipActions, action)
 
 		initialStorages := slices.Clone(p.Storages)
@@ -159,7 +159,7 @@ func TestUnit_AdvancePlanetToTime(t *testing.T) {
 
 	t.Run("applies ship action when it finishes before the requested time", func(t *testing.T) {
 		p := generateTestPlanet()
-		action := generateTestShipAction()
+		action := generateTestShipAction(2)
 		p.ShipActions = append(p.ShipActions, action)
 
 		err := AdvancePlanetToTime(&p, t4)
@@ -199,7 +199,7 @@ func TestUnit_AdvancePlanetToTime(t *testing.T) {
 					Count:              action.Count - 1,
 					CreatedAt:          t3,
 					NextCompletionAt:   t5,
-					UnitCompletionTime: t5.Sub(t3),
+					UnitCompletionTime: t4.Sub(t3),
 				},
 			},
 		}
@@ -208,7 +208,7 @@ func TestUnit_AdvancePlanetToTime(t *testing.T) {
 
 	t.Run("removes ship action when it is completed before the requested time", func(t *testing.T) {
 		p := generateTestPlanet()
-		action := generateTestShipAction()
+		action := generateTestShipAction(1)
 		p.ShipActions = append(p.ShipActions, action)
 
 		err := AdvancePlanetToTime(&p, t5)
@@ -237,7 +237,7 @@ func TestUnit_AdvancePlanetToTime(t *testing.T) {
 				{Building: metalStorageId, Level: 4},
 			},
 			Ships: []models.PlanetShip{
-				{Ship: lightFighterId, Count: 3},
+				{Ship: lightFighterId, Count: 2},
 				{Ship: smallCargoId, Count: 0},
 			},
 			BuildingAction: nil,
@@ -251,7 +251,7 @@ func TestUnit_AdvancePlanetToTime(t *testing.T) {
 		action1 := models.ShipAction{
 			Id:                 uuid.New(),
 			Ship:               smallCargoId,
-			Count:              2,
+			Count:              1,
 			CreatedAt:          t2,
 			NextCompletionAt:   t3,
 			UnitCompletionTime: t3.Sub(t2),
@@ -259,7 +259,7 @@ func TestUnit_AdvancePlanetToTime(t *testing.T) {
 		action2 := models.ShipAction{
 			Id:                 uuid.New(),
 			Ship:               lightFighterId,
-			Count:              2,
+			Count:              1,
 			CreatedAt:          t4.Add(1 * time.Minute),
 			NextCompletionAt:   t4.Add(2 * time.Minute),
 			UnitCompletionTime: 1 * time.Minute,
@@ -293,7 +293,7 @@ func TestUnit_AdvancePlanetToTime(t *testing.T) {
 			},
 			Ships: []models.PlanetShip{
 				{Ship: lightFighterId, Count: 1},
-				{Ship: smallCargoId, Count: 2},
+				{Ship: smallCargoId, Count: 1},
 			},
 			BuildingAction: nil,
 			ShipActions:    []models.ShipAction{action2},
@@ -347,11 +347,11 @@ func generateTestBuildingAction() models.BuildingAction {
 	}
 }
 
-func generateTestShipAction() models.ShipAction {
+func generateTestShipAction(count int) models.ShipAction {
 	return models.ShipAction{
 		Id:                 uuid.New(),
 		Ship:               lightFighterId,
-		Count:              2,
+		Count:              count,
 		CreatedAt:          t3,
 		NextCompletionAt:   t4,
 		UnitCompletionTime: t4.Sub(t3),

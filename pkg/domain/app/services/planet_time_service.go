@@ -33,7 +33,7 @@ type completionEvent struct {
 func buildEventsTimelineUntil(planet *models.Planet, target time.Time) []completionEvent {
 	var out []completionEvent
 
-	if planet.BuildingAction != nil && planet.BuildingAction.CompletedAt.Before(target) {
+	if planet.BuildingAction != nil && planet.BuildingAction.CompletedAt.Compare(target) <= 0 {
 		event := completionEvent{
 			completionTime: planet.BuildingAction.CompletedAt,
 			apply:          func(p *models.Planet) error { return p.ApplyBuildingAction() },
@@ -43,7 +43,8 @@ func buildEventsTimelineUntil(planet *models.Planet, target time.Time) []complet
 	}
 
 	for _, action := range planet.ShipActions {
-		if action.NextCompletionAt.Before(target) {
+		// TODO: Should handle multiple unit completion
+		if action.NextCompletionAt.Compare(target) <= 0 {
 			event := completionEvent{
 				completionTime: action.NextCompletionAt,
 				apply:          func(p *models.Planet) error { return p.ApplyShipAction() },
