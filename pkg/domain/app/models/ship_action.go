@@ -60,7 +60,6 @@ func (a *ShipAction) CompleteOne() error {
 	return nil
 }
 
-// TODO: Add tests for this
 func (a *ShipAction) CompletionTime() time.Time {
 	if a.Count <= 1 {
 		return a.NextCompletionAt
