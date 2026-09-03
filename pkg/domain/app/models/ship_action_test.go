@@ -4,10 +4,44 @@ import (
 	"testing"
 	"time"
 
+	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+func TestUnit_ShipAction_CompleteOne(t *testing.T) {
+	t.Run("returns error when all units are already completed", func(t *testing.T) {
+		action := generateTestShipAction(t)
+		action.Count = 0
+
+		err := action.CompleteOne()
+
+		assert.ErrorIs(t, err, domainerrors.ErrShipActionAlreadyCompleted, "Actual err: %v", err)
+	})
+
+	t.Run("decreases count by one", func(t *testing.T) {
+		action := generateTestShipAction(t)
+		action.Count = 2
+
+		err := action.CompleteOne()
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.Equal(t, 1, action.Count)
+	})
+
+	t.Run("updates next completion time based on unit completion time", func(t *testing.T) {
+		action := generateTestShipAction(t)
+		originalCompletionTime := action.NextCompletionAt
+		action.Count = 2
+
+		err := action.CompleteOne()
+		require.NoError(t, err, "Actual err: %v", err)
+
+		expected := originalCompletionTime.Add(1 * time.Hour)
+		assert.Equal(t, expected, action.NextCompletionAt)
+	})
+}
 
 func TestUnit_ShipAction_CompletionTime(t *testing.T) {
 	t.Run("returns next completion time when only one unit is left", func(t *testing.T) {

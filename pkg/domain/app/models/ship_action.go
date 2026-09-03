@@ -46,17 +46,14 @@ type ShipActionCost struct {
 	Amount   int
 }
 
-// TODO: Add tests for this
 func (a *ShipAction) CompleteOne() error {
 	if a.Count == 0 {
 		return domainerrors.ErrShipActionAlreadyCompleted
 	}
 
-	// TODO: Should also bump the NextCompletionAt
-	// TODO: The problem is that there's no way to no the individual completion time
-	// Probably CompletedAt could be removed and repurposed to hold the individual
-	// completion time
+	a.NextCompletionAt = a.NextCompletionAt.Add(a.UnitCompletionTime)
 	a.Count--
+
 	return nil
 }
 
