@@ -32,16 +32,15 @@ func (s Ship) CreateShipAction(
 	costs := s.determineActionCost(count)
 
 	buildTime := s.determineBuildTime()
-	completionTime := createdAt.Add(time.Duration(count) * buildTime)
 
 	action := ShipAction{
 		Id:    uuid.New(),
 		Ship:  s.Id,
 		Count: count,
 
-		CreatedAt:        createdAt,
-		NextCompletionAt: createdAt.Add(buildTime),
-		CompletedAt:      completionTime,
+		CreatedAt:          createdAt,
+		NextCompletionAt:   createdAt.Add(buildTime),
+		UnitCompletionTime: buildTime,
 
 		Costs: costs,
 	}

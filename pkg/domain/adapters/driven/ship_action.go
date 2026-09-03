@@ -12,12 +12,13 @@ import (
 const (
 	upsertShipActionQuery = `
 INSERT INTO
-	ship_action (id, planet, ship, count, created_at, next_completion_at, completed_at)
+	ship_action (id, planet, ship, count, created_at, next_completion_at, unit_completion_time)
 	VALUES ($1, $2, $3, $4, $5, $6, $7)
 ON CONFLICT (id) DO UPDATE
 SET
 	count = excluded.count,
-	next_completion_at = excluded.next_completion_at`
+	next_completion_at = excluded.next_completion_at,
+	unit_completion_time = excluded.unit_completion_time`
 
 	listShipActionForPlanetQuery = `
 SELECT
@@ -26,7 +27,7 @@ SELECT
 	count,
 	created_at,
 	next_completion_at,
-	completed_at
+	unit_completion_time
 FROM
 	ship_action
 WHERE
@@ -50,7 +51,7 @@ func upsertShipActionWithDetails(
 		action.Count,
 		action.CreatedAt,
 		action.NextCompletionAt,
-		action.CompletedAt,
+		action.UnitCompletionTime,
 	)
 	if err != nil {
 		return err

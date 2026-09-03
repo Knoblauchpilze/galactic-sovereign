@@ -26,8 +26,8 @@ func TestUnit_Ship_CreateShipAction(t *testing.T) {
 
 			CreatedAt: someTime,
 			// Ignore the completion here, there are dedicated tests
-			NextCompletionAt: action.NextCompletionAt,
-			CompletedAt:      action.CompletedAt,
+			NextCompletionAt:   action.NextCompletionAt,
+			UnitCompletionTime: action.UnitCompletionTime,
 
 			Costs: []ShipActionCost{
 				{
@@ -107,7 +107,7 @@ func TestUnit_Ship_CreateShipAction(t *testing.T) {
 
 		assert.Equal(t, someTime, action.CreatedAt)
 		assert.Equal(t, someTime, action.NextCompletionAt)
-		assert.Equal(t, someTime, action.CompletedAt)
+		assert.Equal(t, 0, action.UnitCompletionTime)
 	})
 
 	t.Run("correctly calculates completion time when single resource is used", func(t *testing.T) {
@@ -129,8 +129,7 @@ func TestUnit_Ship_CreateShipAction(t *testing.T) {
 		assert.Equal(t, someTime, action.CreatedAt)
 		completionTime := 51840 * time.Millisecond
 		assert.Equal(t, someTime.Add(completionTime), action.NextCompletionAt)
-		totalTime := 5 * completionTime
-		assert.Equal(t, someTime.Add(totalTime), action.CompletedAt)
+		assert.Equal(t, completionTime, action.UnitCompletionTime)
 	})
 
 	t.Run("correctly calculates completion time when resource has no build time", func(t *testing.T) {
@@ -151,7 +150,7 @@ func TestUnit_Ship_CreateShipAction(t *testing.T) {
 
 		assert.Equal(t, someTime, action.CreatedAt)
 		assert.Equal(t, someTime, action.NextCompletionAt)
-		assert.Equal(t, someTime, action.CompletedAt)
+		assert.Equal(t, 0, action.UnitCompletionTime)
 	})
 
 	t.Run("correctly calculates completion time when multiple resources are used", func(t *testing.T) {
@@ -188,8 +187,7 @@ func TestUnit_Ship_CreateShipAction(t *testing.T) {
 		assert.Equal(t, someTime, action.CreatedAt)
 		completionTime := 11333664 * time.Second
 		assert.Equal(t, someTime.Add(completionTime), action.NextCompletionAt)
-		totalTime := 5 * completionTime
-		assert.Equal(t, someTime.Add(totalTime), action.CompletedAt)
+		assert.Equal(t, completionTime, action.UnitCompletionTime)
 	})
 }
 

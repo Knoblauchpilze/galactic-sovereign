@@ -25,11 +25,14 @@ type ShipAction struct {
 	// produce a single ship.
 	NextCompletionAt time.Time
 
-	// CompletedAt represents the time at which the last ship of this action will
-	// be finished and delivered as an element of the planet's fleet. It's also
-	// the earliest availability for another ship action to start being processed
-	// on the planet the action belongs to.
-	CompletedAt time.Time
+	// UnitCompletionTime represents the time it takes to complete a single ship
+	// for the action. It can be used to calculate the next completion time when
+	// a unit is being produced.
+	// This value can be used to calculate the completion time of the action by
+	// multiplying it with the count. It also allows to calculate the earliest
+	// availability for another ship action to start being processed on the planet
+	// the action belongs to.
+	UnitCompletionTime time.Duration
 
 	// Costs are currently only available when the action is first created. When
 	// it is persisted by the adapter, the costs are lost because they do not
@@ -55,4 +58,14 @@ func (a *ShipAction) CompleteOne() error {
 	// completion time
 	a.Count--
 	return nil
+}
+
+// TODO: Add tests for this
+func (a *ShipAction) CompletionTime() time.Time {
+	if a.Count <= 1 {
+		return a.NextCompletionAt
+	}
+
+	remaining := time.Duration(a.Count-1) * a.UnitCompletionTime
+	return a.NextCompletionAt.Add(remaining)
 }

@@ -831,12 +831,12 @@ func TestIT_PlanetMutator_Mutate(t *testing.T) {
 		require.Empty(t, planet.ShipActions)
 
 		action := models.ShipAction{
-			Id:               uuid.New(),
-			Ship:             lightFighterId,
-			Count:            3,
-			CreatedAt:        someTime,
-			NextCompletionAt: someTime.Add(1 * time.Hour),
-			CompletedAt:      someTime.Add(3 * time.Hour),
+			Id:                 uuid.New(),
+			Ship:               lightFighterId,
+			Count:              3,
+			CreatedAt:          someTime,
+			NextCompletionAt:   someTime.Add(1 * time.Hour),
+			UnitCompletionTime: 1 * time.Hour,
 		}
 
 		mutator := generateModifyingMutator(func(p *models.Planet) {
@@ -899,12 +899,12 @@ func TestIT_PlanetMutator_Mutate(t *testing.T) {
 		require.NotEqual(t, smallCargoId, action.Ship)
 
 		newAction := models.ShipAction{
-			Id:               uuid.New(),
-			Ship:             smallCargoId,
-			Count:            30,
-			CreatedAt:        someTime,
-			NextCompletionAt: someTime.Add(2 * time.Minute),
-			CompletedAt:      someTime.Add(1 * time.Hour),
+			Id:                 uuid.New(),
+			Ship:               smallCargoId,
+			Count:              30,
+			CreatedAt:          someTime,
+			NextCompletionAt:   someTime.Add(2 * time.Minute),
+			UnitCompletionTime: 2 * time.Minute,
 		}
 
 		mutator := generateModifyingMutator(func(p *models.Planet) {
@@ -1367,16 +1367,16 @@ func insertTestShipActionForPlanet(
 	t.Helper()
 
 	action := models.ShipAction{
-		Id:               uuid.New(),
-		Ship:             lightFighterId,
-		Count:            5,
-		CreatedAt:        someTime,
-		NextCompletionAt: someTime.Add(5 * time.Minute),
-		CompletedAt:      someTime.Add(25 * time.Minute),
+		Id:                 uuid.New(),
+		Ship:               lightFighterId,
+		Count:              5,
+		CreatedAt:          someTime,
+		NextCompletionAt:   someTime.Add(someDuration),
+		UnitCompletionTime: someDuration,
 	}
 
 	sqlQuery := `INSERT INTO ship_action
-		(id, planet, ship, count, created_at, next_completion_at, completed_at)
+		(id, planet, ship, count, created_at, next_completion_at, unit_completion_time)
 		VALUES ($1, $2, $3, $4, $5, $6, $7)`
 	_, err := conn.Exec(
 		t.Context(),
@@ -1387,7 +1387,7 @@ func insertTestShipActionForPlanet(
 		action.Count,
 		action.CreatedAt,
 		action.NextCompletionAt,
-		action.CompletedAt,
+		action.UnitCompletionTime,
 	)
 	require.NoError(t, err, "Actual err: %v", err)
 

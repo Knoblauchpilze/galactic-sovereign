@@ -12,9 +12,9 @@ type DbShipAction struct {
 	Ship  uuid.UUID
 	Count int
 
-	CreatedAt        time.Time
-	NextCompletionAt time.Time
-	CompletedAt      time.Time
+	CreatedAt          time.Time
+	NextCompletionAt   time.Time
+	UnitCompletionTime time.Duration
 }
 
 func (a DbShipAction) ToDomain() models.ShipAction {
@@ -23,8 +23,8 @@ func (a DbShipAction) ToDomain() models.ShipAction {
 		Ship:  a.Ship,
 		Count: a.Count,
 
-		CreatedAt:        a.CreatedAt,
-		NextCompletionAt: a.NextCompletionAt,
-		CompletedAt:      a.CompletedAt,
+		CreatedAt:          a.CreatedAt,
+		NextCompletionAt:   a.NextCompletionAt,
+		UnitCompletionTime: a.UnitCompletionTime,
 	}
 }

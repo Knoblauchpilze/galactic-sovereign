@@ -316,8 +316,9 @@ func (p *Planet) determineShipActionStartTime() time.Time {
 
 	earliest := p.UpdatedAt
 	for _, action := range p.ShipActions {
-		if action.CompletedAt.After(earliest) {
-			earliest = action.CompletedAt
+		completedAt := action.CompletionTime()
+		if completedAt.After(earliest) {
+			earliest = completedAt
 		}
 	}
 

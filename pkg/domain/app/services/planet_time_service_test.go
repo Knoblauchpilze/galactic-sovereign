@@ -194,12 +194,12 @@ func TestUnit_AdvancePlanetToTime(t *testing.T) {
 			BuildingAction: nil,
 			ShipActions: []models.ShipAction{
 				{
-					Id:               action.Id,
-					Ship:             action.Ship,
-					Count:            action.Count - 1,
-					CreatedAt:        t3,
-					NextCompletionAt: t5,
-					CompletedAt:      t5,
+					Id:                 action.Id,
+					Ship:               action.Ship,
+					Count:              action.Count - 1,
+					CreatedAt:          t3,
+					NextCompletionAt:   t5,
+					UnitCompletionTime: t5.Sub(t3),
 				},
 			},
 		}
@@ -249,20 +249,20 @@ func TestUnit_AdvancePlanetToTime(t *testing.T) {
 	t.Run("leaves uncompleted ship action running when one is removed", func(t *testing.T) {
 		p := generateTestPlanet()
 		action1 := models.ShipAction{
-			Id:               uuid.New(),
-			Ship:             smallCargoId,
-			Count:            2,
-			CreatedAt:        t2,
-			NextCompletionAt: t3,
-			CompletedAt:      t4,
+			Id:                 uuid.New(),
+			Ship:               smallCargoId,
+			Count:              2,
+			CreatedAt:          t2,
+			NextCompletionAt:   t3,
+			UnitCompletionTime: t3.Sub(t2),
 		}
 		action2 := models.ShipAction{
-			Id:               uuid.New(),
-			Ship:             lightFighterId,
-			Count:            2,
-			CreatedAt:        t4.Add(1 * time.Minute),
-			NextCompletionAt: t4.Add(2 * time.Minute),
-			CompletedAt:      t4.Add(3 * time.Minute),
+			Id:                 uuid.New(),
+			Ship:               lightFighterId,
+			Count:              2,
+			CreatedAt:          t4.Add(1 * time.Minute),
+			NextCompletionAt:   t4.Add(2 * time.Minute),
+			UnitCompletionTime: 1 * time.Minute,
 		}
 		p.ShipActions = append(p.ShipActions, action1, action2)
 
@@ -349,11 +349,11 @@ func generateTestBuildingAction() models.BuildingAction {
 
 func generateTestShipAction() models.ShipAction {
 	return models.ShipAction{
-		Id:               uuid.New(),
-		Ship:             lightFighterId,
-		Count:            2,
-		CreatedAt:        t3,
-		NextCompletionAt: t4,
-		CompletedAt:      t5,
+		Id:                 uuid.New(),
+		Ship:               lightFighterId,
+		Count:              2,
+		CreatedAt:          t3,
+		NextCompletionAt:   t4,
+		UnitCompletionTime: t4.Sub(t3),
 	}
 }

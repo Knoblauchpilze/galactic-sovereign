@@ -347,12 +347,12 @@ func TestUnit_Planet_AddShipAction(t *testing.T) {
 
 		completionTime := 28131840 * time.Millisecond
 		expectedAction := ShipAction{
-			Id:               p.ShipActions[0].Id,
-			Ship:             s.Id,
-			Count:            3,
-			CreatedAt:        someTime,
-			NextCompletionAt: someTime.Add(completionTime),
-			CompletedAt:      someTime.Add(3 * completionTime),
+			Id:                 p.ShipActions[0].Id,
+			Ship:               s.Id,
+			Count:              3,
+			CreatedAt:          someTime,
+			NextCompletionAt:   someTime.Add(completionTime),
+			UnitCompletionTime: completionTime,
 			Costs: []ShipActionCost{
 				{
 					Resource: metalResourceId,
@@ -370,12 +370,12 @@ func TestUnit_Planet_AddShipAction(t *testing.T) {
 	t.Run("creates new ship action when one already exists", func(t *testing.T) {
 		p := generateTestPlanet(t, withPlanetShip, withManyResources)
 		action1 := ShipAction{
-			Id:               uuid.New(),
-			Ship:             smallCargoId,
-			Count:            2,
-			CreatedAt:        someTime,
-			NextCompletionAt: someTime.Add(1 * time.Hour),
-			CompletedAt:      someTime.Add(2 * time.Hour),
+			Id:                 uuid.New(),
+			Ship:               smallCargoId,
+			Count:              2,
+			CreatedAt:          someTime,
+			NextCompletionAt:   someTime.Add(1 * time.Hour),
+			UnitCompletionTime: 1 * time.Hour,
 		}
 		p.ShipActions = []ShipAction{action1}
 
@@ -387,12 +387,12 @@ func TestUnit_Planet_AddShipAction(t *testing.T) {
 
 		completionTime := 28131840 * time.Millisecond
 		expectedAction := ShipAction{
-			Id:               p.ShipActions[1].Id,
-			Ship:             s.Id,
-			Count:            3,
-			CreatedAt:        action1.CompletedAt,
-			NextCompletionAt: action1.CompletedAt.Add(completionTime),
-			CompletedAt:      action1.CompletedAt.Add(3 * completionTime),
+			Id:                 p.ShipActions[1].Id,
+			Ship:               s.Id,
+			Count:              3,
+			CreatedAt:          action1.CompletionTime(),
+			NextCompletionAt:   action1.CompletionTime().Add(completionTime),
+			UnitCompletionTime: completionTime,
 			Costs: []ShipActionCost{
 				{
 					Resource: metalResourceId,
@@ -858,7 +858,7 @@ func TestUnit_Planet_ApplyBuildingAction(t *testing.T) {
 func TestUnit_Planet_ApplyShipAction(t *testing.T) {
 	t1 := time.Date(2026, time.September, 3, 8, 17, 30, 0, time.UTC)
 	t2 := time.Date(2026, time.September, 3, 8, 18, 30, 0, time.UTC)
-	t3 := time.Date(2026, time.September, 3, 8, 19, 30, 0, time.UTC)
+	duration := 1 * time.Hour
 
 	t.Run("returns error when no action is in progress", func(t *testing.T) {
 		p := Planet{ShipActions: nil}
@@ -874,8 +874,8 @@ func TestUnit_Planet_ApplyShipAction(t *testing.T) {
 		p := Planet{
 			ShipActions: []ShipAction{
 				{
-					NextCompletionAt: t2,
-					CompletedAt:      t3,
+					NextCompletionAt:   t2,
+					UnitCompletionTime: duration,
 				},
 			},
 			UpdatedAt: t1,
@@ -893,10 +893,10 @@ func TestUnit_Planet_ApplyShipAction(t *testing.T) {
 			},
 			ShipActions: []ShipAction{
 				{
-					Ship:             smallCargoId,
-					Count:            2,
-					NextCompletionAt: t1,
-					CompletedAt:      t2,
+					Ship:               smallCargoId,
+					Count:              2,
+					NextCompletionAt:   t1,
+					UnitCompletionTime: duration,
 				},
 			},
 			UpdatedAt: t1,
@@ -916,10 +916,10 @@ func TestUnit_Planet_ApplyShipAction(t *testing.T) {
 			},
 			ShipActions: []ShipAction{
 				{
-					Ship:             smallCargoId,
-					Count:            2,
-					NextCompletionAt: t1,
-					CompletedAt:      t2,
+					Ship:               smallCargoId,
+					Count:              2,
+					NextCompletionAt:   t1,
+					UnitCompletionTime: duration,
 				},
 			},
 			UpdatedAt: t1,
@@ -930,10 +930,10 @@ func TestUnit_Planet_ApplyShipAction(t *testing.T) {
 
 		expected := []ShipAction{
 			{
-				Ship:             smallCargoId,
-				Count:            1,
-				NextCompletionAt: t2,
-				CompletedAt:      t2,
+				Ship:               smallCargoId,
+				Count:              1,
+				NextCompletionAt:   t2,
+				UnitCompletionTime: duration,
 			},
 		}
 		assert.Equal(t, expected, p.ShipActions)
@@ -947,10 +947,10 @@ func TestUnit_Planet_ApplyShipAction(t *testing.T) {
 			Version: 0,
 			ShipActions: []ShipAction{
 				{
-					Ship:             lightFighterId,
-					Count:            1,
-					NextCompletionAt: t1,
-					CompletedAt:      t1,
+					Ship:               lightFighterId,
+					Count:              1,
+					NextCompletionAt:   t1,
+					UnitCompletionTime: duration,
 				},
 			},
 			UpdatedAt: t1,
@@ -970,16 +970,16 @@ func TestUnit_Planet_ApplyShipAction(t *testing.T) {
 			Version: 0,
 			ShipActions: []ShipAction{
 				{
-					Ship:             lightFighterId,
-					Count:            1,
-					NextCompletionAt: t1,
-					CompletedAt:      t1,
+					Ship:               lightFighterId,
+					Count:              1,
+					NextCompletionAt:   t1,
+					UnitCompletionTime: duration,
 				},
 				{
-					Ship:             smallCargoId,
-					Count:            1,
-					NextCompletionAt: t2,
-					CompletedAt:      t2,
+					Ship:               smallCargoId,
+					Count:              1,
+					NextCompletionAt:   t2,
+					UnitCompletionTime: duration,
 				},
 			},
 			UpdatedAt: t1,
@@ -990,10 +990,10 @@ func TestUnit_Planet_ApplyShipAction(t *testing.T) {
 
 		expected := []ShipAction{
 			{
-				Ship:             smallCargoId,
-				Count:            1,
-				NextCompletionAt: t2,
-				CompletedAt:      t2,
+				Ship:               smallCargoId,
+				Count:              1,
+				NextCompletionAt:   t2,
+				UnitCompletionTime: duration,
 			},
 		}
 		assert.Equal(t, expected, p.ShipActions)
@@ -1007,10 +1007,10 @@ func TestUnit_Planet_ApplyShipAction(t *testing.T) {
 			Version: 0,
 			ShipActions: []ShipAction{
 				{
-					Ship:             lightFighterId,
-					Count:            2,
-					NextCompletionAt: t1,
-					CompletedAt:      t2,
+					Ship:               lightFighterId,
+					Count:              2,
+					NextCompletionAt:   t1,
+					UnitCompletionTime: duration,
 				},
 			},
 			UpdatedAt: t1,
@@ -1030,10 +1030,10 @@ func TestUnit_Planet_ApplyShipAction(t *testing.T) {
 			Version: 0,
 			ShipActions: []ShipAction{
 				{
-					Ship:             lightFighterId,
-					Count:            2,
-					NextCompletionAt: t1,
-					CompletedAt:      t2,
+					Ship:               lightFighterId,
+					Count:              2,
+					NextCompletionAt:   t1,
+					UnitCompletionTime: duration,
 				},
 			},
 			UpdatedAt: t1,

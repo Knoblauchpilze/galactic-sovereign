@@ -6,7 +6,7 @@ CREATE TABLE ship_action(
   count INTEGER NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
   next_completion_at TIMESTAMP WITH TIME ZONE NOT NULL,
-  completed_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  unit_completion_time INTERVAL NOT NULL,
   PRIMARY KEY (id),
   FOREIGN KEY (planet) REFERENCES planet(id),
   FOREIGN KEY (ship) REFERENCES ship(id)

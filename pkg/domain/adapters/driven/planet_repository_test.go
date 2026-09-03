@@ -508,16 +508,16 @@ func addPlanetShipAction(t *testing.T, conn db.Connection, p *models.Planet) {
 	t.Helper()
 
 	action := models.ShipAction{
-		Id:               uuid.New(),
-		Ship:             smallCargoId,
-		Count:            rand.Intn(14),
-		CreatedAt:        someTime,
-		NextCompletionAt: someOtherTime,
-		CompletedAt:      someLaterTime,
+		Id:                 uuid.New(),
+		Ship:               smallCargoId,
+		Count:              rand.Intn(14),
+		CreatedAt:          someTime,
+		NextCompletionAt:   someOtherTime,
+		UnitCompletionTime: someDuration,
 	}
 
 	sqlQuery := `INSERT INTO ship_action
-		(id, planet, ship, count, created_at, next_completion_at, completed_at)
+		(id, planet, ship, count, created_at, next_completion_at, unit_completion_time)
 		VALUES ($1, $2, $3, $4, $5, $6, $7)`
 	_, err := conn.Exec(
 		t.Context(),
@@ -528,7 +528,7 @@ func addPlanetShipAction(t *testing.T, conn db.Connection, p *models.Planet) {
 		action.Count,
 		action.CreatedAt,
 		action.NextCompletionAt,
-		action.CompletedAt,
+		action.UnitCompletionTime,
 	)
 	require.NoError(t, err, "Actual err: %v", err)
 

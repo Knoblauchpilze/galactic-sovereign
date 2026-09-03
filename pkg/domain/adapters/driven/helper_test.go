@@ -18,6 +18,8 @@ var (
 	someOtherTime = time.Date(2026, time.June, 1, 8, 20, 15, 0, time.UTC)
 	someLaterTime = time.Date(2026, time.August, 30, 15, 29, 52, 0, time.UTC)
 
+	someDuration = 2 * time.Hour
+
 	sharedDbContainer = &integrationdb.Suite{}
 )
 

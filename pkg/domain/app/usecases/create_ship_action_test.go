@@ -46,12 +46,12 @@ func TestUnit_CreateShipAction_Create(t *testing.T) {
 		completionTime := 168480 * time.Millisecond
 
 		expected := models.ShipAction{
-			Id:               actual.Id,
-			Ship:             request.Ship,
-			Count:            request.Count,
-			CreatedAt:        t2,
-			NextCompletionAt: t2.Add(completionTime),
-			CompletedAt:      t2.Add(time.Duration(request.Count) * completionTime),
+			Id:                 actual.Id,
+			Ship:               request.Ship,
+			Count:              request.Count,
+			CreatedAt:          t2,
+			NextCompletionAt:   t2.Add(completionTime),
+			UnitCompletionTime: completionTime,
 			Costs: []models.ShipActionCost{
 				{
 					Resource: metalResourceId,
@@ -97,7 +97,7 @@ func TestUnit_CreateShipAction_Create(t *testing.T) {
 	t.Run("applies completed action and create a new one", func(t *testing.T) {
 		suite := setupCreateShipActionTestSuite(t)
 
-		planet := generateTestPlanetWithShipAction(t2)
+		planet := generateTestPlanetWithShipAction(duration)
 		ship := generateTestShip(planet)
 		request := generateTestShipActionRequest(planet)
 
@@ -144,12 +144,12 @@ func TestUnit_CreateShipAction_Create(t *testing.T) {
 			},
 			ShipActions: []models.ShipAction{
 				{
-					Id:               actual.Id,
-					Ship:             request.Ship,
-					Count:            request.Count,
-					CreatedAt:        t3,
-					NextCompletionAt: t3.Add(completionTime),
-					CompletedAt:      t3.Add(time.Duration(request.Count) * completionTime),
+					Id:                 actual.Id,
+					Ship:               request.Ship,
+					Count:              request.Count,
+					CreatedAt:          t3,
+					NextCompletionAt:   t3.Add(completionTime),
+					UnitCompletionTime: completionTime,
 					Costs: []models.ShipActionCost{
 						{
 							Resource: metalResourceId,
@@ -191,7 +191,7 @@ func TestUnit_CreateShipAction_Create(t *testing.T) {
 	t.Run("appends action when planet already has an action running", func(t *testing.T) {
 		suite := setupCreateShipActionTestSuite(t)
 
-		planet := generateTestPlanetWithShipAction(t3)
+		planet := generateTestPlanetWithShipAction(duration)
 		ship := generateTestShip(planet)
 		request := generateTestShipActionRequest(planet)
 
@@ -239,12 +239,12 @@ func TestUnit_CreateShipAction_Create(t *testing.T) {
 			ShipActions: []models.ShipAction{
 				initialAction,
 				{
-					Id:               actual.Id,
-					Ship:             request.Ship,
-					Count:            request.Count,
-					CreatedAt:        t3,
-					NextCompletionAt: t3.Add(completionTime),
-					CompletedAt:      t3.Add(time.Duration(request.Count) * completionTime),
+					Id:                 actual.Id,
+					Ship:               request.Ship,
+					Count:              request.Count,
+					CreatedAt:          t3,
+					NextCompletionAt:   t3.Add(completionTime),
+					UnitCompletionTime: completionTime,
 					Costs: []models.ShipActionCost{
 						{
 							Resource: metalResourceId,
@@ -357,14 +357,14 @@ func generateTestPlanetWithShip() models.Planet {
 	}
 }
 
-func generateTestPlanetWithShipAction(completionTime time.Time) models.Planet {
+func generateTestPlanetWithShipAction(completionTime time.Duration) models.Planet {
 	p := generateTestPlanetWithShip()
 	p.ShipActions = append(p.ShipActions, models.ShipAction{
-		Id:          uuid.New(),
-		Ship:        p.Ships[0].Ship,
-		Count:       37,
-		CreatedAt:   t1,
-		CompletedAt: completionTime,
+		Id:                 uuid.New(),
+		Ship:               p.Ships[0].Ship,
+		Count:              37,
+		CreatedAt:          t1,
+		UnitCompletionTime: completionTime,
 	})
 
 	return p
