@@ -300,6 +300,245 @@ func TestUnit_AdvancePlanetToTime(t *testing.T) {
 		}
 		assert.Equal(t, expected, p)
 	})
+
+	t.Run("applies multiple unit completion if elapsed time is sufficient", func(t *testing.T) {
+		p := generateTestPlanet()
+		action := models.ShipAction{
+			Id:                 uuid.New(),
+			Ship:               smallCargoId,
+			Count:              5,
+			CreatedAt:          t1,
+			NextCompletionAt:   t1.Add(1 * time.Minute),
+			UnitCompletionTime: 1 * time.Minute,
+		}
+		p.ShipActions = append(p.ShipActions, action)
+
+		after3Minutes := t1.Add(3 * time.Minute)
+
+		err := AdvancePlanetToTime(&p, after3Minutes)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		expected := models.Planet{
+			Id:        p.Id,
+			CreatedAt: p.CreatedAt,
+			UpdatedAt: after3Minutes,
+			Version:   6,
+			Resources: []models.PlanetResource{
+				{Resource: metalResourceId, Amount: 1195},
+				{Resource: crystalResourceId, Amount: 2120},
+			},
+			Storages: []models.PlanetResourceStorage{
+				{Resource: metalResourceId, Storage: 15874},
+				{Resource: crystalResourceId, Storage: 3541},
+			},
+			Productions: []models.PlanetResourceProduction{
+				{Resource: crystalResourceId, Production: 14},
+				{Resource: metalResourceId, Building: &crystalMineId, Production: 65},
+				{Resource: crystalResourceId, Building: &crystalMineId, Production: 26},
+			},
+			Buildings: []models.PlanetBuilding{
+				{Building: crystalMineId, Level: 2},
+				{Building: metalStorageId, Level: 4},
+			},
+			Ships: []models.PlanetShip{
+				{Ship: lightFighterId, Count: 1},
+				{Ship: smallCargoId, Count: 3},
+			},
+			BuildingAction: nil,
+			ShipActions: []models.ShipAction{
+				{
+					Id:                 action.Id,
+					Ship:               action.Ship,
+					Count:              2,
+					CreatedAt:          t1,
+					NextCompletionAt:   after3Minutes.Add(1 * time.Minute),
+					UnitCompletionTime: 1 * time.Minute,
+				},
+			},
+		}
+		assert.Equal(t, expected, p)
+	})
+
+	t.Run("removes ship action when it finishes during the elapsed time", func(t *testing.T) {
+		p := generateTestPlanet()
+		action := models.ShipAction{
+			Id:                 uuid.New(),
+			Ship:               smallCargoId,
+			Count:              5,
+			CreatedAt:          t1,
+			NextCompletionAt:   t1.Add(1 * time.Minute),
+			UnitCompletionTime: 1 * time.Minute,
+		}
+		p.ShipActions = append(p.ShipActions, action)
+
+		after10Minutes := t1.Add(10 * time.Minute)
+
+		err := AdvancePlanetToTime(&p, after10Minutes)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		expected := models.Planet{
+			Id:        p.Id,
+			CreatedAt: p.CreatedAt,
+			UpdatedAt: after10Minutes,
+			Version:   6,
+			Resources: []models.PlanetResource{
+				{Resource: metalResourceId, Amount: 1195},
+				{Resource: crystalResourceId, Amount: 2120},
+			},
+			Storages: []models.PlanetResourceStorage{
+				{Resource: metalResourceId, Storage: 15874},
+				{Resource: crystalResourceId, Storage: 3541},
+			},
+			Productions: []models.PlanetResourceProduction{
+				{Resource: crystalResourceId, Production: 14},
+				{Resource: metalResourceId, Building: &crystalMineId, Production: 65},
+				{Resource: crystalResourceId, Building: &crystalMineId, Production: 26},
+			},
+			Buildings: []models.PlanetBuilding{
+				{Building: crystalMineId, Level: 2},
+				{Building: metalStorageId, Level: 4},
+			},
+			Ships: []models.PlanetShip{
+				{Ship: lightFighterId, Count: 1},
+				{Ship: smallCargoId, Count: 5},
+			},
+			BuildingAction: nil,
+			ShipActions:    []models.ShipAction{},
+		}
+		assert.Equal(t, expected, p)
+	})
+
+	t.Run("applies multiple ship actions when elapsed time is sufficient", func(t *testing.T) {
+		p := generateTestPlanet()
+		action1 := models.ShipAction{
+			Id:                 uuid.New(),
+			Ship:               smallCargoId,
+			Count:              5,
+			CreatedAt:          t1,
+			NextCompletionAt:   t1.Add(1 * time.Minute),
+			UnitCompletionTime: 1 * time.Minute,
+		}
+		action2 := models.ShipAction{
+			Id:                 uuid.New(),
+			Ship:               lightFighterId,
+			Count:              3,
+			CreatedAt:          t1.Add(5 * time.Minute),
+			NextCompletionAt:   t1.Add(6 * time.Minute),
+			UnitCompletionTime: 1 * time.Minute,
+		}
+		p.ShipActions = append(p.ShipActions, action1, action2)
+
+		after7Minutes := t1.Add(7 * time.Minute)
+
+		err := AdvancePlanetToTime(&p, after7Minutes)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		expected := models.Planet{
+			Id:        p.Id,
+			CreatedAt: p.CreatedAt,
+			UpdatedAt: after7Minutes,
+			Version:   6,
+			Resources: []models.PlanetResource{
+				{Resource: metalResourceId, Amount: 1195},
+				{Resource: crystalResourceId, Amount: 2120},
+			},
+			Storages: []models.PlanetResourceStorage{
+				{Resource: metalResourceId, Storage: 15874},
+				{Resource: crystalResourceId, Storage: 3541},
+			},
+			Productions: []models.PlanetResourceProduction{
+				{Resource: crystalResourceId, Production: 14},
+				{Resource: metalResourceId, Building: &crystalMineId, Production: 65},
+				{Resource: crystalResourceId, Building: &crystalMineId, Production: 26},
+			},
+			Buildings: []models.PlanetBuilding{
+				{Building: crystalMineId, Level: 2},
+				{Building: metalStorageId, Level: 4},
+			},
+			Ships: []models.PlanetShip{
+				{Ship: lightFighterId, Count: 3},
+				{Ship: smallCargoId, Count: 5},
+			},
+			BuildingAction: nil,
+			ShipActions: []models.ShipAction{
+				{
+					Id:                 action2.Id,
+					Ship:               lightFighterId,
+					Count:              1,
+					CreatedAt:          action1.CreatedAt,
+					NextCompletionAt:   after7Minutes.Add(1 * time.Minute),
+					UnitCompletionTime: 1 * time.Minute,
+				},
+			},
+		}
+		assert.Equal(t, expected, p)
+	})
+
+	t.Run("applies multiple completion unit but leaves pending unchanged", func(t *testing.T) {
+		p := generateTestPlanet()
+		action1 := models.ShipAction{
+			Id:                 uuid.New(),
+			Ship:               smallCargoId,
+			Count:              5,
+			CreatedAt:          t1,
+			NextCompletionAt:   t1.Add(1 * time.Minute),
+			UnitCompletionTime: 1 * time.Minute,
+		}
+		action2 := models.ShipAction{
+			Id:                 uuid.New(),
+			Ship:               lightFighterId,
+			Count:              2,
+			CreatedAt:          t1.Add(5 * time.Minute),
+			NextCompletionAt:   t1.Add(5*time.Minute + 1*time.Hour),
+			UnitCompletionTime: 1 * time.Hour,
+		}
+		p.ShipActions = append(p.ShipActions, action1, action2)
+
+		after7Minutes := t1.Add(7 * time.Minute)
+
+		err := AdvancePlanetToTime(&p, after7Minutes)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		expected := models.Planet{
+			Id:        p.Id,
+			CreatedAt: p.CreatedAt,
+			UpdatedAt: after7Minutes,
+			Version:   6,
+			Resources: []models.PlanetResource{
+				{Resource: metalResourceId, Amount: 1195},
+				{Resource: crystalResourceId, Amount: 2120},
+			},
+			Storages: []models.PlanetResourceStorage{
+				{Resource: metalResourceId, Storage: 15874},
+				{Resource: crystalResourceId, Storage: 3541},
+			},
+			Productions: []models.PlanetResourceProduction{
+				{Resource: crystalResourceId, Production: 14},
+				{Resource: metalResourceId, Building: &crystalMineId, Production: 65},
+				{Resource: crystalResourceId, Building: &crystalMineId, Production: 26},
+			},
+			Buildings: []models.PlanetBuilding{
+				{Building: crystalMineId, Level: 2},
+				{Building: metalStorageId, Level: 4},
+			},
+			Ships: []models.PlanetShip{
+				{Ship: lightFighterId, Count: 1},
+				{Ship: smallCargoId, Count: 5},
+			},
+			BuildingAction: nil,
+			ShipActions: []models.ShipAction{
+				{
+					Id:                 action2.Id,
+					Ship:               lightFighterId,
+					Count:              1,
+					CreatedAt:          action1.CreatedAt,
+					NextCompletionAt:   t1.Add(5*time.Minute + 1*time.Hour),
+					UnitCompletionTime: 1 * time.Hour,
+				},
+			},
+		}
+		assert.Equal(t, expected, p)
+	})
 }
 
 func generateTestPlanet() models.Planet {
