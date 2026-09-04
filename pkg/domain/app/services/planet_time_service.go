@@ -14,9 +14,12 @@ func AdvancePlanetToTime(
 	events := buildEventsTimelineUntil(planet, moment)
 
 	for _, event := range events {
-		planet.UpdateToTime(event.completionTime)
+		err := planet.UpdateToTime(event.completionTime)
+		if err != nil {
+			return err
+		}
 
-		err := event.apply(planet)
+		err = event.apply(planet)
 		if err != nil {
 			return err
 		}
@@ -63,7 +66,10 @@ func processShipAction(action models.ShipAction, target time.Time) []completionE
 			completionTime: action.NextCompletionAt,
 			apply:          func(p *models.Planet) error { return p.ApplyShipAction() },
 		}
-		action.CompleteOne()
+
+		// Voluntarily ignoring here because of the check at the top of the loop:
+		// if the action completes no additional call to CompleteOne is made.
+		_ = action.CompleteOne()
 
 		out = append(out, event)
 

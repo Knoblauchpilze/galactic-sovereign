@@ -376,20 +376,6 @@ func generateTestPlanetWithShip() models.Planet {
 	}
 }
 
-func generateTestPlanetWithShipAction(completionTime time.Duration) models.Planet {
-	p := generateTestPlanetWithShip()
-	p.ShipActions = append(p.ShipActions, models.ShipAction{
-		Id:                 uuid.New(),
-		Ship:               p.Ships[0].Ship,
-		Count:              37,
-		CreatedAt:          t1,
-		NextCompletionAt:   t1.Add(completionTime),
-		UnitCompletionTime: completionTime,
-	})
-
-	return p
-}
-
 func generateTestShip(planet models.Planet) models.Ship {
 	return models.Ship{
 		Id: planet.Ships[0].Ship,

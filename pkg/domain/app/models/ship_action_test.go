@@ -144,14 +144,3 @@ func generateTestShipAction(
 
 	return action
 }
-
-func withShipActionCost(t *testing.T, action *ShipAction) {
-	t.Helper()
-
-	action.Costs = []ShipActionCost{
-		{
-			Resource: metalResourceId,
-			Amount:   36,
-		},
-	}
-}
