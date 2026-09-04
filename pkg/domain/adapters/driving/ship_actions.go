@@ -7,6 +7,7 @@ import (
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/rest"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driving/dtos"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driving/mappers"
+	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
 	drivingports "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driving"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -51,7 +52,20 @@ func createShipAction(c *gin.Context, usecase drivingports.ForCreatingShipAction
 	request := mappers.ToShipActionCreationRequest(planetId, inputDto)
 	action, err := usecase.Create(c.Request.Context(), request)
 	if err != nil {
-		// TODO: Handle other errors
+		if err == domainerrors.ErrNotFound {
+			c.AbortWithStatusJSON(http.StatusNotFound, "no such planet")
+			return
+		}
+
+		if err == domainerrors.ErrShipNotFound {
+			c.AbortWithStatusJSON(http.StatusBadRequest, "no such ship")
+			return
+		}
+
+		if err == domainerrors.ErrNotEnoughResources {
+			c.AbortWithStatusJSON(http.StatusBadRequest, "not enough resources")
+			return
+		}
 
 		logError(c.Request, "Failed to create ship", slog.Any("error", err))
 		c.AbortWithStatusJSON(http.StatusInternalServerError, "failed to create ship")

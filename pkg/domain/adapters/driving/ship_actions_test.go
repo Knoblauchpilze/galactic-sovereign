@@ -9,6 +9,7 @@ import (
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driving/drivingportstest"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driving/dtos"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
+	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/request"
 	drivingports "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driving"
 	"github.com/gin-gonic/gin"
@@ -147,6 +148,78 @@ func TestUnit_Ships_CreateShipAction(t *testing.T) {
 			},
 		}
 		assert.Equal(t, expected, actual)
+	})
+
+	t.Run("returns 404 when planet is not found", func(t *testing.T) {
+		dto := dtos.ShipActionDtoRequest{Ship: uuid.New(), Count: 1}
+
+		mockUsecase.EXPECT().
+			Create(gomock.Any(), gomock.Any()).
+			Times(1).
+			Return(models.ShipAction{}, domainerrors.ErrNotFound)
+
+		handler := generateHandler[drivingports.ForCreatingShipAction](
+			createShipAction,
+			mockUsecase,
+		)
+		r := createTestGinRouter(t, http.MethodPost, "/planets/:id/ships", handler)
+
+		req := generateTestRequestWithJsonBody(t, http.MethodPost, dto)
+		addRequestPath(t, req, "/planets/%s/ships", sampleUuid)
+		rw := httptest.NewRecorder()
+		r.ServeHTTP(rw, req)
+
+		assert.Equal(t, http.StatusNotFound, rw.Code)
+		actual := decodeResponseBody[string](t, rw)
+		assert.Equal(t, "no such planet", actual)
+	})
+
+	t.Run("returns 400 when ship is not found", func(t *testing.T) {
+		dto := dtos.ShipActionDtoRequest{Ship: uuid.New(), Count: 1}
+
+		mockUsecase.EXPECT().
+			Create(gomock.Any(), gomock.Any()).
+			Times(1).
+			Return(models.ShipAction{}, domainerrors.ErrShipNotFound)
+
+		handler := generateHandler[drivingports.ForCreatingShipAction](
+			createShipAction,
+			mockUsecase,
+		)
+		r := createTestGinRouter(t, http.MethodPost, "/planets/:id/ships", handler)
+
+		req := generateTestRequestWithJsonBody(t, http.MethodPost, dto)
+		addRequestPath(t, req, "/planets/%s/ships", sampleUuid)
+		rw := httptest.NewRecorder()
+		r.ServeHTTP(rw, req)
+
+		assert.Equal(t, http.StatusBadRequest, rw.Code)
+		actual := decodeResponseBody[string](t, rw)
+		assert.Equal(t, "no such ship", actual)
+	})
+
+	t.Run("returns 400 when not enough resources are on the planet", func(t *testing.T) {
+		dto := dtos.ShipActionDtoRequest{Ship: uuid.New(), Count: 1}
+
+		mockUsecase.EXPECT().
+			Create(gomock.Any(), gomock.Any()).
+			Times(1).
+			Return(models.ShipAction{}, domainerrors.ErrNotEnoughResources)
+
+		handler := generateHandler[drivingports.ForCreatingShipAction](
+			createShipAction,
+			mockUsecase,
+		)
+		r := createTestGinRouter(t, http.MethodPost, "/planets/:id/ships", handler)
+
+		req := generateTestRequestWithJsonBody(t, http.MethodPost, dto)
+		addRequestPath(t, req, "/planets/%s/ships", sampleUuid)
+		rw := httptest.NewRecorder()
+		r.ServeHTTP(rw, req)
+
+		assert.Equal(t, http.StatusBadRequest, rw.Code)
+		actual := decodeResponseBody[string](t, rw)
+		assert.Equal(t, "not enough resources", actual)
 	})
 
 	t.Run("returns 500 when use case fails", func(t *testing.T) {
