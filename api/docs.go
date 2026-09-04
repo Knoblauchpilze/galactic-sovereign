@@ -552,9 +552,9 @@ const docTemplate = `{
                 ],
                 "type": "object"
             },
-            "dtos.ShipCostDtoResponse": {
+            "dtos.ShipActionCostDtoResponse": {
                 "properties": {
-                    "cost": {
+                    "amount": {
                         "type": "integer"
                     },
                     "resource": {
@@ -562,13 +562,9 @@ const docTemplate = `{
                         "type": "string"
                     }
                 },
-                "required": [
-                    "cost",
-                    "resource"
-                ],
                 "type": "object"
             },
-            "dtos.ShipDtoRequest": {
+            "dtos.ShipActionDtoRequest": {
                 "properties": {
                     "count": {
                         "minimum": 1,
@@ -582,6 +578,67 @@ const docTemplate = `{
                 "required": [
                     "count",
                     "ship"
+                ],
+                "type": "object"
+            },
+            "dtos.ShipActionDtoResponse": {
+                "properties": {
+                    "costs": {
+                        "items": {
+                            "$ref": "#/components/schemas/dtos.ShipActionCostDtoResponse"
+                        },
+                        "type": "array",
+                        "uniqueItems": false
+                    },
+                    "count": {
+                        "type": "integer"
+                    },
+                    "created_at": {
+                        "format": "date-time",
+                        "type": "string"
+                    },
+                    "id": {
+                        "format": "uuid",
+                        "type": "string"
+                    },
+                    "next_completion_at": {
+                        "format": "date-time",
+                        "type": "string"
+                    },
+                    "ship": {
+                        "format": "uuid",
+                        "type": "string"
+                    },
+                    "unit_completion_time": {
+                        "example": "PT1H36M",
+                        "format": "duration",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "costs",
+                    "count",
+                    "created_at",
+                    "id",
+                    "next_completion_at",
+                    "ship",
+                    "unit_completion_time"
+                ],
+                "type": "object"
+            },
+            "dtos.ShipCostDtoResponse": {
+                "properties": {
+                    "cost": {
+                        "type": "integer"
+                    },
+                    "resource": {
+                        "format": "uuid",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "cost",
+                    "resource"
                 ],
                 "type": "object"
             },
@@ -893,6 +950,32 @@ const docTemplate = `{
                 ],
                 "type": "object"
             },
+            "rest.ResponseEnvelope-dtos_ShipActionDtoResponse": {
+                "properties": {
+                    "details": {
+                        "$ref": "#/components/schemas/dtos.ShipActionDtoResponse"
+                    },
+                    "request_id": {
+                        "example": "669cd40f-ea15-40a8-ab03-81e704a3ecf9",
+                        "format": "uuid",
+                        "type": "string"
+                    },
+                    "status": {
+                        "$ref": "#/components/schemas/rest.Status"
+                    },
+                    "status_code": {
+                        "example": 200,
+                        "type": "integer"
+                    }
+                },
+                "required": [
+                    "details",
+                    "request_id",
+                    "status",
+                    "status_code"
+                ],
+                "type": "object"
+            },
             "rest.ResponseEnvelope-dtos_UniverseDtoResponse": {
                 "properties": {
                     "details": {
@@ -997,53 +1080,6 @@ const docTemplate = `{
                 "summary": "Health check",
                 "tags": [
                     "healthcheck"
-                ]
-            }
-        },
-        "/planets/:id/ships": {
-            "post": {
-                "description": "Creates a ship action on a planet.",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/dtos.ShipDtoRequest",
-                                "summary": "request",
-                                "description": "Ship payload"
-                            }
-                        }
-                    },
-                    "description": "Ship payload",
-                    "required": true
-                },
-                "responses": {
-                    "204": {
-                        "description": "No Content"
-                    },
-                    "400": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/rest.ResponseEnvelope-string"
-                                }
-                            }
-                        },
-                        "description": "Bad Request"
-                    },
-                    "500": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/rest.ResponseEnvelope-string"
-                                }
-                            }
-                        },
-                        "description": "Internal Server Error"
-                    }
-                },
-                "summary": "Create ship action",
-                "tags": [
-                    "planets"
                 ]
             }
         },
@@ -1299,6 +1335,60 @@ const docTemplate = `{
                     }
                 },
                 "summary": "Create building action",
+                "tags": [
+                    "planets"
+                ]
+            }
+        },
+        "/planets/{id}/ships": {
+            "post": {
+                "description": "Creates a ship action on a planet.",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/dtos.ShipActionDtoRequest",
+                                "summary": "request",
+                                "description": "Ship payload"
+                            }
+                        }
+                    },
+                    "description": "Ship payload",
+                    "required": true
+                },
+                "responses": {
+                    "201": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/rest.ResponseEnvelope-dtos_ShipActionDtoResponse"
+                                }
+                            }
+                        },
+                        "description": "Created"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/rest.ResponseEnvelope-string"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/rest.ResponseEnvelope-string"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "summary": "Create ship action",
                 "tags": [
                     "planets"
                 ]

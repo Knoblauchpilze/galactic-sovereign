@@ -29,11 +29,11 @@ func ShipActionEndpoints(usecase drivingports.ForCreatingShipAction) Routes {
 //	@Description	Creates a ship action on a planet.
 //	@Tags			planets
 //	@Produce		json
-//	@Param			request	body		dtos.ShipDtoRequest	true	"Ship payload"
+//	@Param			request	body		dtos.ShipActionDtoRequest	true	"Ship payload"
 //	@Success		201		{object}	rest.ResponseEnvelope[dtos.ShipActionDtoResponse]
 //	@Failure		400		{object}	rest.ResponseEnvelope[string]
 //	@Failure		500		{object}	rest.ResponseEnvelope[string]
-//	@Router			/planets/:id/ships [post]
+//	@Router			/planets/{id}/ships [post]
 func createShipAction(c *gin.Context, usecase drivingports.ForCreatingShipAction) {
 	maybeId := c.Param("id")
 	planetId, err := uuid.Parse(maybeId)

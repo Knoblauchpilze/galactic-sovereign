@@ -16,9 +16,9 @@ type ShipActionDtoResponse struct {
 	Ship  uuid.UUID `json:"ship" format:"uuid" binding:"required"`
 	Count int       `json:"count" binding:"required"`
 
-	CreatedAt          time.Time     `json:"created_at" format:"date-time" binding:"required"`
-	NextCompletionAt   time.Time     `json:"next_completion_at" format:"date-time" binding:"required"`
-	UnitCompletionTime time.Duration `json:"unit_completion_time" format:"duration" binding:"required"`
+	CreatedAt          time.Time `json:"created_at" format:"date-time" binding:"required"`
+	NextCompletionAt   time.Time `json:"next_completion_at" format:"date-time" binding:"required"`
+	UnitCompletionTime string    `json:"unit_completion_time" format:"duration" binding:"required" example:"PT1H36M"`
 
 	Costs []ShipActionCostDtoResponse `json:"costs" binding:"required"`
 }

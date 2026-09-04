@@ -20,13 +20,12 @@ func ToShipActionCreationRequest(
 
 func ToShipActionResponse(action models.ShipAction) dtos.ShipActionDtoResponse {
 	return dtos.ShipActionDtoResponse{
-		Id:               action.Id,
-		Ship:             action.Ship,
-		Count:            action.Count,
-		CreatedAt:        action.CreatedAt,
-		NextCompletionAt: action.NextCompletionAt,
-		// TODO: The duration might be wrongly shown in the API spec
-		UnitCompletionTime: action.UnitCompletionTime,
+		Id:                 action.Id,
+		Ship:               action.Ship,
+		Count:              action.Count,
+		CreatedAt:          action.CreatedAt,
+		NextCompletionAt:   action.NextCompletionAt,
+		UnitCompletionTime: toIso8601Duration(action.UnitCompletionTime),
 		Costs:              toShipActionCostsResponse(action.Costs),
 	}
 }

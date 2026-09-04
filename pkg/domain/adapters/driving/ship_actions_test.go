@@ -137,12 +137,13 @@ func TestUnit_Ships_CreateShipAction(t *testing.T) {
 		assert.Equal(t, http.StatusCreated, rw.Code)
 		actual := decodeResponseBody[dtos.ShipActionDtoResponse](t, rw)
 		expected := dtos.ShipActionDtoResponse{
-			Id:                 action.Id,
-			Ship:               action.Ship,
-			Count:              action.Count,
-			CreatedAt:          action.CreatedAt,
-			NextCompletionAt:   action.NextCompletionAt,
-			UnitCompletionTime: action.UnitCompletionTime,
+			Id:               action.Id,
+			Ship:             action.Ship,
+			Count:            action.Count,
+			CreatedAt:        action.CreatedAt,
+			NextCompletionAt: action.NextCompletionAt,
+			// Corresponds to someOtherTime - someTime
+			UnitCompletionTime: "PT20H20M26S",
 			Costs: []dtos.ShipActionCostDtoResponse{
 				{Resource: action.Costs[0].Resource, Amount: 1478},
 			},
