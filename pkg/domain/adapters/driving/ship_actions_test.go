@@ -30,7 +30,7 @@ func TestUnit_Ships_CreateShipAction(t *testing.T) {
 		)
 		r := createTestGinRouter(t, http.MethodPost, "/planets/:id/ships", handler)
 
-		dto := dtos.ShipDtoRequest{Ship: uuid.New(), Count: 26}
+		dto := dtos.ShipActionDtoRequest{Ship: uuid.New(), Count: 26}
 		req := generateTestRequestWithJsonBody(t, http.MethodPost, dto)
 		addRequestPath(t, req, "/planets/%s/ships", "not-a-uuid")
 		rw := httptest.NewRecorder()
@@ -65,7 +65,7 @@ func TestUnit_Ships_CreateShipAction(t *testing.T) {
 		)
 		r := createTestGinRouter(t, http.MethodPost, "/planets/:id/ships", handler)
 
-		dto := dtos.ShipDtoRequest{Ship: uuid.New(), Count: 0}
+		dto := dtos.ShipActionDtoRequest{Ship: uuid.New(), Count: 0}
 		req := generateTestRequestWithJsonBody(t, http.MethodPost, dto)
 		addRequestPath(t, req, "/planets/%s/ships", sampleUuid)
 		rw := httptest.NewRecorder()
@@ -83,7 +83,7 @@ func TestUnit_Ships_CreateShipAction(t *testing.T) {
 		)
 		r := createTestGinRouter(t, http.MethodPost, "/planets/:id/ships", handler)
 
-		dto := dtos.ShipDtoRequest{Ship: uuid.New(), Count: -1}
+		dto := dtos.ShipActionDtoRequest{Ship: uuid.New(), Count: -1}
 		req := generateTestRequestWithJsonBody(t, http.MethodPost, dto)
 		addRequestPath(t, req, "/planets/%s/ships", sampleUuid)
 		rw := httptest.NewRecorder()
@@ -95,7 +95,7 @@ func TestUnit_Ships_CreateShipAction(t *testing.T) {
 	})
 
 	t.Run("forwards creation to use case", func(t *testing.T) {
-		dto := dtos.ShipDtoRequest{Ship: uuid.New(), Count: 4}
+		dto := dtos.ShipActionDtoRequest{Ship: uuid.New(), Count: 4}
 
 		expectedRequest := request.ShipActionCreationRequest{
 			Planet: sampleUuid,
@@ -134,7 +134,7 @@ func TestUnit_Ships_CreateShipAction(t *testing.T) {
 		)
 		r := createTestGinRouter(t, http.MethodPost, "/planets/:id/ships", handler)
 
-		dto := dtos.ShipDtoRequest{Ship: uuid.New(), Count: 2}
+		dto := dtos.ShipActionDtoRequest{Ship: uuid.New(), Count: 2}
 		req := generateTestRequestWithJsonBody(t, http.MethodPost, dto)
 		addRequestPath(t, req, "/planets/%s/ships", sampleUuid)
 		rw := httptest.NewRecorder()

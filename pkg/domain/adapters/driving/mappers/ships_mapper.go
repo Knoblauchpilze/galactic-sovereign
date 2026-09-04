@@ -6,9 +6,9 @@ import (
 	"github.com/google/uuid"
 )
 
-func ToShipCreationRequest(
+func ToShipActionCreationRequest(
 	planetId uuid.UUID,
-	dto dtos.ShipDtoRequest,
+	dto dtos.ShipActionDtoRequest,
 ) request.ShipActionCreationRequest {
 	return request.ShipActionCreationRequest{
 		Planet: planetId,
