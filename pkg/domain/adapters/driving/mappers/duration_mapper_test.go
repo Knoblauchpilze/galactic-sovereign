@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-func TestToIso8601Duration(t *testing.T) {
+func TestUnit_ToIso8601Duration(t *testing.T) {
 	tests := []struct {
 		duration time.Duration
 		expected string
