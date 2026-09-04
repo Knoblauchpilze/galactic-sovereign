@@ -144,6 +144,7 @@ func (p *Planet) UpdateToTime(moment time.Time) error {
 		return nil
 	}
 
+	// TODO: Should be up to date
 	if p.BuildingAction != nil && moment.After(p.BuildingAction.CompletedAt) {
 		return domainerrors.ErrPlanetNotUpToDate
 	}
