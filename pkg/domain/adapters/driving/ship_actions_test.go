@@ -102,11 +102,25 @@ func TestUnit_Ships_CreateShipAction(t *testing.T) {
 			Ship:   dto.Ship,
 			Count:  dto.Count,
 		}
+		action := models.ShipAction{
+			Id:                 uuid.New(),
+			Ship:               dto.Ship,
+			Count:              dto.Count,
+			CreatedAt:          someTime,
+			NextCompletionAt:   someOtherTime,
+			UnitCompletionTime: someOtherTime.Sub(someTime),
+			Costs: []models.ShipActionCost{
+				{
+					Resource: uuid.New(),
+					Amount:   1478,
+				},
+			},
+		}
 
 		mockUsecase.EXPECT().
 			Create(gomock.Any(), gomock.Eq(expectedRequest)).
 			Times(1).
-			Return(models.ShipAction{}, nil)
+			Return(action, nil)
 
 		handler := generateHandler[drivingports.ForCreatingShipAction](
 			createShipAction,
@@ -119,7 +133,20 @@ func TestUnit_Ships_CreateShipAction(t *testing.T) {
 		rw := httptest.NewRecorder()
 		r.ServeHTTP(rw, req)
 
-		assert.Equal(t, http.StatusNoContent, rw.Code)
+		assert.Equal(t, http.StatusCreated, rw.Code)
+		actual := decodeResponseBody[dtos.ShipActionDtoResponse](t, rw)
+		expected := dtos.ShipActionDtoResponse{
+			Id:                 action.Id,
+			Ship:               action.Ship,
+			Count:              action.Count,
+			CreatedAt:          action.CreatedAt,
+			NextCompletionAt:   action.NextCompletionAt,
+			UnitCompletionTime: action.UnitCompletionTime,
+			Costs: []dtos.ShipActionCostDtoResponse{
+				{Resource: action.Costs[0].Resource, Amount: 1478},
+			},
+		}
+		assert.Equal(t, expected, actual)
 	})
 
 	t.Run("returns 500 when use case fails", func(t *testing.T) {
