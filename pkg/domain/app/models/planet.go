@@ -144,9 +144,9 @@ func (p *Planet) UpdateToTime(moment time.Time) error {
 		return nil
 	}
 
-	// TODO: Should be up to date
-	if p.BuildingAction != nil && moment.After(p.BuildingAction.CompletedAt) {
-		return domainerrors.ErrPlanetNotUpToDate
+	err := p.checkUpToDate(moment)
+	if err != nil {
+		return err
 	}
 
 	elapsed := moment.Sub(p.UpdatedAt)
@@ -418,4 +418,18 @@ func (p *Planet) updateStorages() {
 		id := temp[s.Resource]
 		p.Storages[id].Storage = s.Storage
 	}
+}
+
+func (p *Planet) checkUpToDate(moment time.Time) error {
+	if p.BuildingAction != nil && p.BuildingAction.CompletedAt.Compare(moment) < 0 {
+		return domainerrors.ErrPlanetNotUpToDate
+	}
+
+	for _, action := range p.ShipActions {
+		if action.NextCompletionAt.Compare(moment) < 0 {
+			return domainerrors.ErrPlanetNotUpToDate
+		}
+	}
+
+	return nil
 }

@@ -606,6 +606,84 @@ func TestUnit_Planet_UpdateToTime(t *testing.T) {
 
 		assert.ErrorIs(t, err, domainerrors.ErrPlanetNotUpToDate, "Actual err is: %v", err)
 	})
+
+	t.Run("leaves building action unchanged when completion is after update time", func(t *testing.T) {
+		t1 := time.Date(2026, time.September, 4, 18, 21, 17, 0, time.UTC)
+		t2 := time.Date(2026, time.September, 4, 18, 22, 17, 0, time.UTC)
+		t3 := time.Date(2026, time.September, 4, 18, 23, 17, 0, time.UTC)
+
+		p := Planet{
+			Resources: []PlanetResource{{Resource: crystalResourceId, Amount: 36}},
+			Storages:  []PlanetResourceStorage{{Resource: crystalResourceId, Storage: 300}},
+			Productions: []PlanetResourceProduction{
+				{Resource: crystalResourceId, Production: 30},
+				{Resource: crystalResourceId, Production: 45, Building: &crystalMineId},
+			},
+			BuildingAction: &BuildingAction{
+				CompletedAt: t3,
+			},
+			UpdatedAt: t1,
+		}
+
+		err := p.UpdateToTime(t2)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.Len(t, p.Resources, 1)
+		assert.Equal(t, 37.25, p.Resources[0].Amount)
+		assert.Equal(t, t3, p.BuildingAction.CompletedAt)
+	})
+
+	t.Run("returns error when ship action finishes before update time", func(t *testing.T) {
+		t1 := time.Date(2026, time.June, 26, 8, 30, 50, 0, time.UTC)
+		t2 := time.Date(2026, time.June, 26, 8, 31, 50, 0, time.UTC)
+		t3 := time.Date(2026, time.June, 26, 8, 32, 50, 0, time.UTC)
+
+		p := Planet{
+			ShipActions: []ShipAction{
+				{
+					Id:                 uuid.New(),
+					Count:              3,
+					CreatedAt:          t1,
+					NextCompletionAt:   t2,
+					UnitCompletionTime: t2.Sub(t1),
+				},
+			},
+			UpdatedAt: t1,
+		}
+
+		err := p.UpdateToTime(t3)
+
+		assert.ErrorIs(t, err, domainerrors.ErrPlanetNotUpToDate, "Actual err is: %v", err)
+	})
+
+	t.Run("leaves ship action unchanged when completion is after update time", func(t *testing.T) {
+		t1 := time.Date(2026, time.September, 4, 18, 21, 17, 0, time.UTC)
+		t2 := time.Date(2026, time.September, 4, 18, 22, 17, 0, time.UTC)
+		t3 := time.Date(2026, time.September, 4, 18, 23, 17, 0, time.UTC)
+
+		p := Planet{
+			Resources: []PlanetResource{{Resource: crystalResourceId, Amount: 36}},
+			Storages:  []PlanetResourceStorage{{Resource: crystalResourceId, Storage: 300}},
+			Productions: []PlanetResourceProduction{
+				{Resource: crystalResourceId, Production: 30},
+				{Resource: crystalResourceId, Production: 45, Building: &crystalMineId},
+			},
+			ShipActions: []ShipAction{
+				{
+					Count:            2,
+					NextCompletionAt: t3,
+				},
+			},
+			UpdatedAt: t1,
+		}
+
+		err := p.UpdateToTime(t2)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.Len(t, p.Resources, 1)
+		assert.Equal(t, 37.25, p.Resources[0].Amount)
+		assert.Equal(t, t3, p.ShipActions[0].NextCompletionAt)
+	})
 }
 
 func TestUnit_Planet_ApplyBuildingAction(t *testing.T) {
