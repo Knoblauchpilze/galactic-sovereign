@@ -73,6 +73,54 @@ func TestIT_Server_PlayerBuildingActionLifecycle(t *testing.T) {
 	assert.Nil(t, homeworld.BuildingAction)
 }
 
+func TestIT_Server_PlayerShipActionLifecycle(t *testing.T) {
+	dbContainer := integrationdb.NewDatabaseSharedContainer(t)
+	conn := dbContainer.NewTestConnection(t)
+	conf := newTestServerConfig()
+
+	s := CreateGameServer(conf, conn, slog.Default())
+	asyncStartServer(t, s)
+
+	// Create a player
+	playerReq := dtos.PlayerDtoRequest{
+		ApiUser:  uuid.New(),
+		Universe: oberonUniverseId,
+		Name:     "test-player",
+	}
+	player := doPost[dtos.PlayerDtoResponse](
+		t, urlFor(conf, "players"), playerReq,
+	)
+
+	// Fetch the universe and pick a ship from it
+	universe := doGet[dtos.UniverseDtoResponse](
+		t, urlFor(conf, "universes", oberonUniverseId.String()),
+	)
+	require.NotEmpty(t, universe.Ships)
+	ship := universe.Ships[0]
+
+	// Credit the homeworld with enough resources to afford the ship
+	for _, cost := range ship.Costs {
+		addPlanetResources(t, conn, player.Homeworld, cost.Resource, cost.Cost)
+	}
+
+	// Create a ship action on the planet
+	actionReq := dtos.ShipActionDtoRequest{
+		Ship:  ship.Id,
+		Count: 1,
+	}
+	action := doPost[dtos.ShipActionDtoResponse](
+		t, urlFor(conf, "planets", player.Homeworld.String(), "ships"), actionReq,
+	)
+	assert.Equal(t, ship.Id, action.Ship)
+	assert.Equal(t, 1, action.Count)
+
+	// Delete the player
+	doDelete(t, urlFor(conf, "players", player.Id.String()))
+
+	assertGetStatus(t, urlFor(conf, "planets", player.Homeworld.String()), http.StatusNotFound)
+	assertGetStatus(t, urlFor(conf, "players", player.Id.String()), http.StatusNotFound)
+}
+
 func TestIT_Server_PlayerDeletionRemovesPlanetsAndAction(t *testing.T) {
 	dbContainer := integrationdb.NewDatabaseSharedContainer(t)
 	conn := dbContainer.NewTestConnection(t)

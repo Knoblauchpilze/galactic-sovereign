@@ -11,6 +11,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/rest"
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/server"
 	"github.com/google/uuid"
@@ -132,4 +133,19 @@ func decodeResponseBody[T any](t *testing.T, body io.ReadCloser) T {
 	require.NoError(t, err, "Actual err: %v", err)
 
 	return envelope.Details
+}
+
+// addPlanetResources credits the given resource amount to the planet, allowing
+// tests to afford actions (e.g. ships) that starting resources can't cover.
+func addPlanetResources(t *testing.T, conn db.Connection, planet uuid.UUID, resource uuid.UUID, amount int) {
+	t.Helper()
+
+	_, err := conn.Exec(
+		t.Context(),
+		`UPDATE planet_resource SET amount = amount + $1 WHERE planet = $2 AND resource = $3`,
+		amount,
+		planet,
+		resource,
+	)
+	require.NoError(t, err, "Actual err: %v", err)
 }
