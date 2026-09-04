@@ -12,13 +12,13 @@ import (
 )
 
 type PlanetUseCase struct {
-	planetRepo    drivenports.ForManagingPlanets
+	planetRepo    drivenports.ForListingPlanets
 	planetMutator drivenports.ForMutatingPlanet
 	clock         drivenports.ForFetchingTime
 }
 
 func NewPlanetUseCase(
-	planetRepo drivenports.ForManagingPlanets,
+	planetRepo drivenports.ForListingPlanets,
 	planetMutator drivenports.ForMutatingPlanet,
 	clock drivenports.ForFetchingTime,
 ) *PlanetUseCase {

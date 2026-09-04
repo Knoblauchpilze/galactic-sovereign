@@ -32,7 +32,7 @@ type MutatorMock func(context.Context, uuid.UUID, drivenports.PlanetMutator) (mo
 
 type planetTestSuite struct {
 	ctrl              *gomock.Controller
-	mockPlanetRepo    *drivenportstest.MockForManagingPlanets
+	mockPlanetRepo    *drivenportstest.MockForListingPlanets
 	mockPlanetMutator *drivenportstest.MockForMutatingPlanet
 	mockClock         *drivenportstest.MockForFetchingTime
 	usecase           *PlanetUseCase
@@ -589,7 +589,7 @@ func setupPlanetTestSuite(t *testing.T) *planetTestSuite {
 	t.Helper()
 
 	ctrl := gomock.NewController(t)
-	mockPlanetRepo := drivenportstest.NewMockForManagingPlanets(ctrl)
+	mockPlanetRepo := drivenportstest.NewMockForListingPlanets(ctrl)
 	mockPlanetMutator := drivenportstest.NewMockForMutatingPlanet(ctrl)
 	mockClock := drivenportstest.NewMockForFetchingTime(ctrl)
 

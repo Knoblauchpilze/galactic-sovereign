@@ -13,18 +13,15 @@ import (
 type PlayerUseCase struct {
 	playerRepo   drivenports.ForManagingPlayers
 	universeRepo drivenports.ForManagingUniverses
-	planetRepo   drivenports.ForManagingPlanets
 }
 
 func NewPlayerUseCase(
 	playerRepo drivenports.ForManagingPlayers,
 	universeRepo drivenports.ForManagingUniverses,
-	planetRepo drivenports.ForManagingPlanets,
 ) *PlayerUseCase {
 	return &PlayerUseCase{
 		playerRepo:   playerRepo,
 		universeRepo: universeRepo,
-		planetRepo:   planetRepo,
 	}
 }
 

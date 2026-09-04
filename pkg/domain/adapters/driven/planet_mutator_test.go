@@ -987,7 +987,6 @@ func TestIT_PlanetMutator_Mutate(t *testing.T) {
 
 	t.Run("deletes planet when mutator indicates it", func(t *testing.T) {
 		planet, _, _ := insertTestPlanetForPlayer(t, conn)
-		require.NotEqual(t, planet.UpdatedAt, yetAnotherTime)
 
 		returned, err := adapter.Mutate(t.Context(), planet.Id, generateDeletingMutator())
 		require.NoError(t, err, "Actual err: %v", err)
@@ -996,9 +995,19 @@ func TestIT_PlanetMutator_Mutate(t *testing.T) {
 		assertPlanetDoesNotExist(t, conn, planet.Id)
 	})
 
+	t.Run("deletes homeworld when mutator indicates it", func(t *testing.T) {
+		player, _ := insertTestPlayerInUniverse(t, conn)
+
+		returned, err := adapter.Mutate(t.Context(), player.Homeworld, generateDeletingMutator())
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.True(t, returned.Deleted)
+		assertPlanetDoesNotExist(t, conn, player.Homeworld)
+		assertPlanetIsNotHomeworld(t, conn, player.Homeworld)
+	})
+
 	t.Run("deletes planet with resources when mutator indicates it", func(t *testing.T) {
 		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetResource)
-		require.NotEqual(t, planet.UpdatedAt, yetAnotherTime)
 
 		returned, err := adapter.Mutate(t.Context(), planet.Id, generateDeletingMutator())
 		require.NoError(t, err, "Actual err: %v", err)
@@ -1079,6 +1088,18 @@ func TestIT_PlanetMutator_Mutate(t *testing.T) {
 		assertPlanetDoesNotExist(t, conn, planet.Id)
 		require.NotNil(t, planet.BuildingAction)
 		assertBuildingActionDoesNotExist(t, conn, planet.BuildingAction.Id)
+	})
+
+	t.Run("deletes planet with ship action when mutator indicates it", func(t *testing.T) {
+		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetShipAction)
+		require.NotEqual(t, planet.UpdatedAt, yetAnotherTime)
+
+		returned, err := adapter.Mutate(t.Context(), planet.Id, generateDeletingMutator())
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.True(t, returned.Deleted)
+		assertPlanetDoesNotExist(t, conn, planet.Id)
+		assertShipActionDoesNotExist(t, conn, planet.Id)
 	})
 }
 

@@ -20,7 +20,6 @@ type playerTestSuite struct {
 	ctrl             *gomock.Controller
 	mockPlayerRepo   *drivenportstest.MockForManagingPlayers
 	mockUniverseRepo *drivenportstest.MockForManagingUniverses
-	mockPlanetRepo   *drivenportstest.MockForManagingPlanets
 	usecase          *PlayerUseCase
 }
 
@@ -285,17 +284,14 @@ func setupPlayerTestSuite(t *testing.T) *playerTestSuite {
 	ctrl := gomock.NewController(t)
 	mockPlayerRepo := drivenportstest.NewMockForManagingPlayers(ctrl)
 	mockUniverseRepo := drivenportstest.NewMockForManagingUniverses(ctrl)
-	mockPlanetRepo := drivenportstest.NewMockForManagingPlanets(ctrl)
 
 	return &playerTestSuite{
 		ctrl:             ctrl,
 		mockPlayerRepo:   mockPlayerRepo,
 		mockUniverseRepo: mockUniverseRepo,
-		mockPlanetRepo:   mockPlanetRepo,
 		usecase: NewPlayerUseCase(
 			mockPlayerRepo,
 			mockUniverseRepo,
-			mockPlanetRepo,
 		),
 	}
 }

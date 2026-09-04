@@ -218,17 +218,6 @@ func (r *PlanetRepository) ListForPlayer(ctx context.Context, player uuid.UUID) 
 	return db.QueryAll[uuid.UUID](ctx, r.conn, listPlanetForPlayerQuery, player)
 }
 
-func (r *PlanetRepository) Delete(ctx context.Context, id uuid.UUID) error {
-	// TODO: Should probably use the mutator instead.
-	tx, err := r.conn.BeginTx(ctx)
-	if err != nil {
-		return err
-	}
-	defer tx.Close(ctx)
-
-	return deletePlanetAndDetails(ctx, tx, id)
-}
-
 func createPlanetWithDetails(ctx context.Context, tx db.Transaction, planet models.Planet) error {
 	_, err := tx.Exec(
 		ctx,
