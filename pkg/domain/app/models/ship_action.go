@@ -57,6 +57,10 @@ func (a *ShipAction) CompleteOne() error {
 	return nil
 }
 
+func (a *ShipAction) Completed() bool {
+	return a.Count <= 0
+}
+
 func (a *ShipAction) CompletionTime() time.Time {
 	if a.Count <= 1 {
 		return a.NextCompletionAt

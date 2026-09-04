@@ -237,7 +237,7 @@ func (p *Planet) ApplyShipAction() error {
 		return err
 	}
 
-	if action.Count == 0 {
+	if action.Completed() {
 		p.ShipActions = p.ShipActions[1:]
 	}
 

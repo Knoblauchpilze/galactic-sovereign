@@ -43,6 +43,35 @@ func TestUnit_ShipAction_CompleteOne(t *testing.T) {
 	})
 }
 
+func TestUnit_ShipAction_Completed(t *testing.T) {
+	t.Run("returns true when count is 0", func(t *testing.T) {
+		action := ShipAction{
+			Id:    uuid.New(),
+			Count: 0,
+		}
+
+		assert.True(t, action.Completed())
+	})
+
+	t.Run("returns true when count is negative", func(t *testing.T) {
+		action := ShipAction{
+			Id:    uuid.New(),
+			Count: -1,
+		}
+
+		assert.True(t, action.Completed())
+	})
+
+	t.Run("returns false when count is positive", func(t *testing.T) {
+		action := ShipAction{
+			Id:    uuid.New(),
+			Count: 12,
+		}
+
+		assert.False(t, action.Completed())
+	})
+}
+
 func TestUnit_ShipAction_CompletionTime(t *testing.T) {
 	t.Run("returns next completion time when only one unit is left", func(t *testing.T) {
 		action := generateTestShipAction(t)
