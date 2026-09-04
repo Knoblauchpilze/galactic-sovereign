@@ -169,7 +169,7 @@ func TestUnit_AdvancePlanetToTime(t *testing.T) {
 			Id:        p.Id,
 			CreatedAt: p.CreatedAt,
 			UpdatedAt: t4,
-			Version:   6,
+			Version:   5,
 			Resources: []models.PlanetResource{
 				{Resource: metalResourceId, Amount: 1195},
 				{Resource: crystalResourceId, Amount: 2120},
@@ -322,10 +322,10 @@ func TestUnit_AdvancePlanetToTime(t *testing.T) {
 			Id:        p.Id,
 			CreatedAt: p.CreatedAt,
 			UpdatedAt: after3Minutes,
-			Version:   6,
+			Version:   9,
 			Resources: []models.PlanetResource{
-				{Resource: metalResourceId, Amount: 1195},
-				{Resource: crystalResourceId, Amount: 2120},
+				{Resource: metalResourceId, Amount: 1003.2500000000001},
+				{Resource: crystalResourceId, Amount: 2002.0000000000002},
 			},
 			Storages: []models.PlanetResourceStorage{
 				{Resource: metalResourceId, Storage: 15874},
@@ -380,10 +380,10 @@ func TestUnit_AdvancePlanetToTime(t *testing.T) {
 			Id:        p.Id,
 			CreatedAt: p.CreatedAt,
 			UpdatedAt: after10Minutes,
-			Version:   6,
+			Version:   14,
 			Resources: []models.PlanetResource{
-				{Resource: metalResourceId, Amount: 1195},
-				{Resource: crystalResourceId, Amount: 2120},
+				{Resource: metalResourceId, Amount: 1010.8333333333335},
+				{Resource: crystalResourceId, Amount: 2006.666666666667},
 			},
 			Storages: []models.PlanetResourceStorage{
 				{Resource: metalResourceId, Storage: 15874},
@@ -437,10 +437,10 @@ func TestUnit_AdvancePlanetToTime(t *testing.T) {
 			Id:        p.Id,
 			CreatedAt: p.CreatedAt,
 			UpdatedAt: after7Minutes,
-			Version:   6,
+			Version:   17,
 			Resources: []models.PlanetResource{
-				{Resource: metalResourceId, Amount: 1195},
-				{Resource: crystalResourceId, Amount: 2120},
+				{Resource: metalResourceId, Amount: 1007.5833333333336},
+				{Resource: crystalResourceId, Amount: 2004.6666666666672},
 			},
 			Storages: []models.PlanetResourceStorage{
 				{Resource: metalResourceId, Storage: 15874},
@@ -465,7 +465,7 @@ func TestUnit_AdvancePlanetToTime(t *testing.T) {
 					Id:                 action2.Id,
 					Ship:               lightFighterId,
 					Count:              1,
-					CreatedAt:          action1.CreatedAt,
+					CreatedAt:          action2.CreatedAt,
 					NextCompletionAt:   after7Minutes.Add(1 * time.Minute),
 					UnitCompletionTime: 1 * time.Minute,
 				},
@@ -503,10 +503,10 @@ func TestUnit_AdvancePlanetToTime(t *testing.T) {
 			Id:        p.Id,
 			CreatedAt: p.CreatedAt,
 			UpdatedAt: after7Minutes,
-			Version:   6,
+			Version:   14,
 			Resources: []models.PlanetResource{
-				{Resource: metalResourceId, Amount: 1195},
-				{Resource: crystalResourceId, Amount: 2120},
+				{Resource: metalResourceId, Amount: 1007.5833333333335},
+				{Resource: crystalResourceId, Amount: 2004.666666666667},
 			},
 			Storages: []models.PlanetResourceStorage{
 				{Resource: metalResourceId, Storage: 15874},
@@ -530,8 +530,8 @@ func TestUnit_AdvancePlanetToTime(t *testing.T) {
 				{
 					Id:                 action2.Id,
 					Ship:               lightFighterId,
-					Count:              1,
-					CreatedAt:          action1.CreatedAt,
+					Count:              2,
+					CreatedAt:          action2.CreatedAt,
 					NextCompletionAt:   t1.Add(5*time.Minute + 1*time.Hour),
 					UnitCompletionTime: 1 * time.Hour,
 				},

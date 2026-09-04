@@ -43,20 +43,32 @@ func buildEventsTimelineUntil(planet *models.Planet, target time.Time) []complet
 	}
 
 	for _, action := range planet.ShipActions {
-		// TODO: Should handle multiple unit completion
-		if action.NextCompletionAt.Compare(target) <= 0 {
-			event := completionEvent{
-				completionTime: action.NextCompletionAt,
-				apply:          func(p *models.Planet) error { return p.ApplyShipAction() },
-			}
-
-			out = append(out, event)
-		}
+		out = append(out, processShipAction(action, target)...)
 	}
 
 	sort.Slice(out, func(i, j int) bool {
 		return out[i].completionTime.Before(out[j].completionTime)
 	})
+
+	return out
+}
+
+func processShipAction(action models.ShipAction, target time.Time) []completionEvent {
+	var out []completionEvent
+
+	unitCompleted := action.NextCompletionAt.Compare(target) <= 0
+
+	for unitCompleted && !action.Completed() {
+		event := completionEvent{
+			completionTime: action.NextCompletionAt,
+			apply:          func(p *models.Planet) error { return p.ApplyShipAction() },
+		}
+		action.CompleteOne()
+
+		out = append(out, event)
+
+		unitCompleted = action.NextCompletionAt.Compare(target) <= 0
+	}
 
 	return out
 }

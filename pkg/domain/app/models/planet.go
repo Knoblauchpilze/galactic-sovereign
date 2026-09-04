@@ -140,7 +140,7 @@ func (p *Planet) AddShipAction(ship Ship, count int) error {
 }
 
 func (p *Planet) UpdateToTime(moment time.Time) error {
-	if p.UpdatedAt.After(moment) {
+	if p.UpdatedAt.Compare(moment) >= 0 {
 		return nil
 	}
 
