@@ -181,6 +181,12 @@ func TestIT_Server(t *testing.T) {
 		assert.Equal(t, ship.Id, action.Ship)
 		assert.Equal(t, 1, action.Count)
 
+		homeworld := doGet[dtos.PlanetDtoResponse](
+			t, urlFor(conf, "planets", player.Homeworld.String()),
+		)
+		require.Len(t, homeworld.ShipActions, 1)
+		assert.Equal(t, action, homeworld.ShipActions[0])
+
 		// Delete the player
 		doDelete(t, urlFor(conf, "players", player.Id.String()))
 
