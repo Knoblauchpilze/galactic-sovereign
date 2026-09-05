@@ -30,6 +30,17 @@ func ToShipActionResponse(action models.ShipAction) dtos.ShipActionDtoResponse {
 	}
 }
 
+func ToShipActionsResponse(actions []models.ShipAction) []dtos.ShipActionDtoResponse {
+	out := make([]dtos.ShipActionDtoResponse, 0, len(actions))
+
+	for _, a := range actions {
+		dto := ToShipActionResponse(a)
+		out = append(out, dto)
+	}
+
+	return out
+}
+
 func toShipActionCostResponse(
 	cost models.ShipActionCost,
 ) dtos.ShipActionCostDtoResponse {

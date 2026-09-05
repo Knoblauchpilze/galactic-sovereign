@@ -311,6 +311,13 @@ const docTemplate = `{
                         "type": "array",
                         "uniqueItems": false
                     },
+                    "ship_actions": {
+                        "items": {
+                            "$ref": "#/components/schemas/dtos.ShipActionDtoResponse"
+                        },
+                        "type": "array",
+                        "uniqueItems": false
+                    },
                     "ships": {
                         "items": {
                             "$ref": "#/components/schemas/dtos.PlanetShipDtoResponse"
@@ -341,6 +348,7 @@ const docTemplate = `{
                     "player",
                     "productions",
                     "resources",
+                    "ship_actions",
                     "ships",
                     "storages",
                     "updated_at"

@@ -24,6 +24,7 @@ func ToPlanetResponse(planet models.Planet) dtos.PlanetDtoResponse {
 		Productions: toPlanetProductionsResponse(planet.Productions),
 		Buildings:   toPlanetBuildingsResponse(planet.Buildings),
 		Ships:       toPlanetShipsResponse(planet.Ships),
+		ShipActions: ToShipActionsResponse(planet.ShipActions),
 	}
 
 	if planet.BuildingAction != nil {

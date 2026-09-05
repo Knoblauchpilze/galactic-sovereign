@@ -24,6 +24,7 @@ type PlanetDtoResponse struct {
 	Ships       []PlanetShipDtoResponse               `json:"ships" binding:"required"`
 
 	BuildingAction *BuildingActionDtoResponse `json:"building_action,omitempty"`
+	ShipActions    []ShipActionDtoResponse    `json:"ship_actions" binding:"required"`
 }
 
 type CoordinateDtoResponse struct {

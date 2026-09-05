@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/errors"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driving/drivingportstest"
@@ -89,6 +90,22 @@ func TestUnit_Planets_GetPlanet(t *testing.T) {
 			BuildingAction: &models.BuildingAction{
 				Id: sampleUuid,
 			},
+			ShipActions: []models.ShipAction{
+				{
+					Id:                 uuid.New(),
+					Ship:               uuid.New(),
+					Count:              12,
+					CreatedAt:          someTime,
+					NextCompletionAt:   someOtherTime,
+					UnitCompletionTime: 1*time.Hour + 2*time.Second,
+					Costs: []models.ShipActionCost{
+						{
+							Resource: uuid.New(),
+							Amount:   145,
+						},
+					},
+				},
+			},
 		}
 		mockUsecase.EXPECT().
 			Get(gomock.Any(), gomock.Eq(sampleUuid)).
@@ -153,6 +170,22 @@ func TestUnit_Planets_GetPlanet(t *testing.T) {
 				Storages:    []dtos.BuildingActionStorageDtoResponse{},
 				Productions: []dtos.BuildingActionProductionDtoResponse{},
 			},
+			ShipActions: []dtos.ShipActionDtoResponse{
+				{
+					Id:                 planet.ShipActions[0].Id,
+					Ship:               planet.ShipActions[0].Ship,
+					Count:              planet.ShipActions[0].Count,
+					CreatedAt:          planet.ShipActions[0].CreatedAt,
+					NextCompletionAt:   planet.ShipActions[0].NextCompletionAt,
+					UnitCompletionTime: "PT1H2S",
+					Costs: []dtos.ShipActionCostDtoResponse{
+						{
+							Resource: planet.ShipActions[0].Costs[0].Resource,
+							Amount:   planet.ShipActions[0].Costs[0].Amount,
+						},
+					},
+				},
+			},
 		}
 		assert.Equal(t, expected, actual)
 	})
@@ -198,6 +231,7 @@ func TestUnit_Planets_GetPlanet(t *testing.T) {
 			Buildings:      []dtos.PlanetBuildingDtoResponse{},
 			Ships:          []dtos.PlanetShipDtoResponse{},
 			BuildingAction: nil,
+			ShipActions:    []dtos.ShipActionDtoResponse{},
 		}
 		assert.Equal(t, expected, actual)
 	})
@@ -301,6 +335,7 @@ func TestUnit_Planets_ListPlanetsForPlayer(t *testing.T) {
 				Productions: []dtos.PlanetResourceProductionDtoResponse{},
 				Buildings:   []dtos.PlanetBuildingDtoResponse{},
 				Ships:       []dtos.PlanetShipDtoResponse{},
+				ShipActions: []dtos.ShipActionDtoResponse{},
 			},
 			{
 				Id:          planets[1].Id,
@@ -311,6 +346,7 @@ func TestUnit_Planets_ListPlanetsForPlayer(t *testing.T) {
 				Productions: []dtos.PlanetResourceProductionDtoResponse{},
 				Buildings:   []dtos.PlanetBuildingDtoResponse{},
 				Ships:       []dtos.PlanetShipDtoResponse{},
+				ShipActions: []dtos.ShipActionDtoResponse{},
 			},
 		}
 		assert.Equal(t, expected, actual)
