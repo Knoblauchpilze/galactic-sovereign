@@ -27,9 +27,12 @@ const (
 	allFieldsUsed              errors.ErrorCode = 623
 	shipActionNotCompleted     errors.ErrorCode = 624
 	shipActionAlreadyCompleted errors.ErrorCode = 625
+	unsupportedDatabaseEnumValue errors.ErrorCode = 626
 )
 
 var (
+	ErrUnsupportedDatabaseEnumValue = errors.FromCode(unsupportedDatabaseEnumValue)
+
 	ErrNotFound         = errors.FromCode(resourceNotFound)
 	ErrBuildingNotFound = errors.FromCode(buildingNotFound)
 	ErrShipNotFound     = errors.FromCode(shipNotFound)
