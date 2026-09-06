@@ -56,6 +56,15 @@ func TestIT_BuildingRepository_Get(t *testing.T) {
 		assert.Equal(t, building, actual)
 	})
 
+	t.Run("gets a building with ship speedup", func(t *testing.T) {
+		building := insertTestBuilding(t, conn, addBuildingShipSpeedup)
+
+		actual, err := repo.Get(t.Context(), building.Id)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.Equal(t, building, actual)
+	})
+
 	t.Run("gets a mine-like building", func(t *testing.T) {
 		building := insertTestBuilding(t, conn, addBuildingCost, addBuildingProduction)
 
@@ -201,4 +210,29 @@ func addBuildingStorage(t *testing.T, conn db.Connection, b *models.Building) {
 	require.NoError(t, err, "Actual err: %v", err)
 
 	b.Storages = append(b.Storages, storage)
+}
+
+func addBuildingShipSpeedup(t *testing.T, conn db.Connection, b *models.Building) {
+	t.Helper()
+
+	speedup := models.BuildingShipSpeedup{
+		Scaling:  models.LinearScaling,
+		Base:     randFloat(t, 1.0, 5.0, 5),
+		Progress: randFloat(t, 1.2, 1.95, 5),
+	}
+
+	sqlQuery := `INSERT INTO building_resource_metabolization_ship_speedup
+		(building, scaling, base, coefficient)
+		VALUES ($1, $2, $3, $4)`
+	_, err := conn.Exec(
+		t.Context(),
+		sqlQuery,
+		b.Id,
+		speedup.Scaling,
+		speedup.Base,
+		speedup.Progress,
+	)
+	require.NoError(t, err, "Actual err: %v", err)
+
+	b.ShipSpeedup = &speedup
 }

@@ -14,22 +14,30 @@ const (
 SELECT
 	id,
 	name,
-	created_at
+    created_at,
+	s.scaling AS ship_speedup_scaling,
+	s.base AS ship_speedup_base,
+	s.coefficient AS ship_speedup_progress
 FROM
-	building
+	building AS b
+	LEFT JOIN building_resource_metabolization_ship_speedup AS s ON s.building = b.id
 WHERE
-	id = $1`
+	b.id = $1`
 
 	listBuildingQuery = `
 SELECT
-	id,
-	name,
-	created_at
+    b.id,
+	b.name,
+	b.created_at,
+	s.scaling AS ship_speedup_scaling,
+	s.base AS ship_speedup_base,
+	s.coefficient AS ship_speedup_progress
 FROM
-	building
+	building AS b
+	LEFT JOIN building_resource_metabolization_ship_speedup AS s ON s.building = b.id
 ORDER BY
-	created_at,
-	name`
+	b.created_at,
+	b.name`
 
 	listBuildingCostForBuildingQuery = `
 SELECT

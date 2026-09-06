@@ -15,6 +15,8 @@ type Building struct {
 	Costs       []BuildingCost
 	Productions []BuildingResourceProduction
 	Storages    []BuildingResourceStorage
+
+	ShipSpeedup *BuildingShipSpeedup
 }
 
 type BuildingCost struct {
