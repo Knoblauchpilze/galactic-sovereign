@@ -64,11 +64,6 @@ func (s Ship) determineActionCost(
 }
 
 func (s Ship) determineBuildTime() time.Duration {
-	temp := make(map[uuid.UUID]ShipCost)
-	for _, cost := range s.Costs {
-		temp[cost.Resource] = cost
-	}
-
 	buildTimeHour := 0.0
 	for _, baseCost := range s.Costs {
 		resourceBuildTime := float64(baseCost.Cost) * baseCost.BuildTimeHoursPerUnit
