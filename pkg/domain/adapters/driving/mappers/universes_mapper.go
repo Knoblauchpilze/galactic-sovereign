@@ -79,7 +79,7 @@ func toResourcesResponse(
 func toBuildingResponse(
 	building models.Building,
 ) dtos.BuildingDtoResponse {
-	return dtos.BuildingDtoResponse{
+	dto := dtos.BuildingDtoResponse{
 		Id:          building.Id,
 		Name:        building.Name,
 		CreatedAt:   building.CreatedAt,
@@ -87,6 +87,13 @@ func toBuildingResponse(
 		Productions: toBuildingProductionsResponse(building.Productions),
 		Storages:    toBuildingStoragesResponse(building.Storages),
 	}
+
+	if building.ShipSpeedup != nil {
+		speedup := toBuildingShipSpeedupResponse(*building.ShipSpeedup)
+		dto.ShipSpeedup = &speedup
+	}
+
+	return dto
 }
 
 func toBuildingsResponse(
@@ -232,4 +239,14 @@ func toShipCostsResponse(
 	}
 
 	return out
+}
+
+func toBuildingShipSpeedupResponse(
+	shipSpeedup models.BuildingShipSpeedup,
+) dtos.BuildingShipSpeedupDtoResponse {
+	return dtos.BuildingShipSpeedupDtoResponse{
+		Scaling:  shipSpeedup.Scaling,
+		Base:     shipSpeedup.Base,
+		Progress: shipSpeedup.Progress,
+	}
 }

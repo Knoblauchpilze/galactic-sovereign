@@ -159,6 +159,9 @@ const docTemplate = `{
                         "type": "array",
                         "uniqueItems": false
                     },
+                    "ship_speedup": {
+                        "$ref": "#/components/schemas/dtos.BuildingShipSpeedupDtoResponse"
+                    },
                     "storages": {
                         "items": {
                             "$ref": "#/components/schemas/dtos.BuildingResourceStorageDtoResponse"
@@ -218,6 +221,25 @@ const docTemplate = `{
                     "progress",
                     "resource",
                     "scale"
+                ],
+                "type": "object"
+            },
+            "dtos.BuildingShipSpeedupDtoResponse": {
+                "properties": {
+                    "base": {
+                        "type": "number"
+                    },
+                    "progress": {
+                        "type": "number"
+                    },
+                    "scaling": {
+                        "$ref": "#/components/schemas/models.ScalingMode"
+                    }
+                },
+                "required": [
+                    "base",
+                    "progress",
+                    "scaling"
                 ],
                 "type": "object"
             },
@@ -789,6 +811,17 @@ const docTemplate = `{
                     "topology"
                 ],
                 "type": "object"
+            },
+            "models.ScalingMode": {
+                "enum": [
+                    "LINEAR",
+                    "GEOMETRIC"
+                ],
+                "type": "string",
+                "x-enum-varnames": [
+                    "LinearScaling",
+                    "GeometricScaling"
+                ]
             },
             "rest.ResponseEnvelope-array_dtos_PlanetDtoResponse": {
                 "properties": {

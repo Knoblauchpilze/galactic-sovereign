@@ -102,6 +102,11 @@ func TestUnit_Universes_CreateUniverse(t *testing.T) {
 						Id:        buildingId,
 						Name:      "building",
 						CreatedAt: someTime,
+						ShipSpeedup: &models.BuildingShipSpeedup{
+							Scaling:  models.LinearScaling,
+							Base:     1.0,
+							Progress: 1.5,
+						},
 					},
 				},
 				Ships: []models.Ship{
@@ -151,6 +156,11 @@ func TestUnit_Universes_CreateUniverse(t *testing.T) {
 					Id:        buildingId,
 					Name:      "building",
 					CreatedAt: someTime,
+					ShipSpeedup: &dtos.BuildingShipSpeedupDtoResponse{
+						Scaling:  models.LinearScaling,
+						Base:     1.0,
+						Progress: 1.5,
+					},
 				},
 			},
 			Ships: []dtos.ShipDtoResponse{
@@ -262,6 +272,11 @@ func TestUnit_Universes_GetUniverse(t *testing.T) {
 					Id:        buildingId,
 					Name:      "building",
 					CreatedAt: someOtherTime,
+					ShipSpeedup: &models.BuildingShipSpeedup{
+						Scaling:  models.GeometricScaling,
+						Base:     2.0,
+						Progress: 1.25,
+					},
 					Costs: []models.BuildingCost{
 						{
 							Resource: buildingCostResourceId,
@@ -338,6 +353,11 @@ func TestUnit_Universes_GetUniverse(t *testing.T) {
 					Id:        buildingId,
 					Name:      "building",
 					CreatedAt: someOtherTime,
+					ShipSpeedup: &dtos.BuildingShipSpeedupDtoResponse{
+						Scaling:  models.GeometricScaling,
+						Base:     2.0,
+						Progress: 1.25,
+					},
 					Costs: []dtos.BuildingCostDtoResponse{
 						{
 							Resource: buildingCostResourceId,
@@ -446,7 +466,18 @@ func TestUnit_Universes_ListUniverses(t *testing.T) {
 						CreatedAt:                     someOtherTime,
 					},
 				},
-				Buildings: []models.Building{},
+				Buildings: []models.Building{
+					{
+						Id:        uuid.New(),
+						Name:      "building-with-speedup",
+						CreatedAt: someTime,
+						ShipSpeedup: &models.BuildingShipSpeedup{
+							Scaling:  models.LinearScaling,
+							Base:     1.0,
+							Progress: 1.1,
+						},
+					},
+				},
 			},
 			{
 				Id:        uuid.New(),
@@ -503,8 +534,19 @@ func TestUnit_Universes_ListUniverses(t *testing.T) {
 						CreatedAt:                     universes[0].Resources[0].CreatedAt,
 					},
 				},
-				Buildings: []dtos.BuildingDtoResponse{},
-				Ships:     []dtos.ShipDtoResponse{},
+				Buildings: []dtos.BuildingDtoResponse{
+					{
+						Id:        universes[0].Buildings[0].Id,
+						Name:      universes[0].Buildings[0].Name,
+						CreatedAt: universes[0].Buildings[0].CreatedAt,
+						ShipSpeedup: &dtos.BuildingShipSpeedupDtoResponse{
+							Scaling:  models.LinearScaling,
+							Base:     1.0,
+							Progress: 1.1,
+						},
+					},
+				},
+				Ships: []dtos.ShipDtoResponse{},
 			},
 			{
 				Id:        universes[1].Id,

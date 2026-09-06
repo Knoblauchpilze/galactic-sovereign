@@ -3,6 +3,7 @@ package dtos
 import (
 	"time"
 
+	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
 	"github.com/google/uuid"
 )
 
@@ -58,6 +59,7 @@ type BuildingDtoResponse struct {
 	Costs       []BuildingCostDtoResponse               `json:"costs" binding:"required"`
 	Productions []BuildingResourceProductionDtoResponse `json:"productions" binding:"required"`
 	Storages    []BuildingResourceStorageDtoResponse    `json:"storages" binding:"required"`
+	ShipSpeedup *BuildingShipSpeedupDtoResponse         `json:"ship_speedup,omitempty"`
 }
 
 type BuildingCostDtoResponse struct {
@@ -77,6 +79,12 @@ type BuildingResourceStorageDtoResponse struct {
 	Base     int       `json:"base" binding:"required"`
 	Scale    float64   `json:"scale" binding:"required"`
 	Progress float64   `json:"progress" binding:"required"`
+}
+
+type BuildingShipSpeedupDtoResponse struct {
+	Scaling  models.ScalingMode `json:"scaling" binding:"required"`
+	Base     float64            `json:"base" binding:"required"`
+	Progress float64            `json:"progress" binding:"required"`
 }
 
 type ShipDtoResponse struct {
