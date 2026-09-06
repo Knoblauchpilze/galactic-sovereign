@@ -42,3 +42,13 @@ CREATE TABLE building_resource_storage(
   FOREIGN KEY (resource) REFERENCES resource(id),
   UNIQUE (building, resource)
 );
+
+
+CREATE TABLE building_resource_metabolization_ship_speedup(
+  building UUID NOT NULL,
+  scaling TEXT NOT NULL,
+  base NUMERIC(15,5) NOT NULL,
+  coefficient NUMERIC(15,5) NOT NULL,
+  FOREIGN KEY (building) REFERENCES building(id),
+  UNIQUE (building)
+);

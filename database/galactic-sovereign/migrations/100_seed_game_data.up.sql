@@ -210,6 +210,14 @@ INSERT INTO galactic_sovereign_schema.building_cost("building", "resource", "cos
     2.0
   );
 
+INSERT INTO galactic_sovereign_schema.building_resource_metabolization_ship_speedup("building", "scaling", "base", "coefficient")
+  VALUES (
+    '58d75842-6dc0-4ac0-b36d-55f91b8d060d',
+    'LINEAR',
+    '1.0',
+    '1.0'
+  );
+
 -- Ships
 -- small cargo ship
 INSERT INTO galactic_sovereign_schema.ship ("id", "name")
