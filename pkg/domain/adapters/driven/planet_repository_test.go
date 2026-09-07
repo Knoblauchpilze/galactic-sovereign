@@ -32,6 +32,7 @@ func TestIT_PlanetRepository_ListForPlayer(t *testing.T) {
 	p8 := insertTestPlanet(t, conn, player1.Id, addPlanetBuildingAction)
 	p9 := insertTestPlanet(t, conn, player1.Id, addPlanetShip)
 	p10 := insertTestPlanet(t, conn, player1.Id, addPlanetShipAction)
+	p11 := insertTestPlanet(t, conn, player1.Id, addPlanetBuildingWithShipSpeedup)
 
 	actual, err := repo.ListForPlayer(t.Context(), player1.Id)
 	require.NoError(t, err, "Actual err: %v", err)
@@ -47,6 +48,7 @@ func TestIT_PlanetRepository_ListForPlayer(t *testing.T) {
 	assert.Contains(t, actual, p8.Id)
 	assert.Contains(t, actual, p9.Id)
 	assert.Contains(t, actual, p10.Id)
+	assert.Contains(t, actual, p11.Id)
 	assert.NotContains(t, actual, p1)
 }
 
@@ -248,6 +250,18 @@ func addPlanetBuilding(t *testing.T, conn db.Connection, p *models.Planet) {
 	require.NoError(t, err, "Actual err: %v", err)
 
 	p.Buildings = append(p.Buildings, building)
+}
+
+func addPlanetBuildingWithShipSpeedup(t *testing.T, conn db.Connection, p *models.Planet) {
+	t.Helper()
+
+	addPlanetBuilding(t, conn, p)
+	b := models.Building{
+		Id: p.Buildings[len(p.Buildings)-1].Building,
+	}
+	addBuildingShipSpeedup(t, conn, &b)
+
+	p.Buildings[len(p.Buildings)-1].ShipSpeedup = b.ShipSpeedup
 }
 
 func addPlanetBuildingAction(t *testing.T, conn db.Connection, p *models.Planet) {

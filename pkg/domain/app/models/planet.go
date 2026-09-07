@@ -50,6 +50,8 @@ type PlanetResourceProduction struct {
 type PlanetBuilding struct {
 	Building uuid.UUID
 	Level    int
+
+	ShipSpeedup *BuildingShipSpeedup
 }
 
 type PlanetShip struct {

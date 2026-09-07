@@ -110,12 +110,16 @@ WHERE
 
 	listPlanetBuildingForPlanetQuery = `
 SELECT
-	building,
-	level
+	pb.building,
+	pb.level,
+	s.scaling AS ship_speedup_scaling,
+	s.base AS ship_speedup_base,
+	s.coefficient AS ship_speedup_progress
 FROM
-	planet_building
+	planet_building AS pb
+	LEFT JOIN building_resource_metabolization_ship_speedup AS s ON s.building = pb.building
 WHERE
-	planet = $1`
+	pb.planet = $1`
 
 	listPlanetShipForPlanetQuery = `
 SELECT
@@ -370,7 +374,7 @@ func loadPlanetDetails(ctx context.Context, tx db.Transaction, dbPlanet mappers.
 		return planet, err
 	}
 
-	planet.Buildings, err = db.QueryAllTx[models.PlanetBuilding](
+	dbBuildings, err := db.QueryAllTx[mappers.DbPlanetBuilding](
 		ctx,
 		tx,
 		listPlanetBuildingForPlanetQuery,
@@ -378,6 +382,10 @@ func loadPlanetDetails(ctx context.Context, tx db.Transaction, dbPlanet mappers.
 	)
 	if err != nil {
 		return planet, err
+	}
+	planet.Buildings = make([]models.PlanetBuilding, 0, len(dbBuildings))
+	for _, dbBuilding := range dbBuildings {
+		planet.Buildings = append(planet.Buildings, dbBuilding.ToDomain())
 	}
 
 	planet.Ships, err = db.QueryAllTx[models.PlanetShip](

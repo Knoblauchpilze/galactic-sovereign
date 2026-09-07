@@ -236,3 +236,31 @@ func addBuildingShipSpeedup(t *testing.T, conn db.Connection, b *models.Building
 
 	b.ShipSpeedup = &speedup
 }
+
+func assertBuildingShipSpeedupValue(
+	t *testing.T,
+	conn db.Connection,
+	building uuid.UUID,
+	buildingShipSpeedup models.BuildingShipSpeedup,
+) {
+	t.Helper()
+
+	sqlQuery := `SELECT
+		scaling, base, coefficient AS progress
+		FROM building_resource_metabolization_ship_speedup
+		WHERE building = $1`
+
+	value, err := db.QueryOne[models.BuildingShipSpeedup](t.Context(), conn, sqlQuery, building)
+	require.NoError(t, err, "Actual err: %v", err)
+
+	require.Equal(t, buildingShipSpeedup, value)
+}
+
+func assertBuildingShipSpeedupDoesNotExist(t *testing.T, conn db.Connection, building uuid.UUID) {
+	t.Helper()
+
+	sqlQuery := `SELECT COUNT(building) FROM building_resource_metabolization_ship_speedup WHERE building = $1`
+	value, err := db.QueryOne[int](t.Context(), conn, sqlQuery, building)
+	require.NoError(t, err, "Actual err: %v", err)
+	require.Zero(t, value)
+}

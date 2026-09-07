@@ -135,6 +135,55 @@ func TestIT_PlayerRepository_Create(t *testing.T) {
 		assertPlanetDoesNotExist(t, conn, player.Planets[0].Id)
 	})
 
+	t.Run("does not create ship speedup for a homeworld building", func(t *testing.T) {
+		universe := insertTestUniverse(t, conn)
+		building := insertTestBuilding(t, conn)
+
+		player := models.Player{
+			Id:        uuid.New(),
+			ApiUser:   uuid.New(),
+			Universe:  universe.Id,
+			Name:      fmt.Sprintf("player-%s", uuid.NewString()),
+			CreatedAt: someTime,
+			Planets:   []models.PlayerPlanet{{Id: uuid.New()}},
+		}
+		planet := models.Planet{
+			Id:        uuid.New(),
+			Player:    player.Id,
+			Name:      fmt.Sprintf("planet-%s", uuid.NewString()),
+			Homeworld: true,
+			Coordinate: models.Coordinate{
+				Galaxy:      36,
+				SolarSystem: 147,
+				Position:    17,
+			},
+			CreatedAt:   someTime,
+			UpdatedAt:   someOtherTime,
+			Version:     0,
+			Resources:   []models.PlanetResource{},
+			Storages:    []models.PlanetResourceStorage{},
+			Productions: []models.PlanetResourceProduction{},
+			Buildings: []models.PlanetBuilding{
+				{
+					Building: building.Id,
+					Level:    26,
+					ShipSpeedup: &models.BuildingShipSpeedup{
+						Scaling:  models.GeometricScaling,
+						Base:     14.87,
+						Progress: 25.2,
+					},
+				},
+			},
+		}
+
+		err := repo.Create(t.Context(), player, planet)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assertPlayerExists(t, conn, player.Id)
+		assertPlanetBuildingLevel(t, conn, planet.Id, building.Id, 26)
+		assertBuildingShipSpeedupDoesNotExist(t, conn, planet.Buildings[0].Building)
+	})
+
 	t.Run("returns error when player with same name already exists", func(t *testing.T) {
 		player, universe := insertTestPlayerInUniverse(t, conn)
 

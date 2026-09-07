@@ -18,28 +18,110 @@ var (
 	yetAnotherTime = time.Date(2026, time.June, 30, 8, 43, 1, 0, time.UTC)
 )
 
-func TestIT_PlanetMutator_Mutate(t *testing.T) {
+func TestIT_PlanetMutator_GetBehavior(t *testing.T) {
 	adapter, conn := newTestPlanetMutator(t)
 
-	t.Run("passes planet to mutator", func(t *testing.T) {
-		planet, _, _ := insertTestPlanetForPlayer(t, conn)
+	testCases := []struct {
+		name      string
+		generator func(t *testing.T, conn db.Connection) models.Planet
+	}{
+		{
+			name: "planet",
+			generator: func(t *testing.T, conn db.Connection) models.Planet {
+				planet, _, _ := insertTestPlanetForPlayer(t, conn)
+				return planet
+			},
+		},
+		{
+			name: "planet with resources",
+			generator: func(t *testing.T, conn db.Connection) models.Planet {
+				planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetResource)
+				return planet
+			},
+		},
+		{
+			name: "planet with resource productions",
+			generator: func(t *testing.T, conn db.Connection) models.Planet {
+				planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetProduction)
+				return planet
+			},
+		},
+		{
+			name: "planet with resource productions for building",
+			generator: func(t *testing.T, conn db.Connection) models.Planet {
+				planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetProductionForBuilding)
+				return planet
+			},
+		},
+		{
+			name: "planet with resource storages",
+			generator: func(t *testing.T, conn db.Connection) models.Planet {
+				planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetStorage)
+				return planet
+			},
+		},
+		{
+			name: "planet with buildings",
+			generator: func(t *testing.T, conn db.Connection) models.Planet {
+				planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetBuilding)
+				return planet
+			},
+		},
+		{
+			name: "planet with buildings with speedup",
+			generator: func(t *testing.T, conn db.Connection) models.Planet {
+				planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetBuildingWithShipSpeedup)
+				return planet
+			},
+		},
+		{
+			name: "planet with ships",
+			generator: func(t *testing.T, conn db.Connection) models.Planet {
+				planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetShip)
+				return planet
+			},
+		},
+		{
+			name: "planet with building action",
+			generator: func(t *testing.T, conn db.Connection) models.Planet {
+				planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetBuildingAction)
+				return planet
+			},
+		},
+		{
+			name: "planet with ship actions",
+			generator: func(t *testing.T, conn db.Connection) models.Planet {
+				planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetShipAction)
+				return planet
+			},
+		},
+	}
 
-		var captured models.Planet
-		mutator := func(p *models.Planet) (bool, error) {
-			captured = *p
-			p.Version++
-			return false, nil
-		}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			planet := tc.generator(t, conn)
 
-		returned, err := adapter.Mutate(t.Context(), planet.Id, mutator)
-		require.NoError(t, err, "Actual err: %v", err)
+			var captured models.Planet
+			mutator := func(p *models.Planet) (bool, error) {
+				captured = *p
+				p.Version++
+				return false, nil
+			}
 
-		assert.Equal(t, planet, captured)
-		expected := planet
-		expected.Version++
-		assert.False(t, returned.Deleted)
-		assert.Equal(t, expected, returned.Planet)
-	})
+			returned, err := adapter.Mutate(t.Context(), planet.Id, mutator)
+			require.NoError(t, err, "Actual err: %v", err)
+
+			assert.Equal(t, planet, captured)
+			expected := planet
+			expected.Version++
+			assert.False(t, returned.Deleted)
+			assert.Equal(t, expected, returned.Planet)
+		})
+	}
+}
+
+func TestIT_PlanetMutator_MutateBehavior(t *testing.T) {
+	adapter, conn := newTestPlanetMutator(t)
 
 	t.Run("returns mutated planet", func(t *testing.T) {
 		planet, _, _ := insertTestPlanetForPlayer(t, conn)
@@ -1063,6 +1145,19 @@ func TestIT_PlanetMutator_Mutate(t *testing.T) {
 		assert.True(t, returned.Deleted)
 		assertPlanetDoesNotExist(t, conn, planet.Id)
 		assertPlanetBuildingDoesNotExist(t, conn, planet.Id)
+	})
+
+	t.Run("deletes planet with buildings with ship speedup when mutator indicates it", func(t *testing.T) {
+		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetBuildingWithShipSpeedup)
+		require.NotEqual(t, planet.UpdatedAt, yetAnotherTime)
+
+		returned, err := adapter.Mutate(t.Context(), planet.Id, generateDeletingMutator())
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.True(t, returned.Deleted)
+		assertPlanetDoesNotExist(t, conn, planet.Id)
+		assertPlanetBuildingDoesNotExist(t, conn, planet.Id)
+		assertBuildingShipSpeedupValue(t, conn, planet.Buildings[0].Building, *planet.Buildings[0].ShipSpeedup)
 	})
 
 	t.Run("deletes planet with ships when mutator indicates it", func(t *testing.T) {
