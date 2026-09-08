@@ -82,6 +82,17 @@ func TestUnit_Planet_AddBuildingAction(t *testing.T) {
 		assert.Equal(t, 3, p.Version)
 	})
 
+	t.Run("returns error when planet has ship action and building affects ship production", func(t *testing.T) {
+		p := generateTestPlanet(t, withPlanetBuilding, withPlanetShipAction)
+		b := generateTestBuilding(t, withBuildingShipSpeedup)
+
+		err := p.AddBuildingAction(b)
+
+		assert.ErrorIs(t, err, domainerrors.ErrShipActionNotCompleted, "Actual err: %v", err)
+		assert.Nil(t, p.BuildingAction)
+		assert.Equal(t, 3, p.Version)
+	})
+
 	t.Run("assigns building action to planet", func(t *testing.T) {
 		p := generateTestPlanet(t, withPlanetBuilding, withManyResources)
 		b := generateTestBuilding(t, withBuildingCost, withBuildingProduction, withBuildingStorage)
@@ -129,6 +140,17 @@ func TestUnit_Planet_AddBuildingAction(t *testing.T) {
 			},
 		}
 		assert.Equal(t, expectedAction, p.BuildingAction)
+	})
+
+	t.Run("assigns building action when planet has ship action and building does not affect ship production", func(t *testing.T) {
+		p := generateTestPlanet(t, withPlanetBuilding, withPlanetShipAction)
+		b := generateTestBuilding(t)
+
+		err := p.AddBuildingAction(b)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		require.NotNil(t, p.BuildingAction)
+		assert.Equal(t, p.BuildingAction.Building, b.Id)
 	})
 
 	t.Run("deducts action costs from the available planet resources", func(t *testing.T) {
@@ -1172,6 +1194,16 @@ func withPlanetBuilding(t *testing.T, p *Planet) {
 func withPlanetShip(t *testing.T, p *Planet) {
 	p.Ships = []PlanetShip{
 		{
+			Ship:  lightFighterId,
+			Count: 4,
+		},
+	}
+}
+
+func withPlanetShipAction(t *testing.T, p *Planet) {
+	p.ShipActions = []ShipAction{
+		{
+			Id:    uuid.New(),
 			Ship:  lightFighterId,
 			Count: 4,
 		},

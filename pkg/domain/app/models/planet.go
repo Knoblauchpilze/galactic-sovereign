@@ -69,6 +69,10 @@ func (p *Planet) AddBuildingAction(building Building) error {
 		return domainerrors.ErrActionAlreadyInProgress
 	}
 
+	if len(p.ShipActions) > 0 && building.AffectsShipProduction() {
+		return domainerrors.ErrShipActionNotCompleted
+	}
+
 	pb, err := p.findBuildingById(building.Id)
 	if err != nil {
 		return err

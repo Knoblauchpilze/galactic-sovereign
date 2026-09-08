@@ -14,6 +14,30 @@ var (
 	buildingId = uuid.New()
 )
 
+func TestUnit_Building_AffectsShipProduction(t *testing.T) {
+	t.Run("returns true when building has ship speedup", func(t *testing.T) {
+		b := Building{
+			Id: uuid.New(),
+			ShipSpeedup: &BuildingShipSpeedup{
+				Scaling:  LinearScaling,
+				Base:     1.0,
+				Progress: 1.0,
+			},
+		}
+
+		assert.True(t, b.AffectsShipProduction())
+	})
+
+	t.Run("returns false when building has ship speedup", func(t *testing.T) {
+		b := Building{
+			Id:          uuid.New(),
+			ShipSpeedup: nil,
+		}
+
+		assert.False(t, b.AffectsShipProduction())
+	})
+}
+
 func TestUnit_Building_CreateBuildingAction(t *testing.T) {
 	t.Run("correctly calculates action costs", func(t *testing.T) {
 		b := generateTestBuilding(t, withBuildingCost)
@@ -348,5 +372,15 @@ func withBuildingProduction(t *testing.T, b *Building) {
 			Base:     98,
 			Progress: 2.4,
 		},
+	}
+}
+
+func withBuildingShipSpeedup(t *testing.T, b *Building) {
+	t.Helper()
+
+	b.ShipSpeedup = &BuildingShipSpeedup{
+		Scaling:  GeometricScaling,
+		Base:     1.0,
+		Progress: 2.0,
 	}
 }

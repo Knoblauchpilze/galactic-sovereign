@@ -235,6 +235,30 @@ func TestUnit_CreateBuildingAction_Create(t *testing.T) {
 		assert.ErrorIs(t, err, domainerrors.ErrBuildingNotFound, "Actual err: %v", err)
 	})
 
+	t.Run("returns error when planet has ship action and building affects ship production", func(t *testing.T) {
+		suite := setupCreateBuildingActionTestSuite(t)
+
+		planet := generateTestPlanetWithBuilding()
+		planet.ShipActions = []models.ShipAction{{Id: uuid.New()}}
+		building := generateTestBuilding(planet)
+		building.ShipSpeedup = &models.BuildingShipSpeedup{Scaling: models.LinearScaling, Base: 1.0}
+		request := generateTestBuildingActionRequest(planet)
+
+		suite.mockClock.EXPECT().Now(gomock.Any()).Times(1).Return(t1)
+		suite.mockBuildingRepo.EXPECT().
+			Get(gomock.Any(), building.Id).
+			Times(1).
+			Return(building, nil)
+		suite.mockMutator.EXPECT().
+			Mutate(gomock.Any(), planet.Id, gomock.Any()).
+			Times(1).
+			DoAndReturn(generateApplyingMutatorMock(&planet))
+
+		_, err := suite.usecase.Create(t.Context(), request)
+
+		assert.ErrorIs(t, err, domainerrors.ErrShipActionNotCompleted, "Actual err: %v", err)
+	})
+
 	t.Run("returns error when building does not exist", func(t *testing.T) {
 		suite := setupCreateBuildingActionTestSuite(t)
 

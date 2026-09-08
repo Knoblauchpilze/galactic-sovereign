@@ -185,6 +185,30 @@ func TestUnit_BuildingActions_CreateBuildingAction(t *testing.T) {
 		assert.Equal(t, "all fields are used", actual)
 	})
 
+	t.Run("returns 409 when planet has ship action and building affects ship production", func(t *testing.T) {
+		dto := dtos.BuildingActionDtoRequest{Building: uuid.New()}
+
+		mockUsecase.EXPECT().
+			Create(gomock.Any(), gomock.Any()).
+			Times(1).
+			Return(models.BuildingAction{}, domainerrors.ErrShipActionNotCompleted)
+
+		handler := generateHandler[drivingports.ForCreatingBuildingAction](
+			createBuildingAction,
+			mockUsecase,
+		)
+		r := createTestGinRouter(t, http.MethodPost, "/planets/:id/actions", handler)
+
+		req := generateTestRequestWithJsonBody(t, http.MethodPost, dto)
+		addRequestPath(t, req, "/planets/%s/actions", sampleUuid)
+		rw := httptest.NewRecorder()
+		r.ServeHTTP(rw, req)
+
+		assert.Equal(t, http.StatusConflict, rw.Code)
+		actual := decodeResponseBody[string](t, rw)
+		assert.Equal(t, "ship action is running", actual)
+	})
+
 	t.Run("returns 404 when planet is not found", func(t *testing.T) {
 		dto := dtos.BuildingActionDtoRequest{Building: uuid.New()}
 

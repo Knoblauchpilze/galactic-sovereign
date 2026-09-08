@@ -49,6 +49,10 @@ type BuildingShipSpeedup struct {
 	Progress float64
 }
 
+func (b Building) AffectsShipProduction() bool {
+	return b.ShipSpeedup != nil
+}
+
 func (b Building) CreateBuildingAction(
 	desiredLevel int,
 	createdAt time.Time,

@@ -11,22 +11,22 @@ const (
 	playerNotFound         errors.ErrorCode = 605
 	planetResourceNotFound errors.ErrorCode = 606
 
-	nameAlreadyTaken           errors.ErrorCode = 610
-	actionAlreadyInProgress    errors.ErrorCode = 611
-	noActionInProgress         errors.ErrorCode = 612
-	notEnoughResources         errors.ErrorCode = 613
-	optimisticLockingException errors.ErrorCode = 614
-	planetNotUpToDate          errors.ErrorCode = 615
-	buildingActionNotCompleted errors.ErrorCode = 616
-	mutationWithoutVersionBump errors.ErrorCode = 617
-	planetDeletionFailed       errors.ErrorCode = 618
-	resourceCreationFailed     errors.ErrorCode = 619
-	homeworldCannotBeDeleted   errors.ErrorCode = 620
-	universeIsNotEmpty         errors.ErrorCode = 621
-	coordinateAlreadyUsed      errors.ErrorCode = 622
-	allFieldsUsed              errors.ErrorCode = 623
-	shipActionNotCompleted     errors.ErrorCode = 624
-	shipActionAlreadyCompleted errors.ErrorCode = 625
+	nameAlreadyTaken             errors.ErrorCode = 610
+	actionAlreadyInProgress      errors.ErrorCode = 611
+	noActionInProgress           errors.ErrorCode = 612
+	notEnoughResources           errors.ErrorCode = 613
+	optimisticLockingException   errors.ErrorCode = 614
+	planetNotUpToDate            errors.ErrorCode = 615
+	buildingActionNotCompleted   errors.ErrorCode = 616
+	mutationWithoutVersionBump   errors.ErrorCode = 617
+	planetDeletionFailed         errors.ErrorCode = 618
+	resourceCreationFailed       errors.ErrorCode = 619
+	homeworldCannotBeDeleted     errors.ErrorCode = 620
+	universeIsNotEmpty           errors.ErrorCode = 621
+	coordinateAlreadyUsed        errors.ErrorCode = 622
+	allFieldsUsed                errors.ErrorCode = 623
+	shipActionNotCompleted       errors.ErrorCode = 624
+	shipActionAlreadyCompleted   errors.ErrorCode = 625
 	unsupportedDatabaseEnumValue errors.ErrorCode = 626
 )
 

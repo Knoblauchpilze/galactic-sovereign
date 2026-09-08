@@ -87,6 +87,11 @@ func createBuildingAction(c *gin.Context, usecase drivingports.ForCreatingBuildi
 			return
 		}
 
+		if err == domainerrors.ErrShipActionNotCompleted {
+			c.AbortWithStatusJSON(http.StatusConflict, "ship action is running")
+			return
+		}
+
 		logError(c.Request, "Failed to create building action", slog.Any("error", err))
 		c.AbortWithStatusJSON(http.StatusInternalServerError, "failed to create building action")
 		return
