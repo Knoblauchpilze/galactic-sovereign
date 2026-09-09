@@ -191,6 +191,55 @@ func TestUnit_Ship_CreateShipAction(t *testing.T) {
 	})
 }
 
+func TestUnit_Ship_CostFor(t *testing.T) {
+	t.Run("correctly calculates costs when ship does not use resources", func(t *testing.T) {
+		s := generateTestShip(t)
+
+		actual := s.CostFor(5)
+
+		expected := []ShipActionCost{}
+		assert.Equal(t, expected, actual)
+	})
+
+	t.Run("correctly calculates costs for ship", func(t *testing.T) {
+		s := generateTestShip(t, withShipCost)
+
+		actual := s.CostFor(5)
+
+		expected := []ShipActionCost{
+			{
+				Resource: metalResourceId,
+				Amount:   180,
+			},
+			{
+				Resource: crystalResourceId,
+				Amount:   390,
+			},
+		}
+		assert.Equal(t, expected, actual)
+	})
+
+	// This test shows a voluntary disregard for a check on the positiveness of the
+	// count. It should be enforced in other layers.
+	t.Run("returns negative costs when cost is negative", func(t *testing.T) {
+		s := generateTestShip(t, withShipCost)
+
+		actual := s.CostFor(-1)
+
+		expected := []ShipActionCost{
+			{
+				Resource: metalResourceId,
+				Amount:   -36,
+			},
+			{
+				Resource: crystalResourceId,
+				Amount:   -78,
+			},
+		}
+		assert.Equal(t, expected, actual)
+	})
+}
+
 func generateTestShip(
 	t *testing.T,
 	modifiers ...func(*testing.T, *Ship),
