@@ -43,12 +43,6 @@ type BuildingResourceStorage struct {
 	Progress float64
 }
 
-type BuildingShipSpeedup struct {
-	Scaling  ScalingMode
-	Base     float64
-	Progress float64
-}
-
 func (b Building) AffectsShipProduction() bool {
 	return b.ShipSpeedup != nil
 }
