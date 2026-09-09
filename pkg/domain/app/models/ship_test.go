@@ -240,6 +240,25 @@ func TestUnit_Ship_CostFor(t *testing.T) {
 	})
 }
 
+func TestUnit_Ship_BuildTime(t *testing.T) {
+	t.Run("correctly calculates build time when ship does not use resources", func(t *testing.T) {
+		s := generateTestShip(t)
+
+		actual := s.BuildTime()
+
+		assert.Equal(t, time.Duration(0), actual)
+	})
+
+	t.Run("correctly calculates costs for ship", func(t *testing.T) {
+		s := generateTestShip(t, withShipCost)
+
+		actual := s.BuildTime()
+
+		expected := 28131840 * time.Millisecond
+		assert.Equal(t, expected, actual)
+	})
+}
+
 func generateTestShip(
 	t *testing.T,
 	modifiers ...func(*testing.T, *Ship),

@@ -31,7 +31,7 @@ func (s Ship) CreateShipAction(
 ) ShipAction {
 	costs := s.CostFor(count)
 
-	buildTime := s.determineBuildTime()
+	buildTime := s.BuildTime()
 
 	action := ShipAction{
 		Id:    uuid.New(),
@@ -63,7 +63,7 @@ func (s Ship) CostFor(
 	return costs
 }
 
-func (s Ship) determineBuildTime() time.Duration {
+func (s Ship) BuildTime() time.Duration {
 	buildTimeHour := 0.0
 	for _, baseCost := range s.Costs {
 		resourceBuildTime := float64(baseCost.Cost) * baseCost.BuildTimeHoursPerUnit
