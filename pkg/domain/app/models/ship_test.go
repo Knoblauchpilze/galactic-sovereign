@@ -191,11 +191,11 @@ func TestUnit_Ship_CreateShipAction(t *testing.T) {
 	})
 }
 
-func TestUnit_Ship_CostFor(t *testing.T) {
+func TestUnit_Ship_CostsFor(t *testing.T) {
 	t.Run("correctly calculates costs when ship does not use resources", func(t *testing.T) {
 		s := generateTestShip(t)
 
-		actual := s.CostFor(5)
+		actual := s.CostsFor(5)
 
 		expected := []ShipActionCost{}
 		assert.Equal(t, expected, actual)
@@ -204,7 +204,7 @@ func TestUnit_Ship_CostFor(t *testing.T) {
 	t.Run("correctly calculates costs for ship", func(t *testing.T) {
 		s := generateTestShip(t, withShipCost)
 
-		actual := s.CostFor(5)
+		actual := s.CostsFor(5)
 
 		expected := []ShipActionCost{
 			{
@@ -224,7 +224,7 @@ func TestUnit_Ship_CostFor(t *testing.T) {
 	t.Run("returns negative costs when cost is negative", func(t *testing.T) {
 		s := generateTestShip(t, withShipCost)
 
-		actual := s.CostFor(-1)
+		actual := s.CostsFor(-1)
 
 		expected := []ShipActionCost{
 			{

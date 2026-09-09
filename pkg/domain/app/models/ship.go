@@ -29,7 +29,7 @@ func (s Ship) CreateShipAction(
 	count int,
 	createdAt time.Time,
 ) ShipAction {
-	costs := s.CostFor(count)
+	costs := s.CostsFor(count)
 
 	buildTime := s.BuildTime()
 
@@ -47,7 +47,7 @@ func (s Ship) CreateShipAction(
 	return action
 }
 
-func (s Ship) CostFor(
+func (s Ship) CostsFor(
 	count int,
 ) []ShipActionCost {
 	costs := []ShipActionCost{}
