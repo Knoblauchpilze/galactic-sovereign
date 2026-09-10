@@ -389,6 +389,47 @@ func TestUnit_Planet_AddShipAction(t *testing.T) {
 		assert.Equal(t, []ShipAction{expectedAction}, p.ShipActions)
 	})
 
+	t.Run("assigns ship action using planet building ship speedup", func(t *testing.T) {
+		p := generateTestPlanet(t, withPlanetShip, withManyResources)
+		p.Buildings = []PlanetBuilding{
+			{
+				Building: uuid.New(),
+				Level:    4,
+				ShipSpeedup: &BuildingShipSpeedup{
+					Scaling:  GeometricScaling,
+					Base:     0.0,
+					Progress: 2.0,
+				},
+			},
+		}
+		s := generateTestShip(t, withShipCost)
+
+		err := p.AddShipAction(s, 3)
+		require.NoError(t, err, "Actual err: %v", err)
+		require.NotEmpty(t, p.ShipActions)
+
+		completionTime := 1758240 * time.Millisecond
+		expectedAction := ShipAction{
+			Id:                 p.ShipActions[0].Id,
+			Ship:               s.Id,
+			Count:              3,
+			CreatedAt:          someTime,
+			NextCompletionAt:   someTime.Add(completionTime),
+			UnitCompletionTime: completionTime,
+			Costs: []ShipActionCost{
+				{
+					Resource: metalResourceId,
+					Amount:   108,
+				},
+				{
+					Resource: crystalResourceId,
+					Amount:   234,
+				},
+			},
+		}
+		assert.Equal(t, []ShipAction{expectedAction}, p.ShipActions)
+	})
+
 	t.Run("creates new ship action when one already exists", func(t *testing.T) {
 		p := generateTestPlanet(t, withPlanetShip, withManyResources)
 		action1 := ShipAction{
