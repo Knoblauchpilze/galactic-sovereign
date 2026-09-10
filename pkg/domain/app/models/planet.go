@@ -130,7 +130,7 @@ func (p *Planet) AddShipAction(ship Ship, count int) error {
 	}
 
 	nextActionStartTime := p.determineShipActionStartTime()
-	action := ship.CreateShipAction(count, nextActionStartTime)
+	action := p.shipyard().CreateShipAction(ship, count, nextActionStartTime)
 
 	if err := p.validateEnoughResourcesForShipAction(action); err != nil {
 		return err
@@ -330,6 +330,17 @@ func (p *Planet) determineShipActionStartTime() time.Time {
 	}
 
 	return earliest
+}
+
+func (p *Planet) shipyard() Shipyard {
+	shipyard := Shipyard{throughput: 1.0}
+	for _, building := range p.Buildings {
+		if building.ShipSpeedup != nil {
+			shipyard.throughput *= building.ShipSpeedup.FactorAt(building.Level)
+		}
+	}
+
+	return shipyard
 }
 
 func (p *Planet) validateEnoughResourcesForShipAction(
