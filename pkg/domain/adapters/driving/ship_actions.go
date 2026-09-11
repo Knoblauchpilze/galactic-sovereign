@@ -32,6 +32,7 @@ func ShipActionEndpoints(usecase drivingports.ForCreatingShipAction) Routes {
 //	@Param			request	body		dtos.ShipActionDtoRequest	true	"Ship payload"
 //	@Success		201		{object}	rest.ResponseEnvelope[dtos.ShipActionDtoResponse]
 //	@Failure		400		{object}	rest.ResponseEnvelope[string]
+//	@Failure		409		{object}	rest.ResponseEnvelope[string]
 //	@Failure		500		{object}	rest.ResponseEnvelope[string]
 //	@Router			/planets/{id}/ships [post]
 func createShipAction(c *gin.Context, usecase drivingports.ForCreatingShipAction) {
@@ -63,7 +64,12 @@ func createShipAction(c *gin.Context, usecase drivingports.ForCreatingShipAction
 		}
 
 		if err == domainerrors.ErrNotEnoughResources {
-			c.AbortWithStatusJSON(http.StatusBadRequest, "not enough resources")
+			c.AbortWithStatusJSON(http.StatusConflict, "not enough resources")
+			return
+		}
+
+		if err == domainerrors.ErrRequirementsNotMet {
+			c.AbortWithStatusJSON(http.StatusConflict, "requirements not met")
 			return
 		}
 

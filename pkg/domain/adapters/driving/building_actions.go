@@ -78,7 +78,7 @@ func createBuildingAction(c *gin.Context, usecase drivingports.ForCreatingBuildi
 		}
 
 		if err == domainerrors.ErrNotEnoughResources {
-			c.AbortWithStatusJSON(http.StatusBadRequest, "not enough resources")
+			c.AbortWithStatusJSON(http.StatusConflict, "not enough resources")
 			return
 		}
 

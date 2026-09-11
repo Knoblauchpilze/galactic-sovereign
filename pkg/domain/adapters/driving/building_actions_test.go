@@ -257,7 +257,7 @@ func TestUnit_BuildingActions_CreateBuildingAction(t *testing.T) {
 		assert.Equal(t, "no such building", actual)
 	})
 
-	t.Run("returns 400 when not enough resources are on the planet", func(t *testing.T) {
+	t.Run("returns 409 when not enough resources are on the planet", func(t *testing.T) {
 		dto := dtos.BuildingActionDtoRequest{Building: uuid.New()}
 
 		mockUsecase.EXPECT().
@@ -276,7 +276,7 @@ func TestUnit_BuildingActions_CreateBuildingAction(t *testing.T) {
 		rw := httptest.NewRecorder()
 		r.ServeHTTP(rw, req)
 
-		assert.Equal(t, http.StatusBadRequest, rw.Code)
+		assert.Equal(t, http.StatusConflict, rw.Code)
 		actual := decodeResponseBody[string](t, rw)
 		assert.Equal(t, "not enough resources", actual)
 	})

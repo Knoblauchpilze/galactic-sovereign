@@ -199,7 +199,7 @@ func TestUnit_Ships_CreateShipAction(t *testing.T) {
 		assert.Equal(t, "no such ship", actual)
 	})
 
-	t.Run("returns 400 when not enough resources are on the planet", func(t *testing.T) {
+	t.Run("returns 409 when not enough resources are on the planet", func(t *testing.T) {
 		dto := dtos.ShipActionDtoRequest{Ship: uuid.New(), Count: 1}
 
 		mockUsecase.EXPECT().
@@ -218,9 +218,33 @@ func TestUnit_Ships_CreateShipAction(t *testing.T) {
 		rw := httptest.NewRecorder()
 		r.ServeHTTP(rw, req)
 
-		assert.Equal(t, http.StatusBadRequest, rw.Code)
+		assert.Equal(t, http.StatusConflict, rw.Code)
 		actual := decodeResponseBody[string](t, rw)
 		assert.Equal(t, "not enough resources", actual)
+	})
+
+	t.Run("returns 409 when building requirements are not met", func(t *testing.T) {
+		dto := dtos.ShipActionDtoRequest{Ship: uuid.New(), Count: 1}
+
+		mockUsecase.EXPECT().
+			Create(gomock.Any(), gomock.Any()).
+			Times(1).
+			Return(models.ShipAction{}, domainerrors.ErrRequirementsNotMet)
+
+		handler := generateHandler[drivingports.ForCreatingShipAction](
+			createShipAction,
+			mockUsecase,
+		)
+		r := createTestGinRouter(t, http.MethodPost, "/planets/:id/ships", handler)
+
+		req := generateTestRequestWithJsonBody(t, http.MethodPost, dto)
+		addRequestPath(t, req, "/planets/%s/ships", sampleUuid)
+		rw := httptest.NewRecorder()
+		r.ServeHTTP(rw, req)
+
+		assert.Equal(t, http.StatusConflict, rw.Code)
+		actual := decodeResponseBody[string](t, rw)
+		assert.Equal(t, "requirements not met", actual)
 	})
 
 	t.Run("returns 500 when use case fails", func(t *testing.T) {
