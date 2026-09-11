@@ -656,6 +656,22 @@ const docTemplate = `{
                 ],
                 "type": "object"
             },
+            "dtos.ShipBuildingRequirementDtoResponse": {
+                "properties": {
+                    "building": {
+                        "format": "uuid",
+                        "type": "string"
+                    },
+                    "level": {
+                        "type": "integer"
+                    }
+                },
+                "required": [
+                    "building",
+                    "level"
+                ],
+                "type": "object"
+            },
             "dtos.ShipCostDtoResponse": {
                 "properties": {
                     "cost": {
@@ -674,6 +690,13 @@ const docTemplate = `{
             },
             "dtos.ShipDtoResponse": {
                 "properties": {
+                    "building_requirements": {
+                        "items": {
+                            "$ref": "#/components/schemas/dtos.ShipBuildingRequirementDtoResponse"
+                        },
+                        "type": "array",
+                        "uniqueItems": false
+                    },
                     "costs": {
                         "items": {
                             "$ref": "#/components/schemas/dtos.ShipCostDtoResponse"
@@ -695,6 +718,7 @@ const docTemplate = `{
                     }
                 },
                 "required": [
+                    "building_requirements",
                     "costs",
                     "created_at",
                     "id",

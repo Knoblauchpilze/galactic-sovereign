@@ -92,10 +92,16 @@ type ShipDtoResponse struct {
 	Name      string    `json:"name" example:"light fighter" binding:"required"`
 	CreatedAt time.Time `json:"created_at" format:"date-time" binding:"required"`
 
-	Costs []ShipCostDtoResponse `json:"costs" binding:"required"`
+	Costs                []ShipCostDtoResponse                `json:"costs" binding:"required"`
+	BuildingRequirements []ShipBuildingRequirementDtoResponse `json:"building_requirements" binding:"required"`
 }
 
 type ShipCostDtoResponse struct {
 	Resource uuid.UUID `json:"resource" format:"uuid" binding:"required"`
 	Cost     int       `json:"cost" binding:"required"`
+}
+
+type ShipBuildingRequirementDtoResponse struct {
+	Building uuid.UUID `json:"building" format:"uuid" binding:"required"`
+	Level    int       `json:"level" binding:"required"`
 }

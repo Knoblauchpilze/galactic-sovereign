@@ -470,6 +470,17 @@ components:
       - ship
       - unit_completion_time
       type: object
+    dtos.ShipBuildingRequirementDtoResponse:
+      properties:
+        building:
+          format: uuid
+          type: string
+        level:
+          type: integer
+      required:
+      - building
+      - level
+      type: object
     dtos.ShipCostDtoResponse:
       properties:
         cost:
@@ -483,6 +494,11 @@ components:
       type: object
     dtos.ShipDtoResponse:
       properties:
+        building_requirements:
+          items:
+            $ref: '#/components/schemas/dtos.ShipBuildingRequirementDtoResponse'
+          type: array
+          uniqueItems: false
         costs:
           items:
             $ref: '#/components/schemas/dtos.ShipCostDtoResponse'
@@ -498,6 +514,7 @@ components:
           example: light fighter
           type: string
       required:
+      - building_requirements
       - costs
       - created_at
       - id

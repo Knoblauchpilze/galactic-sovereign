@@ -122,10 +122,6 @@ func toBuildingCostResponse(
 func toBuildingCostsResponse(
 	costs []models.BuildingCost,
 ) []dtos.BuildingCostDtoResponse {
-	if costs == nil {
-		return nil
-	}
-
 	out := make([]dtos.BuildingCostDtoResponse, 0, len(costs))
 
 	for _, c := range costs {
@@ -149,10 +145,6 @@ func toBuildingProductionResponse(
 func toBuildingProductionsResponse(
 	productions []models.BuildingResourceProduction,
 ) []dtos.BuildingResourceProductionDtoResponse {
-	if productions == nil {
-		return nil
-	}
-
 	out := make([]dtos.BuildingResourceProductionDtoResponse, 0, len(productions))
 
 	for _, p := range productions {
@@ -177,10 +169,6 @@ func toBuildingStorageResponse(
 func toBuildingStoragesResponse(
 	storages []models.BuildingResourceStorage,
 ) []dtos.BuildingResourceStorageDtoResponse {
-	if storages == nil {
-		return nil
-	}
-
 	out := make([]dtos.BuildingResourceStorageDtoResponse, 0, len(storages))
 
 	for _, s := range storages {
@@ -195,10 +183,11 @@ func toShipResponse(
 	ship models.Ship,
 ) dtos.ShipDtoResponse {
 	return dtos.ShipDtoResponse{
-		Id:        ship.Id,
-		Name:      ship.Name,
-		CreatedAt: ship.CreatedAt,
-		Costs:     toShipCostsResponse(ship.Costs),
+		Id:                   ship.Id,
+		Name:                 ship.Name,
+		CreatedAt:            ship.CreatedAt,
+		Costs:                toShipCostsResponse(ship.Costs),
+		BuildingRequirements: toShipBuildingRequirementsResponse(ship.BuildingRequirements),
 	}
 }
 
@@ -227,14 +216,32 @@ func toShipCostResponse(
 func toShipCostsResponse(
 	costs []models.ShipCost,
 ) []dtos.ShipCostDtoResponse {
-	if costs == nil {
-		return nil
-	}
-
 	out := make([]dtos.ShipCostDtoResponse, 0, len(costs))
 
 	for _, c := range costs {
 		dto := toShipCostResponse(c)
+		out = append(out, dto)
+	}
+
+	return out
+}
+
+func toShipBuildingRequirementResponse(
+	requirement models.ShipBuildingRequirement,
+) dtos.ShipBuildingRequirementDtoResponse {
+	return dtos.ShipBuildingRequirementDtoResponse{
+		Building: requirement.Building,
+		Level:    requirement.Level,
+	}
+}
+
+func toShipBuildingRequirementsResponse(
+	requirements []models.ShipBuildingRequirement,
+) []dtos.ShipBuildingRequirementDtoResponse {
+	out := make([]dtos.ShipBuildingRequirementDtoResponse, 0, len(requirements))
+
+	for _, r := range requirements {
+		dto := toShipBuildingRequirementResponse(r)
 		out = append(out, dto)
 	}
 

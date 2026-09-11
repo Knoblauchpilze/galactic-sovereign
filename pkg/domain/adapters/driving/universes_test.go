@@ -153,9 +153,12 @@ func TestUnit_Universes_CreateUniverse(t *testing.T) {
 			},
 			Buildings: []dtos.BuildingDtoResponse{
 				{
-					Id:        buildingId,
-					Name:      "building",
-					CreatedAt: someTime,
+					Id:          buildingId,
+					Name:        "building",
+					CreatedAt:   someTime,
+					Costs:       []dtos.BuildingCostDtoResponse{},
+					Productions: []dtos.BuildingResourceProductionDtoResponse{},
+					Storages:    []dtos.BuildingResourceStorageDtoResponse{},
 					ShipSpeedup: &dtos.BuildingShipSpeedupDtoResponse{
 						Scaling:  models.LinearScaling,
 						Base:     1.0,
@@ -165,9 +168,11 @@ func TestUnit_Universes_CreateUniverse(t *testing.T) {
 			},
 			Ships: []dtos.ShipDtoResponse{
 				{
-					Id:        shipId,
-					Name:      "ship",
-					CreatedAt: yetAnotherTime,
+					Id:                   shipId,
+					Name:                 "ship",
+					CreatedAt:            yetAnotherTime,
+					Costs:                []dtos.ShipCostDtoResponse{},
+					BuildingRequirements: []dtos.ShipBuildingRequirementDtoResponse{},
 				},
 			},
 		}
@@ -312,6 +317,12 @@ func TestUnit_Universes_GetUniverse(t *testing.T) {
 							Cost:     389,
 						},
 					},
+					BuildingRequirements: []models.ShipBuildingRequirement{
+						{
+							Building: uuid.New(),
+							Level:    36,
+						},
+					},
 				},
 			},
 		}
@@ -391,6 +402,12 @@ func TestUnit_Universes_GetUniverse(t *testing.T) {
 						{
 							Resource: shipCostResourceId,
 							Cost:     389,
+						},
+					},
+					BuildingRequirements: []dtos.ShipBuildingRequirementDtoResponse{
+						{
+							Building: universe.Ships[0].BuildingRequirements[0].Building,
+							Level:    universe.Ships[0].BuildingRequirements[0].Level,
 						},
 					},
 				},
@@ -496,6 +513,16 @@ func TestUnit_Universes_ListUniverses(t *testing.T) {
 								Cost:     389,
 							},
 						},
+						BuildingRequirements: []models.ShipBuildingRequirement{
+							{
+								Building: uuid.New(),
+								Level:    2,
+							},
+							{
+								Building: uuid.New(),
+								Level:    6,
+							},
+						},
 					},
 				},
 			},
@@ -536,9 +563,12 @@ func TestUnit_Universes_ListUniverses(t *testing.T) {
 				},
 				Buildings: []dtos.BuildingDtoResponse{
 					{
-						Id:        universes[0].Buildings[0].Id,
-						Name:      universes[0].Buildings[0].Name,
-						CreatedAt: universes[0].Buildings[0].CreatedAt,
+						Id:          universes[0].Buildings[0].Id,
+						Name:        universes[0].Buildings[0].Name,
+						CreatedAt:   universes[0].Buildings[0].CreatedAt,
+						Costs:       []dtos.BuildingCostDtoResponse{},
+						Productions: []dtos.BuildingResourceProductionDtoResponse{},
+						Storages:    []dtos.BuildingResourceStorageDtoResponse{},
 						ShipSpeedup: &dtos.BuildingShipSpeedupDtoResponse{
 							Scaling:  models.LinearScaling,
 							Base:     1.0,
@@ -563,6 +593,16 @@ func TestUnit_Universes_ListUniverses(t *testing.T) {
 							{
 								Resource: universes[1].Ships[0].Costs[0].Resource,
 								Cost:     universes[1].Ships[0].Costs[0].Cost,
+							},
+						},
+						BuildingRequirements: []dtos.ShipBuildingRequirementDtoResponse{
+							{
+								Building: universes[1].Ships[0].BuildingRequirements[0].Building,
+								Level:    universes[1].Ships[0].BuildingRequirements[0].Level,
+							},
+							{
+								Building: universes[1].Ships[0].BuildingRequirements[1].Building,
+								Level:    universes[1].Ships[0].BuildingRequirements[1].Level,
 							},
 						},
 					},
