@@ -129,7 +129,10 @@ func (p *Planet) AddShipAction(ship Ship, count int) error {
 		return err
 	}
 
-	// TODO: Add requirements check
+	err = p.validateShipRequirements(ship)
+	if err != nil {
+		return err
+	}
 
 	nextActionStartTime := p.determineShipActionStartTime()
 	action := p.shipyard().CreateShipAction(ship, count, nextActionStartTime)
@@ -316,6 +319,22 @@ func (p *Planet) validateShipExists(id uuid.UUID) error {
 	}
 
 	return domainerrors.ErrShipNotFound
+}
+
+func (p *Planet) validateShipRequirements(ship Ship) error {
+	temp := make(map[uuid.UUID]int)
+	for _, building := range p.Buildings {
+		temp[building.Building] = building.Level
+	}
+
+	for _, requirement := range ship.BuildingRequirements {
+		planetLevel := temp[requirement.Building]
+		if planetLevel < requirement.Level {
+			return domainerrors.ErrRequirementsNotMet
+		}
+	}
+
+	return nil
 }
 
 func (p *Planet) determineShipActionStartTime() time.Time {
