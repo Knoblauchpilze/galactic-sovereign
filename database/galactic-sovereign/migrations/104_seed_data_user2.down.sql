@@ -1,4 +1,37 @@
 
+-- ship actions
+DELETE FROM ship_action
+WHERE planet IN (
+	SELECT id FROM planet WHERE player = '04a7477c-a66b-4c47-9c17-ac209183c7a4'
+);
+
+-- building actions
+DELETE FROM building_action_resource_storage
+WHERE action IN (
+	SELECT building_action.id
+	FROM building_action
+	JOIN planet ON planet.id = building_action.planet
+	WHERE planet.player = '04a7477c-a66b-4c47-9c17-ac209183c7a4'
+);
+DELETE FROM building_action_resource_production
+WHERE action IN (
+	SELECT building_action.id
+	FROM building_action
+	JOIN planet ON planet.id = building_action.planet
+	WHERE planet.player = '04a7477c-a66b-4c47-9c17-ac209183c7a4'
+);
+DELETE FROM building_action_cost
+WHERE action IN (
+	SELECT building_action.id
+	FROM building_action
+	JOIN planet ON planet.id = building_action.planet
+	WHERE planet.player = '04a7477c-a66b-4c47-9c17-ac209183c7a4'
+);
+DELETE FROM building_action
+WHERE planet IN (
+	SELECT id FROM planet WHERE player = '04a7477c-a66b-4c47-9c17-ac209183c7a4'
+);
+
 -- planet a-new-beginning
 DELETE FROM planet_ship WHERE planet = 'fafd18e9-2db6-439a-aaf3-010771d694c9';
 DELETE FROM planet_building WHERE planet = 'fafd18e9-2db6-439a-aaf3-010771d694c9';
