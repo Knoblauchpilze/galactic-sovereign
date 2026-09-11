@@ -295,3 +295,14 @@ func withShipCost(t *testing.T, s *Ship) {
 		},
 	}
 }
+
+func withShipBuildingRequirement(t *testing.T, s *Ship) {
+	t.Helper()
+
+	s.BuildingRequirements = []ShipBuildingRequirement{
+		{
+			Building: buildingId,
+			Level:    2,
+		},
+	}
+}

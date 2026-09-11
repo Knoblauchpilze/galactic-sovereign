@@ -28,6 +28,7 @@ const (
 	shipActionNotCompleted       errors.ErrorCode = 624
 	shipActionAlreadyCompleted   errors.ErrorCode = 625
 	unsupportedDatabaseEnumValue errors.ErrorCode = 626
+	requirementsNotMet           errors.ErrorCode = 627
 )
 
 var (
@@ -56,4 +57,5 @@ var (
 	ErrAllFieldsUsed              = errors.FromCode(allFieldsUsed)
 	ErrShipActionNotCompleted     = errors.FromCode(shipActionNotCompleted)
 	ErrShipActionAlreadyCompleted = errors.FromCode(shipActionAlreadyCompleted)
+	ErrRequirementsNotMet         = errors.FromCode(requirementsNotMet)
 )

@@ -129,6 +129,8 @@ func (p *Planet) AddShipAction(ship Ship, count int) error {
 		return err
 	}
 
+	// TODO: Add requirements check
+
 	nextActionStartTime := p.determineShipActionStartTime()
 	action := p.shipyard().CreateShipAction(ship, count, nextActionStartTime)
 
