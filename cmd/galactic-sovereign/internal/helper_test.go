@@ -26,6 +26,7 @@ const (
 var (
 	oberonUniverseId = uuid.MustParse("9682f17b-f5f0-4eda-a747-2537d2151837")
 	metalMineId      = uuid.MustParse("d176e82d-f2ca-4611-996b-c4804096caef")
+	shipyardId       = uuid.MustParse("58d75842-6dc0-4ac0-b36d-55f91b8d060d")
 )
 
 func TestMain(m *testing.M) {
@@ -146,6 +147,22 @@ func addPlanetResources(t *testing.T, conn db.Connection, planet uuid.UUID, reso
 		amount,
 		planet,
 		resource,
+	)
+	require.NoError(t, err, "Actual err: %v", err)
+}
+
+// bumpPlanetBuilding bumpes the given building to the desired level on the
+// planet, allowing tests to perform actions (e.g. ship creation) that the
+// starting planet would not allow.
+func bumpPlanetBuilding(t *testing.T, conn db.Connection, planet uuid.UUID, building uuid.UUID, level int) {
+	t.Helper()
+
+	_, err := conn.Exec(
+		t.Context(),
+		`UPDATE planet_building SET level = $1 WHERE planet = $2 AND building = $3`,
+		level,
+		planet,
+		building,
 	)
 	require.NoError(t, err, "Actual err: %v", err)
 }

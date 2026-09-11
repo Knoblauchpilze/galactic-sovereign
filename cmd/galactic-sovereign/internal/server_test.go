@@ -1,18 +1,24 @@
 package internal
 
 import (
+	"bytes"
+	"encoding/json"
 	"log/slog"
 	"net/http"
+	"slices"
 	"testing"
 
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driving/dtos"
 	integrationdb "github.com/Knoblauchpilze/galactic-sovereign/pkg/testing/integrationdb"
+	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestIT_Server(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
 	t.Run("create a player and assert homeworld properties", func(t *testing.T) {
 		dbContainer := integrationdb.NewDatabaseSharedContainer(t)
 		conn := dbContainer.NewTestConnection(t)
@@ -140,6 +146,65 @@ func TestIT_Server(t *testing.T) {
 		assertGetStatus(t, urlFor(conf, "players", player.Id.String()), http.StatusNotFound)
 	})
 
+	t.Run("create a player and a ship action", func(t *testing.T) {
+		dbContainer := integrationdb.NewDatabaseSharedContainer(t)
+		conn := dbContainer.NewTestConnection(t)
+		conf := newTestServerConfig()
+
+		s := CreateGameServer(conf, conn, slog.Default())
+		asyncStartServer(t, s)
+
+		// Create a player
+		playerReq := dtos.PlayerDtoRequest{
+			ApiUser:  uuid.New(),
+			Universe: oberonUniverseId,
+			Name:     "test-player",
+		}
+		player := doPost[dtos.PlayerDtoResponse](
+			t, urlFor(conf, "players"), playerReq,
+		)
+
+		// Fetch the universe and pick a ship from it
+		universe := doGet[dtos.UniverseDtoResponse](
+			t, urlFor(conf, "universes", oberonUniverseId.String()),
+		)
+		require.NotEmpty(t, universe.Ships)
+		ship := findShip(t, universe, "light fighter")
+
+		// Credit the homeworld with enough resources to afford the ship
+		for _, cost := range ship.Costs {
+			addPlanetResources(t, conn, player.Homeworld, cost.Resource, cost.Cost)
+		}
+
+		// Create a ship action on the planet: should fail as buildings
+		// requirements are not met
+		actionReq := dtos.ShipActionDtoRequest{
+			Ship:  ship.Id,
+			Count: 1,
+		}
+		assertPostStatus(
+			t,
+			urlFor(conf, "planets", player.Homeworld.String(), "ships"),
+			actionReq,
+			http.StatusConflict,
+		)
+
+		bumpPlanetBuilding(t, conn, player.Homeworld, shipyardId, 2)
+
+		// This call should succeed now that the building requirements are met
+		action := doPost[dtos.ShipActionDtoResponse](
+			t, urlFor(conf, "planets", player.Homeworld.String(), "ships"), actionReq,
+		)
+		assert.Equal(t, ship.Id, action.Ship)
+		assert.Equal(t, 1, action.Count)
+
+		homeworld := doGet[dtos.PlanetDtoResponse](
+			t, urlFor(conf, "planets", player.Homeworld.String()),
+		)
+		require.Len(t, homeworld.ShipActions, 1)
+		assert.Equal(t, action, homeworld.ShipActions[0])
+	})
+
 	t.Run("create a player and a ship action and delete the player", func(t *testing.T) {
 		dbContainer := integrationdb.NewDatabaseSharedContainer(t)
 		conn := dbContainer.NewTestConnection(t)
@@ -163,7 +228,8 @@ func TestIT_Server(t *testing.T) {
 			t, urlFor(conf, "universes", oberonUniverseId.String()),
 		)
 		require.NotEmpty(t, universe.Ships)
-		ship := universe.Ships[0]
+		ship := findShip(t, universe, "small cargo ship")
+		bumpPlanetBuilding(t, conn, player.Homeworld, shipyardId, 2)
 
 		// Credit the homeworld with enough resources to afford the ship
 		for _, cost := range ship.Costs {
@@ -217,7 +283,8 @@ func TestIT_Server(t *testing.T) {
 			t, urlFor(conf, "universes", oberonUniverseId.String()),
 		)
 		require.NotEmpty(t, universe.Ships)
-		ship := universe.Ships[0]
+		ship := findShip(t, universe, "small cargo ship")
+		bumpPlanetBuilding(t, conn, player.Homeworld, shipyardId, 2)
 
 		// Credit the homeworld with enough resources to afford the ship
 		for _, cost := range ship.Costs {
@@ -240,12 +307,39 @@ func TestIT_Server(t *testing.T) {
 	})
 }
 
+func findShip(t *testing.T, universe dtos.UniverseDtoResponse, shipName string) dtos.ShipDtoResponse {
+	t.Helper()
+
+	id := slices.IndexFunc(universe.Ships, func(s dtos.ShipDtoResponse) bool {
+		return s.Name == shipName
+	})
+	require.GreaterOrEqual(t, id, 0, "Failed to find %s ship", shipName)
+
+	return universe.Ships[id]
+}
+
 func assertGetStatus(t *testing.T, url string, expectedStatus int) {
 	t.Helper()
 
 	resp, err := http.Get(url)
 	require.NoError(t, err, "GET %s: %v", url, err)
 	require.Equal(t, expectedStatus, resp.StatusCode, "GET %s returned %d", url, resp.StatusCode)
+}
+
+func assertPostStatus[T any](t *testing.T, url string, body T, expectedStatus int) {
+	t.Helper()
+
+	bodyBytes, err := json.Marshal(body)
+	require.NoError(t, err, "Actual err: %v", err)
+
+	req, err := http.NewRequest(http.MethodPost, url, bytes.NewReader(bodyBytes))
+	req.Header.Add("Content-Type", "application/json")
+	require.NoError(t, err, "Actual err: %v", err)
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	require.NoError(t, err, "DELETE %s: %v", url, err)
+	require.Equal(t, expectedStatus, resp.StatusCode, "POST %s returned %d", url, resp.StatusCode)
 }
 
 func assertDeleteStatus(t *testing.T, url string, expectedStatus int) {

@@ -1,6 +1,7 @@
 package drivingadapters
 
 import (
+	"fmt"
 	"log/slog"
 	"net/http"
 
@@ -54,21 +55,25 @@ func createShipAction(c *gin.Context, usecase drivingports.ForCreatingShipAction
 	action, err := usecase.Create(c.Request.Context(), request)
 	if err != nil {
 		if err == domainerrors.ErrNotFound {
+			fmt.Printf("hehe 1\n")
 			c.AbortWithStatusJSON(http.StatusNotFound, "no such planet")
 			return
 		}
 
 		if err == domainerrors.ErrShipNotFound {
+			fmt.Printf("hehe 2\n")
 			c.AbortWithStatusJSON(http.StatusBadRequest, "no such ship")
 			return
 		}
 
 		if err == domainerrors.ErrNotEnoughResources {
+			fmt.Printf("hehe 3\n")
 			c.AbortWithStatusJSON(http.StatusConflict, "not enough resources")
 			return
 		}
 
 		if err == domainerrors.ErrRequirementsNotMet {
+			fmt.Printf("hehe 4\n")
 			c.AbortWithStatusJSON(http.StatusConflict, "requirements not met")
 			return
 		}
