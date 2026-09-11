@@ -13,6 +13,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+var (
+	shipyardId = uuid.MustParse("58d75842-6dc0-4ac0-b36d-55f91b8d060d")
+)
+
 func TestIT_ShipRepository_Get(t *testing.T) {
 	repo, conn := newTestShipRepository(t)
 
@@ -27,6 +31,15 @@ func TestIT_ShipRepository_Get(t *testing.T) {
 
 	t.Run("gets a ship with costs", func(t *testing.T) {
 		ship := insertTestShip(t, conn, addShipCost)
+
+		actual, err := repo.Get(t.Context(), ship.Id)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.Equal(t, ship, actual)
+	})
+
+	t.Run("gets a ship with building requirements", func(t *testing.T) {
+		ship := insertTestShip(t, conn, addShipBuildingRequirement)
 
 		actual, err := repo.Get(t.Context(), ship.Id)
 		require.NoError(t, err, "Actual err: %v", err)
@@ -61,7 +74,8 @@ func insertTestShip(
 		CreatedAt: someTime,
 		// This is intentional: the details (e.g. costs) are returned as empty
 		// slices by the adapter
-		Costs: []models.ShipCost{},
+		Costs:                []models.ShipCost{},
+		BuildingRequirements: []models.ShipBuildingRequirement{},
 	}
 
 	sqlQuery := `INSERT INTO ship (id, name, created_at)
@@ -103,4 +117,26 @@ func addShipCost(t *testing.T, conn db.Connection, s *models.Ship) {
 	require.NoError(t, err, "Actual err: %v", err)
 
 	s.Costs = append(s.Costs, cost)
+}
+
+func addShipBuildingRequirement(t *testing.T, conn db.Connection, s *models.Ship) {
+	t.Helper()
+
+	requirement := models.ShipBuildingRequirement{
+		Building: shipyardId,
+		Level:    rand.Intn(14),
+	}
+
+	sqlQuery := `INSERT INTO ship_building_requirement (ship, building, level)
+		VALUES ($1, $2, $3)`
+	_, err := conn.Exec(
+		t.Context(),
+		sqlQuery,
+		s.Id,
+		requirement.Building,
+		requirement.Level,
+	)
+	require.NoError(t, err, "Actual err: %v", err)
+
+	s.BuildingRequirements = append(s.BuildingRequirements, requirement)
 }

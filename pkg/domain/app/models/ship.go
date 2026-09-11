@@ -12,7 +12,8 @@ type Ship struct {
 	Name      string
 	CreatedAt time.Time
 
-	Costs []ShipCost
+	Costs                []ShipCost
+	BuildingRequirements []ShipBuildingRequirement
 }
 
 type ShipCost struct {
@@ -23,6 +24,11 @@ type ShipCost struct {
 	// a ship. A value of 1 means that if a ship costs 3 unit of the resource
 	// it will take 3 hours to be built.
 	BuildTimeHoursPerUnit float64
+}
+
+type ShipBuildingRequirement struct {
+	Building uuid.UUID
+	Level    int
 }
 
 func (s Ship) CreateShipAction(

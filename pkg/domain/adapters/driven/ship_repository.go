@@ -41,6 +41,15 @@ FROM
 	INNER JOIN resource_metabolization_rate_shipyard AS r ON r.resource = sc.resource
 WHERE
 	sc.ship = $1`
+
+	listShipBuildingRequirementForShipQuery = `
+SELECT
+	sbc.building,
+	sbc.level
+FROM
+	ship_building_requirement AS sbc
+WHERE
+	sbc.ship = $1`
 )
 
 type ShipRepository struct {
@@ -95,6 +104,16 @@ func loadShipDetails(ctx context.Context, tx db.Transaction, dbShip mappers.DbSh
 		ctx,
 		tx,
 		listShipCostForShipQuery,
+		dbShip.Id,
+	)
+	if err != nil {
+		return ship, err
+	}
+
+	ship.BuildingRequirements, err = db.QueryAllTx[models.ShipBuildingRequirement](
+		ctx,
+		tx,
+		listShipBuildingRequirementForShipQuery,
 		dbShip.Id,
 	)
 	if err != nil {
