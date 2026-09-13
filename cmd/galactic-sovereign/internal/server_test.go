@@ -305,6 +305,65 @@ func TestIT_Server(t *testing.T) {
 		// Delete the planet: it should fail
 		assertDeleteStatus(t, urlFor(conf, "planets", player.Homeworld.String()), http.StatusConflict)
 	})
+
+	t.Run("ships actions are ordered by creation date", func(t *testing.T) {
+		dbContainer := integrationdb.NewDatabaseSharedContainer(t)
+		conn := dbContainer.NewTestConnection(t)
+		conf := newTestServerConfig()
+
+		s := CreateGameServer(conf, conn, slog.Default())
+		asyncStartServer(t, s)
+
+		// Create a player
+		playerReq := dtos.PlayerDtoRequest{
+			ApiUser:  uuid.New(),
+			Universe: oberonUniverseId,
+			Name:     "test-player",
+		}
+		player := doPost[dtos.PlayerDtoResponse](
+			t, urlFor(conf, "players"), playerReq,
+		)
+
+		// Fetch the universe and pick a ship from it
+		universe := doGet[dtos.UniverseDtoResponse](
+			t, urlFor(conf, "universes", oberonUniverseId.String()),
+		)
+		require.NotEmpty(t, universe.Ships)
+		ship := findShip(t, universe, "light fighter")
+
+		// Credit the homeworld with enough resources to afford twice the ship
+		for _, cost := range ship.Costs {
+			addPlanetResources(t, conn, player.Homeworld, cost.Resource, 2*cost.Cost)
+		}
+
+		bumpPlanetBuilding(t, conn, player.Homeworld, shipyardId, 2)
+
+		// Create a ship action on the planet: should fail as buildings
+		// requirements are not met
+		actionReq := dtos.ShipActionDtoRequest{
+			Ship:  ship.Id,
+			Count: 1,
+		}
+
+		// Create a first ship action
+		action1 := doPost[dtos.ShipActionDtoResponse](
+			t, urlFor(conf, "planets", player.Homeworld.String(), "ships"), actionReq,
+		)
+		assert.Equal(t, ship.Id, action1.Ship)
+		assert.Equal(t, 1, action1.Count)
+
+		// Create a second ship action
+		action2 := doPost[dtos.ShipActionDtoResponse](
+			t, urlFor(conf, "planets", player.Homeworld.String(), "ships"), actionReq,
+		)
+		assert.Equal(t, ship.Id, action2.Ship)
+		assert.Equal(t, 1, action2.Count)
+
+		homeworld := doGet[dtos.PlanetDtoResponse](
+			t, urlFor(conf, "planets", player.Homeworld.String()),
+		)
+		assert.Equal(t, homeworld.ShipActions, []dtos.ShipActionDtoResponse{action1, action2})
+	})
 }
 
 func findShip(t *testing.T, universe dtos.UniverseDtoResponse, shipName string) dtos.ShipDtoResponse {

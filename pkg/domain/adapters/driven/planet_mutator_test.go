@@ -95,6 +95,22 @@ func TestIT_PlanetMutator_GetBehavior(t *testing.T) {
 				return planet
 			},
 		},
+		{
+			name: "planet with multiple ship actions are sorted",
+			generator: func(t *testing.T, conn db.Connection) models.Planet {
+				planet, _, _ := insertTestPlanetForPlayer(t, conn)
+				action1 := insertTestShipActionForPlanet(t, conn, planet.Id, func(t *testing.T, a *models.ShipAction) {
+					a.CreatedAt = planet.CreatedAt.Add(2 * time.Hour)
+				})
+				action2 := insertTestShipActionForPlanet(t, conn, planet.Id, func(t *testing.T, a *models.ShipAction) {
+					a.CreatedAt = planet.CreatedAt.Add(1 * time.Hour)
+				})
+
+				planet.ShipActions = []models.ShipAction{action2, action1}
+
+				return planet
+			},
+		},
 	}
 
 	for _, tc := range testCases {
@@ -1478,7 +1494,7 @@ func insertTestShipActionForPlanet(
 	t *testing.T,
 	conn db.Connection,
 	planetId uuid.UUID,
-	modifiers ...func(*testing.T, db.Connection, *models.ShipAction),
+	modifiers ...func(*testing.T, *models.ShipAction),
 ) models.ShipAction {
 	t.Helper()
 
@@ -1489,6 +1505,10 @@ func insertTestShipActionForPlanet(
 		CreatedAt:          someTime,
 		NextCompletionAt:   someTime.Add(someDuration),
 		UnitCompletionTime: someDuration,
+	}
+
+	for _, modifier := range modifiers {
+		modifier(t, &action)
 	}
 
 	sqlQuery := `INSERT INTO ship_action
@@ -1507,17 +1527,13 @@ func insertTestShipActionForPlanet(
 	)
 	require.NoError(t, err, "Actual err: %v", err)
 
-	for _, modifier := range modifiers {
-		modifier(t, conn, &action)
-	}
-
 	return action
 }
 
 func insertTestShipAction(
 	t *testing.T,
 	conn db.Connection,
-	modifiers ...func(*testing.T, db.Connection, *models.ShipAction),
+	modifiers ...func(*testing.T, *models.ShipAction),
 ) (models.ShipAction, models.Planet) {
 	t.Helper()
 

@@ -31,7 +31,9 @@ SELECT
 FROM
 	ship_action
 WHERE
-	planet = $1`
+	planet = $1
+ORDER BY
+	created_at ASC`
 
 	deleteShipActionForPlanetQuery = `DELETE FROM ship_action WHERE planet = $1`
 )
