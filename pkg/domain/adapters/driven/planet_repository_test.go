@@ -76,7 +76,7 @@ func insertTestPlanet(
 			SolarSystem: 1 + rand.Intn(421),
 			Position:    1 + rand.Intn(36),
 		},
-		Fields:    rand.Intn(211),
+		Fields:    1 + rand.Intn(211),
 		CreatedAt: someTime,
 		UpdatedAt: someOtherTime,
 		Version:   7,

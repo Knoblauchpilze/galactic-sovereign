@@ -192,9 +192,9 @@ func insertTestUniverse(t *testing.T, conn db.Connection) models.Universe {
 	t.Helper()
 
 	topology := models.UniverseTopology{
-		Galaxies:     rand.Intn(15),
-		SolarSystems: rand.Intn(800),
-		Orbits:       rand.Intn(15),
+		Galaxies:     1 + rand.Intn(15),
+		SolarSystems: 1 + rand.Intn(800),
+		Orbits:       1 + rand.Intn(15),
 	}
 
 	universe := models.Universe{
