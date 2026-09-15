@@ -13,9 +13,9 @@ type UniverseDtoRequest struct {
 }
 
 type TopologyDtoRequest struct {
-	Galaxies     int `json:"galaxies" binding:"required" minimum:"1"`
-	SolarSystems int `json:"solar_systems" binding:"required" minimum:"1"`
-	Orbits       int `json:"orbits" binding:"required" minimum:"1"`
+	Galaxies     int `json:"galaxies" binding:"required" minimum:"0"`
+	SolarSystems int `json:"solar_systems" binding:"required" minimum:"0"`
+	Orbits       int `json:"orbits" binding:"required" minimum:"0"`
 }
 
 type UniverseDtoResponse struct {
@@ -32,18 +32,18 @@ type UniverseDtoResponse struct {
 }
 
 type TopologyDtoResponse struct {
-	Galaxies     int `json:"galaxies" binding:"required" minimum:"1"`
-	SolarSystems int `json:"solar_systems" binding:"required" minimum:"1"`
-	Orbits       int `json:"orbits" binding:"required" minimum:"1"`
+	Galaxies     int `json:"galaxies" binding:"required" minimum:"0"`
+	SolarSystems int `json:"solar_systems" binding:"required" minimum:"0"`
+	Orbits       int `json:"orbits" binding:"required" minimum:"0"`
 }
 
 type ResourceDtoResponse struct {
 	Id   uuid.UUID `json:"id" format:"uuid" binding:"required"`
 	Name string    `json:"name" example:"metal" binding:"required"`
 
-	StartAmount     int `json:"start_amount" binding:"required" minimum:"1"`
+	StartAmount     int `json:"start_amount" binding:"required" minimum:"0"`
 	StartProduction int `json:"start_production" binding:"required" minimum:"0"`
-	StartStorage    int `json:"start_storage" binding:"required" minimum:"1"`
+	StartStorage    int `json:"start_storage" binding:"required" minimum:"0"`
 
 	BuildingBuildTimeHoursPerUnit float64 `json:"building_build_time_hours_per_unit" binding:"required" minimum:"0"`
 	ShipyardBuildTimeHoursPerUnit float64 `json:"shipyard_build_time_hours_per_unit" binding:"required" minimum:"0"`

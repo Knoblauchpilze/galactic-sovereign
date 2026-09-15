@@ -246,15 +246,15 @@ const docTemplate = `{
             "dtos.CoordinateDtoResponse": {
                 "properties": {
                     "galaxy": {
-                        "minimum": 1,
+                        "minimum": 0,
                         "type": "integer"
                     },
                     "position": {
-                        "minimum": 1,
+                        "minimum": 0,
                         "type": "integer"
                     },
                     "solar_system": {
-                        "minimum": 1,
+                        "minimum": 0,
                         "type": "integer"
                     }
                 },
@@ -558,7 +558,7 @@ const docTemplate = `{
                         "type": "number"
                     },
                     "start_amount": {
-                        "minimum": 1,
+                        "minimum": 0,
                         "type": "integer"
                     },
                     "start_production": {
@@ -566,7 +566,7 @@ const docTemplate = `{
                         "type": "integer"
                     },
                     "start_storage": {
-                        "minimum": 1,
+                        "minimum": 0,
                         "type": "integer"
                     }
                 },
@@ -729,15 +729,15 @@ const docTemplate = `{
             "dtos.TopologyDtoRequest": {
                 "properties": {
                     "galaxies": {
-                        "minimum": 1,
+                        "minimum": 0,
                         "type": "integer"
                     },
                     "orbits": {
-                        "minimum": 1,
+                        "minimum": 0,
                         "type": "integer"
                     },
                     "solar_systems": {
-                        "minimum": 1,
+                        "minimum": 0,
                         "type": "integer"
                     }
                 },
@@ -751,15 +751,15 @@ const docTemplate = `{
             "dtos.TopologyDtoResponse": {
                 "properties": {
                     "galaxies": {
-                        "minimum": 1,
+                        "minimum": 0,
                         "type": "integer"
                     },
                     "orbits": {
-                        "minimum": 1,
+                        "minimum": 0,
                         "type": "integer"
                     },
                     "solar_systems": {
-                        "minimum": 1,
+                        "minimum": 0,
                         "type": "integer"
                     }
                 },

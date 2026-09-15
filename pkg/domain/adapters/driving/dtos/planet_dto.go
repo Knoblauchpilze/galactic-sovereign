@@ -28,9 +28,9 @@ type PlanetDtoResponse struct {
 }
 
 type CoordinateDtoResponse struct {
-	Galaxy      int `json:"galaxy" binding:"required" minimum:"1"`
-	SolarSystem int `json:"solar_system" binding:"required" minimum:"1"`
-	Position    int `json:"position" binding:"required" minimum:"1"`
+	Galaxy      int `json:"galaxy" binding:"required" minimum:"0"`
+	SolarSystem int `json:"solar_system" binding:"required" minimum:"0"`
+	Position    int `json:"position" binding:"required" minimum:"0"`
 }
 
 type PlanetResourceDtoResponse struct {

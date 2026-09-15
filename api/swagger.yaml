@@ -170,13 +170,13 @@ components:
     dtos.CoordinateDtoResponse:
       properties:
         galaxy:
-          minimum: 1
+          minimum: 0
           type: integer
         position:
-          minimum: 1
+          minimum: 0
           type: integer
         solar_system:
-          minimum: 1
+          minimum: 0
           type: integer
       required:
       - galaxy
@@ -398,13 +398,13 @@ components:
           minimum: 0
           type: number
         start_amount:
-          minimum: 1
+          minimum: 0
           type: integer
         start_production:
           minimum: 0
           type: integer
         start_storage:
-          minimum: 1
+          minimum: 0
           type: integer
       required:
       - building_build_time_hours_per_unit
@@ -523,13 +523,13 @@ components:
     dtos.TopologyDtoRequest:
       properties:
         galaxies:
-          minimum: 1
+          minimum: 0
           type: integer
         orbits:
-          minimum: 1
+          minimum: 0
           type: integer
         solar_systems:
-          minimum: 1
+          minimum: 0
           type: integer
       required:
       - galaxies
@@ -539,13 +539,13 @@ components:
     dtos.TopologyDtoResponse:
       properties:
         galaxies:
-          minimum: 1
+          minimum: 0
           type: integer
         orbits:
-          minimum: 1
+          minimum: 0
           type: integer
         solar_systems:
-          minimum: 1
+          minimum: 0
           type: integer
       required:
       - galaxies
