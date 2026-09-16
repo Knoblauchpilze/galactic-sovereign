@@ -4,9 +4,42 @@ import (
 	"context"
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
-	"github.com/Knoblauchpilze/backend-toolkit/pkg/errors"
+	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driven/mappers"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
 	"github.com/google/uuid"
+)
+
+const (
+	getSolarSystemQuery = `
+SELECT
+	ut.universe,
+	$2::integer AS galaxy,
+	$3::integer AS number,
+	ut.orbits
+FROM
+	universe_topology AS ut
+WHERE
+	ut.universe = $1
+	`
+
+	listSolarSystemPlanetsQuery = `
+SELECT
+	p.id,
+	p.player,
+	p.name,
+	CASE
+		WHEN h.planet IS NOT NULL THEN true
+		ELSE false
+	END AS homeworld,
+	pc.position
+FROM
+	planet_coordinate AS pc
+	INNER JOIN planet AS p ON pc.planet = p.id
+	LEFT JOIN homeworld AS h ON h.planet = p.id
+WHERE
+	pc.universe = $1
+	AND pc.galaxy = $2
+	AND pc.solar_system = $3`
 )
 
 type SolarSystemRepository struct {
@@ -25,5 +58,46 @@ func (r *SolarSystemRepository) GetSolarSystem(
 	galaxy int,
 	solarSystem int,
 ) (models.SolarSystem, error) {
-	return models.SolarSystem{}, errors.ErrNotImplemented
+	tx, err := r.conn.BeginTx(ctx)
+	if err != nil {
+		return models.SolarSystem{}, err
+	}
+	defer tx.Close(ctx)
+
+	dbSolarSystem, err := db.QueryOneTx[mappers.DbSolarSystem](
+		ctx,
+		tx,
+		getSolarSystemQuery,
+		universe,
+		galaxy,
+		solarSystem,
+	)
+	if err != nil {
+		return models.SolarSystem{}, parseDbError(err)
+	}
+
+	return loadSolarSystemDetails(ctx, tx, dbSolarSystem)
+}
+
+func loadSolarSystemDetails(
+	ctx context.Context,
+	tx db.Transaction,
+	dbSolarSystem mappers.DbSolarSystem,
+) (models.SolarSystem, error) {
+	solarSystem := dbSolarSystem.ToDomain()
+
+	var err error
+	solarSystem.Planets, err = db.QueryAllTx[models.SolarSystemPlanet](
+		ctx,
+		tx,
+		listSolarSystemPlanetsQuery,
+		solarSystem.Universe,
+		solarSystem.Galaxy,
+		solarSystem.Number,
+	)
+	if err != nil {
+		return solarSystem, err
+	}
+
+	return solarSystem, nil
 }
