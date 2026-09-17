@@ -2013,18 +2013,18 @@ const docTemplate = `{
                         "name": "galaxy",
                         "required": true,
                         "schema": {
-                            "format": "uuid",
-                            "type": "string"
+                            "minimum": 0,
+                            "type": "integer"
                         }
                     },
                     {
                         "description": "Solar system index",
                         "in": "path",
-                        "name": "id",
+                        "name": "solar_system",
                         "required": true,
                         "schema": {
-                            "format": "uuid",
-                            "type": "string"
+                            "minimum": 0,
+                            "type": "integer"
                         }
                     }
                 ],

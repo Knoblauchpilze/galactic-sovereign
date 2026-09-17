@@ -179,8 +179,8 @@ func deleteUniverse(c *gin.Context, usecase drivingports.ForManagingUniverse) {
 //	@Tags			universes
 //	@Produce		json
 //	@Param			id	path		string	true	"Universe id (UUID)"	Format(uuid)
-//	@Param			galaxy	path		string	true	"Galaxy index"	Format(uuid)
-//	@Param			id	path		string	true	"Solar system index"	Format(uuid)
+//	@Param			galaxy	path		int	true	"Galaxy index"	Minimum(0)
+//	@Param			solar_system	path		int	true	"Solar system index"	Minimum(0)
 //	@Success		200	{object}	rest.ResponseEnvelope[dtos.SolarSystemDtoResponse]
 //	@Failure		400	{object}	rest.ResponseEnvelope[string]
 //	@Failure		404	{object}	rest.ResponseEnvelope[string]
