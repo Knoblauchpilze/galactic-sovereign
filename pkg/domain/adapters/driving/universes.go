@@ -189,8 +189,8 @@ func deleteUniverse(c *gin.Context, usecase drivingports.ForManagingUniverse) {
 func getSolarSystem(c *gin.Context, usecase drivingports.ForFetchingSolarSystem) {
 	type SolarSystemURI struct {
 		Universe    uuid.UUID `uri:"id,parser=encoding.TextUnmarshaler" binding:"required"`
-		Galaxy      *int      `uri:"galaxy" binding:"required"`
-		SolarSystem *int      `uri:"solar_system" binding:"required"`
+		Galaxy      *int      `uri:"galaxy" binding:"required,gte=0"`
+		SolarSystem *int      `uri:"solar_system" binding:"required,gte=0"`
 	}
 
 	var uri SolarSystemURI
