@@ -55,6 +55,20 @@ func TestUnit_FetchSolarSystem_GetSolarSystem(t *testing.T) {
 
 		assert.ErrorIs(t, err, domainerrors.ErrNotFound, "Actual err: %v", err)
 	})
+
+	t.Run("returns error when requested coordinates are out of bound", func(t *testing.T) {
+		suite := setupSolarSystemTestSuite(t)
+
+		suite.mockSolarSystemRepo.EXPECT().
+			GetSolarSystem(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+			Times(1).
+			// This is the same error as when the universe does not exist
+			Return(models.SolarSystem{}, domainerrors.ErrNotFound)
+
+		_, err := suite.usecase.GetSolarSystem(t.Context(), uuid.New(), 2, 4)
+
+		assert.ErrorIs(t, err, domainerrors.ErrNotFound, "Actual err: %v", err)
+	})
 }
 
 func setupSolarSystemTestSuite(t *testing.T) *solarSystemTestSuite {
