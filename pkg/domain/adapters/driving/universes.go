@@ -13,7 +13,10 @@ import (
 	"github.com/google/uuid"
 )
 
-func UniverseEndpoints(usecase drivingports.ForManagingUniverse) Routes {
+func UniverseEndpoints(
+	usecase drivingports.ForManagingUniverse,
+	listSolarSystemUsecase drivingports.ForFetchingSolarSystem,
+) Routes {
 	var out Routes
 
 	handler := generateHandler(createUniverse, usecase)
@@ -31,6 +34,10 @@ func UniverseEndpoints(usecase drivingports.ForManagingUniverse) Routes {
 	handler = generateHandler(deleteUniverse, usecase)
 	delete := rest.NewRoute(http.MethodDelete, "/universes/:id", handler)
 	out = append(out, delete)
+
+	handler = generateHandler(getSolarSystem, listSolarSystemUsecase)
+	get = rest.NewRoute(http.MethodGet, "/universes/:id/galaxies/:galaxy/solar-systems/:solar_system", handler)
+	out = append(out, get)
 
 	return out
 }
@@ -163,4 +170,48 @@ func deleteUniverse(c *gin.Context, usecase drivingports.ForManagingUniverse) {
 	}
 
 	c.Status(http.StatusNoContent)
+}
+
+// getSolarSystem godoc
+//
+//	@Summary		Get a solar system in a universe
+//	@Description	Returns a solar system and related planets for a universe
+//	@Tags			universes
+//	@Produce		json
+//	@Param			id	path		string	true	"Universe id (UUID)"	Format(uuid)
+//	@Param			galaxy	path		string	true	"Galaxy index"	Format(uuid)
+//	@Param			id	path		string	true	"Solar system index"	Format(uuid)
+//	@Success		200	{object}	rest.ResponseEnvelope[dtos.SolarSystemDtoResponse]
+//	@Failure		400	{object}	rest.ResponseEnvelope[string]
+//	@Failure		404	{object}	rest.ResponseEnvelope[string]
+//	@Failure		500	{object}	rest.ResponseEnvelope[string]
+//	@Router			/universes/{id}/galaxies/{galaxy}/solar-systems/{solar_system} [get]
+func getSolarSystem(c *gin.Context, usecase drivingports.ForFetchingSolarSystem) {
+	type SolarSystemURI struct {
+		Universe    uuid.UUID `uri:"id" binding:"required"`
+		Galaxy      int       `uri:"galaxy" binding:"required"`
+		SolarSystem int       `uri:"solar_system" binding:"required"`
+	}
+
+	var uri SolarSystemURI
+	err := c.ShouldBindUri(&uri)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, "invalid coordinates syntax")
+		return
+	}
+
+	solarSystem, err := usecase.GetSolarSystem(c.Request.Context(), uri.Universe, uri.Galaxy, uri.SolarSystem)
+	if err != nil {
+		if err == domainerrors.ErrNotFound {
+			c.AbortWithStatusJSON(http.StatusNotFound, "no such coordinates")
+			return
+		}
+
+		logError(c.Request, "Failed to get solar system", slog.Any("error", err))
+		c.AbortWithStatusJSON(http.StatusInternalServerError, "failed to get solar system")
+		return
+	}
+
+	out := mappers.ToSolarSystemResponse(solarSystem)
+	c.JSON(http.StatusOK, out)
 }

@@ -56,6 +56,7 @@ func NewSolarSystemRepository(conn db.Connection) *SolarSystemRepository {
 	}
 }
 
+// TODO: Add a test to verify that planet are ordered by position
 func (r *SolarSystemRepository) GetSolarSystem(
 	ctx context.Context,
 	universe uuid.UUID,

@@ -24,10 +24,13 @@ func CreateGameServer(conf server.Config, conn db.Connection, log *slog.Logger) 
 }
 
 func registerUniversesRoutes(conn db.Connection, s *server.Server, log *slog.Logger) {
-	repo := drivenadapters.NewUniverseRepository(conn)
-	usecase := usecases.NewUniverseUseCase(repo)
+	universeRepo := drivenadapters.NewUniverseRepository(conn)
+	solarSystemRepo := drivenadapters.NewSolarSystemRepository(conn)
 
-	for _, route := range drivingadapters.UniverseEndpoints(usecase) {
+	universeUsecase := usecases.NewUniverseUseCase(universeRepo)
+	listSolarSystemUsecase := usecases.NewFetchSolarSystemUseCase(solarSystemRepo)
+
+	for _, route := range drivingadapters.UniverseEndpoints(universeUsecase, listSolarSystemUsecase) {
 		if err := s.AddRoute(route); err != nil {
 			log.Error("Failed to register route", slog.String("route", route.Path()), slog.Any("error", err))
 		}

@@ -760,6 +760,196 @@ func TestUnit_Universes_DeleteUniverse(t *testing.T) {
 	})
 }
 
+func TestUnit_Universes_GetSolarSystem(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	ctrl := gomock.NewController(t)
+	mockUsecase := drivingportstest.NewMockForFetchingSolarSystem(ctrl)
+
+	t.Run("returns 400 when universe id is invalid", func(t *testing.T) {
+		handler := generateHandler[drivingports.ForFetchingSolarSystem](
+			getSolarSystem,
+			mockUsecase,
+		)
+		r := createTestGinRouter(t, http.MethodGet, "/:id/galaxies/:galaxy/solar-systems/:solar-system", handler)
+
+		req := generateTestRequest(t, http.MethodGet)
+		addRequestPath(t, req, "/%s/galaxies/%d/solar-systems/%d", "not-a-uuid", 0, 1)
+		rw := httptest.NewRecorder()
+		r.ServeHTTP(rw, req)
+
+		assert.Equal(t, http.StatusBadRequest, rw.Code)
+		actual := decodeResponseBody[string](t, rw)
+		assert.Equal(t, "invalid coordinates syntax", actual)
+	})
+
+	t.Run("returns 400 when galaxy index is invalid", func(t *testing.T) {
+		handler := generateHandler[drivingports.ForFetchingSolarSystem](
+			getSolarSystem,
+			mockUsecase,
+		)
+		r := createTestGinRouter(t, http.MethodGet, "/:id/galaxies/:galaxy/solar-systems/:solar-system", handler)
+
+		req := generateTestRequest(t, http.MethodGet)
+		addRequestPath(t, req, "/%s/galaxies/%s/solar-systems/%d", sampleUuid, "foo", 1)
+		rw := httptest.NewRecorder()
+		r.ServeHTTP(rw, req)
+
+		assert.Equal(t, http.StatusBadRequest, rw.Code)
+		actual := decodeResponseBody[string](t, rw)
+		assert.Equal(t, "invalid coordinates syntax", actual)
+	})
+
+	t.Run("returns 400 when solar system index is invalid", func(t *testing.T) {
+		handler := generateHandler[drivingports.ForFetchingSolarSystem](
+			getSolarSystem,
+			mockUsecase,
+		)
+		r := createTestGinRouter(t, http.MethodGet, "/:id/galaxies/:galaxy/solar-systems/:solar-system", handler)
+
+		req := generateTestRequest(t, http.MethodGet)
+		addRequestPath(t, req, "/%s/galaxies/%d/solar-systems/%s", sampleUuid, 2, "foo")
+		rw := httptest.NewRecorder()
+		r.ServeHTTP(rw, req)
+
+		assert.Equal(t, http.StatusBadRequest, rw.Code)
+		actual := decodeResponseBody[string](t, rw)
+		assert.Equal(t, "invalid coordinates syntax", actual)
+	})
+
+	t.Run("forwards fetching to use case", func(t *testing.T) {
+		solarSystem := models.SolarSystem{
+			Universe: sampleUuid,
+			Galaxy:   2,
+			Number:   3,
+			Orbits:   15,
+			Planets: []models.SolarSystemPlanet{
+				{
+					Id:        uuid.New(),
+					Player:    uuid.New(),
+					Name:      "best-planet",
+					Homeworld: true,
+					Position:  2,
+				},
+				{
+					Id:        uuid.New(),
+					Player:    uuid.New(),
+					Name:      "actually-event-better-planet",
+					Homeworld: false,
+					Position:  4,
+				},
+			},
+		}
+		mockUsecase.EXPECT().
+			GetSolarSystem(gomock.Any(), sampleUuid, 2, 3).
+			Times(1).
+			Return(solarSystem, nil)
+
+		handler := generateHandler[drivingports.ForFetchingSolarSystem](
+			getSolarSystem,
+			mockUsecase,
+		)
+		r := createTestGinRouter(t, http.MethodGet, "/:id/galaxies/:galaxy/solar-systems/:solar_system", handler)
+
+		req := generateTestRequest(t, http.MethodGet)
+		addRequestPath(t, req, "/%s/galaxies/%d/solar-systems/%d", sampleUuid, 2, 3)
+		rw := httptest.NewRecorder()
+		r.ServeHTTP(rw, req)
+
+		assert.Equal(t, http.StatusOK, rw.Code)
+		actual := decodeResponseBody[dtos.SolarSystemDtoResponse](t, rw)
+		expected := dtos.SolarSystemDtoResponse{
+			Universe: solarSystem.Universe,
+			Galaxy:   solarSystem.Galaxy,
+			Number:   solarSystem.Number,
+			Orbits:   solarSystem.Orbits,
+			Planets: []dtos.SolarSystemPlanetDtoResponse{
+				{
+					Id:        solarSystem.Planets[0].Id,
+					Player:    solarSystem.Planets[0].Player,
+					Name:      solarSystem.Planets[0].Name,
+					Homeworld: solarSystem.Planets[0].Homeworld,
+					Position:  solarSystem.Planets[0].Position,
+				},
+				{
+					Id:        solarSystem.Planets[1].Id,
+					Player:    solarSystem.Planets[1].Player,
+					Name:      solarSystem.Planets[1].Name,
+					Homeworld: solarSystem.Planets[1].Homeworld,
+					Position:  solarSystem.Planets[1].Position,
+				},
+			},
+		}
+		assert.Equal(t, expected, actual)
+	})
+
+	t.Run("returns 404 when universe does not exist", func(t *testing.T) {
+		mockUsecase.EXPECT().
+			GetSolarSystem(gomock.Any(), sampleUuid, 2, 3).
+			Times(1).
+			Return(models.SolarSystem{}, domainerrors.ErrNotFound)
+
+		handler := generateHandler[drivingports.ForFetchingSolarSystem](
+			getSolarSystem,
+			mockUsecase,
+		)
+		r := createTestGinRouter(t, http.MethodGet, "/:id/galaxies/:galaxy/solar-systems/:solar-system", handler)
+
+		req := generateTestRequest(t, http.MethodGet)
+		addRequestPath(t, req, "/%s/galaxies/%d/solar-systems/%d", sampleUuid, 2, 3)
+		rw := httptest.NewRecorder()
+		r.ServeHTTP(rw, req)
+
+		assert.Equal(t, http.StatusNotFound, rw.Code)
+		actual := decodeResponseBody[string](t, rw)
+		assert.Equal(t, "no such coordinates", actual)
+	})
+
+	t.Run("returns 404 when coordinates are out of bound", func(t *testing.T) {
+		mockUsecase.EXPECT().
+			GetSolarSystem(gomock.Any(), sampleUuid, 2, 3).
+			Times(1).
+			Return(models.Universe{}, domainerrors.ErrNotFound)
+
+		handler := generateHandler[drivingports.ForFetchingSolarSystem](
+			getSolarSystem,
+			mockUsecase,
+		)
+		r := createTestGinRouter(t, http.MethodGet, "/:id/galaxies/:galaxy/solar-systems/:solar-system", handler)
+
+		req := generateTestRequest(t, http.MethodGet)
+		addRequestPath(t, req, "/%s/galaxies/%d/solar-systems/%d", sampleUuid, 2, 3)
+		rw := httptest.NewRecorder()
+		r.ServeHTTP(rw, req)
+
+		assert.Equal(t, http.StatusNotFound, rw.Code)
+		actual := decodeResponseBody[string](t, rw)
+		assert.Equal(t, "no such coordinates", actual)
+	})
+
+	t.Run("returns 500 when use case fails", func(t *testing.T) {
+		mockUsecase.EXPECT().
+			GetSolarSystem(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+			Times(1).
+			Return(models.Universe{}, errors.New("stubbed error"))
+
+		handler := generateHandler[drivingports.ForFetchingSolarSystem](
+			getSolarSystem,
+			mockUsecase,
+		)
+		r := createTestGinRouter(t, http.MethodGet, "/:id/galaxies/:galaxy/solar-systems/:solar-system", handler)
+
+		req := generateTestRequest(t, http.MethodGet)
+		addRequestPath(t, req, "/%s/galaxies/%d/solar-systems/%d", sampleUuid, 2, 3)
+		rw := httptest.NewRecorder()
+		r.ServeHTTP(rw, req)
+
+		assert.Equal(t, http.StatusInternalServerError, rw.Code)
+		actual := decodeResponseBody[string](t, rw)
+		assert.Equal(t, "failed to get solar system", actual)
+	})
+}
+
 func sampleUniverseDtoRequest() dtos.UniverseDtoRequest {
 	return dtos.UniverseDtoRequest{
 		Name: "my-universe",
