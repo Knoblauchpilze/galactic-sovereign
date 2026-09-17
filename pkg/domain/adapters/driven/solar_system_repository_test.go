@@ -77,6 +77,36 @@ func TestIT_SolarSystemRepository_Get(t *testing.T) {
 
 		assert.ErrorIs(t, err, domainerrors.ErrNotFound, "Actual err: %v", err)
 	})
+
+	t.Run("returns error when galaxy is out of bounds for universe", func(t *testing.T) {
+		universe := insertTestUniverse(t, conn)
+
+		_, err := repo.GetSolarSystem(
+			t.Context(),
+			universe.Id,
+			// The last existing galaxy is one less than the topology
+			// value as it's 0 based indexing
+			universe.Topology.Galaxies,
+			0,
+		)
+
+		assert.ErrorIs(t, err, domainerrors.ErrNotFound, "Actual err: %v", err)
+	})
+
+	t.Run("returns error when solar system is out of bounds for universe", func(t *testing.T) {
+		universe := insertTestUniverse(t, conn)
+
+		_, err := repo.GetSolarSystem(
+			t.Context(),
+			universe.Id,
+			0,
+			// The last existing solar system is one less than the topology
+			// value as it's 0 based indexing
+			universe.Topology.SolarSystems,
+		)
+
+		assert.ErrorIs(t, err, domainerrors.ErrNotFound, "Actual err: %v", err)
+	})
 }
 
 func newTestSolarSystemRepository(t *testing.T) (*SolarSystemRepository, db.Connection) {

@@ -10,14 +10,6 @@ import (
 )
 
 const (
-	// TODO: Refine the WHERE clause to return not found when bounds are not
-	// valid compared to the requested values. Something like this:
-	// WHERE
-	//   ut.universe = $1
-	//   AND $2 >= 0
-	//   AND $2 < ut.galaxies
-	//   AND $3 >= 0
-	//   AND $3 < ut.solar_systems
 	getSolarSystemQuery = `
 SELECT
 	ut.universe,
@@ -28,6 +20,10 @@ FROM
 	universe_topology AS ut
 WHERE
 	ut.universe = $1
+	AND $2 >= 0
+	AND $2 < ut.galaxies
+	AND $3 >= 0
+	AND $3 < ut.solar_systems
 	`
 
 	listSolarSystemPlanetsQuery = `
