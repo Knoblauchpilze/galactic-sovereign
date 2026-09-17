@@ -726,6 +726,70 @@ const docTemplate = `{
                 ],
                 "type": "object"
             },
+            "dtos.SolarSystemDtoResponse": {
+                "properties": {
+                    "galaxy": {
+                        "minimum": 0,
+                        "type": "integer"
+                    },
+                    "id": {
+                        "format": "uuid",
+                        "type": "string"
+                    },
+                    "number": {
+                        "minimum": 0,
+                        "type": "integer"
+                    },
+                    "planets": {
+                        "items": {
+                            "$ref": "#/components/schemas/dtos.SolarSystemPlanetDtoResponse"
+                        },
+                        "type": "array"
+                    },
+                    "position": {
+                        "minimum": 0,
+                        "type": "integer"
+                    }
+                },
+                "required": [
+                    "galaxy",
+                    "id",
+                    "number",
+                    "position"
+                ],
+                "type": "object"
+            },
+            "dtos.SolarSystemPlanetDtoResponse": {
+                "properties": {
+                    "homeworld": {
+                        "type": "boolean"
+                    },
+                    "id": {
+                        "format": "uuid",
+                        "type": "string"
+                    },
+                    "name": {
+                        "example": "colony",
+                        "type": "string"
+                    },
+                    "player": {
+                        "format": "uuid",
+                        "type": "string"
+                    },
+                    "position": {
+                        "minimum": 0,
+                        "type": "integer"
+                    }
+                },
+                "required": [
+                    "homeworld",
+                    "id",
+                    "name",
+                    "player",
+                    "position"
+                ],
+                "type": "object"
+            },
             "dtos.TopologyDtoRequest": {
                 "properties": {
                     "galaxies": {
@@ -1019,6 +1083,32 @@ const docTemplate = `{
                 "properties": {
                     "details": {
                         "$ref": "#/components/schemas/dtos.ShipActionDtoResponse"
+                    },
+                    "request_id": {
+                        "example": "669cd40f-ea15-40a8-ab03-81e704a3ecf9",
+                        "format": "uuid",
+                        "type": "string"
+                    },
+                    "status": {
+                        "$ref": "#/components/schemas/rest.Status"
+                    },
+                    "status_code": {
+                        "example": 200,
+                        "type": "integer"
+                    }
+                },
+                "required": [
+                    "details",
+                    "request_id",
+                    "status",
+                    "status_code"
+                ],
+                "type": "object"
+            },
+            "rest.ResponseEnvelope-dtos_SolarSystemDtoResponse": {
+                "properties": {
+                    "details": {
+                        "$ref": "#/components/schemas/dtos.SolarSystemDtoResponse"
                     },
                     "request_id": {
                         "example": "669cd40f-ea15-40a8-ab03-81e704a3ecf9",
@@ -1898,6 +1988,89 @@ const docTemplate = `{
                     }
                 },
                 "summary": "Get universe",
+                "tags": [
+                    "universes"
+                ]
+            }
+        },
+        "/universes/{id}/galaxies/{galaxy}/solar-systems/{solar_system}": {
+            "get": {
+                "description": "Returns a solar system and related planets for a universe",
+                "parameters": [
+                    {
+                        "description": "Universe id (UUID)",
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "format": "uuid",
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "description": "Galaxy index",
+                        "in": "path",
+                        "name": "galaxy",
+                        "required": true,
+                        "schema": {
+                            "format": "uuid",
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "description": "Solar system index",
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "format": "uuid",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/rest.ResponseEnvelope-dtos_SolarSystemDtoResponse"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/rest.ResponseEnvelope-string"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "404": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/rest.ResponseEnvelope-string"
+                                }
+                            }
+                        },
+                        "description": "Not Found"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/rest.ResponseEnvelope-string"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "summary": "Get a solar system in a universe",
                 "tags": [
                     "universes"
                 ]
