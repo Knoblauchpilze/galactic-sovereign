@@ -188,9 +188,9 @@ func deleteUniverse(c *gin.Context, usecase drivingports.ForManagingUniverse) {
 //	@Router			/universes/{id}/galaxies/{galaxy}/solar-systems/{solar_system} [get]
 func getSolarSystem(c *gin.Context, usecase drivingports.ForFetchingSolarSystem) {
 	type SolarSystemURI struct {
-		Universe    uuid.UUID `uri:"id" binding:"required"`
-		Galaxy      int       `uri:"galaxy" binding:"required"`
-		SolarSystem int       `uri:"solar_system" binding:"required"`
+		Universe    uuid.UUID `uri:"id,parser=encoding.TextUnmarshaler" binding:"required"`
+		Galaxy      *int      `uri:"galaxy" binding:"required"`
+		SolarSystem *int      `uri:"solar_system" binding:"required"`
 	}
 
 	var uri SolarSystemURI
@@ -200,7 +200,12 @@ func getSolarSystem(c *gin.Context, usecase drivingports.ForFetchingSolarSystem)
 		return
 	}
 
-	solarSystem, err := usecase.GetSolarSystem(c.Request.Context(), uri.Universe, uri.Galaxy, uri.SolarSystem)
+	solarSystem, err := usecase.GetSolarSystem(
+		c.Request.Context(),
+		uri.Universe,
+		*uri.Galaxy,
+		*uri.SolarSystem,
+	)
 	if err != nil {
 		if err == domainerrors.ErrNotFound {
 			c.AbortWithStatusJSON(http.StatusNotFound, "no such coordinates")

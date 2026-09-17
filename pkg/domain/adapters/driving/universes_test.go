@@ -893,7 +893,7 @@ func TestUnit_Universes_GetSolarSystem(t *testing.T) {
 			getSolarSystem,
 			mockUsecase,
 		)
-		r := createTestGinRouter(t, http.MethodGet, "/:id/galaxies/:galaxy/solar-systems/:solar-system", handler)
+		r := createTestGinRouter(t, http.MethodGet, "/:id/galaxies/:galaxy/solar-systems/:solar_system", handler)
 
 		req := generateTestRequest(t, http.MethodGet)
 		addRequestPath(t, req, "/%s/galaxies/%d/solar-systems/%d", sampleUuid, 2, 3)
@@ -909,13 +909,13 @@ func TestUnit_Universes_GetSolarSystem(t *testing.T) {
 		mockUsecase.EXPECT().
 			GetSolarSystem(gomock.Any(), sampleUuid, 2, 3).
 			Times(1).
-			Return(models.Universe{}, domainerrors.ErrNotFound)
+			Return(models.SolarSystem{}, domainerrors.ErrNotFound)
 
 		handler := generateHandler[drivingports.ForFetchingSolarSystem](
 			getSolarSystem,
 			mockUsecase,
 		)
-		r := createTestGinRouter(t, http.MethodGet, "/:id/galaxies/:galaxy/solar-systems/:solar-system", handler)
+		r := createTestGinRouter(t, http.MethodGet, "/:id/galaxies/:galaxy/solar-systems/:solar_system", handler)
 
 		req := generateTestRequest(t, http.MethodGet)
 		addRequestPath(t, req, "/%s/galaxies/%d/solar-systems/%d", sampleUuid, 2, 3)
@@ -931,13 +931,13 @@ func TestUnit_Universes_GetSolarSystem(t *testing.T) {
 		mockUsecase.EXPECT().
 			GetSolarSystem(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 			Times(1).
-			Return(models.Universe{}, errors.New("stubbed error"))
+			Return(models.SolarSystem{}, errors.New("stubbed error"))
 
 		handler := generateHandler[drivingports.ForFetchingSolarSystem](
 			getSolarSystem,
 			mockUsecase,
 		)
-		r := createTestGinRouter(t, http.MethodGet, "/:id/galaxies/:galaxy/solar-systems/:solar-system", handler)
+		r := createTestGinRouter(t, http.MethodGet, "/:id/galaxies/:galaxy/solar-systems/:solar_system", handler)
 
 		req := generateTestRequest(t, http.MethodGet)
 		addRequestPath(t, req, "/%s/galaxies/%d/solar-systems/%d", sampleUuid, 2, 3)
