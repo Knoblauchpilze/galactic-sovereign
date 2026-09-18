@@ -27,7 +27,7 @@ INSERT INTO galactic_sovereign_schema.planet_coordinate("planet", "universe", "g
   VALUES (
     '717ffa52-89bd-42eb-b34d-0f994a032e35',
     '0ac6c027-11d6-47e6-ab15-514cfac48200',
-    1, 85, 10
+    0, 85, 10
   );
 
 INSERT INTO galactic_sovereign_schema.planet_resource("planet", "resource", "amount")
