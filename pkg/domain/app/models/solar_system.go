@@ -11,9 +11,9 @@ type SolarSystem struct {
 }
 
 type SolarSystemPlanet struct {
-	Id        uuid.UUID
-	Player    uuid.UUID
-	Name      string
-	Homeworld bool
-	Position  int
+	Id         uuid.UUID
+	PlayerName string
+	Name       string
+	Homeworld  bool
+	Position   int
 }

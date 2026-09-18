@@ -29,7 +29,7 @@ WHERE
 	listSolarSystemPlanetsQuery = `
 SELECT
 	p.id,
-	p.player,
+	pl.name AS player_name,
 	p.name,
 	CASE
 		WHEN h.planet IS NOT NULL THEN true
@@ -40,6 +40,7 @@ FROM
 	planet_coordinate AS pc
 	INNER JOIN planet AS p ON pc.planet = p.id
 	LEFT JOIN homeworld AS h ON h.planet = p.id
+	INNER JOIN player AS pl ON pl.id = p.player
 WHERE
 	pc.universe = $1
 	AND pc.galaxy = $2

@@ -19,11 +19,11 @@ func toSolarSystemPlanetResponse(
 	planet models.SolarSystemPlanet,
 ) dtos.SolarSystemPlanetDtoResponse {
 	return dtos.SolarSystemPlanetDtoResponse{
-		Id:        planet.Id,
-		Player:    planet.Player,
-		Name:      planet.Name,
-		Homeworld: planet.Homeworld,
-		Position:  planet.Position,
+		Id:         planet.Id,
+		PlayerName: planet.PlayerName,
+		Name:       planet.Name,
+		Homeworld:  planet.Homeworld,
+		Position:   planet.Position,
 	}
 }
 

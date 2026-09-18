@@ -35,11 +35,11 @@ func TestIT_SolarSystemRepository_Get(t *testing.T) {
 			Orbits:   universe.Topology.Orbits,
 			Planets: []models.SolarSystemPlanet{
 				{
-					Id:        planet.Id,
-					Player:    player.Id,
-					Name:      planet.Name,
-					Homeworld: planet.Homeworld,
-					Position:  planet.Coordinate.Position,
+					Id:         planet.Id,
+					PlayerName: player.Name,
+					Name:       planet.Name,
+					Homeworld:  planet.Homeworld,
+					Position:   planet.Coordinate.Position,
 				},
 			},
 		}

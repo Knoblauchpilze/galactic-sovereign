@@ -774,8 +774,8 @@ const docTemplate = `{
                         "example": "colony",
                         "type": "string"
                     },
-                    "player": {
-                        "format": "uuid",
+                    "player_name": {
+                        "example": "emperor palpatine",
                         "type": "string"
                     },
                     "position": {
@@ -787,7 +787,7 @@ const docTemplate = `{
                     "homeworld",
                     "id",
                     "name",
-                    "player",
+                    "player_name",
                     "position"
                 ],
                 "type": "object"

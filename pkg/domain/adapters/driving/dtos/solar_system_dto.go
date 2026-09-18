@@ -13,9 +13,9 @@ type SolarSystemDtoResponse struct {
 }
 
 type SolarSystemPlanetDtoResponse struct {
-	Id        uuid.UUID `json:"id" format:"uuid" binding:"required"`
-	Player    uuid.UUID `json:"player" format:"uuid" binding:"required"`
-	Name      string    `json:"name" binding:"required" example:"colony"`
-	Homeworld bool      `json:"homeworld" binding:"required"`
-	Position  int       `json:"position" binding:"required" minimum:"0"`
+	Id         uuid.UUID `json:"id" format:"uuid" binding:"required"`
+	PlayerName string    `json:"player_name" binding:"required" example:"emperor palpatine"`
+	Name       string    `json:"name" binding:"required" example:"colony"`
+	Homeworld  bool      `json:"homeworld" binding:"required"`
+	Position   int       `json:"position" binding:"required" minimum:"0"`
 }
