@@ -8,7 +8,7 @@ type SolarSystemDtoResponse struct {
 	Universe uuid.UUID                      `json:"id" format:"uuid" binding:"required"`
 	Galaxy   int                            `json:"galaxy" binding:"required" minimum:"0"`
 	Number   int                            `json:"number" binding:"required" minimum:"0"`
-	Orbits   int                            `json:"position" binding:"required" minimum:"0"`
+	Orbits   int                            `json:"orbits" binding:"required" minimum:"0"`
 	Planets  []SolarSystemPlanetDtoResponse `json:"planets" binding:"required"`
 }
 

@@ -740,24 +740,24 @@ const docTemplate = `{
                         "minimum": 0,
                         "type": "integer"
                     },
+                    "orbits": {
+                        "minimum": 0,
+                        "type": "integer"
+                    },
                     "planets": {
                         "items": {
                             "$ref": "#/components/schemas/dtos.SolarSystemPlanetDtoResponse"
                         },
                         "type": "array",
                         "uniqueItems": false
-                    },
-                    "position": {
-                        "minimum": 0,
-                        "type": "integer"
                     }
                 },
                 "required": [
                     "galaxy",
                     "id",
                     "number",
-                    "planets",
-                    "position"
+                    "orbits",
+                    "planets"
                 ],
                 "type": "object"
             },
