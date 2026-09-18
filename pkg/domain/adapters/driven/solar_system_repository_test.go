@@ -1,7 +1,6 @@
 package drivenadapters
 
 import (
-	"math/rand"
 	"testing"
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
@@ -17,8 +16,13 @@ func TestIT_SolarSystemRepository_Get(t *testing.T) {
 
 	t.Run("gets a solar system", func(t *testing.T) {
 		player, universe := insertTestPlayerInUniverse(t, conn)
-		modifier := generatePlanetCoordinatesModifier(t, universe)
-		planet := insertTestPlanet(t, conn, player.Id, modifier)
+		planet := insertTestPlanet(t, conn, player.Id)
+		planet.Coordinate = models.Coordinate{
+			Galaxy:      0,
+			SolarSystem: 1,
+			Position:    2,
+		}
+		upsertPlanetCoordinate(t, conn, planet)
 
 		actual, err := repo.GetSolarSystem(
 			t.Context(),
@@ -40,6 +44,61 @@ func TestIT_SolarSystemRepository_Get(t *testing.T) {
 					Name:       planet.Name,
 					Homeworld:  planet.Homeworld,
 					Position:   planet.Coordinate.Position,
+				},
+			},
+		}
+		assert.Equal(t, expected, actual)
+	})
+
+	t.Run("orders planet by position in a solar system", func(t *testing.T) {
+		player1, universe := insertTestPlayerInUniverse(t, conn)
+		require.Greater(t, universe.Topology.SolarSystems, 1)
+		require.Greater(t, universe.Topology.Orbits, 3)
+
+		planet1 := insertTestPlanet(t, conn, player1.Id)
+		planet1.Coordinate = models.Coordinate{
+			Galaxy:      0,
+			SolarSystem: 1,
+			Position:    2,
+		}
+		upsertPlanetCoordinate(t, conn, planet1)
+
+		player2 := insertTestPlayer(t, conn, universe.Id)
+		planet2 := insertTestPlanet(t, conn, player2.Id)
+		planet2.Coordinate = models.Coordinate{
+			Galaxy:      0,
+			SolarSystem: 1,
+			Position:    1,
+		}
+		upsertPlanetCoordinate(t, conn, planet2)
+
+		actual, err := repo.GetSolarSystem(
+			t.Context(),
+			universe.Id,
+			planet1.Coordinate.Galaxy,
+			planet1.Coordinate.SolarSystem,
+		)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		expected := models.SolarSystem{
+			Universe: universe.Id,
+			Galaxy:   planet1.Coordinate.Galaxy,
+			Number:   planet1.Coordinate.SolarSystem,
+			Orbits:   universe.Topology.Orbits,
+			Planets: []models.SolarSystemPlanet{
+				{
+					Id:         planet2.Id,
+					PlayerName: player2.Name,
+					Name:       planet2.Name,
+					Homeworld:  planet2.Homeworld,
+					Position:   planet2.Coordinate.Position,
+				},
+				{
+					Id:         planet1.Id,
+					PlayerName: player1.Name,
+					Name:       planet1.Name,
+					Homeworld:  planet1.Homeworld,
+					Position:   planet1.Coordinate.Position,
 				},
 			},
 		}
@@ -113,36 +172,4 @@ func newTestSolarSystemRepository(t *testing.T) (*SolarSystemRepository, db.Conn
 	t.Helper()
 	conn := newTestConnection(t)
 	return NewSolarSystemRepository(conn), conn
-}
-
-func generatePlanetCoordinatesModifier(
-	t *testing.T,
-	universe models.Universe,
-) func(*testing.T, db.Connection, *models.Planet) {
-	t.Helper()
-
-	return func(t *testing.T, conn db.Connection, p *models.Planet) {
-		t.Helper()
-
-		coordinates := models.Coordinate{
-			Galaxy:      rand.Intn(universe.Topology.Galaxies),
-			SolarSystem: rand.Intn(universe.Topology.SolarSystems),
-			Position:    rand.Intn(universe.Topology.Orbits),
-		}
-
-		sqlQuery := `UPDATE planet_coordinate SET
-			galaxy = $1, solar_system = $2, position = $3
-			WHERE planet = $4`
-		_, err := conn.Exec(
-			t.Context(),
-			sqlQuery,
-			coordinates.Galaxy,
-			coordinates.SolarSystem,
-			coordinates.Position,
-			p.Id,
-		)
-		require.NoError(t, err, "Actual err: %v", err)
-
-		p.Coordinate = coordinates
-	}
 }

@@ -105,24 +105,52 @@ func insertTestPlanet(
 	)
 	require.NoError(t, err, "Actual err: %v", err)
 
-	sqlQuery = `INSERT INTO planet_coordinate (planet, universe, galaxy, solar_system, position)
-		SELECT $1, universe, $2, $3, $4 FROM player WHERE id = $5`
-	_, err = conn.Exec(
-		t.Context(),
-		sqlQuery,
-		planet.Id,
-		planet.Coordinate.Galaxy,
-		planet.Coordinate.SolarSystem,
-		planet.Coordinate.Position,
-		player,
-	)
-	require.NoError(t, err, "Actual err: %v", err)
+	upsertPlanetCoordinate(t, conn, planet)
 
 	for _, modifier := range modifiers {
 		modifier(t, conn, &planet)
 	}
 
 	return planet
+}
+
+// upsertPlanetCoordinate inserts the coordinates defined for the planet in the
+// database, or updates them if a row already exists for this planet. It does
+// not verify them compared to the universe the planet belongs to.
+func upsertPlanetCoordinate(t *testing.T, conn db.Connection, p models.Planet) {
+	t.Helper()
+
+	coordinates := models.Coordinate{
+		Galaxy:      p.Coordinate.Galaxy,
+		SolarSystem: p.Coordinate.SolarSystem,
+		Position:    p.Coordinate.Position,
+	}
+
+	sqlQuery := `INSERT INTO planet_coordinate (planet, universe, galaxy, solar_system, position)
+		SELECT
+			$1,
+			universe,
+			$2,
+			$3,
+			$4
+		FROM
+			player
+		WHERE
+			id = $5
+		ON CONFLICT (planet) DO UPDATE SET
+			galaxy = EXCLUDED.galaxy,
+			solar_system = EXCLUDED.solar_system,
+			position = EXCLUDED.position`
+	_, err := conn.Exec(
+		t.Context(),
+		sqlQuery,
+		p.Id,
+		coordinates.Galaxy,
+		coordinates.SolarSystem,
+		coordinates.Position,
+		p.Player,
+	)
+	require.NoError(t, err, "Actual err: %v", err)
 }
 
 func addPlanetHomeworld(t *testing.T, conn db.Connection, p *models.Planet) {

@@ -44,7 +44,9 @@ FROM
 WHERE
 	pc.universe = $1
 	AND pc.galaxy = $2
-	AND pc.solar_system = $3`
+	AND pc.solar_system = $3
+ORDER BY
+	pc.position ASC`
 )
 
 type SolarSystemRepository struct {
