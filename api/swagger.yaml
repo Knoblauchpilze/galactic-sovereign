@@ -535,6 +535,7 @@ components:
           items:
             $ref: '#/components/schemas/dtos.SolarSystemPlanetDtoResponse'
           type: array
+          uniqueItems: false
         position:
           minimum: 0
           type: integer
@@ -542,6 +543,7 @@ components:
       - galaxy
       - id
       - number
+      - planets
       - position
       type: object
     dtos.SolarSystemPlanetDtoResponse:

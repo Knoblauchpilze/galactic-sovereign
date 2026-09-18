@@ -744,7 +744,8 @@ const docTemplate = `{
                         "items": {
                             "$ref": "#/components/schemas/dtos.SolarSystemPlanetDtoResponse"
                         },
-                        "type": "array"
+                        "type": "array",
+                        "uniqueItems": false
                     },
                     "position": {
                         "minimum": 0,
@@ -755,6 +756,7 @@ const docTemplate = `{
                     "galaxy",
                     "id",
                     "number",
+                    "planets",
                     "position"
                 ],
                 "type": "object"
