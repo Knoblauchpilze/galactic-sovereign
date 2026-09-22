@@ -24,6 +24,6 @@ type ShipActionDtoResponse struct {
 }
 
 type ShipActionCostDtoResponse struct {
-	Resource uuid.UUID `json:"resource" format:"uuid"`
-	Amount   int       `json:"amount"`
+	Resource uuid.UUID `json:"resource" format:"uuid" binding:"required"`
+	Amount   int       `json:"amount" binding:"required"`
 }

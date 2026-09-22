@@ -24,16 +24,16 @@ type BuildingActionDtoResponse struct {
 }
 
 type BuildingActionCostDtoResponse struct {
-	Resource uuid.UUID `json:"resource" format:"uuid"`
-	Amount   int       `json:"amount"`
+	Resource uuid.UUID `json:"resource" format:"uuid" binding:"required"`
+	Amount   int       `json:"amount" binding:"required"`
 }
 
 type BuildingActionStorageDtoResponse struct {
-	Resource uuid.UUID `json:"resource" format:"uuid"`
-	Storage  int       `json:"storage"`
+	Resource uuid.UUID `json:"resource" format:"uuid" binding:"required"`
+	Storage  int       `json:"storage" binding:"required"`
 }
 
 type BuildingActionProductionDtoResponse struct {
-	Resource   uuid.UUID `json:"resource" format:"uuid"`
-	Production int       `json:"production"`
+	Resource   uuid.UUID `json:"resource" format:"uuid" binding:"required"`
+	Production int       `json:"production" binding:"required"`
 }

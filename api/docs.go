@@ -18,6 +18,10 @@ const docTemplate = `{
                         "type": "string"
                     }
                 },
+                "required": [
+                    "amount",
+                    "resource"
+                ],
                 "type": "object"
             },
             "dtos.BuildingActionDtoRequest": {
@@ -97,6 +101,10 @@ const docTemplate = `{
                         "type": "string"
                     }
                 },
+                "required": [
+                    "production",
+                    "resource"
+                ],
                 "type": "object"
             },
             "dtos.BuildingActionStorageDtoResponse": {
@@ -109,6 +117,10 @@ const docTemplate = `{
                         "type": "integer"
                     }
                 },
+                "required": [
+                    "resource",
+                    "storage"
+                ],
                 "type": "object"
             },
             "dtos.BuildingCostDtoResponse": {
@@ -262,6 +274,80 @@ const docTemplate = `{
                     "galaxy",
                     "position",
                     "solar_system"
+                ],
+                "type": "object"
+            },
+            "dtos.FleetDtoRequest": {
+                "properties": {
+                    "ships": {
+                        "items": {
+                            "$ref": "#/components/schemas/dtos.FleetShipDtoRequest"
+                        },
+                        "minItems": 1,
+                        "type": "array",
+                        "uniqueItems": false
+                    }
+                },
+                "required": [
+                    "ships"
+                ],
+                "type": "object"
+            },
+            "dtos.FleetDtoResponse": {
+                "properties": {
+                    "costs": {
+                        "items": {
+                            "$ref": "#/components/schemas/dtos.FleetShipDtoResponse"
+                        },
+                        "type": "array",
+                        "uniqueItems": false
+                    },
+                    "created_at": {
+                        "format": "date-time",
+                        "type": "string"
+                    },
+                    "id": {
+                        "format": "uuid",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "costs",
+                    "created_at",
+                    "id"
+                ],
+                "type": "object"
+            },
+            "dtos.FleetShipDtoRequest": {
+                "properties": {
+                    "count": {
+                        "minimum": 1,
+                        "type": "integer"
+                    },
+                    "ship": {
+                        "format": "uuid",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "count",
+                    "ship"
+                ],
+                "type": "object"
+            },
+            "dtos.FleetShipDtoResponse": {
+                "properties": {
+                    "count": {
+                        "type": "integer"
+                    },
+                    "ship": {
+                        "format": "uuid",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "count",
+                    "ship"
                 ],
                 "type": "object"
             },
@@ -592,6 +678,10 @@ const docTemplate = `{
                         "type": "string"
                     }
                 },
+                "required": [
+                    "amount",
+                    "resource"
+                ],
                 "type": "object"
             },
             "dtos.ShipActionDtoRequest": {
@@ -1029,6 +1119,32 @@ const docTemplate = `{
                 ],
                 "type": "object"
             },
+            "rest.ResponseEnvelope-dtos_FleetDtoResponse": {
+                "properties": {
+                    "details": {
+                        "$ref": "#/components/schemas/dtos.FleetDtoResponse"
+                    },
+                    "request_id": {
+                        "example": "669cd40f-ea15-40a8-ab03-81e704a3ecf9",
+                        "format": "uuid",
+                        "type": "string"
+                    },
+                    "status": {
+                        "$ref": "#/components/schemas/rest.Status"
+                    },
+                    "status_code": {
+                        "example": 200,
+                        "type": "integer"
+                    }
+                },
+                "required": [
+                    "details",
+                    "request_id",
+                    "status",
+                    "status_code"
+                ],
+                "type": "object"
+            },
             "rest.ResponseEnvelope-dtos_PlanetDtoResponse": {
                 "properties": {
                     "details": {
@@ -1413,7 +1529,7 @@ const docTemplate = `{
                 ]
             },
             "post": {
-                "description": "Creates a building action for the planet provided in path parameter. The planet field in the body is ignored and replaced with this path value.",
+                "description": "Creates a building action for the planet provided in path parameter.",
                 "parameters": [
                     {
                         "description": "Planet id (UUID)",
@@ -1494,6 +1610,72 @@ const docTemplate = `{
                 "summary": "Create building action",
                 "tags": [
                     "planets"
+                ]
+            }
+        },
+        "/planets/{id}/fleets": {
+            "post": {
+                "description": "Creates a fleet for the planet provided in path parameter.",
+                "parameters": [
+                    {
+                        "description": "Planet id (UUID)",
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "format": "uuid",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/dtos.FleetDtoRequest",
+                                "summary": "request",
+                                "description": "Fleet payload"
+                            }
+                        }
+                    },
+                    "description": "Fleet payload",
+                    "required": true
+                },
+                "responses": {
+                    "201": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/rest.ResponseEnvelope-dtos_FleetDtoResponse"
+                                }
+                            }
+                        },
+                        "description": "Created"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/rest.ResponseEnvelope-string"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/rest.ResponseEnvelope-string"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "summary": "Create fleet",
+                "tags": [
+                    "fleets"
                 ]
             }
         },
