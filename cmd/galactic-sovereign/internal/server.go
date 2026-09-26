@@ -24,7 +24,7 @@ func CreateGameServer(
 	conn database.Connection,
 	log *slog.Logger,
 ) HttpServer {
-	s := server.NewHttpServerWithLogger(conf, log)
+	s := server.NewWithLogger(conf, log)
 
 	registerUniversesRoutes(conn, s, log)
 	registerPlayersRoutes(conn, s, log)

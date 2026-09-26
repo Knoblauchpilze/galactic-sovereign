@@ -1,5 +1,4 @@
-Server:
-  Port: 60002
+Port: 60002
 Database:
   User: galactic_sovereign_manager
   Password: DB_PASSWORD

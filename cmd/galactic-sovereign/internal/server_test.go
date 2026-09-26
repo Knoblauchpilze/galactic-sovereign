@@ -25,7 +25,7 @@ func TestIT_Server(t *testing.T) {
 		conf := newTestServerConfig()
 
 		s := CreateGameServer(conf, conn, slog.Default())
-		conf = asyncStartServer(t, s, conf)
+		baseUrl := asyncStartServer(t, s)
 
 		// Create a player
 		playerReq := dtos.PlayerDtoRequest{
@@ -34,7 +34,7 @@ func TestIT_Server(t *testing.T) {
 			Name:     "test-player",
 		}
 		player := doPost[dtos.PlayerDtoResponse](
-			t, urlFor(conf, "players"), playerReq,
+			t, urlFor(baseUrl, "players"), playerReq,
 		)
 		assert.Equal(t, oberonUniverseId, player.Universe)
 		assert.Equal(t, "test-player", player.Name)
@@ -44,7 +44,7 @@ func TestIT_Server(t *testing.T) {
 
 		// Get the homeworld and assert basic properties
 		homeworld := doGet[dtos.PlanetDtoResponse](
-			t, urlFor(conf, "planets", player.Homeworld.String()),
+			t, urlFor(baseUrl, "planets", player.Homeworld.String()),
 		)
 		assert.True(t, homeworld.Homeworld)
 		assert.Equal(t, "homeworld", homeworld.Name)
@@ -60,7 +60,7 @@ func TestIT_Server(t *testing.T) {
 		conf := newTestServerConfig()
 
 		s := CreateGameServer(conf, conn, slog.Default())
-		conf = asyncStartServer(t, s, conf)
+		baseUrl := asyncStartServer(t, s)
 
 		// Create a player
 		playerReq := dtos.PlayerDtoRequest{
@@ -69,7 +69,7 @@ func TestIT_Server(t *testing.T) {
 			Name:     "test-player",
 		}
 		player := doPost[dtos.PlayerDtoResponse](
-			t, urlFor(conf, "players"), playerReq,
+			t, urlFor(baseUrl, "players"), playerReq,
 		)
 		assert.Equal(t, oberonUniverseId, player.Universe)
 		assert.Equal(t, "test-player", player.Name)
@@ -82,7 +82,7 @@ func TestIT_Server(t *testing.T) {
 			Building: metalMineId,
 		}
 		action := doPost[dtos.BuildingActionDtoResponse](
-			t, urlFor(conf, "planets", player.Homeworld.String(), "actions"), actionReq,
+			t, urlFor(baseUrl, "planets", player.Homeworld.String(), "actions"), actionReq,
 		)
 		assert.Equal(t, metalMineId, action.Building)
 		assert.Len(t, action.Costs, 2)
@@ -90,16 +90,16 @@ func TestIT_Server(t *testing.T) {
 		assert.Empty(t, action.Storages)
 
 		homeworld := doGet[dtos.PlanetDtoResponse](
-			t, urlFor(conf, "planets", player.Homeworld.String()),
+			t, urlFor(baseUrl, "planets", player.Homeworld.String()),
 		)
 		require.NotNil(t, homeworld.BuildingAction)
 		assert.Equal(t, action, *homeworld.BuildingAction)
 
 		// Cancel the building action
-		doDelete(t, urlFor(conf, "planets", homeworld.Id.String(), "actions"))
+		doDelete(t, urlFor(baseUrl, "planets", homeworld.Id.String(), "actions"))
 
 		homeworld = doGet[dtos.PlanetDtoResponse](
-			t, urlFor(conf, "planets", player.Homeworld.String()),
+			t, urlFor(baseUrl, "planets", player.Homeworld.String()),
 		)
 		assert.Nil(t, homeworld.BuildingAction)
 	})
@@ -110,7 +110,7 @@ func TestIT_Server(t *testing.T) {
 		conf := newTestServerConfig()
 
 		s := CreateGameServer(conf, conn, slog.Default())
-		conf = asyncStartServer(t, s, conf)
+		baseUrl := asyncStartServer(t, s)
 
 		// Create a player
 		playerReq := dtos.PlayerDtoRequest{
@@ -119,17 +119,17 @@ func TestIT_Server(t *testing.T) {
 			Name:     "test-player-b",
 		}
 		player := doPost[dtos.PlayerDtoResponse](
-			t, urlFor(conf, "players"), playerReq,
+			t, urlFor(baseUrl, "players"), playerReq,
 		)
 
 		// Create a building action
 		actionReq := dtos.BuildingActionDtoRequest{Building: metalMineId}
 		action := doPost[dtos.BuildingActionDtoResponse](
-			t, urlFor(conf, "planets", player.Homeworld.String(), "actions"), actionReq,
+			t, urlFor(baseUrl, "planets", player.Homeworld.String(), "actions"), actionReq,
 		)
 
 		homeworld := doGet[dtos.PlanetDtoResponse](
-			t, urlFor(conf, "planets", player.Homeworld.String()),
+			t, urlFor(baseUrl, "planets", player.Homeworld.String()),
 		)
 
 		assert.Equal(t, player.Id, homeworld.Player)
@@ -140,10 +140,10 @@ func TestIT_Server(t *testing.T) {
 		assert.Equal(t, 1, homeworld.BuildingAction.DesiredLevel)
 
 		// Delete the player
-		doDelete(t, urlFor(conf, "players", player.Id.String()))
+		doDelete(t, urlFor(baseUrl, "players", player.Id.String()))
 
-		assertGetStatus(t, urlFor(conf, "planets", homeworld.Id.String()), http.StatusNotFound)
-		assertGetStatus(t, urlFor(conf, "players", player.Id.String()), http.StatusNotFound)
+		assertGetStatus(t, urlFor(baseUrl, "planets", homeworld.Id.String()), http.StatusNotFound)
+		assertGetStatus(t, urlFor(baseUrl, "players", player.Id.String()), http.StatusNotFound)
 	})
 
 	t.Run("create a player and a ship action", func(t *testing.T) {
@@ -152,7 +152,7 @@ func TestIT_Server(t *testing.T) {
 		conf := newTestServerConfig()
 
 		s := CreateGameServer(conf, conn, slog.Default())
-		conf = asyncStartServer(t, s, conf)
+		baseUrl := asyncStartServer(t, s)
 
 		// Create a player
 		playerReq := dtos.PlayerDtoRequest{
@@ -161,12 +161,12 @@ func TestIT_Server(t *testing.T) {
 			Name:     "test-player",
 		}
 		player := doPost[dtos.PlayerDtoResponse](
-			t, urlFor(conf, "players"), playerReq,
+			t, urlFor(baseUrl, "players"), playerReq,
 		)
 
 		// Fetch the universe and pick a ship from it
 		universe := doGet[dtos.UniverseDtoResponse](
-			t, urlFor(conf, "universes", oberonUniverseId.String()),
+			t, urlFor(baseUrl, "universes", oberonUniverseId.String()),
 		)
 		require.NotEmpty(t, universe.Ships)
 		ship := findShip(t, universe, "light fighter")
@@ -184,7 +184,7 @@ func TestIT_Server(t *testing.T) {
 		}
 		assertPostStatus(
 			t,
-			urlFor(conf, "planets", player.Homeworld.String(), "ships"),
+			urlFor(baseUrl, "planets", player.Homeworld.String(), "ships"),
 			actionReq,
 			http.StatusConflict,
 		)
@@ -193,13 +193,13 @@ func TestIT_Server(t *testing.T) {
 
 		// This call should succeed now that the building requirements are met
 		action := doPost[dtos.ShipActionDtoResponse](
-			t, urlFor(conf, "planets", player.Homeworld.String(), "ships"), actionReq,
+			t, urlFor(baseUrl, "planets", player.Homeworld.String(), "ships"), actionReq,
 		)
 		assert.Equal(t, ship.Id, action.Ship)
 		assert.Equal(t, 1, action.Count)
 
 		homeworld := doGet[dtos.PlanetDtoResponse](
-			t, urlFor(conf, "planets", player.Homeworld.String()),
+			t, urlFor(baseUrl, "planets", player.Homeworld.String()),
 		)
 		require.Len(t, homeworld.ShipActions, 1)
 		assert.Equal(t, action, homeworld.ShipActions[0])
@@ -211,7 +211,7 @@ func TestIT_Server(t *testing.T) {
 		conf := newTestServerConfig()
 
 		s := CreateGameServer(conf, conn, slog.Default())
-		conf = asyncStartServer(t, s, conf)
+		baseUrl := asyncStartServer(t, s)
 
 		// Create a player
 		playerReq := dtos.PlayerDtoRequest{
@@ -220,12 +220,12 @@ func TestIT_Server(t *testing.T) {
 			Name:     "test-player",
 		}
 		player := doPost[dtos.PlayerDtoResponse](
-			t, urlFor(conf, "players"), playerReq,
+			t, urlFor(baseUrl, "players"), playerReq,
 		)
 
 		// Fetch the universe and pick a ship from it
 		universe := doGet[dtos.UniverseDtoResponse](
-			t, urlFor(conf, "universes", oberonUniverseId.String()),
+			t, urlFor(baseUrl, "universes", oberonUniverseId.String()),
 		)
 		require.NotEmpty(t, universe.Ships)
 		ship := findShip(t, universe, "small cargo ship")
@@ -242,22 +242,22 @@ func TestIT_Server(t *testing.T) {
 			Count: 1,
 		}
 		action := doPost[dtos.ShipActionDtoResponse](
-			t, urlFor(conf, "planets", player.Homeworld.String(), "ships"), actionReq,
+			t, urlFor(baseUrl, "planets", player.Homeworld.String(), "ships"), actionReq,
 		)
 		assert.Equal(t, ship.Id, action.Ship)
 		assert.Equal(t, 1, action.Count)
 
 		homeworld := doGet[dtos.PlanetDtoResponse](
-			t, urlFor(conf, "planets", player.Homeworld.String()),
+			t, urlFor(baseUrl, "planets", player.Homeworld.String()),
 		)
 		require.Len(t, homeworld.ShipActions, 1)
 		assert.Equal(t, action, homeworld.ShipActions[0])
 
 		// Delete the player
-		doDelete(t, urlFor(conf, "players", player.Id.String()))
+		doDelete(t, urlFor(baseUrl, "players", player.Id.String()))
 
-		assertGetStatus(t, urlFor(conf, "planets", player.Homeworld.String()), http.StatusNotFound)
-		assertGetStatus(t, urlFor(conf, "players", player.Id.String()), http.StatusNotFound)
+		assertGetStatus(t, urlFor(baseUrl, "planets", player.Homeworld.String()), http.StatusNotFound)
+		assertGetStatus(t, urlFor(baseUrl, "players", player.Id.String()), http.StatusNotFound)
 	})
 
 	t.Run("create a player and a ship action and delete the planet", func(t *testing.T) {
@@ -266,7 +266,7 @@ func TestIT_Server(t *testing.T) {
 		conf := newTestServerConfig()
 
 		s := CreateGameServer(conf, conn, slog.Default())
-		conf = asyncStartServer(t, s, conf)
+		baseUrl := asyncStartServer(t, s)
 
 		// Create a player
 		playerReq := dtos.PlayerDtoRequest{
@@ -275,12 +275,12 @@ func TestIT_Server(t *testing.T) {
 			Name:     "test-player",
 		}
 		player := doPost[dtos.PlayerDtoResponse](
-			t, urlFor(conf, "players"), playerReq,
+			t, urlFor(baseUrl, "players"), playerReq,
 		)
 
 		// Fetch the universe and pick a ship from it
 		universe := doGet[dtos.UniverseDtoResponse](
-			t, urlFor(conf, "universes", oberonUniverseId.String()),
+			t, urlFor(baseUrl, "universes", oberonUniverseId.String()),
 		)
 		require.NotEmpty(t, universe.Ships)
 		ship := findShip(t, universe, "small cargo ship")
@@ -297,13 +297,13 @@ func TestIT_Server(t *testing.T) {
 			Count: 1,
 		}
 		action := doPost[dtos.ShipActionDtoResponse](
-			t, urlFor(conf, "planets", player.Homeworld.String(), "ships"), actionReq,
+			t, urlFor(baseUrl, "planets", player.Homeworld.String(), "ships"), actionReq,
 		)
 		assert.Equal(t, ship.Id, action.Ship)
 		assert.Equal(t, 1, action.Count)
 
 		// Delete the planet: it should fail
-		assertDeleteStatus(t, urlFor(conf, "planets", player.Homeworld.String()), http.StatusConflict)
+		assertDeleteStatus(t, urlFor(baseUrl, "planets", player.Homeworld.String()), http.StatusConflict)
 	})
 
 	t.Run("ships actions are ordered by creation date", func(t *testing.T) {
@@ -312,7 +312,7 @@ func TestIT_Server(t *testing.T) {
 		conf := newTestServerConfig()
 
 		s := CreateGameServer(conf, conn, slog.Default())
-		conf = asyncStartServer(t, s, conf)
+		baseUrl := asyncStartServer(t, s)
 
 		// Create a player
 		playerReq := dtos.PlayerDtoRequest{
@@ -321,12 +321,12 @@ func TestIT_Server(t *testing.T) {
 			Name:     "test-player",
 		}
 		player := doPost[dtos.PlayerDtoResponse](
-			t, urlFor(conf, "players"), playerReq,
+			t, urlFor(baseUrl, "players"), playerReq,
 		)
 
 		// Fetch the universe and pick a ship from it
 		universe := doGet[dtos.UniverseDtoResponse](
-			t, urlFor(conf, "universes", oberonUniverseId.String()),
+			t, urlFor(baseUrl, "universes", oberonUniverseId.String()),
 		)
 		require.NotEmpty(t, universe.Ships)
 		ship := findShip(t, universe, "light fighter")
@@ -347,20 +347,20 @@ func TestIT_Server(t *testing.T) {
 
 		// Create a first ship action
 		action1 := doPost[dtos.ShipActionDtoResponse](
-			t, urlFor(conf, "planets", player.Homeworld.String(), "ships"), actionReq,
+			t, urlFor(baseUrl, "planets", player.Homeworld.String(), "ships"), actionReq,
 		)
 		assert.Equal(t, ship.Id, action1.Ship)
 		assert.Equal(t, 1, action1.Count)
 
 		// Create a second ship action
 		action2 := doPost[dtos.ShipActionDtoResponse](
-			t, urlFor(conf, "planets", player.Homeworld.String(), "ships"), actionReq,
+			t, urlFor(baseUrl, "planets", player.Homeworld.String(), "ships"), actionReq,
 		)
 		assert.Equal(t, ship.Id, action2.Ship)
 		assert.Equal(t, 1, action2.Count)
 
 		homeworld := doGet[dtos.PlanetDtoResponse](
-			t, urlFor(conf, "planets", player.Homeworld.String()),
+			t, urlFor(baseUrl, "planets", player.Homeworld.String()),
 		)
 		assert.Equal(t, homeworld.ShipActions, []dtos.ShipActionDtoResponse{action1, action2})
 	})

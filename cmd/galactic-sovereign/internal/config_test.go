@@ -2,27 +2,41 @@ package internal
 
 import (
 	"testing"
+	"time"
 
+	"github.com/Knoblauchpilze/backend-toolkit/pkg/db/postgresql"
+	"github.com/Knoblauchpilze/backend-toolkit/pkg/server"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestUnit_DefaultConfig_DefinesCorrectRestConfiguration(t *testing.T) {
-	config := DefaultConfig()
+func TestUnit_DefaultConfig(t *testing.T) {
+	t.Run("defines correct rest configuration", func(t *testing.T) {
+		config := DefaultConfig()
 
-	assert.Equal(t, "/v1/galactic-sovereign", config.Server.BasePath)
-	assert.Equal(t, uint16(80), config.Server.Port)
-}
+		expected := server.Config{
+			BasePath:        "/v1/galactic-sovereign",
+			ShutdownTimeout: 5 * time.Second,
+		}
+		assert.Equal(t, expected, config.Server)
+	})
 
-func TestUnit_DefaultConfig_SetsExpectedDbConnection(t *testing.T) {
-	config := DefaultConfig()
+	t.Run("defines correct database connection", func(t *testing.T) {
+		config := DefaultConfig()
 
-	assert.Equal(t, "172.17.0.1", config.Database.Host)
-	assert.Equal(t, "db_galactic_sovereign", config.Database.Database)
-	assert.Equal(t, "galactic_sovereign_manager", config.Database.User)
-}
+		expected := postgresql.Config{
+			Host:           "172.17.0.1",
+			Port:           5432,
+			Database:       "db_galactic_sovereign",
+			User:           "galactic_sovereign_manager",
+			Password:       "comes-from-the-environment",
+			ConnectTimeout: 5 * time.Second,
+		}
+		assert.Equal(t, expected, config.Database)
+	})
 
-func TestUnit_DefaultConfig_DoesNotSetDbPassword(t *testing.T) {
-	config := DefaultConfig()
+	t.Run("defines correct server port", func(t *testing.T) {
+		config := DefaultConfig()
 
-	assert.Equal(t, "comes-from-the-environment", config.Database.Password)
+		assert.Equal(t, uint16(80), config.Port)
+	})
 }

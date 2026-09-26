@@ -9,6 +9,7 @@ import (
 
 type Configuration struct {
 	Server   server.Config
+	Port     uint16
 	Database postgresql.Config
 }
 
@@ -19,9 +20,9 @@ func DefaultConfig() Configuration {
 	return Configuration{
 		Server: server.Config{
 			BasePath:        "/v1/galactic-sovereign",
-			Port:            uint16(80),
 			ShutdownTimeout: 5 * time.Second,
 		},
+		Port: uint16(80),
 		Database: postgresql.NewConfigForDockerContainer(
 			defaultDatabaseName,
 			defaultDatabaseUser,

@@ -62,9 +62,9 @@ func main() {
 		}
 	}
 
-	listener, err := s.Bind(conf.Server.Port)
+	listener, err := s.Bind(conf.Port)
 	if err != nil {
-		log.Error("Failed to bind server", slog.Int("port", int(conf.Server.Port)), slog.Any("error", err))
+		log.Error("Failed to bind server", slog.Int("port", int(conf.Port)), slog.Any("error", err))
 		os.Exit(1)
 	}
 

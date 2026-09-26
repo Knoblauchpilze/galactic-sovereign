@@ -53,6 +53,8 @@ func TestIT_SolarSystemRepository_Get(t *testing.T) {
 	t.Run("orders planet by position in a solar system", func(t *testing.T) {
 		player1, universe := insertTestPlayerInUniverse(t, conn)
 		require.Greater(t, universe.Topology.SolarSystems, 1)
+		// TODO: Can fail with:
+		// "3" is not greater than "3"
 		require.Greater(t, universe.Topology.Orbits, 3)
 
 		planet1 := insertTestPlanet(t, conn, player1.Id)

@@ -36,18 +36,12 @@ func TestMain(m *testing.M) {
 
 // urlFor builds a URL under the test server's base path.
 // Segments are joined with '/' and appended after the base path.
-func urlFor(conf server.Config, segments ...string) string {
+func urlFor(baseUrl string, segments ...string) string {
 	path := ""
 	for _, s := range segments {
 		path += "/" + s
 	}
-	return fmt.Sprintf(
-		"http://%s:%d%s%s",
-		testServerHost,
-		conf.Port,
-		conf.BasePath,
-		path,
-	)
+	return fmt.Sprintf("%s%s", baseUrl, path)
 }
 
 func newTestServerConfig() server.Config {
@@ -58,8 +52,8 @@ func newTestServerConfig() server.Config {
 }
 
 // asyncStartServer binds the server on an OS-assigned port, serves until test
-// cleanup and returns the config updated with the effective port.
-func asyncStartServer(t *testing.T, s HttpServer, conf server.Config) server.Config {
+// cleanup and returns the base URL to reach the server.
+func asyncStartServer(t *testing.T, s HttpServer) string {
 	t.Helper()
 
 	listener, err := s.Bind(0)
@@ -77,8 +71,14 @@ func asyncStartServer(t *testing.T, s HttpServer, conf server.Config) server.Con
 		require.NoError(t, err, "Actual err: %v", err)
 	})
 
-	conf.Port = uint16(listener.Addr().(*net.TCPAddr).Port)
-	return conf
+	defaultConfig := newTestServerConfig()
+	port := uint16(listener.Addr().(*net.TCPAddr).Port)
+	return fmt.Sprintf(
+		"http://%s:%d%s",
+		testServerHost,
+		port,
+		defaultConfig.BasePath,
+	)
 }
 
 func doGet[T any](t *testing.T, url string) T {

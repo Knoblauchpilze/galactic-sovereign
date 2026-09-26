@@ -105,10 +105,10 @@ require (
 )
 
 require (
-	github.com/Knoblauchpilze/backend-toolkit v0.8.2
+	github.com/Knoblauchpilze/backend-toolkit v0.8.3
 	github.com/Knoblauchpilze/easy-assert v0.4.0
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
-	github.com/jackc/pgx/v5 v5.11.0 // indirect
+	github.com/jackc/pgx/v5 v5.11.0
 	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.23 // indirect
 	github.com/pelletier/go-toml/v2 v2.4.3 // indirect
