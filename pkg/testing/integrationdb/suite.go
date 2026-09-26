@@ -12,6 +12,8 @@ import (
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db/postgresql"
+	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driven/database"
+	"github.com/Knoblauchpilze/galactic-sovereign/pkg/infrastructure"
 	migrate "github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
@@ -36,7 +38,7 @@ type Suite struct {
 	stateLock           sync.Mutex
 	initialized         bool
 	container           *postgres.PostgresContainer
-	bootstrapConn       db.Connection
+	bootstrapConn       *db.Connection
 	testDatabaseCounter int
 }
 
@@ -52,7 +54,7 @@ func NewDatabaseSharedContainer(t *testing.T) *Suite {
 // NewTestConnection returns a fresh DB connection backed by the shared test
 // container. A per-test database is cloned from the migrated template and is
 // automatically dropped when the test finishes.
-func (s *Suite) NewTestConnection(t *testing.T) db.Connection {
+func (s *Suite) NewTestConnection(t *testing.T) database.Connection {
 	t.Helper()
 
 	s.ensureInitialized(t)
@@ -98,7 +100,7 @@ func (s *Suite) NewTestConnection(t *testing.T) db.Connection {
 		require.NoError(t, dropErr, "Actual err: %v", dropErr)
 	})
 
-	return conn
+	return infrastructure.NewDbConnection(conn)
 }
 
 // Teardown shuts down the shared test container. Must be called from TestMain
@@ -115,7 +117,7 @@ func (s *Suite) createConnection(
 	database string,
 	user string,
 	password string,
-) db.Connection {
+) *db.Connection {
 	t.Helper()
 
 	host, err := postgresContainer.Host(t.Context())
@@ -140,7 +142,7 @@ func (s *Suite) createConnection(
 	return conn
 }
 
-func (s *Suite) nextDatabaseContext() (string, db.Connection, *postgres.PostgresContainer) {
+func (s *Suite) nextDatabaseContext() (string, *db.Connection, *postgres.PostgresContainer) {
 	s.stateLock.Lock()
 	defer s.stateLock.Unlock()
 

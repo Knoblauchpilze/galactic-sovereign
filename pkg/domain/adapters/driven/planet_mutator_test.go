@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
+	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driven/database"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
 	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
 	drivenports "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driven"
@@ -23,81 +24,81 @@ func TestIT_PlanetMutator_GetBehavior(t *testing.T) {
 
 	testCases := []struct {
 		name      string
-		generator func(t *testing.T, conn db.Connection) models.Planet
+		generator func(t *testing.T, conn database.Connection) models.Planet
 	}{
 		{
 			name: "planet",
-			generator: func(t *testing.T, conn db.Connection) models.Planet {
+			generator: func(t *testing.T, conn database.Connection) models.Planet {
 				planet, _, _ := insertTestPlanetForPlayer(t, conn)
 				return planet
 			},
 		},
 		{
 			name: "planet with resources",
-			generator: func(t *testing.T, conn db.Connection) models.Planet {
+			generator: func(t *testing.T, conn database.Connection) models.Planet {
 				planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetResource)
 				return planet
 			},
 		},
 		{
 			name: "planet with resource productions",
-			generator: func(t *testing.T, conn db.Connection) models.Planet {
+			generator: func(t *testing.T, conn database.Connection) models.Planet {
 				planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetProduction)
 				return planet
 			},
 		},
 		{
 			name: "planet with resource productions for building",
-			generator: func(t *testing.T, conn db.Connection) models.Planet {
+			generator: func(t *testing.T, conn database.Connection) models.Planet {
 				planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetProductionForBuilding)
 				return planet
 			},
 		},
 		{
 			name: "planet with resource storages",
-			generator: func(t *testing.T, conn db.Connection) models.Planet {
+			generator: func(t *testing.T, conn database.Connection) models.Planet {
 				planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetStorage)
 				return planet
 			},
 		},
 		{
 			name: "planet with buildings",
-			generator: func(t *testing.T, conn db.Connection) models.Planet {
+			generator: func(t *testing.T, conn database.Connection) models.Planet {
 				planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetBuilding)
 				return planet
 			},
 		},
 		{
 			name: "planet with buildings with speedup",
-			generator: func(t *testing.T, conn db.Connection) models.Planet {
+			generator: func(t *testing.T, conn database.Connection) models.Planet {
 				planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetBuildingWithShipSpeedup)
 				return planet
 			},
 		},
 		{
 			name: "planet with ships",
-			generator: func(t *testing.T, conn db.Connection) models.Planet {
+			generator: func(t *testing.T, conn database.Connection) models.Planet {
 				planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetShip)
 				return planet
 			},
 		},
 		{
 			name: "planet with building action",
-			generator: func(t *testing.T, conn db.Connection) models.Planet {
+			generator: func(t *testing.T, conn database.Connection) models.Planet {
 				planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetBuildingAction)
 				return planet
 			},
 		},
 		{
 			name: "planet with ship actions",
-			generator: func(t *testing.T, conn db.Connection) models.Planet {
+			generator: func(t *testing.T, conn database.Connection) models.Planet {
 				planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetShipAction)
 				return planet
 			},
 		},
 		{
 			name: "planet with multiple ship actions are sorted",
-			generator: func(t *testing.T, conn db.Connection) models.Planet {
+			generator: func(t *testing.T, conn database.Connection) models.Planet {
 				planet, _, _ := insertTestPlanetForPlayer(t, conn)
 				action1 := insertTestShipActionForPlanet(t, conn, planet.Id, func(t *testing.T, a *models.ShipAction) {
 					a.CreatedAt = planet.CreatedAt.Add(2 * time.Hour)
@@ -1453,7 +1454,7 @@ func TestIT_PlanetMutator_ActionCreationDeletionWorkflow(t *testing.T) {
 	assertBuildingActionDoesNotExist(t, conn, action.Id)
 }
 
-func newTestPlanetMutator(t *testing.T) (*PlanetMutator, db.Connection) {
+func newTestPlanetMutator(t *testing.T) (*PlanetMutator, database.Connection) {
 	t.Helper()
 	conn := newTestConnection(t)
 	return NewPlanetMutator(conn), conn
@@ -1472,7 +1473,7 @@ func generateDeletingMutator() drivenports.PlanetMutator {
 	}
 }
 
-func assertPlanetBuildingLevel(t *testing.T, conn db.Connection, planet uuid.UUID, building uuid.UUID, level int) {
+func assertPlanetBuildingLevel(t *testing.T, conn database.Connection, planet uuid.UUID, building uuid.UUID, level int) {
 	t.Helper()
 
 	sqlQuery := `SELECT level FROM planet_building WHERE planet = $1 AND building = $2`
@@ -1481,7 +1482,7 @@ func assertPlanetBuildingLevel(t *testing.T, conn db.Connection, planet uuid.UUI
 	require.Equal(t, level, value)
 }
 
-func assertPlanetShipCount(t *testing.T, conn db.Connection, planet uuid.UUID, ship uuid.UUID, count int) {
+func assertPlanetShipCount(t *testing.T, conn database.Connection, planet uuid.UUID, ship uuid.UUID, count int) {
 	t.Helper()
 
 	sqlQuery := `SELECT count FROM planet_ship WHERE planet = $1 AND ship = $2`
@@ -1492,7 +1493,7 @@ func assertPlanetShipCount(t *testing.T, conn db.Connection, planet uuid.UUID, s
 
 func insertTestShipActionForPlanet(
 	t *testing.T,
-	conn db.Connection,
+	conn database.Connection,
 	planetId uuid.UUID,
 	modifiers ...func(*testing.T, *models.ShipAction),
 ) models.ShipAction {
@@ -1532,7 +1533,7 @@ func insertTestShipActionForPlanet(
 
 func insertTestShipAction(
 	t *testing.T,
-	conn db.Connection,
+	conn database.Connection,
 	modifiers ...func(*testing.T, *models.ShipAction),
 ) (models.ShipAction, models.Planet) {
 	t.Helper()

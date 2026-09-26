@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
+	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driven/database"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
 	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
 	drivenports "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driven"
@@ -23,10 +24,10 @@ FOR UPDATE
 )
 
 type PlanetMutator struct {
-	conn db.Connection
+	conn database.Connection
 }
 
-func NewPlanetMutator(conn db.Connection) *PlanetMutator {
+func NewPlanetMutator(conn database.Connection) *PlanetMutator {
 	return &PlanetMutator{
 		conn: conn,
 	}
@@ -85,7 +86,7 @@ func (m *PlanetMutator) Mutate(
 
 func saveAndReloadPlanet(
 	ctx context.Context,
-	tx db.Transaction,
+	tx database.Transaction,
 	planet models.Planet,
 	expectedVersion int,
 ) (models.Planet, error) {

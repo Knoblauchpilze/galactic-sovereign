@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
+	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driven/database"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driven/mappers"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
 	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
@@ -85,10 +86,10 @@ ORDER BY
 )
 
 type UniverseRepository struct {
-	conn db.Connection
+	conn database.Connection
 }
 
-func NewUniverseRepository(conn db.Connection) *UniverseRepository {
+func NewUniverseRepository(conn database.Connection) *UniverseRepository {
 	return &UniverseRepository{
 		conn: conn,
 	}
@@ -189,7 +190,11 @@ func (r *UniverseRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	return nil
 }
 
-func loadUniverseDetails(ctx context.Context, tx db.Transaction, dbUniverse mappers.DbUniverse) (models.Universe, error) {
+func loadUniverseDetails(
+	ctx context.Context,
+	tx database.Transaction,
+	dbUniverse mappers.DbUniverse,
+) (models.Universe, error) {
 	universe := dbUniverse.ToDomain()
 
 	var err error
@@ -222,7 +227,7 @@ func loadUniverseDetails(ctx context.Context, tx db.Transaction, dbUniverse mapp
 
 func loadOccupancyMap(
 	ctx context.Context,
-	tx db.Transaction,
+	tx database.Transaction,
 	universe uuid.UUID,
 	topology models.UniverseTopology,
 ) (models.OccupancyMap, error) {

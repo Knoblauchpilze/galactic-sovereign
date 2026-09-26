@@ -25,7 +25,7 @@ func TestIT_Server(t *testing.T) {
 		conf := newTestServerConfig()
 
 		s := CreateGameServer(conf, conn, slog.Default())
-		asyncStartServer(t, s)
+		conf = asyncStartServer(t, s, conf)
 
 		// Create a player
 		playerReq := dtos.PlayerDtoRequest{
@@ -60,7 +60,7 @@ func TestIT_Server(t *testing.T) {
 		conf := newTestServerConfig()
 
 		s := CreateGameServer(conf, conn, slog.Default())
-		asyncStartServer(t, s)
+		conf = asyncStartServer(t, s, conf)
 
 		// Create a player
 		playerReq := dtos.PlayerDtoRequest{
@@ -110,7 +110,7 @@ func TestIT_Server(t *testing.T) {
 		conf := newTestServerConfig()
 
 		s := CreateGameServer(conf, conn, slog.Default())
-		asyncStartServer(t, s)
+		conf = asyncStartServer(t, s, conf)
 
 		// Create a player
 		playerReq := dtos.PlayerDtoRequest{
@@ -152,7 +152,7 @@ func TestIT_Server(t *testing.T) {
 		conf := newTestServerConfig()
 
 		s := CreateGameServer(conf, conn, slog.Default())
-		asyncStartServer(t, s)
+		conf = asyncStartServer(t, s, conf)
 
 		// Create a player
 		playerReq := dtos.PlayerDtoRequest{
@@ -211,7 +211,7 @@ func TestIT_Server(t *testing.T) {
 		conf := newTestServerConfig()
 
 		s := CreateGameServer(conf, conn, slog.Default())
-		asyncStartServer(t, s)
+		conf = asyncStartServer(t, s, conf)
 
 		// Create a player
 		playerReq := dtos.PlayerDtoRequest{
@@ -266,7 +266,7 @@ func TestIT_Server(t *testing.T) {
 		conf := newTestServerConfig()
 
 		s := CreateGameServer(conf, conn, slog.Default())
-		asyncStartServer(t, s)
+		conf = asyncStartServer(t, s, conf)
 
 		// Create a player
 		playerReq := dtos.PlayerDtoRequest{
@@ -312,7 +312,7 @@ func TestIT_Server(t *testing.T) {
 		conf := newTestServerConfig()
 
 		s := CreateGameServer(conf, conn, slog.Default())
-		asyncStartServer(t, s)
+		conf = asyncStartServer(t, s, conf)
 
 		// Create a player
 		playerReq := dtos.PlayerDtoRequest{

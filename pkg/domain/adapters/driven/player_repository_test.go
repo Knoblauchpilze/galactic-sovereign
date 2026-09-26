@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
+	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driven/database"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
 	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
 	"github.com/google/uuid"
@@ -407,7 +408,7 @@ func TestIT_PlayerRepository_CreationDeletionWorkflow(t *testing.T) {
 	})
 }
 
-func newTestPlayerRepository(t *testing.T) (*PlayerRepository, db.Connection) {
+func newTestPlayerRepository(t *testing.T) (*PlayerRepository, database.Connection) {
 	t.Helper()
 	conn := newTestConnection(t)
 	return NewPlayerRepository(conn), conn
@@ -415,9 +416,9 @@ func newTestPlayerRepository(t *testing.T) (*PlayerRepository, db.Connection) {
 
 func insertTestPlayer(
 	t *testing.T,
-	conn db.Connection,
+	conn database.Connection,
 	universe uuid.UUID,
-	modifiers ...func(*testing.T, db.Connection, *models.Player),
+	modifiers ...func(*testing.T, database.Connection, *models.Player),
 ) models.Player {
 	t.Helper()
 
@@ -458,8 +459,8 @@ func insertTestPlayer(
 // what happens during real player creation.
 func insertTestPlayerInUniverse(
 	t *testing.T,
-	conn db.Connection,
-	modifiers ...func(*testing.T, db.Connection, *models.Player),
+	conn database.Connection,
+	modifiers ...func(*testing.T, database.Connection, *models.Player),
 ) (models.Player, models.Universe) {
 	universe := insertTestUniverse(t, conn)
 	player := insertTestPlayer(t, conn, universe.Id)
@@ -482,7 +483,7 @@ func insertTestPlayerInUniverse(
 	return player, universe
 }
 
-func addPlayerPlanet(t *testing.T, conn db.Connection, p *models.Player) {
+func addPlayerPlanet(t *testing.T, conn database.Connection, p *models.Player) {
 	t.Helper()
 
 	planet := insertTestPlanet(t, conn, p.Id)
@@ -495,7 +496,7 @@ func addPlayerPlanet(t *testing.T, conn db.Connection, p *models.Player) {
 	p.Planets = append(p.Planets, playerPlanet)
 }
 
-func assertPlayerExists(t *testing.T, conn db.Connection, id uuid.UUID) {
+func assertPlayerExists(t *testing.T, conn database.Connection, id uuid.UUID) {
 	t.Helper()
 
 	sqlQuery := `SELECT id FROM player WHERE id = $1`
@@ -504,7 +505,7 @@ func assertPlayerExists(t *testing.T, conn db.Connection, id uuid.UUID) {
 	require.Equal(t, id, value)
 }
 
-func assertPlayerDoesNotExist(t *testing.T, conn db.Connection, id uuid.UUID) {
+func assertPlayerDoesNotExist(t *testing.T, conn database.Connection, id uuid.UUID) {
 	t.Helper()
 
 	sqlQuery := `SELECT COUNT(id) FROM player WHERE id = $1`

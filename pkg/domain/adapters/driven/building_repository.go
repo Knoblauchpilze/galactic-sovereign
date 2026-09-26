@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
+	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driven/database"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driven/mappers"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
 	"github.com/google/uuid"
@@ -74,10 +75,10 @@ WHERE
 )
 
 type BuildingRepository struct {
-	conn db.Connection
+	conn database.Connection
 }
 
-func NewBuildingRepository(conn db.Connection) *BuildingRepository {
+func NewBuildingRepository(conn database.Connection) *BuildingRepository {
 	return &BuildingRepository{
 		conn: conn,
 	}
@@ -98,7 +99,7 @@ func (r *BuildingRepository) Get(ctx context.Context, id uuid.UUID) (models.Buil
 	return loadBuildingDetails(ctx, tx, dbBuilding)
 }
 
-func loadBuildings(ctx context.Context, tx db.Transaction) ([]models.Building, error) {
+func loadBuildings(ctx context.Context, tx database.Transaction) ([]models.Building, error) {
 	dbBuildings, err := db.QueryAllTx[mappers.DbBuilding](ctx, tx, listBuildingQuery)
 	if err != nil {
 		return nil, err
@@ -117,7 +118,7 @@ func loadBuildings(ctx context.Context, tx db.Transaction) ([]models.Building, e
 	return buildings, nil
 }
 
-func loadBuildingDetails(ctx context.Context, tx db.Transaction, dbBuilding mappers.DbBuilding) (models.Building, error) {
+func loadBuildingDetails(ctx context.Context, tx database.Transaction, dbBuilding mappers.DbBuilding) (models.Building, error) {
 	building := dbBuilding.ToDomain()
 
 	var err error

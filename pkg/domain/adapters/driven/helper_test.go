@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
 	eassert "github.com/Knoblauchpilze/easy-assert/assert"
+	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driven/database"
 	integrationdb "github.com/Knoblauchpilze/galactic-sovereign/pkg/testing/integrationdb"
 	"github.com/stretchr/testify/assert"
 )
@@ -28,7 +28,7 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
-func newTestConnection(t *testing.T) db.Connection {
+func newTestConnection(t *testing.T) database.Connection {
 	t.Helper()
 	return sharedDbContainer.NewTestConnection(t)
 }

@@ -3,7 +3,7 @@ package drivenadapters
 import (
 	"testing"
 
-	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
+	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driven/database"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
 	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
 	"github.com/google/uuid"
@@ -168,7 +168,7 @@ func TestIT_SolarSystemRepository_Get(t *testing.T) {
 	})
 }
 
-func newTestSolarSystemRepository(t *testing.T) (*SolarSystemRepository, db.Connection) {
+func newTestSolarSystemRepository(t *testing.T) (*SolarSystemRepository, database.Connection) {
 	t.Helper()
 	conn := newTestConnection(t)
 	return NewSolarSystemRepository(conn), conn

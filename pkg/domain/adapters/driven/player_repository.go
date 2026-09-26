@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
+	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driven/database"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driven/mappers"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
 	"github.com/google/uuid"
@@ -70,10 +71,10 @@ ORDER BY
 )
 
 type PlayerRepository struct {
-	conn db.Connection
+	conn database.Connection
 }
 
-func NewPlayerRepository(conn db.Connection) *PlayerRepository {
+func NewPlayerRepository(conn database.Connection) *PlayerRepository {
 	return &PlayerRepository{
 		conn: conn,
 	}
@@ -173,7 +174,11 @@ func (r *PlayerRepository) Delete(ctx context.Context, player models.Player) err
 	return nil
 }
 
-func loadPlayerDetails(ctx context.Context, tx db.Transaction, dbPlayer mappers.DbPlayer) (models.Player, error) {
+func loadPlayerDetails(
+	ctx context.Context,
+	tx database.Transaction,
+	dbPlayer mappers.DbPlayer,
+) (models.Player, error) {
 	player := dbPlayer.ToDomain()
 
 	var err error

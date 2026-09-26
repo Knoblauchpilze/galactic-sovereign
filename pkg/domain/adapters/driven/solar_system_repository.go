@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
+	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driven/database"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driven/mappers"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
 	"github.com/google/uuid"
@@ -50,10 +51,10 @@ ORDER BY
 )
 
 type SolarSystemRepository struct {
-	conn db.Connection
+	conn database.Connection
 }
 
-func NewSolarSystemRepository(conn db.Connection) *SolarSystemRepository {
+func NewSolarSystemRepository(conn database.Connection) *SolarSystemRepository {
 	return &SolarSystemRepository{
 		conn: conn,
 	}
@@ -89,7 +90,7 @@ func (r *SolarSystemRepository) GetSolarSystem(
 
 func loadSolarSystemDetails(
 	ctx context.Context,
-	tx db.Transaction,
+	tx database.Transaction,
 	dbSolarSystem mappers.DbSolarSystem,
 ) (models.SolarSystem, error) {
 	solarSystem := dbSolarSystem.ToDomain()

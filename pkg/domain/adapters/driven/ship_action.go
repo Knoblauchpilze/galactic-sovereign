@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
+	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driven/database"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driven/mappers"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
 	"github.com/google/uuid"
@@ -40,7 +41,7 @@ ORDER BY
 
 func upsertShipActionWithDetails(
 	ctx context.Context,
-	tx db.Transaction,
+	tx database.Transaction,
 	planet uuid.UUID,
 	action models.ShipAction,
 ) error {
@@ -64,7 +65,7 @@ func upsertShipActionWithDetails(
 
 func loadShipActionAndDetailsForPlanet(
 	ctx context.Context,
-	tx db.Transaction,
+	tx database.Transaction,
 	planet uuid.UUID,
 ) ([]models.ShipAction, error) {
 	dbShipActions, err := db.QueryAllTx[mappers.DbShipAction](
@@ -86,7 +87,11 @@ func loadShipActionAndDetailsForPlanet(
 	return out, nil
 }
 
-func deleteShipActionAndDetailsForPlanet(ctx context.Context, tx db.Transaction, planet uuid.UUID) error {
+func deleteShipActionAndDetailsForPlanet(
+	ctx context.Context,
+	tx database.Transaction,
+	planet uuid.UUID,
+) error {
 	_, err := tx.Exec(ctx, deleteShipActionForPlanetQuery, planet)
 	if err != nil {
 		return err
