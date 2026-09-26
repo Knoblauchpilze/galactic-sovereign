@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
+	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driven/database"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driven/mappers"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
 	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
@@ -209,10 +210,10 @@ WHERE
 )
 
 type PlanetRepository struct {
-	conn db.Connection
+	conn database.Connection
 }
 
-func NewPlanetRepository(conn db.Connection) *PlanetRepository {
+func NewPlanetRepository(conn database.Connection) *PlanetRepository {
 	return &PlanetRepository{
 		conn: conn,
 	}
@@ -222,7 +223,7 @@ func (r *PlanetRepository) ListForPlayer(ctx context.Context, player uuid.UUID) 
 	return db.QueryAll[uuid.UUID](ctx, r.conn, listPlanetForPlayerQuery, player)
 }
 
-func createPlanetWithDetails(ctx context.Context, tx db.Transaction, planet models.Planet) error {
+func createPlanetWithDetails(ctx context.Context, tx database.Transaction, planet models.Planet) error {
 	_, err := tx.Exec(
 		ctx,
 		createPlanetQuery,
@@ -329,7 +330,7 @@ func createPlanetWithDetails(ctx context.Context, tx db.Transaction, planet mode
 
 func loadPlanetAndDetails(
 	ctx context.Context,
-	tx db.Transaction,
+	tx database.Transaction,
 	id uuid.UUID,
 ) (models.Planet, error) {
 	dbPlanet, err := db.QueryOneTx[mappers.DbPlanet](ctx, tx, getPlanetQuery, id)
@@ -340,7 +341,7 @@ func loadPlanetAndDetails(
 	return loadPlanetDetails(ctx, tx, dbPlanet)
 }
 
-func loadPlanetDetails(ctx context.Context, tx db.Transaction, dbPlanet mappers.DbPlanet) (models.Planet, error) {
+func loadPlanetDetails(ctx context.Context, tx database.Transaction, dbPlanet mappers.DbPlanet) (models.Planet, error) {
 	planet := dbPlanet.ToDomain()
 
 	var err error
@@ -417,7 +418,7 @@ func loadPlanetDetails(ctx context.Context, tx db.Transaction, dbPlanet mappers.
 
 func updatePlanetDetails(
 	ctx context.Context,
-	tx db.Transaction,
+	tx database.Transaction,
 	planet models.Planet,
 	expectedVersion int,
 ) error {
@@ -522,7 +523,7 @@ func updatePlanetDetails(
 	return nil
 }
 
-func deletePlanetAndDetails(ctx context.Context, tx db.Transaction, id uuid.UUID) error {
+func deletePlanetAndDetails(ctx context.Context, tx database.Transaction, id uuid.UUID) error {
 	err := deleteShipActionAndDetailsForPlanet(ctx, tx, id)
 	if err != nil {
 		return err
@@ -579,7 +580,7 @@ func deletePlanetAndDetails(ctx context.Context, tx db.Transaction, id uuid.UUID
 // recreateResourceProductions deletes the resource production attached to a planet and recreate them
 // completely. It allows to handle cases where a mutator function removed some building production as
 // a building gets demolished.
-func recreateResourceProductions(ctx context.Context, tx db.Transaction, planet models.Planet) error {
+func recreateResourceProductions(ctx context.Context, tx database.Transaction, planet models.Planet) error {
 	_, err := tx.Exec(ctx, deletePlanetResourceProductionsQuery, planet.Id)
 	if err != nil {
 		return err
@@ -607,7 +608,7 @@ func recreateResourceProductions(ctx context.Context, tx db.Transaction, planet 
 
 // recreateBuildingAction deletes the action first and recreate it completely: this allows to tackle
 // situations where the mutator completed an existing action and recreated a new one.
-func recreateBuildingAction(ctx context.Context, tx db.Transaction, planet models.Planet) error {
+func recreateBuildingAction(ctx context.Context, tx database.Transaction, planet models.Planet) error {
 	err := deleteBuildingActionAndDetailsForPlanet(ctx, tx, planet.Id)
 	if err != nil {
 		return err
@@ -625,7 +626,7 @@ func recreateBuildingAction(ctx context.Context, tx db.Transaction, planet model
 
 // recreateShipActions deletes the ship actions first and recreate them completely: this allows to
 // tackle situations where the mutator completed existing actions and created new ones.
-func recreateShipActions(ctx context.Context, tx db.Transaction, planet models.Planet) error {
+func recreateShipActions(ctx context.Context, tx database.Transaction, planet models.Planet) error {
 	err := deleteShipActionAndDetailsForPlanet(ctx, tx, planet.Id)
 	if err != nil {
 		return err

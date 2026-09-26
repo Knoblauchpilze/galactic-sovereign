@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
+	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driven/database"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
 	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
 	integrationdb "github.com/Knoblauchpilze/galactic-sovereign/pkg/testing/integrationdb"
@@ -164,14 +165,14 @@ func TestIT_DbScalingMode(t *testing.T) {
 	})
 }
 
-func newTestConnection(t *testing.T) db.Connection {
+func newTestConnection(t *testing.T) database.Connection {
 	t.Helper()
 	return sharedDbContainer.NewTestConnection(t)
 }
 
 func insertTestBuilding(
 	t *testing.T,
-	conn db.Connection,
+	conn database.Connection,
 ) uuid.UUID {
 	t.Helper()
 

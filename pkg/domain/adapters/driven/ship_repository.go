@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
+	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driven/database"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driven/mappers"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
 	"github.com/google/uuid"
@@ -53,10 +54,10 @@ WHERE
 )
 
 type ShipRepository struct {
-	conn db.Connection
+	conn database.Connection
 }
 
-func NewShipRepository(conn db.Connection) *ShipRepository {
+func NewShipRepository(conn database.Connection) *ShipRepository {
 	return &ShipRepository{
 		conn: conn,
 	}
@@ -77,7 +78,7 @@ func (r *ShipRepository) Get(ctx context.Context, id uuid.UUID) (models.Ship, er
 	return loadShipDetails(ctx, tx, dbShip)
 }
 
-func loadShips(ctx context.Context, tx db.Transaction) ([]models.Ship, error) {
+func loadShips(ctx context.Context, tx database.Transaction) ([]models.Ship, error) {
 	dbShips, err := db.QueryAllTx[mappers.DbShip](ctx, tx, listShipQuery)
 	if err != nil {
 		return nil, err
@@ -96,7 +97,7 @@ func loadShips(ctx context.Context, tx db.Transaction) ([]models.Ship, error) {
 	return ships, nil
 }
 
-func loadShipDetails(ctx context.Context, tx db.Transaction, dbShip mappers.DbShip) (models.Ship, error) {
+func loadShipDetails(ctx context.Context, tx database.Transaction, dbShip mappers.DbShip) (models.Ship, error) {
 	ship := dbShip.ToDomain()
 
 	var err error

@@ -3,14 +3,14 @@ package drivenadapters
 import (
 	"context"
 
-	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
+	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driven/database"
 )
 
 type DatabaseChecker struct {
-	conn db.Connection
+	conn database.Connection
 }
 
-func NewDatabaseChecker(conn db.Connection) *DatabaseChecker {
+func NewDatabaseChecker(conn database.Connection) *DatabaseChecker {
 	return &DatabaseChecker{
 		conn: conn,
 	}

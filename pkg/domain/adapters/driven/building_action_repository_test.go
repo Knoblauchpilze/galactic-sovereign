@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
+	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driven/database"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
@@ -17,9 +18,9 @@ var (
 
 func insertTestBuildingActionForPlanet(
 	t *testing.T,
-	conn db.Connection,
+	conn database.Connection,
 	planetId uuid.UUID,
-	modifiers ...func(*testing.T, db.Connection, *models.BuildingAction),
+	modifiers ...func(*testing.T, database.Connection, *models.BuildingAction),
 ) models.BuildingAction {
 	t.Helper()
 
@@ -60,8 +61,8 @@ func insertTestBuildingActionForPlanet(
 
 func insertTestBuildingAction(
 	t *testing.T,
-	conn db.Connection,
-	modifiers ...func(*testing.T, db.Connection, *models.BuildingAction),
+	conn database.Connection,
+	modifiers ...func(*testing.T, database.Connection, *models.BuildingAction),
 ) (models.BuildingAction, models.Planet) {
 	t.Helper()
 
@@ -71,13 +72,13 @@ func insertTestBuildingAction(
 	return action, planet
 }
 
-func addBuildingActionCost(t *testing.T, conn db.Connection, a *models.BuildingAction) {
+func addBuildingActionCost(t *testing.T, conn database.Connection, a *models.BuildingAction) {
 	t.Helper()
 
 	insertBuildingActionCost(t, conn, metalResourceId, a)
 }
 
-func insertBuildingActionCost(t *testing.T, conn db.Connection, resourceId uuid.UUID, a *models.BuildingAction) {
+func insertBuildingActionCost(t *testing.T, conn database.Connection, resourceId uuid.UUID, a *models.BuildingAction) {
 	cost := models.BuildingActionCost{
 		Resource: resourceId,
 		Amount:   rand.Intn(4589),
@@ -97,7 +98,7 @@ func insertBuildingActionCost(t *testing.T, conn db.Connection, resourceId uuid.
 	a.Costs = append(a.Costs, cost)
 }
 
-func addBuildingActionStorage(t *testing.T, conn db.Connection, a *models.BuildingAction) {
+func addBuildingActionStorage(t *testing.T, conn database.Connection, a *models.BuildingAction) {
 	t.Helper()
 
 	storage := models.BuildingActionResourceStorage{
@@ -119,7 +120,7 @@ func addBuildingActionStorage(t *testing.T, conn db.Connection, a *models.Buildi
 	a.Storages = append(a.Storages, storage)
 }
 
-func addBuildingActionProduction(t *testing.T, conn db.Connection, a *models.BuildingAction) {
+func addBuildingActionProduction(t *testing.T, conn database.Connection, a *models.BuildingAction) {
 	t.Helper()
 
 	production := models.BuildingActionResourceProduction{
@@ -141,7 +142,7 @@ func addBuildingActionProduction(t *testing.T, conn db.Connection, a *models.Bui
 	a.Productions = append(a.Productions, production)
 }
 
-func assertBuildingActionExists(t *testing.T, conn db.Connection, id uuid.UUID) {
+func assertBuildingActionExists(t *testing.T, conn database.Connection, id uuid.UUID) {
 	t.Helper()
 
 	sqlQuery := `SELECT COUNT(*) FROM building_action WHERE id = $1`
@@ -150,7 +151,7 @@ func assertBuildingActionExists(t *testing.T, conn db.Connection, id uuid.UUID) 
 	require.Equal(t, 1, value)
 }
 
-func assertBuildingActionDoesNotExist(t *testing.T, conn db.Connection, action uuid.UUID) {
+func assertBuildingActionDoesNotExist(t *testing.T, conn database.Connection, action uuid.UUID) {
 	t.Helper()
 
 	sqlQuery := `SELECT COUNT(*) FROM building_action WHERE id = $1`
@@ -159,7 +160,7 @@ func assertBuildingActionDoesNotExist(t *testing.T, conn db.Connection, action u
 	require.Zero(t, value)
 }
 
-func assertBuildingActionCostDoesNotExist(t *testing.T, conn db.Connection, action uuid.UUID) {
+func assertBuildingActionCostDoesNotExist(t *testing.T, conn database.Connection, action uuid.UUID) {
 	t.Helper()
 
 	sqlQuery := `SELECT COUNT(*) FROM building_action_cost WHERE action = $1`
@@ -168,7 +169,7 @@ func assertBuildingActionCostDoesNotExist(t *testing.T, conn db.Connection, acti
 	require.Zero(t, value)
 }
 
-func assertBuildingActionStorageDoesNotExist(t *testing.T, conn db.Connection, action uuid.UUID) {
+func assertBuildingActionStorageDoesNotExist(t *testing.T, conn database.Connection, action uuid.UUID) {
 	t.Helper()
 
 	sqlQuery := `SELECT COUNT(*) FROM building_action_resource_storage WHERE action = $1`
@@ -177,7 +178,7 @@ func assertBuildingActionStorageDoesNotExist(t *testing.T, conn db.Connection, a
 	require.Zero(t, value)
 }
 
-func assertBuildingActionProductionDoesNotExist(t *testing.T, conn db.Connection, action uuid.UUID) {
+func assertBuildingActionProductionDoesNotExist(t *testing.T, conn database.Connection, action uuid.UUID) {
 	t.Helper()
 
 	sqlQuery := `SELECT COUNT(*) FROM building_action_resource_production WHERE action = $1`
@@ -186,7 +187,7 @@ func assertBuildingActionProductionDoesNotExist(t *testing.T, conn db.Connection
 	require.Zero(t, value)
 }
 
-func assertPlanetResourceAmount(t *testing.T, conn db.Connection, planet uuid.UUID, resource uuid.UUID, amount float64) {
+func assertPlanetResourceAmount(t *testing.T, conn database.Connection, planet uuid.UUID, resource uuid.UUID, amount float64) {
 	t.Helper()
 
 	sqlQuery := `SELECT amount FROM planet_resource WHERE planet = $1 AND resource = $2`
@@ -195,7 +196,7 @@ func assertPlanetResourceAmount(t *testing.T, conn db.Connection, planet uuid.UU
 	require.InDelta(t, amount, value, 0.00001)
 }
 
-func assertPlanetResourceStorage(t *testing.T, conn db.Connection, planet uuid.UUID, resource uuid.UUID, storage int) {
+func assertPlanetResourceStorage(t *testing.T, conn database.Connection, planet uuid.UUID, resource uuid.UUID, storage int) {
 	t.Helper()
 
 	sqlQuery := `SELECT storage FROM planet_resource_storage WHERE planet = $1 AND resource = $2`
@@ -206,7 +207,7 @@ func assertPlanetResourceStorage(t *testing.T, conn db.Connection, planet uuid.U
 
 func assertPlanetResourceProduction(
 	t *testing.T,
-	conn db.Connection,
+	conn database.Connection,
 	planet uuid.UUID,
 	resource uuid.UUID,
 	building *uuid.UUID,

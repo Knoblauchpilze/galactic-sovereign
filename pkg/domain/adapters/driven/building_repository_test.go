@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
+	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driven/database"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
 	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
 	"github.com/google/uuid"
@@ -91,7 +92,7 @@ func TestIT_BuildingRepository_Get(t *testing.T) {
 	})
 }
 
-func newTestBuildingRepository(t *testing.T) (*BuildingRepository, db.Connection) {
+func newTestBuildingRepository(t *testing.T) (*BuildingRepository, database.Connection) {
 	t.Helper()
 	conn := newTestConnection(t)
 	return NewBuildingRepository(conn), conn
@@ -99,8 +100,8 @@ func newTestBuildingRepository(t *testing.T) (*BuildingRepository, db.Connection
 
 func insertTestBuilding(
 	t *testing.T,
-	conn db.Connection,
-	modifiers ...func(*testing.T, db.Connection, *models.Building),
+	conn database.Connection,
+	modifiers ...func(*testing.T, database.Connection, *models.Building),
 ) models.Building {
 	t.Helper()
 
@@ -132,7 +133,7 @@ func insertTestBuilding(
 	return building
 }
 
-func addBuildingCost(t *testing.T, conn db.Connection, b *models.Building) {
+func addBuildingCost(t *testing.T, conn database.Connection, b *models.Building) {
 	t.Helper()
 
 	cost := models.BuildingCost{
@@ -158,7 +159,7 @@ func addBuildingCost(t *testing.T, conn db.Connection, b *models.Building) {
 	b.Costs = append(b.Costs, cost)
 }
 
-func addBuildingProduction(t *testing.T, conn db.Connection, b *models.Building) {
+func addBuildingProduction(t *testing.T, conn database.Connection, b *models.Building) {
 	t.Helper()
 
 	production := models.BuildingResourceProduction{
@@ -183,7 +184,7 @@ func addBuildingProduction(t *testing.T, conn db.Connection, b *models.Building)
 	b.Productions = append(b.Productions, production)
 }
 
-func addBuildingStorage(t *testing.T, conn db.Connection, b *models.Building) {
+func addBuildingStorage(t *testing.T, conn database.Connection, b *models.Building) {
 	t.Helper()
 
 	storage := models.BuildingResourceStorage{
@@ -212,7 +213,7 @@ func addBuildingStorage(t *testing.T, conn db.Connection, b *models.Building) {
 	b.Storages = append(b.Storages, storage)
 }
 
-func addBuildingShipSpeedup(t *testing.T, conn db.Connection, b *models.Building) {
+func addBuildingShipSpeedup(t *testing.T, conn database.Connection, b *models.Building) {
 	t.Helper()
 
 	speedup := models.BuildingShipSpeedup{
@@ -239,7 +240,7 @@ func addBuildingShipSpeedup(t *testing.T, conn db.Connection, b *models.Building
 
 func assertBuildingShipSpeedupValue(
 	t *testing.T,
-	conn db.Connection,
+	conn database.Connection,
 	building uuid.UUID,
 	buildingShipSpeedup models.BuildingShipSpeedup,
 ) {
@@ -256,7 +257,7 @@ func assertBuildingShipSpeedupValue(
 	require.Equal(t, buildingShipSpeedup, value)
 }
 
-func assertBuildingShipSpeedupDoesNotExist(t *testing.T, conn db.Connection, building uuid.UUID) {
+func assertBuildingShipSpeedupDoesNotExist(t *testing.T, conn database.Connection, building uuid.UUID) {
 	t.Helper()
 
 	sqlQuery := `SELECT COUNT(building) FROM building_resource_metabolization_ship_speedup WHERE building = $1`

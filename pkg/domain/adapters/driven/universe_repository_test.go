@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
+	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driven/database"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
 	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
 	"github.com/google/uuid"
@@ -182,13 +183,13 @@ func TestIT_UniverseRepository_Delete(t *testing.T) {
 	})
 }
 
-func newTestUniverseRepository(t *testing.T) (*UniverseRepository, db.Connection) {
+func newTestUniverseRepository(t *testing.T) (*UniverseRepository, database.Connection) {
 	t.Helper()
 	conn := newTestConnection(t)
 	return NewUniverseRepository(conn), conn
 }
 
-func insertTestUniverse(t *testing.T, conn db.Connection) models.Universe {
+func insertTestUniverse(t *testing.T, conn database.Connection) models.Universe {
 	t.Helper()
 
 	topology := models.UniverseTopology{
@@ -233,7 +234,7 @@ func insertTestUniverse(t *testing.T, conn db.Connection) models.Universe {
 	return universe
 }
 
-func insertTestResource(t *testing.T, conn db.Connection) models.Resource {
+func insertTestResource(t *testing.T, conn database.Connection) models.Resource {
 	t.Helper()
 
 	resource := models.Resource{
@@ -284,7 +285,7 @@ func insertTestResource(t *testing.T, conn db.Connection) models.Resource {
 	return resource
 }
 
-func assertUniverseExists(t *testing.T, conn db.Connection, id uuid.UUID) {
+func assertUniverseExists(t *testing.T, conn database.Connection, id uuid.UUID) {
 	t.Helper()
 
 	sqlQuery := `SELECT id FROM universe WHERE id = $1`
@@ -293,7 +294,7 @@ func assertUniverseExists(t *testing.T, conn db.Connection, id uuid.UUID) {
 	require.Equal(t, id, value)
 }
 
-func assertUniverseDoesNotExist(t *testing.T, conn db.Connection, id uuid.UUID) {
+func assertUniverseDoesNotExist(t *testing.T, conn database.Connection, id uuid.UUID) {
 	t.Helper()
 
 	sqlQuery := `SELECT COUNT(id) FROM universe WHERE id = $1`

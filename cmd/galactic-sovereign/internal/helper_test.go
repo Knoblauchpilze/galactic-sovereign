@@ -2,20 +2,20 @@ package internal
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
-	"math/rand"
+	"net"
 	"net/http"
 	"os"
 	"testing"
 	"time"
 
-	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/rest"
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/server"
+	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driven/database"
 	"github.com/google/uuid"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -53,31 +53,32 @@ func urlFor(conf server.Config, segments ...string) string {
 func newTestServerConfig() server.Config {
 	return server.Config{
 		BasePath:        "/v1/galactic-sovereign",
-		Port:            uint16(60010 + rand.Intn(200)),
 		ShutdownTimeout: 500 * time.Millisecond,
 	}
 }
 
-// asyncStartServer starts the server in a goroutine and registers shutdown via
-// t.Cleanup, so callers only need to invoke this helper.
-func asyncStartServer(t *testing.T, s *server.Server) {
+// asyncStartServer binds the server on an OS-assigned port, serves until test
+// cleanup and returns the config updated with the effective port.
+func asyncStartServer(t *testing.T, s HttpServer, conf server.Config) server.Config {
 	t.Helper()
 
-	done := make(chan struct{})
+	listener, err := s.Bind(0)
+	require.NoError(t, err, "Actual err: %v", err)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	done := make(chan error, 1)
 	go func() {
-		defer close(done)
-		err := s.Start()
-		assert.NoError(t, err, "Actual err: %v", err)
+		done <- s.Serve(ctx, listener)
 	}()
 
 	t.Cleanup(func() {
-		err := s.Stop()
+		cancel()
+		err := <-done
 		require.NoError(t, err, "Actual err: %v", err)
-		<-done
 	})
 
-	const startupDelay = 50 * time.Millisecond
-	time.Sleep(startupDelay)
+	conf.Port = uint16(listener.Addr().(*net.TCPAddr).Port)
+	return conf
 }
 
 func doGet[T any](t *testing.T, url string) T {
@@ -138,7 +139,13 @@ func decodeResponseBody[T any](t *testing.T, body io.ReadCloser) T {
 
 // addPlanetResources credits the given resource amount to the planet, allowing
 // tests to afford actions (e.g. ships) that starting resources can't cover.
-func addPlanetResources(t *testing.T, conn db.Connection, planet uuid.UUID, resource uuid.UUID, amount int) {
+func addPlanetResources(
+	t *testing.T,
+	conn database.Connection,
+	planet uuid.UUID,
+	resource uuid.UUID,
+	amount int,
+) {
 	t.Helper()
 
 	_, err := conn.Exec(
@@ -154,7 +161,13 @@ func addPlanetResources(t *testing.T, conn db.Connection, planet uuid.UUID, reso
 // bumpPlanetBuilding bumpes the given building to the desired level on the
 // planet, allowing tests to perform actions (e.g. ship creation) that the
 // starting planet would not allow.
-func bumpPlanetBuilding(t *testing.T, conn db.Connection, planet uuid.UUID, building uuid.UUID, level int) {
+func bumpPlanetBuilding(
+	t *testing.T,
+	conn database.Connection,
+	planet uuid.UUID,
+	building uuid.UUID,
+	level int,
+) {
 	t.Helper()
 
 	_, err := conn.Exec(

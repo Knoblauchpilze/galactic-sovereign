@@ -10,6 +10,7 @@ import (
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/logger"
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/process"
 	"github.com/Knoblauchpilze/galactic-sovereign/cmd/galactic-sovereign/internal"
+	"github.com/Knoblauchpilze/galactic-sovereign/pkg/infrastructure"
 	"github.com/gin-gonic/gin"
 )
 
@@ -44,7 +45,11 @@ func main() {
 	}
 	defer conn.Close(context.Background())
 
-	s := internal.CreateGameServer(conf.Server, conn, log)
+	s := internal.CreateGameServer(
+		conf.Server,
+		infrastructure.NewDbConnection(conn),
+		log,
+	)
 
 	swaggerRoutes, err := internal.SwaggerEndpoints(conf.Server)
 	if err != nil {
@@ -57,7 +62,18 @@ func main() {
 		}
 	}
 
-	wait, err := process.StartWithSignalHandler(context.Background(), s)
+	listener, err := s.Bind(conf.Server.Port)
+	if err != nil {
+		log.Error("Failed to bind server", slog.Int("port", int(conf.Server.Port)), slog.Any("error", err))
+		os.Exit(1)
+	}
+
+	serveFunc := func(ctx context.Context) error {
+		return s.Serve(ctx, listener)
+	}
+	proc := process.NewContextProcess(serveFunc)
+
+	wait, err := process.AsyncStartWithSignalHandler(context.Background(), proc)
 	if err != nil {
 		log.Error("Failed to start server", slog.Any("error", err))
 		os.Exit(1)

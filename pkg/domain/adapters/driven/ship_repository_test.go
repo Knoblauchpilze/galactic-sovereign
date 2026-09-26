@@ -5,7 +5,7 @@ import (
 	"math/rand"
 	"testing"
 
-	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
+	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driven/database"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
 	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
 	"github.com/google/uuid"
@@ -55,7 +55,7 @@ func TestIT_ShipRepository_Get(t *testing.T) {
 	})
 }
 
-func newTestShipRepository(t *testing.T) (*ShipRepository, db.Connection) {
+func newTestShipRepository(t *testing.T) (*ShipRepository, database.Connection) {
 	t.Helper()
 	conn := newTestConnection(t)
 	return NewShipRepository(conn), conn
@@ -63,8 +63,8 @@ func newTestShipRepository(t *testing.T) (*ShipRepository, db.Connection) {
 
 func insertTestShip(
 	t *testing.T,
-	conn db.Connection,
-	modifiers ...func(*testing.T, db.Connection, *models.Ship),
+	conn database.Connection,
+	modifiers ...func(*testing.T, database.Connection, *models.Ship),
 ) models.Ship {
 	t.Helper()
 
@@ -96,7 +96,7 @@ func insertTestShip(
 	return ship
 }
 
-func addShipCost(t *testing.T, conn db.Connection, s *models.Ship) {
+func addShipCost(t *testing.T, conn database.Connection, s *models.Ship) {
 	t.Helper()
 
 	cost := models.ShipCost{
@@ -119,7 +119,7 @@ func addShipCost(t *testing.T, conn db.Connection, s *models.Ship) {
 	s.Costs = append(s.Costs, cost)
 }
 
-func addShipBuildingRequirement(t *testing.T, conn db.Connection, s *models.Ship) {
+func addShipBuildingRequirement(t *testing.T, conn database.Connection, s *models.Ship) {
 	t.Helper()
 
 	requirement := models.ShipBuildingRequirement{

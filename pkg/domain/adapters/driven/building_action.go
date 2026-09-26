@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
+	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driven/database"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driven/mappers"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
 	"github.com/google/uuid"
@@ -111,7 +112,7 @@ WHERE
 
 func upsertBuildingActionWithDetails(
 	ctx context.Context,
-	tx db.Transaction,
+	tx database.Transaction,
 	planet uuid.UUID,
 	action models.BuildingAction,
 ) error {
@@ -173,7 +174,7 @@ func upsertBuildingActionWithDetails(
 
 func loadBuildingActionAndDetails(
 	ctx context.Context,
-	tx db.Transaction,
+	tx database.Transaction,
 	id uuid.UUID,
 ) (models.BuildingAction, error) {
 	dbAction, err := db.QueryOneTx[mappers.DbBuildingAction](
@@ -221,7 +222,7 @@ func loadBuildingActionAndDetails(
 	return action, nil
 }
 
-func deleteBuildingActionAndDetailsForPlanet(ctx context.Context, tx db.Transaction, planet uuid.UUID) error {
+func deleteBuildingActionAndDetailsForPlanet(ctx context.Context, tx database.Transaction, planet uuid.UUID) error {
 	_, err := tx.Exec(ctx, deleteBuildingActionResourceProductionForPlanetQuery, planet)
 	if err != nil {
 		return err

@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
+	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driven/database"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -52,7 +53,7 @@ func TestIT_PlanetRepository_ListForPlayer(t *testing.T) {
 	assert.NotContains(t, actual, p1)
 }
 
-func newTestPlanetRepository(t *testing.T) (*PlanetRepository, db.Connection) {
+func newTestPlanetRepository(t *testing.T) (*PlanetRepository, database.Connection) {
 	t.Helper()
 	conn := newTestConnection(t)
 	return NewPlanetRepository(conn), conn
@@ -60,9 +61,9 @@ func newTestPlanetRepository(t *testing.T) (*PlanetRepository, db.Connection) {
 
 func insertTestPlanet(
 	t *testing.T,
-	conn db.Connection,
+	conn database.Connection,
 	player uuid.UUID,
-	modifiers ...func(*testing.T, db.Connection, *models.Planet),
+	modifiers ...func(*testing.T, database.Connection, *models.Planet),
 ) models.Planet {
 	t.Helper()
 
@@ -117,7 +118,7 @@ func insertTestPlanet(
 // upsertPlanetCoordinate inserts the coordinates defined for the planet in the
 // database, or updates them if a row already exists for this planet. It does
 // not verify them compared to the universe the planet belongs to.
-func upsertPlanetCoordinate(t *testing.T, conn db.Connection, p models.Planet) {
+func upsertPlanetCoordinate(t *testing.T, conn database.Connection, p models.Planet) {
 	t.Helper()
 
 	coordinates := models.Coordinate{
@@ -153,7 +154,7 @@ func upsertPlanetCoordinate(t *testing.T, conn db.Connection, p models.Planet) {
 	require.NoError(t, err, "Actual err: %v", err)
 }
 
-func addPlanetHomeworld(t *testing.T, conn db.Connection, p *models.Planet) {
+func addPlanetHomeworld(t *testing.T, conn database.Connection, p *models.Planet) {
 	t.Helper()
 
 	sqlQuery := `INSERT INTO homeworld (player, planet) VALUES ($1, $2)`
@@ -163,7 +164,7 @@ func addPlanetHomeworld(t *testing.T, conn db.Connection, p *models.Planet) {
 	p.Homeworld = true
 }
 
-func addPlanetResource(t *testing.T, conn db.Connection, p *models.Planet) {
+func addPlanetResource(t *testing.T, conn database.Connection, p *models.Planet) {
 	t.Helper()
 
 	resource := models.PlanetResource{
@@ -186,7 +187,7 @@ func addPlanetResource(t *testing.T, conn db.Connection, p *models.Planet) {
 	p.Resources = append(p.Resources, resource)
 }
 
-func addPlanetStorage(t *testing.T, conn db.Connection, p *models.Planet) {
+func addPlanetStorage(t *testing.T, conn database.Connection, p *models.Planet) {
 	t.Helper()
 
 	storage := models.PlanetResourceStorage{
@@ -208,7 +209,7 @@ func addPlanetStorage(t *testing.T, conn db.Connection, p *models.Planet) {
 	p.Storages = append(p.Storages, storage)
 }
 
-func addPlanetProductionForBuilding(t *testing.T, conn db.Connection, p *models.Planet) {
+func addPlanetProductionForBuilding(t *testing.T, conn database.Connection, p *models.Planet) {
 	t.Helper()
 
 	production := models.PlanetResourceProduction{
@@ -233,7 +234,7 @@ func addPlanetProductionForBuilding(t *testing.T, conn db.Connection, p *models.
 	p.Productions = append(p.Productions, production)
 }
 
-func addPlanetProduction(t *testing.T, conn db.Connection, p *models.Planet) {
+func addPlanetProduction(t *testing.T, conn database.Connection, p *models.Planet) {
 	t.Helper()
 
 	production := models.PlanetResourceProduction{
@@ -258,7 +259,7 @@ func addPlanetProduction(t *testing.T, conn db.Connection, p *models.Planet) {
 	p.Productions = append(p.Productions, production)
 }
 
-func addPlanetBuilding(t *testing.T, conn db.Connection, p *models.Planet) {
+func addPlanetBuilding(t *testing.T, conn database.Connection, p *models.Planet) {
 	t.Helper()
 
 	building := models.PlanetBuilding{
@@ -280,7 +281,7 @@ func addPlanetBuilding(t *testing.T, conn db.Connection, p *models.Planet) {
 	p.Buildings = append(p.Buildings, building)
 }
 
-func addPlanetBuildingWithShipSpeedup(t *testing.T, conn db.Connection, p *models.Planet) {
+func addPlanetBuildingWithShipSpeedup(t *testing.T, conn database.Connection, p *models.Planet) {
 	t.Helper()
 
 	addPlanetBuilding(t, conn, p)
@@ -292,7 +293,7 @@ func addPlanetBuildingWithShipSpeedup(t *testing.T, conn db.Connection, p *model
 	p.Buildings[len(p.Buildings)-1].ShipSpeedup = b.ShipSpeedup
 }
 
-func addPlanetBuildingAction(t *testing.T, conn db.Connection, p *models.Planet) {
+func addPlanetBuildingAction(t *testing.T, conn database.Connection, p *models.Planet) {
 	t.Helper()
 
 	action := models.BuildingAction{
@@ -326,7 +327,7 @@ func addPlanetBuildingAction(t *testing.T, conn db.Connection, p *models.Planet)
 	p.BuildingAction = &action
 }
 
-func addPlanetShip(t *testing.T, conn db.Connection, p *models.Planet) {
+func addPlanetShip(t *testing.T, conn database.Connection, p *models.Planet) {
 	t.Helper()
 
 	ship := models.PlanetShip{
@@ -348,7 +349,7 @@ func addPlanetShip(t *testing.T, conn db.Connection, p *models.Planet) {
 	p.Ships = append(p.Ships, ship)
 }
 
-func addPlanetShipAction(t *testing.T, conn db.Connection, p *models.Planet) {
+func addPlanetShipAction(t *testing.T, conn database.Connection, p *models.Planet) {
 	t.Helper()
 
 	action := models.ShipAction{
@@ -385,8 +386,8 @@ func addPlanetShipAction(t *testing.T, conn db.Connection, p *models.Planet) {
 // tests realistic.
 func insertTestPlanetForPlayer(
 	t *testing.T,
-	conn db.Connection,
-	modifiers ...func(*testing.T, db.Connection, *models.Planet),
+	conn database.Connection,
+	modifiers ...func(*testing.T, database.Connection, *models.Planet),
 ) (models.Planet, models.Player, models.Universe) {
 	t.Helper()
 
@@ -403,7 +404,7 @@ func insertTestPlanetForPlayer(
 	return planet, player, universe
 }
 
-func loadPlanetFromDb(t *testing.T, conn db.Connection, id uuid.UUID) models.Planet {
+func loadPlanetFromDb(t *testing.T, conn database.Connection, id uuid.UUID) models.Planet {
 	t.Helper()
 
 	tx, err := conn.BeginTx(t.Context())
@@ -416,7 +417,7 @@ func loadPlanetFromDb(t *testing.T, conn db.Connection, id uuid.UUID) models.Pla
 	return planet
 }
 
-func assertPlanetExists(t *testing.T, conn db.Connection, id uuid.UUID) {
+func assertPlanetExists(t *testing.T, conn database.Connection, id uuid.UUID) {
 	t.Helper()
 
 	sqlQuery := `SELECT id FROM planet WHERE id = $1`
@@ -425,7 +426,7 @@ func assertPlanetExists(t *testing.T, conn db.Connection, id uuid.UUID) {
 	require.Equal(t, id, value)
 }
 
-func assertPlanetDoesNotExist(t *testing.T, conn db.Connection, id uuid.UUID) {
+func assertPlanetDoesNotExist(t *testing.T, conn database.Connection, id uuid.UUID) {
 	t.Helper()
 
 	sqlQuery := `SELECT COUNT(id) FROM planet WHERE id = $1`
@@ -434,7 +435,7 @@ func assertPlanetDoesNotExist(t *testing.T, conn db.Connection, id uuid.UUID) {
 	require.Zero(t, value)
 }
 
-func assertPlanetIsHomeworld(t *testing.T, conn db.Connection, planet uuid.UUID, player uuid.UUID) {
+func assertPlanetIsHomeworld(t *testing.T, conn database.Connection, planet uuid.UUID, player uuid.UUID) {
 	t.Helper()
 
 	sqlQuery := `SELECT COUNT(*) FROM homeworld WHERE planet = $1 AND player = $2`
@@ -443,7 +444,7 @@ func assertPlanetIsHomeworld(t *testing.T, conn db.Connection, planet uuid.UUID,
 	require.Equal(t, 1, value)
 }
 
-func assertPlanetIsNotHomeworld(t *testing.T, conn db.Connection, planet uuid.UUID) {
+func assertPlanetIsNotHomeworld(t *testing.T, conn database.Connection, planet uuid.UUID) {
 	t.Helper()
 
 	sqlQuery := `SELECT COUNT(*) FROM homeworld WHERE planet = $1`
@@ -452,7 +453,7 @@ func assertPlanetIsNotHomeworld(t *testing.T, conn db.Connection, planet uuid.UU
 	require.Zero(t, value)
 }
 
-func assertPlanetResourceDoesNotExist(t *testing.T, conn db.Connection, planet uuid.UUID) {
+func assertPlanetResourceDoesNotExist(t *testing.T, conn database.Connection, planet uuid.UUID) {
 	t.Helper()
 
 	sqlQuery := `SELECT COUNT(resource) FROM planet_resource WHERE planet = $1`
@@ -461,7 +462,7 @@ func assertPlanetResourceDoesNotExist(t *testing.T, conn db.Connection, planet u
 	require.Zero(t, value)
 }
 
-func assertPlanetStorageDoesNotExist(t *testing.T, conn db.Connection, planet uuid.UUID) {
+func assertPlanetStorageDoesNotExist(t *testing.T, conn database.Connection, planet uuid.UUID) {
 	t.Helper()
 
 	sqlQuery := `SELECT COUNT(resource) FROM planet_resource_storage WHERE planet = $1`
@@ -470,7 +471,7 @@ func assertPlanetStorageDoesNotExist(t *testing.T, conn db.Connection, planet uu
 	require.Zero(t, value)
 }
 
-func assertPlanetProductionDoesNotExist(t *testing.T, conn db.Connection, planet uuid.UUID) {
+func assertPlanetProductionDoesNotExist(t *testing.T, conn database.Connection, planet uuid.UUID) {
 	t.Helper()
 
 	sqlQuery := `SELECT COUNT(resource) FROM planet_resource_production WHERE planet = $1`
@@ -479,7 +480,7 @@ func assertPlanetProductionDoesNotExist(t *testing.T, conn db.Connection, planet
 	require.Zero(t, value)
 }
 
-func assertPlanetBuildingDoesNotExist(t *testing.T, conn db.Connection, planet uuid.UUID) {
+func assertPlanetBuildingDoesNotExist(t *testing.T, conn database.Connection, planet uuid.UUID) {
 	t.Helper()
 
 	sqlQuery := `SELECT COUNT(building) FROM planet_building WHERE planet = $1`
@@ -488,7 +489,7 @@ func assertPlanetBuildingDoesNotExist(t *testing.T, conn db.Connection, planet u
 	require.Zero(t, value)
 }
 
-func assertPlanetShipDoesNotExist(t *testing.T, conn db.Connection, planet uuid.UUID) {
+func assertPlanetShipDoesNotExist(t *testing.T, conn database.Connection, planet uuid.UUID) {
 	t.Helper()
 
 	sqlQuery := `SELECT COUNT(ship) FROM planet_ship WHERE planet = $1`
@@ -497,7 +498,7 @@ func assertPlanetShipDoesNotExist(t *testing.T, conn db.Connection, planet uuid.
 	require.Zero(t, value)
 }
 
-func assertShipActionDoesNotExist(t *testing.T, conn db.Connection, planet uuid.UUID) {
+func assertShipActionDoesNotExist(t *testing.T, conn database.Connection, planet uuid.UUID) {
 	t.Helper()
 
 	sqlQuery := `SELECT COUNT(*) FROM ship_action WHERE planet = $1`

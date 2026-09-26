@@ -1,17 +1,30 @@
 package internal
 
 import (
+	"context"
 	"log/slog"
+	"net"
 
-	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
+	"github.com/Knoblauchpilze/backend-toolkit/pkg/rest"
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/server"
 	drivenadapters "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driven"
+	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driven/database"
 	drivingadapters "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driving"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/usecases"
 )
 
-func CreateGameServer(conf server.Config, conn db.Connection, log *slog.Logger) *server.Server {
-	s := server.NewWithLogger(conf, log)
+type HttpServer interface {
+	AddRoute(route *rest.Route) error
+	Bind(port uint16) (net.Listener, error)
+	Serve(ctx context.Context, listener net.Listener) error
+}
+
+func CreateGameServer(
+	conf server.Config,
+	conn database.Connection,
+	log *slog.Logger,
+) HttpServer {
+	s := server.NewHttpServerWithLogger(conf, log)
 
 	registerUniversesRoutes(conn, s, log)
 	registerPlayersRoutes(conn, s, log)
@@ -23,7 +36,11 @@ func CreateGameServer(conf server.Config, conn db.Connection, log *slog.Logger) 
 	return s
 }
 
-func registerUniversesRoutes(conn db.Connection, s *server.Server, log *slog.Logger) {
+func registerUniversesRoutes(
+	conn database.Connection,
+	s HttpServer,
+	log *slog.Logger,
+) {
 	universeRepo := drivenadapters.NewUniverseRepository(conn)
 	solarSystemRepo := drivenadapters.NewSolarSystemRepository(conn)
 
@@ -37,7 +54,11 @@ func registerUniversesRoutes(conn db.Connection, s *server.Server, log *slog.Log
 	}
 }
 
-func registerPlayersRoutes(conn db.Connection, s *server.Server, log *slog.Logger) {
+func registerPlayersRoutes(
+	conn database.Connection,
+	s HttpServer,
+	log *slog.Logger,
+) {
 	playerRepo := drivenadapters.NewPlayerRepository(conn)
 	universeRepo := drivenadapters.NewUniverseRepository(conn)
 	usecase := usecases.NewPlayerUseCase(playerRepo, universeRepo)
@@ -49,7 +70,11 @@ func registerPlayersRoutes(conn db.Connection, s *server.Server, log *slog.Logge
 	}
 }
 
-func registerPlanetsRoutes(conn db.Connection, s *server.Server, log *slog.Logger) {
+func registerPlanetsRoutes(
+	conn database.Connection,
+	s HttpServer,
+	log *slog.Logger,
+) {
 	planetRepo := drivenadapters.NewPlanetRepository(conn)
 	planetMutator := drivenadapters.NewPlanetMutator(conn)
 	clock := drivenadapters.NewTimeAdapter()
@@ -63,7 +88,11 @@ func registerPlanetsRoutes(conn db.Connection, s *server.Server, log *slog.Logge
 	}
 }
 
-func registerBuildingActionsRoutes(conn db.Connection, s *server.Server, log *slog.Logger) {
+func registerBuildingActionsRoutes(
+	conn database.Connection,
+	s HttpServer,
+	log *slog.Logger,
+) {
 	buildingRepo := drivenadapters.NewBuildingRepository(conn)
 	planetMutator := drivenadapters.NewPlanetMutator(conn)
 	clock := drivenadapters.NewTimeAdapter()
@@ -78,7 +107,11 @@ func registerBuildingActionsRoutes(conn db.Connection, s *server.Server, log *sl
 	}
 }
 
-func registerShipsRoutes(conn db.Connection, s *server.Server, log *slog.Logger) {
+func registerShipsRoutes(
+	conn database.Connection,
+	s HttpServer,
+	log *slog.Logger,
+) {
 	shipRepo := drivenadapters.NewShipRepository(conn)
 	planetMutator := drivenadapters.NewPlanetMutator(conn)
 	clock := drivenadapters.NewTimeAdapter()
@@ -92,7 +125,11 @@ func registerShipsRoutes(conn db.Connection, s *server.Server, log *slog.Logger)
 	}
 }
 
-func registerHealthRoutes(conn db.Connection, s *server.Server, log *slog.Logger) {
+func registerHealthRoutes(
+	conn database.Connection,
+	s HttpServer,
+	log *slog.Logger,
+) {
 	checker := drivenadapters.NewDatabaseChecker(conn)
 	usecase := usecases.NewCheckHealthUseCase(checker)
 
