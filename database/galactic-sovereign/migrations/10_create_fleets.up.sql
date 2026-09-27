@@ -29,7 +29,9 @@ CREATE TABLE fleet_destination(
   galaxy INTEGER NOT NULL,
   solar_system INTEGER NOT NULL,
   position INTEGER NOT NULL,
+  planet UUID,
   FOREIGN KEY (fleet) REFERENCES fleet(id),
+  FOREIGN KEY (planet) REFERENCES planet(id),
   UNIQUE (fleet)
 );
 
