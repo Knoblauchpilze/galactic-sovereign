@@ -69,33 +69,3 @@ func (mr *MockForManagingUniversesMockRecorder) Delete(ctx, id any) *gomock.Call
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockForManagingUniverses)(nil).Delete), ctx, id)
 }
-
-// Get mocks base method.
-func (m *MockForManagingUniverses) Get(ctx context.Context, id uuid.UUID) (models.Universe, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", ctx, id)
-	ret0, _ := ret[0].(models.Universe)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// Get indicates an expected call of Get.
-func (mr *MockForManagingUniversesMockRecorder) Get(ctx, id any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockForManagingUniverses)(nil).Get), ctx, id)
-}
-
-// List mocks base method.
-func (m *MockForManagingUniverses) List(ctx context.Context) ([]models.Universe, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "List", ctx)
-	ret0, _ := ret[0].([]models.Universe)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// List indicates an expected call of List.
-func (mr *MockForManagingUniversesMockRecorder) List(ctx any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockForManagingUniverses)(nil).List), ctx)
-}

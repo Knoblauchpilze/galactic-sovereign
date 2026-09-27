@@ -19,13 +19,11 @@ import (
 type playerTestSuite struct {
 	ctrl             *gomock.Controller
 	mockPlayerRepo   *drivenportstest.MockForManagingPlayers
-	mockUniverseRepo *drivenportstest.MockForManagingUniverses
+	mockUniverseRepo *drivenportstest.MockForFetchingUniverses
 	usecase          *PlayerUseCase
 }
 
 func TestUnit_ManagePlayer_Create(t *testing.T) {
-	suite := setupPlayerTestSuite(t)
-
 	universe := models.Universe{
 		Id: uuid.New(),
 		Resources: []models.Resource{
@@ -54,6 +52,8 @@ func TestUnit_ManagePlayer_Create(t *testing.T) {
 	}
 
 	t.Run("persists created player", func(t *testing.T) {
+		suite := setupPlayerTestSuite(t)
+
 		var captured models.Player
 		var capturedHomeworld models.Planet
 		suite.mockUniverseRepo.EXPECT().
@@ -121,6 +121,8 @@ func TestUnit_ManagePlayer_Create(t *testing.T) {
 	})
 
 	t.Run("returns error when universe is not found", func(t *testing.T) {
+		suite := setupPlayerTestSuite(t)
+
 		suite.mockUniverseRepo.EXPECT().
 			Get(gomock.Any(), gomock.Any()).
 			Times(1).
@@ -132,6 +134,8 @@ func TestUnit_ManagePlayer_Create(t *testing.T) {
 	})
 
 	t.Run("returns error when creation fails", func(t *testing.T) {
+		suite := setupPlayerTestSuite(t)
+
 		suite.mockUniverseRepo.EXPECT().
 			Get(gomock.Any(), gomock.Any()).
 			Times(1).
@@ -149,9 +153,8 @@ func TestUnit_ManagePlayer_Create(t *testing.T) {
 }
 
 func TestUnit_ManagePlayer_Get(t *testing.T) {
-	suite := setupPlayerTestSuite(t)
-
 	t.Run("gets existing player", func(t *testing.T) {
+		suite := setupPlayerTestSuite(t)
 		expected := models.Player{
 			Id:       uuid.New(),
 			ApiUser:  uuid.New(),
@@ -171,6 +174,8 @@ func TestUnit_ManagePlayer_Get(t *testing.T) {
 	})
 
 	t.Run("returns error when repository fails", func(t *testing.T) {
+		suite := setupPlayerTestSuite(t)
+
 		expectedErr := errors.New("stubbed error")
 		suite.mockPlayerRepo.EXPECT().
 			Get(gomock.Any(), gomock.Any()).
@@ -184,9 +189,9 @@ func TestUnit_ManagePlayer_Get(t *testing.T) {
 }
 
 func TestUnit_ManagePlayer_ListForApiUser(t *testing.T) {
-	suite := setupPlayerTestSuite(t)
-
 	t.Run("lists existing players", func(t *testing.T) {
+		suite := setupPlayerTestSuite(t)
+
 		apiUser := uuid.New()
 		expected := []models.Player{
 			{
@@ -215,6 +220,8 @@ func TestUnit_ManagePlayer_ListForApiUser(t *testing.T) {
 	})
 
 	t.Run("returns error when repository fails", func(t *testing.T) {
+		suite := setupPlayerTestSuite(t)
+
 		expectedErr := errors.New("stubbed error")
 
 		suite.mockPlayerRepo.EXPECT().
@@ -229,9 +236,9 @@ func TestUnit_ManagePlayer_ListForApiUser(t *testing.T) {
 }
 
 func TestUnit_ManagePlayer_Delete(t *testing.T) {
-	suite := setupPlayerTestSuite(t)
-
 	t.Run("deletes existing player", func(t *testing.T) {
+		suite := setupPlayerTestSuite(t)
+
 		player := models.Player{Id: uuid.New()}
 
 		suite.mockPlayerRepo.EXPECT().
@@ -248,6 +255,8 @@ func TestUnit_ManagePlayer_Delete(t *testing.T) {
 	})
 
 	t.Run("succeeds when building action is not found", func(t *testing.T) {
+		suite := setupPlayerTestSuite(t)
+
 		playerId := uuid.New()
 
 		suite.mockPlayerRepo.EXPECT().
@@ -260,6 +269,8 @@ func TestUnit_ManagePlayer_Delete(t *testing.T) {
 	})
 
 	t.Run("returns error when repository fails", func(t *testing.T) {
+		suite := setupPlayerTestSuite(t)
+
 		player := models.Player{Id: uuid.New()}
 
 		suite.mockPlayerRepo.EXPECT().
@@ -283,7 +294,7 @@ func setupPlayerTestSuite(t *testing.T) *playerTestSuite {
 
 	ctrl := gomock.NewController(t)
 	mockPlayerRepo := drivenportstest.NewMockForManagingPlayers(ctrl)
-	mockUniverseRepo := drivenportstest.NewMockForManagingUniverses(ctrl)
+	mockUniverseRepo := drivenportstest.NewMockForFetchingUniverses(ctrl)
 
 	return &playerTestSuite{
 		ctrl:             ctrl,

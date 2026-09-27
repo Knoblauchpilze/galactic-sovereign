@@ -10,12 +10,16 @@ import (
 )
 
 type UniverseUseCase struct {
-	repo drivenports.ForManagingUniverses
+	fetchRepo drivenports.ForFetchingUniverses
+	repo      drivenports.ForManagingUniverses
 }
 
-func NewUniverseUseCase(repo drivenports.ForManagingUniverses) *UniverseUseCase {
+func NewUniverseUseCase(
+	fetchRepo drivenports.ForFetchingUniverses,
+	repo drivenports.ForManagingUniverses) *UniverseUseCase {
 	return &UniverseUseCase{
-		repo: repo,
+		fetchRepo: fetchRepo,
+		repo:      repo,
 	}
 }
 
@@ -31,11 +35,11 @@ func (u *UniverseUseCase) Create(ctx context.Context, req request.UniverseCreati
 }
 
 func (u *UniverseUseCase) Get(ctx context.Context, id uuid.UUID) (models.Universe, error) {
-	return u.repo.Get(ctx, id)
+	return u.fetchRepo.Get(ctx, id)
 }
 
 func (u *UniverseUseCase) List(ctx context.Context) ([]models.Universe, error) {
-	return u.repo.List(ctx)
+	return u.fetchRepo.List(ctx)
 }
 
 func (u *UniverseUseCase) Delete(ctx context.Context, id uuid.UUID) error {

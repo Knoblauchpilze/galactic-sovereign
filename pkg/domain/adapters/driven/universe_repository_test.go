@@ -135,6 +135,84 @@ func TestIT_UniverseRepository_Get(t *testing.T) {
 	})
 }
 
+func TestIT_UniverseRepository_GetByPlanetId(t *testing.T) {
+	repo, conn := newTestUniverseRepository(t)
+
+	t.Run("gets a universe", func(t *testing.T) {
+		p, universe := insertTestPlayerInUniverse(t, conn)
+
+		actual, err := repo.GetByPlanetId(t.Context(), p.Homeworld)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		expected := universe
+		expected.OccupancyMap.UsedSlots = map[models.Coordinate]struct{}{
+			p.Planets[0].Coordinate: {},
+		}
+		assertEqualIgnoringFields(t, actual, expected, "Resources", "Buildings", "Ships")
+	})
+
+	t.Run("gets a universe with resources", func(t *testing.T) {
+		p, _ := insertTestPlayerInUniverse(t, conn)
+		resource := insertTestResource(t, conn)
+
+		actual, err := repo.GetByPlanetId(t.Context(), p.Homeworld)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.Contains(t, actual.Resources, resource)
+	})
+
+	t.Run("gets a universe with buildings", func(t *testing.T) {
+		p, _ := insertTestPlayerInUniverse(t, conn)
+		building := insertTestBuilding(t, conn)
+
+		actual, err := repo.GetByPlanetId(t.Context(), p.Homeworld)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.Contains(t, actual.Buildings, building)
+	})
+
+	t.Run("gets a universe with ships", func(t *testing.T) {
+		p, _ := insertTestPlayerInUniverse(t, conn)
+		ship := insertTestShip(t, conn)
+
+		actual, err := repo.GetByPlanetId(t.Context(), p.Homeworld)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.Contains(t, actual.Ships, ship)
+	})
+
+	t.Run("gets a universe with occupied slots", func(t *testing.T) {
+		u1 := insertTestUniverse(t, conn)
+		p1 := insertTestPlayer(t, conn, u1.Id)
+		planet1 := insertTestPlanet(t, conn, p1.Id)
+
+		u2 := insertTestUniverse(t, conn)
+		p2 := insertTestPlayer(t, conn, u2.Id)
+		planet2 := insertTestPlanet(t, conn, p2.Id)
+		require.NotEqual(t, planet1.Coordinate, planet2.Coordinate)
+
+		actual, err := repo.GetByPlanetId(t.Context(), planet1.Id)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		expected := u1
+		expected.OccupancyMap = models.OccupancyMap{
+			Topology: u1.Topology,
+			UsedSlots: map[models.Coordinate]struct{}{
+				planet1.Coordinate: {},
+			},
+		}
+
+		assertEqualIgnoringFields(t, actual, expected, "Resources", "Buildings", "Ships")
+	})
+
+	t.Run("returns error when planet does not exist", func(t *testing.T) {
+		planet := uuid.MustParse("00000000-1111-2222-1111-000000000000")
+		_, err := repo.GetByPlanetId(t.Context(), planet)
+
+		assert.ErrorIs(t, err, domainerrors.ErrNotFound, "Actual err: %v", err)
+	})
+}
+
 func TestIT_UniverseRepository_List(t *testing.T) {
 	repo, conn := newTestUniverseRepository(t)
 	u1 := insertTestUniverse(t, conn)

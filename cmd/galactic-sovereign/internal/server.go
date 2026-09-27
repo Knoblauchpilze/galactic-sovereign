@@ -44,7 +44,7 @@ func registerUniversesRoutes(
 	universeRepo := drivenadapters.NewUniverseRepository(conn)
 	solarSystemRepo := drivenadapters.NewSolarSystemRepository(conn)
 
-	universeUsecase := usecases.NewUniverseUseCase(universeRepo)
+	universeUsecase := usecases.NewUniverseUseCase(universeRepo, universeRepo)
 	listSolarSystemUsecase := usecases.NewFetchSolarSystemUseCase(solarSystemRepo)
 
 	for _, route := range drivingadapters.UniverseEndpoints(universeUsecase, listSolarSystemUsecase) {

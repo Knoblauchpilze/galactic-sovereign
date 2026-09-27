@@ -2,6 +2,7 @@ package drivenadapters
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driven/database"
@@ -36,6 +37,23 @@ FROM
 	INNER JOIN universe_topology AS ut ON ut.universe = u.id
 WHERE
 	u.id = $1`
+
+	getUniverseByPlanetQuery = `
+SELECT
+	u.id,
+	u.name,
+	u.created_at,
+	u.version,
+	ut.galaxies,
+	ut.solar_systems,
+	ut.orbits
+FROM
+	planet AS p
+	LEFT JOIN player AS pl ON pl.id = p.player
+	LEFT JOIN universe AS u ON u.id = pl.universe
+	INNER JOIN universe_topology AS ut ON ut.universe = u.id
+WHERE
+	p.id = $1`
 
 	listResourceQuery = `
 SELECT
@@ -131,6 +149,22 @@ func (r *UniverseRepository) Get(ctx context.Context, id uuid.UUID) (models.Univ
 
 	dbUniverse, err := db.QueryOneTx[mappers.DbUniverse](ctx, tx, getUniverseQuery, id)
 	if err != nil {
+		return models.Universe{}, parseDbError(err)
+	}
+
+	return loadUniverseDetails(ctx, tx, dbUniverse)
+}
+
+func (r *UniverseRepository) GetByPlanetId(ctx context.Context, planet uuid.UUID) (models.Universe, error) {
+	tx, err := r.conn.BeginTx(ctx)
+	if err != nil {
+		return models.Universe{}, err
+	}
+	defer tx.Close(ctx)
+
+	dbUniverse, err := db.QueryOneTx[mappers.DbUniverse](ctx, tx, getUniverseByPlanetQuery, planet)
+	if err != nil {
+		fmt.Printf("err: %v\n", err)
 		return models.Universe{}, parseDbError(err)
 	}
 
