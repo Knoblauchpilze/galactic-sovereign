@@ -19,7 +19,7 @@ galactic-sovereign-service-build:
 galactic-sovereign-service-run:
 	docker run \
 		--network=host \
-		-e ENV_SERVER_PORT=${SERVER_PORT} \
+		-e ENV_PORT=${SERVER_PORT} \
 		-e ENV_DATABASE_HOST=localhost \
 		-e ENV_DATABASE_PASSWORD=${DATABASE_PASSWORD} \
 		totocorpsoftwareinc/galactic-sovereign-service:${GIT_COMMIT_HASH}
