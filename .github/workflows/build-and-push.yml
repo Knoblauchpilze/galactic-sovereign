@@ -179,7 +179,7 @@ jobs:
             -d \
             --name galactic-sovereign-service-test \
             --add-host host.docker.internal:host-gateway \
-            -e ENV_SERVER_PORT=$PORT \
+            -e ENV_PORT=$PORT \
             -e ENV_DATABASE_HOST=host.docker.internal \
             -e ENV_DATABASE_PASSWORD=$DATABASE_PASSWORD \
             -p 1234:1234 \
