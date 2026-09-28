@@ -14,8 +14,8 @@ import (
 	reflect "reflect"
 
 	models "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
-	request "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/request"
 	drivenports "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driven"
+	uuid "github.com/google/uuid"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -44,16 +44,16 @@ func (m *MockForDispatchingFleet) EXPECT() *MockForDispatchingFleetMockRecorder 
 }
 
 // Dispatch mocks base method.
-func (m *MockForDispatchingFleet) Dispatch(ctx context.Context, req request.FleetCreationRequest, mutator drivenports.FleetCreator) (models.Fleet, error) {
+func (m *MockForDispatchingFleet) Dispatch(ctx context.Context, source uuid.UUID, mutator drivenports.FleetCreator) (models.Fleet, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Dispatch", ctx, req, mutator)
+	ret := m.ctrl.Call(m, "Dispatch", ctx, source, mutator)
 	ret0, _ := ret[0].(models.Fleet)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Dispatch indicates an expected call of Dispatch.
-func (mr *MockForDispatchingFleetMockRecorder) Dispatch(ctx, req, mutator any) *gomock.Call {
+func (mr *MockForDispatchingFleetMockRecorder) Dispatch(ctx, source, mutator any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Dispatch", reflect.TypeOf((*MockForDispatchingFleet)(nil).Dispatch), ctx, req, mutator)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Dispatch", reflect.TypeOf((*MockForDispatchingFleet)(nil).Dispatch), ctx, source, mutator)
 }

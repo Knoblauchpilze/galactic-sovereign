@@ -51,13 +51,13 @@ func createFleet(c *gin.Context, usecase drivingports.ForCreatingFleet) {
 		return
 	}
 
-	request, err := mappers.ToFleetCreationRequest(planetId, inputDto)
+	request, err := mappers.ToFleetOrder(inputDto)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, "invalid fleet syntax")
 		return
 	}
 
-	fleet, err := usecase.Create(c.Request.Context(), request)
+	fleet, err := usecase.Create(c.Request.Context(), planetId, request)
 	if err != nil {
 		logError(c.Request, "Failed to create fleet", slog.Any("error", err))
 		c.AbortWithStatusJSON(http.StatusInternalServerError, "failed to create fleet")

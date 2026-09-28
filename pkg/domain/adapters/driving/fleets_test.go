@@ -9,7 +9,6 @@ import (
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driving/drivingportstest"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driving/dtos"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
-	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/request"
 	drivingports "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driving"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -114,15 +113,14 @@ func TestUnit_Fleets_CreateFleet(t *testing.T) {
 			},
 		}
 
-		expectedRequest := request.FleetCreationRequest{
-			Planet:  sampleUuid,
+		expectedRequest := models.FleetOrder{
 			Mission: models.MissionColonize,
-			Destination: request.FleetDestinationRequest{
+			Destination: models.Coordinate{
 				Galaxy:      dto.Destination.Galaxy,
 				SolarSystem: dto.Destination.SolarSystem,
 				Position:    dto.Destination.Position,
 			},
-			Ships: []request.FleetShipRequest{
+			Ships: []models.FleetShip{
 				{
 					Ship:  dto.Ships[0].Ship,
 					Count: dto.Ships[0].Count,
@@ -150,7 +148,7 @@ func TestUnit_Fleets_CreateFleet(t *testing.T) {
 		}
 
 		mockUsecase.EXPECT().
-			Create(gomock.Any(), gomock.Eq(expectedRequest)).
+			Create(gomock.Any(), sampleUuid, expectedRequest).
 			Times(1).
 			Return(fleet, nil)
 
@@ -189,7 +187,7 @@ func TestUnit_Fleets_CreateFleet(t *testing.T) {
 		}
 
 		mockUsecase.EXPECT().
-			Create(gomock.Any(), gomock.Any()).
+			Create(gomock.Any(), gomock.Any(), gomock.Any()).
 			Times(1).
 			Return(models.Fleet{}, errors.New("stubbed error"))
 

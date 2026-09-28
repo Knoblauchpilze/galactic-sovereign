@@ -4,15 +4,15 @@ import (
 	"context"
 
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
-	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/request"
+	"github.com/google/uuid"
 )
 
-type FleetCreator func(*models.Planet, request.FleetCreationRequest) (models.Fleet, error)
+type FleetCreator func(*models.Planet) (models.Fleet, error)
 
 type ForDispatchingFleet interface {
 	Dispatch(
 		ctx context.Context,
-		req request.FleetCreationRequest,
+		source uuid.UUID,
 		mutator FleetCreator,
 	) (models.Fleet, error)
 }

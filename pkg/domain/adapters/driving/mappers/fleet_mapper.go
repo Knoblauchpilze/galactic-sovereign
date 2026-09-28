@@ -3,32 +3,28 @@ package mappers
 import (
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driving/dtos"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
-	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/request"
-	"github.com/google/uuid"
 )
 
 const (
 	invalidFleetMission = models.FleetMission("")
 )
 
-func ToFleetCreationRequest(
-	planetId uuid.UUID,
+func ToFleetOrder(
 	dto dtos.FleetDtoRequest,
-) (request.FleetCreationRequest, error) {
+) (models.FleetOrder, error) {
 	mission, err := toFleetMission(dto.Mission)
 	if err != nil {
-		return request.FleetCreationRequest{}, err
+		return models.FleetOrder{}, err
 	}
 
-	req := request.FleetCreationRequest{
-		Planet:  planetId,
+	req := models.FleetOrder{
 		Mission: mission,
-		Destination: request.FleetDestinationRequest{
+		Destination: models.Coordinate{
 			Galaxy:      dto.Destination.Galaxy,
 			SolarSystem: dto.Destination.SolarSystem,
 			Position:    dto.Destination.Position,
 		},
-		Ships: toFleetShipsRequest(dto.Ships),
+		Ships: toFleetShips(dto.Ships),
 	}
 
 	return req, nil
@@ -43,22 +39,22 @@ func toFleetMission(mission dtos.FleetMissionDto) (models.FleetMission, error) {
 	}
 }
 
-func toFleetShipRequest(
+func toFleetShip(
 	ship dtos.FleetShipDtoRequest,
-) request.FleetShipRequest {
-	return request.FleetShipRequest{
+) models.FleetShip {
+	return models.FleetShip{
 		Ship:  ship.Ship,
 		Count: ship.Count,
 	}
 }
 
-func toFleetShipsRequest(
+func toFleetShips(
 	ships []dtos.FleetShipDtoRequest,
-) []request.FleetShipRequest {
-	out := make([]request.FleetShipRequest, 0, len(ships))
+) []models.FleetShip {
+	out := make([]models.FleetShip, 0, len(ships))
 
 	for _, s := range ships {
-		dto := toFleetShipRequest(s)
+		dto := toFleetShip(s)
 		out = append(out, dto)
 	}
 

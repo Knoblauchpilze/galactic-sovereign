@@ -7,7 +7,6 @@ import (
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driven/database"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
 	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
-	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/request"
 	drivenports "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driven"
 	"github.com/google/uuid"
 )
@@ -24,7 +23,7 @@ func NewFleetCreator(conn database.Connection) *FleetDispatcher {
 
 func (c *FleetDispatcher) Dispatch(
 	ctx context.Context,
-	req request.FleetCreationRequest,
+	source uuid.UUID,
 	dispatcher drivenports.FleetCreator,
 ) (models.Fleet, error) {
 	tx, err := c.conn.BeginTx(ctx)
@@ -33,22 +32,22 @@ func (c *FleetDispatcher) Dispatch(
 	}
 	defer tx.Close(ctx)
 
-	actual, err := db.QueryOneTx[uuid.UUID](ctx, tx, lockPlanetForUpdateQuery, req.Planet)
+	actual, err := db.QueryOneTx[uuid.UUID](ctx, tx, lockPlanetForUpdateQuery, source)
 	if err != nil {
 		return models.Fleet{}, parseDbError(err)
 	}
-	if actual != req.Planet {
+	if actual != source {
 		return models.Fleet{}, domainerrors.ErrNotFound
 	}
 
-	planet, err := loadPlanetAndDetails(ctx, tx, req.Planet)
+	planet, err := loadPlanetAndDetails(ctx, tx, source)
 	if err != nil {
 		return models.Fleet{}, err
 	}
 
 	expectedVersion := planet.Version
 
-	fleet, err := dispatcher(&planet, req)
+	fleet, err := dispatcher(&planet)
 	if err != nil {
 		// There's no point in checking the error here: it is not logged
 		// and there's already an error pending.
@@ -58,6 +57,7 @@ func (c *FleetDispatcher) Dispatch(
 		return models.Fleet{}, err
 	}
 
+	// TODO: Missing persistence of the fleet
 	_, err = saveAndReloadPlanet(ctx, tx, planet, expectedVersion)
 	if err != nil {
 		return models.Fleet{}, err

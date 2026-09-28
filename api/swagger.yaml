@@ -248,7 +248,7 @@ components:
       - Colonize
       type: string
       x-enum-varnames:
-      - Colonize
+      - MissionColonize
     dtos.FleetShipDtoRequest:
       properties:
         count:

@@ -6,9 +6,9 @@ import (
 
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
 	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
-	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/request"
 	drivenports "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driven"
 	domainservices "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/services"
+	"github.com/google/uuid"
 )
 
 type CreateFleetUseCase struct {
@@ -31,22 +31,22 @@ func NewCreateFleetUseCase(
 
 func (f *CreateFleetUseCase) Create(
 	ctx context.Context,
-	req request.FleetCreationRequest,
+	planet uuid.UUID,
+	req models.FleetOrder,
 ) (models.Fleet, error) {
-	u, err := f.universeRepo.GetByPlanetId(ctx, req.Planet)
+	u, err := f.universeRepo.GetByPlanetId(ctx, planet)
 	if err != nil {
 		return models.Fleet{}, err
 	}
 
-	coord := req.Destination.ToCoordinates()
-	if !u.ValidCoordinates(coord) {
+	if !u.ValidCoordinates(req.Destination) {
 		return models.Fleet{}, domainerrors.ErrCoordinatesOutOfBound
 	}
 
 	moment := f.clock.Now(ctx)
 
-	mutation := generateFleetMutation(moment)
-	fleet, err := f.dispatcher.Dispatch(ctx, req, mutation)
+	mutation := generateFleetMutation(moment, req)
+	fleet, err := f.dispatcher.Dispatch(ctx, planet, mutation)
 	if err != nil {
 		return models.Fleet{}, err
 	}
@@ -57,8 +57,9 @@ func (f *CreateFleetUseCase) Create(
 
 func generateFleetMutation(
 	moment time.Time,
+	_ models.FleetOrder,
 ) drivenports.FleetCreator {
-	return func(p *models.Planet, _ request.FleetCreationRequest) (models.Fleet, error) {
+	return func(p *models.Planet) (models.Fleet, error) {
 		err := domainservices.AdvancePlanetToTime(p, moment)
 		if err != nil {
 			return models.Fleet{}, err

@@ -14,7 +14,7 @@ import (
 	reflect "reflect"
 
 	models "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
-	request "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/request"
+	uuid "github.com/google/uuid"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -43,16 +43,16 @@ func (m *MockForCreatingFleet) EXPECT() *MockForCreatingFleetMockRecorder {
 }
 
 // Create mocks base method.
-func (m *MockForCreatingFleet) Create(ctx context.Context, req request.FleetCreationRequest) (models.Fleet, error) {
+func (m *MockForCreatingFleet) Create(ctx context.Context, planet uuid.UUID, order models.FleetOrder) (models.Fleet, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Create", ctx, req)
+	ret := m.ctrl.Call(m, "Create", ctx, planet, order)
 	ret0, _ := ret[0].(models.Fleet)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Create indicates an expected call of Create.
-func (mr *MockForCreatingFleetMockRecorder) Create(ctx, req any) *gomock.Call {
+func (mr *MockForCreatingFleetMockRecorder) Create(ctx, planet, order any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockForCreatingFleet)(nil).Create), ctx, req)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockForCreatingFleet)(nil).Create), ctx, planet, order)
 }

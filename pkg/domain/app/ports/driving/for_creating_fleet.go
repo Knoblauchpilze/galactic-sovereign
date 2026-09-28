@@ -4,9 +4,9 @@ import (
 	"context"
 
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
-	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/request"
+	"github.com/google/uuid"
 )
 
 type ForCreatingFleet interface {
-	Create(ctx context.Context, req request.FleetCreationRequest) (models.Fleet, error)
+	Create(ctx context.Context, planet uuid.UUID, order models.FleetOrder) (models.Fleet, error)
 }

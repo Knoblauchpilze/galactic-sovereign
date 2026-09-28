@@ -7,7 +7,6 @@ import (
 
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
 	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
-	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/request"
 	drivenports "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driven"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/usecases/drivenportstest"
 	"github.com/google/uuid"
@@ -16,7 +15,11 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
-type FleetDispatcherMock func(context.Context, request.FleetCreationRequest, drivenports.FleetCreator) (models.Fleet, error)
+var (
+	samplePlanetId = uuid.New()
+)
+
+type FleetDispatcherMock func(context.Context, uuid.UUID, drivenports.FleetCreator) (models.Fleet, error)
 
 type createFleetTestSuite struct {
 	ctrl             *gomock.Controller
@@ -30,14 +33,13 @@ func TestUnit_CreateFleet_Create(t *testing.T) {
 	t.Run("forwards fleet returned by the dispatcher", func(t *testing.T) {
 		suite := setupCreateFleetTestSuite(t)
 
-		req := request.FleetCreationRequest{
-			Planet: uuid.New(),
-			Destination: request.FleetDestinationRequest{
+		req := models.FleetOrder{
+			Destination: models.Coordinate{
 				Galaxy:      1,
 				SolarSystem: 3,
 				Position:    4,
 			},
-			Ships: []request.FleetShipRequest{
+			Ships: []models.FleetShip{
 				{Ship: uuid.New(), Count: 3},
 				{Ship: uuid.New(), Count: 4},
 			},
@@ -59,7 +61,7 @@ func TestUnit_CreateFleet_Create(t *testing.T) {
 		expected := models.Fleet{
 			Id:     uuid.New(),
 			Player: uuid.New(),
-			Source: req.Planet,
+			Source: samplePlanetId,
 			Destination: models.Coordinate{
 				Galaxy:      req.Destination.Galaxy,
 				SolarSystem: req.Destination.SolarSystem,
@@ -77,16 +79,16 @@ func TestUnit_CreateFleet_Create(t *testing.T) {
 		}
 
 		suite.mockUniverseRepo.EXPECT().
-			GetByPlanetId(gomock.Any(), req.Planet).
+			GetByPlanetId(gomock.Any(), samplePlanetId).
 			Times(1).
 			Return(universe, nil)
 		suite.mockClock.EXPECT().Now(gomock.Any()).Times(1).Return(t2)
 		suite.mockDispatcher.EXPECT().
-			Dispatch(gomock.Any(), req, gomock.Any()).
+			Dispatch(gomock.Any(), samplePlanetId, gomock.Any()).
 			Times(1).
 			Return(expected, nil)
 
-		actual, err := suite.usecase.Create(t.Context(), req)
+		actual, err := suite.usecase.Create(t.Context(), samplePlanetId, req)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Equal(t, expected, actual)
@@ -95,14 +97,13 @@ func TestUnit_CreateFleet_Create(t *testing.T) {
 	t.Run("returns error when destination coordinates are out of bounds", func(t *testing.T) {
 		suite := setupCreateFleetTestSuite(t)
 
-		req := request.FleetCreationRequest{
-			Planet: uuid.New(),
-			Destination: request.FleetDestinationRequest{
+		req := models.FleetOrder{
+			Destination: models.Coordinate{
 				Galaxy:      0,
 				SolarSystem: 1,
 				Position:    5,
 			},
-			Ships: []request.FleetShipRequest{
+			Ships: []models.FleetShip{
 				{Ship: uuid.New(), Count: 3},
 			},
 		}
@@ -120,11 +121,11 @@ func TestUnit_CreateFleet_Create(t *testing.T) {
 		}
 
 		suite.mockUniverseRepo.EXPECT().
-			GetByPlanetId(gomock.Any(), req.Planet).
+			GetByPlanetId(gomock.Any(), samplePlanetId).
 			Times(1).
 			Return(universe, nil)
 
-		_, err := suite.usecase.Create(t.Context(), req)
+		_, err := suite.usecase.Create(t.Context(), samplePlanetId, req)
 
 		assert.ErrorIs(t, err, domainerrors.ErrCoordinatesOutOfBound, "Actual err: %v", err)
 	})
@@ -132,14 +133,13 @@ func TestUnit_CreateFleet_Create(t *testing.T) {
 	t.Run("returns error when dispatcher fails", func(t *testing.T) {
 		suite := setupCreateFleetTestSuite(t)
 
-		req := request.FleetCreationRequest{
-			Planet: uuid.New(),
-			Destination: request.FleetDestinationRequest{
+		req := models.FleetOrder{
+			Destination: models.Coordinate{
 				Galaxy:      1,
 				SolarSystem: 3,
 				Position:    4,
 			},
-			Ships: []request.FleetShipRequest{
+			Ships: []models.FleetShip{
 				{Ship: uuid.New(), Count: 3},
 				{Ship: uuid.New(), Count: 4},
 			},
@@ -159,17 +159,17 @@ func TestUnit_CreateFleet_Create(t *testing.T) {
 		}
 
 		suite.mockUniverseRepo.EXPECT().
-			GetByPlanetId(gomock.Any(), req.Planet).
+			GetByPlanetId(gomock.Any(), samplePlanetId).
 			Times(1).
 			Return(universe, nil)
 		suite.mockClock.EXPECT().Now(gomock.Any()).Times(1).Return(t2)
 		errSample := errors.New("stubbed error")
 		suite.mockDispatcher.EXPECT().
-			Dispatch(gomock.Any(), req, gomock.Any()).
+			Dispatch(gomock.Any(), samplePlanetId, gomock.Any()).
 			Times(1).
 			Return(models.Fleet{}, errSample)
 
-		_, err := suite.usecase.Create(t.Context(), req)
+		_, err := suite.usecase.Create(t.Context(), samplePlanetId, req)
 		assert.ErrorIs(t, err, errSample, "Actual err: %v", err)
 	})
 
@@ -181,8 +181,8 @@ func TestUnit_CreateFleet_Create(t *testing.T) {
 			Times(1).
 			Return(models.Universe{}, domainerrors.ErrNotFound)
 
-		req := request.FleetCreationRequest{}
-		_, err := suite.usecase.Create(t.Context(), req)
+		req := models.FleetOrder{}
+		_, err := suite.usecase.Create(t.Context(), samplePlanetId, req)
 
 		assert.ErrorIs(t, err, domainerrors.ErrNotFound, "Actual err: %v", err)
 	})
@@ -206,15 +206,5 @@ func setupCreateFleetTestSuite(t *testing.T) *createFleetTestSuite {
 			mockDispatcher,
 			mockClock,
 		),
-	}
-}
-
-// generateApplyingDispatcherMock generates a function mock for the fleet dispatcher
-// which applies the provided mutator to a known planet.
-func generateApplyingDispatcherMock(p *models.Planet) FleetDispatcherMock {
-	return func(
-		ctx context.Context, req request.FleetCreationRequest, c drivenports.FleetCreator,
-	) (models.Fleet, error) {
-		return c(p, req)
 	}
 }
