@@ -160,6 +160,85 @@ func TestUnit_Universe_CreatePlanet(t *testing.T) {
 	})
 }
 
+func TestUnit_Universe_ValidCoordinates(t *testing.T) {
+	t.Run("returns false when galaxy is negative", func(t *testing.T) {
+		u := Universe{
+			Topology: UniverseTopology{Galaxies: 1, SolarSystems: 2, Orbits: 3},
+		}
+
+		coord := Coordinate{Galaxy: -5, SolarSystem: 1, Position: 2}
+		valid := u.ValidCoordinates(coord)
+
+		assert.False(t, valid)
+	})
+
+	t.Run("returns false when galaxy is out of bounds", func(t *testing.T) {
+		u := Universe{
+			Topology: UniverseTopology{Galaxies: 1, SolarSystems: 2, Orbits: 3},
+		}
+
+		coord := Coordinate{Galaxy: 3, SolarSystem: 1, Position: 2}
+		valid := u.ValidCoordinates(coord)
+
+		assert.False(t, valid)
+	})
+
+	t.Run("returns false when solar system is negative", func(t *testing.T) {
+		u := Universe{
+			Topology: UniverseTopology{Galaxies: 1, SolarSystems: 2, Orbits: 3},
+		}
+
+		coord := Coordinate{Galaxy: 0, SolarSystem: -1, Position: 2}
+		valid := u.ValidCoordinates(coord)
+
+		assert.False(t, valid)
+	})
+
+	t.Run("returns false when solar system is out of bounds", func(t *testing.T) {
+		u := Universe{
+			Topology: UniverseTopology{Galaxies: 1, SolarSystems: 2, Orbits: 3},
+		}
+
+		coord := Coordinate{Galaxy: 0, SolarSystem: 3, Position: 2}
+		valid := u.ValidCoordinates(coord)
+
+		assert.False(t, valid)
+	})
+
+	t.Run("returns false when position is negative", func(t *testing.T) {
+		u := Universe{
+			Topology: UniverseTopology{Galaxies: 1, SolarSystems: 2, Orbits: 3},
+		}
+
+		coord := Coordinate{Galaxy: 0, SolarSystem: 1, Position: -29}
+		valid := u.ValidCoordinates(coord)
+
+		assert.False(t, valid)
+	})
+
+	t.Run("returns false when position is out of bounds", func(t *testing.T) {
+		u := Universe{
+			Topology: UniverseTopology{Galaxies: 1, SolarSystems: 2, Orbits: 3},
+		}
+
+		coord := Coordinate{Galaxy: 0, SolarSystem: 1, Position: 3}
+		valid := u.ValidCoordinates(coord)
+
+		assert.False(t, valid)
+	})
+
+	t.Run("returns true when position is within bounds", func(t *testing.T) {
+		u := Universe{
+			Topology: UniverseTopology{Galaxies: 1, SolarSystems: 2, Orbits: 3},
+		}
+
+		coord := Coordinate{Galaxy: 0, SolarSystem: 1, Position: 2}
+		valid := u.ValidCoordinates(coord)
+
+		assert.True(t, valid)
+	})
+}
+
 func sampleResources() []Resource {
 	return []Resource{
 		{

@@ -99,3 +99,17 @@ func (u Universe) CreatePlanet(player uuid.UUID, homeworld bool) Planet {
 		BuildingAction: nil,
 	}
 }
+
+func (u Universe) ValidCoordinates(c Coordinate) bool {
+	if c.Galaxy < 0 || c.Galaxy >= u.Topology.Galaxies {
+		return false
+	}
+	if c.SolarSystem < 0 || c.SolarSystem >= u.Topology.SolarSystems {
+		return false
+	}
+	if c.Position < 0 || c.Position >= u.Topology.Orbits {
+		return false
+	}
+
+	return true
+}
