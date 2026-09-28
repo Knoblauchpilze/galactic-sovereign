@@ -304,6 +304,9 @@ const docTemplate = `{
                     "destination": {
                         "$ref": "#/components/schemas/dtos.FleetDestinationDtoRequest"
                     },
+                    "mission": {
+                        "$ref": "#/components/schemas/dtos.FleetMissionDto"
+                    },
                     "ships": {
                         "items": {
                             "$ref": "#/components/schemas/dtos.FleetShipDtoRequest"
@@ -315,6 +318,7 @@ const docTemplate = `{
                 },
                 "required": [
                     "destination",
+                    "mission",
                     "ships"
                 ],
                 "type": "object"
@@ -343,6 +347,15 @@ const docTemplate = `{
                     "id"
                 ],
                 "type": "object"
+            },
+            "dtos.FleetMissionDto": {
+                "enum": [
+                    "Colonize"
+                ],
+                "type": "string",
+                "x-enum-varnames": [
+                    "Colonize"
+                ]
             },
             "dtos.FleetShipDtoRequest": {
                 "properties": {
