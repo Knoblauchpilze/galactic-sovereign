@@ -94,6 +94,11 @@ func TestUnit_Fleets_CreateFleet(t *testing.T) {
 
 	t.Run("forwards creation to use case", func(t *testing.T) {
 		dto := dtos.FleetDtoRequest{
+			Destination: dtos.FleetDestinationDtoRequest{
+				Galaxy:      8,
+				SolarSystem: 4,
+				Position:    10,
+			},
 			Ships: []dtos.FleetShipDtoRequest{
 				{
 					Ship:  uuid.New(),
@@ -108,6 +113,11 @@ func TestUnit_Fleets_CreateFleet(t *testing.T) {
 
 		expectedRequest := request.FleetCreationRequest{
 			Planet: sampleUuid,
+			Destination: request.FleetDestinationRequest{
+				Galaxy:      dto.Destination.Galaxy,
+				SolarSystem: dto.Destination.SolarSystem,
+				Position:    dto.Destination.Position,
+			},
 			Ships: []request.FleetShipRequest{
 				{
 					Ship:  dto.Ships[0].Ship,
@@ -163,6 +173,11 @@ func TestUnit_Fleets_CreateFleet(t *testing.T) {
 
 	t.Run("returns 500 when use case fails", func(t *testing.T) {
 		dto := dtos.FleetDtoRequest{
+			Destination: dtos.FleetDestinationDtoRequest{
+				Galaxy:      8,
+				SolarSystem: 4,
+				Position:    10,
+			},
 			Ships: []dtos.FleetShipDtoRequest{
 				{Ship: uuid.New(), Count: 12},
 			},

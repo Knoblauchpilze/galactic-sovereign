@@ -13,7 +13,12 @@ func ToFleetCreationRequest(
 ) request.FleetCreationRequest {
 	return request.FleetCreationRequest{
 		Planet: planetId,
-		Ships:  toFleetShipsRequest(dto.Ships),
+		Destination: request.FleetDestinationRequest{
+			Galaxy:      dto.Destination.Galaxy,
+			SolarSystem: dto.Destination.SolarSystem,
+			Position:    dto.Destination.Position,
+		},
+		Ships: toFleetShipsRequest(dto.Ships),
 	}
 }
 

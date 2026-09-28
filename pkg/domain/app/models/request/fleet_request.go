@@ -5,8 +5,15 @@ import (
 )
 
 type FleetCreationRequest struct {
-	Planet uuid.UUID
-	Ships  []FleetShipRequest
+	Planet      uuid.UUID
+	Destination FleetDestinationRequest
+	Ships       []FleetShipRequest
+}
+
+type FleetDestinationRequest struct {
+	Galaxy      int
+	SolarSystem int
+	Position    int
 }
 
 type FleetShipRequest struct {

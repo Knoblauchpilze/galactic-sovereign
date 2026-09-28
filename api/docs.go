@@ -277,8 +277,33 @@ const docTemplate = `{
                 ],
                 "type": "object"
             },
+            "dtos.FleetDestinationDtoRequest": {
+                "properties": {
+                    "galaxy": {
+                        "minimum": 0,
+                        "type": "integer"
+                    },
+                    "position": {
+                        "minimum": 0,
+                        "type": "integer"
+                    },
+                    "solar_system": {
+                        "minimum": 0,
+                        "type": "integer"
+                    }
+                },
+                "required": [
+                    "galaxy",
+                    "position",
+                    "solar_system"
+                ],
+                "type": "object"
+            },
             "dtos.FleetDtoRequest": {
                 "properties": {
+                    "destination": {
+                        "$ref": "#/components/schemas/dtos.FleetDestinationDtoRequest"
+                    },
                     "ships": {
                         "items": {
                             "$ref": "#/components/schemas/dtos.FleetShipDtoRequest"
@@ -289,6 +314,7 @@ const docTemplate = `{
                     }
                 },
                 "required": [
+                    "destination",
                     "ships"
                 ],
                 "type": "object"

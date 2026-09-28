@@ -7,7 +7,14 @@ import (
 )
 
 type FleetDtoRequest struct {
-	Ships []FleetShipDtoRequest `json:"ships" binding:"required,min=1,dive"`
+	Destination FleetDestinationDtoRequest `json:"destination" binding:"required"`
+	Ships       []FleetShipDtoRequest      `json:"ships" binding:"required,min=1,dive"`
+}
+
+type FleetDestinationDtoRequest struct {
+	Galaxy      int `json:"galaxy" binding:"required" minimum:"0"`
+	SolarSystem int `json:"solar_system" binding:"required" minimum:"0"`
+	Position    int `json:"position" binding:"required" minimum:"0"`
 }
 
 type FleetShipDtoRequest struct {
