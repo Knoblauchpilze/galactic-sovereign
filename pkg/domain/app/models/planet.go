@@ -4,6 +4,7 @@ import (
 	"math"
 	"time"
 
+	"github.com/Knoblauchpilze/backend-toolkit/pkg/errors"
 	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
 	"github.com/google/uuid"
 )
@@ -256,6 +257,10 @@ func (p *Planet) ApplyShipAction() error {
 	p.Version++
 
 	return nil
+}
+
+func (p *Planet) CreateFleet() (Fleet, error) {
+	return Fleet{}, errors.ErrNotImplemented
 }
 
 func (p *Planet) findBuildingById(id uuid.UUID) (PlanetBuilding, error) {

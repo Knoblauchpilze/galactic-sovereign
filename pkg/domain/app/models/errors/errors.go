@@ -29,6 +29,7 @@ const (
 	shipActionAlreadyCompleted   errors.ErrorCode = 625
 	unsupportedDatabaseEnumValue errors.ErrorCode = 626
 	requirementsNotMet           errors.ErrorCode = 627
+	coordinatesOutOfBound        errors.ErrorCode = 628
 )
 
 var (
@@ -58,4 +59,5 @@ var (
 	ErrShipActionNotCompleted     = errors.FromCode(shipActionNotCompleted)
 	ErrShipActionAlreadyCompleted = errors.FromCode(shipActionAlreadyCompleted)
 	ErrRequirementsNotMet         = errors.FromCode(requirementsNotMet)
+	ErrCoordinatesOutOfBound      = errors.FromCode(coordinatesOutOfBound)
 )
