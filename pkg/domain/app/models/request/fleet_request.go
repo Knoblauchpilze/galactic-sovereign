@@ -7,6 +7,7 @@ import (
 
 type FleetCreationRequest struct {
 	Planet      uuid.UUID
+	Mission     models.FleetMission
 	Destination FleetDestinationRequest
 	Ships       []FleetShipRequest
 }

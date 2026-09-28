@@ -7,18 +7,39 @@ import (
 	"github.com/google/uuid"
 )
 
+const (
+	invalidFleetMission = models.FleetMission("")
+)
+
 func ToFleetCreationRequest(
 	planetId uuid.UUID,
 	dto dtos.FleetDtoRequest,
-) request.FleetCreationRequest {
-	return request.FleetCreationRequest{
-		Planet: planetId,
+) (request.FleetCreationRequest, error) {
+	mission, err := toFleetMission(dto.Mission)
+	if err != nil {
+		return request.FleetCreationRequest{}, err
+	}
+
+	req := request.FleetCreationRequest{
+		Planet:  planetId,
+		Mission: mission,
 		Destination: request.FleetDestinationRequest{
 			Galaxy:      dto.Destination.Galaxy,
 			SolarSystem: dto.Destination.SolarSystem,
 			Position:    dto.Destination.Position,
 		},
 		Ships: toFleetShipsRequest(dto.Ships),
+	}
+
+	return req, nil
+}
+
+func toFleetMission(mission dtos.FleetMissionDto) (models.FleetMission, error) {
+	switch mission {
+	case dtos.MissionColonize:
+		return models.MissionColonize, nil
+	default:
+		return invalidFleetMission, ErrInvalidEnumMapping
 	}
 }
 

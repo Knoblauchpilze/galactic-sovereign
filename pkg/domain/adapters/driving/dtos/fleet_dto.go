@@ -7,8 +7,8 @@ import (
 )
 
 type FleetDtoRequest struct {
-	Destination FleetDestinationDtoRequest `json:"destination" binding:"required"`
 	Mission     FleetMissionDto            `json:"mission" binding:"required"`
+	Destination FleetDestinationDtoRequest `json:"destination" binding:"required"`
 	Ships       []FleetShipDtoRequest      `json:"ships" binding:"required,min=1,dive"`
 }
 

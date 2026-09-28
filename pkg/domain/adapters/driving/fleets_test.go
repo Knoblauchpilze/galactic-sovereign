@@ -24,7 +24,7 @@ func TestUnit_Fleets_CreateFleet(t *testing.T) {
 	mockUsecase := drivingportstest.NewMockForCreatingFleet(ctrl)
 
 	t.Run("returns 400 when planet id is invalid", func(t *testing.T) {
-		dto := dtos.FleetDtoRequest{}
+		dto := dtos.FleetDtoRequest{Mission: dtos.MissionColonize}
 		handler := generateHandler[drivingports.ForCreatingFleet](createFleet, mockUsecase)
 		r := createTestGinRouter(t, http.MethodPost, "/planets/:id/fleets", handler)
 
@@ -57,6 +57,7 @@ func TestUnit_Fleets_CreateFleet(t *testing.T) {
 		r := createTestGinRouter(t, http.MethodPost, "/planets/:id/fleets", handler)
 
 		dto := dtos.FleetDtoRequest{
+			Mission: dtos.MissionColonize,
 			Ships: []dtos.FleetShipDtoRequest{
 				{Ship: uuid.New(), Count: 0},
 			},
@@ -77,6 +78,7 @@ func TestUnit_Fleets_CreateFleet(t *testing.T) {
 		r := createTestGinRouter(t, http.MethodPost, "/planets/:id/fleets", handler)
 
 		dto := dtos.FleetDtoRequest{
+			Mission: dtos.MissionColonize,
 			Ships: []dtos.FleetShipDtoRequest{
 				{Ship: uuid.New(), Count: -1},
 			},
@@ -94,6 +96,7 @@ func TestUnit_Fleets_CreateFleet(t *testing.T) {
 
 	t.Run("forwards creation to use case", func(t *testing.T) {
 		dto := dtos.FleetDtoRequest{
+			Mission: dtos.MissionColonize,
 			Destination: dtos.FleetDestinationDtoRequest{
 				Galaxy:      8,
 				SolarSystem: 4,
@@ -112,7 +115,8 @@ func TestUnit_Fleets_CreateFleet(t *testing.T) {
 		}
 
 		expectedRequest := request.FleetCreationRequest{
-			Planet: sampleUuid,
+			Planet:  sampleUuid,
+			Mission: models.MissionColonize,
 			Destination: request.FleetDestinationRequest{
 				Galaxy:      dto.Destination.Galaxy,
 				SolarSystem: dto.Destination.SolarSystem,
@@ -173,6 +177,7 @@ func TestUnit_Fleets_CreateFleet(t *testing.T) {
 
 	t.Run("returns 500 when use case fails", func(t *testing.T) {
 		dto := dtos.FleetDtoRequest{
+			Mission: dtos.MissionColonize,
 			Destination: dtos.FleetDestinationDtoRequest{
 				Galaxy:      8,
 				SolarSystem: 4,
