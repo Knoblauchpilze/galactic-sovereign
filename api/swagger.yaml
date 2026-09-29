@@ -586,6 +586,9 @@ components:
       type: object
     dtos.ShipDtoResponse:
       properties:
+        base_speed:
+          minimum: 1
+          type: integer
         building_requirements:
           items:
             $ref: '#/components/schemas/dtos.ShipBuildingRequirementDtoResponse'
@@ -606,6 +609,7 @@ components:
           example: light fighter
           type: string
       required:
+      - base_speed
       - building_requirements
       - costs
       - created_at

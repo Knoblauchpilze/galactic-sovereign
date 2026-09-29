@@ -186,6 +186,7 @@ func toShipResponse(
 		Id:                   ship.Id,
 		Name:                 ship.Name,
 		CreatedAt:            ship.CreatedAt,
+		BaseSpeed:            ship.BaseSpeed,
 		Costs:                toShipCostsResponse(ship.Costs),
 		BuildingRequirements: toShipBuildingRequirementsResponse(ship.BuildingRequirements),
 	}

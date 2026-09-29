@@ -72,19 +72,21 @@ func insertTestShip(
 		Id:        uuid.New(),
 		Name:      fmt.Sprintf("my-ship-%s", uuid.NewString()),
 		CreatedAt: someTime,
+		BaseSpeed: 1 + rand.Intn(5874),
 		// This is intentional: the details (e.g. costs) are returned as empty
 		// slices by the adapter
 		Costs:                []models.ShipCost{},
 		BuildingRequirements: []models.ShipBuildingRequirement{},
 	}
 
-	sqlQuery := `INSERT INTO ship (id, name, created_at)
-		VALUES ($1, $2, $3)`
+	sqlQuery := `INSERT INTO ship (id, name, base_speed, created_at)
+		VALUES ($1, $2, $3, $4)`
 	_, err := conn.Exec(
 		t.Context(),
 		sqlQuery,
 		ship.Id,
 		ship.Name,
+		ship.BaseSpeed,
 		ship.CreatedAt,
 	)
 	require.NoError(t, err, "Actual err: %v", err)

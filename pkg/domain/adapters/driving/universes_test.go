@@ -114,6 +114,7 @@ func TestUnit_Universes_CreateUniverse(t *testing.T) {
 						Id:        shipId,
 						Name:      "ship",
 						CreatedAt: yetAnotherTime,
+						BaseSpeed: 12,
 					},
 				},
 			}, nil)
@@ -171,6 +172,7 @@ func TestUnit_Universes_CreateUniverse(t *testing.T) {
 					Id:                   shipId,
 					Name:                 "ship",
 					CreatedAt:            yetAnotherTime,
+					BaseSpeed:            12,
 					Costs:                []dtos.ShipCostDtoResponse{},
 					BuildingRequirements: []dtos.ShipBuildingRequirementDtoResponse{},
 				},
@@ -311,6 +313,7 @@ func TestUnit_Universes_GetUniverse(t *testing.T) {
 					Id:        shipId,
 					Name:      "ship",
 					CreatedAt: yetAnotherTime,
+					BaseSpeed: 1235,
 					Costs: []models.ShipCost{
 						{
 							Resource: shipCostResourceId,
@@ -398,6 +401,7 @@ func TestUnit_Universes_GetUniverse(t *testing.T) {
 					Id:        shipId,
 					Name:      "ship",
 					CreatedAt: yetAnotherTime,
+					BaseSpeed: 1235,
 					Costs: []dtos.ShipCostDtoResponse{
 						{
 							Resource: shipCostResourceId,
@@ -507,6 +511,7 @@ func TestUnit_Universes_ListUniverses(t *testing.T) {
 						Id:        uuid.New(),
 						Name:      "ship",
 						CreatedAt: yetAnotherTime,
+						BaseSpeed: 9876,
 						Costs: []models.ShipCost{
 							{
 								Resource: uuid.New(),
@@ -589,6 +594,7 @@ func TestUnit_Universes_ListUniverses(t *testing.T) {
 						Id:        universes[1].Ships[0].Id,
 						Name:      universes[1].Ships[0].Name,
 						CreatedAt: universes[1].Ships[0].CreatedAt,
+						BaseSpeed: universes[1].Ships[0].BaseSpeed,
 						Costs: []dtos.ShipCostDtoResponse{
 							{
 								Resource: universes[1].Ships[0].Costs[0].Resource,

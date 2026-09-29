@@ -819,6 +819,10 @@ const docTemplate = `{
             },
             "dtos.ShipDtoResponse": {
                 "properties": {
+                    "base_speed": {
+                        "minimum": 1,
+                        "type": "integer"
+                    },
                     "building_requirements": {
                         "items": {
                             "$ref": "#/components/schemas/dtos.ShipBuildingRequirementDtoResponse"
@@ -847,6 +851,7 @@ const docTemplate = `{
                     }
                 },
                 "required": [
+                    "base_speed",
                     "building_requirements",
                     "costs",
                     "created_at",

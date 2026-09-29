@@ -12,6 +12,8 @@ type Ship struct {
 	Name      string
 	CreatedAt time.Time
 
+	BaseSpeed int
+
 	Costs                []ShipCost
 	BuildingRequirements []ShipBuildingRequirement
 }

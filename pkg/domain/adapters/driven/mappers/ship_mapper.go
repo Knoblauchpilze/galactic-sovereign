@@ -11,6 +11,7 @@ type DbShip struct {
 	Id        uuid.UUID
 	Name      string
 	CreatedAt time.Time
+	BaseSpeed int
 }
 
 func (s DbShip) ToDomain() models.Ship {
@@ -18,5 +19,6 @@ func (s DbShip) ToDomain() models.Ship {
 		Id:        s.Id,
 		Name:      s.Name,
 		CreatedAt: s.CreatedAt,
+		BaseSpeed: s.BaseSpeed,
 	}
 }

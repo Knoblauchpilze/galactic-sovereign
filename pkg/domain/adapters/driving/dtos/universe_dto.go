@@ -92,6 +92,7 @@ type ShipDtoResponse struct {
 	Name      string    `json:"name" example:"light fighter" binding:"required"`
 	CreatedAt time.Time `json:"created_at" format:"date-time" binding:"required"`
 
+	BaseSpeed            int                                  `json:"base_speed" binding:"required" minimum:"1"`
 	Costs                []ShipCostDtoResponse                `json:"costs" binding:"required"`
 	BuildingRequirements []ShipBuildingRequirementDtoResponse `json:"building_requirements" binding:"required"`
 }

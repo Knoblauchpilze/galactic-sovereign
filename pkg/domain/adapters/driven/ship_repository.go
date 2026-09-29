@@ -15,7 +15,8 @@ const (
 SELECT
 	id,
 	name,
-	created_at
+	created_at,
+	base_speed
 FROM
 	ship
 WHERE
@@ -25,7 +26,8 @@ WHERE
 SELECT
 	id,
 	name,
-	created_at
+	created_at,
+	base_speed
 FROM
 	ship
 ORDER BY
