@@ -1,11 +1,22 @@
 package models
 
-import "math/rand"
+import (
+	"math"
+	"math/rand"
+)
 
 const (
 	homeworldFields    = 163
 	minFieldsForBeyond = 60
 	maxFieldsForBeyond = 70
+
+	// https://ogame.fandom.com/wiki/Distance
+	galaxyDistanceMultipler       = 20_000
+	solarSystemDistanceMultiplier = 95
+	solarSystemBaseDistance       = 2700
+	orbitDistanceMultiplier       = 5
+	orbitBaseDistance             = 1000
+	minimumDistance               = 5
 )
 
 var (
@@ -53,6 +64,22 @@ type Coordinate struct {
 	Position    int
 }
 
+func (c Coordinate) DistanceTo(other Coordinate) int {
+	if c.Galaxy != other.Galaxy {
+		return galaxyDistanceMultipler + absDiffInt(c.Galaxy, other.Galaxy)
+	}
+
+	if c.SolarSystem != other.SolarSystem {
+		return solarSystemBaseDistance + solarSystemDistanceMultiplier*absDiffInt(c.SolarSystem, other.SolarSystem)
+	}
+
+	if c.Position != other.Position {
+		return orbitBaseDistance + orbitDistanceMultiplier*absDiffInt(c.Position, other.Position)
+	}
+
+	return minimumDistance
+}
+
 func (c Coordinate) Fields(homeworld bool) int {
 	if homeworld {
 		return homeworldFields
@@ -71,4 +98,8 @@ func fieldOrDefault(position int, table map[int]int, defaultFields int) int {
 	}
 
 	return defaultFields
+}
+
+func absDiffInt(lhs int, rhs int) int {
+	return int(math.Abs(float64(lhs - rhs)))
 }
