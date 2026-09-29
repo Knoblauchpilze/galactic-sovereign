@@ -32,20 +32,20 @@ func NewCreateFleetUseCase(
 func (f *CreateFleetUseCase) Create(
 	ctx context.Context,
 	planet uuid.UUID,
-	req models.FleetOrder,
+	order models.FleetOrder,
 ) (models.Fleet, error) {
 	u, err := f.universeRepo.GetByPlanetId(ctx, planet)
 	if err != nil {
 		return models.Fleet{}, err
 	}
 
-	if !u.ValidCoordinates(req.Destination) {
+	if !u.ValidCoordinates(order.Destination) {
 		return models.Fleet{}, domainerrors.ErrCoordinatesOutOfBound
 	}
 
 	moment := f.clock.Now(ctx)
 
-	mutation := generateFleetMutation(moment, req)
+	mutation := generateFleetMutation(moment, order)
 	fleet, err := f.dispatcher.Dispatch(ctx, planet, mutation)
 	if err != nil {
 		return models.Fleet{}, err
@@ -57,7 +57,7 @@ func (f *CreateFleetUseCase) Create(
 
 func generateFleetMutation(
 	moment time.Time,
-	_ models.FleetOrder,
+	order models.FleetOrder,
 ) drivenports.FleetCreator {
 	return func(p *models.Planet) (models.Fleet, error) {
 		err := domainservices.AdvancePlanetToTime(p, moment)
@@ -65,6 +65,6 @@ func generateFleetMutation(
 			return models.Fleet{}, err
 		}
 
-		return p.CreateFleet()
+		return p.CreateFleet(order)
 	}
 }

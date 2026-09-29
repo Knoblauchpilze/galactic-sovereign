@@ -259,7 +259,7 @@ func (p *Planet) ApplyShipAction() error {
 	return nil
 }
 
-func (p *Planet) CreateFleet() (Fleet, error) {
+func (p *Planet) CreateFleet(order FleetOrder) (Fleet, error) {
 	return Fleet{}, errors.ErrNotImplemented
 }
 
