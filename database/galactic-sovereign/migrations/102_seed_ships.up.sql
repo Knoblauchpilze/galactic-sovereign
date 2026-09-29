@@ -1,7 +1,7 @@
 
 -- small cargo ship
-INSERT INTO galactic_sovereign_schema.ship ("id", "name")
-  VALUES('c0978950-601e-4d35-9c7c-28df69d2cd0e', 'small cargo ship');
+INSERT INTO galactic_sovereign_schema.ship ("id", "name", "base_speed")
+  VALUES('c0978950-601e-4d35-9c7c-28df69d2cd0e', 'small cargo ship', 5000);
 
 INSERT INTO galactic_sovereign_schema.ship_cost ("ship", "resource", "cost")
   VALUES('c0978950-601e-4d35-9c7c-28df69d2cd0e', 'b4419b6b-b3bf-4576-aa92-055283addbc8', 2000);
@@ -12,8 +12,8 @@ INSERT INTO galactic_sovereign_schema.ship_building_requirement("ship", "buildin
   VALUES('c0978950-601e-4d35-9c7c-28df69d2cd0e', '58d75842-6dc0-4ac0-b36d-55f91b8d060d', 2);
 
 -- light fighter
-INSERT INTO galactic_sovereign_schema.ship ("id", "name")
-  VALUES('a31de13b-5905-4468-99c5-d1d1e529b36e', 'light fighter');
+INSERT INTO galactic_sovereign_schema.ship ("id", "name", "base_speed")
+  VALUES('a31de13b-5905-4468-99c5-d1d1e529b36e', 'light fighter', 12500);
 
 INSERT INTO galactic_sovereign_schema.ship_cost ("ship", "resource", "cost")
   VALUES('a31de13b-5905-4468-99c5-d1d1e529b36e', 'b4419b6b-b3bf-4576-aa92-055283addbc8', 3000);
