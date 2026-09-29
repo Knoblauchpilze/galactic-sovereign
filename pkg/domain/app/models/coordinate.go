@@ -66,7 +66,7 @@ type Coordinate struct {
 
 func (c Coordinate) DistanceTo(other Coordinate) int {
 	if c.Galaxy != other.Galaxy {
-		return galaxyDistanceMultipler + absDiffInt(c.Galaxy, other.Galaxy)
+		return galaxyDistanceMultipler * absDiffInt(c.Galaxy, other.Galaxy)
 	}
 
 	if c.SolarSystem != other.SolarSystem {
