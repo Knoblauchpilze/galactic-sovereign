@@ -130,6 +130,42 @@ func TestUnit_CreateFleet_Create(t *testing.T) {
 		assert.ErrorIs(t, err, domainerrors.ErrCoordinatesOutOfBound, "Actual err: %v", err)
 	})
 
+	t.Run("returns error when fleet ship does not exist", func(t *testing.T) {
+		suite := setupCreateFleetTestSuite(t)
+
+		req := models.FleetOrder{
+			Destination: models.Coordinate{
+				Galaxy:      0,
+				SolarSystem: 0,
+				Position:    5,
+			},
+			Ships: []models.FleetShip{
+				{Ship: uuid.New(), Count: 3},
+			},
+		}
+
+		universe := models.Universe{
+			Id: uuid.New(),
+			Topology: models.UniverseTopology{
+				Galaxies:     1,
+				SolarSystems: 1,
+				Orbits:       10,
+			},
+			Ships: []models.Ship{
+				{Id: uuid.New(), BaseSpeed: 10},
+			},
+		}
+
+		suite.mockUniverseRepo.EXPECT().
+			GetByPlanetId(gomock.Any(), samplePlanetId).
+			Times(1).
+			Return(universe, nil)
+
+		_, err := suite.usecase.Create(t.Context(), samplePlanetId, req)
+
+		assert.ErrorIs(t, err, domainerrors.ErrShipNotFound, "Actual err: %v", err)
+	})
+
 	t.Run("returns error when dispatcher fails", func(t *testing.T) {
 		suite := setupCreateFleetTestSuite(t)
 

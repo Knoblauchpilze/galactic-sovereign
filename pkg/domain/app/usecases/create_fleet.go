@@ -43,9 +43,14 @@ func (f *CreateFleetUseCase) Create(
 		return models.Fleet{}, domainerrors.ErrCoordinatesOutOfBound
 	}
 
+	speed, err := domainservices.DetermineFleetSpeed(order, u.Ships)
+	if err != nil {
+		return models.Fleet{}, err
+	}
+
 	moment := f.clock.Now(ctx)
 
-	mutation := generateFleetMutation(moment, order)
+	mutation := generateFleetMutation(moment, order, speed)
 	fleet, err := f.dispatcher.Dispatch(ctx, planet, mutation)
 	if err != nil {
 		return models.Fleet{}, err
@@ -58,6 +63,7 @@ func (f *CreateFleetUseCase) Create(
 func generateFleetMutation(
 	moment time.Time,
 	order models.FleetOrder,
+	speed int,
 ) drivenports.FleetCreator {
 	return func(p *models.Planet) (models.Fleet, error) {
 		err := domainservices.AdvancePlanetToTime(p, moment)
@@ -65,6 +71,12 @@ func generateFleetMutation(
 			return models.Fleet{}, err
 		}
 
-		return p.CreateFleet(order)
+		flight := models.FleetFlight{
+			Source:      p.Coordinate,
+			Destination: order.Destination,
+			Speed:       speed,
+		}
+
+		return p.CreateFleet(order, flight)
 	}
 }
