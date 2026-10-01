@@ -4,7 +4,6 @@ import (
 	"math"
 	"time"
 
-	"github.com/Knoblauchpilze/backend-toolkit/pkg/errors"
 	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
 	"github.com/google/uuid"
 )
@@ -260,7 +259,31 @@ func (p *Planet) ApplyShipAction() error {
 }
 
 func (p *Planet) CreateFleet(order FleetOrder, flight FleetFlight) (Fleet, error) {
-	return Fleet{}, errors.ErrNotImplemented
+	if err := p.validateEnoughShipsForFleet(order); err != nil {
+		return Fleet{}, err
+	}
+
+	duration := flight.Duration()
+	createdAt := p.UpdatedAt
+
+	fleet := Fleet{
+		Id:          uuid.New(),
+		Player:      p.Player,
+		Source:      p.Id,
+		Destination: order.Destination,
+		Ships:       order.Ships,
+		CreatedAt:   createdAt,
+		ArrivalAt:   createdAt.Add(duration),
+		ReturnAt:    createdAt.Add(2 * duration),
+		UpdatedAt:   createdAt,
+		Version:     0,
+	}
+
+	p.deductFleetShips(order)
+
+	p.Version++
+
+	return fleet, nil
 }
 
 func (p *Planet) findBuildingById(id uuid.UUID) (PlanetBuilding, error) {
@@ -399,6 +422,40 @@ func (p *Planet) deductShipActionResources(
 		cost, ok := temp[resource.Resource]
 		if ok {
 			p.Resources[id].Amount -= float64(cost.Amount)
+		}
+	}
+}
+
+func (p *Planet) validateEnoughShipsForFleet(
+	order FleetOrder,
+) error {
+	temp := make(map[uuid.UUID]int)
+	for _, ship := range p.Ships {
+		temp[ship.Ship] = ship.Count
+	}
+
+	for _, ship := range order.Ships {
+		actual, ok := temp[ship.Ship]
+		if !ok || actual < ship.Count {
+			return domainerrors.ErrNotEnoughShips
+		}
+	}
+
+	return nil
+}
+
+func (p *Planet) deductFleetShips(
+	order FleetOrder,
+) {
+	temp := make(map[uuid.UUID]int)
+	for _, ship := range order.Ships {
+		temp[ship.Ship] = ship.Count
+	}
+
+	for id, ship := range p.Ships {
+		count, ok := temp[ship.Ship]
+		if ok {
+			p.Ships[id].Count -= count
 		}
 	}
 }

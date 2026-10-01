@@ -31,6 +31,7 @@ const (
 	requirementsNotMet           errors.ErrorCode = 627
 	coordinatesOutOfBound        errors.ErrorCode = 628
 	noShipInFleet                errors.ErrorCode = 629
+	notEnoughShips               errors.ErrorCode = 630
 )
 
 var (
@@ -62,4 +63,5 @@ var (
 	ErrRequirementsNotMet         = errors.FromCode(requirementsNotMet)
 	ErrCoordinatesOutOfBound      = errors.FromCode(coordinatesOutOfBound)
 	ErrNoShipInFleet              = errors.FromCode(noShipInFleet)
+	ErrNotEnoughShips             = errors.FromCode(notEnoughShips)
 )

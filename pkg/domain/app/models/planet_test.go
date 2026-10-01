@@ -1200,6 +1200,192 @@ func TestUnit_Planet_ApplyShipAction(t *testing.T) {
 	})
 }
 
+func TestUnit_Planet_CreateFleet(t *testing.T) {
+	t.Run("returns error when planet does not have enough ships", func(t *testing.T) {
+		p := generateTestPlanet(t, withPlanetShip)
+
+		order := FleetOrder{
+			Mission: MissionColonize,
+			Destination: Coordinate{
+				Galaxy:      p.Coordinate.Galaxy,
+				SolarSystem: p.Coordinate.SolarSystem,
+				Position:    p.Coordinate.Position + 1,
+			},
+			Ships: []FleetShip{
+				{
+					Ship:  p.Ships[0].Ship,
+					Count: p.Ships[0].Count + 1,
+				},
+			},
+		}
+		flight := FleetFlight{
+			Source:      p.Coordinate,
+			Destination: order.Destination,
+			Speed:       1000,
+		}
+
+		_, err := p.CreateFleet(order, flight)
+
+		assert.ErrorIs(t, err, domainerrors.ErrNotEnoughShips, "Actual err: %v", err)
+		assert.Equal(t, 3, p.Version)
+	})
+
+	t.Run("deducts fleet ships from the available planet ships", func(t *testing.T) {
+		p := generateTestPlanet(t)
+		p.Ships = []PlanetShip{
+			{
+				Ship:  lightFighterId,
+				Count: 4,
+			},
+			{
+				Ship:  smallCargoId,
+				Count: 5,
+			},
+		}
+
+		order := FleetOrder{
+			Mission: MissionColonize,
+			Destination: Coordinate{
+				Galaxy:      p.Coordinate.Galaxy,
+				SolarSystem: p.Coordinate.SolarSystem,
+				Position:    p.Coordinate.Position + 1,
+			},
+			Ships: []FleetShip{
+				{
+					Ship:  smallCargoId,
+					Count: 5,
+				},
+				{
+					Ship:  lightFighterId,
+					Count: 1,
+				},
+			},
+		}
+		flight := FleetFlight{
+			Source:      p.Coordinate,
+			Destination: order.Destination,
+			Speed:       1000,
+		}
+
+		_, err := p.CreateFleet(order, flight)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		expectedShips := []PlanetShip{
+			{
+				Ship:  lightFighterId,
+				Count: 3,
+			},
+			{
+				Ship:  smallCargoId,
+				Count: 0,
+			},
+		}
+		assert.Equal(t, expectedShips, p.Ships)
+	})
+
+	t.Run("returns fleet with expected arrival and return times", func(t *testing.T) {
+		p := generateTestPlanet(t, withPlanetShip)
+
+		order := FleetOrder{
+			Mission: MissionColonize,
+			Destination: Coordinate{
+				Galaxy:      p.Coordinate.Galaxy,
+				SolarSystem: p.Coordinate.SolarSystem + 5,
+				Position:    p.Coordinate.Position + 1,
+			},
+			Ships: []FleetShip{
+				{
+					Ship:  lightFighterId,
+					Count: 1,
+				},
+			},
+		}
+		flight := FleetFlight{
+			Source:      p.Coordinate,
+			Destination: order.Destination,
+			Speed:       2500,
+		}
+
+		actual, err := p.CreateFleet(order, flight)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		flightDuration := 12482 * time.Second
+		expected := Fleet{
+			Id:          actual.Id,
+			Player:      p.Player,
+			Source:      p.Id,
+			Destination: order.Destination,
+			Ships:       order.Ships,
+			CreatedAt:   p.UpdatedAt,
+			ArrivalAt:   p.UpdatedAt.Add(flightDuration),
+			ReturnAt:    p.UpdatedAt.Add(2 * flightDuration),
+			UpdatedAt:   p.UpdatedAt,
+			Version:     0,
+		}
+		assert.Equal(t, expected, actual)
+	})
+
+	t.Run("bumps version by one", func(t *testing.T) {
+		p := generateTestPlanet(t, withPlanetShip)
+
+		order := FleetOrder{
+			Mission: MissionColonize,
+			Destination: Coordinate{
+				Galaxy:      p.Coordinate.Galaxy,
+				SolarSystem: p.Coordinate.SolarSystem,
+				Position:    p.Coordinate.Position + 1,
+			},
+			Ships: []FleetShip{
+				{
+					Ship:  p.Ships[0].Ship,
+					Count: 1,
+				},
+			},
+		}
+		flight := FleetFlight{
+			Source:      p.Coordinate,
+			Destination: order.Destination,
+			Speed:       1000,
+		}
+
+		initialVersion := p.Version
+
+		_, err := p.CreateFleet(order, flight)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.Equal(t, initialVersion+1, p.Version)
+	})
+
+	t.Run("does not bump updated at field", func(t *testing.T) {
+		p := generateTestPlanet(t, withPlanetShip)
+
+		order := FleetOrder{
+			Mission: MissionColonize,
+			Destination: Coordinate{
+				Galaxy:      p.Coordinate.Galaxy,
+				SolarSystem: p.Coordinate.SolarSystem,
+				Position:    p.Coordinate.Position + 1,
+			},
+			Ships: []FleetShip{
+				{
+					Ship:  p.Ships[0].Ship,
+					Count: 1,
+				},
+			},
+		}
+		flight := FleetFlight{
+			Source:      p.Coordinate,
+			Destination: order.Destination,
+			Speed:       1000,
+		}
+
+		_, err := p.CreateFleet(order, flight)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.Equal(t, someTime, p.UpdatedAt)
+	})
+}
+
 func generateTestPlanet(
 	t *testing.T,
 	modifiers ...func(*testing.T, *Planet),
