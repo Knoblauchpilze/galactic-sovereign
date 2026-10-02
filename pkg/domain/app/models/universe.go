@@ -31,7 +31,9 @@ type UniverseTopology struct {
 func (u Universe) CreatePlanet(player uuid.UUID, homeworld bool) Planet {
 	createdAt := time.Now()
 
-	coordinate := u.OccupancyMap.PickPosition()
+	planetId := uuid.New()
+
+	coordinate := u.OccupancyMap.PickPosition(planetId)
 	fields := coordinate.Fields(homeworld)
 
 	planetResources := make([]PlanetResource, 0, len(u.Resources))
@@ -82,7 +84,7 @@ func (u Universe) CreatePlanet(player uuid.UUID, homeworld bool) Planet {
 	}
 
 	return Planet{
-		Id:             uuid.New(),
+		Id:             planetId,
 		Player:         player,
 		Name:           name,
 		Homeworld:      homeworld,

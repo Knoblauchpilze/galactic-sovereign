@@ -39,7 +39,7 @@ func TestIT_UniverseRepository_Create(t *testing.T) {
 		expected := universe
 		expected.OccupancyMap = models.OccupancyMap{
 			Topology:  universe.Topology,
-			UsedSlots: make(map[models.Coordinate]struct{}),
+			UsedSlots: make(map[models.Coordinate]uuid.UUID),
 		}
 		assertEqualIgnoringFields(t, actual, expected, "Resources", "Buildings", "Ships")
 	})
@@ -119,8 +119,8 @@ func TestIT_UniverseRepository_Get(t *testing.T) {
 		expected := u1
 		expected.OccupancyMap = models.OccupancyMap{
 			Topology: u1.Topology,
-			UsedSlots: map[models.Coordinate]struct{}{
-				planet1.Coordinate: {},
+			UsedSlots: map[models.Coordinate]uuid.UUID{
+				planet1.Coordinate: planet1.Id,
 			},
 		}
 
@@ -145,8 +145,8 @@ func TestIT_UniverseRepository_GetByPlanetId(t *testing.T) {
 		require.NoError(t, err, "Actual err: %v", err)
 
 		expected := universe
-		expected.OccupancyMap.UsedSlots = map[models.Coordinate]struct{}{
-			p.Planets[0].Coordinate: {},
+		expected.OccupancyMap.UsedSlots = map[models.Coordinate]uuid.UUID{
+			p.Planets[0].Coordinate: p.Homeworld,
 		}
 		assertEqualIgnoringFields(t, actual, expected, "Resources", "Buildings", "Ships")
 	})
@@ -197,8 +197,8 @@ func TestIT_UniverseRepository_GetByPlanetId(t *testing.T) {
 		expected := u1
 		expected.OccupancyMap = models.OccupancyMap{
 			Topology: u1.Topology,
-			UsedSlots: map[models.Coordinate]struct{}{
-				planet1.Coordinate: {},
+			UsedSlots: map[models.Coordinate]uuid.UUID{
+				planet1.Coordinate: planet1.Id,
 			},
 		}
 
@@ -283,7 +283,7 @@ func insertTestUniverse(t *testing.T, conn database.Connection) models.Universe 
 		CreatedAt: someTime,
 		OccupancyMap: models.OccupancyMap{
 			Topology:  topology,
-			UsedSlots: make(map[models.Coordinate]struct{}),
+			UsedSlots: make(map[models.Coordinate]uuid.UUID),
 		},
 	}
 

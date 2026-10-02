@@ -75,6 +75,7 @@ ORDER BY
 
 	listUsedCoordinateQuery = `
 SELECT
+	planet,
 	galaxy,
 	solar_system,
 	position
@@ -267,16 +268,18 @@ func loadOccupancyMap(
 ) (models.OccupancyMap, error) {
 	occupancy := models.OccupancyMap{
 		Topology:  topology,
-		UsedSlots: make(map[models.Coordinate]struct{}),
+		UsedSlots: make(map[models.Coordinate]uuid.UUID),
 	}
 
-	slots, err := db.QueryAllTx[models.Coordinate](ctx, tx, listUsedCoordinateQuery, universe)
+	slots, err := db.QueryAllTx[mappers.DbUsedSlot](ctx, tx, listUsedCoordinateQuery, universe)
 	if err != nil {
 		return models.OccupancyMap{}, nil
 	}
 
-	for _, c := range slots {
-		occupancy.UsedSlots[c] = struct{}{}
+	for _, s := range slots {
+		planet, coord := s.ToDomain()
+
+		occupancy.UsedSlots[coord] = planet
 	}
 
 	return occupancy, nil

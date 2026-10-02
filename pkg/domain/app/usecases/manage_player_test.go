@@ -41,7 +41,7 @@ func TestUnit_ManagePlayer_Create(t *testing.T) {
 				SolarSystems: 14,
 				Orbits:       17,
 			},
-			UsedSlots: make(map[models.Coordinate]struct{}),
+			UsedSlots: make(map[models.Coordinate]uuid.UUID),
 		},
 	}
 

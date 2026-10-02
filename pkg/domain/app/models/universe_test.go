@@ -144,8 +144,8 @@ func TestUnit_Universe_CreatePlanet(t *testing.T) {
 				SolarSystems: 1,
 				Orbits:       2,
 			},
-			UsedSlots: map[Coordinate]struct{}{
-				{Galaxy: 0, SolarSystem: 0, Position: 1}: {},
+			UsedSlots: map[Coordinate]uuid.UUID{
+				{Galaxy: 0, SolarSystem: 0, Position: 1}: uuid.New(),
 			},
 		}
 
@@ -157,6 +157,7 @@ func TestUnit_Universe_CreatePlanet(t *testing.T) {
 			Position:    0,
 		}
 		assert.Equal(t, expected, actual.Coordinate)
+		assert.Equal(t, u.OccupancyMap.UsedSlots[expected], actual.Id)
 	})
 }
 
@@ -311,7 +312,7 @@ func sampleOccupancyMap() OccupancyMap {
 			SolarSystems: 281,
 			Orbits:       26,
 		},
-		UsedSlots: make(map[Coordinate]struct{}),
+		UsedSlots: make(map[Coordinate]uuid.UUID),
 	}
 }
 
