@@ -16,7 +16,6 @@ import (
 )
 
 var (
-	t1 = someTime
 	t2 = someOtherTime
 	t3 = t2.Add(1 * time.Hour)
 	t4 = t2.Add(2 * time.Hour)
