@@ -3,11 +3,14 @@ package models
 import (
 	"math"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type FleetFlight struct {
 	Source      Coordinate
 	Destination Coordinate
+	Target      *uuid.UUID
 	Speed       int
 }
 

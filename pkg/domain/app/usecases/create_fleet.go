@@ -50,7 +50,7 @@ func (f *CreateFleetUseCase) Create(
 
 	moment := f.clock.Now(ctx)
 
-	mutation := generateFleetMutation(moment, order, speed)
+	mutation := generateFleetMutation(moment, order, speed, u.OccupancyMap)
 	fleet, err := f.dispatcher.Dispatch(ctx, planet, mutation)
 	if err != nil {
 		return models.Fleet{}, err
@@ -64,6 +64,7 @@ func generateFleetMutation(
 	moment time.Time,
 	order models.FleetOrder,
 	speed int,
+	occupancy models.OccupancyMap,
 ) drivenports.FleetCreator {
 	return func(p *models.Planet) (models.Fleet, error) {
 		err := domainservices.AdvancePlanetToTime(p, moment)
@@ -74,7 +75,12 @@ func generateFleetMutation(
 		flight := models.FleetFlight{
 			Source:      p.Coordinate,
 			Destination: order.Destination,
+			Target:      nil,
 			Speed:       speed,
+		}
+
+		if target, ok := occupancy.UsedSlots[p.Coordinate]; ok {
+			flight.Target = &target
 		}
 
 		return p.CreateFleet(order, flight)
