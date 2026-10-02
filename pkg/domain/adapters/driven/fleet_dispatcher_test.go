@@ -492,6 +492,113 @@ func TestIT_FleetDispatcher_Dispatch_Concurrency(t *testing.T) {
 	})
 }
 
+func TestIT_FleetDispatcher_DispatchWorkflow(t *testing.T) {
+	t.Run("create a fleet with an occupied destination", func(t *testing.T) {
+		conn := newTestConnection(t)
+		fleetDispatcher := NewFleetDispatcher(conn)
+
+		planet1, player1, _ := insertTestPlanetForPlayer(t, conn, addPlanetShip)
+		planet2, _, _ := insertTestPlanetForPlayer(t, conn)
+		planet2.Coordinate = models.Coordinate{
+			Galaxy:      planet1.Coordinate.Galaxy,
+			SolarSystem: planet1.Coordinate.SolarSystem + 134,
+			Position:    planet1.Coordinate.Position,
+		}
+		upsertPlanetCoordinate(t, conn, planet2)
+
+		order1 := models.FleetOrder{
+			Mission:     models.MissionColonize,
+			Destination: planet2.Coordinate,
+			Ships: []models.FleetShip{
+				{Ship: lightFighterId, Count: 3},
+			},
+		}
+
+		mutation := func(p *models.Planet) (models.Fleet, error) {
+			flight := models.FleetFlight{
+				Source:      p.Coordinate,
+				Destination: planet2.Coordinate,
+				Target:      &planet2.Id,
+				Speed:       2500,
+			}
+
+			return p.CreateFleet(order1, flight)
+		}
+		fleet, err := fleetDispatcher.Dispatch(t.Context(), planet1.Id, mutation)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		actual := loadFleetFromDb(t, conn, fleet.Id)
+		expectedFlightTime := 27506 * time.Second
+		expected := models.Fleet{
+			Id:     fleet.Id,
+			Player: player1.Id,
+			Source: planet1.Id,
+			Destination: models.FleetDestination{
+				Coordinate: planet2.Coordinate,
+				Target:     &planet2.Id,
+			},
+			Ships:     order1.Ships,
+			CreatedAt: planet1.UpdatedAt,
+			ArrivalAt: planet1.UpdatedAt.Add(expectedFlightTime),
+			ReturnAt:  planet1.UpdatedAt.Add(2 * expectedFlightTime),
+			UpdatedAt: planet1.UpdatedAt,
+			Version:   0,
+		}
+		assert.Equal(t, expected, actual)
+	})
+
+	t.Run("create a fleet with an empty destination", func(t *testing.T) {
+		conn := newTestConnection(t)
+		fleetDispatcher := NewFleetDispatcher(conn)
+
+		planet, player, _ := insertTestPlanetForPlayer(t, conn, addPlanetShip)
+
+		order := models.FleetOrder{
+			Mission: models.MissionColonize,
+			Destination: models.Coordinate{
+				Galaxy:      planet.Coordinate.Galaxy + 1,
+				SolarSystem: planet.Coordinate.SolarSystem + 2,
+				Position:    planet.Coordinate.Position + 3,
+			},
+			Ships: []models.FleetShip{
+				{Ship: lightFighterId, Count: 3},
+			},
+		}
+
+		mutation := func(p *models.Planet) (models.Fleet, error) {
+			flight := models.FleetFlight{
+				Source:      p.Coordinate,
+				Destination: order.Destination,
+				Target:      nil,
+				Speed:       3850,
+			}
+
+			return p.CreateFleet(order, flight)
+		}
+		fleet, err := fleetDispatcher.Dispatch(t.Context(), planet.Id, mutation)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		actual := loadFleetFromDb(t, conn, fleet.Id)
+		expectedFlightTime := 25236 * time.Second
+		expected := models.Fleet{
+			Id:     actual.Id,
+			Player: player.Id,
+			Source: planet.Id,
+			Destination: models.FleetDestination{
+				Coordinate: order.Destination,
+				Target:     nil,
+			},
+			Ships:     order.Ships,
+			CreatedAt: planet.UpdatedAt,
+			ArrivalAt: planet.UpdatedAt.Add(expectedFlightTime),
+			ReturnAt:  planet.UpdatedAt.Add(2 * expectedFlightTime),
+			UpdatedAt: planet.UpdatedAt,
+			Version:   0,
+		}
+		assert.Equal(t, expected, actual)
+	})
+}
+
 func newTestFleetDispatcher(t *testing.T) (*FleetDispatcher, database.Connection) {
 	t.Helper()
 	conn := newTestConnection(t)
