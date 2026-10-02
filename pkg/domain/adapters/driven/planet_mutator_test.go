@@ -1315,6 +1315,41 @@ func TestIT_PlanetMutator_MutateBehavior(t *testing.T) {
 		assertPlanetDoesNotExist(t, conn, planet.Id)
 		assertShipActionDoesNotExist(t, conn, planet.Id)
 	})
+
+	t.Run("does not delete planet and returns error when planet is source for a fleet", func(t *testing.T) {
+		adapter, conn := newTestPlanetMutator(t)
+
+		planet1, _, _ := insertTestPlanetForPlayer(t, conn)
+		fleet := insertTestFleet(t, conn, planet1, addFleetShip)
+
+		returned, err := adapter.Mutate(t.Context(), planet1.Id, generateDeletingMutator())
+
+		assert.True(t, returned.Deleted)
+		assert.ErrorIs(t, err, domainerrors.ErrFleetInFlight, "Actual err: %v", err)
+		assertPlanetExists(t, conn, planet1.Id)
+		assertFleetExists(t, conn, fleet.Id)
+	})
+
+	t.Run("does not delete planet and returns error when planet has a fleet targeting it", func(t *testing.T) {
+		adapter, conn := newTestPlanetMutator(t)
+
+		planet1, _, _ := insertTestPlanetForPlayer(t, conn)
+		planet2, _, _ := insertTestPlanetForPlayer(t, conn)
+		fleet := insertTestFleet(t, conn, planet1, addFleetShip)
+		fleet.Destination = models.FleetDestination{
+			Coordinate: planet2.Coordinate,
+			Target:     &planet2.Id,
+		}
+		upsertFleetDestination(t, conn, fleet)
+
+		returned, err := adapter.Mutate(t.Context(), planet2.Id, generateDeletingMutator())
+
+		assert.True(t, returned.Deleted)
+		assert.ErrorIs(t, err, domainerrors.ErrFleetInFlight, "Actual err: %v", err)
+		assertPlanetExists(t, conn, planet1.Id)
+		assertPlanetExists(t, conn, planet2.Id)
+		assertFleetExists(t, conn, fleet.Id)
+	})
 }
 
 func TestIT_PlanetMutator_Mutate_Concurrency(t *testing.T) {
@@ -1649,4 +1684,103 @@ func insertTestShipAction(
 	action := insertTestShipActionForPlanet(t, conn, planet.Id, modifiers...)
 	planet.ShipActions = append(planet.ShipActions, action)
 	return action, planet
+}
+
+func insertTestFleet(
+	t *testing.T,
+	conn database.Connection,
+	source models.Planet,
+	modifiers ...func(*testing.T, database.Connection, *models.Fleet),
+) models.Fleet {
+	t.Helper()
+
+	fleet := models.Fleet{
+		Id:     uuid.New(),
+		Player: source.Player,
+		Source: source.Id,
+		Destination: models.FleetDestination{
+			Coordinate: models.Coordinate{
+				Galaxy:      source.Coordinate.Galaxy,
+				SolarSystem: source.Coordinate.SolarSystem + 1,
+				Position:    source.Coordinate.Position,
+			},
+			Target: nil,
+		},
+		Ships:     []models.FleetShip{},
+		CreatedAt: source.UpdatedAt,
+		ArrivalAt: source.UpdatedAt.Add(1 * time.Hour),
+		ReturnAt:  source.UpdatedAt.Add(2 * time.Hour),
+		UpdatedAt: source.UpdatedAt,
+		Version:   0,
+	}
+
+	sqlQuery := `INSERT INTO
+		fleet (id, player, source, created_at, arrival_at, return_at, updated_at, version)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
+	_, err := conn.Exec(
+		t.Context(),
+		sqlQuery,
+		fleet.Id,
+		fleet.Player,
+		fleet.Source,
+		fleet.CreatedAt,
+		fleet.ArrivalAt,
+		fleet.ReturnAt,
+		fleet.UpdatedAt,
+		fleet.Version,
+	)
+	require.NoError(t, err, "Actual err: %v", err)
+
+	for _, modifier := range modifiers {
+		modifier(t, conn, &fleet)
+	}
+
+	return fleet
+}
+
+func addFleetShip(t *testing.T, conn database.Connection, f *models.Fleet) {
+	t.Helper()
+
+	ship := models.FleetShip{
+		Ship:  lightFighterId,
+		Count: 18,
+	}
+
+	sqlQuery := `INSERT INTO fleet_ship (fleet, ship, count) VALUES ($1, $2, $3)`
+	_, err := conn.Exec(
+		t.Context(),
+		sqlQuery,
+		f.Id,
+		ship.Ship,
+		ship.Count,
+	)
+	require.NoError(t, err, "Actual err: %v", err)
+
+	f.Ships = append(f.Ships, ship)
+}
+
+// upsertFleetDestination inserts the coordinates/target defined for the fleet in the
+// database, or updates them if a row already exists for this fleet. It does
+// not verify them compared to the universe the planet belongs to and will fail in
+// case the target is not nil and does not correspond to an existing planet.
+func upsertFleetDestination(t *testing.T, conn database.Connection, fleet models.Fleet) {
+	t.Helper()
+
+	sqlQuery := `INSERT INTO fleet_destination (fleet, galaxy, solar_system, position, planet)
+		VALUES($1, $2, $3, $4, $5)
+		ON CONFLICT (fleet) DO UPDATE SET
+			galaxy = excluded.galaxy,
+			solar_system = excluded.solar_system,
+			position = excluded.position,
+			planet = excluded.planet`
+	_, err := conn.Exec(
+		t.Context(),
+		sqlQuery,
+		fleet.Id,
+		fleet.Destination.Coordinate.Galaxy,
+		fleet.Destination.Coordinate.SolarSystem,
+		fleet.Destination.Coordinate.Position,
+		fleet.Destination.Target,
+	)
+	require.NoError(t, err, "Actual err: %v", err)
 }

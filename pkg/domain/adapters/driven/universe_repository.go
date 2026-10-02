@@ -2,7 +2,6 @@ package drivenadapters
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driven/database"
@@ -165,7 +164,6 @@ func (r *UniverseRepository) GetByPlanetId(ctx context.Context, planet uuid.UUID
 
 	dbUniverse, err := db.QueryOneTx[mappers.DbUniverse](ctx, tx, getUniverseByPlanetQuery, planet)
 	if err != nil {
-		fmt.Printf("err: %v\n", err)
 		return models.Universe{}, parseDbError(err)
 	}
 

@@ -571,6 +571,9 @@ func deletePlanetAndDetails(ctx context.Context, tx database.Transaction, id uui
 
 	_, err = tx.Exec(ctx, deletePlanetQuery, id)
 	if err != nil {
+		if isFleetMissingTargetPlanetErr(err) || isFleetSourcePlanetErr(err) {
+			return domainerrors.ErrFleetInFlight
+		}
 		return err
 	}
 

@@ -36,8 +36,8 @@ func parseForeignKeyConstraintViolation(err *db.DatabaseError) error {
 	switch err.Constraint {
 	case "player_universe_fkey":
 		return domainerrors.ErrUniverseNotFound
-	case "fleet_destination_planet_fkey":
-		return domainerrors.ErrFleetDestinationInvalid
+	case "fleet_source_fkey":
+		return domainerrors.ErrFleetInFlight
 	default:
 		return err
 	}
@@ -56,4 +56,24 @@ func parseUniqueConstraintViolation(err *db.DatabaseError) error {
 	default:
 		return err
 	}
+}
+
+func isFleetMissingTargetPlanetErr(err error) bool {
+	if dbErr, ok := db.AsDatabaseError(err); ok {
+		if dbErr.Code == db.ErrForeignKeyValidation && dbErr.Constraint == "fleet_destination_planet_fkey" {
+			return true
+		}
+	}
+
+	return false
+}
+
+func isFleetSourcePlanetErr(err error) bool {
+	if dbErr, ok := db.AsDatabaseError(err); ok {
+		if dbErr.Code == db.ErrForeignKeyValidation && dbErr.Constraint == "fleet_source_fkey" {
+			return true
+		}
+	}
+
+	return false
 }

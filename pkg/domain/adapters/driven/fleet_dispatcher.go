@@ -59,6 +59,9 @@ func (c *FleetDispatcher) Dispatch(
 
 	err = createFleetWithDetails(ctx, tx, fleet)
 	if err != nil {
+		if isFleetMissingTargetPlanetErr(err) {
+			return models.Fleet{}, domainerrors.ErrFleetDestinationInvalid
+		}
 		return models.Fleet{}, err
 	}
 
