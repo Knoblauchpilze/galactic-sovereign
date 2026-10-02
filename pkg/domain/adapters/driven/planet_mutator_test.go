@@ -20,8 +20,6 @@ var (
 )
 
 func TestIT_PlanetMutator_GetBehavior(t *testing.T) {
-	adapter, conn := newTestPlanetMutator(t)
-
 	testCases := []struct {
 		name      string
 		generator func(t *testing.T, conn database.Connection) models.Planet
@@ -116,6 +114,8 @@ func TestIT_PlanetMutator_GetBehavior(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			adapter, conn := newTestPlanetMutator(t)
+
 			planet := tc.generator(t, conn)
 
 			var captured models.Planet
@@ -138,9 +138,9 @@ func TestIT_PlanetMutator_GetBehavior(t *testing.T) {
 }
 
 func TestIT_PlanetMutator_MutateBehavior(t *testing.T) {
-	adapter, conn := newTestPlanetMutator(t)
-
 	t.Run("returns mutated planet", func(t *testing.T) {
+		adapter, conn := newTestPlanetMutator(t)
+
 		planet, _, _ := insertTestPlanetForPlayer(t, conn)
 		require.NotEqual(t, planet.UpdatedAt, yetAnotherTime)
 
@@ -157,6 +157,8 @@ func TestIT_PlanetMutator_MutateBehavior(t *testing.T) {
 	})
 
 	t.Run("persists mutated planet", func(t *testing.T) {
+		adapter, conn := newTestPlanetMutator(t)
+
 		planet, _, _ := insertTestPlanetForPlayer(t, conn)
 		require.NotEqual(t, planet.UpdatedAt, yetAnotherTime)
 		require.NotEqual(t, 326, planet.Fields)
@@ -179,6 +181,8 @@ func TestIT_PlanetMutator_MutateBehavior(t *testing.T) {
 	})
 
 	t.Run("persists mutated planet resources", func(t *testing.T) {
+		adapter, conn := newTestPlanetMutator(t)
+
 		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetResource)
 		require.NotEqual(t, 5874, planet.Resources[0].Amount)
 
@@ -199,6 +203,8 @@ func TestIT_PlanetMutator_MutateBehavior(t *testing.T) {
 	})
 
 	t.Run("does not delete existing planet resource", func(t *testing.T) {
+		adapter, conn := newTestPlanetMutator(t)
+
 		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetResource)
 		resource := planet.Resources[0].Resource
 		amount := planet.Resources[0].Amount
@@ -220,6 +226,8 @@ func TestIT_PlanetMutator_MutateBehavior(t *testing.T) {
 	})
 
 	t.Run("persists mutated planet productions", func(t *testing.T) {
+		adapter, conn := newTestPlanetMutator(t)
+
 		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetProduction)
 		require.NotEqual(t, 39841, planet.Productions[0].Production)
 
@@ -240,6 +248,8 @@ func TestIT_PlanetMutator_MutateBehavior(t *testing.T) {
 	})
 
 	t.Run("persists additional planet productions", func(t *testing.T) {
+		adapter, conn := newTestPlanetMutator(t)
+
 		planet, _, _ := insertTestPlanetForPlayer(
 			t, conn, addPlanetProduction, addPlanetProductionForBuilding,
 		)
@@ -272,6 +282,8 @@ func TestIT_PlanetMutator_MutateBehavior(t *testing.T) {
 	})
 
 	t.Run("persists deleted planet production", func(t *testing.T) {
+		adapter, conn := newTestPlanetMutator(t)
+
 		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetProduction)
 
 		mutator := generateModifyingMutator(func(p *models.Planet) {
@@ -288,6 +300,8 @@ func TestIT_PlanetMutator_MutateBehavior(t *testing.T) {
 	})
 
 	t.Run("persists mutated planet production for building", func(t *testing.T) {
+		adapter, conn := newTestPlanetMutator(t)
+
 		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetProductionForBuilding)
 		require.NotEqual(t, 1235, planet.Productions[0].Production)
 
@@ -310,6 +324,8 @@ func TestIT_PlanetMutator_MutateBehavior(t *testing.T) {
 	})
 
 	t.Run("persists additional planet productions for building", func(t *testing.T) {
+		adapter, conn := newTestPlanetMutator(t)
+
 		planet, _, _ := insertTestPlanetForPlayer(
 			t, conn, addPlanetProduction, addPlanetProductionForBuilding,
 		)
@@ -343,6 +359,8 @@ func TestIT_PlanetMutator_MutateBehavior(t *testing.T) {
 	})
 
 	t.Run("persists deleted planet production for building", func(t *testing.T) {
+		adapter, conn := newTestPlanetMutator(t)
+
 		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetProductionForBuilding)
 
 		mutator := generateModifyingMutator(func(p *models.Planet) {
@@ -359,6 +377,8 @@ func TestIT_PlanetMutator_MutateBehavior(t *testing.T) {
 	})
 
 	t.Run("persists mutated planet storages", func(t *testing.T) {
+		adapter, conn := newTestPlanetMutator(t)
+
 		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetStorage)
 		require.NotEqual(t, 4598, planet.Storages[0].Storage)
 
@@ -379,6 +399,8 @@ func TestIT_PlanetMutator_MutateBehavior(t *testing.T) {
 	})
 
 	t.Run("does not delete existing planet storage", func(t *testing.T) {
+		adapter, conn := newTestPlanetMutator(t)
+
 		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetStorage)
 		resource := planet.Storages[0].Resource
 		storage := planet.Storages[0].Storage
@@ -400,6 +422,8 @@ func TestIT_PlanetMutator_MutateBehavior(t *testing.T) {
 	})
 
 	t.Run("persists mutated planet buildings", func(t *testing.T) {
+		adapter, conn := newTestPlanetMutator(t)
+
 		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetBuilding)
 		require.NotEqual(t, 6, planet.Buildings[0].Level)
 
@@ -420,6 +444,8 @@ func TestIT_PlanetMutator_MutateBehavior(t *testing.T) {
 	})
 
 	t.Run("does not delete existing planet building", func(t *testing.T) {
+		adapter, conn := newTestPlanetMutator(t)
+
 		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetBuilding)
 		building := planet.Buildings[0].Building
 		level := planet.Buildings[0].Level
@@ -441,6 +467,8 @@ func TestIT_PlanetMutator_MutateBehavior(t *testing.T) {
 	})
 
 	t.Run("persists mutated planet ships", func(t *testing.T) {
+		adapter, conn := newTestPlanetMutator(t)
+
 		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetShip)
 		require.NotEqual(t, 776, planet.Ships[0].Count)
 
@@ -461,6 +489,8 @@ func TestIT_PlanetMutator_MutateBehavior(t *testing.T) {
 	})
 
 	t.Run("does not delete existing planet ship", func(t *testing.T) {
+		adapter, conn := newTestPlanetMutator(t)
+
 		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetShip)
 		ship := planet.Ships[0].Ship
 		count := planet.Ships[0].Count
@@ -482,6 +512,8 @@ func TestIT_PlanetMutator_MutateBehavior(t *testing.T) {
 	})
 
 	t.Run("persists mutated planet with action", func(t *testing.T) {
+		adapter, conn := newTestPlanetMutator(t)
+
 		planet, _, _ := insertTestPlanetForPlayer(t, conn)
 		require.Nil(t, planet.BuildingAction)
 
@@ -514,6 +546,8 @@ func TestIT_PlanetMutator_MutateBehavior(t *testing.T) {
 	})
 
 	t.Run("persists mutated planet with action and costs", func(t *testing.T) {
+		adapter, conn := newTestPlanetMutator(t)
+
 		planet, _, _ := insertTestPlanetForPlayer(t, conn)
 		require.Nil(t, planet.BuildingAction)
 
@@ -555,6 +589,8 @@ func TestIT_PlanetMutator_MutateBehavior(t *testing.T) {
 	})
 
 	t.Run("persists mutated planet with action and storages", func(t *testing.T) {
+		adapter, conn := newTestPlanetMutator(t)
+
 		planet, _, _ := insertTestPlanetForPlayer(t, conn)
 		require.Nil(t, planet.BuildingAction)
 
@@ -596,6 +632,8 @@ func TestIT_PlanetMutator_MutateBehavior(t *testing.T) {
 	})
 
 	t.Run("persists mutated planet with action and productions", func(t *testing.T) {
+		adapter, conn := newTestPlanetMutator(t)
+
 		planet, _, _ := insertTestPlanetForPlayer(t, conn)
 		require.Nil(t, planet.BuildingAction)
 
@@ -637,6 +675,8 @@ func TestIT_PlanetMutator_MutateBehavior(t *testing.T) {
 	})
 
 	t.Run("persists mutated planet with updated completion time", func(t *testing.T) {
+		adapter, conn := newTestPlanetMutator(t)
+
 		planet, _, _ := insertTestPlanetForPlayer(t, conn)
 		action := insertTestBuildingActionForPlanet(t, conn, planet.Id)
 		require.NotEqual(t, yetAnotherTime, action.CompletedAt)
@@ -659,6 +699,8 @@ func TestIT_PlanetMutator_MutateBehavior(t *testing.T) {
 	})
 
 	t.Run("persists mutated planet with update to existing action costs", func(t *testing.T) {
+		adapter, conn := newTestPlanetMutator(t)
+
 		planet, _, _ := insertTestPlanetForPlayer(t, conn)
 		action := insertTestBuildingActionForPlanet(t, conn, planet.Id, addBuildingActionCost)
 		require.Equal(t, metalResourceId, action.Costs[0].Resource)
@@ -683,6 +725,8 @@ func TestIT_PlanetMutator_MutateBehavior(t *testing.T) {
 	})
 
 	t.Run("persists mutated planet with updated action and costs", func(t *testing.T) {
+		adapter, conn := newTestPlanetMutator(t)
+
 		planet, _, _ := insertTestPlanetForPlayer(t, conn)
 		insertTestBuildingActionForPlanet(t, conn, planet.Id)
 
@@ -715,6 +759,8 @@ func TestIT_PlanetMutator_MutateBehavior(t *testing.T) {
 	})
 
 	t.Run("persists mutated planet with update to existing action storages", func(t *testing.T) {
+		adapter, conn := newTestPlanetMutator(t)
+
 		planet, _, _ := insertTestPlanetForPlayer(t, conn)
 		action := insertTestBuildingActionForPlanet(t, conn, planet.Id, addBuildingActionStorage)
 		require.Equal(t, crystalResourceId, action.Storages[0].Resource)
@@ -739,6 +785,8 @@ func TestIT_PlanetMutator_MutateBehavior(t *testing.T) {
 	})
 
 	t.Run("persists mutated planet with updated action and storages", func(t *testing.T) {
+		adapter, conn := newTestPlanetMutator(t)
+
 		planet, _, _ := insertTestPlanetForPlayer(t, conn)
 		insertTestBuildingActionForPlanet(t, conn, planet.Id)
 
@@ -771,6 +819,8 @@ func TestIT_PlanetMutator_MutateBehavior(t *testing.T) {
 	})
 
 	t.Run("persists mutated planet with update to existing action productions", func(t *testing.T) {
+		adapter, conn := newTestPlanetMutator(t)
+
 		planet, _, _ := insertTestPlanetForPlayer(t, conn)
 		action := insertTestBuildingActionForPlanet(t, conn, planet.Id, addBuildingActionProduction)
 		require.Equal(t, crystalResourceId, action.Productions[0].Resource)
@@ -795,6 +845,8 @@ func TestIT_PlanetMutator_MutateBehavior(t *testing.T) {
 	})
 
 	t.Run("persists mutated planet with updated action and productions", func(t *testing.T) {
+		adapter, conn := newTestPlanetMutator(t)
+
 		planet, _, _ := insertTestPlanetForPlayer(t, conn)
 		insertTestBuildingActionForPlanet(t, conn, planet.Id)
 
@@ -827,6 +879,8 @@ func TestIT_PlanetMutator_MutateBehavior(t *testing.T) {
 	})
 
 	t.Run("persists mutated planet with deleted action", func(t *testing.T) {
+		adapter, conn := newTestPlanetMutator(t)
+
 		action, planet := insertTestBuildingAction(t, conn)
 
 		mutator := generateModifyingMutator(func(p *models.Planet) {
@@ -843,6 +897,8 @@ func TestIT_PlanetMutator_MutateBehavior(t *testing.T) {
 	})
 
 	t.Run("persists mutated planet with deleted action with costs", func(t *testing.T) {
+		adapter, conn := newTestPlanetMutator(t)
+
 		action, planet := insertTestBuildingAction(t, conn, addBuildingActionCost)
 
 		mutator := generateModifyingMutator(func(p *models.Planet) {
@@ -860,6 +916,8 @@ func TestIT_PlanetMutator_MutateBehavior(t *testing.T) {
 	})
 
 	t.Run("persists mutated planet with deleted action with storages", func(t *testing.T) {
+		adapter, conn := newTestPlanetMutator(t)
+
 		action, planet := insertTestBuildingAction(t, conn, addBuildingActionStorage)
 
 		mutator := generateModifyingMutator(func(p *models.Planet) {
@@ -877,6 +935,8 @@ func TestIT_PlanetMutator_MutateBehavior(t *testing.T) {
 	})
 
 	t.Run("persists mutated planet with deleted action with productions", func(t *testing.T) {
+		adapter, conn := newTestPlanetMutator(t)
+
 		action, planet := insertTestBuildingAction(t, conn, addBuildingActionProduction)
 
 		mutator := generateModifyingMutator(func(p *models.Planet) {
@@ -894,6 +954,8 @@ func TestIT_PlanetMutator_MutateBehavior(t *testing.T) {
 	})
 
 	t.Run("persists mutated planet with new action", func(t *testing.T) {
+		adapter, conn := newTestPlanetMutator(t)
+
 		action, planet := insertTestBuildingAction(t, conn)
 		require.NotEqual(t, crystalMineId, action.Building)
 
@@ -926,6 +988,8 @@ func TestIT_PlanetMutator_MutateBehavior(t *testing.T) {
 	})
 
 	t.Run("persists mutated planet with ship action", func(t *testing.T) {
+		adapter, conn := newTestPlanetMutator(t)
+
 		planet, _, _ := insertTestPlanetForPlayer(t, conn)
 		require.Empty(t, planet.ShipActions)
 
@@ -956,6 +1020,8 @@ func TestIT_PlanetMutator_MutateBehavior(t *testing.T) {
 	})
 
 	t.Run("persists mutated planet with updated completion time", func(t *testing.T) {
+		adapter, conn := newTestPlanetMutator(t)
+
 		planet, _, _ := insertTestPlanetForPlayer(t, conn)
 		action := insertTestBuildingActionForPlanet(t, conn, planet.Id)
 		require.NotEqual(t, yetAnotherTime, action.CompletedAt)
@@ -978,6 +1044,8 @@ func TestIT_PlanetMutator_MutateBehavior(t *testing.T) {
 	})
 
 	t.Run("persists mutated planet with deleted ship action", func(t *testing.T) {
+		adapter, conn := newTestPlanetMutator(t)
+
 		_, planet := insertTestShipAction(t, conn)
 
 		mutator := generateModifyingMutator(func(p *models.Planet) {
@@ -994,6 +1062,8 @@ func TestIT_PlanetMutator_MutateBehavior(t *testing.T) {
 	})
 
 	t.Run("persists mutated planet with new ship action", func(t *testing.T) {
+		adapter, conn := newTestPlanetMutator(t)
+
 		action, planet := insertTestShipAction(t, conn)
 		require.NotEqual(t, smallCargoId, action.Ship)
 
@@ -1024,6 +1094,8 @@ func TestIT_PlanetMutator_MutateBehavior(t *testing.T) {
 	})
 
 	t.Run("returns error when planet does not exist", func(t *testing.T) {
+		adapter, _ := newTestPlanetMutator(t)
+
 		mutator := generateModifyingMutator(func(p *models.Planet) {
 			p.UpdatedAt = yetAnotherTime
 			p.Version++
@@ -1036,6 +1108,8 @@ func TestIT_PlanetMutator_MutateBehavior(t *testing.T) {
 	})
 
 	t.Run("returns error when mutator does not update version", func(t *testing.T) {
+		adapter, conn := newTestPlanetMutator(t)
+
 		planet, _, _ := insertTestPlanetForPlayer(t, conn)
 
 		mutator := generateModifyingMutator(func(*models.Planet) {})
@@ -1046,6 +1120,8 @@ func TestIT_PlanetMutator_MutateBehavior(t *testing.T) {
 	})
 
 	t.Run("returns error when new storage is added", func(t *testing.T) {
+		adapter, conn := newTestPlanetMutator(t)
+
 		planet, _, _ := insertTestPlanetForPlayer(t, conn)
 
 		mutator := generateModifyingMutator(func(p *models.Planet) {
@@ -1059,6 +1135,8 @@ func TestIT_PlanetMutator_MutateBehavior(t *testing.T) {
 	})
 
 	t.Run("returns error when new building is added", func(t *testing.T) {
+		adapter, conn := newTestPlanetMutator(t)
+
 		planet, _, _ := insertTestPlanetForPlayer(t, conn)
 
 		mutator := generateModifyingMutator(func(p *models.Planet) {
@@ -1072,6 +1150,8 @@ func TestIT_PlanetMutator_MutateBehavior(t *testing.T) {
 	})
 
 	t.Run("returns error when new ship is added", func(t *testing.T) {
+		adapter, conn := newTestPlanetMutator(t)
+
 		planet, _, _ := insertTestPlanetForPlayer(t, conn)
 
 		mutator := generateModifyingMutator(func(p *models.Planet) {
@@ -1085,6 +1165,8 @@ func TestIT_PlanetMutator_MutateBehavior(t *testing.T) {
 	})
 
 	t.Run("deletes planet when mutator indicates it", func(t *testing.T) {
+		adapter, conn := newTestPlanetMutator(t)
+
 		planet, _, _ := insertTestPlanetForPlayer(t, conn)
 
 		returned, err := adapter.Mutate(t.Context(), planet.Id, generateDeletingMutator())
@@ -1095,6 +1177,8 @@ func TestIT_PlanetMutator_MutateBehavior(t *testing.T) {
 	})
 
 	t.Run("deletes homeworld when mutator indicates it", func(t *testing.T) {
+		adapter, conn := newTestPlanetMutator(t)
+
 		player, _ := insertTestPlayerInUniverse(t, conn)
 
 		returned, err := adapter.Mutate(t.Context(), player.Homeworld, generateDeletingMutator())
@@ -1106,6 +1190,8 @@ func TestIT_PlanetMutator_MutateBehavior(t *testing.T) {
 	})
 
 	t.Run("deletes planet with resources when mutator indicates it", func(t *testing.T) {
+		adapter, conn := newTestPlanetMutator(t)
+
 		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetResource)
 
 		returned, err := adapter.Mutate(t.Context(), planet.Id, generateDeletingMutator())
@@ -1117,6 +1203,8 @@ func TestIT_PlanetMutator_MutateBehavior(t *testing.T) {
 	})
 
 	t.Run("deletes planet with storages when mutator indicates it", func(t *testing.T) {
+		adapter, conn := newTestPlanetMutator(t)
+
 		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetStorage)
 		require.NotEqual(t, planet.UpdatedAt, yetAnotherTime)
 
@@ -1129,6 +1217,8 @@ func TestIT_PlanetMutator_MutateBehavior(t *testing.T) {
 	})
 
 	t.Run("deletes planet with productions when mutator indicates it", func(t *testing.T) {
+		adapter, conn := newTestPlanetMutator(t)
+
 		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetProduction)
 		require.NotEqual(t, planet.UpdatedAt, yetAnotherTime)
 
@@ -1141,6 +1231,8 @@ func TestIT_PlanetMutator_MutateBehavior(t *testing.T) {
 	})
 
 	t.Run("deletes planet with production for building when mutator indicates it", func(t *testing.T) {
+		adapter, conn := newTestPlanetMutator(t)
+
 		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetProductionForBuilding)
 		require.NotEqual(t, planet.UpdatedAt, yetAnotherTime)
 
@@ -1153,6 +1245,8 @@ func TestIT_PlanetMutator_MutateBehavior(t *testing.T) {
 	})
 
 	t.Run("deletes planet with buildings when mutator indicates it", func(t *testing.T) {
+		adapter, conn := newTestPlanetMutator(t)
+
 		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetBuilding)
 		require.NotEqual(t, planet.UpdatedAt, yetAnotherTime)
 
@@ -1165,6 +1259,8 @@ func TestIT_PlanetMutator_MutateBehavior(t *testing.T) {
 	})
 
 	t.Run("deletes planet with buildings with ship speedup when mutator indicates it", func(t *testing.T) {
+		adapter, conn := newTestPlanetMutator(t)
+
 		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetBuildingWithShipSpeedup)
 		require.NotEqual(t, planet.UpdatedAt, yetAnotherTime)
 
@@ -1178,6 +1274,8 @@ func TestIT_PlanetMutator_MutateBehavior(t *testing.T) {
 	})
 
 	t.Run("deletes planet with ships when mutator indicates it", func(t *testing.T) {
+		adapter, conn := newTestPlanetMutator(t)
+
 		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetShip)
 		require.NotEqual(t, planet.UpdatedAt, yetAnotherTime)
 
@@ -1190,6 +1288,8 @@ func TestIT_PlanetMutator_MutateBehavior(t *testing.T) {
 	})
 
 	t.Run("deletes planet with building action when mutator indicates it", func(t *testing.T) {
+		adapter, conn := newTestPlanetMutator(t)
+
 		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetBuildingAction)
 		require.NotEqual(t, planet.UpdatedAt, yetAnotherTime)
 
@@ -1203,6 +1303,8 @@ func TestIT_PlanetMutator_MutateBehavior(t *testing.T) {
 	})
 
 	t.Run("deletes planet with ship action when mutator indicates it", func(t *testing.T) {
+		adapter, conn := newTestPlanetMutator(t)
+
 		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetShipAction)
 		require.NotEqual(t, planet.UpdatedAt, yetAnotherTime)
 
@@ -1216,9 +1318,9 @@ func TestIT_PlanetMutator_MutateBehavior(t *testing.T) {
 }
 
 func TestIT_PlanetMutator_Mutate_Concurrency(t *testing.T) {
-	adapter, conn := newTestPlanetMutator(t)
-
 	t.Run("blocks concurrent mutation for same planet", func(t *testing.T) {
+		adapter, conn := newTestPlanetMutator(t)
+
 		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetResource)
 		require.NotEqual(t, 9876.0, planet.Resources[0].Amount)
 
@@ -1284,6 +1386,8 @@ func TestIT_PlanetMutator_Mutate_Concurrency(t *testing.T) {
 	})
 
 	t.Run("does not block concurrent mutation for different planets", func(t *testing.T) {
+		adapter, conn := newTestPlanetMutator(t)
+
 		planetA, _, _ := insertTestPlanetForPlayer(t, conn)
 		require.NotEqual(t, yetAnotherTime, planetA.UpdatedAt)
 		planetB, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetResource)
@@ -1343,6 +1447,8 @@ func TestIT_PlanetMutator_Mutate_Concurrency(t *testing.T) {
 	})
 
 	t.Run("waiting mutation respects context timeout", func(t *testing.T) {
+		adapter, conn := newTestPlanetMutator(t)
+
 		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetResource)
 
 		enteredA := make(chan struct{})
