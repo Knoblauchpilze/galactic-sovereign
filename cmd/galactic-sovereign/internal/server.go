@@ -31,6 +31,7 @@ func CreateGameServer(
 	registerPlanetsRoutes(conn, s, log)
 	registerBuildingActionsRoutes(conn, s, log)
 	registerShipsRoutes(conn, s, log)
+	registerFleetsRoutes(conn, s, log)
 	registerHealthRoutes(conn, s, log)
 
 	return s
@@ -119,6 +120,24 @@ func registerShipsRoutes(
 	createUseCase := usecases.NewCreateShipActionUseCase(shipRepo, planetMutator, clock)
 
 	for _, route := range drivingadapters.ShipActionEndpoints(createUseCase) {
+		if err := s.AddRoute(route); err != nil {
+			log.Error("Failed to register route", slog.String("route", route.Path()), slog.Any("error", err))
+		}
+	}
+}
+
+func registerFleetsRoutes(
+	conn database.Connection,
+	s HttpServer,
+	log *slog.Logger,
+) {
+	universeRepo := drivenadapters.NewUniverseRepository(conn)
+	fleetDispatcher := drivenadapters.NewFleetDispatcher(conn)
+	clock := drivenadapters.NewTimeAdapter()
+
+	createUseCase := usecases.NewCreateFleetUseCase(universeRepo, fleetDispatcher, clock)
+
+	for _, route := range drivingadapters.FleetEndpoints(createUseCase) {
 		if err := s.AddRoute(route); err != nil {
 			log.Error("Failed to register route", slog.String("route", route.Path()), slog.Any("error", err))
 		}

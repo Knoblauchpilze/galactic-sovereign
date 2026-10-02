@@ -502,6 +502,27 @@ func TestUnit_Planets_DeletePlanet(t *testing.T) {
 		assert.Equal(t, "homeworld cannot be deleted", actual)
 	})
 
+	t.Run("returns 409 when use case returns that fleets are in flight", func(t *testing.T) {
+		mockUsecase.EXPECT().
+			Delete(gomock.Any(), gomock.Eq(sampleUuid)).
+			Times(1).
+			Return(domainerrors.ErrFleetInFlight)
+
+		handler := generateHandler[drivingports.ForManagingPlanet](
+			deletePlanet,
+			mockUsecase,
+		)
+		r := createTestGinRouter(t, http.MethodDelete, "/:id", handler)
+
+		req := generateTestRequest(t, http.MethodDelete, addSampleUuidPathParam)
+		rw := httptest.NewRecorder()
+		r.ServeHTTP(rw, req)
+
+		assert.Equal(t, http.StatusConflict, rw.Code)
+		actual := decodeResponseBody[string](t, rw)
+		assert.Equal(t, "fleet in flight from or to the planet", actual)
+	})
+
 	t.Run("returns 500 when use case fails", func(t *testing.T) {
 		mockUsecase.EXPECT().
 			Delete(gomock.Any(), gomock.Any()).

@@ -13,9 +13,9 @@ type FleetDtoRequest struct {
 }
 
 type FleetDestinationDtoRequest struct {
-	Galaxy      int `json:"galaxy" binding:"required" minimum:"0"`
-	SolarSystem int `json:"solar_system" binding:"required" minimum:"0"`
-	Position    int `json:"position" binding:"required" minimum:"0"`
+	Galaxy      *int `json:"galaxy" binding:"required,gte=0" minimum:"0"`
+	SolarSystem *int `json:"solar_system" binding:"required,gte=0" minimum:"0"`
+	Position    *int `json:"position" binding:"required,gte=0" minimum:"0"`
 }
 
 type FleetShipDtoRequest struct {

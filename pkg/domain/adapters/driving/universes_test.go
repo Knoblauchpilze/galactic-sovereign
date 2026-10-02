@@ -67,9 +67,9 @@ func TestUnit_Universes_CreateUniverse(t *testing.T) {
 
 		expectedRequest := request.UniverseCreationRequest{Name: dto.Name,
 			Topology: request.TopologyRequest{
-				Galaxies:     dto.Topology.Galaxies,
-				SolarSystems: dto.Topology.SolarSystems,
-				Orbits:       dto.Topology.Orbits,
+				Galaxies:     *dto.Topology.Galaxies,
+				SolarSystems: *dto.Topology.SolarSystems,
+				Orbits:       *dto.Topology.Orbits,
 			},
 		}
 		mockUsecase.EXPECT().
@@ -81,9 +81,9 @@ func TestUnit_Universes_CreateUniverse(t *testing.T) {
 				CreatedAt: someTime,
 				Version:   0,
 				Topology: models.UniverseTopology{
-					Galaxies:     dto.Topology.Galaxies,
-					SolarSystems: dto.Topology.SolarSystems,
-					Orbits:       dto.Topology.Orbits,
+					Galaxies:     *dto.Topology.Galaxies,
+					SolarSystems: *dto.Topology.SolarSystems,
+					Orbits:       *dto.Topology.Orbits,
 				},
 				Resources: []models.Resource{
 					{
@@ -136,9 +136,9 @@ func TestUnit_Universes_CreateUniverse(t *testing.T) {
 			Name:      dto.Name,
 			CreatedAt: someTime,
 			Topology: dtos.TopologyDtoResponse{
-				Galaxies:     dto.Topology.Galaxies,
-				SolarSystems: dto.Topology.SolarSystems,
-				Orbits:       dto.Topology.Orbits,
+				Galaxies:     *dto.Topology.Galaxies,
+				SolarSystems: *dto.Topology.SolarSystems,
+				Orbits:       *dto.Topology.Orbits,
 			},
 			Resources: []dtos.ResourceDtoResponse{
 				{
@@ -960,9 +960,9 @@ func sampleUniverseDtoRequest() dtos.UniverseDtoRequest {
 	return dtos.UniverseDtoRequest{
 		Name: "my-universe",
 		Topology: dtos.TopologyDtoRequest{
-			Galaxies:     36,
-			SolarSystems: 24,
-			Orbits:       70,
+			Galaxies:     new(36),
+			SolarSystems: new(24),
+			Orbits:       new(70),
 		},
 	}
 }

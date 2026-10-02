@@ -130,6 +130,11 @@ func deletePlanet(c *gin.Context, usecase drivingports.ForManagingPlanet) {
 			return
 		}
 
+		if err == domainerrors.ErrFleetInFlight {
+			c.AbortWithStatusJSON(http.StatusConflict, "fleet in flight from or to the planet")
+			return
+		}
+
 		logError(c.Request, "Failed to delete planet", slog.Any("error", err))
 		c.AbortWithStatusJSON(http.StatusInternalServerError, "failed to delete planet")
 		return

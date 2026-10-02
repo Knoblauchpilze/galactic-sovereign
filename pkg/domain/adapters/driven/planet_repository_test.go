@@ -139,9 +139,9 @@ func upsertPlanetCoordinate(t *testing.T, conn database.Connection, p models.Pla
 		WHERE
 			id = $5
 		ON CONFLICT (planet) DO UPDATE SET
-			galaxy = EXCLUDED.galaxy,
-			solar_system = EXCLUDED.solar_system,
-			position = EXCLUDED.position`
+			galaxy = excluded.galaxy,
+			solar_system = excluded.solar_system,
+			position = excluded.position`
 	_, err := conn.Exec(
 		t.Context(),
 		sqlQuery,

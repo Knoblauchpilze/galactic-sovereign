@@ -10,9 +10,11 @@ func ToUniverseCreationRequest(dto dtos.UniverseDtoRequest) request.UniverseCrea
 	return request.UniverseCreationRequest{
 		Name: dto.Name,
 		Topology: request.TopologyRequest{
-			Galaxies:     dto.Topology.Galaxies,
-			SolarSystems: dto.Topology.SolarSystems,
-			Orbits:       dto.Topology.Orbits,
+			// Should always be not nil as the API specs requires it
+			// and it's enforced by the validator (in the controller)
+			Galaxies:     *dto.Topology.Galaxies,
+			SolarSystems: *dto.Topology.SolarSystems,
+			Orbits:       *dto.Topology.Orbits,
 		},
 	}
 }

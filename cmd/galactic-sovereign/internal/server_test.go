@@ -364,6 +364,168 @@ func TestIT_Server(t *testing.T) {
 		)
 		assert.Equal(t, homeworld.ShipActions, []dtos.ShipActionDtoResponse{action1, action2})
 	})
+
+	t.Run("create a fleet with a planet as destination", func(t *testing.T) {
+		dbContainer := integrationdb.NewDatabaseSharedContainer(t)
+		conn := dbContainer.NewTestConnection(t)
+		conf := newTestServerConfig()
+
+		s := CreateGameServer(conf, conn, slog.Default())
+		baseUrl := asyncStartServer(t, s)
+
+		// Create a player
+		playerReq := dtos.PlayerDtoRequest{
+			ApiUser:  uuid.New(),
+			Universe: oberonUniverseId,
+			Name:     "test-player-1",
+		}
+		player1 := doPost[dtos.PlayerDtoResponse](
+			t, urlFor(baseUrl, "players"), playerReq,
+		)
+
+		// Create a second player
+		playerReq = dtos.PlayerDtoRequest{
+			ApiUser:  uuid.New(),
+			Universe: oberonUniverseId,
+			Name:     "test-player-2",
+		}
+		player2 := doPost[dtos.PlayerDtoResponse](
+			t, urlFor(baseUrl, "players"), playerReq,
+		)
+
+		bumpPlanetShip(t, conn, player1.Homeworld, lightFighterId, 5)
+
+		// Create a fleet
+		fleetReq := dtos.FleetDtoRequest{
+			Mission: dtos.MissionColonize,
+			Destination: dtos.FleetDestinationDtoRequest{
+				Galaxy:      &player2.Planets[0].Coordinate.Galaxy,
+				SolarSystem: &player2.Planets[0].Coordinate.SolarSystem,
+				Position:    &player2.Planets[0].Coordinate.Position,
+			},
+			Ships: []dtos.FleetShipDtoRequest{
+				{Ship: lightFighterId, Count: 3},
+			},
+		}
+		fleet := doPost[dtos.FleetDtoResponse](
+			t, urlFor(baseUrl, "planets", player1.Homeworld.String(), "fleets"), fleetReq,
+		)
+		expectedShips := []dtos.FleetShipDtoResponse{
+			{Ship: lightFighterId, Count: 3},
+		}
+		assert.Equal(t, expectedShips, fleet.Ships)
+
+		// Fetch the planet to verify ship counts
+		homeworld := doGet[dtos.PlanetDtoResponse](
+			t, urlFor(baseUrl, "planets", player1.Homeworld.String()),
+		)
+		expectedShip := dtos.PlanetShipDtoResponse{Ship: lightFighterId, Count: 2}
+		assert.Contains(t, homeworld.Ships, expectedShip)
+	})
+
+	t.Run("create a fleet with an empty destination", func(t *testing.T) {
+		dbContainer := integrationdb.NewDatabaseSharedContainer(t)
+		conn := dbContainer.NewTestConnection(t)
+		conf := newTestServerConfig()
+
+		s := CreateGameServer(conf, conn, slog.Default())
+		baseUrl := asyncStartServer(t, s)
+
+		// Create a player
+		playerReq := dtos.PlayerDtoRequest{
+			ApiUser:  uuid.New(),
+			Universe: oberonUniverseId,
+			Name:     "test-player-1",
+		}
+		player := doPost[dtos.PlayerDtoResponse](
+			t, urlFor(baseUrl, "players"), playerReq,
+		)
+
+		fleetReq := dtos.FleetDtoRequest{
+			Mission: dtos.MissionColonize,
+			Destination: dtos.FleetDestinationDtoRequest{
+				Galaxy:      new(player.Planets[0].Coordinate.Galaxy + 1),
+				SolarSystem: &player.Planets[0].Coordinate.SolarSystem,
+				Position:    &player.Planets[0].Coordinate.Position,
+			},
+			Ships: []dtos.FleetShipDtoRequest{
+				{Ship: lightFighterId, Count: 3},
+			},
+		}
+
+		// Fail to create a fleet without ships
+		assertPostStatus(
+			t,
+			urlFor(baseUrl, "planets", player.Homeworld.String(), "fleets"),
+			fleetReq,
+			http.StatusConflict,
+		)
+
+		bumpPlanetShip(t, conn, player.Homeworld, lightFighterId, fleetReq.Ships[0].Count+2)
+
+		fleet := doPost[dtos.FleetDtoResponse](
+			t, urlFor(baseUrl, "planets", player.Homeworld.String(), "fleets"), fleetReq,
+		)
+		expectedShips := []dtos.FleetShipDtoResponse{
+			{Ship: lightFighterId, Count: 3},
+		}
+		assert.Equal(t, expectedShips, fleet.Ships)
+	})
+
+	t.Run("prevent deletion of planet when a fleet is in flight", func(t *testing.T) {
+		dbContainer := integrationdb.NewDatabaseSharedContainer(t)
+		conn := dbContainer.NewTestConnection(t)
+		conf := newTestServerConfig()
+
+		s := CreateGameServer(conf, conn, slog.Default())
+		baseUrl := asyncStartServer(t, s)
+
+		// Create a player
+		playerReq := dtos.PlayerDtoRequest{
+			ApiUser:  uuid.New(),
+			Universe: oberonUniverseId,
+			Name:     "test-player-1",
+		}
+		player1 := doPost[dtos.PlayerDtoResponse](
+			t, urlFor(baseUrl, "players"), playerReq,
+		)
+
+		// Create a second player
+		playerReq = dtos.PlayerDtoRequest{
+			ApiUser:  uuid.New(),
+			Universe: oberonUniverseId,
+			Name:     "test-player-2",
+		}
+		player2 := doPost[dtos.PlayerDtoResponse](
+			t, urlFor(baseUrl, "players"), playerReq,
+		)
+
+		colony1 := insertTestPlanet(t, conn, player1.Id)
+		bumpPlanetShip(t, conn, colony1.Id, lightFighterId, 5)
+		colony2 := insertTestPlanet(t, conn, player2.Id)
+
+		// Create a fleet
+		fleetReq := dtos.FleetDtoRequest{
+			Mission: dtos.MissionColonize,
+			Destination: dtos.FleetDestinationDtoRequest{
+				Galaxy:      &colony2.Coordinate.Galaxy,
+				SolarSystem: &colony2.Coordinate.SolarSystem,
+				Position:    &colony2.Coordinate.Position,
+			},
+			Ships: []dtos.FleetShipDtoRequest{
+				{Ship: lightFighterId, Count: 3},
+			},
+		}
+		doPost[dtos.FleetDtoResponse](
+			t, urlFor(baseUrl, "planets", colony1.Id.String(), "fleets"), fleetReq,
+		)
+
+		// Failure to delete the source of the fleet
+		assertDeleteStatus(t, urlFor(baseUrl, "planets", colony1.Id.String()), http.StatusConflict)
+
+		// Failure to delete the destination of the fleet
+		assertDeleteStatus(t, urlFor(baseUrl, "planets", colony2.Id.String()), http.StatusConflict)
+	})
 }
 
 func findShip(t *testing.T, universe dtos.UniverseDtoResponse, shipName string) dtos.ShipDtoResponse {
@@ -397,7 +559,7 @@ func assertPostStatus[T any](t *testing.T, url string, body T, expectedStatus in
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
-	require.NoError(t, err, "DELETE %s: %v", url, err)
+	require.NoError(t, err, "POST %s: %v", url, err)
 	require.Equal(t, expectedStatus, resp.StatusCode, "POST %s returned %d", url, resp.StatusCode)
 }
 

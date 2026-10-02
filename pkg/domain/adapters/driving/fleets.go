@@ -7,6 +7,7 @@ import (
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/rest"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driving/dtos"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driving/mappers"
+	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
 	drivingports "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driving"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -34,6 +35,7 @@ func FleetEndpoints(
 //	@Param			request	body		dtos.FleetDtoRequest	true	"Fleet payload"
 //	@Success		201		{object}	rest.ResponseEnvelope[dtos.FleetDtoResponse]
 //	@Failure		400		{object}	rest.ResponseEnvelope[string]
+//	@Failure		409		{object}	rest.ResponseEnvelope[string]
 //	@Failure		500		{object}	rest.ResponseEnvelope[string]
 //	@Router			/planets/{id}/fleets [post]
 func createFleet(c *gin.Context, usecase drivingports.ForCreatingFleet) {
@@ -59,6 +61,16 @@ func createFleet(c *gin.Context, usecase drivingports.ForCreatingFleet) {
 
 	fleet, err := usecase.Create(c.Request.Context(), planetId, request)
 	if err != nil {
+		if err == domainerrors.ErrNotEnoughShips {
+			c.AbortWithStatusJSON(http.StatusConflict, "not enough ships")
+			return
+		}
+
+		if err == domainerrors.ErrFleetDestinationInvalid {
+			c.AbortWithStatusJSON(http.StatusConflict, "invalid fleet destination")
+			return
+		}
+
 		logError(c.Request, "Failed to create fleet", slog.Any("error", err))
 		c.AbortWithStatusJSON(http.StatusInternalServerError, "failed to create fleet")
 		return

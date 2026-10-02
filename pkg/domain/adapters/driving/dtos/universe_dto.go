@@ -13,9 +13,9 @@ type UniverseDtoRequest struct {
 }
 
 type TopologyDtoRequest struct {
-	Galaxies     int `json:"galaxies" binding:"required" minimum:"0"`
-	SolarSystems int `json:"solar_systems" binding:"required" minimum:"0"`
-	Orbits       int `json:"orbits" binding:"required" minimum:"0"`
+	Galaxies     *int `json:"galaxies" binding:"required,gt=0" minimum:"0"`
+	SolarSystems *int `json:"solar_systems" binding:"required,gt=0" minimum:"0"`
+	Orbits       *int `json:"orbits" binding:"required,gt=0" minimum:"0"`
 }
 
 type UniverseDtoResponse struct {

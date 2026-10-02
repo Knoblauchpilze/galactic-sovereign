@@ -20,9 +20,11 @@ func ToFleetOrder(
 	req := models.FleetOrder{
 		Mission: mission,
 		Destination: models.Coordinate{
-			Galaxy:      dto.Destination.Galaxy,
-			SolarSystem: dto.Destination.SolarSystem,
-			Position:    dto.Destination.Position,
+			// Should always be not nil as the API specs requires it
+			// and it's enforced by the validator (in the controller)
+			Galaxy:      *dto.Destination.Galaxy,
+			SolarSystem: *dto.Destination.SolarSystem,
+			Position:    *dto.Destination.Position,
 		},
 		Ships: toFleetShips(dto.Ships),
 	}
