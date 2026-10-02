@@ -8,7 +8,8 @@ import (
 type FleetMissionDto string
 
 const (
-	MissionColonize FleetMissionDto = "colonize"
+	MissionColonize  FleetMissionDto = "colonize"
+	MissionTransport FleetMissionDto = "transport"
 )
 
 func (m FleetMissionDto) MarshalJSON() ([]byte, error) {
@@ -35,5 +36,5 @@ func (m *FleetMissionDto) UnmarshalJSON(data []byte) error {
 }
 
 func (m FleetMissionDto) valid() bool {
-	return m == MissionColonize
+	return m == MissionColonize || m == MissionTransport
 }

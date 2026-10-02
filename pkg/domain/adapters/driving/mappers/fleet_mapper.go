@@ -36,6 +36,8 @@ func toFleetMission(mission dtos.FleetMissionDto) (models.FleetMission, error) {
 	switch mission {
 	case dtos.MissionColonize:
 		return models.MissionColonize, nil
+	case dtos.MissionTransport:
+		return models.MissionTransport, nil
 	default:
 		return invalidFleetMission, ErrInvalidEnumMapping
 	}

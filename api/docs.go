@@ -350,11 +350,13 @@ const docTemplate = `{
             },
             "dtos.FleetMissionDto": {
                 "enum": [
-                    "Colonize"
+                    "colonize",
+                    "transport"
                 ],
                 "type": "string",
                 "x-enum-varnames": [
-                    "MissionColonize"
+                    "MissionColonize",
+                    "MissionTransport"
                 ]
             },
             "dtos.FleetShipDtoRequest": {

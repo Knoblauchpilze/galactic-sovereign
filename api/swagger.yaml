@@ -245,10 +245,12 @@ components:
       type: object
     dtos.FleetMissionDto:
       enum:
-      - Colonize
+      - colonize
+      - transport
       type: string
       x-enum-varnames:
       - MissionColonize
+      - MissionTransport
     dtos.FleetShipDtoRequest:
       properties:
         count:
