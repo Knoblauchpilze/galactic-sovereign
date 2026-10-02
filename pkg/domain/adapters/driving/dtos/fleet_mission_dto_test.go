@@ -13,7 +13,7 @@ func TestUnit_FleetMissionDto_MarshalJSON(t *testing.T) {
 		actual, err := json.Marshal(MissionColonize)
 		require.NoError(t, err, "Actual err: %v", err)
 
-		assert.JSONEq(t, `"Colonize"`, string(actual))
+		assert.JSONEq(t, `"colonize"`, string(actual))
 	})
 
 	t.Run("rejects an invalid mission", func(t *testing.T) {
@@ -26,7 +26,7 @@ func TestUnit_FleetMissionDto_MarshalJSON(t *testing.T) {
 func TestUnit_FleetMissionDto_UnmarshalJSON(t *testing.T) {
 	t.Run("unmarshals a valid mission", func(t *testing.T) {
 		var actual FleetMissionDto
-		err := json.Unmarshal([]byte(`"Colonize"`), &actual)
+		err := json.Unmarshal([]byte(`"colonize"`), &actual)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Equal(t, MissionColonize, actual)

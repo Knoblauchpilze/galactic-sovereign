@@ -8,7 +8,7 @@ import (
 type FleetMissionDto string
 
 const (
-	MissionColonize FleetMissionDto = "Colonize"
+	MissionColonize FleetMissionDto = "colonize"
 )
 
 func (m FleetMissionDto) MarshalJSON() ([]byte, error) {
