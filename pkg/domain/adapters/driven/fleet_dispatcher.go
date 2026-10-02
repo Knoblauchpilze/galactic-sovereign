@@ -15,7 +15,7 @@ type FleetDispatcher struct {
 	conn database.Connection
 }
 
-func NewFleetCreator(conn database.Connection) *FleetDispatcher {
+func NewFleetDispatcher(conn database.Connection) *FleetDispatcher {
 	return &FleetDispatcher{
 		conn: conn,
 	}
@@ -57,8 +57,16 @@ func (c *FleetDispatcher) Dispatch(
 		return models.Fleet{}, err
 	}
 
-	// TODO: Missing persistence of the fleet
-	_, err = saveAndReloadPlanet(ctx, tx, planet, expectedVersion)
+	err = createFleetWithDetails(ctx, tx, fleet)
+	if err != nil {
+		return models.Fleet{}, err
+	}
+
+	if planet.Version == expectedVersion {
+		return models.Fleet{}, domainerrors.ErrMutationWithoutVersionBump
+	}
+
+	err = updatePlanetDetails(ctx, tx, planet, expectedVersion)
 	if err != nil {
 		return models.Fleet{}, err
 	}
