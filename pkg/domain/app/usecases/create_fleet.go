@@ -79,7 +79,7 @@ func generateFleetMutation(
 			Speed:       speed,
 		}
 
-		if target, ok := occupancy.UsedSlots[p.Coordinate]; ok {
+		if target, ok := occupancy.UsedSlots[order.Destination]; ok {
 			flight.Target = &target
 		}
 
