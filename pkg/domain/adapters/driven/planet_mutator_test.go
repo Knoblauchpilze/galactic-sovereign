@@ -1434,6 +1434,7 @@ func TestIT_PlanetMutator_Mutate_Concurrency(t *testing.T) {
 		err := <-doneA
 		require.NoError(t, err, "Actual err: %v", err)
 
+		// Check that A's mutation did not change B's data
 		resultA, err := adapter.Mutate(t.Context(), planetA.Id, func(p *models.Planet) (bool, error) {
 			p.Version++
 			return false, nil
