@@ -267,16 +267,19 @@ func (p *Planet) CreateFleet(order FleetOrder, flight FleetFlight) (Fleet, error
 	createdAt := p.UpdatedAt
 
 	fleet := Fleet{
-		Id:          uuid.New(),
-		Player:      p.Player,
-		Source:      p.Id,
-		Destination: order.Destination,
-		Ships:       order.Ships,
-		CreatedAt:   createdAt,
-		ArrivalAt:   createdAt.Add(duration),
-		ReturnAt:    createdAt.Add(2 * duration),
-		UpdatedAt:   createdAt,
-		Version:     0,
+		Id:     uuid.New(),
+		Player: p.Player,
+		Source: p.Id,
+		Destination: FleetDestination{
+			Coordinate: order.Destination,
+			Target:     flight.Target,
+		},
+		Ships:     order.Ships,
+		CreatedAt: createdAt,
+		ArrivalAt: createdAt.Add(duration),
+		ReturnAt:  createdAt.Add(2 * duration),
+		UpdatedAt: createdAt,
+		Version:   0,
 	}
 
 	p.deductFleetShips(order)

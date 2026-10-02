@@ -15,6 +15,7 @@ type DbFleet struct {
 	Galaxy      int
 	SolarSystem int
 	Position    int
+	Target      *uuid.UUID
 
 	CreatedAt time.Time
 	ArrivalAt time.Time
@@ -28,10 +29,13 @@ func (f DbFleet) ToDomain() models.Fleet {
 		Id:     f.Id,
 		Player: f.Player,
 		Source: f.Source,
-		Destination: models.Coordinate{
-			Galaxy:      f.Galaxy,
-			SolarSystem: f.SolarSystem,
-			Position:    f.Position,
+		Destination: models.FleetDestination{
+			Coordinate: models.Coordinate{
+				Galaxy:      f.Galaxy,
+				SolarSystem: f.SolarSystem,
+				Position:    f.Position,
+			},
+			Target: f.Target,
 		},
 		CreatedAt: f.CreatedAt,
 		ArrivalAt: f.ArrivalAt,

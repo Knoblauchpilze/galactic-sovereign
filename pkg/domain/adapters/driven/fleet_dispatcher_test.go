@@ -97,16 +97,10 @@ func TestIT_FleetDispatcher_MutateBehavior(t *testing.T) {
 		adapter, conn := newTestFleetDispatcher(t)
 
 		planet, _, _ := insertTestPlanetForPlayer(t, conn)
-		require.NotEqual(t, planet.UpdatedAt, yetAnotherTime)
-		require.NotEqual(t, 326, planet.Fields)
-
 		fleet := generateSampleFleet(planet)
 
 		creator := generateFleetCreator(func(p *models.Planet) models.Fleet {
-			p.Fields = 326
-			p.UpdatedAt = yetAnotherTime
 			p.Version++
-
 			return fleet
 		})
 
@@ -115,6 +109,46 @@ func TestIT_FleetDispatcher_MutateBehavior(t *testing.T) {
 
 		actual := loadFleetFromDb(t, conn, fleet.Id)
 		assert.Equal(t, fleet, actual)
+	})
+
+	t.Run("persists dispatched fleet with target", func(t *testing.T) {
+		adapter, conn := newTestFleetDispatcher(t)
+
+		planet1, _, _ := insertTestPlanetForPlayer(t, conn)
+		planet2, _, _ := insertTestPlanetForPlayer(t, conn)
+
+		fleet := generateSampleFleet(planet1)
+		fleet.Destination.Target = &planet2.Id
+
+		creator := generateFleetCreator(func(p *models.Planet) models.Fleet {
+			p.Version++
+			return fleet
+		})
+
+		_, err := adapter.Dispatch(t.Context(), planet1.Id, creator)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		actual := loadFleetFromDb(t, conn, fleet.Id)
+		assert.Equal(t, fleet, actual)
+	})
+
+	t.Run("returns error when target planet does not exist", func(t *testing.T) {
+		adapter, conn := newTestFleetDispatcher(t)
+
+		planet, _, _ := insertTestPlanetForPlayer(t, conn)
+		fleet := generateSampleFleet(planet)
+		fakeTargetPlanet := uuid.New()
+		fleet.Destination.Target = &fakeTargetPlanet
+
+		creator := generateFleetCreator(func(p *models.Planet) models.Fleet {
+			p.Version++
+			return fleet
+		})
+
+		_, err := adapter.Dispatch(t.Context(), planet.Id, creator)
+
+		assert.ErrorIs(t, err, domainerrors.ErrFleetDestinationInvalid, "Actual err: %v", err)
+		assertFleetDoesNotExist(t, conn, fleet.Id)
 	})
 
 	t.Run("persists mutated planet", func(t *testing.T) {
@@ -476,10 +510,13 @@ func generateSampleFleet(p models.Planet) models.Fleet {
 		Id:     uuid.New(),
 		Player: p.Player,
 		Source: p.Id,
-		Destination: models.Coordinate{
-			Galaxy:      p.Coordinate.Galaxy,
-			SolarSystem: p.Coordinate.SolarSystem + 1,
-			Position:    p.Coordinate.Position,
+		Destination: models.FleetDestination{
+			Coordinate: models.Coordinate{
+				Galaxy:      p.Coordinate.Galaxy,
+				SolarSystem: p.Coordinate.SolarSystem + 1,
+				Position:    p.Coordinate.Position,
+			},
+			Target: nil,
 		},
 		Ships: []models.FleetShip{
 			{

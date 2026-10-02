@@ -36,6 +36,8 @@ func parseForeignKeyConstraintViolation(err *db.DatabaseError) error {
 	switch err.Constraint {
 	case "player_universe_fkey":
 		return domainerrors.ErrUniverseNotFound
+	case "fleet_destination_planet_fkey":
+		return domainerrors.ErrFleetDestinationInvalid
 	default:
 		return err
 	}

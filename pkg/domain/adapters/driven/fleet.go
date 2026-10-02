@@ -16,7 +16,6 @@ INSERT INTO
 	fleet (id, player, source, created_at, arrival_at, return_at, updated_at, version)
 	VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
 
-	// TODO: Handle destination planet
 	createFleetDestinationQuery = `
 INSERT INTO
 	fleet_destination (fleet, galaxy, solar_system, position, planet)
@@ -35,6 +34,7 @@ SELECT
 	fd.galaxy,
 	fd.solar_system,
 	fd.position,
+	fd.planet AS target,
 	f.created_at,
 	f.arrival_at,
 	f.return_at,
@@ -81,13 +81,13 @@ func createFleetWithDetails(
 		ctx,
 		createFleetDestinationQuery,
 		fleet.Id,
-		fleet.Destination.Galaxy,
-		fleet.Destination.SolarSystem,
-		fleet.Destination.Position,
-		nil,
+		fleet.Destination.Coordinate.Galaxy,
+		fleet.Destination.Coordinate.SolarSystem,
+		fleet.Destination.Coordinate.Position,
+		fleet.Destination.Target,
 	)
 	if err != nil {
-		return err
+		return parseDbError(err)
 	}
 
 	for _, s := range fleet.Ships {

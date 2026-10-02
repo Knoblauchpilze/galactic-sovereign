@@ -62,10 +62,12 @@ func TestUnit_CreateFleet_Create(t *testing.T) {
 			Id:     uuid.New(),
 			Player: uuid.New(),
 			Source: samplePlanetId,
-			Destination: models.Coordinate{
-				Galaxy:      req.Destination.Galaxy,
-				SolarSystem: req.Destination.SolarSystem,
-				Position:    req.Destination.Position,
+			Destination: models.FleetDestination{
+				Coordinate: models.Coordinate{
+					Galaxy:      req.Destination.Galaxy,
+					SolarSystem: req.Destination.SolarSystem,
+					Position:    req.Destination.Position,
+				},
 			},
 			Ships: []models.FleetShip{
 				{Ship: req.Ships[0].Ship, Count: req.Ships[0].Count},
