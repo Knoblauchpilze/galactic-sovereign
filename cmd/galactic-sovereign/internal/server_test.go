@@ -19,8 +19,9 @@ import (
 func TestIT_Server(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
+	dbContainer := integrationdb.NewDatabaseSharedContainer(t)
+
 	t.Run("create a player and assert homeworld properties", func(t *testing.T) {
-		dbContainer := integrationdb.NewDatabaseSharedContainer(t)
 		conn := dbContainer.NewTestConnection(t)
 		conf := newTestServerConfig()
 
@@ -55,7 +56,6 @@ func TestIT_Server(t *testing.T) {
 	})
 
 	t.Run("create a building action and cancel it", func(t *testing.T) {
-		dbContainer := integrationdb.NewDatabaseSharedContainer(t)
 		conn := dbContainer.NewTestConnection(t)
 		conf := newTestServerConfig()
 
@@ -105,7 +105,6 @@ func TestIT_Server(t *testing.T) {
 	})
 
 	t.Run("create a player and a building action and delete the player", func(t *testing.T) {
-		dbContainer := integrationdb.NewDatabaseSharedContainer(t)
 		conn := dbContainer.NewTestConnection(t)
 		conf := newTestServerConfig()
 
@@ -147,7 +146,6 @@ func TestIT_Server(t *testing.T) {
 	})
 
 	t.Run("create a player and a ship action", func(t *testing.T) {
-		dbContainer := integrationdb.NewDatabaseSharedContainer(t)
 		conn := dbContainer.NewTestConnection(t)
 		conf := newTestServerConfig()
 
@@ -206,7 +204,6 @@ func TestIT_Server(t *testing.T) {
 	})
 
 	t.Run("create a player and a ship action and delete the player", func(t *testing.T) {
-		dbContainer := integrationdb.NewDatabaseSharedContainer(t)
 		conn := dbContainer.NewTestConnection(t)
 		conf := newTestServerConfig()
 
@@ -261,7 +258,6 @@ func TestIT_Server(t *testing.T) {
 	})
 
 	t.Run("create a player and a ship action and delete the planet", func(t *testing.T) {
-		dbContainer := integrationdb.NewDatabaseSharedContainer(t)
 		conn := dbContainer.NewTestConnection(t)
 		conf := newTestServerConfig()
 
@@ -307,7 +303,6 @@ func TestIT_Server(t *testing.T) {
 	})
 
 	t.Run("ships actions are ordered by creation date", func(t *testing.T) {
-		dbContainer := integrationdb.NewDatabaseSharedContainer(t)
 		conn := dbContainer.NewTestConnection(t)
 		conf := newTestServerConfig()
 
@@ -366,7 +361,6 @@ func TestIT_Server(t *testing.T) {
 	})
 
 	t.Run("create a fleet with a planet as destination", func(t *testing.T) {
-		dbContainer := integrationdb.NewDatabaseSharedContainer(t)
 		conn := dbContainer.NewTestConnection(t)
 		conf := newTestServerConfig()
 
@@ -434,7 +428,6 @@ func TestIT_Server(t *testing.T) {
 	})
 
 	t.Run("create a fleet with an empty destination", func(t *testing.T) {
-		dbContainer := integrationdb.NewDatabaseSharedContainer(t)
 		conn := dbContainer.NewTestConnection(t)
 		conf := newTestServerConfig()
 
@@ -483,7 +476,6 @@ func TestIT_Server(t *testing.T) {
 	})
 
 	t.Run("prevent deletion of planet when a fleet is in flight", func(t *testing.T) {
-		dbContainer := integrationdb.NewDatabaseSharedContainer(t)
 		conn := dbContainer.NewTestConnection(t)
 		conf := newTestServerConfig()
 
