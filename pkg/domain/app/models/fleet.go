@@ -36,6 +36,8 @@ func NewFleet(origin FleetOrigin, order FleetOrder, flight FleetFlight) (Fleet, 
 		Id:     uuid.New(),
 		Player: origin.Player,
 		Source: origin.Source,
+		// TODO: Validate order against requirements
+		Mission: order.Mission,
 		Destination: FleetDestination{
 			Coordinate: flight.Destination,
 			Target:     flight.Target,

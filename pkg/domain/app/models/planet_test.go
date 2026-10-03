@@ -1314,9 +1314,10 @@ func TestUnit_Planet_CreateFleet(t *testing.T) {
 
 		flightDuration := 12482 * time.Second
 		expected := Fleet{
-			Id:     actual.Id,
-			Player: p.Player,
-			Source: p.Id,
+			Id:      actual.Id,
+			Player:  p.Player,
+			Source:  p.Id,
+			Mission: order.Mission,
 			Destination: FleetDestination{
 				Coordinate: order.Destination,
 				Target:     nil,
@@ -1362,9 +1363,10 @@ func TestUnit_Planet_CreateFleet(t *testing.T) {
 
 		flightDuration := 12482 * time.Second
 		expected := Fleet{
-			Id:     actual.Id,
-			Player: p.Player,
-			Source: p.Id,
+			Id:      actual.Id,
+			Player:  p.Player,
+			Source:  p.Id,
+			Mission: order.Mission,
 			Destination: FleetDestination{
 				Coordinate: order.Destination,
 				Target:     &targetId,
