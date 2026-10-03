@@ -1,4 +1,8 @@
 
+DELETE FROM fleet_ship;
+DELETE FROM fleet_destination;
+DELETE FROM fleet;
+
 DELETE FROM ship_action;
 
 DELETE FROM building_action_resource_storage;
