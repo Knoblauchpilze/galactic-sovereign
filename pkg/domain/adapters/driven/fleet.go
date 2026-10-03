@@ -13,8 +13,8 @@ import (
 const (
 	createFleetQuery = `
 INSERT INTO
-	fleet (id, player, source, created_at, arrival_at, return_at, updated_at, version)
-	VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
+	fleet (id, player, source, mission, created_at, arrival_at, return_at, updated_at, version)
+	VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`
 
 	createFleetDestinationQuery = `
 INSERT INTO
@@ -31,6 +31,7 @@ SELECT
 	f.id,
 	f.player,
 	f.source,
+	f.mission,
 	fd.galaxy,
 	fd.solar_system,
 	fd.position,
@@ -67,6 +68,7 @@ func createFleetWithDetails(
 		fleet.Id,
 		fleet.Player,
 		fleet.Source,
+		fleet.Mission,
 		fleet.CreatedAt,
 		fleet.ArrivalAt,
 		fleet.ReturnAt,

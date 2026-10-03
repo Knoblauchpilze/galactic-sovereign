@@ -8,9 +8,10 @@ import (
 )
 
 type DbFleet struct {
-	Id     uuid.UUID
-	Player uuid.UUID
-	Source uuid.UUID
+	Id      uuid.UUID
+	Player  uuid.UUID
+	Source  uuid.UUID
+	Mission DbFleetMission
 
 	Galaxy      int
 	SolarSystem int
@@ -26,9 +27,10 @@ type DbFleet struct {
 
 func (f DbFleet) ToDomain() models.Fleet {
 	return models.Fleet{
-		Id:     f.Id,
-		Player: f.Player,
-		Source: f.Source,
+		Id:      f.Id,
+		Player:  f.Player,
+		Source:  f.Source,
+		Mission: f.Mission.ToDomain(),
 		Destination: models.FleetDestination{
 			Coordinate: models.Coordinate{
 				Galaxy:      f.Galaxy,

@@ -506,7 +506,7 @@ func TestIT_FleetDispatcher_DispatchWorkflow(t *testing.T) {
 		}
 		upsertPlanetCoordinate(t, conn, planet2)
 
-		order1 := models.FleetOrder{
+		order := models.FleetOrder{
 			Mission:     models.MissionColonize,
 			Destination: planet2.Coordinate,
 			Ships: []models.FleetShip{
@@ -523,7 +523,7 @@ func TestIT_FleetDispatcher_DispatchWorkflow(t *testing.T) {
 				Speed:       2500,
 			}
 
-			return p.CreateFleet(order1, flight)
+			return p.CreateFleet(order, flight)
 		}
 		fleet, err := fleetDispatcher.Dispatch(t.Context(), planet1.Id, mutation)
 		require.NoError(t, err, "Actual err: %v", err)
@@ -531,14 +531,15 @@ func TestIT_FleetDispatcher_DispatchWorkflow(t *testing.T) {
 		actual := loadFleetFromDb(t, conn, fleet.Id)
 		expectedFlightTime := 27506 * time.Second
 		expected := models.Fleet{
-			Id:     fleet.Id,
-			Player: player1.Id,
-			Source: planet1.Id,
+			Id:      fleet.Id,
+			Player:  player1.Id,
+			Source:  planet1.Id,
+			Mission: order.Mission,
 			Destination: models.FleetDestination{
 				Coordinate: planet2.Coordinate,
 				Target:     &planet2.Id,
 			},
-			Ships:     order1.Ships,
+			Ships:     order.Ships,
 			CreatedAt: planet1.UpdatedAt,
 			ArrivalAt: planet1.UpdatedAt.Add(expectedFlightTime),
 			ReturnAt:  planet1.UpdatedAt.Add(2 * expectedFlightTime),
@@ -583,9 +584,10 @@ func TestIT_FleetDispatcher_DispatchWorkflow(t *testing.T) {
 		actual := loadFleetFromDb(t, conn, fleet.Id)
 		expectedFlightTime := 25236 * time.Second
 		expected := models.Fleet{
-			Id:     actual.Id,
-			Player: player.Id,
-			Source: planet.Id,
+			Id:      actual.Id,
+			Player:  player.Id,
+			Source:  planet.Id,
+			Mission: order.Mission,
 			Destination: models.FleetDestination{
 				Coordinate: order.Destination,
 				Target:     nil,
@@ -616,9 +618,10 @@ func generateFleetCreator(modifier func(p *models.Planet) models.Fleet) drivenpo
 
 func generateSampleFleet(p models.Planet) models.Fleet {
 	return models.Fleet{
-		Id:     uuid.New(),
-		Player: p.Player,
-		Source: p.Id,
+		Id:      uuid.New(),
+		Player:  p.Player,
+		Source:  p.Id,
+		Mission: models.MissionColonize,
 		Destination: models.FleetDestination{
 			Coordinate: models.Coordinate{
 				Galaxy:      p.Coordinate.Galaxy,

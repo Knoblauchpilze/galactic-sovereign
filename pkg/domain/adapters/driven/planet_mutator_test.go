@@ -1695,9 +1695,10 @@ func insertTestFleet(
 	t.Helper()
 
 	fleet := models.Fleet{
-		Id:     uuid.New(),
-		Player: source.Player,
-		Source: source.Id,
+		Id:      uuid.New(),
+		Player:  source.Player,
+		Source:  source.Id,
+		Mission: models.MissionColonize,
 		Destination: models.FleetDestination{
 			Coordinate: models.Coordinate{
 				Galaxy:      source.Coordinate.Galaxy,
@@ -1715,14 +1716,15 @@ func insertTestFleet(
 	}
 
 	sqlQuery := `INSERT INTO
-		fleet (id, player, source, created_at, arrival_at, return_at, updated_at, version)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
+		fleet (id, player, source, mission, created_at, arrival_at, return_at, updated_at, version)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`
 	_, err := conn.Exec(
 		t.Context(),
 		sqlQuery,
 		fleet.Id,
 		fleet.Player,
 		fleet.Source,
+		fleet.Mission,
 		fleet.CreatedAt,
 		fleet.ArrivalAt,
 		fleet.ReturnAt,

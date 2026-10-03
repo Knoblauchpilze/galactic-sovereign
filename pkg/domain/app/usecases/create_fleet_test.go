@@ -59,9 +59,10 @@ func TestUnit_CreateFleet_Create(t *testing.T) {
 		}
 
 		expected := models.Fleet{
-			Id:     uuid.New(),
-			Player: uuid.New(),
-			Source: samplePlanetId,
+			Id:      uuid.New(),
+			Player:  uuid.New(),
+			Source:  samplePlanetId,
+			Mission: models.MissionColonize,
 			Destination: models.FleetDestination{
 				Coordinate: models.Coordinate{
 					Galaxy:      req.Destination.Galaxy,
