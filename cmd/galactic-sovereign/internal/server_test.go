@@ -516,7 +516,7 @@ func TestIT_Server(t *testing.T) {
 
 		// Create a fleet
 		fleetReq := dtos.FleetDtoRequest{
-			Mission: dtos.MissionColonize,
+			Mission: dtos.MissionTransport,
 			Destination: dtos.FleetDestinationDtoRequest{
 				Galaxy:      &colony2.Coordinate.Galaxy,
 				SolarSystem: &colony2.Coordinate.SolarSystem,
