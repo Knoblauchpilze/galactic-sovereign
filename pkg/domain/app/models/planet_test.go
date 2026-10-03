@@ -1219,6 +1219,7 @@ func TestUnit_Planet_CreateFleet(t *testing.T) {
 			},
 		}
 		flight := FleetFlight{
+			StartTime:   p.UpdatedAt,
 			Source:      p.Coordinate,
 			Destination: order.Destination,
 			Speed:       1000,
@@ -1262,6 +1263,7 @@ func TestUnit_Planet_CreateFleet(t *testing.T) {
 			},
 		}
 		flight := FleetFlight{
+			StartTime:   p.UpdatedAt,
 			Source:      p.Coordinate,
 			Destination: order.Destination,
 			Speed:       1000,
@@ -1301,6 +1303,7 @@ func TestUnit_Planet_CreateFleet(t *testing.T) {
 			},
 		}
 		flight := FleetFlight{
+			StartTime:   p.UpdatedAt,
 			Source:      p.Coordinate,
 			Destination: order.Destination,
 			Speed:       2500,
@@ -1347,6 +1350,7 @@ func TestUnit_Planet_CreateFleet(t *testing.T) {
 		}
 		targetId := uuid.New()
 		flight := FleetFlight{
+			StartTime:   p.UpdatedAt,
 			Source:      p.Coordinate,
 			Destination: order.Destination,
 			Target:      &targetId,
@@ -1393,6 +1397,7 @@ func TestUnit_Planet_CreateFleet(t *testing.T) {
 			},
 		}
 		flight := FleetFlight{
+			StartTime:   p.UpdatedAt,
 			Source:      p.Coordinate,
 			Destination: order.Destination,
 			Speed:       1000,
@@ -1424,6 +1429,7 @@ func TestUnit_Planet_CreateFleet(t *testing.T) {
 			},
 		}
 		flight := FleetFlight{
+			StartTime:   p.UpdatedAt,
 			Source:      p.Coordinate,
 			Destination: order.Destination,
 			Speed:       1000,

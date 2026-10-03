@@ -516,6 +516,7 @@ func TestIT_FleetDispatcher_DispatchWorkflow(t *testing.T) {
 
 		mutation := func(p *models.Planet) (models.Fleet, error) {
 			flight := models.FleetFlight{
+				StartTime:   p.UpdatedAt,
 				Source:      p.Coordinate,
 				Destination: planet2.Coordinate,
 				Target:      &planet2.Id,
@@ -567,6 +568,7 @@ func TestIT_FleetDispatcher_DispatchWorkflow(t *testing.T) {
 
 		mutation := func(p *models.Planet) (models.Fleet, error) {
 			flight := models.FleetFlight{
+				StartTime:   p.UpdatedAt,
 				Source:      p.Coordinate,
 				Destination: order.Destination,
 				Target:      nil,

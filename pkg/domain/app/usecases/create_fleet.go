@@ -73,6 +73,7 @@ func generateFleetMutation(
 		}
 
 		flight := models.FleetFlight{
+			StartTime:   moment,
 			Source:      p.Coordinate,
 			Destination: order.Destination,
 			Target:      nil,

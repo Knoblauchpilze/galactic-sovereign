@@ -263,9 +263,6 @@ func (p *Planet) CreateFleet(order FleetOrder, flight FleetFlight) (Fleet, error
 		return Fleet{}, err
 	}
 
-	duration := flight.Duration()
-	createdAt := p.UpdatedAt
-
 	fleet := Fleet{
 		Id:     uuid.New(),
 		Player: p.Player,
@@ -275,10 +272,10 @@ func (p *Planet) CreateFleet(order FleetOrder, flight FleetFlight) (Fleet, error
 			Target:     flight.Target,
 		},
 		Ships:     order.Ships,
-		CreatedAt: createdAt,
-		ArrivalAt: createdAt.Add(duration),
-		ReturnAt:  createdAt.Add(2 * duration),
-		UpdatedAt: createdAt,
+		CreatedAt: flight.StartTime,
+		ArrivalAt: flight.ArrivalTime(),
+		ReturnAt:  flight.ReturnTime(),
+		UpdatedAt: flight.StartTime,
 		Version:   0,
 	}
 
