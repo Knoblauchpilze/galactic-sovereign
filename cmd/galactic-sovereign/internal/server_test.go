@@ -407,6 +407,16 @@ func TestIT_Server(t *testing.T) {
 				{Ship: lightFighterId, Count: 3},
 			},
 		}
+
+		// Fail to create a colonize fleet with a colonized destination
+		assertPostStatus(
+			t,
+			urlFor(baseUrl, "planets", player1.Homeworld.String(), "fleets"),
+			fleetReq,
+			http.StatusBadRequest,
+		)
+
+		fleetReq.Mission = dtos.MissionTransport
 		fleet := doPost[dtos.FleetDtoResponse](
 			t, urlFor(baseUrl, "planets", player1.Homeworld.String(), "fleets"), fleetReq,
 		)

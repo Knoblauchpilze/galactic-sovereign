@@ -30,3 +30,8 @@ func (f FleetFlight) ArrivalTime() time.Time {
 func (f FleetFlight) ReturnTime() time.Time {
 	return f.ArrivalTime().Add(f.Duration())
 }
+
+func (f FleetFlight) HasDistinctSourceAndDestination() bool {
+	return f.Source.Galaxy != f.Destination.Galaxy || f.Source.SolarSystem != f.Destination.SolarSystem ||
+		f.Source.Position != f.Destination.Position
+}

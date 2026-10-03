@@ -1336,7 +1336,7 @@ func TestUnit_Planet_CreateFleet(t *testing.T) {
 		p := generateTestPlanet(t, withPlanetShip)
 
 		order := FleetOrder{
-			Mission: MissionColonize,
+			Mission: MissionTransport,
 			Destination: Coordinate{
 				Galaxy:      p.Coordinate.Galaxy,
 				SolarSystem: p.Coordinate.SolarSystem + 5,

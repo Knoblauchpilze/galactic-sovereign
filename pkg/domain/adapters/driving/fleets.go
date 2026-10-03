@@ -71,6 +71,11 @@ func createFleet(c *gin.Context, usecase drivingports.ForCreatingFleet) {
 			return
 		}
 
+		if err == domainerrors.ErrInvalidFleetConfiguration {
+			c.AbortWithStatusJSON(http.StatusBadRequest, "invalid fleet configuration")
+			return
+		}
+
 		logError(c.Request, "Failed to create fleet", slog.Any("error", err))
 		c.AbortWithStatusJSON(http.StatusInternalServerError, "failed to create fleet")
 		return

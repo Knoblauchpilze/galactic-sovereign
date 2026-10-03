@@ -34,6 +34,7 @@ const (
 	notEnoughShips               errors.ErrorCode = 630
 	fleetDestinationInvalid      errors.ErrorCode = 631
 	fleetInFlight                errors.ErrorCode = 632
+	invalidFleetConfiguration    errors.ErrorCode = 633
 )
 
 var (
@@ -68,4 +69,5 @@ var (
 	ErrNotEnoughShips             = errors.FromCode(notEnoughShips)
 	ErrFleetDestinationInvalid    = errors.FromCode(fleetDestinationInvalid)
 	ErrFleetInFlight              = errors.FromCode(fleetInFlight)
+	ErrInvalidFleetConfiguration  = errors.FromCode(invalidFleetConfiguration)
 )

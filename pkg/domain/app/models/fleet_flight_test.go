@@ -285,3 +285,41 @@ func TestUnit_FleetFlight_ReturnTime(t *testing.T) {
 		assert.Equal(t, expected, actual)
 	})
 }
+
+func TestUnit_FleetFlight_HasDistinctSourceAndDestination(t *testing.T) {
+	t.Run("returns true when galaxy is different", func(*testing.T) {
+		flight := FleetFlight{
+			Source:      Coordinate{1, 2, 3},
+			Destination: Coordinate{6, 2, 3},
+		}
+
+		assert.True(t, flight.HasDistinctSourceAndDestination())
+	})
+
+	t.Run("returns true when solar system is different", func(*testing.T) {
+		flight := FleetFlight{
+			Source:      Coordinate{1, 5, 3},
+			Destination: Coordinate{1, 2, 3},
+		}
+
+		assert.True(t, flight.HasDistinctSourceAndDestination())
+	})
+
+	t.Run("returns true when position is different", func(*testing.T) {
+		flight := FleetFlight{
+			Source:      Coordinate{1, 2, 3},
+			Destination: Coordinate{1, 2, 4},
+		}
+
+		assert.True(t, flight.HasDistinctSourceAndDestination())
+	})
+
+	t.Run("returns false when source is the same as destination", func(*testing.T) {
+		flight := FleetFlight{
+			Source:      Coordinate{1, 2, 3},
+			Destination: Coordinate{1, 2, 3},
+		}
+
+		assert.False(t, flight.HasDistinctSourceAndDestination())
+	})
+}
