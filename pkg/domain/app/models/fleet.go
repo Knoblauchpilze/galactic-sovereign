@@ -7,9 +7,11 @@ import (
 )
 
 type Fleet struct {
-	Id          uuid.UUID
-	Player      uuid.UUID
-	Source      uuid.UUID
+	Id     uuid.UUID
+	Player uuid.UUID
+	Source uuid.UUID
+	// TODO: Properly handle this
+	Mission     FleetMission
 	Destination FleetDestination
 	Ships       []FleetShip
 	CreatedAt   time.Time
