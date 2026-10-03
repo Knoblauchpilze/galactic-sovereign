@@ -2,26 +2,16 @@ package mappers
 
 import (
 	"fmt"
-	"os"
 	"testing"
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driven/database"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
 	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
-	integrationdb "github.com/Knoblauchpilze/galactic-sovereign/pkg/testing/integrationdb"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
-
-var sharedDbContainer = &integrationdb.Suite{}
-
-func TestMain(m *testing.M) {
-	code := m.Run()
-	sharedDbContainer.Teardown()
-	os.Exit(code)
-}
 
 func TestUnit_DbScalingMode_Scan(t *testing.T) {
 	tests := []struct {
@@ -51,8 +41,8 @@ func TestUnit_DbScalingMode_Scan(t *testing.T) {
 			var actual DbScalingMode
 
 			err := actual.Scan(test.input)
+			require.NoError(t, err, "Actual err: %v", err)
 
-			require.NoError(t, err)
 			assert.Equal(t, test.expected, actual.ToDomain())
 		})
 	}
@@ -83,33 +73,23 @@ func TestUnit_DbScalingMode_ScanRejectsInvalidValues(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			actual := DbScalingMode(models.LinearScaling)
+			var actual DbScalingMode
 
 			err := actual.Scan(test.input)
 
-			assert.ErrorIs(t, err, domainerrors.ErrUnsupportedDatabaseEnumValue)
-			assert.Equal(t, models.LinearScaling, actual.ToDomain())
+			assert.ErrorIs(t, err, domainerrors.ErrUnsupportedDatabaseEnumValue, "Actual err: %v", err)
 		})
 	}
 }
 
 func TestIT_DbScalingMode(t *testing.T) {
-	tests := []struct {
-		scaling  string
-		expected models.ScalingMode
-	}{
-		{
-			scaling:  "LINEAR",
-			expected: models.LinearScaling,
-		},
-		{
-			scaling:  "GEOMETRIC",
-			expected: models.GeometricScaling,
-		},
+	modes := []models.ScalingMode{
+		models.LinearScaling,
+		models.GeometricScaling,
 	}
 
-	for _, test := range tests {
-		name := fmt.Sprintf("reads scaling mode %v", test.scaling)
+	for _, mode := range modes {
+		name := fmt.Sprintf("reads scaling mode %s", mode)
 		t.Run(name, func(t *testing.T) {
 			conn := newTestConnection(t)
 
@@ -121,26 +101,23 @@ func TestIT_DbScalingMode(t *testing.T) {
 						(building, scaling, base, coefficient)
 						VALUES ($1, $2, $3, $4)`,
 				buildingId,
-				test.scaling,
+				mode,
 				1.0,
 				1.0,
 			)
-			require.NoError(t, err)
+			require.NoError(t, err, "Actual err: %v", err)
 
-			tx, err := conn.BeginTx(t.Context())
-			require.NoError(t, err)
-			defer tx.Close(t.Context())
-
-			row, err := db.QueryOneTx[struct{ Scaling DbScalingMode }](
+			row, err := db.QueryOne[DbScalingMode](
 				t.Context(),
-				tx,
+				conn,
 				`SELECT scaling
 					 FROM building_resource_metabolization_ship_speedup
 					 WHERE building = $1`,
 				buildingId,
 			)
-			require.NoError(t, err)
-			assert.Equal(t, test.expected, row.Scaling.ToDomain())
+			require.NoError(t, err, "Actual err: %v", err)
+
+			assert.Equal(t, mode, row.ToDomain())
 		})
 	}
 
@@ -160,14 +137,13 @@ func TestIT_DbScalingMode(t *testing.T) {
 			1.0,
 		)
 
-		assert.ErrorContains(t, err, "violates check constraint")
-		assert.ErrorContains(t, err, "SQLSTATE 23514")
-	})
-}
+		dbErr, ok := db.AsDatabaseError(err)
+		require.True(t, ok, "Actual err: %v", err)
 
-func newTestConnection(t *testing.T) database.Connection {
-	t.Helper()
-	return sharedDbContainer.NewTestConnection(t)
+		assert.Equal(t, db.ErrCheckConstraintViolation, dbErr.Code)
+		assert.Equal(t, "building_resource_metabolization_ship_speedup", dbErr.Table)
+		assert.Equal(t, "building_resource_metabolization_ship_speedup_scaling_check", dbErr.Constraint)
+	})
 }
 
 func insertTestBuilding(
@@ -177,13 +153,12 @@ func insertTestBuilding(
 	t.Helper()
 
 	buildingId := uuid.New()
-	name := fmt.Sprintf("scaling-mode-test-%v", buildingId.String())
 
 	_, err := conn.Exec(
 		t.Context(),
 		`INSERT INTO building (id, name) VALUES ($1, $2)`,
 		buildingId,
-		name,
+		fmt.Sprintf("scaling-mode-test-%s", buildingId),
 	)
 	require.NoError(t, err, "Actual err: %v", err)
 

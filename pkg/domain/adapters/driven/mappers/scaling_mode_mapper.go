@@ -9,7 +9,14 @@ import (
 
 type DbScalingMode models.ScalingMode
 
-var _ sql.Scanner = (*DbScalingMode)(nil)
+var (
+	_ sql.Scanner = (*DbScalingMode)(nil)
+
+	allScalingModes = map[DbScalingMode]struct{}{
+		DbScalingMode(models.LinearScaling):    {},
+		DbScalingMode(models.GeometricScaling): {},
+	}
+)
 
 func (mode *DbScalingMode) Scan(value any) error {
 	if mode == nil {
@@ -27,7 +34,7 @@ func (mode *DbScalingMode) Scan(value any) error {
 	}
 
 	parsed := DbScalingMode(raw)
-	if parsed != DbScalingMode(models.LinearScaling) && parsed != DbScalingMode(models.GeometricScaling) {
+	if !validScalingMode(parsed) {
 		return domainerrors.ErrUnsupportedDatabaseEnumValue
 	}
 
@@ -37,4 +44,9 @@ func (mode *DbScalingMode) Scan(value any) error {
 
 func (mode DbScalingMode) ToDomain() models.ScalingMode {
 	return models.ScalingMode(mode)
+}
+
+func validScalingMode(mode DbScalingMode) bool {
+	_, ok := allScalingModes[mode]
+	return ok
 }
