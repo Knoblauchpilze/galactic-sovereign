@@ -507,7 +507,7 @@ func TestIT_FleetDispatcher_DispatchWorkflow(t *testing.T) {
 		upsertPlanetCoordinate(t, conn, planet2)
 
 		order := models.FleetOrder{
-			Mission:     models.MissionColonize,
+			Mission:     models.MissionTransport,
 			Destination: planet2.Coordinate,
 			Ships: []models.FleetShip{
 				{Ship: lightFighterId, Count: 3},
