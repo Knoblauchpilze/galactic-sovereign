@@ -28,3 +28,23 @@ type FleetShip struct {
 	Ship  uuid.UUID
 	Count int
 }
+
+func NewFleet(origin FleetOrigin, order FleetOrder, flight FleetFlight) (Fleet, error) {
+	fleet := Fleet{
+		Id:     uuid.New(),
+		Player: origin.Player,
+		Source: origin.Source,
+		Destination: FleetDestination{
+			Coordinate: flight.Destination,
+			Target:     flight.Target,
+		},
+		Ships:     order.Ships,
+		CreatedAt: flight.StartTime,
+		ArrivalAt: flight.ArrivalTime(),
+		ReturnAt:  flight.ReturnTime(),
+		UpdatedAt: flight.StartTime,
+		Version:   0,
+	}
+
+	return fleet, nil
+}
