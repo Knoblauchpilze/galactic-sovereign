@@ -1,4 +1,5 @@
 //go:generate go run go.uber.org/mock/mockgen -source=../ports/driven/for_checking_database_connection.go -destination=drivenportstest/database_mocks.go -package=drivenportstest
+//go:generate go run go.uber.org/mock/mockgen -source=../ports/driven/for_deleting_planet.go -destination=drivenportstest/delete_planet_mocks.go -package=drivenportstest
 //go:generate go run go.uber.org/mock/mockgen -source=../ports/driven/for_dispatching_fleet.go -destination=drivenportstest/dispatch_fleet_mocks.go -package=drivenportstest
 //go:generate go run go.uber.org/mock/mockgen -source=../ports/driven/for_fetching_time.go -destination=drivenportstest/time_mocks.go -package=drivenportstest
 //go:generate go run go.uber.org/mock/mockgen -source=../ports/driven/for_fetching_building.go -destination=drivenportstest/buildings_mocks.go -package=drivenportstest
