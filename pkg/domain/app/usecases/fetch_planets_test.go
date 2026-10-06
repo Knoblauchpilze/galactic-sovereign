@@ -30,17 +30,17 @@ var (
 
 type MutatorMock func(context.Context, uuid.UUID, drivenports.PlanetMutator) (models.PlanetMutationResult, error)
 
-type planetTestSuite struct {
+type fetchPlanetsTestSuite struct {
 	ctrl              *gomock.Controller
 	mockPlanetRepo    *drivenportstest.MockForListingPlanets
 	mockPlanetMutator *drivenportstest.MockForMutatingPlanet
 	mockClock         *drivenportstest.MockForFetchingTime
-	usecase           *PlanetUseCase
+	usecase           *FetchPlanetsUseCase
 }
 
 func TestUnit_ManagePlanet_Get(t *testing.T) {
 	t.Run("gets existing planet through mutator", func(t *testing.T) {
-		suite := setupPlanetTestSuite(t)
+		suite := setupFetchPlanetsTestSuite(t)
 		expected := models.Planet{
 			Id:   uuid.New(),
 			Name: "my-planet",
@@ -59,7 +59,7 @@ func TestUnit_ManagePlanet_Get(t *testing.T) {
 	})
 
 	t.Run("updates planet to current time", func(t *testing.T) {
-		suite := setupPlanetTestSuite(t)
+		suite := setupFetchPlanetsTestSuite(t)
 		planet := models.Planet{
 			Id:        uuid.New(),
 			Player:    uuid.New(),
@@ -90,7 +90,7 @@ func TestUnit_ManagePlanet_Get(t *testing.T) {
 	})
 
 	t.Run("does not apply action when current time is before completion time", func(t *testing.T) {
-		suite := setupPlanetTestSuite(t)
+		suite := setupFetchPlanetsTestSuite(t)
 		planet := models.Planet{
 			Id:        uuid.New(),
 			Player:    uuid.New(),
@@ -131,7 +131,7 @@ func TestUnit_ManagePlanet_Get(t *testing.T) {
 	})
 
 	t.Run("apply action when current time is after completion time", func(t *testing.T) {
-		suite := setupPlanetTestSuite(t)
+		suite := setupFetchPlanetsTestSuite(t)
 		planet := models.Planet{
 			Id:        uuid.New(),
 			Player:    uuid.New(),
@@ -176,7 +176,7 @@ func TestUnit_ManagePlanet_Get(t *testing.T) {
 	})
 
 	t.Run("returns error when mutator fails", func(t *testing.T) {
-		suite := setupPlanetTestSuite(t)
+		suite := setupFetchPlanetsTestSuite(t)
 
 		suite.mockClock.EXPECT().Now(gomock.Any()).Times(1).Return(t2)
 		expectedErr := errors.New("stubbed error")
@@ -191,7 +191,7 @@ func TestUnit_ManagePlanet_Get(t *testing.T) {
 	})
 
 	t.Run("returns error when planet is deleted during mutation", func(t *testing.T) {
-		suite := setupPlanetTestSuite(t)
+		suite := setupFetchPlanetsTestSuite(t)
 		planetId := uuid.New()
 
 		suite.mockClock.EXPECT().Now(gomock.Any()).Times(1).Return(t2)
@@ -208,7 +208,7 @@ func TestUnit_ManagePlanet_Get(t *testing.T) {
 
 func TestUnit_ManagePlanet_ListForPlayer(t *testing.T) {
 	t.Run("lists existing planets through mutator", func(t *testing.T) {
-		suite := setupPlanetTestSuite(t)
+		suite := setupFetchPlanetsTestSuite(t)
 		player := uuid.New()
 		p1 := models.Planet{Id: uuid.New(), Player: player, Name: "planet-1", CreatedAt: t1, UpdatedAt: t1}
 		p2 := models.Planet{Id: uuid.New(), Player: player, Name: "planet-2", CreatedAt: t1, UpdatedAt: t1}
@@ -235,7 +235,7 @@ func TestUnit_ManagePlanet_ListForPlayer(t *testing.T) {
 	})
 
 	t.Run("updates all planet to same time", func(t *testing.T) {
-		suite := setupPlanetTestSuite(t)
+		suite := setupFetchPlanetsTestSuite(t)
 		player := uuid.New()
 		p1 := models.Planet{
 			Id:        uuid.New(),
@@ -293,7 +293,7 @@ func TestUnit_ManagePlanet_ListForPlayer(t *testing.T) {
 	})
 
 	t.Run("does not apply action when current time is before completion time", func(t *testing.T) {
-		suite := setupPlanetTestSuite(t)
+		suite := setupFetchPlanetsTestSuite(t)
 		player := uuid.New()
 		p1 := models.Planet{
 			Id:        uuid.New(),
@@ -367,7 +367,7 @@ func TestUnit_ManagePlanet_ListForPlayer(t *testing.T) {
 	})
 
 	t.Run("apply action when current time is after completion time", func(t *testing.T) {
-		suite := setupPlanetTestSuite(t)
+		suite := setupFetchPlanetsTestSuite(t)
 		player := uuid.New()
 		p1 := models.Planet{
 			Id:        uuid.New(),
@@ -439,7 +439,7 @@ func TestUnit_ManagePlanet_ListForPlayer(t *testing.T) {
 	})
 
 	t.Run("returns error when repository fails", func(t *testing.T) {
-		suite := setupPlanetTestSuite(t)
+		suite := setupFetchPlanetsTestSuite(t)
 		expectedErr := errors.New("stubbed error")
 
 		suite.mockClock.EXPECT().Now(gomock.Any()).Times(1).Return(t4)
@@ -458,7 +458,7 @@ func TestUnit_ManagePlanet_ListForPlayer(t *testing.T) {
 	})
 
 	t.Run("does not return planet when it is deleted during mutation", func(t *testing.T) {
-		suite := setupPlanetTestSuite(t)
+		suite := setupFetchPlanetsTestSuite(t)
 		player := uuid.New()
 		p1 := models.Planet{
 			Id:        uuid.New(),
@@ -501,91 +501,7 @@ func TestUnit_ManagePlanet_ListForPlayer(t *testing.T) {
 	})
 }
 
-func TestUnit_ManagePlanet_Delete(t *testing.T) {
-	t.Run("deletes existing planet through mutator", func(t *testing.T) {
-		suite := setupPlanetTestSuite(t)
-		id := uuid.New()
-
-		suite.mockClock.EXPECT().Now(gomock.Any()).Times(1).Return(t2)
-		suite.mockPlanetMutator.EXPECT().
-			Mutate(gomock.Any(), gomock.Eq(id), gomock.Any()).
-			Times(1).
-			Return(models.PlanetMutationResult{Deleted: true}, nil)
-
-		err := suite.usecase.Delete(t.Context(), id)
-		require.NoError(t, err, "Actual err: %v", err)
-	})
-
-	t.Run("returns error when planet has a building action", func(t *testing.T) {
-		suite := setupPlanetTestSuite(t)
-		id := uuid.New()
-
-		suite.mockClock.EXPECT().Now(gomock.Any()).Times(1).Return(t2)
-		suite.mockPlanetMutator.EXPECT().
-			Mutate(gomock.Any(), gomock.Eq(id), gomock.Any()).
-			Times(1).
-			Return(models.PlanetMutationResult{}, domainerrors.ErrBuildingActionNotCompleted)
-
-		err := suite.usecase.Delete(t.Context(), id)
-
-		assert.ErrorIs(t, err, domainerrors.ErrBuildingActionNotCompleted, "Actual err: %v", err)
-	})
-
-	t.Run("returns error when planet has ship action", func(t *testing.T) {
-		suite := setupPlanetTestSuite(t)
-		id := uuid.New()
-
-		suite.mockClock.EXPECT().Now(gomock.Any()).Times(1).Return(t2)
-		suite.mockPlanetMutator.EXPECT().
-			Mutate(gomock.Any(), gomock.Eq(id), gomock.Any()).
-			Times(1).
-			Return(models.PlanetMutationResult{}, domainerrors.ErrShipActionNotCompleted)
-
-		err := suite.usecase.Delete(t.Context(), id)
-
-		assert.ErrorIs(t, err, domainerrors.ErrShipActionNotCompleted, "Actual err: %v", err)
-	})
-
-	t.Run("returns error when mutator returns no error but does not mark the planet as deleted", func(t *testing.T) {
-		suite := setupPlanetTestSuite(t)
-		id := uuid.New()
-
-		suite.mockClock.EXPECT().Now(gomock.Any()).Times(1).Return(t2)
-		suite.mockPlanetMutator.EXPECT().
-			Mutate(gomock.Any(), gomock.Eq(id), gomock.Any()).
-			Times(1).
-			Return(models.PlanetMutationResult{Deleted: false}, nil)
-
-		err := suite.usecase.Delete(t.Context(), id)
-
-		assert.ErrorIs(t, err, domainerrors.ErrPlanetDeletionFailed, "Actual err: %v", err)
-	})
-
-	t.Run("returns error when homeworld is deleted", func(t *testing.T) {
-		suite := setupPlanetTestSuite(t)
-		planet := models.Planet{
-			Id:        uuid.New(),
-			Player:    uuid.New(),
-			Name:      "my-planet",
-			Homeworld: true,
-			CreatedAt: t1,
-			UpdatedAt: t1,
-			Version:   2,
-		}
-
-		suite.mockClock.EXPECT().Now(gomock.Any()).Times(1).Return(t2)
-		suite.mockPlanetMutator.EXPECT().
-			Mutate(gomock.Any(), gomock.Eq(planet.Id), gomock.Any()).
-			Times(1).
-			DoAndReturn(generateApplyingMutatorMock(&planet))
-
-		err := suite.usecase.Delete(t.Context(), planet.Id)
-
-		assert.ErrorIs(t, err, domainerrors.ErrHomeworldCannotBeDeleted, "Actual err: %v", err)
-	})
-}
-
-func setupPlanetTestSuite(t *testing.T) *planetTestSuite {
+func setupFetchPlanetsTestSuite(t *testing.T) *fetchPlanetsTestSuite {
 	t.Helper()
 
 	ctrl := gomock.NewController(t)
@@ -593,12 +509,12 @@ func setupPlanetTestSuite(t *testing.T) *planetTestSuite {
 	mockPlanetMutator := drivenportstest.NewMockForMutatingPlanet(ctrl)
 	mockClock := drivenportstest.NewMockForFetchingTime(ctrl)
 
-	return &planetTestSuite{
+	return &fetchPlanetsTestSuite{
 		ctrl:              ctrl,
 		mockPlanetRepo:    mockPlanetRepo,
 		mockPlanetMutator: mockPlanetMutator,
 		mockClock:         mockClock,
-		usecase:           NewPlanetUseCase(mockPlanetRepo, mockPlanetMutator, mockClock),
+		usecase:           NewFetchPlanetsUseCase(mockPlanetRepo, mockPlanetMutator, mockClock),
 	}
 }
 

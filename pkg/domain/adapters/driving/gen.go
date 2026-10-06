@@ -3,8 +3,9 @@
 //go:generate go run go.uber.org/mock/mockgen -source=../../app/ports/driving/for_creating_fleet.go -destination=drivingportstest/create_fleet_mocks.go -package=drivingportstest
 //go:generate go run go.uber.org/mock/mockgen -source=../../app/ports/driving/for_creating_ship_action.go -destination=drivingportstest/create_ship_action_mocks.go -package=drivingportstest
 //go:generate go run go.uber.org/mock/mockgen -source=../../app/ports/driving/for_deleting_building_action.go -destination=drivingportstest/deleting_building_action_mocks.go -package=drivingportstest
+//go:generate go run go.uber.org/mock/mockgen -source=../../app/ports/driving/for_deleting_planet.go -destination=drivingportstest/delete_planet_mocks.go -package=drivingportstest
+//go:generate go run go.uber.org/mock/mockgen -source=../../app/ports/driving/for_fetching_planets.go -destination=drivingportstest/fetch_planets_mocks.go -package=drivingportstest
 //go:generate go run go.uber.org/mock/mockgen -source=../../app/ports/driving/for_fetching_solar_system.go -destination=drivingportstest/fetching_solar_system_mocks.go -package=drivingportstest
-//go:generate go run go.uber.org/mock/mockgen -source=../../app/ports/driving/for_managing_planet.go -destination=drivingportstest/planet_mocks.go -package=drivingportstest
 //go:generate go run go.uber.org/mock/mockgen -source=../../app/ports/driving/for_managing_player.go -destination=drivingportstest/player_mocks.go -package=drivingportstest
 //go:generate go run go.uber.org/mock/mockgen -source=../../app/ports/driving/for_managing_universe.go -destination=drivingportstest/universe_mocks.go -package=drivingportstest
 

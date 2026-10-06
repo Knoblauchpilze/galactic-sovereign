@@ -80,9 +80,10 @@ func registerPlanetsRoutes(
 	planetMutator := drivenadapters.NewPlanetMutator(conn)
 	clock := drivenadapters.NewTimeAdapter()
 
-	usecase := usecases.NewPlanetUseCase(planetRepo, planetMutator, clock)
+	fetchUsecase := usecases.NewFetchPlanetsUseCase(planetRepo, planetMutator, clock)
+	deleteUsecase := usecases.NewDeletePlanetUseCase(planetMutator, clock)
 
-	for _, route := range drivingadapters.PlanetEndpoints(usecase) {
+	for _, route := range drivingadapters.PlanetEndpoints(fetchUsecase, deleteUsecase) {
 		if err := s.AddRoute(route); err != nil {
 			log.Error("Failed to register route", slog.String("route", route.Path()), slog.Any("error", err))
 		}

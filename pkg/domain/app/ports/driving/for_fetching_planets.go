@@ -7,8 +7,7 @@ import (
 	"github.com/google/uuid"
 )
 
-type ForManagingPlanet interface {
+type ForFetchingPlanets interface {
 	Get(ctx context.Context, id uuid.UUID) (models.Planet, error)
 	ListForPlayer(ctx context.Context, player uuid.UUID) ([]models.Planet, error)
-	Delete(ctx context.Context, id uuid.UUID) error
 }

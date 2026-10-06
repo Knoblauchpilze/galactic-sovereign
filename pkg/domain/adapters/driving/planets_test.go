@@ -22,10 +22,10 @@ func TestUnit_Planets_GetPlanet(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	ctrl := gomock.NewController(t)
-	mockUsecase := drivingportstest.NewMockForManagingPlanet(ctrl)
+	mockUsecase := drivingportstest.NewMockForFetchingPlanets(ctrl)
 
 	t.Run("returns 400 when id is invalid", func(t *testing.T) {
-		handler := generateHandler[drivingports.ForManagingPlanet](
+		handler := generateHandler[drivingports.ForFetchingPlanets](
 			getPlanet,
 			mockUsecase,
 		)
@@ -112,7 +112,7 @@ func TestUnit_Planets_GetPlanet(t *testing.T) {
 			Times(1).
 			Return(planet, nil)
 
-		handler := generateHandler[drivingports.ForManagingPlanet](
+		handler := generateHandler[drivingports.ForFetchingPlanets](
 			getPlanet,
 			mockUsecase,
 		)
@@ -208,7 +208,7 @@ func TestUnit_Planets_GetPlanet(t *testing.T) {
 			Times(1).
 			Return(planet, nil)
 
-		handler := generateHandler[drivingports.ForManagingPlanet](
+		handler := generateHandler[drivingports.ForFetchingPlanets](
 			getPlanet,
 			mockUsecase,
 		)
@@ -242,7 +242,7 @@ func TestUnit_Planets_GetPlanet(t *testing.T) {
 			Times(1).
 			Return(models.Planet{}, domainerrors.ErrNotFound)
 
-		handler := generateHandler[drivingports.ForManagingPlanet](
+		handler := generateHandler[drivingports.ForFetchingPlanets](
 			getPlanet,
 			mockUsecase,
 		)
@@ -263,7 +263,7 @@ func TestUnit_Planets_GetPlanet(t *testing.T) {
 			Times(1).
 			Return(models.Planet{}, errors.New("stubbed error"))
 
-		handler := generateHandler[drivingports.ForManagingPlanet](
+		handler := generateHandler[drivingports.ForFetchingPlanets](
 			getPlanet,
 			mockUsecase,
 		)
@@ -283,10 +283,10 @@ func TestUnit_Planets_ListPlanetsForPlayer(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	ctrl := gomock.NewController(t)
-	mockUsecase := drivingportstest.NewMockForManagingPlanet(ctrl)
+	mockUsecase := drivingportstest.NewMockForFetchingPlanets(ctrl)
 
 	t.Run("returns 400 when player id is invalid", func(t *testing.T) {
-		handler := generateHandler[drivingports.ForManagingPlanet](
+		handler := generateHandler[drivingports.ForFetchingPlanets](
 			listPlanetsForPlayer,
 			mockUsecase,
 		)
@@ -312,7 +312,7 @@ func TestUnit_Planets_ListPlanetsForPlayer(t *testing.T) {
 			Times(1).
 			Return(planets, nil)
 
-		handler := generateHandler[drivingports.ForManagingPlanet](
+		handler := generateHandler[drivingports.ForFetchingPlanets](
 			listPlanetsForPlayer,
 			mockUsecase,
 		)
@@ -358,7 +358,7 @@ func TestUnit_Planets_ListPlanetsForPlayer(t *testing.T) {
 			Times(1).
 			Return([]models.Planet{}, nil)
 
-		handler := generateHandler[drivingports.ForManagingPlanet](
+		handler := generateHandler[drivingports.ForFetchingPlanets](
 			listPlanetsForPlayer,
 			mockUsecase,
 		)
@@ -380,7 +380,7 @@ func TestUnit_Planets_ListPlanetsForPlayer(t *testing.T) {
 			Times(1).
 			Return(nil, nil)
 
-		handler := generateHandler[drivingports.ForManagingPlanet](
+		handler := generateHandler[drivingports.ForFetchingPlanets](
 			listPlanetsForPlayer,
 			mockUsecase,
 		)
@@ -402,7 +402,7 @@ func TestUnit_Planets_ListPlanetsForPlayer(t *testing.T) {
 			Times(1).
 			Return([]models.Planet{}, errors.New("stubbed error"))
 
-		handler := generateHandler[drivingports.ForManagingPlanet](
+		handler := generateHandler[drivingports.ForFetchingPlanets](
 			listPlanetsForPlayer,
 			mockUsecase,
 		)
@@ -423,10 +423,10 @@ func TestUnit_Planets_DeletePlanet(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	ctrl := gomock.NewController(t)
-	mockUsecase := drivingportstest.NewMockForManagingPlanet(ctrl)
+	mockUsecase := drivingportstest.NewMockForDeletingPlanet(ctrl)
 
 	t.Run("returns 400 when id is invalid", func(t *testing.T) {
-		handler := generateHandler[drivingports.ForManagingPlanet](
+		handler := generateHandler[drivingports.ForDeletingPlanet](
 			deletePlanet,
 			mockUsecase,
 		)
@@ -447,7 +447,7 @@ func TestUnit_Planets_DeletePlanet(t *testing.T) {
 			Times(1).
 			Return(nil)
 
-		handler := generateHandler[drivingports.ForManagingPlanet](
+		handler := generateHandler[drivingports.ForDeletingPlanet](
 			deletePlanet,
 			mockUsecase,
 		)
@@ -466,7 +466,7 @@ func TestUnit_Planets_DeletePlanet(t *testing.T) {
 			Times(1).
 			Return(domainerrors.ErrBuildingActionNotCompleted)
 
-		handler := generateHandler[drivingports.ForManagingPlanet](
+		handler := generateHandler[drivingports.ForDeletingPlanet](
 			deletePlanet,
 			mockUsecase,
 		)
@@ -487,7 +487,7 @@ func TestUnit_Planets_DeletePlanet(t *testing.T) {
 			Times(1).
 			Return(domainerrors.ErrHomeworldCannotBeDeleted)
 
-		handler := generateHandler[drivingports.ForManagingPlanet](
+		handler := generateHandler[drivingports.ForDeletingPlanet](
 			deletePlanet,
 			mockUsecase,
 		)
@@ -508,7 +508,7 @@ func TestUnit_Planets_DeletePlanet(t *testing.T) {
 			Times(1).
 			Return(domainerrors.ErrFleetInFlight)
 
-		handler := generateHandler[drivingports.ForManagingPlanet](
+		handler := generateHandler[drivingports.ForDeletingPlanet](
 			deletePlanet,
 			mockUsecase,
 		)
@@ -529,7 +529,7 @@ func TestUnit_Planets_DeletePlanet(t *testing.T) {
 			Times(1).
 			Return(errors.New("stubbed error"))
 
-		handler := generateHandler[drivingports.ForManagingPlanet](
+		handler := generateHandler[drivingports.ForDeletingPlanet](
 			deletePlanet,
 			mockUsecase,
 		)

@@ -12,18 +12,21 @@ import (
 	"github.com/google/uuid"
 )
 
-func PlanetEndpoints(usecase drivingports.ForManagingPlanet) Routes {
+func PlanetEndpoints(
+	fetchUsecase drivingports.ForFetchingPlanets,
+	deleteUsecase drivingports.ForDeletingPlanet,
+) Routes {
 	var out Routes
 
-	handler := generateHandler(getPlanet, usecase)
+	handler := generateHandler(getPlanet, fetchUsecase)
 	get := rest.NewRoute(http.MethodGet, "/planets/:id", handler)
 	out = append(out, get)
 
-	handler = generateHandler(listPlanetsForPlayer, usecase)
+	handler = generateHandler(listPlanetsForPlayer, fetchUsecase)
 	list := rest.NewRoute(http.MethodGet, "/players/:id/planets", handler)
 	out = append(out, list)
 
-	handler = generateHandler(deletePlanet, usecase)
+	handler = generateHandler(deletePlanet, deleteUsecase)
 	delete := rest.NewRoute(http.MethodDelete, "/planets/:id", handler)
 	out = append(out, delete)
 
@@ -42,7 +45,7 @@ func PlanetEndpoints(usecase drivingports.ForManagingPlanet) Routes {
 //	@Failure		404	{object}	rest.ResponseEnvelope[string]
 //	@Failure		500	{object}	rest.ResponseEnvelope[string]
 //	@Router			/planets/{id} [get]
-func getPlanet(c *gin.Context, usecase drivingports.ForManagingPlanet) {
+func getPlanet(c *gin.Context, usecase drivingports.ForFetchingPlanets) {
 	maybeId := c.Param("id")
 	id, err := uuid.Parse(maybeId)
 	if err != nil {
@@ -77,7 +80,7 @@ func getPlanet(c *gin.Context, usecase drivingports.ForManagingPlanet) {
 //	@Failure		400		{object}	rest.ResponseEnvelope[string]
 //	@Failure		500		{object}	rest.ResponseEnvelope[string]
 //	@Router			/players/{id}/planets [get]
-func listPlanetsForPlayer(c *gin.Context, usecase drivingports.ForManagingPlanet) {
+func listPlanetsForPlayer(c *gin.Context, usecase drivingports.ForFetchingPlanets) {
 	maybeId := c.Param("id")
 	playerId, err := uuid.Parse(maybeId)
 	if err != nil {
@@ -110,7 +113,7 @@ func listPlanetsForPlayer(c *gin.Context, usecase drivingports.ForManagingPlanet
 //	@Failure		409	{object}	rest.ResponseEnvelope[string]
 //	@Failure		500	{object}	rest.ResponseEnvelope[string]
 //	@Router			/planets/{id} [delete]
-func deletePlanet(c *gin.Context, usecase drivingports.ForManagingPlanet) {
+func deletePlanet(c *gin.Context, usecase drivingports.ForDeletingPlanet) {
 	maybeId := c.Param("id")
 	id, err := uuid.Parse(maybeId)
 	if err != nil {
