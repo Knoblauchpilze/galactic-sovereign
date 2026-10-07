@@ -49,24 +49,21 @@ func (b *CreateBuildingActionUseCase) Create(
 	if err != nil {
 		return models.BuildingAction{}, err
 	}
-	if result.Deleted {
-		return models.BuildingAction{}, domainerrors.ErrNotFound
-	}
 
-	if result.Planet.BuildingAction == nil {
+	if result.BuildingAction == nil {
 		return models.BuildingAction{}, domainerrors.ErrResourceCreationFailed
 	}
 
-	return *result.Planet.BuildingAction, nil
+	return *result.BuildingAction, nil
 }
 
 func generateBuildingActionMutator(moment time.Time, building models.Building) drivenports.PlanetMutator {
-	return func(p *models.Planet) (bool, error) {
+	return func(p *models.Planet) error {
 		err := domainservices.AdvancePlanetToTime(p, moment)
 		if err != nil {
-			return false, err
+			return err
 		}
 
-		return false, p.AddBuildingAction(building)
+		return p.AddBuildingAction(building)
 	}
 }

@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
-	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
 	drivenports "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driven"
 	domainservices "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/services"
 	"github.com/google/uuid"
@@ -36,11 +35,7 @@ func (p *FetchPlanetsUseCase) Get(ctx context.Context, id uuid.UUID) (models.Pla
 		return models.Planet{}, err
 	}
 
-	if result.Deleted {
-		return models.Planet{}, domainerrors.ErrNotFound
-	}
-
-	return result.Planet, nil
+	return result, nil
 }
 
 func (p *FetchPlanetsUseCase) ListForPlayer(ctx context.Context, player uuid.UUID) ([]models.Planet, error) {
@@ -59,16 +54,14 @@ func (p *FetchPlanetsUseCase) ListForPlayer(ctx context.Context, player uuid.UUI
 			return nil, err
 		}
 
-		if !result.Deleted {
-			out = append(out, result.Planet)
-		}
+		out = append(out, result)
 	}
 
 	return out, nil
 }
 
 func generateUpdateMutator(moment time.Time) drivenports.PlanetMutator {
-	return func(p *models.Planet) (bool, error) {
-		return false, domainservices.AdvancePlanetToTime(p, moment)
+	return func(p *models.Planet) error {
+		return domainservices.AdvancePlanetToTime(p, moment)
 	}
 }

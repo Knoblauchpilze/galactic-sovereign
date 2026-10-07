@@ -119,20 +119,19 @@ func TestIT_PlanetMutator_GetBehavior(t *testing.T) {
 			planet := tc.generator(t, conn)
 
 			var captured models.Planet
-			mutator := func(p *models.Planet) (bool, error) {
+			mutator := func(p *models.Planet) error {
 				captured = *p
 				p.Version++
-				return false, nil
+				return nil
 			}
 
-			returned, err := adapter.Mutate(t.Context(), planet.Id, mutator)
+			actual, err := adapter.Mutate(t.Context(), planet.Id, mutator)
 			require.NoError(t, err, "Actual err: %v", err)
 
 			assert.Equal(t, planet, captured)
 			expected := planet
 			expected.Version++
-			assert.False(t, returned.Deleted)
-			assert.Equal(t, expected, returned.Planet)
+			assert.Equal(t, expected, actual)
 		})
 	}
 }

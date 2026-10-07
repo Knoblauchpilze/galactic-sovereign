@@ -175,28 +175,6 @@ func TestUnit_CreateShipAction_Create(t *testing.T) {
 		assert.Equal(t, expected, planet)
 	})
 
-	t.Run("returns error when planet is deleted", func(t *testing.T) {
-		suite := setupCreateShipActionTestSuite(t)
-
-		planet := generateTestPlanetWithShip()
-		ship := generateTestShip(planet)
-		request := generateTestShipActionRequest(planet)
-
-		suite.mockClock.EXPECT().Now(gomock.Any()).Times(1).Return(t2)
-		suite.mockShipRepo.EXPECT().
-			Get(gomock.Any(), ship.Id).
-			Times(1).
-			Return(ship, nil)
-		suite.mockMutator.EXPECT().
-			Mutate(gomock.Any(), planet.Id, gomock.Any()).
-			Times(1).
-			Return(models.PlanetMutationResult{Deleted: true}, nil)
-
-		_, err := suite.usecase.Create(t.Context(), request)
-
-		assert.ErrorIs(t, err, domainerrors.ErrNotFound, "Actual err: %v", err)
-	})
-
 	t.Run("appends action when planet already has an action running", func(t *testing.T) {
 		suite := setupCreateShipActionTestSuite(t)
 

@@ -49,15 +49,12 @@ func (b *CreateShipActionUseCase) Create(
 	if err != nil {
 		return models.ShipAction{}, err
 	}
-	if result.Deleted {
-		return models.ShipAction{}, domainerrors.ErrNotFound
-	}
 
-	if len(result.Planet.ShipActions) == 0 {
+	if len(result.ShipActions) == 0 {
 		return models.ShipAction{}, domainerrors.ErrResourceCreationFailed
 	}
 
-	last := result.Planet.ShipActions[len(result.Planet.ShipActions)-1]
+	last := result.ShipActions[len(result.ShipActions)-1]
 	return last, nil
 }
 
@@ -66,12 +63,12 @@ func generateShipActionMutator(
 	ship models.Ship,
 	count int,
 ) drivenports.PlanetMutator {
-	return func(p *models.Planet) (bool, error) {
+	return func(p *models.Planet) error {
 		err := domainservices.AdvancePlanetToTime(p, moment)
 		if err != nil {
-			return false, err
+			return err
 		}
 
-		return false, p.AddShipAction(ship, count)
+		return p.AddShipAction(ship, count)
 	}
 }

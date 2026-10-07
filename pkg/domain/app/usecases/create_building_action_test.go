@@ -166,28 +166,6 @@ func TestUnit_CreateBuildingAction_Create(t *testing.T) {
 		assert.Equal(t, expected, planet)
 	})
 
-	t.Run("returns error when planet is deleted", func(t *testing.T) {
-		suite := setupCreateBuildingActionTestSuite(t)
-
-		planet := generateTestPlanetWithBuilding()
-		building := generateTestBuilding(planet)
-		request := generateTestBuildingActionRequest(planet)
-
-		suite.mockClock.EXPECT().Now(gomock.Any()).Times(1).Return(t2)
-		suite.mockBuildingRepo.EXPECT().
-			Get(gomock.Any(), building.Id).
-			Times(1).
-			Return(building, nil)
-		suite.mockMutator.EXPECT().
-			Mutate(gomock.Any(), planet.Id, gomock.Any()).
-			Times(1).
-			Return(models.PlanetMutationResult{Deleted: true}, nil)
-
-		_, err := suite.usecase.Create(t.Context(), request)
-
-		assert.ErrorIs(t, err, domainerrors.ErrNotFound, "Actual err: %v", err)
-	})
-
 	t.Run("returns error when planet already has an action running", func(t *testing.T) {
 		suite := setupCreateBuildingActionTestSuite(t)
 

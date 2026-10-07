@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
-	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/usecases/drivenportstest"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -98,22 +97,6 @@ func TestUnit_DeleteBuildingAction_DeleteForPlanet(t *testing.T) {
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Nil(t, planet.BuildingAction)
-	})
-
-	t.Run("returns error when planet is deleted", func(t *testing.T) {
-		suite := setupDeleteBuildingActionTestSuite(t)
-
-		planet := generateTestPlanetWithBuilding()
-
-		suite.mockClock.EXPECT().Now(gomock.Any()).Times(1).Return(t2)
-		suite.mockMutator.EXPECT().
-			Mutate(gomock.Any(), planet.Id, gomock.Any()).
-			Times(1).
-			Return(models.PlanetMutationResult{Deleted: true}, nil)
-
-		err := suite.usecase.DeleteForPlanet(t.Context(), planet.Id)
-
-		assert.ErrorIs(t, err, domainerrors.ErrNotFound, "Actual err: %v", err)
 	})
 }
 

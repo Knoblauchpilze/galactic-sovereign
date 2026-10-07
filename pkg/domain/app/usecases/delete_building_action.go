@@ -33,33 +33,30 @@ func (b *DeleteBuildingActionUseCase) DeleteForPlanet(
 	moment := b.clock.Now(ctx)
 
 	mutator := generateActionDeletionMutator(moment)
-	result, err := b.planetMutator.Mutate(ctx, planet, mutator)
+	_, err := b.planetMutator.Mutate(ctx, planet, mutator)
 	if err != nil {
 		return err
-	}
-	if result.Deleted {
-		return domainerrors.ErrNotFound
 	}
 
 	return nil
 }
 
 func generateActionDeletionMutator(moment time.Time) drivenports.PlanetMutator {
-	return func(p *models.Planet) (bool, error) {
+	return func(p *models.Planet) error {
 		err := domainservices.AdvancePlanetToTime(p, moment)
 		if err != nil {
-			return false, err
+			return err
 		}
 
 		err = p.CancelBuildingAction()
 		if err != nil {
 			if err == domainerrors.ErrNoActionInProgress {
-				return false, nil
+				return nil
 			}
 
-			return false, err
+			return err
 		}
 
-		return false, nil
+		return nil
 	}
 }

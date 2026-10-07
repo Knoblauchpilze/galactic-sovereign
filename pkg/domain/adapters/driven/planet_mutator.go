@@ -37,46 +37,39 @@ func (m *PlanetMutator) Mutate(
 	ctx context.Context,
 	id uuid.UUID,
 	mutator drivenports.PlanetMutator,
-) (models.PlanetMutationResult, error) {
+) (models.Planet, error) {
 	tx, err := m.conn.BeginTx(ctx)
 	if err != nil {
-		return models.PlanetMutationResult{}, err
+		return models.Planet{}, err
 	}
 	defer tx.Close(ctx)
 
 	actual, err := db.QueryOneTx[uuid.UUID](ctx, tx, lockPlanetForUpdateQuery, id)
 	if err != nil {
-		return models.PlanetMutationResult{}, parseDbError(err)
+		return models.Planet{}, parseDbError(err)
 	}
 	if actual != id {
-		return models.PlanetMutationResult{}, domainerrors.ErrNotFound
+		return models.Planet{}, domainerrors.ErrNotFound
 	}
 
 	planet, err := loadPlanetAndDetails(ctx, tx, id)
 	if err != nil {
-		return models.PlanetMutationResult{}, err
+		return models.Planet{}, err
 	}
 
 	expectedVersion := planet.Version
 
-	deleted, err := mutator(&planet)
+	err = mutator(&planet)
 	if err != nil {
 		// There's no point in checking the error here: it is not logged
 		// and there's already an error pending.
 		// nolint:errcheck
 		tx.Rollback()
 
-		return models.PlanetMutationResult{}, err
+		return models.Planet{}, err
 	}
 
-	out := models.PlanetMutationResult{Deleted: deleted}
-
-	if deleted {
-		err = deletePlanetAndDetails(ctx, tx, id)
-		return out, err
-	}
-
-	out.Planet, err = saveAndReloadPlanet(ctx, tx, planet, expectedVersion)
+	out, err := saveAndReloadPlanet(ctx, tx, planet, expectedVersion)
 	if err != nil {
 		return out, err
 	}
