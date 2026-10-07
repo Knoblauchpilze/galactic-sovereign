@@ -18,32 +18,32 @@ import (
 	gomock "go.uber.org/mock/gomock"
 )
 
-// MockForFeletingPlanet is a mock of ForFeletingPlanet interface.
-type MockForFeletingPlanet struct {
+// MockForDeletingPlanet is a mock of ForDeletingPlanet interface.
+type MockForDeletingPlanet struct {
 	ctrl     *gomock.Controller
-	recorder *MockForFeletingPlanetMockRecorder
+	recorder *MockForDeletingPlanetMockRecorder
 	isgomock struct{}
 }
 
-// MockForFeletingPlanetMockRecorder is the mock recorder for MockForFeletingPlanet.
-type MockForFeletingPlanetMockRecorder struct {
-	mock *MockForFeletingPlanet
+// MockForDeletingPlanetMockRecorder is the mock recorder for MockForDeletingPlanet.
+type MockForDeletingPlanetMockRecorder struct {
+	mock *MockForDeletingPlanet
 }
 
-// NewMockForFeletingPlanet creates a new mock instance.
-func NewMockForFeletingPlanet(ctrl *gomock.Controller) *MockForFeletingPlanet {
-	mock := &MockForFeletingPlanet{ctrl: ctrl}
-	mock.recorder = &MockForFeletingPlanetMockRecorder{mock}
+// NewMockForDeletingPlanet creates a new mock instance.
+func NewMockForDeletingPlanet(ctrl *gomock.Controller) *MockForDeletingPlanet {
+	mock := &MockForDeletingPlanet{ctrl: ctrl}
+	mock.recorder = &MockForDeletingPlanetMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockForFeletingPlanet) EXPECT() *MockForFeletingPlanetMockRecorder {
+func (m *MockForDeletingPlanet) EXPECT() *MockForDeletingPlanetMockRecorder {
 	return m.recorder
 }
 
 // Delete mocks base method.
-func (m *MockForFeletingPlanet) Delete(ctx context.Context, id uuid.UUID, deleter drivenports.PlanetDeleter) error {
+func (m *MockForDeletingPlanet) Delete(ctx context.Context, id uuid.UUID, deleter drivenports.PlanetDeleter) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Delete", ctx, id, deleter)
 	ret0, _ := ret[0].(error)
@@ -51,7 +51,7 @@ func (m *MockForFeletingPlanet) Delete(ctx context.Context, id uuid.UUID, delete
 }
 
 // Delete indicates an expected call of Delete.
-func (mr *MockForFeletingPlanetMockRecorder) Delete(ctx, id, deleter any) *gomock.Call {
+func (mr *MockForDeletingPlanetMockRecorder) Delete(ctx, id, deleter any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockForFeletingPlanet)(nil).Delete), ctx, id, deleter)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockForDeletingPlanet)(nil).Delete), ctx, id, deleter)
 }

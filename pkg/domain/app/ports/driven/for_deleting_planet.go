@@ -15,7 +15,7 @@ import (
 // an error, the adapter should proceed with the planet's deletion.
 type PlanetDeleter func(*models.Planet) error
 
-type ForFeletingPlanet interface {
+type ForDeletingPlanet interface {
 	Delete(
 		ctx context.Context,
 		id uuid.UUID,
