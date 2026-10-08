@@ -2,7 +2,6 @@ package usecases
 
 import (
 	"context"
-	"time"
 
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
 	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
@@ -32,7 +31,7 @@ func (b *DeleteBuildingActionUseCase) DeleteForPlanet(
 ) error {
 	moment := b.clock.Now(ctx)
 
-	mutator := generateActionDeletionMutator(moment)
+	mutator := domainservices.AdvancePlanetToTimeThen(moment, actionDeletionMutator)
 	_, err := b.planetMutator.Mutate(ctx, planet, mutator)
 	if err != nil {
 		return err
@@ -41,22 +40,15 @@ func (b *DeleteBuildingActionUseCase) DeleteForPlanet(
 	return nil
 }
 
-func generateActionDeletionMutator(moment time.Time) drivenports.PlanetMutator {
-	return func(p *models.Planet) error {
-		err := domainservices.AdvancePlanetToTime(p, moment)
-		if err != nil {
-			return err
+func actionDeletionMutator(p *models.Planet) error {
+	err := p.CancelBuildingAction()
+	if err != nil {
+		if err == domainerrors.ErrNoActionInProgress {
+			return nil
 		}
 
-		err = p.CancelBuildingAction()
-		if err != nil {
-			if err == domainerrors.ErrNoActionInProgress {
-				return nil
-			}
-
-			return err
-		}
-
-		return nil
+		return err
 	}
+
+	return nil
 }

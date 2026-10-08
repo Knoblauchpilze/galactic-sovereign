@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
+	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
 	drivenports "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driven"
 	domainservices "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/services"
 	"github.com/google/uuid"
@@ -27,13 +28,26 @@ func NewDeletePlanetUseCase(
 func (p *DeletePlanetUseCase) Delete(ctx context.Context, id uuid.UUID) error {
 	moment := p.clock.Now(ctx)
 
-	deleter := func(p *models.Planet) error {
-		return domainservices.PlanetDeletionGuard(p, moment)
-	}
-
+	deleter := domainservices.AdvancePlanetToTimeThen(moment, planetDeletionGuard)
 	err := p.deleter.Delete(ctx, id, deleter)
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func planetDeletionGuard(p *models.Planet) error {
+	if p.Homeworld {
+		return domainerrors.ErrHomeworldCannotBeDeleted
+	}
+
+	if p.BuildingAction != nil {
+		return domainerrors.ErrBuildingActionNotCompleted
+	}
+
+	if len(p.ShipActions) > 0 {
+		return domainerrors.ErrShipActionNotCompleted
 	}
 
 	return nil

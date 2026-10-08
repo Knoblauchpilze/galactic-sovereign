@@ -2,7 +2,6 @@ package usecases
 
 import (
 	"context"
-	"time"
 
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
 	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
@@ -44,7 +43,7 @@ func (b *CreateBuildingActionUseCase) Create(
 		return models.BuildingAction{}, err
 	}
 
-	mutator := generateBuildingActionMutator(moment, building)
+	mutator := domainservices.AdvancePlanetToTimeThen(moment, generateBuildingActionMutator(building))
 	result, err := b.planetMutator.Mutate(ctx, req.Planet, mutator)
 	if err != nil {
 		return models.BuildingAction{}, err
@@ -57,13 +56,8 @@ func (b *CreateBuildingActionUseCase) Create(
 	return *result.BuildingAction, nil
 }
 
-func generateBuildingActionMutator(moment time.Time, building models.Building) drivenports.PlanetMutator {
+func generateBuildingActionMutator(building models.Building) drivenports.PlanetMutator {
 	return func(p *models.Planet) error {
-		err := domainservices.AdvancePlanetToTime(p, moment)
-		if err != nil {
-			return err
-		}
-
 		return p.AddBuildingAction(building)
 	}
 }

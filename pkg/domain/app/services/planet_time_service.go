@@ -7,6 +7,19 @@ import (
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
 )
 
+func AdvancePlanetToTimeThen(
+	moment time.Time,
+	mutation func(*models.Planet) error,
+) func(*models.Planet) error {
+	return func(planet *models.Planet) error {
+		if err := AdvancePlanetToTime(planet, moment); err != nil {
+			return err
+		}
+
+		return mutation(planet)
+	}
+}
+
 func AdvancePlanetToTime(
 	planet *models.Planet,
 	moment time.Time,
