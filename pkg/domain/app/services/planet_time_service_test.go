@@ -596,7 +596,3 @@ func generateTestShipAction(count int) models.ShipAction {
 		UnitCompletionTime: t4.Sub(t3),
 	}
 }
-
-func dummyMutator(_ *models.Planet) error {
-	return nil
-}
