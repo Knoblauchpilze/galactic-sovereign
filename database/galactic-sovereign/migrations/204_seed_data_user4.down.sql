@@ -1,4 +1,15 @@
 
+-- fleets
+DELETE FROM fleet_destination
+WHERE fleet IN (
+	SELECT id FROM fleet WHERE player = '2bab9414-7972-4483-a8b4-fdd169d0b073'
+);
+DELETE FROM fleet_ship
+WHERE fleet IN (
+	SELECT id FROM fleet WHERE player = '2bab9414-7972-4483-a8b4-fdd169d0b073'
+);
+DELETE FROM fleet WHERE player = '2bab9414-7972-4483-a8b4-fdd169d0b073';
+
 -- ship actions
 DELETE FROM ship_action
 WHERE planet IN (
