@@ -1480,8 +1480,8 @@ func insertTestFleet(
 	}
 
 	sqlQuery := `INSERT INTO
-		fleet (id, player, source, mission, created_at, arrival_at, return_at, updated_at, version)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`
+		fleet (id, player, source, mission, created_at, updated_at, version)
+		VALUES ($1, $2, $3, $4, $5, $6, $7)`
 	_, err := conn.Exec(
 		t.Context(),
 		sqlQuery,
@@ -1490,10 +1490,20 @@ func insertTestFleet(
 		fleet.Source,
 		fleet.Mission,
 		fleet.CreatedAt,
-		fleet.ArrivalAt,
-		fleet.ReturnAt,
 		fleet.UpdatedAt,
 		fleet.Version,
+	)
+	require.NoError(t, err, "Actual err: %v", err)
+
+	sqlQuery = `INSERT INTO
+		fleet_flight (fleet, arrival_at, return_at)
+		VALUES ($1, $2, $3)`
+	_, err = conn.Exec(
+		t.Context(),
+		sqlQuery,
+		fleet.Id,
+		fleet.ArrivalAt,
+		fleet.ReturnAt,
 	)
 	require.NoError(t, err, "Actual err: %v", err)
 

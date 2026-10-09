@@ -121,15 +121,13 @@ func TestIT_DbFleetMission(t *testing.T) {
 
 		_, err := conn.Exec(
 			t.Context(),
-			`INSERT INTO fleet (id, player, source, mission, created_at, arrival_at, return_at, updated_at, version)
-					VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+			`INSERT INTO fleet (id, player, source, mission, created_at, updated_at, version)
+					VALUES ($1, $2, $3, $4, $5, $6, $7)`,
 			fleet.Id,
 			fleet.Player,
 			fleet.Source,
 			"DEPOSIT",
 			fleet.CreatedAt,
-			fleet.ArrivalAt,
-			fleet.ReturnAt,
 			fleet.UpdatedAt,
 			fleet.Version,
 		)
@@ -164,15 +162,13 @@ func insertTestFleet(t *testing.T, conn database.Connection, fleet models.Fleet)
 
 	_, err := conn.Exec(
 		t.Context(),
-		`INSERT INTO fleet (id, player, source, mission, created_at, arrival_at, return_at, updated_at, version)
-					VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+		`INSERT INTO fleet (id, player, source, mission, created_at, updated_at, version)
+					VALUES ($1, $2, $3, $4, $5, $6, $7)`,
 		fleet.Id,
 		fleet.Player,
 		fleet.Source,
 		fleet.Mission,
 		fleet.CreatedAt,
-		fleet.ArrivalAt,
-		fleet.ReturnAt,
 		fleet.UpdatedAt,
 		fleet.Version,
 	)

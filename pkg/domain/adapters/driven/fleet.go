@@ -13,13 +13,18 @@ import (
 const (
 	createFleetQuery = `
 INSERT INTO
-	fleet (id, player, source, mission, created_at, arrival_at, return_at, updated_at, version)
-	VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`
+	fleet (id, player, source, mission, created_at, updated_at, version)
+	VALUES ($1, $2, $3, $4, $5, $6, $7)`
 
 	createFleetDestinationQuery = `
 INSERT INTO
 	fleet_destination (fleet, galaxy, solar_system, position, planet)
 	VALUES ($1, $2, $3, $4, $5)`
+
+	createFleetFlightQuery = `
+INSERT INTO
+	fleet_flight (fleet, arrival_at, return_at)
+	VALUES ($1, $2, $3)`
 
 	createFleetShipQuery = `
 INSERT INTO
@@ -37,13 +42,14 @@ SELECT
 	fd.position,
 	fd.planet AS target,
 	f.created_at,
-	f.arrival_at,
-	f.return_at,
+	ff.arrival_at,
+	ff.return_at,
 	f.updated_at,
 	f.version
 FROM
 	fleet AS f
 	LEFT JOIN fleet_destination AS fd ON fd.fleet = f.id
+	LEFT JOIN fleet_flight AS ff ON ff.fleet = f.id
 WHERE
 	f.id = $1`
 
@@ -70,8 +76,6 @@ func createFleetWithDetails(
 		fleet.Source,
 		fleet.Mission,
 		fleet.CreatedAt,
-		fleet.ArrivalAt,
-		fleet.ReturnAt,
 		fleet.UpdatedAt,
 		fleet.Version,
 	)
@@ -87,6 +91,17 @@ func createFleetWithDetails(
 		fleet.Destination.Coordinate.SolarSystem,
 		fleet.Destination.Coordinate.Position,
 		fleet.Destination.Target,
+	)
+	if err != nil {
+		return parseDbError(err)
+	}
+
+	_, err = tx.Exec(
+		ctx,
+		createFleetFlightQuery,
+		fleet.Id,
+		fleet.ArrivalAt,
+		fleet.ReturnAt,
 	)
 	if err != nil {
 		return parseDbError(err)
