@@ -5,8 +5,6 @@ CREATE TABLE fleet(
   source UUID NOT NULL,
   mission TEXT NOT NULL CHECK (mission IN ('COLONIZE', 'TRANSPORT')),
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
-  arrival_at TIMESTAMP WITH TIME ZONE NOT NULL,
-  return_at TIMESTAMP WITH TIME ZONE,
   updated_at TIMESTAMP WITH TIME ZONE NOT NULL,
   version INTEGER DEFAULT 0,
   PRIMARY KEY (id),
@@ -37,4 +35,12 @@ CREATE TABLE fleet_destination(
 );
 
 CREATE INDEX fleet_destination_fleet_index ON fleet_destination(fleet);
+
+CREATE TABLE fleet_flight(
+  fleet UUID NOT NULL,
+  arrival_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  return_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  FOREIGN KEY (fleet) REFERENCES fleet(id),
+  UNIQUE (fleet)
+);
 

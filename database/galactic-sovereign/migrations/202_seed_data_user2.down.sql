@@ -1,5 +1,9 @@
 
 -- fleets
+DELETE FROM fleet_flight
+WHERE fleet IN (
+	SELECT id FROM fleet WHERE player = '04a7477c-a66b-4c47-9c17-ac209183c7a4'
+);
 DELETE FROM fleet_destination
 WHERE fleet IN (
 	SELECT id FROM fleet WHERE player = '04a7477c-a66b-4c47-9c17-ac209183c7a4'

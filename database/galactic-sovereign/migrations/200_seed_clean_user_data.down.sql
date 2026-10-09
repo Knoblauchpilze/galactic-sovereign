@@ -1,4 +1,5 @@
 
+DELETE FROM fleet_flight;
 DELETE FROM fleet_ship;
 DELETE FROM fleet_destination;
 DELETE FROM fleet;
