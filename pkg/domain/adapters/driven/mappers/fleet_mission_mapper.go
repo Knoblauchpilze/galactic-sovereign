@@ -18,8 +18,8 @@ var (
 	}
 )
 
-func (mode *DbFleetMission) Scan(value any) error {
-	if mode == nil {
+func (mission *DbFleetMission) Scan(value any) error {
+	if mission == nil {
 		return domainerrors.ErrUnsupportedDatabaseEnumValue
 	}
 
@@ -38,12 +38,12 @@ func (mode *DbFleetMission) Scan(value any) error {
 		return domainerrors.ErrUnsupportedDatabaseEnumValue
 	}
 
-	*mode = parsed
+	*mission = parsed
 	return nil
 }
 
-func (mode DbFleetMission) ToDomain() models.FleetMission {
-	return models.FleetMission(mode)
+func (mission DbFleetMission) ToDomain() models.FleetMission {
+	return models.FleetMission(mission)
 }
 
 func validFleetMission(mission DbFleetMission) bool {

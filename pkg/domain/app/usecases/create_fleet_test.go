@@ -74,9 +74,11 @@ func TestUnit_CreateFleet_Create(t *testing.T) {
 				{Ship: req.Ships[0].Ship, Count: req.Ships[0].Count},
 				{Ship: req.Ships[1].Ship, Count: req.Ships[1].Count},
 			},
+			Schedule: models.FleetFlightSchedule{
+				ArrivalAt: t3,
+				ReturnAt:  t4,
+			},
 			CreatedAt: t2,
-			ArrivalAt: t3,
-			ReturnAt:  t4,
 			UpdatedAt: t2,
 			Version:   0,
 		}

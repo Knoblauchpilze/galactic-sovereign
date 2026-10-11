@@ -1322,10 +1322,13 @@ func TestUnit_Planet_CreateFleet(t *testing.T) {
 				Coordinate: order.Destination,
 				Target:     nil,
 			},
-			Ships:     order.Ships,
+			Ships: order.Ships,
+			Schedule: FleetFlightSchedule{
+				ArrivalAt: p.UpdatedAt.Add(flightDuration),
+				ReturnAt:  p.UpdatedAt.Add(2 * flightDuration),
+				Status:    StatusOutbound,
+			},
 			CreatedAt: p.UpdatedAt,
-			ArrivalAt: p.UpdatedAt.Add(flightDuration),
-			ReturnAt:  p.UpdatedAt.Add(2 * flightDuration),
 			UpdatedAt: p.UpdatedAt,
 			Version:   0,
 		}
@@ -1371,10 +1374,13 @@ func TestUnit_Planet_CreateFleet(t *testing.T) {
 				Coordinate: order.Destination,
 				Target:     &targetId,
 			},
-			Ships:     order.Ships,
+			Ships: order.Ships,
+			Schedule: FleetFlightSchedule{
+				ArrivalAt: p.UpdatedAt.Add(flightDuration),
+				ReturnAt:  p.UpdatedAt.Add(2 * flightDuration),
+				Status:    StatusOutbound,
+			},
 			CreatedAt: p.UpdatedAt,
-			ArrivalAt: p.UpdatedAt.Add(flightDuration),
-			ReturnAt:  p.UpdatedAt.Add(2 * flightDuration),
 			UpdatedAt: p.UpdatedAt,
 			Version:   0,
 		}

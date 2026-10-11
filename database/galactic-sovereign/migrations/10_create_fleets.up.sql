@@ -40,6 +40,7 @@ CREATE TABLE fleet_flight(
   fleet UUID NOT NULL,
   arrival_at TIMESTAMP WITH TIME ZONE NOT NULL,
   return_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  status TEXT NOT NULL CHECK (status IN ('OUTBOUND', 'RETURNING')),
   FOREIGN KEY (fleet) REFERENCES fleet(id),
   UNIQUE (fleet)
 );

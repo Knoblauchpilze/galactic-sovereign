@@ -539,10 +539,13 @@ func TestIT_FleetDispatcher_DispatchWorkflow(t *testing.T) {
 				Coordinate: planet2.Coordinate,
 				Target:     &planet2.Id,
 			},
-			Ships:     order.Ships,
+			Ships: order.Ships,
+			Schedule: models.FleetFlightSchedule{
+				ArrivalAt: planet1.UpdatedAt.Add(expectedFlightTime),
+				ReturnAt:  planet1.UpdatedAt.Add(2 * expectedFlightTime),
+				Status:    models.StatusOutbound,
+			},
 			CreatedAt: planet1.UpdatedAt,
-			ArrivalAt: planet1.UpdatedAt.Add(expectedFlightTime),
-			ReturnAt:  planet1.UpdatedAt.Add(2 * expectedFlightTime),
 			UpdatedAt: planet1.UpdatedAt,
 			Version:   0,
 		}
@@ -592,10 +595,13 @@ func TestIT_FleetDispatcher_DispatchWorkflow(t *testing.T) {
 				Coordinate: order.Destination,
 				Target:     nil,
 			},
-			Ships:     order.Ships,
+			Ships: order.Ships,
+			Schedule: models.FleetFlightSchedule{
+				ArrivalAt: planet.UpdatedAt.Add(expectedFlightTime),
+				ReturnAt:  planet.UpdatedAt.Add(2 * expectedFlightTime),
+				Status:    models.StatusOutbound,
+			},
 			CreatedAt: planet.UpdatedAt,
-			ArrivalAt: planet.UpdatedAt.Add(expectedFlightTime),
-			ReturnAt:  planet.UpdatedAt.Add(2 * expectedFlightTime),
 			UpdatedAt: planet.UpdatedAt,
 			Version:   0,
 		}
@@ -640,9 +646,12 @@ func generateSampleFleet(p models.Planet) models.Fleet {
 				Count: 3,
 			},
 		},
+		Schedule: models.FleetFlightSchedule{
+			ArrivalAt: p.UpdatedAt.Add(1 * time.Hour),
+			ReturnAt:  p.UpdatedAt.Add(2 * time.Hour),
+			Status:    models.StatusOutbound,
+		},
 		CreatedAt: p.UpdatedAt,
-		ArrivalAt: p.UpdatedAt.Add(1 * time.Hour),
-		ReturnAt:  p.UpdatedAt.Add(2 * time.Hour),
 		UpdatedAt: p.UpdatedAt,
 		Version:   0,
 	}

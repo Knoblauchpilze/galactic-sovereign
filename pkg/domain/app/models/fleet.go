@@ -14,9 +14,8 @@ type Fleet struct {
 	Mission     FleetMission
 	Destination FleetDestination
 	Ships       []FleetShip
+	Schedule    FleetFlightSchedule
 	CreatedAt   time.Time
-	ArrivalAt   time.Time
-	ReturnAt    time.Time
 	UpdatedAt   time.Time
 	Version     int
 }
@@ -29,6 +28,12 @@ type FleetDestination struct {
 type FleetShip struct {
 	Ship  uuid.UUID
 	Count int
+}
+
+type FleetFlightSchedule struct {
+	ArrivalAt time.Time
+	ReturnAt  time.Time
+	Status    FleetStatus
 }
 
 func NewFleet(origin FleetOrigin, order FleetOrder, flight FleetFlight) (Fleet, error) {
@@ -49,10 +54,13 @@ func NewFleet(origin FleetOrigin, order FleetOrder, flight FleetFlight) (Fleet, 
 			Coordinate: flight.Destination,
 			Target:     flight.Target,
 		},
-		Ships:     order.Ships,
+		Ships: order.Ships,
+		Schedule: FleetFlightSchedule{
+			ArrivalAt: flight.ArrivalTime(),
+			ReturnAt:  flight.ReturnTime(),
+			Status:    StatusOutbound,
+		},
 		CreatedAt: flight.StartTime,
-		ArrivalAt: flight.ArrivalTime(),
-		ReturnAt:  flight.ReturnTime(),
 		UpdatedAt: flight.StartTime,
 		Version:   0,
 	}

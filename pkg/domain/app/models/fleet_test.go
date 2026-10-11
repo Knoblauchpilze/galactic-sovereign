@@ -50,10 +50,13 @@ func TestUnit_Fleet_New(t *testing.T) {
 				Coordinate: flight.Destination,
 				Target:     nil,
 			},
-			Ships:     order.Ships,
+			Ships: order.Ships,
+			Schedule: FleetFlightSchedule{
+				ArrivalAt: t1.Add(flightDuration),
+				ReturnAt:  t1.Add(2 * flightDuration),
+				Status:    StatusOutbound,
+			},
 			CreatedAt: t1,
-			ArrivalAt: t1.Add(flightDuration),
-			ReturnAt:  t1.Add(2 * flightDuration),
 			UpdatedAt: t1,
 			Version:   0,
 		}
@@ -121,10 +124,13 @@ func TestUnit_Fleet_New(t *testing.T) {
 				Coordinate: flight.Destination,
 				Target:     flight.Target,
 			},
-			Ships:     order.Ships,
+			Ships: order.Ships,
+			Schedule: FleetFlightSchedule{
+				ArrivalAt: t1.Add(flightDuration),
+				ReturnAt:  t1.Add(2 * flightDuration),
+				Status:    StatusOutbound,
+			},
 			CreatedAt: t1,
-			ArrivalAt: t1.Add(flightDuration),
-			ReturnAt:  t1.Add(2 * flightDuration),
 			UpdatedAt: t1,
 			Version:   0,
 		}

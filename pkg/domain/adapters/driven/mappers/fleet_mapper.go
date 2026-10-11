@@ -18,9 +18,11 @@ type DbFleet struct {
 	Position    int
 	Target      *uuid.UUID
 
-	CreatedAt time.Time
 	ArrivalAt time.Time
 	ReturnAt  time.Time
+	Status    DbFleetStatus
+
+	CreatedAt time.Time
 	UpdatedAt time.Time
 	Version   int
 }
@@ -39,9 +41,12 @@ func (f DbFleet) ToDomain() models.Fleet {
 			},
 			Target: f.Target,
 		},
+		Schedule: models.FleetFlightSchedule{
+			ArrivalAt: f.ArrivalAt,
+			ReturnAt:  f.ReturnAt,
+			Status:    f.Status.ToDomain(),
+		},
 		CreatedAt: f.CreatedAt,
-		ArrivalAt: f.ArrivalAt,
-		ReturnAt:  f.ReturnAt,
 		UpdatedAt: f.UpdatedAt,
 		Version:   f.Version,
 	}

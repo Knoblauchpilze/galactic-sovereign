@@ -1471,10 +1471,13 @@ func insertTestFleet(
 			},
 			Target: nil,
 		},
-		Ships:     []models.FleetShip{},
+		Ships: []models.FleetShip{},
+		Schedule: models.FleetFlightSchedule{
+			ArrivalAt: source.UpdatedAt.Add(1 * time.Hour),
+			ReturnAt:  source.UpdatedAt.Add(2 * time.Hour),
+			Status:    models.StatusReturning,
+		},
 		CreatedAt: source.UpdatedAt,
-		ArrivalAt: source.UpdatedAt.Add(1 * time.Hour),
-		ReturnAt:  source.UpdatedAt.Add(2 * time.Hour),
 		UpdatedAt: source.UpdatedAt,
 		Version:   0,
 	}
@@ -1496,14 +1499,15 @@ func insertTestFleet(
 	require.NoError(t, err, "Actual err: %v", err)
 
 	sqlQuery = `INSERT INTO
-		fleet_flight (fleet, arrival_at, return_at)
-		VALUES ($1, $2, $3)`
+		fleet_flight (fleet, arrival_at, return_at, status)
+		VALUES ($1, $2, $3, $4)`
 	_, err = conn.Exec(
 		t.Context(),
 		sqlQuery,
 		fleet.Id,
-		fleet.ArrivalAt,
-		fleet.ReturnAt,
+		fleet.Schedule.ArrivalAt,
+		fleet.Schedule.ReturnAt,
+		fleet.Schedule.Status,
 	)
 	require.NoError(t, err, "Actual err: %v", err)
 

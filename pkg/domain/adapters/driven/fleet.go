@@ -23,8 +23,8 @@ INSERT INTO
 
 	createFleetFlightQuery = `
 INSERT INTO
-	fleet_flight (fleet, arrival_at, return_at)
-	VALUES ($1, $2, $3)`
+	fleet_flight (fleet, arrival_at, return_at, status)
+	VALUES ($1, $2, $3, $4)`
 
 	createFleetShipQuery = `
 INSERT INTO
@@ -41,9 +41,10 @@ SELECT
 	fd.solar_system,
 	fd.position,
 	fd.planet AS target,
-	f.created_at,
 	ff.arrival_at,
 	ff.return_at,
+	ff.status,
+	f.created_at,
 	f.updated_at,
 	f.version
 FROM
@@ -100,8 +101,9 @@ func createFleetWithDetails(
 		ctx,
 		createFleetFlightQuery,
 		fleet.Id,
-		fleet.ArrivalAt,
-		fleet.ReturnAt,
+		fleet.Schedule.ArrivalAt,
+		fleet.Schedule.ReturnAt,
+		fleet.Schedule.Status,
 	)
 	if err != nil {
 		return parseDbError(err)
