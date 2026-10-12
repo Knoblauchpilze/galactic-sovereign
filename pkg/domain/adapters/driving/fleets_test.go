@@ -288,6 +288,31 @@ func TestUnit_Fleets_CreateFleet(t *testing.T) {
 
 	})
 
+	t.Run("returns 400 when fleet has invalid coordinates", func(t *testing.T) {
+		dto := generateSampleFleetDtoRequest()
+
+		mockUsecase.EXPECT().
+			Create(gomock.Any(), gomock.Any(), gomock.Any()).
+			Times(1).
+			Return(models.Fleet{}, domainerrors.ErrCoordinatesOutOfBound)
+
+		handler := generateHandler[drivingports.ForCreatingFleet](
+			createFleet,
+			mockUsecase,
+		)
+		r := createTestGinRouter(t, http.MethodPost, "/planets/:id/fleets", handler)
+
+		req := generateTestRequestWithJsonBody(t, http.MethodPost, dto)
+		addRequestPath(t, req, "/planets/%s/fleets", sampleUuid)
+		rw := httptest.NewRecorder()
+		r.ServeHTTP(rw, req)
+
+		assert.Equal(t, http.StatusBadRequest, rw.Code)
+		actual := decodeResponseBody[string](t, rw)
+		assert.Equal(t, "invalid fleet coordinates", actual)
+
+	})
+
 	t.Run("returns 500 when use case fails", func(t *testing.T) {
 		dto := generateSampleFleetDtoRequest()
 
