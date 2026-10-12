@@ -68,6 +68,76 @@ func NewFleet(origin FleetOrigin, order FleetOrder, flight FleetFlight) (Fleet, 
 	return fleet, nil
 }
 
+func (f *Fleet) UpdateToTime(moment time.Time) error {
+	if f.UpdatedAt.Compare(moment) >= 0 {
+		return nil
+	}
+
+	err := f.checkUpToDate(moment)
+	if err != nil {
+		return err
+	}
+
+	if f.Schedule.ReturnAt.Compare(f.UpdatedAt) <= 0 {
+		return domainerrors.ErrFleetAlreadyArrived
+	}
+
+	switch f.Schedule.Status {
+	case StatusOutbound:
+		if moment.Compare(f.Schedule.ArrivalAt) >= 0 {
+			f.Schedule.Status = StatusReturning
+		}
+	case StatusReturning:
+	default:
+		return domainerrors.ErrUnsupportedFleetStatus
+	}
+
+	f.UpdatedAt = moment
+	f.Version++
+
+	return nil
+}
+
+func (f *Fleet) ApplyArrival(target *Planet) error {
+	if (target != nil && f.Destination.Target == nil) ||
+		(target == nil && f.Destination.Target != nil) ||
+		(target != nil && target.Id != *f.Destination.Target) {
+		return domainerrors.ErrWrongFleetTarget
+	}
+
+	if f.UpdatedAt != f.Schedule.ArrivalAt {
+		return domainerrors.ErrFleetNotUpToDate
+	}
+	if target != nil && target.UpdatedAt != f.Schedule.ArrivalAt {
+		return domainerrors.ErrPlanetNotUpToDate
+	}
+
+	if target != nil {
+		target.Version++
+	}
+
+	return nil
+}
+
+func (f *Fleet) ApplyReturn(target *Planet) error {
+	if target == nil || target.Id != f.Source {
+		return domainerrors.ErrWrongFleetTarget
+	}
+
+	if f.UpdatedAt != f.Schedule.ReturnAt {
+		return domainerrors.ErrFleetNotUpToDate
+	}
+	if target.UpdatedAt != f.Schedule.ReturnAt {
+		return domainerrors.ErrPlanetNotUpToDate
+	}
+
+	// TODO: Add back ships to the planet
+
+	target.Version++
+
+	return nil
+}
+
 func validateMission(order FleetOrder, flight FleetFlight) error {
 	switch order.Mission {
 	case MissionColonize:
@@ -91,34 +161,6 @@ func validateDirectedMission(flight FleetFlight) error {
 	if !flight.HasDistinctSourceAndDestination() || flight.Target == nil {
 		return domainerrors.ErrInvalidFleetConfiguration
 	}
-
-	return nil
-}
-
-func (f *Fleet) UpdateToTime(moment time.Time) error {
-	if f.UpdatedAt.Compare(moment) >= 0 {
-		return nil
-	}
-
-	err := f.checkUpToDate(moment)
-	if err != nil {
-		return err
-	}
-
-	if f.Schedule.ArrivalAt.Before(f.UpdatedAt) {
-		return domainerrors.ErrFleetAlreadyArrived
-	}
-
-	switch f.Schedule.Status {
-	case StatusOutbound:
-		f.Schedule.Status = StatusReturning
-	case StatusReturning:
-	default:
-		return domainerrors.ErrUnsupportedFleetStatus
-	}
-
-	f.UpdatedAt = moment
-	f.Version++
 
 	return nil
 }

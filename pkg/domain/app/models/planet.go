@@ -281,6 +281,20 @@ func (p *Planet) CreateFleet(order FleetOrder, flight FleetFlight) (Fleet, error
 	return fleet, nil
 }
 
+func (p *Planet) AddShips(ships []FleetShip) {
+	temp := make(map[uuid.UUID]int)
+	for id, s := range p.Ships {
+		temp[s.Ship] = id
+	}
+
+	for _, s := range ships {
+		id := temp[s.Ship]
+		p.Ships[id].Count += s.Count
+	}
+
+	p.Version++
+}
+
 func (p *Planet) findBuildingById(id uuid.UUID) (PlanetBuilding, error) {
 	for _, b := range p.Buildings {
 		if b.Building == id {

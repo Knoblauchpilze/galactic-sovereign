@@ -1450,6 +1450,30 @@ func TestUnit_Planet_CreateFleet(t *testing.T) {
 	})
 }
 
+func TestUnit_Planet_AddShips(t *testing.T) {
+	t.Run("adds fleet ship count to matching ship", func(t *testing.T) {
+		p := generateTestPlanet(t)
+
+		p.Ships = []PlanetShip{
+			{Ship: lightFighterId, Count: 10},
+			{Ship: smallCargoId, Count: 5},
+		}
+		initialVersion := p.Version
+		initialUpdatedAt := p.UpdatedAt
+
+		ships := []FleetShip{{Ship: smallCargoId, Count: 4}}
+		p.AddShips(ships)
+
+		expected := []PlanetShip{
+			{Ship: lightFighterId, Count: 10},
+			{Ship: smallCargoId, Count: 9},
+		}
+		assert.Equal(t, expected, p.Ships)
+		assert.Equal(t, initialVersion+1, p.Version)
+		assert.Equal(t, initialUpdatedAt, p.UpdatedAt)
+	})
+}
+
 func generateTestPlanet(
 	t *testing.T,
 	modifiers ...func(*testing.T, *Planet),
