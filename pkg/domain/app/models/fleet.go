@@ -105,9 +105,13 @@ func (f *Fleet) UpdateToTime(moment time.Time) error {
 		return err
 	}
 
-	// TODO: Handle this
+	if f.Schedule.ArrivalAt.Before(f.UpdatedAt) {
+		return domainerrors.ErrFleetAlreadyArrived
+	}
+
 	switch f.Schedule.Status {
 	case StatusOutbound:
+		f.Schedule.Status = StatusReturning
 	case StatusReturning:
 	default:
 		return domainerrors.ErrUnsupportedFleetStatus

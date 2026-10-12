@@ -245,6 +245,43 @@ func TestUnit_Fleet_UpdateToTime(t *testing.T) {
 		assert.ErrorIs(t, err, domainerrors.ErrFleetNotUpToDate, "Actual err is: %v", err)
 	})
 
+	t.Run("returns error when returning fleet has already been updated past the arrival time", func(t *testing.T) {
+		f := Fleet{
+			Id: uuid.New(),
+			Schedule: FleetFlightSchedule{
+				ArrivalAt: t2,
+				ReturnAt:  t4,
+				Status:    StatusReturning,
+			},
+			CreatedAt: t1,
+			UpdatedAt: t4,
+			Version:   1,
+		}
+
+		err := f.UpdateToTime(t5)
+
+		assert.ErrorIs(t, err, domainerrors.ErrFleetAlreadyArrived, "Actual err is: %v", err)
+	})
+
+	t.Run("marks fleet as returning when fleet arrives at its destination", func(t *testing.T) {
+		f := Fleet{
+			Id: uuid.New(),
+			Schedule: FleetFlightSchedule{
+				ArrivalAt: t2,
+				ReturnAt:  t4,
+				Status:    StatusOutbound,
+			},
+			CreatedAt: t1,
+			UpdatedAt: t1,
+			Version:   1,
+		}
+
+		err := f.UpdateToTime(t2)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.Equal(t, StatusReturning, f.Schedule.Status)
+	})
+
 	t.Run("bumps updated at field", func(t *testing.T) {
 		f := Fleet{
 			Id: uuid.New(),
