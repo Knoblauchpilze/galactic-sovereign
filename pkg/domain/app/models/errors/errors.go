@@ -35,6 +35,8 @@ const (
 	fleetDestinationInvalid      errors.ErrorCode = 631
 	fleetInFlight                errors.ErrorCode = 632
 	invalidFleetConfiguration    errors.ErrorCode = 633
+	fleetNotUpToDate             errors.ErrorCode = 634
+	unsupportedFleetStatus       errors.ErrorCode = 635
 )
 
 var (
@@ -70,4 +72,6 @@ var (
 	ErrFleetDestinationInvalid    = errors.FromCode(fleetDestinationInvalid)
 	ErrFleetInFlight              = errors.FromCode(fleetInFlight)
 	ErrInvalidFleetConfiguration  = errors.FromCode(invalidFleetConfiguration)
+	ErrFleetNotUpToDate           = errors.FromCode(fleetNotUpToDate)
+	ErrUnsupportedFleetStatus     = errors.FromCode(unsupportedFleetStatus)
 )

@@ -15,8 +15,12 @@ type SimulationStep struct {
 }
 
 type FleetEventContext struct {
+	// Timestamp: the timestamp of the event. It corresponds to the moment
+	// the event takes place. It can differ from the parent simulation step's
+	// timestamp: it is always at most equal to the parent timestamp.
 	Timestamp time.Time
-	Fleet     Fleet
+
+	Fleet Fleet
 
 	// Arrival: the existing destination planet, if there is one.
 	// Return: the source planet.

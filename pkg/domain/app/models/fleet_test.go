@@ -12,6 +12,10 @@ import (
 
 var (
 	t1 = time.Date(2026, time.October, 3, 20, 31, 52, 0, time.UTC)
+	t2 = time.Date(2026, time.October, 12, 8, 36, 8, 0, time.UTC)
+	t3 = time.Date(2026, time.October, 12, 9, 36, 8, 0, time.UTC)
+	t4 = time.Date(2026, time.October, 12, 10, 36, 8, 0, time.UTC)
+	t5 = time.Date(2026, time.October, 12, 11, 36, 8, 0, time.UTC)
 )
 
 func TestUnit_Fleet_New(t *testing.T) {
@@ -185,5 +189,78 @@ func TestUnit_Fleet_New(t *testing.T) {
 		_, err := NewFleet(origin, order, flight)
 
 		assert.ErrorIs(t, err, domainerrors.ErrNoShipInFleet, "Actual err: %v", err)
+	})
+}
+
+func TestUnit_Fleet_UpdateToTime(t *testing.T) {
+
+	t.Run("does not change resource when update time is before already computed time", func(t *testing.T) {
+		f := Fleet{
+			Id:        uuid.New(),
+			CreatedAt: t1,
+			UpdatedAt: t3,
+			Version:   1,
+		}
+
+		err := f.UpdateToTime(t2)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.Equal(t, t3, f.UpdatedAt)
+		assert.Equal(t, 1, f.Version)
+	})
+
+	t.Run("returns error when outbound fleet has arrival time before the update time", func(t *testing.T) {
+		f := Fleet{
+			Id: uuid.New(),
+			Schedule: FleetFlightSchedule{
+				ArrivalAt: t2,
+				ReturnAt:  t4,
+				Status:    StatusOutbound,
+			},
+			CreatedAt: t1,
+			UpdatedAt: t1,
+			Version:   1,
+		}
+
+		err := f.UpdateToTime(t3)
+
+		assert.ErrorIs(t, err, domainerrors.ErrFleetNotUpToDate, "Actual err is: %v", err)
+	})
+
+	t.Run("returns error when returning fleet has return time before the update time", func(t *testing.T) {
+		f := Fleet{
+			Id: uuid.New(),
+			Schedule: FleetFlightSchedule{
+				ArrivalAt: t2,
+				ReturnAt:  t4,
+				Status:    StatusReturning,
+			},
+			CreatedAt: t1,
+			UpdatedAt: t3,
+			Version:   1,
+		}
+
+		err := f.UpdateToTime(t5)
+
+		assert.ErrorIs(t, err, domainerrors.ErrFleetNotUpToDate, "Actual err is: %v", err)
+	})
+
+	t.Run("bumps updated at field", func(t *testing.T) {
+		f := Fleet{
+			Id: uuid.New(),
+			Schedule: FleetFlightSchedule{
+				ArrivalAt: t2,
+				ReturnAt:  t4,
+				Status:    StatusOutbound,
+			},
+			CreatedAt: t1,
+			UpdatedAt: t2,
+			Version:   1,
+		}
+
+		err := f.UpdateToTime(t3)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.Equal(t, t3, f.UpdatedAt)
 	})
 }

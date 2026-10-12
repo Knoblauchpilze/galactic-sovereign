@@ -94,3 +94,43 @@ func validateDirectedMission(flight FleetFlight) error {
 
 	return nil
 }
+
+func (f *Fleet) UpdateToTime(moment time.Time) error {
+	if f.UpdatedAt.Compare(moment) >= 0 {
+		return nil
+	}
+
+	err := f.checkUpToDate(moment)
+	if err != nil {
+		return err
+	}
+
+	// TODO: Handle this
+	switch f.Schedule.Status {
+	case StatusOutbound:
+	case StatusReturning:
+	default:
+		return domainerrors.ErrUnsupportedFleetStatus
+	}
+
+	f.UpdatedAt = moment
+	f.Version++
+
+	return nil
+}
+
+func (f *Fleet) checkUpToDate(moment time.Time) error {
+	if f.Schedule.Status == StatusOutbound &&
+		f.Schedule.ArrivalAt.Compare(moment) < 0 &&
+		f.UpdatedAt.Compare(f.Schedule.ArrivalAt) < 0 {
+		return domainerrors.ErrFleetNotUpToDate
+	}
+
+	if f.Schedule.Status == StatusReturning &&
+		f.Schedule.ReturnAt.Compare(moment) < 0 &&
+		f.UpdatedAt.Compare(f.Schedule.ReturnAt) < 0 {
+		return domainerrors.ErrFleetNotUpToDate
+	}
+
+	return nil
+}
