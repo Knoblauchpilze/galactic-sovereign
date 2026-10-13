@@ -131,9 +131,7 @@ func (f *Fleet) ApplyReturn(target *Planet) error {
 		return domainerrors.ErrPlanetNotUpToDate
 	}
 
-	// TODO: Add back ships to the planet
-
-	target.Version++
+	target.AddShips(f.Ships)
 
 	return nil
 }

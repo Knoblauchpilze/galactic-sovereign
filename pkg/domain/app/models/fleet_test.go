@@ -598,6 +598,47 @@ func TestUnit_Fleet_ApplyReturn(t *testing.T) {
 		assert.ErrorIs(t, err, domainerrors.ErrPlanetNotUpToDate, "Actual err is: %v", err)
 	})
 
+	t.Run("registers fleet ships as planet ships on return", func(t *testing.T) {
+		f := Fleet{
+			Id: uuid.New(),
+			Destination: FleetDestination{
+				Coordinate: Coordinate{},
+				Target:     new(uuid.New()),
+			},
+			Ships: []FleetShip{
+				{Ship: lightFighterId, Count: 3},
+			},
+			Schedule: FleetFlightSchedule{
+				ArrivalAt: t2,
+				ReturnAt:  t3,
+				Status:    StatusOutbound,
+			},
+			CreatedAt: t1,
+			UpdatedAt: t3,
+			Version:   1,
+		}
+
+		p := Planet{
+			Id: f.Source,
+			Ships: []PlanetShip{
+				{Ship: lightFighterId, Count: 2},
+				{Ship: smallCargoId, Count: 1},
+			},
+			CreatedAt: t1,
+			UpdatedAt: t3,
+			Version:   1,
+		}
+
+		err := f.ApplyReturn(&p)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		expected := []PlanetShip{
+			{Ship: lightFighterId, Count: 5},
+			{Ship: smallCargoId, Count: 1},
+		}
+		assert.Equal(t, expected, p.Ships)
+	})
+
 	t.Run("bumps target updated at field", func(t *testing.T) {
 		f := Fleet{
 			Id: uuid.New(),
