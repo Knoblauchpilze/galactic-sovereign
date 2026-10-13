@@ -136,6 +136,11 @@ func (f *Fleet) ApplyReturn(target *Planet) error {
 	return nil
 }
 
+func (f *Fleet) Completed() bool {
+	return f.UpdatedAt.Compare(f.Schedule.ReturnAt) >= 0 &&
+		f.Schedule.Status == StatusReturning
+}
+
 func validateMission(order FleetOrder, flight FleetFlight) error {
 	switch order.Mission {
 	case MissionColonize:

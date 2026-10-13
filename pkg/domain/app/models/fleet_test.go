@@ -670,3 +670,95 @@ func TestUnit_Fleet_ApplyReturn(t *testing.T) {
 		assert.Equal(t, 2, p.Version)
 	})
 }
+
+func TestUnit_Fleet_Completed(t *testing.T) {
+	t.Run("returns false when fleet was just created", func(t *testing.T) {
+		f := Fleet{
+			Id: uuid.New(),
+			Schedule: FleetFlightSchedule{
+				ArrivalAt: t3,
+				ReturnAt:  t5,
+				Status:    StatusOutbound,
+			},
+			CreatedAt: t1,
+			UpdatedAt: t1,
+		}
+
+		assert.False(t, f.Completed())
+	})
+
+	t.Run("returns false when fleet is on its outbound journey", func(t *testing.T) {
+		f := Fleet{
+			Id: uuid.New(),
+			Schedule: FleetFlightSchedule{
+				ArrivalAt: t3,
+				ReturnAt:  t5,
+				Status:    StatusOutbound,
+			},
+			CreatedAt: t1,
+			UpdatedAt: t2,
+		}
+
+		assert.False(t, f.Completed())
+	})
+
+	t.Run("returns false when fleet completed its outbound journey", func(t *testing.T) {
+		f := Fleet{
+			Id: uuid.New(),
+			Schedule: FleetFlightSchedule{
+				ArrivalAt: t3,
+				ReturnAt:  t5,
+				Status:    StatusReturning,
+			},
+			CreatedAt: t1,
+			UpdatedAt: t3,
+		}
+
+		assert.False(t, f.Completed())
+	})
+
+	t.Run("returns false when fleet is on its returning journey", func(t *testing.T) {
+		f := Fleet{
+			Id: uuid.New(),
+			Schedule: FleetFlightSchedule{
+				ArrivalAt: t3,
+				ReturnAt:  t5,
+				Status:    StatusReturning,
+			},
+			CreatedAt: t1,
+			UpdatedAt: t4,
+		}
+
+		assert.False(t, f.Completed())
+	})
+
+	t.Run("returns true when fleet completed its return journey", func(t *testing.T) {
+		f := Fleet{
+			Id: uuid.New(),
+			Schedule: FleetFlightSchedule{
+				ArrivalAt: t3,
+				ReturnAt:  t5,
+				Status:    StatusReturning,
+			},
+			CreatedAt: t1,
+			UpdatedAt: t5,
+		}
+
+		assert.True(t, f.Completed())
+	})
+
+	t.Run("returns true when fleet is past its return time", func(t *testing.T) {
+		f := Fleet{
+			Id: uuid.New(),
+			Schedule: FleetFlightSchedule{
+				ArrivalAt: t3,
+				ReturnAt:  t5,
+				Status:    StatusReturning,
+			},
+			CreatedAt: t1,
+			UpdatedAt: t5.Add(1 * time.Minute),
+		}
+
+		assert.True(t, f.Completed())
+	})
+}
