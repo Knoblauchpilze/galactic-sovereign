@@ -282,25 +282,6 @@ func TestUnit_Fleet_UpdateToTime(t *testing.T) {
 		assert.Equal(t, StatusOutbound, f.Schedule.Status)
 	})
 
-	t.Run("marks fleet as returning when fleet arrives at its destination", func(t *testing.T) {
-		f := Fleet{
-			Id: uuid.New(),
-			Schedule: FleetFlightSchedule{
-				ArrivalAt: t2,
-				ReturnAt:  t4,
-				Status:    StatusOutbound,
-			},
-			CreatedAt: t1,
-			UpdatedAt: t1,
-			Version:   1,
-		}
-
-		err := f.UpdateToTime(t2)
-		require.NoError(t, err, "Actual err: %v", err)
-
-		assert.Equal(t, StatusReturning, f.Schedule.Status)
-	})
-
 	t.Run("bumps updated at field", func(t *testing.T) {
 		f := Fleet{
 			Id: uuid.New(),
@@ -454,7 +435,37 @@ func TestUnit_Fleet_ApplyArrival(t *testing.T) {
 		assert.ErrorIs(t, err, domainerrors.ErrPlanetNotUpToDate, "Actual err is: %v", err)
 	})
 
-	t.Run("bumps target updated at field", func(t *testing.T) {
+	t.Run("marks fleet as returning when fleet arrives at its destination", func(t *testing.T) {
+		f := Fleet{
+			Id: uuid.New(),
+			Destination: FleetDestination{
+				Coordinate: Coordinate{},
+				Target:     new(uuid.New()),
+			},
+			Schedule: FleetFlightSchedule{
+				ArrivalAt: t2,
+				ReturnAt:  t4,
+				Status:    StatusOutbound,
+			},
+			CreatedAt: t1,
+			UpdatedAt: t2,
+			Version:   1,
+		}
+
+		p := Planet{
+			Id:        *f.Destination.Target,
+			CreatedAt: t1,
+			UpdatedAt: t2,
+			Version:   1,
+		}
+
+		err := f.ApplyArrival(&p)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.Equal(t, StatusReturning, f.Schedule.Status)
+	})
+
+	t.Run("bumps version and updated at field", func(t *testing.T) {
 		f := Fleet{
 			Id: uuid.New(),
 			Destination: FleetDestination{
@@ -482,7 +493,7 @@ func TestUnit_Fleet_ApplyArrival(t *testing.T) {
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Equal(t, t2, f.UpdatedAt)
-		assert.Equal(t, 2, p.Version)
+		assert.Equal(t, 2, f.Version)
 	})
 }
 

@@ -2,6 +2,7 @@ package domainservices
 
 import (
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
+	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
 )
 
 func ResolveSimulationStep(step models.SimulationStep) (models.SimulationStepResult, error) {
@@ -28,10 +29,24 @@ func resolveFleet(event models.FleetEventContext) (models.SimulationStepResult, 
 		return models.SimulationStepResult{}, err
 	}
 
+	err = event.Planet.UpdateToTime(event.Timestamp)
+	if err != nil {
+		return models.SimulationStepResult{}, err
+	}
+
+	switch event.Fleet.Schedule.Status {
+	case models.StatusOutbound:
+		err = event.Fleet.ApplyArrival(event.Planet)
+	case models.StatusReturning:
+		err = event.Fleet.ApplyReturn(event.Planet)
+	default:
+		return models.SimulationStepResult{}, domainerrors.ErrUnsupportedFleetStatus
+	}
+
 	result := models.SimulationStepResult{
-		Planet: nil,
+		Planet: event.Planet,
 		Fleet:  &event.Fleet,
 	}
 
-	return result, nil
+	return result, err
 }

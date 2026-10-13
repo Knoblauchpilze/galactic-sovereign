@@ -82,16 +82,6 @@ func (f *Fleet) UpdateToTime(moment time.Time) error {
 		return domainerrors.ErrFleetAlreadyArrived
 	}
 
-	switch f.Schedule.Status {
-	case StatusOutbound:
-		if moment.Compare(f.Schedule.ArrivalAt) >= 0 {
-			f.Schedule.Status = StatusReturning
-		}
-	case StatusReturning:
-	default:
-		return domainerrors.ErrUnsupportedFleetStatus
-	}
-
 	f.UpdatedAt = moment
 	f.Version++
 
@@ -112,9 +102,8 @@ func (f *Fleet) ApplyArrival(target *Planet) error {
 		return domainerrors.ErrPlanetNotUpToDate
 	}
 
-	if target != nil {
-		target.Version++
-	}
+	f.Schedule.Status = StatusReturning
+	f.Version++
 
 	return nil
 }
