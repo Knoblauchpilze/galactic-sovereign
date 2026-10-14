@@ -22,6 +22,7 @@ func NewSimulationStepExecutor(conn database.Connection) *SimulationStepExecutor
 	}
 }
 
+// TODO: Add tests for this
 func (s *SimulationStepExecutor) Execute(
 	ctx context.Context,
 	planetId uuid.UUID,
@@ -75,6 +76,7 @@ func (s *SimulationStepExecutor) Execute(
 	}
 
 	if result.Fleet != nil {
+		// TODO: Add tests for this
 		return models.SimulationStepResult{}, errors.ErrNotImplemented
 	}
 
