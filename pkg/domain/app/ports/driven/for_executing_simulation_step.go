@@ -18,8 +18,8 @@ import (
 type ForExecutingSimulationStep interface {
 	Execute(
 		ctx context.Context,
-		planetID uuid.UUID,
-		timestampe time.Time,
-		simulate func(*models.SimulationStep) (models.SimulationStepResult, error),
+		planetId uuid.UUID,
+		timestamp time.Time,
+		simulate func(models.SimulationStep) (models.SimulationStepResult, error),
 	) (models.SimulationStepResult, error)
 }

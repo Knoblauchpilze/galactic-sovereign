@@ -44,16 +44,16 @@ func (m *MockForExecutingSimulationStep) EXPECT() *MockForExecutingSimulationSte
 }
 
 // Execute mocks base method.
-func (m *MockForExecutingSimulationStep) Execute(ctx context.Context, planetID uuid.UUID, timestampe time.Time, simulate func(*models.SimulationStep) (models.SimulationStepResult, error)) (models.SimulationStepResult, error) {
+func (m *MockForExecutingSimulationStep) Execute(ctx context.Context, planetId uuid.UUID, timestamp time.Time, simulate func(models.SimulationStep) (models.SimulationStepResult, error)) (models.SimulationStepResult, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Execute", ctx, planetID, timestampe, simulate)
+	ret := m.ctrl.Call(m, "Execute", ctx, planetId, timestamp, simulate)
 	ret0, _ := ret[0].(models.SimulationStepResult)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Execute indicates an expected call of Execute.
-func (mr *MockForExecutingSimulationStepMockRecorder) Execute(ctx, planetID, timestampe, simulate any) *gomock.Call {
+func (mr *MockForExecutingSimulationStepMockRecorder) Execute(ctx, planetId, timestamp, simulate any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Execute", reflect.TypeOf((*MockForExecutingSimulationStep)(nil).Execute), ctx, planetID, timestampe, simulate)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Execute", reflect.TypeOf((*MockForExecutingSimulationStep)(nil).Execute), ctx, planetId, timestamp, simulate)
 }
