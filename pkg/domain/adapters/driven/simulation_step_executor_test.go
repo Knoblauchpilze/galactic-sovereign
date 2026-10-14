@@ -10,6 +10,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+var (
+	t1 = someTime
+)
+
 func TestIT_SimulationStepExecutor_Execute_LoadPlanetBehavior(t *testing.T) {
 	testCases := []struct {
 		name      string
@@ -144,9 +148,103 @@ func TestIT_SimulationStepExecutor_Execute_LoadPlanetBehavior(t *testing.T) {
 	}
 }
 
-// TODO: Implement tests
-func TestIT_SimulationStepExecutor_Execute_LoadFleetBehavior(t *testing.T) {}
+func TestIT_SimulationStepExecutor_Execute_LoadFleetBehavior(t *testing.T) {
+	t.Run("loads fleet event", func(t *testing.T) {
+		adapter, conn := newTestSimulationStepExecutor(t)
 
+		planet, _, _ := insertTestPlanetForPlayer(t, conn)
+		fleet := insertTestFleet(t, conn, planet, addFleetShip)
+
+		var captured models.SimulationStep
+		simulate := func(step models.SimulationStep) (models.SimulationStepResult, error) {
+			captured = step
+
+			step.Planet.Version++
+
+			result := models.SimulationStepResult{
+				Resolution: models.FleetEventResolved,
+				Planet:     &step.Planet,
+				Fleet:      &step.NextFleetEvent.Fleet,
+			}
+
+			return result, nil
+		}
+
+		afterArrival := fleet.Schedule.ArrivalAt.Add(1 * time.Minute)
+
+		actual, err := adapter.Execute(t.Context(), planet.Id, afterArrival, simulate)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		expectedStep := models.SimulationStep{
+			Timestamp: afterArrival,
+			Planet:    planet,
+			NextFleetEvent: &models.FleetEventContext{
+				Timestamp: fleet.Schedule.ArrivalAt,
+				Fleet:     fleet,
+				Planet:    nil,
+			},
+		}
+		assert.Equal(t, expectedStep, captured)
+		expectedResult := models.SimulationStepResult{
+			Resolution: models.FleetEventResolved,
+			Planet:     &planet,
+			Fleet:      &fleet,
+		}
+		expectedResult.Planet.Version++
+		assert.Equal(t, expectedResult, actual)
+	})
+
+	t.Run("loads fleet event when fleet has a destination", func(t *testing.T) {
+		adapter, conn := newTestSimulationStepExecutor(t)
+
+		planet, _, _ := insertTestPlanetForPlayer(t, conn)
+		fleet := insertTestFleet(t, conn, planet, addFleetShip)
+
+		destination, _, _ := insertTestPlanetForPlayer(t, conn)
+		fleet.Destination.Target = &destination.Id
+		upsertFleetSchedule(t, conn, fleet)
+
+		var captured models.SimulationStep
+		simulate := func(step models.SimulationStep) (models.SimulationStepResult, error) {
+			captured = step
+
+			step.Planet.Version++
+
+			result := models.SimulationStepResult{
+				Resolution: models.FleetEventResolved,
+				Planet:     &step.Planet,
+				Fleet:      &step.NextFleetEvent.Fleet,
+			}
+
+			return result, nil
+		}
+
+		afterArrival := fleet.Schedule.ArrivalAt.Add(1 * time.Minute)
+
+		actual, err := adapter.Execute(t.Context(), planet.Id, afterArrival, simulate)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		expectedStep := models.SimulationStep{
+			Timestamp: afterArrival,
+			Planet:    planet,
+			NextFleetEvent: &models.FleetEventContext{
+				Timestamp: fleet.Schedule.ArrivalAt,
+				Fleet:     fleet,
+				Planet:    &destination,
+			},
+		}
+		assert.Equal(t, expectedStep, captured)
+		expectedResult := models.SimulationStepResult{
+			Resolution: models.FleetEventResolved,
+			Planet:     &planet,
+			Fleet:      &fleet,
+		}
+		expectedResult.Planet.Version++
+		assert.Equal(t, expectedResult, actual)
+	})
+}
+
+// TODO: Implement tests
 func TestIT_SimulationStepExecutor_Execute_SavePlanet(t *testing.T) {}
 
 func TestIT_SimulationStepExecutor_Execute_SaveFleet(t *testing.T) {}
@@ -161,4 +259,26 @@ func newTestSimulationStepExecutor(t *testing.T) (*SimulationStepExecutor, datab
 	t.Helper()
 	conn := newTestConnection(t)
 	return NewSimulationStepExecutor(conn), conn
+}
+
+// upsertFleetSchedule inserts the arrival/return times and status defined for the fleet
+// in the database, or updates them if a row already exists for this fleet.
+func upsertFleetSchedule(t *testing.T, conn database.Connection, fleet models.Fleet) {
+	t.Helper()
+
+	sqlQuery := `INSERT INTO fleet_flight (fleet, arrival_at, return_at, status)
+		VALUES($1, $2, $3, $4)
+		ON CONFLICT (fleet) DO UPDATE SET
+			arrival_at = excluded.arrival_at,
+			return_at = excluded.return_at,
+			status = excluded.status`
+	_, err := conn.Exec(
+		t.Context(),
+		sqlQuery,
+		fleet.Id,
+		fleet.Schedule.ArrivalAt,
+		fleet.Schedule.ReturnAt,
+		fleet.Schedule.Status,
+	)
+	require.NoError(t, err, "Actual err: %v", err)
 }
