@@ -10,10 +10,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-var (
-	t1 = someTime
-)
-
 func TestIT_SimulationStepExecutor_Execute_LoadPlanetBehavior(t *testing.T) {
 	testCases := []struct {
 		name      string
