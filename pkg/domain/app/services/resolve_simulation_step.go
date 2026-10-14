@@ -16,8 +16,9 @@ func ResolveSimulationStep(step models.SimulationStep) (models.SimulationStepRes
 	}
 
 	result := models.SimulationStepResult{
-		Planet: &step.Planet,
-		Fleet:  nil,
+		Resolution: models.PlanetUpdated,
+		Planet:     &step.Planet,
+		Fleet:      nil,
 	}
 
 	return result, nil
@@ -43,9 +44,15 @@ func resolveFleet(event models.FleetEventContext) (models.SimulationStepResult, 
 		return models.SimulationStepResult{}, domainerrors.ErrUnsupportedFleetStatus
 	}
 
+	resolution := models.FleetEventResolved
+	if event.Fleet.Completed() {
+		resolution = models.FleetDeleted
+	}
+
 	result := models.SimulationStepResult{
-		Planet: event.Planet,
-		Fleet:  &event.Fleet,
+		Resolution: resolution,
+		Planet:     event.Planet,
+		Fleet:      &event.Fleet,
 	}
 
 	return result, err

@@ -27,6 +27,7 @@ func TestUnit_ResolveSimulationStep(t *testing.T) {
 		require.NoError(t, err, "Actual err: %v", err)
 
 		expected := models.SimulationStepResult{
+			Resolution: models.PlanetUpdated,
 			Planet: &models.Planet{
 				Id:        step.Planet.Id,
 				CreatedAt: t1,
@@ -80,6 +81,7 @@ func TestUnit_ResolveSimulationStep(t *testing.T) {
 		result, err := ResolveSimulationStep(step)
 		require.NoError(t, err, "Actual err: %v", err)
 
+		assert.Equal(t, models.FleetEventResolved, result.Resolution)
 		require.NotNil(t, result.Fleet)
 		assert.Equal(t, fleet.Id, result.Fleet.Id)
 		assert.Equal(t, t2, result.Fleet.UpdatedAt)
@@ -128,6 +130,7 @@ func TestUnit_ResolveSimulationStep(t *testing.T) {
 		result, err := ResolveSimulationStep(step)
 		require.NoError(t, err, "Actual err: %v", err)
 
+		assert.Equal(t, models.FleetEventResolved, result.Resolution)
 		require.NotNil(t, result.Planet)
 		assert.Equal(t, target.Id, result.Planet.Id)
 		assert.Equal(t, t2, result.Planet.UpdatedAt)
@@ -176,6 +179,7 @@ func TestUnit_ResolveSimulationStep(t *testing.T) {
 		result, err := ResolveSimulationStep(step)
 		require.NoError(t, err, "Actual err: %v", err)
 
+		assert.Equal(t, models.FleetEventResolved, result.Resolution)
 		require.NotNil(t, result.Fleet)
 		assert.Equal(t, fleet.Id, result.Fleet.Id)
 		assert.Equal(t, models.StatusReturning, result.Fleet.Schedule.Status)
@@ -207,7 +211,7 @@ func TestUnit_ResolveSimulationStep(t *testing.T) {
 			Schedule: models.FleetFlightSchedule{
 				ArrivalAt: t2,
 				ReturnAt:  t4,
-				Status:    models.StatusOutbound,
+				Status:    models.StatusReturning,
 			},
 			CreatedAt: t1,
 			UpdatedAt: t2,
@@ -220,7 +224,7 @@ func TestUnit_ResolveSimulationStep(t *testing.T) {
 			NextFleetEvent: &models.FleetEventContext{
 				Timestamp: t4,
 				Fleet:     fleet,
-				Planet:    &target,
+				Planet:    &source,
 			},
 		}
 
@@ -230,8 +234,8 @@ func TestUnit_ResolveSimulationStep(t *testing.T) {
 		require.NotNil(t, result.Fleet)
 		assert.Equal(t, fleet.Id, result.Fleet.Id)
 		assert.Equal(t, models.StatusReturning, result.Fleet.Schedule.Status)
-		assert.Equal(t, t2, result.Fleet.UpdatedAt)
-		assert.Equal(t, 3, result.Fleet.Version)
+		assert.Equal(t, t4, result.Fleet.UpdatedAt)
+		assert.Equal(t, 2, result.Fleet.Version)
 	})
 
 	t.Run("advances planet to time when fleet returns", func(t *testing.T) {
@@ -386,6 +390,7 @@ func TestUnit_ResolveSimulationStep(t *testing.T) {
 		result, err := ResolveSimulationStep(step)
 		require.NoError(t, err, "Actual err: %v", err)
 
+		assert.Equal(t, models.FleetDeleted, result.Resolution)
 		require.NotNil(t, result.Fleet)
 		assert.Equal(t, fleet.Id, result.Fleet.Id)
 		assert.True(t, result.Fleet.Completed())

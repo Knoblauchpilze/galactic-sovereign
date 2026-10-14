@@ -27,7 +27,16 @@ type FleetEventContext struct {
 	Planet *Planet
 }
 
+type ResolutionResult int
+
+const (
+	FleetEventResolved ResolutionResult = iota
+	FleetDeleted
+	PlanetUpdated
+)
+
 type SimulationStepResult struct {
-	Planet *Planet
-	Fleet  *Fleet
+	Resolution ResolutionResult
+	Planet     *Planet
+	Fleet      *Fleet
 }
