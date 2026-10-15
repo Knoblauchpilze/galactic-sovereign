@@ -48,6 +48,7 @@ CREATE TABLE fleet_flight(
 CREATE TABLE fleet_event(
   fleet UUID NOT NULL,
   next_event_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  event_type TEXT NOT NULL CHECK (event_type IN ('ARRIVAL', 'RETURN')),
   FOREIGN KEY (fleet) REFERENCES fleet(id),
   UNIQUE (fleet)
 );
