@@ -132,6 +132,9 @@ func resolveNextFleetEvent(
 	default:
 		return nil, domainerrors.ErrUnsupportedFleetStatus
 	}
+	if err != nil {
+		return nil, err
+	}
 
 	out := &models.FleetEventContext{
 		Timestamp: maybeFleetEvent.NextEventAt,
