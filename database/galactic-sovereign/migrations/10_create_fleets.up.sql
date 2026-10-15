@@ -45,3 +45,10 @@ CREATE TABLE fleet_flight(
   UNIQUE (fleet)
 );
 
+CREATE TABLE fleet_event(
+  fleet UUID NOT NULL,
+  next_event_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  FOREIGN KEY (fleet) REFERENCES fleet(id),
+  UNIQUE (fleet)
+);
+
