@@ -39,6 +39,7 @@ const (
 	unsupportedFleetStatus       errors.ErrorCode = 635
 	fleetAlreadyArrived          errors.ErrorCode = 636
 	wrongFleetTarget             errors.ErrorCode = 637
+	unsupportedFleetEventType    errors.ErrorCode = 638
 )
 
 var (
@@ -78,4 +79,5 @@ var (
 	ErrUnsupportedFleetStatus     = errors.FromCode(unsupportedFleetStatus)
 	ErrFleetAlreadyArrived        = errors.FromCode(fleetAlreadyArrived)
 	ErrWrongFleetTarget           = errors.FromCode(wrongFleetTarget)
+	ErrUnsupportedFleetEventType  = errors.FromCode(unsupportedFleetEventType)
 )

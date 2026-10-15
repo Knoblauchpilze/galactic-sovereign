@@ -7,6 +7,7 @@ import (
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/errors"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driven/database"
+	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driven/mappers"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
 	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
 	"github.com/google/uuid"
@@ -15,7 +16,8 @@ import (
 const (
 	lockFirstUnresolvedFleetEventForUpdateQuery = `
 SELECT
-	fleet
+	fleet,
+	next_event_at
 FROM
 	fleet_event
 WHERE
@@ -27,6 +29,12 @@ FOR UPDATE`
 
 type SimulationStepExecutor struct {
 	conn database.Connection
+}
+
+type fleetEvent struct {
+	Fleet       uuid.UUID
+	NextEventAt time.Time
+	EventType   mappers.DbFleetEventType
 }
 
 func NewSimulationStepExecutor(conn database.Connection) *SimulationStepExecutor {
@@ -48,37 +56,23 @@ func (s *SimulationStepExecutor) Execute(
 	}
 	defer tx.Close(ctx)
 
-	_, err = db.QueryOneTx[uuid.UUID](
-		ctx,
-		tx,
-		lockFirstUnresolvedFleetEventForUpdateQuery,
-		timestamp,
-	)
-	if err != nil {
-		// TODO: Handle ErrNoMatchingRows
-		return models.SimulationStepResult{}, err
-	}
-
-	actual, err := db.QueryOneTx[uuid.UUID](ctx, tx, lockPlanetForUpdateQuery, planetId)
-	if err != nil {
-		return models.SimulationStepResult{}, parseDbError(err)
-	}
-	if actual != planetId {
-		return models.SimulationStepResult{}, domainerrors.ErrNotFound
-	}
-
-	planet, err := loadPlanetAndDetails(ctx, tx, planetId)
+	event, err := resolveNextFleetEvent(ctx, tx, timestamp)
 	if err != nil {
 		return models.SimulationStepResult{}, err
 	}
 
-	expectedVersion := planet.Version
+	planet, err := resolvePlanet(ctx, tx, planetId, event)
+	if err != nil {
+		return models.SimulationStepResult{}, err
+	}
 
 	step := models.SimulationStep{
 		Timestamp:      timestamp,
 		Planet:         planet,
-		NextFleetEvent: nil,
+		NextFleetEvent: event,
 	}
+
+	expectedVersion := planet.Version
 
 	result, err := simulate(step)
 	if err != nil {
@@ -105,4 +99,75 @@ func (s *SimulationStepExecutor) Execute(
 	}
 
 	return result, nil
+}
+
+func resolveNextFleetEvent(
+	ctx context.Context,
+	tx database.Transaction,
+	timestamp time.Time,
+) (*models.FleetEventContext, error) {
+	maybeFleetEvent, err := db.QueryOneTx[fleetEvent](
+		ctx,
+		tx,
+		lockFirstUnresolvedFleetEventForUpdateQuery,
+		timestamp,
+	)
+	if err != nil && err != db.ErrNoMatchingRows {
+		return nil, err
+	}
+
+	fleet, err := loadFleetAndDetails(ctx, tx, maybeFleetEvent.Fleet)
+	if err != nil {
+		return nil, err
+	}
+
+	var planet *models.Planet
+	switch maybeFleetEvent.EventType {
+	case mappers.ArrivalEvent:
+		if fleet.Destination.Target != nil {
+			planet, err = loadAndLockPlanet(ctx, tx, *fleet.Destination.Target)
+		}
+	case mappers.ReturnEvent:
+		planet, err = loadAndLockPlanet(ctx, tx, fleet.Source)
+	default:
+		return nil, domainerrors.ErrUnsupportedFleetStatus
+	}
+
+	out := &models.FleetEventContext{
+		Timestamp: maybeFleetEvent.NextEventAt,
+		Fleet:     fleet,
+		Planet:    planet,
+	}
+
+	return out, nil
+}
+
+func resolvePlanet(
+	ctx context.Context,
+	tx database.Transaction,
+	planetId uuid.UUID,
+	event *models.FleetEventContext,
+) (models.Planet, error) {
+	if event == nil || event.Planet == nil || event.Planet.Id != planetId {
+		return loadPlanetAndDetails(ctx, tx, planetId)
+	}
+
+	return *event.Planet, nil
+}
+
+func loadAndLockPlanet(ctx context.Context, tx database.Transaction, planetId uuid.UUID) (*models.Planet, error) {
+	actual, err := db.QueryOneTx[uuid.UUID](ctx, tx, lockPlanetForUpdateQuery, planetId)
+	if err != nil {
+		return nil, parseDbError(err)
+	}
+	if actual != planetId {
+		return nil, domainerrors.ErrNotFound
+	}
+
+	planet, err := loadPlanetAndDetails(ctx, tx, planetId)
+	if err != nil {
+		return nil, err
+	}
+
+	return &planet, nil
 }
