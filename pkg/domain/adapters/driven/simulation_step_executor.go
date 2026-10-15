@@ -12,6 +12,19 @@ import (
 	"github.com/google/uuid"
 )
 
+const (
+	lockFirstUnresolvedFleetEventForUpdateQuery = `
+SELECT
+	fleet
+FROM
+	fleet_event
+WHERE
+	next_event_at <= $1
+ORDER BY
+	next_event_at ASC
+FOR UPDATE`
+)
+
 type SimulationStepExecutor struct {
 	conn database.Connection
 }
@@ -34,6 +47,17 @@ func (s *SimulationStepExecutor) Execute(
 		return models.SimulationStepResult{}, err
 	}
 	defer tx.Close(ctx)
+
+	_, err = db.QueryOneTx[uuid.UUID](
+		ctx,
+		tx,
+		lockFirstUnresolvedFleetEventForUpdateQuery,
+		timestamp,
+	)
+	if err != nil {
+		// TODO: Handle ErrNoMatchingRows
+		return models.SimulationStepResult{}, err
+	}
 
 	actual, err := db.QueryOneTx[uuid.UUID](ctx, tx, lockPlanetForUpdateQuery, planetId)
 	if err != nil {
