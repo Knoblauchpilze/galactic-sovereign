@@ -26,6 +26,14 @@ INSERT INTO
 	fleet_flight (fleet, arrival_at, return_at, status)
 	VALUES ($1, $2, $3, $4)`
 
+	upsertFleetEventQuery = `
+INSERT INTO
+	fleet_event (fleet, next_event_at)
+	VALUES ($1, $2)
+ON CONFLICT (fleet) DO UPDATE
+SET
+	next_event_at = excluded.next_event_at`
+
 	createFleetShipQuery = `
 INSERT INTO
 	fleet_ship (fleet, ship, count)
@@ -104,6 +112,16 @@ func createFleetWithDetails(
 		fleet.Schedule.ArrivalAt,
 		fleet.Schedule.ReturnAt,
 		fleet.Schedule.Status,
+	)
+	if err != nil {
+		return parseDbError(err)
+	}
+
+	_, err = tx.Exec(
+		ctx,
+		upsertFleetEventQuery,
+		fleet.Id,
+		fleet.Schedule.ArrivalAt,
 	)
 	if err != nil {
 		return parseDbError(err)

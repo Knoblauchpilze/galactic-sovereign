@@ -132,6 +132,23 @@ func TestIT_FleetDispatcher_MutateBehavior(t *testing.T) {
 		assert.Equal(t, fleet, actual)
 	})
 
+	t.Run("persists fleet next event", func(t *testing.T) {
+		adapter, conn := newTestFleetDispatcher(t)
+
+		planet, _, _ := insertTestPlanetForPlayer(t, conn)
+		fleet := generateSampleFleet(planet)
+
+		creator := generateFleetCreator(func(p *models.Planet) models.Fleet {
+			p.Version++
+			return fleet
+		})
+
+		_, err := adapter.Dispatch(t.Context(), planet.Id, creator)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assertFleetEventExists(t, conn, fleet.Id, fleet.Schedule.ArrivalAt)
+	})
+
 	t.Run("returns error when target planet does not exist", func(t *testing.T) {
 		adapter, conn := newTestFleetDispatcher(t)
 
@@ -686,4 +703,13 @@ func assertFleetDoesNotExist(t *testing.T, conn database.Connection, id uuid.UUI
 	value, err := db.QueryOne[int](t.Context(), conn, sqlQuery, id)
 	require.NoError(t, err, "Actual err: %v", err)
 	require.Zero(t, value)
+}
+
+func assertFleetEventExists(t *testing.T, conn database.Connection, fleet uuid.UUID, moment time.Time) {
+	t.Helper()
+
+	sqlQuery := `SELECT next_event_at FROM fleet_event WHERE fleet = $1`
+	value, err := db.QueryOne[time.Time](t.Context(), conn, sqlQuery, fleet)
+	require.NoError(t, err, "Actual err: %v", err)
+	require.Equal(t, moment, value)
 }
