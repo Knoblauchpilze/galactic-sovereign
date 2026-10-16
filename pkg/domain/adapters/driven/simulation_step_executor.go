@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
-	"github.com/Knoblauchpilze/backend-toolkit/pkg/errors"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driven/database"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driven/mappers"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
@@ -17,7 +16,8 @@ const (
 	lockFirstUnresolvedFleetEventForUpdateQuery = `
 SELECT
 	fleet,
-	next_event_at
+	next_event_at,
+	event_type
 FROM
 	fleet_event
 WHERE
@@ -94,8 +94,12 @@ func (s *SimulationStepExecutor) Execute(
 	}
 
 	if result.Fleet != nil {
-		// TODO: Add tests for this
-		return models.SimulationStepResult{}, errors.ErrNotImplemented
+		out, err := saveAndReloadFleet(ctx, tx, *result.Fleet, expectedVersion)
+		if err != nil {
+			return models.SimulationStepResult{}, err
+		}
+
+		result.Fleet = &out
 	}
 
 	return result, nil
@@ -112,7 +116,10 @@ func resolveNextFleetEvent(
 		lockFirstUnresolvedFleetEventForUpdateQuery,
 		timestamp,
 	)
-	if err != nil && err != db.ErrNoMatchingRows {
+	if err == db.ErrNoMatchingRows {
+		return nil, nil
+	}
+	if err != nil {
 		return nil, err
 	}
 

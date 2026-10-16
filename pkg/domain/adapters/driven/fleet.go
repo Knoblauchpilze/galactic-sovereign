@@ -7,6 +7,7 @@ import (
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driven/database"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driven/mappers"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
+	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
 	"github.com/google/uuid"
 )
 
@@ -28,11 +29,12 @@ INSERT INTO
 
 	upsertFleetEventQuery = `
 INSERT INTO
-	fleet_event (fleet, next_event_at)
-	VALUES ($1, $2)
+	fleet_event (fleet, next_event_at, event_type)
+	VALUES ($1, $2, $3)
 ON CONFLICT (fleet) DO UPDATE
 SET
-	next_event_at = excluded.next_event_at`
+	next_event_at = excluded.next_event_at,
+	event_type = excluded.event_type`
 
 	createFleetShipQuery = `
 INSERT INTO
@@ -70,6 +72,17 @@ FROM
 	fleet_ship
 WHERE
 	fleet = $1`
+
+	updateFleetQuery = `
+UPDATE
+	fleet
+SET
+	version = $1,
+	updated_at = $2
+WHERE
+	id = $3
+	AND version = $4
+	`
 )
 
 func createFleetWithDetails(
@@ -122,6 +135,7 @@ func createFleetWithDetails(
 		upsertFleetEventQuery,
 		fleet.Id,
 		fleet.Schedule.ArrivalAt,
+		mappers.ArrivalEvent,
 	)
 	if err != nil {
 		return parseDbError(err)
@@ -171,4 +185,70 @@ func loadFleetDetails(ctx context.Context, tx database.Transaction, dbFleet mapp
 	}
 
 	return fleet, nil
+}
+
+func saveAndReloadFleet(
+	ctx context.Context,
+	tx database.Transaction,
+	fleet models.Fleet,
+	expectedVersion int,
+) (models.Fleet, error) {
+	if fleet.Version == expectedVersion {
+		return models.Fleet{}, domainerrors.ErrMutationWithoutVersionBump
+	}
+
+	err := updateFleetDetails(ctx, tx, fleet, expectedVersion)
+	if err != nil {
+		return models.Fleet{}, err
+	}
+
+	// This second load is to make sure that the returned fleet value
+	// corresponds to the up to date data stored in the DB. There is
+	// nothing preventing the mutation function to perform updates to
+	// the fleet which are not reflected by the SQL queries (such as
+	// update to the identifier, etc.).
+	// A better solution would be to constrain the shape of the mutation
+	// function so that it can only perform valid modifications but this
+	// solution (reload the data form the DB) is acceptable.
+	out, err := loadFleetAndDetails(ctx, tx, fleet.Id)
+	if err != nil {
+		return models.Fleet{}, err
+	}
+
+	return out, nil
+}
+
+func updateFleetDetails(
+	ctx context.Context,
+	tx database.Transaction,
+	fleet models.Fleet,
+	expectedVersion int,
+) error {
+	// TODO: update fleet_flight
+	// TODO: update fleet_event
+
+	err := recreateFleetShips(ctx, tx, fleet)
+	if err != nil {
+		return err
+	}
+
+	affected, err := tx.Exec(
+		ctx,
+		updateFleetQuery,
+		fleet.Version,
+		fleet.UpdatedAt,
+		fleet.Id,
+		expectedVersion,
+	)
+	if err != nil {
+		return err
+	}
+	if affected != 1 {
+		if err := tx.Rollback(); err != nil {
+			return err
+		}
+		return domainerrors.ErrOptimisticLocking
+	}
+
+	return nil
 }

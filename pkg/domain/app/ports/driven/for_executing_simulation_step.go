@@ -15,12 +15,6 @@ import (
 // the decide function which should resolve the simulation step.
 // The result includes the new states of the planet and fleet. Both values will
 // be persisted back to the database.
-// TODO: Probably the return of the function should be:
-//   - event resolved/fleet resolved boolean
-//   - the planet when it was updated
-//
-// Could also be the SimulationStep returning it -> keeps the logic
-// in the domain
 type ForExecutingSimulationStep interface {
 	Execute(
 		ctx context.Context,

@@ -7,6 +7,7 @@ import (
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driven/database"
+	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driven/mappers"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
 	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
 	drivenports "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driven"
@@ -132,7 +133,7 @@ func TestIT_FleetDispatcher_MutateBehavior(t *testing.T) {
 		assert.Equal(t, fleet, actual)
 	})
 
-	t.Run("persists fleet next event", func(t *testing.T) {
+	t.Run("persists fleet next event for outbound fleet", func(t *testing.T) {
 		adapter, conn := newTestFleetDispatcher(t)
 
 		planet, _, _ := insertTestPlanetForPlayer(t, conn)
@@ -147,6 +148,7 @@ func TestIT_FleetDispatcher_MutateBehavior(t *testing.T) {
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assertFleetEventExists(t, conn, fleet.Id, fleet.Schedule.ArrivalAt)
+		assertFleetEventTypeMatches(t, conn, fleet.Id, mappers.ArrivalEvent)
 	})
 
 	t.Run("returns error when target planet does not exist", func(t *testing.T) {
@@ -712,4 +714,13 @@ func assertFleetEventExists(t *testing.T, conn database.Connection, fleet uuid.U
 	value, err := db.QueryOne[time.Time](t.Context(), conn, sqlQuery, fleet)
 	require.NoError(t, err, "Actual err: %v", err)
 	require.Equal(t, moment, value)
+}
+
+func assertFleetEventTypeMatches(t *testing.T, conn database.Connection, fleet uuid.UUID, eventType mappers.DbFleetEventType) {
+	t.Helper()
+
+	sqlQuery := `SELECT event_type FROM fleet_event WHERE fleet = $1`
+	value, err := db.QueryOne[mappers.DbFleetEventType](t.Context(), conn, sqlQuery, fleet)
+	require.NoError(t, err, "Actual err: %v", err)
+	require.Equal(t, eventType, value)
 }

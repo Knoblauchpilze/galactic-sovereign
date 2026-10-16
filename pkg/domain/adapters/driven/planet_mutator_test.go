@@ -7,6 +7,7 @@ import (
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driven/database"
+	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driven/mappers"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
 	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
 	drivenports "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driven"
@@ -1475,7 +1476,7 @@ func insertTestFleet(
 		Schedule: models.FleetFlightSchedule{
 			ArrivalAt: source.UpdatedAt.Add(1 * time.Hour),
 			ReturnAt:  source.UpdatedAt.Add(2 * time.Hour),
-			Status:    models.StatusReturning,
+			Status:    models.StatusOutbound,
 		},
 		CreatedAt: source.UpdatedAt,
 		UpdatedAt: source.UpdatedAt,
@@ -1499,6 +1500,20 @@ func insertTestFleet(
 	require.NoError(t, err, "Actual err: %v", err)
 
 	sqlQuery = `INSERT INTO
+		fleet_destination (fleet, galaxy, solar_system, position, planet)
+		VALUES ($1, $2, $3, $4, $5)`
+	_, err = conn.Exec(
+		t.Context(),
+		sqlQuery,
+		fleet.Id,
+		fleet.Destination.Coordinate.Galaxy,
+		fleet.Destination.Coordinate.SolarSystem,
+		fleet.Destination.Coordinate.Position,
+		fleet.Destination.Target,
+	)
+	require.NoError(t, err, "Actual err: %v", err)
+
+	sqlQuery = `INSERT INTO
 		fleet_flight (fleet, arrival_at, return_at, status)
 		VALUES ($1, $2, $3, $4)`
 	_, err = conn.Exec(
@@ -1508,6 +1523,18 @@ func insertTestFleet(
 		fleet.Schedule.ArrivalAt,
 		fleet.Schedule.ReturnAt,
 		fleet.Schedule.Status,
+	)
+	require.NoError(t, err, "Actual err: %v", err)
+
+	sqlQuery = `INSERT INTO
+		fleet_event (fleet, next_event_at, event_type)
+		VALUES ($1, $2, $3)`
+	_, err = conn.Exec(
+		t.Context(),
+		sqlQuery,
+		fleet.Id,
+		fleet.Schedule.ArrivalAt,
+		mappers.ArrivalEvent,
 	)
 	require.NoError(t, err, "Actual err: %v", err)
 
