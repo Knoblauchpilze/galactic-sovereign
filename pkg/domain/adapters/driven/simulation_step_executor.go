@@ -72,7 +72,11 @@ func (s *SimulationStepExecutor) Execute(
 		NextFleetEvent: event,
 	}
 
-	expectedVersion := planet.Version
+	expectedPlanetVersion := planet.Version
+	var expectedFleetVersion int
+	if step.NextFleetEvent != nil {
+		expectedFleetVersion = step.NextFleetEvent.Fleet.Version
+	}
 
 	result, err := simulate(step)
 	if err != nil {
@@ -85,7 +89,7 @@ func (s *SimulationStepExecutor) Execute(
 	}
 
 	if result.Planet != nil {
-		out, err := saveAndReloadPlanet(ctx, tx, *result.Planet, expectedVersion)
+		out, err := saveAndReloadPlanet(ctx, tx, *result.Planet, expectedPlanetVersion)
 		if err != nil {
 			return models.SimulationStepResult{}, err
 		}
@@ -94,7 +98,7 @@ func (s *SimulationStepExecutor) Execute(
 	}
 
 	if result.Fleet != nil {
-		out, err := saveAndReloadFleet(ctx, tx, *result.Fleet, expectedVersion)
+		out, err := saveAndReloadFleet(ctx, tx, *result.Fleet, expectedFleetVersion)
 		if err != nil {
 			return models.SimulationStepResult{}, err
 		}

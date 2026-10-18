@@ -155,13 +155,14 @@ func TestIT_SimulationStepExecutor_Execute_LoadFleetBehavior(t *testing.T) {
 		simulate := func(step models.SimulationStep) (models.SimulationStepResult, error) {
 			captured = step
 
-			step.Planet.Version++
-
 			result := models.SimulationStepResult{
 				Resolution: models.FleetEventResolved,
-				Planet:     &step.Planet,
-				Fleet:      &step.NextFleetEvent.Fleet,
+				Planet:     new(step.Planet),
+				Fleet:      new(step.NextFleetEvent.Fleet),
 			}
+
+			result.Planet.Version++
+			result.Fleet.Version++
 
 			return result, nil
 		}
@@ -187,6 +188,7 @@ func TestIT_SimulationStepExecutor_Execute_LoadFleetBehavior(t *testing.T) {
 			Fleet:      &fleet,
 		}
 		expectedResult.Planet.Version++
+		expectedResult.Fleet.Version++
 		assert.Equal(t, expectedResult, actual)
 	})
 
@@ -198,19 +200,20 @@ func TestIT_SimulationStepExecutor_Execute_LoadFleetBehavior(t *testing.T) {
 
 		destination, _, _ := insertTestPlanetForPlayer(t, conn)
 		fleet.Destination.Target = &destination.Id
-		upsertFleetSchedule(t, conn, fleet)
+		upsertFleetDestination(t, conn, fleet)
 
 		var captured models.SimulationStep
 		simulate := func(step models.SimulationStep) (models.SimulationStepResult, error) {
 			captured = step
 
-			step.Planet.Version++
-
 			result := models.SimulationStepResult{
 				Resolution: models.FleetEventResolved,
-				Planet:     &step.Planet,
-				Fleet:      &step.NextFleetEvent.Fleet,
+				Planet:     new(step.Planet),
+				Fleet:      new(step.NextFleetEvent.Fleet),
 			}
+
+			result.Planet.Version++
+			result.Fleet.Version++
 
 			return result, nil
 		}
@@ -236,6 +239,7 @@ func TestIT_SimulationStepExecutor_Execute_LoadFleetBehavior(t *testing.T) {
 			Fleet:      &fleet,
 		}
 		expectedResult.Planet.Version++
+		expectedResult.Fleet.Version++
 		assert.Equal(t, expectedResult, actual)
 	})
 }

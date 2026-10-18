@@ -27,15 +27,6 @@ INSERT INTO
 	fleet_flight (fleet, arrival_at, return_at, status)
 	VALUES ($1, $2, $3, $4)`
 
-	upsertFleetEventQuery = `
-INSERT INTO
-	fleet_event (fleet, next_event_at, event_type)
-	VALUES ($1, $2, $3)
-ON CONFLICT (fleet) DO UPDATE
-SET
-	next_event_at = excluded.next_event_at,
-	event_type = excluded.event_type`
-
 	createFleetShipQuery = `
 INSERT INTO
 	fleet_ship (fleet, ship, count)
@@ -83,6 +74,27 @@ WHERE
 	id = $3
 	AND version = $4
 	`
+
+	updateFleetFlightQuery = `
+UPDATE
+	fleet_flight
+SET
+	arrival_at = $1,
+	return_at = $2,
+	status = $3
+WHERE
+	fleet = $4`
+
+	upsertFleetEventQuery = `
+INSERT INTO
+	fleet_event (fleet, next_event_at, event_type)
+	VALUES ($1, $2, $3)
+ON CONFLICT (fleet) DO UPDATE
+SET
+	next_event_at = excluded.next_event_at,
+	event_type = excluded.event_type`
+
+	deleteFleetShipsQuery = `DELETE FROM fleet_ship WHERE fleet = $1`
 )
 
 func createFleetWithDetails(
@@ -224,10 +236,30 @@ func updateFleetDetails(
 	fleet models.Fleet,
 	expectedVersion int,
 ) error {
-	// TODO: update fleet_flight
-	// TODO: update fleet_event
+	_, err := tx.Exec(
+		ctx,
+		updateFleetFlightQuery,
+		fleet.Schedule.ArrivalAt,
+		fleet.Schedule.ReturnAt,
+		fleet.Schedule.Status,
+		fleet.Id,
+	)
+	if err != nil {
+		return err
+	}
 
-	err := recreateFleetShips(ctx, tx, fleet)
+	_, err = tx.Exec(
+		ctx,
+		upsertFleetEventQuery,
+		fleet.Id,
+		fleet.Schedule.ArrivalAt,
+		mappers.ArrivalEvent,
+	)
+	if err != nil {
+		return parseDbError(err)
+	}
+
+	err = recreateFleetShips(ctx, tx, fleet)
 	if err != nil {
 		return err
 	}
@@ -247,7 +279,33 @@ func updateFleetDetails(
 		if err := tx.Rollback(); err != nil {
 			return err
 		}
+
 		return domainerrors.ErrOptimisticLocking
+	}
+
+	return nil
+}
+
+// recreateFleetShips deletes the ships attached to a fleet and recreate them completely.
+// It allows to handle cases where a mutator function removed some ships for example due
+// to an attack which destroyed some ships.
+func recreateFleetShips(ctx context.Context, tx database.Transaction, fleet models.Fleet) error {
+	_, err := tx.Exec(ctx, deleteFleetShipsQuery, fleet.Id)
+	if err != nil {
+		return err
+	}
+
+	for _, s := range fleet.Ships {
+		_, err := tx.Exec(
+			ctx,
+			createFleetShipQuery,
+			fleet.Id,
+			s.Ship,
+			s.Count,
+		)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
