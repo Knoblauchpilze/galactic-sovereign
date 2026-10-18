@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driven/database"
+	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driven/mappers"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
 	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
 	"github.com/google/uuid"
@@ -232,6 +233,57 @@ func TestIT_SimulationStepExecutor_Execute_LoadFleetBehavior(t *testing.T) {
 				Timestamp: fleet.Schedule.ArrivalAt,
 				Fleet:     fleet,
 				Planet:    &destination,
+			},
+		}
+		assert.Equal(t, expectedStep, captured)
+		expectedResult := models.SimulationStepResult{
+			Resolution: models.FleetEventResolved,
+			Planet:     &planet,
+			Fleet:      &fleet,
+		}
+		expectedResult.Planet.Version++
+		expectedResult.Fleet.Version++
+		assert.Equal(t, expectedResult, actual)
+	})
+
+	t.Run("loads fleet event for returning fleet", func(t *testing.T) {
+		adapter, conn := newTestSimulationStepExecutor(t)
+
+		planet, _, _ := insertTestPlanetForPlayer(t, conn)
+		fleet := insertTestFleet(t, conn, planet, addFleetShip)
+		fleet.UpdatedAt = fleet.Schedule.ArrivalAt
+		fleet.Schedule.Status = models.StatusReturning
+		upsertFleetSchedule(t, conn, fleet)
+		markFleetAsReturning(t, conn, fleet)
+
+		var captured models.SimulationStep
+		simulate := func(step models.SimulationStep) (models.SimulationStepResult, error) {
+			captured = step
+
+			result := models.SimulationStepResult{
+				Resolution: models.FleetEventResolved,
+				Planet:     new(step.Planet),
+				Fleet:      new(step.NextFleetEvent.Fleet),
+			}
+
+			result.Planet.Version++
+			result.Fleet.Version++
+
+			return result, nil
+		}
+
+		afterReturn := fleet.Schedule.ReturnAt.Add(1 * time.Minute)
+
+		actual, err := adapter.Execute(t.Context(), planet.Id, afterReturn, simulate)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		expectedStep := models.SimulationStep{
+			Timestamp: afterReturn,
+			Planet:    planet,
+			NextFleetEvent: &models.FleetEventContext{
+				Timestamp: fleet.Schedule.ReturnAt,
+				Fleet:     fleet,
+				Planet:    &planet,
 			},
 		}
 		assert.Equal(t, expectedStep, captured)
@@ -1299,6 +1351,35 @@ func upsertFleetSchedule(t *testing.T, conn database.Connection, fleet models.Fl
 	require.NoError(t, err, "Actual err: %v", err)
 }
 
+// upsertFleetNextEvent updates the registered next event for the fleet to be its return time.
+func markFleetAsReturning(t *testing.T, conn database.Connection, fleet models.Fleet) {
+	t.Helper()
+
+	sqlQuery := `UPDATE fleet SET updated_at = $1 WHERE id = $2`
+	affected, err := conn.Exec(
+		t.Context(),
+		sqlQuery,
+		fleet.UpdatedAt,
+		fleet.Id,
+	)
+	require.Equal(t, int64(1), affected)
+	require.NoError(t, err, "Actual err: %v", err)
+
+	sqlQuery = `INSERT INTO fleet_event (fleet, next_event_at, event_type)
+		VALUES($1, $2, $3)
+		ON CONFLICT (fleet) DO UPDATE SET
+			next_event_at = excluded.next_event_at,
+			event_type = excluded.event_type`
+	_, err = conn.Exec(
+		t.Context(),
+		sqlQuery,
+		fleet.Id,
+		fleet.Schedule.ReturnAt,
+		mappers.ReturnEvent,
+	)
+	require.NoError(t, err, "Actual err: %v", err)
+}
+
 func generatePlanetSimulator(
 	modifier func(*models.Planet),
 ) func(models.SimulationStep) (models.SimulationStepResult, error) {
@@ -1310,6 +1391,22 @@ func generatePlanetSimulator(
 		}
 
 		modifier(result.Planet)
+
+		return result, nil
+	}
+}
+
+func generateFleetSimulator(
+	modifier func(*models.Fleet),
+) func(models.SimulationStep) (models.SimulationStepResult, error) {
+	return func(step models.SimulationStep) (models.SimulationStepResult, error) {
+		result := models.SimulationStepResult{
+			Resolution: models.FleetEventResolved,
+			Planet:     new(step.Planet),
+			Fleet:      new(step.NextFleetEvent.Fleet),
+		}
+
+		modifier(result.Fleet)
 
 		return result, nil
 	}
