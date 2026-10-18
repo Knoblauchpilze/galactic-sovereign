@@ -3,22 +3,18 @@ package mappers
 import (
 	"database/sql"
 
+	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
 	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
 )
 
-type DbFleetEventType string
-
-const (
-	ArrivalEvent DbFleetEventType = "ARRIVAL"
-	ReturnEvent  DbFleetEventType = "RETURN"
-)
+type DbFleetEventType models.FleetEventType
 
 var (
 	_ sql.Scanner = (*DbFleetEventType)(nil)
 
 	allFleetEventTypes = map[DbFleetEventType]struct{}{
-		ArrivalEvent: {},
-		ReturnEvent:  {},
+		DbFleetEventType(models.ArrivalEvent): {},
+		DbFleetEventType(models.ReturnEvent):  {},
 	}
 )
 
@@ -44,6 +40,10 @@ func (event *DbFleetEventType) Scan(value any) error {
 
 	*event = parsed
 	return nil
+}
+
+func (event DbFleetEventType) ToDomain() models.FleetEventType {
+	return models.FleetEventType(event)
 }
 
 func validFleetEventType(event DbFleetEventType) bool {

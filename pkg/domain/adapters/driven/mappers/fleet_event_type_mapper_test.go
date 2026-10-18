@@ -15,22 +15,22 @@ func TestUnit_DbFleetEventType_Scan(t *testing.T) {
 	tests := []struct {
 		name     string
 		input    any
-		expected DbFleetEventType
+		expected models.FleetEventType
 	}{
 		{
 			name:     "arrival string",
 			input:    "ARRIVAL",
-			expected: ArrivalEvent,
+			expected: models.ArrivalEvent,
 		},
 		{
 			name:     "return string",
 			input:    "RETURN",
-			expected: ReturnEvent,
+			expected: models.ReturnEvent,
 		},
 		{
 			name:     "arrival bytes",
 			input:    []byte("ARRIVAL"),
-			expected: ArrivalEvent,
+			expected: models.ArrivalEvent,
 		},
 	}
 
@@ -41,7 +41,7 @@ func TestUnit_DbFleetEventType_Scan(t *testing.T) {
 			err := actual.Scan(test.input)
 			require.NoError(t, err, "Actual err: %v", err)
 
-			assert.Equal(t, test.expected, actual)
+			assert.Equal(t, test.expected, actual.ToDomain())
 		})
 	}
 }
@@ -81,9 +81,9 @@ func TestUnit_DbFleetEventType_ScanRejectsInvalidValues(t *testing.T) {
 }
 
 func TestIT_DbFleetEventType(t *testing.T) {
-	events := []DbFleetEventType{
-		ArrivalEvent,
-		ReturnEvent,
+	events := []models.FleetEventType{
+		models.ArrivalEvent,
+		models.ReturnEvent,
 	}
 
 	for _, event := range events {
@@ -116,7 +116,7 @@ func TestIT_DbFleetEventType(t *testing.T) {
 			)
 			require.NoError(t, err, "Actual err: %v", err)
 
-			assert.Equal(t, event, row)
+			assert.Equal(t, event, row.ToDomain())
 		})
 	}
 
