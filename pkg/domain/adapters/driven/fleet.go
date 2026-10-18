@@ -248,6 +248,7 @@ func updateFleetDetails(
 		return err
 	}
 
+	// TODO: Should be different
 	_, err = tx.Exec(
 		ctx,
 		upsertFleetEventQuery,
