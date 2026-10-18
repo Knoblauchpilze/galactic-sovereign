@@ -125,6 +125,24 @@ func (f *Fleet) ApplyReturn(target *Planet) error {
 	return nil
 }
 
+func (f *Fleet) NextEvent() (FleetEvent, error) {
+	switch f.Schedule.Status {
+	case StatusOutbound:
+		return FleetEvent{
+			Timestamp: f.Schedule.ArrivalAt,
+			Event:     ArrivalEvent,
+		}, nil
+	case StatusReturning:
+		return FleetEvent{
+			Timestamp: f.Schedule.ReturnAt,
+			Event:     ReturnEvent,
+		}, nil
+	default:
+		return FleetEvent{}, domainerrors.ErrUnsupportedFleetStatus
+
+	}
+}
+
 func (f *Fleet) Completed() bool {
 	return f.UpdatedAt.Compare(f.Schedule.ReturnAt) >= 0 &&
 		f.Schedule.Status == StatusReturning

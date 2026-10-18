@@ -682,6 +682,63 @@ func TestUnit_Fleet_ApplyReturn(t *testing.T) {
 	})
 }
 
+func TestUnit_Fleet_NextEvent(t *testing.T) {
+	t.Run("returns arrival event when status is outbound", func(t *testing.T) {
+		f := Fleet{
+			Id: uuid.New(),
+			Schedule: FleetFlightSchedule{
+				ArrivalAt: t1,
+				ReturnAt:  t2,
+				Status:    StatusOutbound,
+			},
+		}
+
+		actual, err := f.NextEvent()
+		require.NoError(t, err, "Actual err: %v", err)
+
+		expected := FleetEvent{
+			Timestamp: t1,
+			Event:     ArrivalEvent,
+		}
+		assert.Equal(t, expected, actual)
+	})
+
+	t.Run("returns return event when status is returning", func(t *testing.T) {
+		f := Fleet{
+			Id: uuid.New(),
+			Schedule: FleetFlightSchedule{
+				ArrivalAt: t1,
+				ReturnAt:  t2,
+				Status:    StatusReturning,
+			},
+		}
+
+		actual, err := f.NextEvent()
+		require.NoError(t, err, "Actual err: %v", err)
+
+		expected := FleetEvent{
+			Timestamp: t2,
+			Event:     ReturnEvent,
+		}
+		assert.Equal(t, expected, actual)
+	})
+
+	t.Run("returns error when status is unknown", func(t *testing.T) {
+		f := Fleet{
+			Id: uuid.New(),
+			Schedule: FleetFlightSchedule{
+				ArrivalAt: t1,
+				ReturnAt:  t2,
+				Status:    FleetStatus("UNSUPPORTED"),
+			},
+		}
+
+		_, err := f.NextEvent()
+
+		assert.ErrorIs(t, err, domainerrors.ErrUnsupportedFleetStatus, "Actual err: %v", err)
+	})
+}
+
 func TestUnit_Fleet_Completed(t *testing.T) {
 	t.Run("returns false when fleet was just created", func(t *testing.T) {
 		f := Fleet{
