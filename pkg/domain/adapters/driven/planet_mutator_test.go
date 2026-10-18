@@ -7,7 +7,6 @@ import (
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driven/database"
-	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driven/mappers"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
 	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
 	drivenports "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driven"
@@ -1534,7 +1533,7 @@ func insertTestFleet(
 		sqlQuery,
 		fleet.Id,
 		fleet.Schedule.ArrivalAt,
-		mappers.ArrivalEvent,
+		models.ArrivalEvent,
 	)
 	require.NoError(t, err, "Actual err: %v", err)
 

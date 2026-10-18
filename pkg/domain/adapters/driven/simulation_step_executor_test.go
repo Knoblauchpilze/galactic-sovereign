@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driven/database"
-	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driven/mappers"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
 	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
 	"github.com/google/uuid"
@@ -1425,7 +1424,7 @@ func TestIT_SimulationStepExecutor_Execute_SaveFleet(t *testing.T) {
 
 		planet, _, _ := insertTestPlanetForPlayer(t, conn)
 		fleet := insertTestFleet(t, conn, planet, addFleetShip)
-		assertFleetEventTypeMatches(t, conn, fleet.Id, mappers.ArrivalEvent)
+		assertFleetEventTypeMatches(t, conn, fleet.Id, models.ArrivalEvent)
 
 		simulate := generateFleetSimulator(func(f *models.Fleet) {
 			f.Schedule.Status = models.StatusReturning
@@ -1436,7 +1435,7 @@ func TestIT_SimulationStepExecutor_Execute_SaveFleet(t *testing.T) {
 		_, err := adapter.Execute(t.Context(), planet.Id, afterArrival, simulate)
 		require.NoError(t, err, "Actual err: %v", err)
 
-		assertFleetEventTypeMatches(t, conn, fleet.Id, mappers.ReturnEvent)
+		assertFleetEventTypeMatches(t, conn, fleet.Id, models.ReturnEvent)
 	})
 }
 
@@ -1498,7 +1497,7 @@ func markFleetAsReturning(t *testing.T, conn database.Connection, fleet models.F
 		sqlQuery,
 		fleet.Id,
 		fleet.Schedule.ReturnAt,
-		mappers.ReturnEvent,
+		models.ReturnEvent,
 	)
 	require.NoError(t, err, "Actual err: %v", err)
 }

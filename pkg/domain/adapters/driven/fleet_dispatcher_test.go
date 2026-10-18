@@ -148,7 +148,7 @@ func TestIT_FleetDispatcher_MutateBehavior(t *testing.T) {
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assertFleetEventExists(t, conn, fleet.Id, fleet.Schedule.ArrivalAt)
-		assertFleetEventTypeMatches(t, conn, fleet.Id, mappers.ArrivalEvent)
+		assertFleetEventTypeMatches(t, conn, fleet.Id, models.ArrivalEvent)
 	})
 
 	t.Run("returns error when target planet does not exist", func(t *testing.T) {
@@ -716,11 +716,11 @@ func assertFleetEventExists(t *testing.T, conn database.Connection, fleet uuid.U
 	require.Equal(t, moment, value)
 }
 
-func assertFleetEventTypeMatches(t *testing.T, conn database.Connection, fleet uuid.UUID, eventType mappers.DbFleetEventType) {
+func assertFleetEventTypeMatches(t *testing.T, conn database.Connection, fleet uuid.UUID, eventType models.FleetEventType) {
 	t.Helper()
 
 	sqlQuery := `SELECT event_type FROM fleet_event WHERE fleet = $1`
 	value, err := db.QueryOne[mappers.DbFleetEventType](t.Context(), conn, sqlQuery, fleet)
 	require.NoError(t, err, "Actual err: %v", err)
-	require.Equal(t, eventType, value)
+	require.Equal(t, eventType, value.ToDomain())
 }

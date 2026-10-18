@@ -133,12 +133,12 @@ func resolveNextFleetEvent(
 	}
 
 	var planet *models.Planet
-	switch maybeFleetEvent.EventType {
-	case mappers.ArrivalEvent:
+	switch maybeFleetEvent.EventType.ToDomain() {
+	case models.ArrivalEvent:
 		if fleet.Destination.Target != nil {
 			planet, err = loadAndLockPlanet(ctx, tx, *fleet.Destination.Target)
 		}
-	case mappers.ReturnEvent:
+	case models.ReturnEvent:
 		planet, err = loadAndLockPlanet(ctx, tx, fleet.Source)
 	default:
 		return nil, domainerrors.ErrUnsupportedFleetStatus

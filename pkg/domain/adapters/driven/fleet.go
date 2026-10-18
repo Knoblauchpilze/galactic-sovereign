@@ -147,7 +147,7 @@ func createFleetWithDetails(
 		upsertFleetEventQuery,
 		fleet.Id,
 		fleet.Schedule.ArrivalAt,
-		mappers.ArrivalEvent,
+		models.ArrivalEvent,
 	)
 	if err != nil {
 		return parseDbError(err)
@@ -248,13 +248,17 @@ func updateFleetDetails(
 		return err
 	}
 
-	// TODO: Should be different
+	event, err := fleet.NextEvent()
+	if err != nil {
+		return err
+	}
+
 	_, err = tx.Exec(
 		ctx,
 		upsertFleetEventQuery,
 		fleet.Id,
-		fleet.Schedule.ArrivalAt,
-		mappers.ArrivalEvent,
+		event.Timestamp,
+		event.Event,
 	)
 	if err != nil {
 		return parseDbError(err)
