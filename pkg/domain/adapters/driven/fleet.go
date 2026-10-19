@@ -94,7 +94,11 @@ SET
 	next_event_at = excluded.next_event_at,
 	event_type = excluded.event_type`
 
-	deleteFleetShipsQuery = `DELETE FROM fleet_ship WHERE fleet = $1`
+	deleteFleetEventQuery       = `DELETE FROM fleet_event WHERE fleet = $1`
+	deleteFleetFlightQuery      = `DELETE FROM fleet_flight WHERE fleet = $1`
+	deleteFleetDestinationQuery = `DELETE FROM fleet_destination WHERE fleet = $1`
+	deleteFleetShipsQuery       = `DELETE FROM fleet_ship WHERE fleet = $1`
+	deleteFleetQuery            = `DELETE FROM fleet WHERE id = $1`
 )
 
 func createFleetWithDetails(
@@ -311,6 +315,35 @@ func recreateFleetShips(ctx context.Context, tx database.Transaction, fleet mode
 		if err != nil {
 			return err
 		}
+	}
+
+	return nil
+}
+
+func deleteFleetAndDetails(ctx context.Context, tx database.Transaction, id uuid.UUID) error {
+	_, err := tx.Exec(ctx, deleteFleetEventQuery, id)
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.Exec(ctx, deleteFleetFlightQuery, id)
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.Exec(ctx, deleteFleetDestinationQuery, id)
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.Exec(ctx, deleteFleetShipsQuery, id)
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.Exec(ctx, deleteFleetQuery, id)
+	if err != nil {
+		return err
 	}
 
 	return nil

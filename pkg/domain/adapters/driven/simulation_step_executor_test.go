@@ -1437,7 +1437,6 @@ func TestIT_SimulationStepExecutor_Execute_SaveFleet(t *testing.T) {
 	})
 }
 
-// TODO: Implement tests
 func TestIT_SimulationStepExecutor_Execute_DeleteFleet(t *testing.T) {
 	t.Run("deletes fleet", func(t *testing.T) {
 		adapter, conn := newTestSimulationStepExecutor(t)
@@ -1492,6 +1491,7 @@ func TestIT_SimulationStepExecutor_Execute_DeleteFleet(t *testing.T) {
 	})
 }
 
+// TODO: Implement tests
 func TestIT_SimulationStepExecutor_Execute_Concurrency(t *testing.T) {}
 
 func TestIT_SimulationStepExecutor_Execute_ProcessFleetEvents(t *testing.T) {}

@@ -106,6 +106,13 @@ func (s *SimulationStepExecutor) Execute(
 		result.Fleet = &out
 	}
 
+	if result.Resolution == models.FleetDeleted {
+		err = deleteFleetAndDetails(ctx, tx, step.NextFleetEvent.Fleet.Id)
+		if err != nil {
+			return models.SimulationStepResult{}, err
+		}
+	}
+
 	return result, nil
 }
 
