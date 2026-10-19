@@ -255,7 +255,6 @@ func TestIT_SimulationStepExecutor_Execute_LoadFleetBehavior(t *testing.T) {
 		fleet.UpdatedAt = fleet.Schedule.ArrivalAt
 		fleet.Schedule.Status = models.StatusReturning
 		upsertFleetSchedule(t, conn, fleet)
-		markFleetAsReturning(t, conn, fleet)
 
 		var captured models.SimulationStep
 		simulate := func(step models.SimulationStep) (models.SimulationStepResult, error) {
@@ -1683,7 +1682,10 @@ func TestIT_SimulationStepExecutor_Execute_Concurrency(t *testing.T) {
 		planet, _, _ := insertTestPlanetForPlayer(t, conn)
 		fleetA := insertTestFleet(t, conn, planet)
 		fleetB := insertTestFleet(t, conn, planet)
-		timestamp := fleetA.Schedule.ArrivalAt.Add(time.Minute)
+		fleetB.Schedule.ArrivalAt = fleetA.Schedule.ArrivalAt.Add(time.Minute)
+		upsertFleetSchedule(t, conn, fleetB)
+
+		timestamp := fleetB.Schedule.ArrivalAt.Add(2 * time.Minute)
 
 		var resolvedFleetIds []uuid.UUID
 		planetEventResolved := false
@@ -1714,7 +1716,7 @@ func TestIT_SimulationStepExecutor_Execute_Concurrency(t *testing.T) {
 		}
 
 		require.False(t, planetEventResolved, "planet event was resolved while fleet events were still pending")
-		assert.ElementsMatch(t, []uuid.UUID{fleetA.Id, fleetB.Id}, resolvedFleetIds)
+		assert.Equal(t, []uuid.UUID{fleetA.Id, fleetB.Id}, resolvedFleetIds)
 
 		result, err := adapter.Execute(t.Context(), planet.Id, timestamp, simulate)
 		require.NoError(t, err, "Actual err: %v", err)
@@ -1733,18 +1735,22 @@ func newTestSimulationStepExecutor(t *testing.T) (*SimulationStepExecutor, datab
 	return NewSimulationStepExecutor(conn), conn
 }
 
-// upsertFleetSchedule inserts the arrival/return times and status defined for the fleet
-// in the database, or updates them if a row already exists for this fleet.
+// upsertFleetSchedule persists the fleet's last update time, schedule, and next event.
 func upsertFleetSchedule(t *testing.T, conn database.Connection, fleet models.Fleet) {
 	t.Helper()
 
-	sqlQuery := `INSERT INTO fleet_flight (fleet, arrival_at, return_at, status)
+	sqlQuery := `UPDATE fleet SET updated_at = $1 WHERE id = $2`
+	affected, err := conn.Exec(t.Context(), sqlQuery, fleet.UpdatedAt, fleet.Id)
+	require.NoError(t, err, "Actual err: %v", err)
+	require.Equal(t, int64(1), affected)
+
+	sqlQuery = `INSERT INTO fleet_flight (fleet, arrival_at, return_at, status)
 		VALUES($1, $2, $3, $4)
 		ON CONFLICT (fleet) DO UPDATE SET
 			arrival_at = excluded.arrival_at,
 			return_at = excluded.return_at,
 			status = excluded.status`
-	_, err := conn.Exec(
+	_, err = conn.Exec(
 		t.Context(),
 		sqlQuery,
 		fleet.Id,
@@ -1753,20 +1759,8 @@ func upsertFleetSchedule(t *testing.T, conn database.Connection, fleet models.Fl
 		fleet.Schedule.Status,
 	)
 	require.NoError(t, err, "Actual err: %v", err)
-}
 
-// upsertFleetNextEvent updates the registered next event for the fleet to be its return time.
-func markFleetAsReturning(t *testing.T, conn database.Connection, fleet models.Fleet) {
-	t.Helper()
-
-	sqlQuery := `UPDATE fleet SET updated_at = $1 WHERE id = $2`
-	affected, err := conn.Exec(
-		t.Context(),
-		sqlQuery,
-		fleet.UpdatedAt,
-		fleet.Id,
-	)
-	require.Equal(t, int64(1), affected)
+	nextEvent, err := fleet.NextEvent()
 	require.NoError(t, err, "Actual err: %v", err)
 
 	sqlQuery = `INSERT INTO fleet_event (fleet, next_event_at, event_type)
@@ -1778,8 +1772,8 @@ func markFleetAsReturning(t *testing.T, conn database.Connection, fleet models.F
 		t.Context(),
 		sqlQuery,
 		fleet.Id,
-		fleet.Schedule.ReturnAt,
-		models.ReturnEvent,
+		nextEvent.Timestamp,
+		nextEvent.Event,
 	)
 	require.NoError(t, err, "Actual err: %v", err)
 }
