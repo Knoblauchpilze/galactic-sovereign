@@ -1312,8 +1312,6 @@ func TestIT_SimulationStepExecutor_Execute_SavePlanet(t *testing.T) {
 		assert.ErrorIs(t, err, domainerrors.ErrShipNotFound, "Actual err: %v", err)
 	})
 }
-
-// TODO: Implement tests
 func TestIT_SimulationStepExecutor_Execute_SaveFleet(t *testing.T) {
 	t.Run("returns mutated fleet", func(t *testing.T) {
 		adapter, conn := newTestSimulationStepExecutor(t)
@@ -1439,7 +1437,60 @@ func TestIT_SimulationStepExecutor_Execute_SaveFleet(t *testing.T) {
 	})
 }
 
-func TestIT_SimulationStepExecutor_Execute_DeleteFleet(t *testing.T) {}
+// TODO: Implement tests
+func TestIT_SimulationStepExecutor_Execute_DeleteFleet(t *testing.T) {
+	t.Run("deletes fleet", func(t *testing.T) {
+		adapter, conn := newTestSimulationStepExecutor(t)
+
+		planet, _, _ := insertTestPlanetForPlayer(t, conn)
+		fleet := insertTestFleet(t, conn, planet)
+
+		simulate := generateFleetDeleter()
+
+		afterArrival := fleet.Schedule.ArrivalAt.Add(1 * time.Minute)
+		returned, err := adapter.Execute(t.Context(), planet.Id, afterArrival, simulate)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		require.Nil(t, returned.Fleet)
+		assertFleetDoesNotExist(t, conn, fleet.Id)
+	})
+
+	t.Run("deletes fleet with ships", func(t *testing.T) {
+		adapter, conn := newTestSimulationStepExecutor(t)
+
+		planet, _, _ := insertTestPlanetForPlayer(t, conn)
+		fleet := insertTestFleet(t, conn, planet, addFleetShip)
+
+		simulate := generateFleetDeleter()
+
+		afterArrival := fleet.Schedule.ArrivalAt.Add(1 * time.Minute)
+		returned, err := adapter.Execute(t.Context(), planet.Id, afterArrival, simulate)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		require.Nil(t, returned.Fleet)
+		assertFleetDoesNotExist(t, conn, fleet.Id)
+	})
+
+	t.Run("deletes fleet with target", func(t *testing.T) {
+		adapter, conn := newTestSimulationStepExecutor(t)
+
+		planet, _, _ := insertTestPlanetForPlayer(t, conn)
+		fleet := insertTestFleet(t, conn, planet, addFleetShip)
+
+		destination, _, _ := insertTestPlanetForPlayer(t, conn)
+		fleet.Destination.Target = &destination.Id
+		upsertFleetDestination(t, conn, fleet)
+
+		simulate := generateFleetDeleter()
+
+		afterArrival := fleet.Schedule.ArrivalAt.Add(1 * time.Minute)
+		returned, err := adapter.Execute(t.Context(), planet.Id, afterArrival, simulate)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		require.Nil(t, returned.Fleet)
+		assertFleetDoesNotExist(t, conn, fleet.Id)
+	})
+}
 
 func TestIT_SimulationStepExecutor_Execute_Concurrency(t *testing.T) {}
 
@@ -1529,6 +1580,20 @@ func generateFleetSimulator(
 		}
 
 		modifier(result.Fleet)
+		result.Planet.Version++
+
+		return result, nil
+	}
+}
+
+func generateFleetDeleter() func(models.SimulationStep) (models.SimulationStepResult, error) {
+	return func(step models.SimulationStep) (models.SimulationStepResult, error) {
+		result := models.SimulationStepResult{
+			Resolution: models.FleetDeleted,
+			Planet:     new(step.Planet),
+			Fleet:      nil,
+		}
+
 		result.Planet.Version++
 
 		return result, nil
