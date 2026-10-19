@@ -1,6 +1,8 @@
 package drivenadapters
 
 import (
+	"context"
+	"sync"
 	"testing"
 	"time"
 
@@ -1491,9 +1493,167 @@ func TestIT_SimulationStepExecutor_Execute_DeleteFleet(t *testing.T) {
 	})
 }
 
-// TODO: Implement tests
-func TestIT_SimulationStepExecutor_Execute_Concurrency(t *testing.T) {}
+func TestIT_SimulationStepExecutor_Execute_Concurrency(t *testing.T) {
+	t.Run("prevents concurrent modification of different planets", func(t *testing.T) {
+		adapter, conn := newTestSimulationStepExecutor(t)
 
+		planetA, _, _ := insertTestPlanetForPlayer(t, conn)
+		planetB, _, _ := insertTestPlanetForPlayer(t, conn)
+		fleet := insertTestFleet(t, conn, planetA)
+		timestamp := fleet.Schedule.ArrivalAt.Add(time.Minute)
+
+		enteredA := make(chan struct{})
+		releaseA := make(chan struct{})
+		var releaseOnce sync.Once
+		release := func() {
+			releaseOnce.Do(func() { close(releaseA) })
+		}
+		t.Cleanup(release)
+
+		enteredB := make(chan struct{})
+		doneA := make(chan error, 1)
+		doneB := make(chan error, 1)
+		resolveFleetEvent := generateFleetSimulator(func(f *models.Fleet) {
+			f.Schedule.Status = models.StatusReturning
+			f.Version++
+		})
+
+		go func() {
+			_, err := adapter.Execute(t.Context(), planetA.Id, timestamp, func(step models.SimulationStep) (models.SimulationStepResult, error) {
+				close(enteredA)
+				<-releaseA
+				return resolveFleetEvent(step)
+			})
+			doneA <- err
+		}()
+
+		<-enteredA
+
+		blockingCtx, cancel := context.WithTimeout(t.Context(), 100*time.Millisecond)
+		defer cancel()
+		go func() {
+			_, err := adapter.Execute(blockingCtx, planetB.Id, timestamp, func(step models.SimulationStep) (models.SimulationStepResult, error) {
+				close(enteredB)
+				return generatePlanetSimulator(func(p *models.Planet) { p.Version++ })(step)
+			})
+			doneB <- err
+		}()
+
+		err := <-doneB
+		require.ErrorIs(t, err, context.DeadlineExceeded, "Expected deadline exceeded, got err: %v", err)
+		select {
+		case <-enteredB:
+			t.Fatalf("second execution reached its callback while a fleet event was being resolved")
+		default:
+		}
+
+		assertPlanetVersion(t, conn, planetA.Id, planetA.Version)
+		assertPlanetVersion(t, conn, planetB.Id, planetB.Version)
+
+		release()
+		require.NoError(t, <-doneA)
+
+		assertPlanetVersion(t, conn, planetA.Id, planetA.Version+1)
+		assertPlanetVersion(t, conn, planetB.Id, planetB.Version)
+		actual := loadFleetFromDb(t, conn, fleet.Id)
+		assert.Equal(t, models.StatusReturning, actual.Schedule.Status)
+		assert.Equal(t, fleet.Version+1, actual.Version)
+	})
+
+	t.Run("allows concurrent modification of planets when no fleet event is pending", func(t *testing.T) {
+		adapter, conn := newTestSimulationStepExecutor(t)
+
+		planetA, _, _ := insertTestPlanetForPlayer(t, conn)
+		planetB, _, _ := insertTestPlanetForPlayer(t, conn)
+		enteredA := make(chan struct{})
+		releaseA := make(chan struct{})
+		var releaseOnce sync.Once
+		release := func() {
+			releaseOnce.Do(func() { close(releaseA) })
+		}
+		t.Cleanup(release)
+
+		doneA := make(chan error, 1)
+		doneB := make(chan error, 1)
+		go func() {
+			_, err := adapter.Execute(t.Context(), planetA.Id, planetA.UpdatedAt, func(step models.SimulationStep) (models.SimulationStepResult, error) {
+				close(enteredA)
+				<-releaseA
+				return generatePlanetSimulator(func(p *models.Planet) { p.Version++ })(step)
+			})
+			doneA <- err
+		}()
+
+		<-enteredA
+
+		go func() {
+			_, err := adapter.Execute(t.Context(), planetB.Id, planetB.UpdatedAt, generatePlanetSimulator(func(p *models.Planet) { p.Version++ }))
+			doneB <- err
+		}()
+
+		select {
+		case err := <-doneB:
+			require.NoError(t, err, "Actual err: %v", err)
+		case <-time.After(500 * time.Millisecond):
+			t.Fatalf("execution for the second planet was blocked while no fleet event was pending")
+		}
+
+		assertPlanetVersion(t, conn, planetA.Id, planetA.Version)
+		assertPlanetVersion(t, conn, planetB.Id, planetB.Version+1)
+
+		release()
+		require.NoError(t, <-doneA)
+		assertPlanetVersion(t, conn, planetA.Id, planetA.Version+1)
+	})
+
+	t.Run("resolves multiple fleet events before resolving planet event", func(t *testing.T) {
+		adapter, conn := newTestSimulationStepExecutor(t)
+
+		planet, _, _ := insertTestPlanetForPlayer(t, conn)
+		fleetA := insertTestFleet(t, conn, planet)
+		fleetB := insertTestFleet(t, conn, planet)
+		timestamp := fleetA.Schedule.ArrivalAt.Add(time.Minute)
+
+		var resolvedFleetIds []uuid.UUID
+		planetEventResolved := false
+		simulate := func(step models.SimulationStep) (models.SimulationStepResult, error) {
+			if step.NextFleetEvent == nil {
+				planetEventResolved = true
+				step.Planet.Version++
+				return models.SimulationStepResult{
+					Resolution: models.PlanetUpdated,
+					Planet:     &step.Planet,
+				}, nil
+			}
+
+			fleet := step.NextFleetEvent.Fleet
+			resolvedFleetIds = append(resolvedFleetIds, fleet.Id)
+			fleet.Schedule.Status = models.StatusReturning
+			fleet.Version++
+			return models.SimulationStepResult{
+				Resolution: models.FleetEventResolved,
+				Fleet:      &fleet,
+			}, nil
+		}
+
+		for range 2 {
+			result, err := adapter.Execute(t.Context(), planet.Id, timestamp, simulate)
+			require.NoError(t, err, "Actual err: %v", err)
+			assert.Equal(t, models.FleetEventResolved, result.Resolution)
+		}
+
+		require.False(t, planetEventResolved, "planet event was resolved while fleet events were still pending")
+		assert.ElementsMatch(t, []uuid.UUID{fleetA.Id, fleetB.Id}, resolvedFleetIds)
+
+		result, err := adapter.Execute(t.Context(), planet.Id, timestamp, simulate)
+		require.NoError(t, err, "Actual err: %v", err)
+		assert.Equal(t, models.PlanetUpdated, result.Resolution)
+		require.True(t, planetEventResolved)
+		assertPlanetVersion(t, conn, planet.Id, planet.Version+1)
+	})
+}
+
+// TODO: Implement tests
 func TestIT_SimulationStepExecutor_Execute_ProcessFleetEvents(t *testing.T) {}
 
 func newTestSimulationStepExecutor(t *testing.T) (*SimulationStepExecutor, database.Connection) {

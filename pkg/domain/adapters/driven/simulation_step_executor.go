@@ -24,6 +24,7 @@ WHERE
 	next_event_at <= $1
 ORDER BY
 	next_event_at ASC
+LIMIT 1
 FOR UPDATE`
 )
 
