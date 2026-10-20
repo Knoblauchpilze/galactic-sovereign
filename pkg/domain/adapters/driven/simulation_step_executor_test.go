@@ -1690,6 +1690,80 @@ func TestIT_SimulationStepExecutor_Execute_Concurrency(t *testing.T) {
 		assertPlanetVersion(t, conn, planetA.Id, planetA.Version+1)
 	})
 
+	t.Run("serializes concurrent executions on the same planet", func(t *testing.T) {
+		adapter, conn := newTestSimulationStepExecutor(t)
+
+		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetResource)
+		require.NotEqual(t, 9878.0, planet.Resources[0].Amount)
+
+		executionCtx, cancel := context.WithTimeout(t.Context(), 2*time.Second)
+		defer cancel()
+		enteredA := make(chan struct{})
+		releaseA := make(chan struct{})
+		var releaseOnce sync.Once
+		release := func() { releaseOnce.Do(func() { close(releaseA) }) }
+		t.Cleanup(release)
+
+		doneA := make(chan error, 1)
+		doneB := make(chan error, 1)
+		simulateFirstUpdate := func(step models.SimulationStep) (models.SimulationStepResult, error) {
+			close(enteredA)
+			<-releaseA
+			step.Planet.Resources[0].Amount = 9878.0
+			step.Planet.Version++
+			return models.SimulationStepResult{
+				Resolution: models.PlanetUpdated,
+				Planet:     &step.Planet,
+			}, nil
+		}
+
+		executeFirstUpdate := func() {
+			_, err := adapter.Execute(executionCtx, planet.Id, planet.UpdatedAt, simulateFirstUpdate)
+			doneA <- err
+		}
+		go executeFirstUpdate()
+
+		select {
+		case <-enteredA:
+		case <-time.After(2 * time.Second):
+			t.Fatal("first execution did not reach its simulator")
+		}
+
+		startedB := make(chan struct{})
+		enteredB := make(chan struct{})
+		simulateSecondUpdate := func(step models.SimulationStep) (models.SimulationStepResult, error) {
+			close(enteredB)
+			assert.Equal(t, planet.Version+1, step.Planet.Version, "second execution should load the committed version")
+			assert.Equal(t, 9878.0, step.Planet.Resources[0].Amount, "second execution should see the first update")
+			step.Planet.Resources[0].Amount++
+			step.Planet.Version++
+			return models.SimulationStepResult{
+				Resolution: models.PlanetUpdated,
+				Planet:     &step.Planet,
+			}, nil
+		}
+		executeSecondUpdate := func() {
+			close(startedB)
+			_, err := adapter.Execute(executionCtx, planet.Id, planet.UpdatedAt, simulateSecondUpdate)
+			doneB <- err
+		}
+		go executeSecondUpdate()
+		<-startedB
+
+		select {
+		case <-enteredB:
+			t.Error("second execution reached its simulator while the first execution held the planet")
+		case <-time.After(100 * time.Millisecond):
+		}
+
+		release()
+		assert.NoError(t, <-doneA, "first execution failed")
+		assert.NoError(t, <-doneB, "second execution failed")
+
+		assertPlanetResourceAmount(t, conn, planet.Id, planet.Resources[0].Resource, 9879.0)
+		assertPlanetVersion(t, conn, planet.Id, planet.Version+2)
+	})
+
 	t.Run("allows concurrent modification of planets when a fleet event is not yet due", func(t *testing.T) {
 		adapter, conn := newTestSimulationStepExecutor(t)
 
