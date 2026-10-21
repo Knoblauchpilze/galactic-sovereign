@@ -61,9 +61,12 @@ func (s *SimulationStepExecutor) Execute(
 		return models.SimulationStepResult{}, err
 	}
 
-	planet, err := resolvePlanet(ctx, tx, planetId, event)
-	if err != nil {
-		return models.SimulationStepResult{}, err
+	var planet *models.Planet
+	if event == nil {
+		planet, err = loadAndLockPlanet(ctx, tx, planetId)
+		if err != nil {
+			return models.SimulationStepResult{}, err
+		}
 	}
 
 	step := models.SimulationStep{
@@ -72,7 +75,10 @@ func (s *SimulationStepExecutor) Execute(
 		NextFleetEvent: event,
 	}
 
-	expectedPlanetVersion := planet.Version
+	var expectedPlanetVersion int
+	if planet != nil {
+		expectedPlanetVersion = planet.Version
+	}
 	var expectedFleetVersion int
 	if step.NextFleetEvent != nil {
 		expectedFleetVersion = step.NextFleetEvent.Fleet.Version
@@ -161,25 +167,6 @@ func resolveNextFleetEvent(
 	}
 
 	return out, nil
-}
-
-// TODO: Should only resolve (and lock) when there is no fleet event
-func resolvePlanet(
-	ctx context.Context,
-	tx database.Transaction,
-	planetId uuid.UUID,
-	event *models.FleetEventContext,
-) (models.Planet, error) {
-	if event == nil || event.Planet == nil || event.Planet.Id != planetId {
-		planet, err := loadAndLockPlanet(ctx, tx, planetId)
-		if err != nil {
-			return models.Planet{}, err
-		}
-
-		return *planet, nil
-	}
-
-	return *event.Planet, nil
 }
 
 func loadAndLockPlanet(ctx context.Context, tx database.Transaction, planetId uuid.UUID) (*models.Planet, error) {

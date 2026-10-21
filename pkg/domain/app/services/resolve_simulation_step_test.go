@@ -14,7 +14,7 @@ func TestUnit_ResolveSimulationStep(t *testing.T) {
 	t.Run("advances planet to time when no fleet event is available", func(t *testing.T) {
 		step := models.SimulationStep{
 			Timestamp: t3,
-			Planet: models.Planet{
+			Planet: &models.Planet{
 				Id:        uuid.New(),
 				CreatedAt: t1,
 				UpdatedAt: t2,
@@ -70,7 +70,7 @@ func TestUnit_ResolveSimulationStep(t *testing.T) {
 
 		step := models.SimulationStep{
 			Timestamp: t3,
-			Planet:    source,
+			Planet:    nil,
 			NextFleetEvent: &models.FleetEventContext{
 				Timestamp: t2,
 				Fleet:     fleet,
@@ -119,7 +119,7 @@ func TestUnit_ResolveSimulationStep(t *testing.T) {
 
 		step := models.SimulationStep{
 			Timestamp: t3,
-			Planet:    source,
+			Planet:    nil,
 			NextFleetEvent: &models.FleetEventContext{
 				Timestamp: t2,
 				Fleet:     fleet,
@@ -168,7 +168,7 @@ func TestUnit_ResolveSimulationStep(t *testing.T) {
 
 		step := models.SimulationStep{
 			Timestamp: t3,
-			Planet:    source,
+			Planet:    nil,
 			NextFleetEvent: &models.FleetEventContext{
 				Timestamp: t2,
 				Fleet:     fleet,
@@ -220,7 +220,7 @@ func TestUnit_ResolveSimulationStep(t *testing.T) {
 
 		step := models.SimulationStep{
 			Timestamp: t4,
-			Planet:    source,
+			Planet:    nil,
 			NextFleetEvent: &models.FleetEventContext{
 				Timestamp: t4,
 				Fleet:     fleet,
@@ -269,7 +269,7 @@ func TestUnit_ResolveSimulationStep(t *testing.T) {
 
 		step := models.SimulationStep{
 			Timestamp: t4,
-			Planet:    source,
+			Planet:    nil,
 			NextFleetEvent: &models.FleetEventContext{
 				Timestamp: t4,
 				Fleet:     fleet,
@@ -328,7 +328,7 @@ func TestUnit_ResolveSimulationStep(t *testing.T) {
 
 		step := models.SimulationStep{
 			Timestamp: t4,
-			Planet:    source,
+			Planet:    nil,
 			NextFleetEvent: &models.FleetEventContext{
 				Timestamp: t4,
 				Fleet:     fleet,
@@ -379,7 +379,7 @@ func TestUnit_ResolveSimulationStep(t *testing.T) {
 
 		step := models.SimulationStep{
 			Timestamp: t4,
-			Planet:    source,
+			Planet:    nil,
 			NextFleetEvent: &models.FleetEventContext{
 				Timestamp: t4,
 				Fleet:     fleet,
@@ -428,7 +428,7 @@ func TestUnit_ResolveSimulationStep(t *testing.T) {
 
 		step := models.SimulationStep{
 			Timestamp: t4,
-			Planet:    source,
+			Planet:    nil,
 			NextFleetEvent: &models.FleetEventContext{
 				Timestamp: t2,
 				Fleet:     fleet,
@@ -472,7 +472,7 @@ func TestUnit_ResolveSimulationStep(t *testing.T) {
 
 		step := models.SimulationStep{
 			Timestamp: t4,
-			Planet:    source,
+			Planet:    nil,
 			NextFleetEvent: &models.FleetEventContext{
 				Timestamp: t4,
 				Fleet:     fleet,

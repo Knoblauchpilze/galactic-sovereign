@@ -121,7 +121,7 @@ func TestIT_SimulationStepExecutor_Execute_LoadPlanetBehavior(t *testing.T) {
 
 				result := models.SimulationStepResult{
 					Resolution: models.PlanetUpdated,
-					Planet:     &step.Planet,
+					Planet:     step.Planet,
 					Fleet:      nil,
 				}
 
@@ -133,7 +133,7 @@ func TestIT_SimulationStepExecutor_Execute_LoadPlanetBehavior(t *testing.T) {
 
 			expectedStep := models.SimulationStep{
 				Timestamp:      planet.UpdatedAt,
-				Planet:         planet,
+				Planet:         &planet,
 				NextFleetEvent: nil,
 			}
 			assert.Equal(t, expectedStep, captured)
@@ -161,7 +161,7 @@ func TestIT_SimulationStepExecutor_Execute_LoadFleetBehavior(t *testing.T) {
 
 			result := models.SimulationStepResult{
 				Resolution: models.FleetEventResolved,
-				Planet:     new(step.Planet),
+				Planet:     nil,
 				Fleet:      new(step.NextFleetEvent.Fleet),
 			}
 
@@ -178,7 +178,7 @@ func TestIT_SimulationStepExecutor_Execute_LoadFleetBehavior(t *testing.T) {
 
 		expectedStep := models.SimulationStep{
 			Timestamp: afterArrival,
-			Planet:    planet,
+			Planet:    nil,
 			NextFleetEvent: &models.FleetEventContext{
 				Timestamp: fleet.Schedule.ArrivalAt,
 				Fleet:     fleet,
@@ -212,7 +212,7 @@ func TestIT_SimulationStepExecutor_Execute_LoadFleetBehavior(t *testing.T) {
 
 			result := models.SimulationStepResult{
 				Resolution: models.FleetEventResolved,
-				Planet:     new(step.Planet),
+				Planet:     nil,
 				Fleet:      new(step.NextFleetEvent.Fleet),
 			}
 
@@ -229,7 +229,7 @@ func TestIT_SimulationStepExecutor_Execute_LoadFleetBehavior(t *testing.T) {
 
 		expectedStep := models.SimulationStep{
 			Timestamp: afterArrival,
-			Planet:    planet,
+			Planet:    nil,
 			NextFleetEvent: &models.FleetEventContext{
 				Timestamp: fleet.Schedule.ArrivalAt,
 				Fleet:     fleet,
@@ -262,7 +262,7 @@ func TestIT_SimulationStepExecutor_Execute_LoadFleetBehavior(t *testing.T) {
 
 			result := models.SimulationStepResult{
 				Resolution: models.FleetEventResolved,
-				Planet:     new(step.Planet),
+				Planet:     nil,
 				Fleet:      new(step.NextFleetEvent.Fleet),
 			}
 
@@ -279,7 +279,7 @@ func TestIT_SimulationStepExecutor_Execute_LoadFleetBehavior(t *testing.T) {
 
 		expectedStep := models.SimulationStep{
 			Timestamp: afterReturn,
-			Planet:    planet,
+			Planet:    nil,
 			NextFleetEvent: &models.FleetEventContext{
 				Timestamp: fleet.Schedule.ReturnAt,
 				Fleet:     fleet,
@@ -1713,7 +1713,7 @@ func TestIT_SimulationStepExecutor_Execute_Concurrency(t *testing.T) {
 			step.Planet.Version++
 			return models.SimulationStepResult{
 				Resolution: models.PlanetUpdated,
-				Planet:     &step.Planet,
+				Planet:     step.Planet,
 			}, nil
 		}
 
@@ -1739,7 +1739,7 @@ func TestIT_SimulationStepExecutor_Execute_Concurrency(t *testing.T) {
 			step.Planet.Version++
 			return models.SimulationStepResult{
 				Resolution: models.PlanetUpdated,
-				Planet:     &step.Planet,
+				Planet:     step.Planet,
 			}, nil
 		}
 		executeSecondUpdate := func() {
@@ -1846,7 +1846,7 @@ func TestIT_SimulationStepExecutor_Execute_Concurrency(t *testing.T) {
 				step.Planet.Version++
 				return models.SimulationStepResult{
 					Resolution: models.PlanetUpdated,
-					Planet:     &step.Planet,
+					Planet:     step.Planet,
 				}, nil
 			}
 
@@ -1932,7 +1932,7 @@ func generatePlanetSimulator(
 	return func(step models.SimulationStep) (models.SimulationStepResult, error) {
 		result := models.SimulationStepResult{
 			Resolution: models.PlanetUpdated,
-			Planet:     new(step.Planet),
+			Planet:     step.Planet,
 			Fleet:      nil,
 		}
 
@@ -1948,7 +1948,7 @@ func generateFleetSimulator(
 	return func(step models.SimulationStep) (models.SimulationStepResult, error) {
 		result := models.SimulationStepResult{
 			Resolution: models.FleetEventResolved,
-			Planet:     new(step.Planet),
+			Planet:     step.Planet,
 			Fleet:      new(step.NextFleetEvent.Fleet),
 		}
 
@@ -1963,7 +1963,7 @@ func generateFleetDeleter() func(models.SimulationStep) (models.SimulationStepRe
 	return func(step models.SimulationStep) (models.SimulationStepResult, error) {
 		result := models.SimulationStepResult{
 			Resolution: models.FleetDeleted,
-			Planet:     new(step.Planet),
+			Planet:     step.Planet,
 			Fleet:      nil,
 		}
 

@@ -10,14 +10,14 @@ func ResolveSimulationStep(step models.SimulationStep) (models.SimulationStepRes
 		return resolveFleet(*step.NextFleetEvent)
 	}
 
-	err := AdvancePlanetToTime(&step.Planet, step.Timestamp)
+	err := AdvancePlanetToTime(step.Planet, step.Timestamp)
 	if err != nil {
 		return models.SimulationStepResult{}, err
 	}
 
 	result := models.SimulationStepResult{
 		Resolution: models.PlanetUpdated,
-		Planet:     &step.Planet,
+		Planet:     step.Planet,
 		Fleet:      nil,
 	}
 

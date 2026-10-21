@@ -5,13 +5,16 @@ import (
 )
 
 type SimulationStep struct {
+	// Timestamp defines the time point at which the simulation step is taking
+	// place.
 	Timestamp time.Time
 
-	// TODO: Make it a pointer
-	Planet Planet
+	// Planet represents initial planet requested to be simulated. It is only
+	// not nil in case there are no unresolved fleet events.
+	Planet *Planet
 
-	// Earliest unresolved fleet event in the requested scope.
-	// Includes its fleet and affected domain state.
+	// NextFleetEvent is the earliest unresolved fleet event happening before the
+	// provided timestamp. Includes its fleet and affected domain state.
 	NextFleetEvent *FleetEventContext
 }
 
