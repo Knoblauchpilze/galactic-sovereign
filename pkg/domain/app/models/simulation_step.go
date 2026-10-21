@@ -7,6 +7,7 @@ import (
 type SimulationStep struct {
 	Timestamp time.Time
 
+	// TODO: Make it a pointer
 	Planet Planet
 
 	// Earliest unresolved fleet event in the requested scope.

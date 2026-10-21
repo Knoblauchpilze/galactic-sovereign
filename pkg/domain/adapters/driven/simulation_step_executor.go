@@ -140,7 +140,7 @@ func resolveNextFleetEvent(
 		return nil, err
 	}
 
-	var planet models.Planet
+	var planet *models.Planet
 	switch maybeFleetEvent.EventType.ToDomain() {
 	case models.ArrivalEvent:
 		if fleet.Destination.Target != nil {
@@ -158,12 +158,13 @@ func resolveNextFleetEvent(
 	out := &models.FleetEventContext{
 		Timestamp: maybeFleetEvent.NextEventAt,
 		Fleet:     fleet,
-		Planet:    &planet,
+		Planet:    planet,
 	}
 
 	return out, nil
 }
 
+// TODO: Should only resolve (and lock) when there is no fleet event
 func resolvePlanet(
 	ctx context.Context,
 	tx database.Transaction,
@@ -171,25 +172,30 @@ func resolvePlanet(
 	event *models.FleetEventContext,
 ) (models.Planet, error) {
 	if event == nil || event.Planet == nil || event.Planet.Id != planetId {
-		return loadAndLockPlanet(ctx, tx, planetId)
+		planet, err := loadAndLockPlanet(ctx, tx, planetId)
+		if err != nil {
+			return models.Planet{}, err
+		}
+
+		return *planet, nil
 	}
 
 	return *event.Planet, nil
 }
 
-func loadAndLockPlanet(ctx context.Context, tx database.Transaction, planetId uuid.UUID) (models.Planet, error) {
+func loadAndLockPlanet(ctx context.Context, tx database.Transaction, planetId uuid.UUID) (*models.Planet, error) {
 	actual, err := db.QueryOneTx[uuid.UUID](ctx, tx, lockPlanetForUpdateQuery, planetId)
 	if err != nil {
-		return models.Planet{}, parseDbError(err)
+		return nil, parseDbError(err)
 	}
 	if actual != planetId {
-		return models.Planet{}, domainerrors.ErrNotFound
+		return nil, domainerrors.ErrNotFound
 	}
 
 	planet, err := loadPlanetAndDetails(ctx, tx, planetId)
 	if err != nil {
-		return models.Planet{}, err
+		return nil, err
 	}
 
-	return planet, nil
+	return &planet, nil
 }
