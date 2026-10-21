@@ -1877,9 +1877,6 @@ func TestIT_SimulationStepExecutor_Execute_Concurrency(t *testing.T) {
 	})
 }
 
-// TODO: Implement tests
-func TestIT_SimulationStepExecutor_Execute_ProcessFleetEvents(t *testing.T) {}
-
 func newTestSimulationStepExecutor(t *testing.T) (*SimulationStepExecutor, database.Connection) {
 	t.Helper()
 	conn := newTestConnection(t)

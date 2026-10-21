@@ -44,7 +44,6 @@ func NewSimulationStepExecutor(conn database.Connection) *SimulationStepExecutor
 	}
 }
 
-// TODO: Add tests for this
 func (s *SimulationStepExecutor) Execute(
 	ctx context.Context,
 	planetId uuid.UUID,
