@@ -200,6 +200,11 @@ func createUpdateOrDeleteFleet(
 	if result.Resolution == models.FleetCreated {
 		err := createFleetWithDetails(ctx, tx, *result.Fleet)
 		if err != nil {
+			if isFleetMissingTargetPlanetErr(err) {
+				return nil, domainerrors.ErrFleetDestinationInvalid
+			}
+			return nil, err
+
 			return nil, err
 		}
 
