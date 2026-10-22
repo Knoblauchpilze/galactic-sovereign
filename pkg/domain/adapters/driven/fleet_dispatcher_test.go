@@ -303,7 +303,7 @@ func TestIT_FleetDispatcher_MutateBehavior(t *testing.T) {
 		_, err := adapter.Dispatch(t.Context(), planet.Id, creator)
 
 		assert.ErrorIs(t, err, domainerrors.ErrMutationWithoutVersionBump, "Actual err: %v", err)
-		assertFleetDoesNotExist(t, conn, planet.Id)
+		assertFleetDoesNotExist(t, conn, fleet.Id)
 	})
 }
 
