@@ -36,6 +36,7 @@ type ResolutionResult int
 const (
 	FleetEventResolved ResolutionResult = iota
 	FleetDeleted
+	FleetCreated
 	PlanetUpdated
 )
 

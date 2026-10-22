@@ -106,21 +106,11 @@ func (s *SimulationStepExecutor) Execute(
 		result.Planet = &out
 	}
 
-	if result.Fleet != nil {
-		out, err := saveAndReloadFleet(ctx, tx, *result.Fleet, expectedFleetVersion)
-		if err != nil {
-			return models.SimulationStepResult{}, err
-		}
-
-		result.Fleet = &out
+	fleet, err := createUpdateOrDeleteFleet(ctx, tx, step, result, expectedFleetVersion)
+	if err != nil {
+		return models.SimulationStepResult{}, err
 	}
-
-	if result.Resolution == models.FleetDeleted {
-		err = deleteFleetAndDetails(ctx, tx, step.NextFleetEvent.Fleet.Id)
-		if err != nil {
-			return models.SimulationStepResult{}, err
-		}
-	}
+	result.Fleet = fleet
 
 	return result, nil
 }
@@ -187,4 +177,39 @@ func loadAndLockPlanet(ctx context.Context, tx database.Transaction, planetId uu
 	}
 
 	return &planet, nil
+}
+
+func createUpdateOrDeleteFleet(
+	ctx context.Context,
+	tx database.Transaction,
+	step models.SimulationStep,
+	result models.SimulationStepResult,
+	expectedFleetVersion int,
+) (*models.Fleet, error) {
+	if result.Resolution == models.FleetDeleted {
+		err := deleteFleetAndDetails(ctx, tx, step.NextFleetEvent.Fleet.Id)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if result.Fleet == nil {
+		return nil, nil
+	}
+
+	if result.Resolution == models.FleetCreated {
+		err := createFleetWithDetails(ctx, tx, *result.Fleet)
+		if err != nil {
+			return nil, err
+		}
+
+		return result.Fleet, nil
+	}
+
+	out, err := saveAndReloadFleet(ctx, tx, *result.Fleet, expectedFleetVersion)
+	if err != nil {
+		return nil, err
+	}
+
+	return &out, nil
 }
