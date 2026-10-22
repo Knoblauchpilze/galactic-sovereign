@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driven/database"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
 	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
@@ -1557,13 +1558,12 @@ func TestIT_SimulationStepExecutor_Execute_Concurrency(t *testing.T) {
 		default:
 		}
 
-		assertPlanetVersion(t, conn, planetA.Id, planetA.Version)
-		assertPlanetVersion(t, conn, planetB.Id, planetB.Version)
+		assertFleetVersion(t, conn, fleet.Id, fleet.Version)
 
 		release()
 		require.NoError(t, <-doneA)
 
-		assertPlanetVersion(t, conn, planetA.Id, planetA.Version+1)
+		assertPlanetVersion(t, conn, planetA.Id, planetA.Version)
 		assertPlanetVersion(t, conn, planetB.Id, planetB.Version)
 		actual := loadFleetFromDb(t, conn, fleet.Id)
 		assert.Equal(t, models.StatusReturning, actual.Schedule.Status)
@@ -1628,6 +1628,9 @@ func TestIT_SimulationStepExecutor_Execute_Concurrency(t *testing.T) {
 		case <-time.After(100 * time.Millisecond):
 		}
 
+		assertFleetVersion(t, conn, fleet.Id, fleet.Version)
+		assertPlanetVersion(t, conn, planetB.Id, planetB.Version)
+
 		release()
 		require.NoError(t, <-doneA, "first execution failed")
 		require.NoError(t, <-doneB, "waiting execution failed")
@@ -1640,7 +1643,7 @@ func TestIT_SimulationStepExecutor_Execute_Concurrency(t *testing.T) {
 			}
 		}, time.Second, 10*time.Millisecond, "waiting execution did not reach its callback")
 
-		assertPlanetVersion(t, conn, planetA.Id, planetA.Version+1)
+		assertPlanetVersion(t, conn, planetA.Id, planetA.Version)
 		assertPlanetVersion(t, conn, planetB.Id, planetB.Version+1)
 		actual := loadFleetFromDb(t, conn, fleet.Id)
 		assert.Equal(t, models.StatusReturning, actual.Schedule.Status)
@@ -1952,14 +1955,19 @@ func generateFleetSimulator(
 	modifier func(*models.Fleet),
 ) func(models.SimulationStep) (models.SimulationStepResult, error) {
 	return func(step models.SimulationStep) (models.SimulationStepResult, error) {
+		var planet *models.Planet
+		if step.NextFleetEvent.Planet != nil {
+			planet = new(*step.NextFleetEvent.Planet)
+			planet.Version++
+		}
+
 		result := models.SimulationStepResult{
 			Resolution: models.FleetEventResolved,
-			Planet:     step.Planet,
+			Planet:     planet,
 			Fleet:      new(step.NextFleetEvent.Fleet),
 		}
 
 		modifier(result.Fleet)
-		result.Planet.Version++
 
 		return result, nil
 	}
@@ -1967,14 +1975,27 @@ func generateFleetSimulator(
 
 func generateFleetDeleter() func(models.SimulationStep) (models.SimulationStepResult, error) {
 	return func(step models.SimulationStep) (models.SimulationStepResult, error) {
+		var planet *models.Planet
+		if step.NextFleetEvent.Planet != nil {
+			planet = new(*step.NextFleetEvent.Planet)
+			planet.Version++
+		}
+
 		result := models.SimulationStepResult{
 			Resolution: models.FleetDeleted,
-			Planet:     step.Planet,
+			Planet:     planet,
 			Fleet:      nil,
 		}
 
-		result.Planet.Version++
-
 		return result, nil
 	}
+}
+
+func assertFleetVersion(t *testing.T, conn database.Connection, fleet uuid.UUID, version int) {
+	t.Helper()
+
+	sqlQuery := `SELECT version FROM fleet WHERE id = $1`
+	value, err := db.QueryOne[int](t.Context(), conn, sqlQuery, fleet)
+	require.NoError(t, err, "Actual err: %v", err)
+	require.Equal(t, version, value)
 }
