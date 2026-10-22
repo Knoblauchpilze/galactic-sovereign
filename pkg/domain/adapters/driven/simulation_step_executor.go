@@ -81,6 +81,9 @@ func (s *SimulationStepExecutor) Execute(
 	}
 	var expectedFleetVersion int
 	if step.NextFleetEvent != nil {
+		if step.NextFleetEvent.Planet != nil {
+			expectedPlanetVersion = step.NextFleetEvent.Planet.Version
+		}
 		expectedFleetVersion = step.NextFleetEvent.Fleet.Version
 	}
 
