@@ -204,8 +204,6 @@ func createUpdateOrDeleteFleet(
 				return nil, domainerrors.ErrFleetDestinationInvalid
 			}
 			return nil, err
-
-			return nil, err
 		}
 
 		return result.Fleet, nil
