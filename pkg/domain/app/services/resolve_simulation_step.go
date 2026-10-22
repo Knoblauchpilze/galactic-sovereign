@@ -52,7 +52,11 @@ func resolveFleet(event models.FleetEventContext) (models.SimulationStepResult, 
 	result := models.SimulationStepResult{
 		Resolution: resolution,
 		Planet:     event.Planet,
-		Fleet:      &event.Fleet,
+		Fleet:      nil,
+	}
+
+	if resolution != models.FleetDeleted {
+		result.Fleet = &event.Fleet
 	}
 
 	return result, err
