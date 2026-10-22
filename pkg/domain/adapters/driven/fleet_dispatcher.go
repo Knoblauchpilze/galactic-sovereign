@@ -57,16 +57,16 @@ func (c *FleetDispatcher) Dispatch(
 		return models.Fleet{}, err
 	}
 
+	if planet.Version == expectedVersion {
+		return models.Fleet{}, domainerrors.ErrMutationWithoutVersionBump
+	}
+
 	err = createFleetWithDetails(ctx, tx, fleet)
 	if err != nil {
 		if isFleetMissingTargetPlanetErr(err) {
 			return models.Fleet{}, domainerrors.ErrFleetDestinationInvalid
 		}
 		return models.Fleet{}, err
-	}
-
-	if planet.Version == expectedVersion {
-		return models.Fleet{}, domainerrors.ErrMutationWithoutVersionBump
 	}
 
 	err = updatePlanetDetails(ctx, tx, planet, expectedVersion)
