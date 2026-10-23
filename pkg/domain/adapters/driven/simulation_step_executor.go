@@ -26,6 +26,21 @@ ORDER BY
 	next_event_at ASC
 LIMIT 1
 FOR UPDATE`
+
+	// https://www.postgresql.org/docs/current/explicit-locking.html#LOCKING-ROWS
+	// This variant allows to lock a planet and allow foreign key checks
+	// typically to insert a fleet while checking that the corresponding
+	// destination planet (which might be subject to another lock) still
+	// exists.
+	lockPlanetForNoKeyUpdateQuery = `
+SELECT
+	id
+FROM
+	planet
+WHERE
+	id = $1
+FOR NO KEY UPDATE
+`
 )
 
 type SimulationStepExecutor struct {
@@ -63,7 +78,7 @@ func (s *SimulationStepExecutor) Execute(
 
 	var planet *models.Planet
 	if event == nil {
-		planet, err = loadAndLockPlanet(ctx, tx, planetId)
+		planet, err = loadAndLockForNoKeyUpdatePlanet(ctx, tx, planetId)
 		if err != nil {
 			return models.SimulationStepResult{}, err
 		}
@@ -142,10 +157,10 @@ func resolveNextFleetEvent(
 	switch maybeFleetEvent.EventType.ToDomain() {
 	case models.ArrivalEvent:
 		if fleet.Destination.Target != nil {
-			planet, err = loadAndLockPlanet(ctx, tx, *fleet.Destination.Target)
+			planet, err = loadAndLockForNoKeyUpdatePlanet(ctx, tx, *fleet.Destination.Target)
 		}
 	case models.ReturnEvent:
-		planet, err = loadAndLockPlanet(ctx, tx, fleet.Source)
+		planet, err = loadAndLockForNoKeyUpdatePlanet(ctx, tx, fleet.Source)
 	default:
 		return nil, domainerrors.ErrUnsupportedFleetStatus
 	}
@@ -162,8 +177,8 @@ func resolveNextFleetEvent(
 	return out, nil
 }
 
-func loadAndLockPlanet(ctx context.Context, tx database.Transaction, planetId uuid.UUID) (*models.Planet, error) {
-	actual, err := db.QueryOneTx[uuid.UUID](ctx, tx, lockPlanetForUpdateQuery, planetId)
+func loadAndLockForNoKeyUpdatePlanet(ctx context.Context, tx database.Transaction, planetId uuid.UUID) (*models.Planet, error) {
+	actual, err := db.QueryOneTx[uuid.UUID](ctx, tx, lockPlanetForNoKeyUpdateQuery, planetId)
 	if err != nil {
 		return nil, parseDbError(err)
 	}

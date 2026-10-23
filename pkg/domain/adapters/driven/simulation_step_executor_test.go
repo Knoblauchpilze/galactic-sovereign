@@ -2022,6 +2022,202 @@ func TestIT_SimulationStepExecutor_Execute_Concurrency(t *testing.T) {
 		require.True(t, planetEventResolved)
 		assertPlanetVersion(t, conn, planet.Id, planet.Version+1)
 	})
+
+	t.Run("allows concurrent reciprocal fleet dispatches", func(t *testing.T) {
+		adapter, conn := newTestSimulationStepExecutor(t)
+
+		planetA, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetShip)
+		planetB := insertTestPlanet(t, conn, planetA.Player, addPlanetShip)
+
+		fleetA := generateSampleFleet(planetA)
+		fleetA.Mission = models.MissionTransport
+		fleetA.Destination.Target = &planetB.Id
+		fleetA.Destination.Coordinate = planetB.Coordinate
+		fleetA.Ships = []models.FleetShip{{Ship: lightFighterId, Count: 1}}
+
+		fleetB := generateSampleFleet(planetB)
+		fleetB.Mission = models.MissionTransport
+		fleetB.Destination.Target = &planetA.Id
+		fleetB.Destination.Coordinate = planetA.Coordinate
+		fleetB.Ships = []models.FleetShip{{Ship: lightFighterId, Count: 1}}
+
+		executionCtx, cancel := context.WithTimeout(t.Context(), 10*time.Second)
+		defer cancel()
+		entered := make(chan struct{}, 2)
+		releaseSimulations := make(chan struct{})
+		var releaseOnce sync.Once
+		release := func() { releaseOnce.Do(func() { close(releaseSimulations) }) }
+		t.Cleanup(release)
+		doneA := make(chan error, 1)
+		doneB := make(chan error, 1)
+
+		createFleetA := generateFleetCreatorNew(fleetA)
+		simulateDispatchA := func(step models.SimulationStep) (models.SimulationStepResult, error) {
+			entered <- struct{}{}
+			select {
+			case <-releaseSimulations:
+			case <-executionCtx.Done():
+				return models.SimulationStepResult{}, executionCtx.Err()
+			}
+			step.Planet.Ships[0].Count--
+			return createFleetA(step)
+		}
+		createFleetB := generateFleetCreatorNew(fleetB)
+		simulateDispatchB := func(step models.SimulationStep) (models.SimulationStepResult, error) {
+			entered <- struct{}{}
+			select {
+			case <-releaseSimulations:
+			case <-executionCtx.Done():
+				return models.SimulationStepResult{}, executionCtx.Err()
+			}
+			step.Planet.Ships[0].Count--
+			return createFleetB(step)
+		}
+		executeDispatchA := func() {
+			_, err := adapter.Execute(executionCtx, planetA.Id, planetA.UpdatedAt, simulateDispatchA)
+			doneA <- err
+		}
+		executeDispatchB := func() {
+			_, err := adapter.Execute(executionCtx, planetB.Id, planetB.UpdatedAt, simulateDispatchB)
+			doneB <- err
+		}
+		go executeDispatchA()
+		go executeDispatchB()
+
+		for range 2 {
+			select {
+			case <-entered:
+			case <-executionCtx.Done():
+				t.Fatal("both dispatches did not acquire their source planet locks")
+			}
+		}
+		release()
+		errA, errB := <-doneA, <-doneB
+		require.NoError(t, errA, "Actual err: %v", errA)
+		require.NoError(t, errB, "Actual err: %v", errB)
+
+		actualFleetA := loadFleetFromDb(t, conn, fleetA.Id)
+		assert.Equal(t, fleetA, actualFleetA)
+		assertFleetEventExists(t, conn, fleetA.Id, fleetA.Schedule.ArrivalAt)
+
+		actualFleetB := loadFleetFromDb(t, conn, fleetB.Id)
+		assert.Equal(t, fleetB, actualFleetB)
+		assertFleetEventExists(t, conn, fleetB.Id, fleetB.Schedule.ArrivalAt)
+
+		actualPlanetA := loadPlanetFromDb(t, conn, planetA.Id)
+		assert.Equal(t, planetA.Ships[0].Count-1, actualPlanetA.Ships[0].Count)
+		assertPlanetVersion(t, conn, planetA.Id, planetA.Version+1)
+
+		actualPlanetB := loadPlanetFromDb(t, conn, planetB.Id)
+		assert.Equal(t, planetB.Ships[0].Count-1, actualPlanetB.Ships[0].Count)
+		assertPlanetVersion(t, conn, planetB.Id, planetB.Version+1)
+	})
+
+	t.Run("serializes fleet dispatches from the same source planet", func(t *testing.T) {
+		adapter, conn := newTestSimulationStepExecutor(t)
+
+		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetShip)
+		fleetA := generateSampleFleet(planet)
+		fleetA.Ships = []models.FleetShip{{Ship: lightFighterId, Count: 1}}
+		fleetB := generateSampleFleet(planet)
+		fleetB.Ships = []models.FleetShip{{Ship: smallCargoId, Count: 1}}
+
+		executionCtx, cancel := context.WithTimeout(t.Context(), 10*time.Second)
+		defer cancel()
+		enteredA := make(chan struct{})
+		releaseA := make(chan struct{})
+		var releaseOnce sync.Once
+		release := func() { releaseOnce.Do(func() { close(releaseA) }) }
+		t.Cleanup(release)
+		enteredB := make(chan struct{})
+		startedB := make(chan struct{})
+		doneA := make(chan error, 1)
+		doneB := make(chan error, 1)
+
+		createFleetA := generateFleetCreatorNew(fleetA)
+		simulateFirstDispatch := func(step models.SimulationStep) (models.SimulationStepResult, error) {
+			close(enteredA)
+			select {
+			case <-releaseA:
+			case <-executionCtx.Done():
+				return models.SimulationStepResult{}, executionCtx.Err()
+			}
+			// Decrease the ship count on the first mutation
+			step.Planet.Ships[0].Count--
+			return createFleetA(step)
+		}
+
+		createFleetB := generateFleetCreatorNew(fleetB)
+		simulateSecondDispatch := func(step models.SimulationStep) (models.SimulationStepResult, error) {
+			close(enteredB)
+			// The second mutation should see the updated version and ship count
+			assert.Equal(t, planet.Version+1, step.Planet.Version)
+			assert.Equal(t, planet.Ships[0].Count-1, step.Planet.Ships[0].Count,
+				"second dispatch should see the first dispatch's ship deduction")
+			step.Planet.Ships[0].Count--
+			return createFleetB(step)
+		}
+
+		executeFirstDispatch := func() {
+			_, err := adapter.Execute(executionCtx, planet.Id, planet.UpdatedAt, simulateFirstDispatch)
+			doneA <- err
+		}
+		executeSecondDispatch := func() {
+			close(startedB)
+			_, err := adapter.Execute(executionCtx, planet.Id, planet.UpdatedAt, simulateSecondDispatch)
+			doneB <- err
+		}
+		go executeFirstDispatch()
+		select {
+		case <-enteredA:
+		case <-executionCtx.Done():
+			t.Fatal("first dispatch did not reach its simulator")
+		}
+		go executeSecondDispatch()
+		<-startedB
+		select {
+		case <-enteredB:
+			t.Error("second dispatch reached its simulator while the first held the source planet lock")
+		case <-time.After(100 * time.Millisecond):
+		}
+
+		release()
+		errA, errB := <-doneA, <-doneB
+		require.NoError(t, errA, "first dispatch failed")
+		require.NoError(t, errB, "second dispatch failed")
+
+		assert.Equal(t, fleetA, loadFleetFromDb(t, conn, fleetA.Id))
+		assert.Equal(t, fleetB, loadFleetFromDb(t, conn, fleetB.Id))
+		assertFleetEventExists(t, conn, fleetA.Id, fleetA.Schedule.ArrivalAt)
+		assertFleetEventExists(t, conn, fleetB.Id, fleetB.Schedule.ArrivalAt)
+		assert.Equal(t, planet.Ships[0].Count-2, loadPlanetFromDb(t, conn, planet.Id).Ships[0].Count)
+		assertPlanetVersion(t, conn, planet.Id, planet.Version+2)
+	})
+
+	t.Run("rolls back source planet changes when fleet creation fails", func(t *testing.T) {
+		adapter, conn := newTestSimulationStepExecutor(t)
+
+		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetShip, addPlanetResource)
+		fleet := generateSampleFleet(planet)
+		fleet.Mission = models.MissionTransport
+		missingDestination := uuid.New()
+		fleet.Destination.Target = &missingDestination
+		fleet.Ships = []models.FleetShip{{Ship: lightFighterId, Count: 1}}
+
+		createFleet := generateFleetCreatorNew(fleet)
+		simulateDispatch := func(step models.SimulationStep) (models.SimulationStepResult, error) {
+			step.Planet.Ships[0].Count--
+			step.Planet.Resources[0].Amount++
+			return createFleet(step)
+		}
+		_, err := adapter.Execute(t.Context(), planet.Id, planet.UpdatedAt, simulateDispatch)
+
+		assert.ErrorIs(t, err, domainerrors.ErrFleetDestinationInvalid, "Actual err: %v", err)
+
+		actual := loadPlanetFromDb(t, conn, planet.Id)
+		assert.Equal(t, planet, actual)
+		assertFleetDoesNotExist(t, conn, fleet.Id)
+	})
 }
 
 func newTestSimulationStepExecutor(t *testing.T) (*SimulationStepExecutor, database.Connection) {
