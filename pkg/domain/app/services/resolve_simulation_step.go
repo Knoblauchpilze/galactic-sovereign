@@ -30,9 +30,11 @@ func resolveFleet(event models.FleetEventContext) (models.SimulationStepResult, 
 		return models.SimulationStepResult{}, err
 	}
 
-	err = event.Planet.UpdateToTime(event.Timestamp)
-	if err != nil {
-		return models.SimulationStepResult{}, err
+	if event.Planet != nil {
+		err = event.Planet.UpdateToTime(event.Timestamp)
+		if err != nil {
+			return models.SimulationStepResult{}, err
+		}
 	}
 
 	switch event.Fleet.Schedule.Status {

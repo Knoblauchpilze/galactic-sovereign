@@ -137,6 +137,50 @@ func TestUnit_ResolveSimulationStep(t *testing.T) {
 		assert.Equal(t, 2, result.Planet.Version)
 	})
 
+	t.Run("does not advance planet when fleet arrives to an empty location", func(t *testing.T) {
+		source := models.Planet{
+			Id:        uuid.New(),
+			CreatedAt: t1,
+			UpdatedAt: t1,
+			Version:   1,
+		}
+		fleet := models.Fleet{
+			Id:     uuid.New(),
+			Source: source.Id,
+			Destination: models.FleetDestination{
+				Target: nil,
+			},
+			Schedule: models.FleetFlightSchedule{
+				ArrivalAt: t2,
+				ReturnAt:  t4,
+				Status:    models.StatusOutbound,
+			},
+			CreatedAt: t1,
+			UpdatedAt: t1,
+			Version:   1,
+		}
+
+		step := models.SimulationStep{
+			Timestamp: t3,
+			Planet:    nil,
+			NextFleetEvent: &models.FleetEventContext{
+				Timestamp: t2,
+				Fleet:     fleet,
+				Planet:    nil,
+			},
+		}
+
+		result, err := ResolveSimulationStep(step)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.Equal(t, models.FleetEventResolved, result.Resolution)
+		require.NotNil(t, result.Fleet)
+		assert.Equal(t, fleet.Id, result.Fleet.Id)
+		assert.Equal(t, t2, result.Fleet.UpdatedAt)
+		assert.Equal(t, 3, result.Fleet.Version)
+		assert.Nil(t, result.Planet)
+	})
+
 	t.Run("applies arrival to fleet when fleet arrives", func(t *testing.T) {
 		source := models.Planet{
 			Id:        uuid.New(),
