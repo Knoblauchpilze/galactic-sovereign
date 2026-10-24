@@ -6,30 +6,30 @@ import (
 )
 
 func ResolveSimulationStepThen(
-	step models.SimulationStep,
-	mutation func(*models.Planet) error,
-) (models.SimulationStepResult, error) {
-	if step.NextFleetEvent != nil {
-		return resolveFleet(*step.NextFleetEvent)
-	}
+	mutation func(*models.SimulationStep) (models.SimulationStepResult, error),
+) func(*models.SimulationStep) (models.SimulationStepResult, error) {
+	return func(step *models.SimulationStep) (models.SimulationStepResult, error) {
+		if step.NextFleetEvent != nil {
+			return resolveFleet(*step.NextFleetEvent)
+		}
 
-	err := AdvancePlanetToTime(step.Planet, step.Timestamp)
-	if err != nil {
-		return models.SimulationStepResult{}, err
-	}
+		err := AdvancePlanetToTime(step.Planet, step.Timestamp)
+		if err != nil {
+			return models.SimulationStepResult{}, err
+		}
 
-	err = mutation(step.Planet)
-	if err != nil {
-		return models.SimulationStepResult{}, err
-	}
+		result, err := mutation(step)
+		if err != nil {
+			return models.SimulationStepResult{}, err
+		}
 
-	result := models.SimulationStepResult{
-		Resolution: models.PlanetUpdated,
-		Planet:     step.Planet,
-		Fleet:      nil,
-	}
+		switch result.Resolution {
+		case models.FleetEventResolved, models.FleetDeleted:
+			return models.SimulationStepResult{}, domainerrors.ErrInvalidSimulationStepResult
+		}
 
-	return result, nil
+		return result, nil
+	}
 }
 
 func resolveFleet(event models.FleetEventContext) (models.SimulationStepResult, error) {
