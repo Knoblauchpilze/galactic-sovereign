@@ -33,12 +33,13 @@ FROM
 	INNER JOIN planet AS p ON p.id = f.source
 	INNER JOIN player AS pl ON pl.id = p.player
 WHERE
-	next_event_at <= $1
+	fe.next_event_at <= $1
 	AND pl.universe = (SELECT universe FROM target_universe)
 ORDER BY
-	next_event_at ASC
+	fe.next_event_at ASC,
+	fe.fleet ASC
 LIMIT 1
-FOR UPDATE`
+FOR UPDATE OF fe`
 
 	// https://www.postgresql.org/docs/current/explicit-locking.html#LOCKING-ROWS
 	// This variant allows to lock a planet and allow foreign key checks
