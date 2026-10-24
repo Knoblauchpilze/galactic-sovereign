@@ -45,6 +45,9 @@ func resolveFleet(event models.FleetEventContext) (models.SimulationStepResult, 
 	default:
 		return models.SimulationStepResult{}, domainerrors.ErrUnsupportedFleetStatus
 	}
+	if err != nil {
+		return models.SimulationStepResult{}, err
+	}
 
 	resolution := models.FleetEventResolved
 	if event.Fleet.Completed() {
