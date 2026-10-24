@@ -5,12 +5,20 @@ import (
 	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
 )
 
-func ResolveSimulationStep(step models.SimulationStep) (models.SimulationStepResult, error) {
+func ResolveSimulationStepThen(
+	step models.SimulationStep,
+	mutation func(*models.Planet) error,
+) (models.SimulationStepResult, error) {
 	if step.NextFleetEvent != nil {
 		return resolveFleet(*step.NextFleetEvent)
 	}
 
 	err := AdvancePlanetToTime(step.Planet, step.Timestamp)
+	if err != nil {
+		return models.SimulationStepResult{}, err
+	}
+
+	err = mutation(step.Planet)
 	if err != nil {
 		return models.SimulationStepResult{}, err
 	}
