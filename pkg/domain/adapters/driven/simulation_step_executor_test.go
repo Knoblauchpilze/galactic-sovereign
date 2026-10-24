@@ -1318,11 +1318,16 @@ func TestIT_SimulationStepExecutor_Execute_SavePlanet(t *testing.T) {
 
 		planet, _, _ := insertTestPlanetForPlayer(t, conn)
 
-		simulate := generatePlanetSimulator(func(*models.Planet) {})
+		simulate := generatePlanetSimulator(func(p *models.Planet) {
+			p.Fields++
+		})
 
 		_, err := adapter.Execute(t.Context(), planet.Id, planet.UpdatedAt, simulate)
 
 		assert.ErrorIs(t, err, domainerrors.ErrMutationWithoutVersionBump, "Actual err: %v", err)
+
+		actual := loadPlanetFromDb(t, conn, planet.Id)
+		assert.Equal(t, planet, actual)
 	})
 
 	t.Run("returns error when new storage is added", func(t *testing.T) {

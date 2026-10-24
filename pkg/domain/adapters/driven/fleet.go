@@ -210,6 +210,9 @@ func saveAndReloadFleet(
 	expectedVersion int,
 ) (models.Fleet, error) {
 	if fleet.Version == expectedVersion {
+		// Voluntarily ignoring error to prioritize the domain error
+		// nolint:errcheck
+		tx.Rollback()
 		return models.Fleet{}, domainerrors.ErrMutationWithoutVersionBump
 	}
 

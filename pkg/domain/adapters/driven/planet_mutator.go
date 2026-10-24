@@ -84,11 +84,17 @@ func saveAndReloadPlanet(
 	expectedVersion int,
 ) (models.Planet, error) {
 	if planet.Version == expectedVersion {
+		// Voluntarily ignoring error to prioritize the domain error
+		// nolint:errcheck
+		tx.Rollback()
 		return models.Planet{}, domainerrors.ErrMutationWithoutVersionBump
 	}
 
 	err := updatePlanetDetails(ctx, tx, planet, expectedVersion)
 	if err != nil {
+		// Voluntarily ignoring error to prioritize the domain error
+		// nolint:errcheck
+		tx.Rollback()
 		return models.Planet{}, err
 	}
 
