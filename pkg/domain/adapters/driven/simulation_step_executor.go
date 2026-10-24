@@ -14,14 +14,27 @@ import (
 
 const (
 	lockFirstUnresolvedFleetEventForUpdateQuery = `
+WITH target_universe AS (
+	SELECT
+		pl.universe
+	FROM
+		planet AS p
+		INNER JOIN player AS pl ON pl.id = p.player
+	WHERE
+		p.id = $2
+)
 SELECT
-	fleet,
-	next_event_at,
-	event_type
+	fe.fleet,
+	fe.next_event_at,
+	fe.event_type
 FROM
-	fleet_event
+	fleet_event AS fe
+	INNER JOIN fleet AS f ON f.id = fe.fleet
+	INNER JOIN planet AS p ON p.id = f.source
+	INNER JOIN player AS pl ON pl.id = p.player
 WHERE
 	next_event_at <= $1
+	AND pl.universe = (SELECT universe FROM target_universe)
 ORDER BY
 	next_event_at ASC
 LIMIT 1
@@ -71,7 +84,7 @@ func (s *SimulationStepExecutor) Execute(
 	}
 	defer tx.Close(ctx)
 
-	event, err := resolveNextFleetEvent(ctx, tx, timestamp)
+	event, err := resolveNextFleetEvent(ctx, tx, timestamp, planetId)
 	if err != nil {
 		return models.SimulationStepResult{}, err
 	}
@@ -134,12 +147,14 @@ func resolveNextFleetEvent(
 	ctx context.Context,
 	tx database.Transaction,
 	timestamp time.Time,
+	planetId uuid.UUID,
 ) (*models.FleetEventContext, error) {
 	maybeFleetEvent, err := db.QueryOneTx[fleetEvent](
 		ctx,
 		tx,
 		lockFirstUnresolvedFleetEventForUpdateQuery,
 		timestamp,
+		planetId,
 	)
 	if err == db.ErrNoMatchingRows {
 		return nil, nil
@@ -217,6 +232,9 @@ func createUpdateOrDeleteFleet(
 		if err != nil {
 			if isFleetMissingTargetPlanetErr(err) {
 				return nil, domainerrors.ErrFleetDestinationInvalid
+			}
+			if isFleetSourcePlanetErr(err) {
+				return nil, domainerrors.ErrPlanetNotFound
 			}
 			return nil, err
 		}

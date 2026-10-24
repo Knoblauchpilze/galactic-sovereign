@@ -10,6 +10,7 @@ const (
 	universeNotFound       errors.ErrorCode = 604
 	playerNotFound         errors.ErrorCode = 605
 	planetResourceNotFound errors.ErrorCode = 606
+	planetNotFound         errors.ErrorCode = 607
 
 	nameAlreadyTaken             errors.ErrorCode = 610
 	actionAlreadyInProgress      errors.ErrorCode = 611
@@ -51,6 +52,7 @@ var (
 	ErrUniverseNotFound = errors.FromCode(universeNotFound)
 	ErrPlayerNotFound   = errors.FromCode(playerNotFound)
 	ErrResourceNotFound = errors.FromCode(planetResourceNotFound)
+	ErrPlanetNotFound   = errors.FromCode(planetNotFound)
 
 	ErrNameAlreadyTaken           = errors.FromCode(nameAlreadyTaken)
 	ErrActionAlreadyInProgress    = errors.FromCode(actionAlreadyInProgress)

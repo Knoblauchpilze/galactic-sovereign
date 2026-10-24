@@ -200,10 +200,8 @@ func TestIT_SimulationStepExecutor_Execute_LoadFleetBehavior(t *testing.T) {
 	t.Run("loads fleet event when fleet has a destination", func(t *testing.T) {
 		adapter, conn := newTestSimulationStepExecutor(t)
 
-		planet, _, _ := insertTestPlanetForPlayer(t, conn)
+		planet, destination := insertTwoTestPlanets(t, conn)
 		fleet := insertTestFleet(t, conn, planet, addFleetShip)
-
-		destination, _, _ := insertTestPlanetForPlayer(t, conn)
 		fleet.Destination.Target = &destination.Id
 		upsertFleetDestination(t, conn, fleet)
 
@@ -301,6 +299,58 @@ func TestIT_SimulationStepExecutor_Execute_LoadFleetBehavior(t *testing.T) {
 		}
 		expectedResult.Planet.Version++
 		expectedResult.Fleet.Version++
+		assert.Equal(t, expectedResult, actual)
+	})
+
+	t.Run("does not load fleet event when planet is not from the same universe", func(t *testing.T) {
+		adapter, conn := newTestSimulationStepExecutor(t)
+
+		universe1 := insertTestUniverse(t, conn)
+		universe2 := insertTestUniverse(t, conn)
+
+		player1 := insertTestPlayer(t, conn, universe1.Id)
+		player2 := insertTestPlayer(t, conn, universe2.Id)
+
+		planet1 := insertTestPlanet(t, conn, player1.Id)
+		planet2 := insertTestPlanet(t, conn, player2.Id)
+
+		fleet := insertTestFleet(t, conn, planet2, addFleetShip)
+
+		var captured models.SimulationStep
+		simulate := func(step models.SimulationStep) (models.SimulationStepResult, error) {
+			captured = step
+
+			planet := new(*step.Planet)
+			planet.Fields++
+			planet.Version++
+
+			result := models.SimulationStepResult{
+				Resolution: models.PlanetUpdated,
+				Planet:     planet,
+				Fleet:      nil,
+			}
+
+			return result, nil
+		}
+
+		afterArrival := fleet.Schedule.ArrivalAt.Add(1 * time.Minute)
+
+		actual, err := adapter.Execute(t.Context(), planet1.Id, afterArrival, simulate)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		expectedStep := models.SimulationStep{
+			Timestamp:      afterArrival,
+			Planet:         &planet1,
+			NextFleetEvent: nil,
+		}
+		assert.Equal(t, expectedStep, captured)
+		expectedResult := models.SimulationStepResult{
+			Resolution: models.PlanetUpdated,
+			Planet:     &planet1,
+			Fleet:      nil,
+		}
+		expectedResult.Planet.Fields++
+		expectedResult.Planet.Version++
 		assert.Equal(t, expectedResult, actual)
 	})
 }
@@ -1495,8 +1545,7 @@ func TestIT_SimulationStepExecutor_Execute_CreateFleet(t *testing.T) {
 	t.Run("persists fleet with destination", func(t *testing.T) {
 		adapter, conn := newTestSimulationStepExecutor(t)
 
-		planetA, _, _ := insertTestPlanetForPlayer(t, conn)
-		planetB, _, _ := insertTestPlanetForPlayer(t, conn)
+		planetA, planetB := insertTwoTestPlanets(t, conn)
 
 		fleet := generateSampleFleet(planetA)
 		fleet.Mission = models.MissionTransport
@@ -1540,6 +1589,35 @@ func TestIT_SimulationStepExecutor_Execute_CreateFleet(t *testing.T) {
 		expected.Version++
 		expected.Ships[0].Count++
 		assert.Equal(t, expected, actual)
+	})
+
+	t.Run("returns error when fleet source does not exist", func(t *testing.T) {
+		adapter, conn := newTestSimulationStepExecutor(t)
+
+		planet, _, _ := insertTestPlanetForPlayer(t, conn)
+		fleet := generateSampleFleet(planet)
+		fleet.Source = uuid.New()
+
+		simulate := func(step models.SimulationStep) (models.SimulationStepResult, error) {
+			var planet *models.Planet
+			if step.Planet != nil {
+				planet = new(*step.Planet)
+				planet.Version++
+			}
+
+			result := models.SimulationStepResult{
+				Resolution: models.FleetCreated,
+				Planet:     planet,
+				Fleet:      &fleet,
+			}
+
+			return result, nil
+		}
+
+		_, err := adapter.Execute(t.Context(), planet.Id, planet.UpdatedAt, simulate)
+
+		assert.ErrorIs(t, err, domainerrors.ErrPlanetNotFound, "Actual err: %v", err)
+		assertFleetDoesNotExist(t, conn, fleet.Id)
 	})
 
 	t.Run("returns error when fleet destination does not exist", func(t *testing.T) {
@@ -1619,10 +1697,8 @@ func TestIT_SimulationStepExecutor_Execute_DeleteFleet(t *testing.T) {
 	t.Run("deletes fleet with target", func(t *testing.T) {
 		adapter, conn := newTestSimulationStepExecutor(t)
 
-		planet, _, _ := insertTestPlanetForPlayer(t, conn)
+		planet, destination := insertTwoTestPlanets(t, conn)
 		fleet := insertTestFleet(t, conn, planet, addFleetShip)
-
-		destination, _, _ := insertTestPlanetForPlayer(t, conn)
 		fleet.Destination.Target = &destination.Id
 		upsertFleetDestination(t, conn, fleet)
 
@@ -1641,8 +1717,7 @@ func TestIT_SimulationStepExecutor_Execute_Concurrency(t *testing.T) {
 	t.Run("prevents concurrent modification of different planets when fleet event is resolved", func(t *testing.T) {
 		adapter, conn := newTestSimulationStepExecutor(t)
 
-		planetA, _, _ := insertTestPlanetForPlayer(t, conn)
-		planetB, _, _ := insertTestPlanetForPlayer(t, conn)
+		planetA, planetB := insertTwoTestPlanets(t, conn)
 		fleet := insertTestFleet(t, conn, planetA)
 		timestamp := fleet.Schedule.ArrivalAt.Add(time.Minute)
 
@@ -1708,11 +1783,80 @@ func TestIT_SimulationStepExecutor_Execute_Concurrency(t *testing.T) {
 		assert.Equal(t, fleet.Version+1, actual.Version)
 	})
 
+	t.Run("allows planet mutation in another universe while a due fleet event is locked", func(t *testing.T) {
+		adapter, conn := newTestSimulationStepExecutor(t)
+
+		planetA, _, universeA := insertTestPlanetForPlayer(t, conn)
+		planetB, _, universeB := insertTestPlanetForPlayer(t, conn)
+		require.NotEqual(t, universeA.Id, universeB.Id)
+		fleet := insertTestFleet(t, conn, planetA)
+		timestamp := fleet.Schedule.ArrivalAt.Add(time.Minute)
+
+		executionCtx, cancel := context.WithTimeout(t.Context(), 5*time.Second)
+		defer cancel()
+		enteredA := make(chan struct{})
+		releaseA := make(chan struct{})
+		var releaseOnce sync.Once
+		release := func() {
+			releaseOnce.Do(func() { close(releaseA) })
+		}
+		t.Cleanup(release)
+		doneA := make(chan error, 1)
+		resolveFleetEvent := generateFleetSimulator(func(f *models.Fleet) {
+			f.Schedule.Status = models.StatusReturning
+			f.Version++
+		})
+		simulateFleetEvent := func(step models.SimulationStep) (models.SimulationStepResult, error) {
+			close(enteredA)
+			select {
+			case <-releaseA:
+			case <-executionCtx.Done():
+				return models.SimulationStepResult{}, executionCtx.Err()
+			}
+			return resolveFleetEvent(step)
+		}
+		go func() {
+			_, err := adapter.Execute(executionCtx, planetA.Id, timestamp, simulateFleetEvent)
+			doneA <- err
+		}()
+
+		select {
+		case <-enteredA:
+		case err := <-doneA:
+			t.Fatalf("fleet execution exited before reaching its callback: %v", err)
+		case <-executionCtx.Done():
+			t.Fatal("fleet execution did not acquire its event lock")
+		}
+
+		planetCtx, cancelPlanet := context.WithTimeout(executionCtx, time.Second)
+		defer cancelPlanet()
+		simulatePlanetUpdate := generatePlanetSimulator(func(p *models.Planet) { p.Version++ })
+		simulateOtherUniverse := func(step models.SimulationStep) (models.SimulationStepResult, error) {
+			assert.Nil(t, step.NextFleetEvent, "fleet event from another universe should not be selected")
+			return simulatePlanetUpdate(step)
+		}
+		result, err := adapter.Execute(planetCtx, planetB.Id, timestamp, simulateOtherUniverse)
+		require.NoError(t, err, "planet update was blocked by a fleet event in another universe: %v", err)
+		assert.Equal(t, models.PlanetUpdated, result.Resolution)
+
+		assertPlanetVersion(t, conn, planetB.Id, planetB.Version+1)
+		assertPlanetVersion(t, conn, planetA.Id, planetA.Version)
+		assertFleetVersion(t, conn, fleet.Id, fleet.Version)
+		assertFleetEventExists(t, conn, fleet.Id, fleet.Schedule.ArrivalAt)
+
+		release()
+		require.NoError(t, <-doneA, "fleet execution failed")
+		actual := loadFleetFromDb(t, conn, fleet.Id)
+		assert.Equal(t, models.StatusReturning, actual.Schedule.Status)
+		assert.Equal(t, fleet.Version+1, actual.Version)
+		assertFleetEventExists(t, conn, fleet.Id, fleet.Schedule.ReturnAt)
+		assertFleetEventTypeMatches(t, conn, fleet.Id, models.ReturnEvent)
+	})
+
 	t.Run("performs planet mutation after fleet event lock is released", func(t *testing.T) {
 		adapter, conn := newTestSimulationStepExecutor(t)
 
-		planetA, _, _ := insertTestPlanetForPlayer(t, conn)
-		planetB, _, _ := insertTestPlanetForPlayer(t, conn)
+		planetA, planetB := insertTwoTestPlanets(t, conn)
 		fleet := insertTestFleet(t, conn, planetA)
 		timestamp := fleet.Schedule.ArrivalAt.Add(time.Minute)
 
@@ -1791,8 +1935,7 @@ func TestIT_SimulationStepExecutor_Execute_Concurrency(t *testing.T) {
 	t.Run("allows concurrent modification of planets when no fleet event is pending", func(t *testing.T) {
 		adapter, conn := newTestSimulationStepExecutor(t)
 
-		planetA, _, _ := insertTestPlanetForPlayer(t, conn)
-		planetB, _, _ := insertTestPlanetForPlayer(t, conn)
+		planetA, planetB := insertTwoTestPlanets(t, conn)
 		enteredA := make(chan struct{})
 		releaseA := make(chan struct{})
 		var releaseOnce sync.Once
@@ -1914,8 +2057,7 @@ func TestIT_SimulationStepExecutor_Execute_Concurrency(t *testing.T) {
 	t.Run("allows concurrent modification of planets when a fleet event is not yet due", func(t *testing.T) {
 		adapter, conn := newTestSimulationStepExecutor(t)
 
-		planetA, _, _ := insertTestPlanetForPlayer(t, conn)
-		planetB, _, _ := insertTestPlanetForPlayer(t, conn)
+		planetA, planetB := insertTwoTestPlanets(t, conn)
 		fleet := insertTestFleet(t, conn, planetA)
 		timestamp := fleet.Schedule.ArrivalAt.Add(-time.Minute)
 		require.True(t, timestamp.Before(fleet.Schedule.ArrivalAt))
@@ -2267,6 +2409,19 @@ func upsertFleetSchedule(t *testing.T, conn database.Connection, fleet models.Fl
 		nextEvent.Event,
 	)
 	require.NoError(t, err, "Actual err: %v", err)
+}
+
+// insertTwoTestPlanets inserts two planets in the same universe for two different players
+func insertTwoTestPlanets(t *testing.T, conn database.Connection) (models.Planet, models.Planet) {
+	universe := insertTestUniverse(t, conn)
+
+	player1 := insertTestPlayer(t, conn, universe.Id)
+	player2 := insertTestPlayer(t, conn, universe.Id)
+
+	planet1 := insertTestPlanet(t, conn, player1.Id)
+	planet2 := insertTestPlanet(t, conn, player2.Id)
+
+	return planet1, planet2
 }
 
 func generatePlanetSimulator(
