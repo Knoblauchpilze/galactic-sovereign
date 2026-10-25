@@ -2431,7 +2431,7 @@ func insertTwoTestPlanets(t *testing.T, conn database.Connection) (models.Planet
 
 func generatePlanetSimulator(
 	modifier func(*models.Planet),
-) func(models.SimulationStep) (models.SimulationStepResult, error) {
+) models.SimulationStepResolver {
 	return func(step models.SimulationStep) (models.SimulationStepResult, error) {
 		result := models.SimulationStepResult{
 			Resolution: models.PlanetUpdated,
@@ -2447,7 +2447,7 @@ func generatePlanetSimulator(
 
 func generateFleetSimulator(
 	modifier func(*models.Fleet),
-) func(models.SimulationStep) (models.SimulationStepResult, error) {
+) models.SimulationStepResolver {
 	return func(step models.SimulationStep) (models.SimulationStepResult, error) {
 		var planet *models.Planet
 		if step.NextFleetEvent.Planet != nil {
@@ -2467,7 +2467,7 @@ func generateFleetSimulator(
 	}
 }
 
-func generateFleetCreatorNew(fleet models.Fleet) func(models.SimulationStep) (models.SimulationStepResult, error) {
+func generateFleetCreatorNew(fleet models.Fleet) models.SimulationStepResolver {
 	return func(step models.SimulationStep) (models.SimulationStepResult, error) {
 		var planet *models.Planet
 		if step.Planet != nil {
@@ -2485,7 +2485,7 @@ func generateFleetCreatorNew(fleet models.Fleet) func(models.SimulationStep) (mo
 	}
 }
 
-func generateFleetDeleter() func(models.SimulationStep) (models.SimulationStepResult, error) {
+func generateFleetDeleter() models.SimulationStepResolver {
 	return func(step models.SimulationStep) (models.SimulationStepResult, error) {
 		var planet *models.Planet
 		if step.NextFleetEvent.Planet != nil {

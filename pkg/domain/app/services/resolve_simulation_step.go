@@ -17,9 +17,9 @@ import (
 // If the mutation returns FleetEventResolved or FleetDeleted, the closure will return
 // an error as those are reserved values.
 func ResolveSimulationStepThen(
-	mutation func(*models.SimulationStep) (models.SimulationStepResult, error),
-) func(*models.SimulationStep) (models.SimulationStepResult, error) {
-	return func(step *models.SimulationStep) (models.SimulationStepResult, error) {
+	mutation models.SimulationStepResolver,
+) models.SimulationStepResolver {
+	return func(step models.SimulationStep) (models.SimulationStepResult, error) {
 		if step.NextFleetEvent != nil {
 			return resolveFleet(*step.NextFleetEvent)
 		}

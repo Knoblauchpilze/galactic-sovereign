@@ -24,7 +24,7 @@ func TestUnit_ResolveSimulationStepThen(t *testing.T) {
 			NextFleetEvent: nil,
 		}
 
-		actual, err := ResolveSimulationStepThen(noOpMutator)(&step)
+		actual, err := ResolveSimulationStepThen(noOpMutator)(step)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		expected := models.SimulationStepResult{
@@ -79,7 +79,7 @@ func TestUnit_ResolveSimulationStepThen(t *testing.T) {
 			},
 		}
 
-		result, err := ResolveSimulationStepThen(noOpMutator)(&step)
+		result, err := ResolveSimulationStepThen(noOpMutator)(step)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Equal(t, models.FleetEventResolved, result.Resolution)
@@ -128,7 +128,7 @@ func TestUnit_ResolveSimulationStepThen(t *testing.T) {
 			},
 		}
 
-		result, err := ResolveSimulationStepThen(noOpMutator)(&step)
+		result, err := ResolveSimulationStepThen(noOpMutator)(step)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Equal(t, models.FleetEventResolved, result.Resolution)
@@ -171,7 +171,7 @@ func TestUnit_ResolveSimulationStepThen(t *testing.T) {
 			},
 		}
 
-		result, err := ResolveSimulationStepThen(noOpMutator)(&step)
+		result, err := ResolveSimulationStepThen(noOpMutator)(step)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Equal(t, models.FleetEventResolved, result.Resolution)
@@ -221,7 +221,7 @@ func TestUnit_ResolveSimulationStepThen(t *testing.T) {
 			},
 		}
 
-		result, err := ResolveSimulationStepThen(noOpMutator)(&step)
+		result, err := ResolveSimulationStepThen(noOpMutator)(step)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Equal(t, models.FleetEventResolved, result.Resolution)
@@ -273,7 +273,7 @@ func TestUnit_ResolveSimulationStepThen(t *testing.T) {
 			},
 		}
 
-		result, err := ResolveSimulationStepThen(noOpMutator)(&step)
+		result, err := ResolveSimulationStepThen(noOpMutator)(step)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Nil(t, result.Fleet)
@@ -318,7 +318,7 @@ func TestUnit_ResolveSimulationStepThen(t *testing.T) {
 			},
 		}
 
-		result, err := ResolveSimulationStepThen(noOpMutator)(&step)
+		result, err := ResolveSimulationStepThen(noOpMutator)(step)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		require.NotNil(t, result.Planet)
@@ -377,7 +377,7 @@ func TestUnit_ResolveSimulationStepThen(t *testing.T) {
 			},
 		}
 
-		result, err := ResolveSimulationStepThen(noOpMutator)(&step)
+		result, err := ResolveSimulationStepThen(noOpMutator)(step)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		require.NotNil(t, result.Planet)
@@ -428,7 +428,7 @@ func TestUnit_ResolveSimulationStepThen(t *testing.T) {
 			},
 		}
 
-		result, err := ResolveSimulationStepThen(noOpMutator)(&step)
+		result, err := ResolveSimulationStepThen(noOpMutator)(step)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Equal(t, models.FleetDeleted, result.Resolution)
@@ -475,7 +475,7 @@ func TestUnit_ResolveSimulationStepThen(t *testing.T) {
 			},
 		}
 
-		_, err := ResolveSimulationStepThen(noOpMutator)(&step)
+		_, err := ResolveSimulationStepThen(noOpMutator)(step)
 
 		assert.ErrorIs(t, err, domainerrors.ErrPlanetNotUpToDate, "Actual err: %v", err)
 	})
@@ -519,7 +519,7 @@ func TestUnit_ResolveSimulationStepThen(t *testing.T) {
 			},
 		}
 
-		_, err := ResolveSimulationStepThen(noOpMutator)(&step)
+		_, err := ResolveSimulationStepThen(noOpMutator)(step)
 
 		assert.ErrorIs(t, err, domainerrors.ErrPlanetNotUpToDate, "Actual err: %v", err)
 	})
@@ -537,7 +537,7 @@ func TestUnit_ResolveSimulationStepThen(t *testing.T) {
 		}
 
 		called := 0
-		mutator := func(step *models.SimulationStep) (models.SimulationStepResult, error) {
+		mutator := func(step models.SimulationStep) (models.SimulationStepResult, error) {
 			called++
 
 			result := models.SimulationStepResult{
@@ -549,7 +549,7 @@ func TestUnit_ResolveSimulationStepThen(t *testing.T) {
 			return result, nil
 		}
 
-		_, err := ResolveSimulationStepThen(mutator)(&step)
+		_, err := ResolveSimulationStepThen(mutator)(step)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Equal(t, 1, called)
@@ -589,7 +589,7 @@ func TestUnit_ResolveSimulationStepThen(t *testing.T) {
 		}
 
 		called := 0
-		mutator := func(step *models.SimulationStep) (models.SimulationStepResult, error) {
+		mutator := func(step models.SimulationStep) (models.SimulationStepResult, error) {
 			called++
 
 			result := models.SimulationStepResult{
@@ -601,7 +601,7 @@ func TestUnit_ResolveSimulationStepThen(t *testing.T) {
 			return result, nil
 		}
 
-		_, err := ResolveSimulationStepThen(mutator)(&step)
+		_, err := ResolveSimulationStepThen(mutator)(step)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Equal(t, 0, called)
@@ -620,11 +620,11 @@ func TestUnit_ResolveSimulationStepThen(t *testing.T) {
 		}
 
 		errSample := errors.New("stubbed error")
-		mutator := func(step *models.SimulationStep) (models.SimulationStepResult, error) {
+		mutator := func(step models.SimulationStep) (models.SimulationStepResult, error) {
 			return models.SimulationStepResult{}, errSample
 		}
 
-		_, err := ResolveSimulationStepThen(mutator)(&step)
+		_, err := ResolveSimulationStepThen(mutator)(step)
 
 		assert.ErrorIs(t, err, errSample, "Actual err: %v", err)
 	})
@@ -643,7 +643,7 @@ func TestUnit_ResolveSimulationStepThen(t *testing.T) {
 			NextFleetEvent: nil,
 		}
 
-		mutator := func(step *models.SimulationStep) (models.SimulationStepResult, error) {
+		mutator := func(step models.SimulationStep) (models.SimulationStepResult, error) {
 			result := models.SimulationStepResult{
 				Resolution: models.PlanetUpdated,
 				Planet:     step.Planet,
@@ -655,7 +655,7 @@ func TestUnit_ResolveSimulationStepThen(t *testing.T) {
 			return result, nil
 		}
 
-		actual, err := ResolveSimulationStepThen(mutator)(&step)
+		actual, err := ResolveSimulationStepThen(mutator)(step)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		expected := models.SimulationStepResult{
@@ -685,7 +685,7 @@ func TestUnit_ResolveSimulationStepThen(t *testing.T) {
 			NextFleetEvent: nil,
 		}
 
-		mutator := func(step *models.SimulationStep) (models.SimulationStepResult, error) {
+		mutator := func(step models.SimulationStep) (models.SimulationStepResult, error) {
 			result := models.SimulationStepResult{
 				Resolution: models.FleetEventResolved,
 				Planet:     step.Planet,
@@ -695,7 +695,7 @@ func TestUnit_ResolveSimulationStepThen(t *testing.T) {
 			return result, nil
 		}
 
-		_, err := ResolveSimulationStepThen(mutator)(&step)
+		_, err := ResolveSimulationStepThen(mutator)(step)
 
 		assert.ErrorIs(t, err, domainerrors.ErrInvalidSimulationStepResult, "Actual err: %v", err)
 	})
@@ -712,7 +712,7 @@ func TestUnit_ResolveSimulationStepThen(t *testing.T) {
 			NextFleetEvent: nil,
 		}
 
-		mutator := func(step *models.SimulationStep) (models.SimulationStepResult, error) {
+		mutator := func(step models.SimulationStep) (models.SimulationStepResult, error) {
 			result := models.SimulationStepResult{
 				Resolution: models.FleetDeleted,
 				Planet:     step.Planet,
@@ -722,13 +722,13 @@ func TestUnit_ResolveSimulationStepThen(t *testing.T) {
 			return result, nil
 		}
 
-		_, err := ResolveSimulationStepThen(mutator)(&step)
+		_, err := ResolveSimulationStepThen(mutator)(step)
 
 		assert.ErrorIs(t, err, domainerrors.ErrInvalidSimulationStepResult, "Actual err: %v", err)
 	})
 }
 
-func noOpMutator(step *models.SimulationStep) (models.SimulationStepResult, error) {
+func noOpMutator(step models.SimulationStep) (models.SimulationStepResult, error) {
 	result := models.SimulationStepResult{
 		Resolution: models.PlanetUpdated,
 		Planet:     step.Planet,

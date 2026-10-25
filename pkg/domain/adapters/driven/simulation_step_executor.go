@@ -77,7 +77,7 @@ func (s *SimulationStepExecutor) Execute(
 	ctx context.Context,
 	planetId uuid.UUID,
 	timestamp time.Time,
-	simulate func(models.SimulationStep) (models.SimulationStepResult, error),
+	simulate models.SimulationStepResolver,
 ) (models.SimulationStepResult, error) {
 	tx, err := s.conn.BeginTx(ctx)
 	if err != nil {

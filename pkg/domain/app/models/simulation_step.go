@@ -45,3 +45,5 @@ type SimulationStepResult struct {
 	Planet     *Planet
 	Fleet      *Fleet
 }
+
+type SimulationStepResolver func(SimulationStep) (SimulationStepResult, error)

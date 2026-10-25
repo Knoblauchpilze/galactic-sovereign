@@ -20,6 +20,6 @@ type ForExecutingSimulationStep interface {
 		ctx context.Context,
 		planetId uuid.UUID,
 		timestamp time.Time,
-		simulate func(models.SimulationStep) (models.SimulationStepResult, error),
+		simulate models.SimulationStepResolver,
 	) (models.SimulationStepResult, error)
 }

@@ -44,7 +44,7 @@ func (m *MockForExecutingSimulationStep) EXPECT() *MockForExecutingSimulationSte
 }
 
 // Execute mocks base method.
-func (m *MockForExecutingSimulationStep) Execute(ctx context.Context, planetId uuid.UUID, timestamp time.Time, simulate func(models.SimulationStep) (models.SimulationStepResult, error)) (models.SimulationStepResult, error) {
+func (m *MockForExecutingSimulationStep) Execute(ctx context.Context, planetId uuid.UUID, timestamp time.Time, simulate models.SimulationStepResolver) (models.SimulationStepResult, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Execute", ctx, planetId, timestamp, simulate)
 	ret0, _ := ret[0].(models.SimulationStepResult)
