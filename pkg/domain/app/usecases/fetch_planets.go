@@ -4,39 +4,43 @@ import (
 	"context"
 
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
+	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
 	drivenports "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driven"
 	domainservices "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/services"
 	"github.com/google/uuid"
 )
 
 type FetchPlanetsUseCase struct {
-	planetRepo    drivenports.ForListingPlanets
-	planetMutator drivenports.ForMutatingPlanet
-	clock         drivenports.ForFetchingTime
+	planetRepo drivenports.ForListingPlanets
+	simulator  drivenports.ForExecutingSimulationStep
+	clock      drivenports.ForFetchingTime
 }
 
 func NewFetchPlanetsUseCase(
 	planetRepo drivenports.ForListingPlanets,
-	planetMutator drivenports.ForMutatingPlanet,
+	simulator drivenports.ForExecutingSimulationStep,
 	clock drivenports.ForFetchingTime,
 ) *FetchPlanetsUseCase {
 	return &FetchPlanetsUseCase{
-		planetRepo:    planetRepo,
-		planetMutator: planetMutator,
-		clock:         clock,
+		planetRepo: planetRepo,
+		simulator:  simulator,
+		clock:      clock,
 	}
 }
 
 func (p *FetchPlanetsUseCase) Get(ctx context.Context, id uuid.UUID) (models.Planet, error) {
 	moment := p.clock.Now(ctx)
 
-	mutator := domainservices.AdvancePlanetToTimeThen(moment, noOpMutator)
-	result, err := p.planetMutator.Mutate(ctx, id, mutator)
+	result, err := domainservices.AdvanceSimulationUntil(ctx, p.simulator, id, moment, noOpMutator)
 	if err != nil {
 		return models.Planet{}, err
 	}
 
-	return result, nil
+	if result.Planet == nil {
+		return models.Planet{}, domainerrors.ErrNotFound
+	}
+
+	return *result.Planet, nil
 }
 
 func (p *FetchPlanetsUseCase) ListForPlayer(ctx context.Context, player uuid.UUID) ([]models.Planet, error) {
@@ -49,20 +53,24 @@ func (p *FetchPlanetsUseCase) ListForPlayer(ctx context.Context, player uuid.UUI
 
 	out := make([]models.Planet, 0, len(ids))
 
-	mutator := domainservices.AdvancePlanetToTimeThen(moment, noOpMutator)
-
 	for _, id := range ids {
-		result, err := p.planetMutator.Mutate(ctx, id, mutator)
+
+		result, err := domainservices.AdvanceSimulationUntil(ctx, p.simulator, id, moment, noOpMutator)
 		if err != nil {
 			return nil, err
 		}
 
-		out = append(out, result)
+		if result.Planet != nil {
+			out = append(out, *result.Planet)
+		}
 	}
 
 	return out, nil
 }
 
-func noOpMutator(_ *models.Planet) error {
-	return nil
+func noOpMutator(step models.SimulationStep) (models.SimulationStepResult, error) {
+	return models.SimulationStepResult{
+		Resolution: models.PlanetUpdated,
+		Planet:     step.Planet,
+	}, nil
 }
