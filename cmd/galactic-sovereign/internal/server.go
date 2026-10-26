@@ -77,11 +77,11 @@ func registerPlanetsRoutes(
 	log *slog.Logger,
 ) {
 	planetRepo := drivenadapters.NewPlanetRepository(conn)
-	planetMutator := drivenadapters.NewPlanetMutator(conn)
+	simulator := drivenadapters.NewSimulationStepExecutor(conn)
 	planetDeleter := drivenadapters.NewPlanetDeleter(conn)
 	clock := drivenadapters.NewTimeAdapter()
 
-	fetchUsecase := usecases.NewFetchPlanetsUseCase(planetRepo, planetMutator, clock)
+	fetchUsecase := usecases.NewFetchPlanetsUseCase(planetRepo, simulator, clock)
 	deleteUsecase := usecases.NewDeletePlanetUseCase(planetDeleter, clock)
 
 	for _, route := range drivingadapters.PlanetEndpoints(fetchUsecase, deleteUsecase) {
