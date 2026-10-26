@@ -63,6 +63,47 @@ func TestUnit_ManagePlanet_Get(t *testing.T) {
 		assert.Equal(t, planet, actual)
 	})
 
+	t.Run("retries executor when fleet event is resolved", func(t *testing.T) {
+		suite := setupFetchPlanetsTestSuite(t)
+		planet := models.Planet{
+			Id:        uuid.New(),
+			Player:    uuid.New(),
+			Name:      "my-planet",
+			CreatedAt: t1,
+			UpdatedAt: t1,
+			Version:   2,
+		}
+
+		suite.mockClock.EXPECT().Now(gomock.Any()).Times(1).Return(t2)
+		fleetResult := models.SimulationStepResult{
+			Resolution: models.FleetEventResolved,
+			Fleet: &models.Fleet{
+				Id: uuid.New(),
+			},
+		}
+		suite.mockExecutor.EXPECT().
+			Execute(gomock.Any(), planet.Id, t2, gomock.Any()).
+			Times(1).
+			Return(fleetResult, nil)
+		suite.mockExecutor.EXPECT().
+			Execute(gomock.Any(), planet.Id, t2, gomock.Any()).
+			Times(1).
+			DoAndReturn(generatePlanetSimulatorMock(planet))
+
+		actual, err := suite.usecase.Get(t.Context(), planet.Id)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		expected := models.Planet{
+			Id:        planet.Id,
+			Player:    planet.Player,
+			Name:      planet.Name,
+			CreatedAt: t1,
+			UpdatedAt: t2,
+			Version:   3,
+		}
+		assert.Equal(t, expected, actual)
+	})
+
 	t.Run("updates planet to current time", func(t *testing.T) {
 		suite := setupFetchPlanetsTestSuite(t)
 		planet := models.Planet{
@@ -196,12 +237,10 @@ func TestUnit_ManagePlanet_Get(t *testing.T) {
 
 		assert.ErrorIs(t, err, expectedErr, "Actual err: %v", err)
 	})
-
-	// TODO: Add a couple of tests for retries when a fleet exists
 }
 
 func TestUnit_ManagePlanet_ListForPlayer(t *testing.T) {
-	t.Run("lists existing planets through mutator", func(t *testing.T) {
+	t.Run("calls executor with player and timestamp", func(t *testing.T) {
 		suite := setupFetchPlanetsTestSuite(t)
 		player := uuid.New()
 		p1 := models.Planet{Id: uuid.New(), Player: player, Name: "planet-1", CreatedAt: t1, UpdatedAt: t1}
@@ -220,6 +259,51 @@ func TestUnit_ManagePlanet_ListForPlayer(t *testing.T) {
 			Execute(gomock.Any(), p1.Id, t2, gomock.Any()).
 			Times(1).
 			Return(result1, nil)
+		result2 := models.SimulationStepResult{
+			Resolution: models.PlanetUpdated,
+			Planet:     &p2,
+		}
+		suite.mockExecutor.EXPECT().
+			Execute(gomock.Any(), p2.Id, t2, gomock.Any()).
+			Times(1).
+			Return(result2, nil)
+
+		actual, err := suite.usecase.ListForPlayer(t.Context(), player)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		expected := []models.Planet{p1, p2}
+		assert.Equal(t, expected, actual)
+	})
+
+	t.Run("retries executor when fleet event is resolved", func(t *testing.T) {
+		suite := setupFetchPlanetsTestSuite(t)
+		player := uuid.New()
+		p1 := models.Planet{Id: uuid.New(), Player: player, Name: "planet-1", CreatedAt: t1, UpdatedAt: t1}
+		p2 := models.Planet{Id: uuid.New(), Player: player, Name: "planet-2", CreatedAt: t1, UpdatedAt: t1}
+
+		suite.mockClock.EXPECT().Now(gomock.Any()).Times(1).Return(t2)
+		suite.mockPlanetRepo.EXPECT().
+			ListForPlayer(gomock.Any(), player).
+			Times(1).
+			Return([]uuid.UUID{p1.Id, p2.Id}, nil)
+		result1 := models.SimulationStepResult{
+			Resolution: models.PlanetUpdated,
+			Planet:     &p1,
+		}
+		suite.mockExecutor.EXPECT().
+			Execute(gomock.Any(), p1.Id, t2, gomock.Any()).
+			Times(1).
+			Return(result1, nil)
+		fleetResult := models.SimulationStepResult{
+			Resolution: models.FleetEventResolved,
+			Fleet: &models.Fleet{
+				Id: uuid.New(),
+			},
+		}
+		suite.mockExecutor.EXPECT().
+			Execute(gomock.Any(), p2.Id, t2, gomock.Any()).
+			Times(1).
+			Return(fleetResult, nil)
 		result2 := models.SimulationStepResult{
 			Resolution: models.PlanetUpdated,
 			Planet:     &p2,
