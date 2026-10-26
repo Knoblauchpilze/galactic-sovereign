@@ -93,7 +93,7 @@ func TestUnit_Players_CreatePlayer(t *testing.T) {
 			Name:     dto.Name,
 		}
 		mockUsecase.EXPECT().
-			Create(gomock.Any(), gomock.Eq(expectedRequest)).
+			Create(gomock.Any(), expectedRequest).
 			Times(1).
 			Return(models.Player{
 				Id:        sampleUuid,
@@ -213,7 +213,7 @@ func TestUnit_Players_GetPlayer(t *testing.T) {
 			},
 		}
 		mockUsecase.EXPECT().
-			Get(gomock.Any(), gomock.Eq(sampleUuid)).
+			Get(gomock.Any(), sampleUuid).
 			Times(1).
 			Return(player, nil)
 
@@ -253,7 +253,7 @@ func TestUnit_Players_GetPlayer(t *testing.T) {
 
 	t.Run("returns 404 when player does not exist", func(t *testing.T) {
 		mockUsecase.EXPECT().
-			Get(gomock.Any(), gomock.Eq(sampleUuid)).
+			Get(gomock.Any(), sampleUuid).
 			Times(1).
 			Return(models.Player{}, domainerrors.ErrNotFound)
 
@@ -344,7 +344,7 @@ func TestUnit_Players_ListPlayersForApiUser(t *testing.T) {
 			},
 		}
 		mockUsecase.EXPECT().
-			ListForApiUser(gomock.Any(), gomock.Eq(sampleUuid)).
+			ListForApiUser(gomock.Any(), sampleUuid).
 			Times(1).
 			Return(players, nil)
 
@@ -392,7 +392,7 @@ func TestUnit_Players_ListPlayersForApiUser(t *testing.T) {
 
 	t.Run("return empty slice when use case returns no player", func(t *testing.T) {
 		mockUsecase.EXPECT().
-			ListForApiUser(gomock.Any(), gomock.Eq(sampleUuid)).
+			ListForApiUser(gomock.Any(), sampleUuid).
 			Times(1).
 			Return([]models.Player{}, nil)
 
@@ -414,7 +414,7 @@ func TestUnit_Players_ListPlayersForApiUser(t *testing.T) {
 
 	t.Run("return empty slice when use case returns nil response", func(t *testing.T) {
 		mockUsecase.EXPECT().
-			ListForApiUser(gomock.Any(), gomock.Eq(sampleUuid)).
+			ListForApiUser(gomock.Any(), sampleUuid).
 			Times(1).
 			Return(nil, nil)
 
@@ -436,7 +436,7 @@ func TestUnit_Players_ListPlayersForApiUser(t *testing.T) {
 
 	t.Run("returns 500 when use cas fails", func(t *testing.T) {
 		mockUsecase.EXPECT().
-			ListForApiUser(gomock.Any(), gomock.Eq(sampleUuid)).
+			ListForApiUser(gomock.Any(), sampleUuid).
 			Times(1).
 			Return([]models.Player{}, errors.New("stubbed error"))
 
@@ -481,7 +481,7 @@ func TestUnit_Players_DeletePlayer(t *testing.T) {
 
 	t.Run("forwards deletion to use case", func(t *testing.T) {
 		mockUsecase.EXPECT().
-			Delete(gomock.Any(), gomock.Eq(sampleUuid)).
+			Delete(gomock.Any(), sampleUuid).
 			Times(1).
 			Return(nil)
 

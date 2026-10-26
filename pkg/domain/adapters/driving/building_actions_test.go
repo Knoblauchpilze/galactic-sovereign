@@ -94,7 +94,7 @@ func TestUnit_BuildingActions_CreateBuildingAction(t *testing.T) {
 		}
 
 		mockUsecase.EXPECT().
-			Create(gomock.Any(), gomock.Eq(expectedRequest)).
+			Create(gomock.Any(), expectedRequest).
 			Times(1).
 			Return(action, nil)
 
@@ -331,7 +331,7 @@ func TestUnit_BuildingActions_DeleteBuildingAction(t *testing.T) {
 
 	t.Run("forwards deletion to use case", func(t *testing.T) {
 		mockUsecase.EXPECT().
-			DeleteForPlanet(gomock.Any(), gomock.Eq(sampleUuid)).
+			DeleteForPlanet(gomock.Any(), sampleUuid).
 			Times(1).
 			Return(nil)
 
@@ -351,7 +351,7 @@ func TestUnit_BuildingActions_DeleteBuildingAction(t *testing.T) {
 
 	t.Run("returns 404 when planet is not found", func(t *testing.T) {
 		mockUsecase.EXPECT().
-			DeleteForPlanet(gomock.Any(), gomock.Eq(sampleUuid)).
+			DeleteForPlanet(gomock.Any(), sampleUuid).
 			Times(1).
 			Return(domainerrors.ErrNotFound)
 

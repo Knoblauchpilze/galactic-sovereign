@@ -119,7 +119,7 @@ func TestUnit_Ships_CreateShipAction(t *testing.T) {
 		}
 
 		mockUsecase.EXPECT().
-			Create(gomock.Any(), gomock.Eq(expectedRequest)).
+			Create(gomock.Any(), expectedRequest).
 			Times(1).
 			Return(action, nil)
 

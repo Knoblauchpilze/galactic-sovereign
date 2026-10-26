@@ -76,7 +76,7 @@ func TestUnit_ManageUniverse_Get(t *testing.T) {
 		}
 
 		suite.mockFetchRepo.EXPECT().
-			Get(gomock.Any(), gomock.Eq(expected.Id)).
+			Get(gomock.Any(), expected.Id).
 			Times(1).
 			Return(expected, nil)
 
@@ -150,7 +150,7 @@ func TestUnit_ManageUniverse_Delete(t *testing.T) {
 		id := uuid.New()
 
 		suite.mockRepo.EXPECT().
-			Delete(gomock.Any(), gomock.Eq(id)).
+			Delete(gomock.Any(), id).
 			Times(1).
 			Return(nil)
 

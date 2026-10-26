@@ -57,7 +57,7 @@ func TestUnit_ManagePlayer_Create(t *testing.T) {
 		var captured models.Player
 		var capturedHomeworld models.Planet
 		suite.mockUniverseRepo.EXPECT().
-			Get(gomock.Any(), gomock.Eq(request.Universe)).
+			Get(gomock.Any(), request.Universe).
 			Times(1).
 			Return(universe, nil)
 		suite.mockPlayerRepo.EXPECT().
@@ -163,7 +163,7 @@ func TestUnit_ManagePlayer_Get(t *testing.T) {
 		}
 
 		suite.mockPlayerRepo.EXPECT().
-			Get(gomock.Any(), gomock.Eq(expected.Id)).
+			Get(gomock.Any(), expected.Id).
 			Times(1).
 			Return(expected, nil)
 
@@ -209,7 +209,7 @@ func TestUnit_ManagePlayer_ListForApiUser(t *testing.T) {
 		}
 
 		suite.mockPlayerRepo.EXPECT().
-			ListForApiUser(gomock.Any(), gomock.Eq(apiUser)).
+			ListForApiUser(gomock.Any(), apiUser).
 			Times(1).
 			Return(expected, nil)
 
@@ -242,11 +242,11 @@ func TestUnit_ManagePlayer_Delete(t *testing.T) {
 		player := models.Player{Id: uuid.New()}
 
 		suite.mockPlayerRepo.EXPECT().
-			Get(gomock.Any(), gomock.Eq(player.Id)).
+			Get(gomock.Any(), player.Id).
 			Times(1).
 			Return(player, nil)
 		suite.mockPlayerRepo.EXPECT().
-			Delete(gomock.Any(), gomock.Eq(player)).
+			Delete(gomock.Any(), player).
 			Times(1).
 			Return(nil)
 
@@ -260,7 +260,7 @@ func TestUnit_ManagePlayer_Delete(t *testing.T) {
 		playerId := uuid.New()
 
 		suite.mockPlayerRepo.EXPECT().
-			Get(gomock.Any(), gomock.Eq(playerId)).
+			Get(gomock.Any(), playerId).
 			Times(1).
 			Return(models.Player{}, domainerrors.ErrNotFound)
 
@@ -274,7 +274,7 @@ func TestUnit_ManagePlayer_Delete(t *testing.T) {
 		player := models.Player{Id: uuid.New()}
 
 		suite.mockPlayerRepo.EXPECT().
-			Get(gomock.Any(), gomock.Eq(player.Id)).
+			Get(gomock.Any(), player.Id).
 			Times(1).
 			Return(player, nil)
 		expectedErr := errors.New("stubbed error")

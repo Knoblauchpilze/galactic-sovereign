@@ -108,7 +108,7 @@ func TestUnit_Planets_GetPlanet(t *testing.T) {
 			},
 		}
 		mockUsecase.EXPECT().
-			Get(gomock.Any(), gomock.Eq(sampleUuid)).
+			Get(gomock.Any(), sampleUuid).
 			Times(1).
 			Return(planet, nil)
 
@@ -204,7 +204,7 @@ func TestUnit_Planets_GetPlanet(t *testing.T) {
 			BuildingAction: nil,
 		}
 		mockUsecase.EXPECT().
-			Get(gomock.Any(), gomock.Eq(sampleUuid)).
+			Get(gomock.Any(), sampleUuid).
 			Times(1).
 			Return(planet, nil)
 
@@ -238,7 +238,7 @@ func TestUnit_Planets_GetPlanet(t *testing.T) {
 
 	t.Run("returns 404 when planet does not exist", func(t *testing.T) {
 		mockUsecase.EXPECT().
-			Get(gomock.Any(), gomock.Eq(sampleUuid)).
+			Get(gomock.Any(), sampleUuid).
 			Times(1).
 			Return(models.Planet{}, domainerrors.ErrNotFound)
 
@@ -308,7 +308,7 @@ func TestUnit_Planets_ListPlanetsForPlayer(t *testing.T) {
 			{Id: uuid.New(), Name: "planet-2", CreatedAt: someOtherTime},
 		}
 		mockUsecase.EXPECT().
-			ListForPlayer(gomock.Any(), gomock.Eq(sampleUuid)).
+			ListForPlayer(gomock.Any(), sampleUuid).
 			Times(1).
 			Return(planets, nil)
 
@@ -354,7 +354,7 @@ func TestUnit_Planets_ListPlanetsForPlayer(t *testing.T) {
 
 	t.Run("return empty slice when use case returns no planet", func(t *testing.T) {
 		mockUsecase.EXPECT().
-			ListForPlayer(gomock.Any(), gomock.Eq(sampleUuid)).
+			ListForPlayer(gomock.Any(), sampleUuid).
 			Times(1).
 			Return([]models.Planet{}, nil)
 
@@ -376,7 +376,7 @@ func TestUnit_Planets_ListPlanetsForPlayer(t *testing.T) {
 
 	t.Run("return empty slice when use case returns nil response", func(t *testing.T) {
 		mockUsecase.EXPECT().
-			ListForPlayer(gomock.Any(), gomock.Eq(sampleUuid)).
+			ListForPlayer(gomock.Any(), sampleUuid).
 			Times(1).
 			Return(nil, nil)
 
@@ -398,7 +398,7 @@ func TestUnit_Planets_ListPlanetsForPlayer(t *testing.T) {
 
 	t.Run("returns 500 when use cas fails", func(t *testing.T) {
 		mockUsecase.EXPECT().
-			ListForPlayer(gomock.Any(), gomock.Eq(sampleUuid)).
+			ListForPlayer(gomock.Any(), sampleUuid).
 			Times(1).
 			Return([]models.Planet{}, errors.New("stubbed error"))
 
@@ -443,7 +443,7 @@ func TestUnit_Planets_DeletePlanet(t *testing.T) {
 
 	t.Run("forwards deletion to use case", func(t *testing.T) {
 		mockUsecase.EXPECT().
-			Delete(gomock.Any(), gomock.Eq(sampleUuid)).
+			Delete(gomock.Any(), sampleUuid).
 			Times(1).
 			Return(nil)
 
@@ -462,7 +462,7 @@ func TestUnit_Planets_DeletePlanet(t *testing.T) {
 
 	t.Run("returns 409 when use case returns action is not completed", func(t *testing.T) {
 		mockUsecase.EXPECT().
-			Delete(gomock.Any(), gomock.Eq(sampleUuid)).
+			Delete(gomock.Any(), sampleUuid).
 			Times(1).
 			Return(domainerrors.ErrBuildingActionNotCompleted)
 
@@ -483,7 +483,7 @@ func TestUnit_Planets_DeletePlanet(t *testing.T) {
 
 	t.Run("returns 409 when use case returns homeworld cannot be deleted", func(t *testing.T) {
 		mockUsecase.EXPECT().
-			Delete(gomock.Any(), gomock.Eq(sampleUuid)).
+			Delete(gomock.Any(), sampleUuid).
 			Times(1).
 			Return(domainerrors.ErrHomeworldCannotBeDeleted)
 
@@ -504,7 +504,7 @@ func TestUnit_Planets_DeletePlanet(t *testing.T) {
 
 	t.Run("returns 409 when use case returns that fleets are in flight", func(t *testing.T) {
 		mockUsecase.EXPECT().
-			Delete(gomock.Any(), gomock.Eq(sampleUuid)).
+			Delete(gomock.Any(), sampleUuid).
 			Times(1).
 			Return(domainerrors.ErrFleetInFlight)
 

@@ -73,7 +73,7 @@ func TestUnit_Universes_CreateUniverse(t *testing.T) {
 			},
 		}
 		mockUsecase.EXPECT().
-			Create(gomock.Any(), gomock.Eq(expectedRequest)).
+			Create(gomock.Any(), expectedRequest).
 			Times(1).
 			Return(models.Universe{
 				Id:        sampleUuid,
@@ -330,7 +330,7 @@ func TestUnit_Universes_GetUniverse(t *testing.T) {
 			},
 		}
 		mockUsecase.EXPECT().
-			Get(gomock.Any(), gomock.Eq(sampleUuid)).
+			Get(gomock.Any(), sampleUuid).
 			Times(1).
 			Return(universe, nil)
 
@@ -422,7 +422,7 @@ func TestUnit_Universes_GetUniverse(t *testing.T) {
 
 	t.Run("returns 404 when universe does not exist", func(t *testing.T) {
 		mockUsecase.EXPECT().
-			Get(gomock.Any(), gomock.Eq(sampleUuid)).
+			Get(gomock.Any(), sampleUuid).
 			Times(1).
 			Return(models.Universe{}, domainerrors.ErrNotFound)
 
@@ -706,7 +706,7 @@ func TestUnit_Universes_DeleteUniverse(t *testing.T) {
 
 	t.Run("forwards deletion to use case", func(t *testing.T) {
 		mockUsecase.EXPECT().
-			Delete(gomock.Any(), gomock.Eq(sampleUuid)).
+			Delete(gomock.Any(), sampleUuid).
 			Times(1).
 			Return(nil)
 
@@ -725,7 +725,7 @@ func TestUnit_Universes_DeleteUniverse(t *testing.T) {
 
 	t.Run("returns 409 when universe is not empty", func(t *testing.T) {
 		mockUsecase.EXPECT().
-			Delete(gomock.Any(), gomock.Eq(sampleUuid)).
+			Delete(gomock.Any(), sampleUuid).
 			Times(1).
 			Return(domainerrors.ErrUniverseIsNotEmpty)
 
