@@ -26,5 +26,7 @@ func (u *FetchSolarSystemUseCase) GetSolarSystem(
 	galaxy int,
 	solarSystem int,
 ) (models.SolarSystem, error) {
+	// TODO: This might also need to be ran through the simulation step to process
+	// colonizing fleets.
 	return u.solarSystemRepo.GetSolarSystem(ctx, universe, galaxy, solarSystem)
 }

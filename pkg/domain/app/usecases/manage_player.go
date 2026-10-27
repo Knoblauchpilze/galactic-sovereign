@@ -59,6 +59,7 @@ func (p *PlayerUseCase) ListForApiUser(ctx context.Context, apiUser uuid.UUID) (
 }
 
 func (p *PlayerUseCase) Delete(ctx context.Context, id uuid.UUID) error {
+	// TODO: The simulation step should probably be ran to get the updated planet count
 	player, err := p.playerRepo.Get(ctx, id)
 	if err != nil {
 		if err == domainerrors.ErrNotFound {
