@@ -12,23 +12,42 @@ import (
 )
 
 type deleteBuildingActionTestSuite struct {
-	ctrl        *gomock.Controller
-	mockMutator *drivenportstest.MockForMutatingPlanet
-	mockClock   *drivenportstest.MockForFetchingTime
-	usecase     *DeleteBuildingActionUseCase
+	ctrl         *gomock.Controller
+	mockExecutor *drivenportstest.MockForExecutingSimulationStep
+	mockClock    *drivenportstest.MockForFetchingTime
+	usecase      *DeleteBuildingActionUseCase
 }
 
 func TestUnit_DeleteBuildingAction_DeleteForPlanet(t *testing.T) {
+	t.Run("calls executor with planet and timestamp", func(t *testing.T) {
+		suite := setupDeleteBuildingActionTestSuite(t)
+
+		planet := generateTestPlanetWithBuildingAction(t3)
+
+		suite.mockClock.EXPECT().Now(gomock.Any()).Times(1).Return(t2)
+		result := models.SimulationStepResult{
+			Resolution: models.PlanetUpdated,
+			Planet:     &planet,
+		}
+		suite.mockExecutor.EXPECT().
+			Execute(gomock.Any(), planet.Id, t2, gomock.Any()).
+			Times(1).
+			Return(result, nil)
+
+		err := suite.usecase.DeleteForPlanet(t.Context(), planet.Id)
+		require.NoError(t, err, "Actual err: %v", err)
+	})
+
 	t.Run("persists deleted building action", func(t *testing.T) {
 		suite := setupDeleteBuildingActionTestSuite(t)
 
 		planet := generateTestPlanetWithBuildingAction(t3)
 
 		suite.mockClock.EXPECT().Now(gomock.Any()).Times(1).Return(t2)
-		suite.mockMutator.EXPECT().
-			Mutate(gomock.Any(), planet.Id, gomock.Any()).
+		suite.mockExecutor.EXPECT().
+			Execute(gomock.Any(), planet.Id, t2, gomock.Any()).
 			Times(1).
-			DoAndReturn(generateApplyingMutatorMock(&planet))
+			DoAndReturn(generatePlanetSimulatorRecorderMock(&planet))
 
 		err := suite.usecase.DeleteForPlanet(t.Context(), planet.Id)
 		require.NoError(t, err, "Actual err: %v", err)
@@ -43,10 +62,10 @@ func TestUnit_DeleteBuildingAction_DeleteForPlanet(t *testing.T) {
 		planet.UpdatedAt = t1
 
 		suite.mockClock.EXPECT().Now(gomock.Any()).Times(1).Return(t2)
-		suite.mockMutator.EXPECT().
-			Mutate(gomock.Any(), planet.Id, gomock.Any()).
+		suite.mockExecutor.EXPECT().
+			Execute(gomock.Any(), planet.Id, t2, gomock.Any()).
 			Times(1).
-			DoAndReturn(generateApplyingMutatorMock(&planet))
+			DoAndReturn(generatePlanetSimulatorRecorderMock(&planet))
 
 		err := suite.usecase.DeleteForPlanet(t.Context(), planet.Id)
 		require.NoError(t, err, "Actual err: %v", err)
@@ -69,10 +88,10 @@ func TestUnit_DeleteBuildingAction_DeleteForPlanet(t *testing.T) {
 		}
 
 		suite.mockClock.EXPECT().Now(gomock.Any()).Times(1).Return(t3)
-		suite.mockMutator.EXPECT().
-			Mutate(gomock.Any(), planet.Id, gomock.Any()).
+		suite.mockExecutor.EXPECT().
+			Execute(gomock.Any(), planet.Id, t3, gomock.Any()).
 			Times(1).
-			DoAndReturn(generateApplyingMutatorMock(&planet))
+			DoAndReturn(generatePlanetSimulatorRecorderMock(&planet))
 
 		err := suite.usecase.DeleteForPlanet(t.Context(), planet.Id)
 		require.NoError(t, err, "Actual err: %v", err)
@@ -88,29 +107,31 @@ func TestUnit_DeleteBuildingAction_DeleteForPlanet(t *testing.T) {
 		planet := generateTestPlanetWithBuilding()
 
 		suite.mockClock.EXPECT().Now(gomock.Any()).Times(1).Return(t2)
-		suite.mockMutator.EXPECT().
-			Mutate(gomock.Any(), planet.Id, gomock.Any()).
+		suite.mockExecutor.EXPECT().
+			Execute(gomock.Any(), planet.Id, t2, gomock.Any()).
 			Times(1).
-			DoAndReturn(generateApplyingMutatorMock(&planet))
+			DoAndReturn(generatePlanetSimulatorRecorderMock(&planet))
 
 		err := suite.usecase.DeleteForPlanet(t.Context(), planet.Id)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		assert.Nil(t, planet.BuildingAction)
 	})
+
+	// TODO: Add test with retry for fleet
 }
 
 func setupDeleteBuildingActionTestSuite(t *testing.T) *deleteBuildingActionTestSuite {
 	t.Helper()
 
 	ctrl := gomock.NewController(t)
-	mockMutator := drivenportstest.NewMockForMutatingPlanet(ctrl)
+	mockExecutor := drivenportstest.NewMockForExecutingSimulationStep(ctrl)
 	mockClock := drivenportstest.NewMockForFetchingTime(ctrl)
 
 	return &deleteBuildingActionTestSuite{
-		ctrl:        ctrl,
-		mockMutator: mockMutator,
-		mockClock:   mockClock,
-		usecase:     NewDeleteBuildingActionUseCase(mockMutator, mockClock),
+		ctrl:         ctrl,
+		mockExecutor: mockExecutor,
+		mockClock:    mockClock,
+		usecase:      NewDeleteBuildingActionUseCase(mockExecutor, mockClock),
 	}
 }

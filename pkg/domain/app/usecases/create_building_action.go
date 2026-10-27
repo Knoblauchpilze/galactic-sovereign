@@ -11,20 +11,20 @@ import (
 )
 
 type CreateBuildingActionUseCase struct {
-	buildingRepo  drivenports.ForFetchingBuilding
-	planetMutator drivenports.ForMutatingPlanet
-	clock         drivenports.ForFetchingTime
+	buildingRepo drivenports.ForFetchingBuilding
+	simulator    drivenports.ForExecutingSimulationStep
+	clock        drivenports.ForFetchingTime
 }
 
 func NewCreateBuildingActionUseCase(
 	buildingRepo drivenports.ForFetchingBuilding,
-	planetMutator drivenports.ForMutatingPlanet,
+	simulator drivenports.ForExecutingSimulationStep,
 	clock drivenports.ForFetchingTime,
 ) *CreateBuildingActionUseCase {
 	return &CreateBuildingActionUseCase{
-		buildingRepo:  buildingRepo,
-		planetMutator: planetMutator,
-		clock:         clock,
+		buildingRepo: buildingRepo,
+		simulator:    simulator,
+		clock:        clock,
 	}
 }
 
@@ -43,21 +43,33 @@ func (b *CreateBuildingActionUseCase) Create(
 		return models.BuildingAction{}, err
 	}
 
-	mutator := domainservices.AdvancePlanetToTimeThen(moment, generateBuildingActionMutator(building))
-	result, err := b.planetMutator.Mutate(ctx, req.Planet, mutator)
+	mutator := generateBuildingActionMutator(building)
+	result, err := domainservices.AdvanceSimulationUntil(ctx, b.simulator, req.Planet, moment, mutator)
 	if err != nil {
 		return models.BuildingAction{}, err
 	}
 
-	if result.BuildingAction == nil {
+	if result.Planet == nil {
+		return models.BuildingAction{}, domainerrors.ErrNotFound
+	}
+
+	if result.Planet.BuildingAction == nil {
 		return models.BuildingAction{}, domainerrors.ErrResourceCreationFailed
 	}
 
-	return *result.BuildingAction, nil
+	return *result.Planet.BuildingAction, nil
 }
 
-func generateBuildingActionMutator(building models.Building) drivenports.PlanetMutator {
-	return func(p *models.Planet) error {
-		return p.AddBuildingAction(building)
+func generateBuildingActionMutator(building models.Building) models.SimulationStepResolver {
+	return func(step models.SimulationStep) (models.SimulationStepResult, error) {
+		err := step.Planet.AddBuildingAction(building)
+		if err != nil {
+			return models.SimulationStepResult{}, err
+		}
+
+		return models.SimulationStepResult{
+			Resolution: models.PlanetUpdated,
+			Planet:     step.Planet,
+		}, nil
 	}
 }

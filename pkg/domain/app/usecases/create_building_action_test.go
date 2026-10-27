@@ -1,6 +1,7 @@
 package usecases
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -17,12 +18,45 @@ import (
 type createBuildingActionTestSuite struct {
 	ctrl             *gomock.Controller
 	mockBuildingRepo *drivenportstest.MockForFetchingBuilding
-	mockMutator      *drivenportstest.MockForMutatingPlanet
+	mockExecutor     *drivenportstest.MockForExecutingSimulationStep
 	mockClock        *drivenportstest.MockForFetchingTime
 	usecase          *CreateBuildingActionUseCase
 }
 
 func TestUnit_CreateBuildingAction_Create(t *testing.T) {
+	t.Run("calls executor with planet and timestamp", func(t *testing.T) {
+		suite := setupCreateBuildingActionTestSuite(t)
+
+		planet := generateTestPlanetWithBuilding()
+		planet.BuildingAction = &models.BuildingAction{
+			Id:          uuid.New(),
+			Costs:       []models.BuildingActionCost{},
+			Storages:    []models.BuildingActionResourceStorage{},
+			Productions: []models.BuildingActionResourceProduction{},
+		}
+		building := generateTestBuilding(planet)
+		request := generateTestBuildingActionRequest(planet)
+
+		suite.mockClock.EXPECT().Now(gomock.Any()).Times(1).Return(t2)
+		suite.mockBuildingRepo.EXPECT().
+			Get(gomock.Any(), building.Id).
+			Times(1).
+			Return(building, nil)
+		result := models.SimulationStepResult{
+			Resolution: models.PlanetUpdated,
+			Planet:     &planet,
+		}
+		suite.mockExecutor.EXPECT().
+			Execute(gomock.Any(), planet.Id, t2, gomock.Any()).
+			Times(1).
+			Return(result, nil)
+
+		actual, err := suite.usecase.Create(t.Context(), request)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.Equal(t, *planet.BuildingAction, actual)
+	})
+
 	t.Run("persists created building action", func(t *testing.T) {
 		suite := setupCreateBuildingActionTestSuite(t)
 
@@ -35,10 +69,10 @@ func TestUnit_CreateBuildingAction_Create(t *testing.T) {
 			Get(gomock.Any(), building.Id).
 			Times(1).
 			Return(building, nil)
-		suite.mockMutator.EXPECT().
-			Mutate(gomock.Any(), planet.Id, gomock.Any()).
+		suite.mockExecutor.EXPECT().
+			Execute(gomock.Any(), planet.Id, t2, gomock.Any()).
 			Times(1).
-			DoAndReturn(generateApplyingMutatorMock(&planet))
+			DoAndReturn(generatePlanetSimulatorRecorderMock(&planet))
 
 		actual, err := suite.usecase.Create(t.Context(), request)
 		require.NoError(t, err, "Actual err: %v", err)
@@ -82,10 +116,10 @@ func TestUnit_CreateBuildingAction_Create(t *testing.T) {
 			Get(gomock.Any(), building.Id).
 			Times(1).
 			Return(building, nil)
-		suite.mockMutator.EXPECT().
-			Mutate(gomock.Any(), planet.Id, gomock.Any()).
+		suite.mockExecutor.EXPECT().
+			Execute(gomock.Any(), planet.Id, t2, gomock.Any()).
 			Times(1).
-			DoAndReturn(generateApplyingMutatorMock(&planet))
+			DoAndReturn(generatePlanetSimulatorRecorderMock(&planet))
 
 		_, err := suite.usecase.Create(t.Context(), request)
 		require.NoError(t, err, "Actual err: %v", err)
@@ -110,10 +144,10 @@ func TestUnit_CreateBuildingAction_Create(t *testing.T) {
 			Get(gomock.Any(), building.Id).
 			Times(1).
 			Return(building, nil)
-		suite.mockMutator.EXPECT().
-			Mutate(gomock.Any(), planet.Id, gomock.Any()).
+		suite.mockExecutor.EXPECT().
+			Execute(gomock.Any(), planet.Id, t3, gomock.Any()).
 			Times(1).
-			DoAndReturn(generateApplyingMutatorMock(&planet))
+			DoAndReturn(generatePlanetSimulatorRecorderMock(&planet))
 
 		actual, err := suite.usecase.Create(t.Context(), request)
 		require.NoError(t, err, "Actual err: %v", err)
@@ -178,10 +212,10 @@ func TestUnit_CreateBuildingAction_Create(t *testing.T) {
 			Get(gomock.Any(), building.Id).
 			Times(1).
 			Return(building, nil)
-		suite.mockMutator.EXPECT().
-			Mutate(gomock.Any(), planet.Id, gomock.Any()).
+		suite.mockExecutor.EXPECT().
+			Execute(gomock.Any(), planet.Id, t2, gomock.Any()).
 			Times(1).
-			DoAndReturn(generateApplyingMutatorMock(&planet))
+			DoAndReturn(generatePlanetSimulatorMock(planet))
 
 		_, err := suite.usecase.Create(t.Context(), request)
 
@@ -203,10 +237,10 @@ func TestUnit_CreateBuildingAction_Create(t *testing.T) {
 			Get(gomock.Any(), building.Id).
 			Times(1).
 			Return(building, nil)
-		suite.mockMutator.EXPECT().
-			Mutate(gomock.Any(), planet.Id, gomock.Any()).
+		suite.mockExecutor.EXPECT().
+			Execute(gomock.Any(), planet.Id, t2, gomock.Any()).
 			Times(1).
-			DoAndReturn(generateApplyingMutatorMock(&planet))
+			DoAndReturn(generatePlanetSimulatorMock(planet))
 
 		_, err := suite.usecase.Create(t.Context(), req)
 
@@ -227,10 +261,10 @@ func TestUnit_CreateBuildingAction_Create(t *testing.T) {
 			Get(gomock.Any(), building.Id).
 			Times(1).
 			Return(building, nil)
-		suite.mockMutator.EXPECT().
-			Mutate(gomock.Any(), planet.Id, gomock.Any()).
+		suite.mockExecutor.EXPECT().
+			Execute(gomock.Any(), planet.Id, t1, gomock.Any()).
 			Times(1).
-			DoAndReturn(generateApplyingMutatorMock(&planet))
+			DoAndReturn(generatePlanetSimulatorMock(planet))
 
 		_, err := suite.usecase.Create(t.Context(), request)
 
@@ -271,15 +305,17 @@ func TestUnit_CreateBuildingAction_Create(t *testing.T) {
 			Get(gomock.Any(), building.Id).
 			Times(1).
 			Return(building, nil)
-		suite.mockMutator.EXPECT().
-			Mutate(gomock.Any(), planet.Id, gomock.Any()).
+		suite.mockExecutor.EXPECT().
+			Execute(gomock.Any(), planet.Id, t2, gomock.Any()).
 			Times(1).
-			DoAndReturn(generateApplyingMutatorMock(&planet))
+			DoAndReturn(generatePlanetSimulatorMock(planet))
 
 		_, err := suite.usecase.Create(t.Context(), request)
 
 		assert.ErrorIs(t, err, domainerrors.ErrAllFieldsUsed, "Actual err: %v", err)
 	})
+
+	// TODO: Add test with retry for fleet
 }
 
 func setupCreateBuildingActionTestSuite(t *testing.T) *createBuildingActionTestSuite {
@@ -287,17 +323,17 @@ func setupCreateBuildingActionTestSuite(t *testing.T) *createBuildingActionTestS
 
 	ctrl := gomock.NewController(t)
 	mockBuildingRepo := drivenportstest.NewMockForFetchingBuilding(ctrl)
-	mockMutator := drivenportstest.NewMockForMutatingPlanet(ctrl)
+	mockExecutor := drivenportstest.NewMockForExecutingSimulationStep(ctrl)
 	mockClock := drivenportstest.NewMockForFetchingTime(ctrl)
 
 	return &createBuildingActionTestSuite{
 		ctrl:             ctrl,
 		mockBuildingRepo: mockBuildingRepo,
-		mockMutator:      mockMutator,
+		mockExecutor:     mockExecutor,
 		mockClock:        mockClock,
 		usecase: NewCreateBuildingActionUseCase(
 			mockBuildingRepo,
-			mockMutator,
+			mockExecutor,
 			mockClock,
 		),
 	}
@@ -368,5 +404,25 @@ func generateTestBuildingActionRequest(
 	return request.BuildingActionCreationRequest{
 		Planet:   planet.Id,
 		Building: planet.Buildings[0].Building,
+	}
+}
+
+// generatePlanetSimulatorRecorderMock genrates a function mock for the simulation step
+// exeuctor which applies the provided resolver to a known planet.
+// The planet is provided as a pointer to the resolver which means it will be able to
+// capture changes persisted to it.
+func generatePlanetSimulatorRecorderMock(captor *models.Planet) SimulatorMock {
+	return func(
+		ctx context.Context,
+		planet uuid.UUID,
+		timestamp time.Time,
+		resolver models.SimulationStepResolver,
+	) (models.SimulationStepResult, error) {
+		step := models.SimulationStep{
+			Timestamp: timestamp,
+			Planet:    captor,
+		}
+
+		return resolver(step)
 	}
 }

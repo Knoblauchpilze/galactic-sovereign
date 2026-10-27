@@ -97,11 +97,11 @@ func registerBuildingActionsRoutes(
 	log *slog.Logger,
 ) {
 	buildingRepo := drivenadapters.NewBuildingRepository(conn)
-	planetMutator := drivenadapters.NewPlanetMutator(conn)
+	simulator := drivenadapters.NewSimulationStepExecutor(conn)
 	clock := drivenadapters.NewTimeAdapter()
 
-	createUseCase := usecases.NewCreateBuildingActionUseCase(buildingRepo, planetMutator, clock)
-	deleteUsecase := usecases.NewDeleteBuildingActionUseCase(planetMutator, clock)
+	createUseCase := usecases.NewCreateBuildingActionUseCase(buildingRepo, simulator, clock)
+	deleteUsecase := usecases.NewDeleteBuildingActionUseCase(simulator, clock)
 
 	for _, route := range drivingadapters.BuildingActionEndpoints(createUseCase, deleteUsecase) {
 		if err := s.AddRoute(route); err != nil {

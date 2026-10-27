@@ -11,17 +11,17 @@ import (
 )
 
 type DeleteBuildingActionUseCase struct {
-	planetMutator drivenports.ForMutatingPlanet
-	clock         drivenports.ForFetchingTime
+	simulator drivenports.ForExecutingSimulationStep
+	clock     drivenports.ForFetchingTime
 }
 
 func NewDeleteBuildingActionUseCase(
-	planetMutator drivenports.ForMutatingPlanet,
+	simulator drivenports.ForExecutingSimulationStep,
 	clock drivenports.ForFetchingTime,
 ) *DeleteBuildingActionUseCase {
 	return &DeleteBuildingActionUseCase{
-		planetMutator: planetMutator,
-		clock:         clock,
+		simulator: simulator,
+		clock:     clock,
 	}
 }
 
@@ -31,8 +31,8 @@ func (b *DeleteBuildingActionUseCase) DeleteForPlanet(
 ) error {
 	moment := b.clock.Now(ctx)
 
-	mutator := domainservices.AdvancePlanetToTimeThen(moment, actionDeletionMutator)
-	_, err := b.planetMutator.Mutate(ctx, planet, mutator)
+	mutator := generateBuildingActionDeletionMutator()
+	_, err := domainservices.AdvanceSimulationUntil(ctx, b.simulator, planet, moment, mutator)
 	if err != nil {
 		return err
 	}
@@ -40,15 +40,22 @@ func (b *DeleteBuildingActionUseCase) DeleteForPlanet(
 	return nil
 }
 
-func actionDeletionMutator(p *models.Planet) error {
-	err := p.CancelBuildingAction()
-	if err != nil {
-		if err == domainerrors.ErrNoActionInProgress {
-			return nil
+func generateBuildingActionDeletionMutator() models.SimulationStepResolver {
+	return func(step models.SimulationStep) (models.SimulationStepResult, error) {
+		err := step.Planet.CancelBuildingAction()
+		if err != nil {
+			if err == domainerrors.ErrNoActionInProgress {
+				return models.SimulationStepResult{Resolution: models.PlanetUpdated,
+					Planet: step.Planet,
+				}, nil
+			}
+
+			return models.SimulationStepResult{}, err
 		}
 
-		return err
+		return models.SimulationStepResult{
+			Resolution: models.PlanetUpdated,
+			Planet:     step.Planet,
+		}, nil
 	}
-
-	return nil
 }
