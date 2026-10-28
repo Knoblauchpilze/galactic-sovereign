@@ -38,6 +38,33 @@ func TestUnit_DeleteBuildingAction_DeleteForPlanet(t *testing.T) {
 		require.NoError(t, err, "Actual err: %v", err)
 	})
 
+	t.Run("retries executor when fleet event is resolved", func(t *testing.T) {
+		suite := setupDeleteBuildingActionTestSuite(t)
+
+		planet := generateTestPlanetWithBuildingAction(t3)
+
+		suite.mockClock.EXPECT().Now(gomock.Any()).Times(1).Return(t2)
+		fleetResult := models.SimulationStepResult{
+			Resolution: models.FleetEventResolved,
+			Fleet: &models.Fleet{
+				Id: uuid.New(),
+			},
+		}
+		suite.mockExecutor.EXPECT().
+			Execute(gomock.Any(), planet.Id, t2, gomock.Any()).
+			Times(1).
+			Return(fleetResult, nil)
+		suite.mockExecutor.EXPECT().
+			Execute(gomock.Any(), planet.Id, t2, gomock.Any()).
+			Times(1).
+			DoAndReturn(generatePlanetSimulatorRecorderMock(&planet))
+
+		err := suite.usecase.DeleteForPlanet(t.Context(), planet.Id)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.Nil(t, planet.BuildingAction)
+	})
+
 	t.Run("persists deleted building action", func(t *testing.T) {
 		suite := setupDeleteBuildingActionTestSuite(t)
 
@@ -117,8 +144,6 @@ func TestUnit_DeleteBuildingAction_DeleteForPlanet(t *testing.T) {
 
 		assert.Nil(t, planet.BuildingAction)
 	})
-
-	// TODO: Add test with retry for fleet
 }
 
 func setupDeleteBuildingActionTestSuite(t *testing.T) *deleteBuildingActionTestSuite {

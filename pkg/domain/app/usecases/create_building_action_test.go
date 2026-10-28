@@ -57,6 +57,61 @@ func TestUnit_CreateBuildingAction_Create(t *testing.T) {
 		assert.Equal(t, *planet.BuildingAction, actual)
 	})
 
+	t.Run("retries executor when fleet event is resolved", func(t *testing.T) {
+		suite := setupCreateBuildingActionTestSuite(t)
+
+		planet := generateTestPlanetWithBuilding()
+		building := generateTestBuilding(planet)
+		request := generateTestBuildingActionRequest(planet)
+
+		suite.mockClock.EXPECT().Now(gomock.Any()).Times(1).Return(t2)
+		suite.mockBuildingRepo.EXPECT().
+			Get(gomock.Any(), building.Id).
+			Times(1).
+			Return(building, nil)
+		fleetResult := models.SimulationStepResult{
+			Resolution: models.FleetEventResolved,
+			Fleet: &models.Fleet{
+				Id: uuid.New(),
+			},
+		}
+		suite.mockExecutor.EXPECT().
+			Execute(gomock.Any(), planet.Id, t2, gomock.Any()).
+			Times(1).
+			Return(fleetResult, nil)
+		suite.mockExecutor.EXPECT().
+			Execute(gomock.Any(), planet.Id, t2, gomock.Any()).
+			Times(1).
+			DoAndReturn(generatePlanetSimulatorRecorderMock(&planet))
+
+		actual, err := suite.usecase.Create(t.Context(), request)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		completionTime := 289440 * time.Millisecond
+
+		expected := models.BuildingAction{
+			Id:           actual.Id,
+			Building:     request.Building,
+			DesiredLevel: planet.Buildings[0].Level + 1,
+			CreatedAt:    t2,
+			CompletedAt:  t2.Add(completionTime),
+			Costs: []models.BuildingActionCost{
+				{
+					Resource: metalResourceId,
+					Amount:   78,
+				},
+				{
+					Resource: crystalResourceId,
+					Amount:   123,
+				},
+			},
+			Storages:    []models.BuildingActionResourceStorage{},
+			Productions: []models.BuildingActionResourceProduction{},
+		}
+		assert.Equal(t, expected, actual)
+		assert.Equal(t, &expected, planet.BuildingAction)
+	})
+
 	t.Run("persists created building action", func(t *testing.T) {
 		suite := setupCreateBuildingActionTestSuite(t)
 
@@ -314,8 +369,6 @@ func TestUnit_CreateBuildingAction_Create(t *testing.T) {
 
 		assert.ErrorIs(t, err, domainerrors.ErrAllFieldsUsed, "Actual err: %v", err)
 	})
-
-	// TODO: Add test with retry for fleet
 }
 
 func setupCreateBuildingActionTestSuite(t *testing.T) *createBuildingActionTestSuite {
