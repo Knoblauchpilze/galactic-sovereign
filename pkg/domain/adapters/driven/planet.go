@@ -3,12 +3,9 @@ package drivenadapters
 import (
 	"context"
 
-	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driven/database"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
 	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
-	drivenports "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driven"
-	"github.com/google/uuid"
 )
 
 const (
@@ -22,60 +19,6 @@ WHERE
 FOR UPDATE
 `
 )
-
-type PlanetMutator struct {
-	conn database.Connection
-}
-
-func NewPlanetMutator(conn database.Connection) *PlanetMutator {
-	return &PlanetMutator{
-		conn: conn,
-	}
-}
-
-func (m *PlanetMutator) Mutate(
-	ctx context.Context,
-	id uuid.UUID,
-	mutator drivenports.PlanetMutator,
-) (models.Planet, error) {
-	tx, err := m.conn.BeginTx(ctx)
-	if err != nil {
-		return models.Planet{}, err
-	}
-	defer tx.Close(ctx)
-
-	actual, err := db.QueryOneTx[uuid.UUID](ctx, tx, lockPlanetForUpdateQuery, id)
-	if err != nil {
-		return models.Planet{}, parseDbError(err)
-	}
-	if actual != id {
-		return models.Planet{}, domainerrors.ErrNotFound
-	}
-
-	planet, err := loadPlanetAndDetails(ctx, tx, id)
-	if err != nil {
-		return models.Planet{}, err
-	}
-
-	expectedVersion := planet.Version
-
-	err = mutator(&planet)
-	if err != nil {
-		// There's no point in checking the error here: it is not logged
-		// and there's already an error pending.
-		// nolint:errcheck
-		tx.Rollback()
-
-		return models.Planet{}, err
-	}
-
-	out, err := saveAndReloadPlanet(ctx, tx, planet, expectedVersion)
-	if err != nil {
-		return out, err
-	}
-
-	return out, nil
-}
 
 func saveAndReloadPlanet(
 	ctx context.Context,

@@ -10,14 +10,18 @@ import (
 	eassert "github.com/Knoblauchpilze/easy-assert/assert"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driven/database"
 	integrationdb "github.com/Knoblauchpilze/galactic-sovereign/pkg/testing/integrationdb"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 )
 
 var (
-	someTime      = time.Date(2024, time.November, 29, 17, 53, 29, 0, time.UTC)
-	someOtherTime = time.Date(2026, time.June, 1, 8, 20, 15, 0, time.UTC)
+	someTime       = time.Date(2024, time.November, 29, 17, 53, 29, 0, time.UTC)
+	someOtherTime  = time.Date(2026, time.June, 1, 8, 20, 15, 0, time.UTC)
+	yetAnotherTime = time.Date(2026, time.June, 30, 8, 43, 1, 0, time.UTC)
 
 	someDuration = 2 * time.Hour
+
+	metalMineId = uuid.MustParse("d176e82d-f2ca-4611-996b-c4804096caef")
 
 	sharedDbContainer = &integrationdb.Suite{}
 )

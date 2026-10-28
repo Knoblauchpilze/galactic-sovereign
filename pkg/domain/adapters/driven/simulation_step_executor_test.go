@@ -2,6 +2,7 @@ package drivenadapters
 
 import (
 	"context"
+	"math/rand"
 	"sync"
 	"testing"
 	"time"
@@ -2367,6 +2368,72 @@ func TestIT_SimulationStepExecutor_Execute_Concurrency(t *testing.T) {
 	})
 }
 
+func TestIT_SimulationStepExecutor_Execute_ActionCreationDeletionWorkflow(t *testing.T) {
+	conn := newTestConnection(t)
+	simulator := NewSimulationStepExecutor(conn)
+
+	action := models.BuildingAction{
+		Id:           uuid.New(),
+		Building:     metalMineId,
+		DesiredLevel: 27,
+		CreatedAt:    time.Date(2024, time.December, 7, 20, 26, 47, 0, time.UTC),
+		CompletedAt:  time.Date(2024, time.December, 7, 21, 26, 47, 0, time.UTC),
+		Costs:        []models.BuildingActionCost{},
+		Storages:     []models.BuildingActionResourceStorage{},
+		Productions:  []models.BuildingActionResourceProduction{},
+	}
+
+	planet, _, _ := insertTestPlanetForPlayer(t, conn)
+
+	mutation := func(step models.SimulationStep) (models.SimulationStepResult, error) {
+		require.NotNil(t, step.Planet)
+		require.Nil(t, step.NextFleetEvent)
+
+		step.Planet.BuildingAction = &action
+		step.Planet.Version++
+
+		result := models.SimulationStepResult{
+			Resolution: models.PlanetUpdated,
+			Planet:     step.Planet,
+		}
+		return result, nil
+	}
+	result, err := simulator.Execute(t.Context(), planet.Id, action.CreatedAt, mutation)
+	require.NoError(t, err, "Actual err: %v", err)
+	assert.Equal(t, models.PlanetUpdated, result.Resolution)
+	require.NotNil(t, result.Planet)
+	require.NotNil(t, result.Planet.BuildingAction)
+	assert.Equal(t, action, *result.Planet.BuildingAction)
+	assertBuildingActionExists(t, conn, action.Id)
+
+	func() {
+		actual := loadPlanetFromDb(t, conn, planet.Id)
+
+		require.NotNil(t, actual.BuildingAction)
+		assert.Equal(t, action, *actual.BuildingAction)
+	}()
+
+	mutation = func(step models.SimulationStep) (models.SimulationStepResult, error) {
+		require.NotNil(t, step.Planet)
+		require.Nil(t, step.NextFleetEvent)
+
+		step.Planet.BuildingAction = nil
+		step.Planet.Version++
+
+		result := models.SimulationStepResult{
+			Resolution: models.PlanetUpdated,
+			Planet:     step.Planet,
+		}
+
+		return result, nil
+	}
+	result, err = simulator.Execute(t.Context(), planet.Id, action.CreatedAt, mutation)
+	require.NoError(t, err, "Actual err: %v", err)
+	require.NotNil(t, result.Planet)
+	assert.Nil(t, result.Planet.BuildingAction)
+	assertBuildingActionDoesNotExist(t, conn, action.Id)
+}
+
 func newTestSimulationStepExecutor(t *testing.T) (*SimulationStepExecutor, database.Connection) {
 	t.Helper()
 	conn := newTestConnection(t)
@@ -2427,6 +2494,326 @@ func insertTwoTestPlanets(t *testing.T, conn database.Connection) (models.Planet
 	planet2 := insertTestPlanet(t, conn, player2.Id)
 
 	return planet1, planet2
+}
+
+func insertTestBuildingActionForPlanet(
+	t *testing.T,
+	conn database.Connection,
+	planetId uuid.UUID,
+	modifiers ...func(*testing.T, database.Connection, *models.BuildingAction),
+) models.BuildingAction {
+	t.Helper()
+
+	action := models.BuildingAction{
+		Id:           uuid.New(),
+		Building:     metalMineId,
+		DesiredLevel: 5,
+		CreatedAt:    someTime,
+		CompletedAt:  someTime.Add(1*time.Hour + 2*time.Minute),
+		// This is intentional: the details (e.g. costs, productions, etc.) are returned as empty
+		// slices by the adapter
+		Costs:       []models.BuildingActionCost{},
+		Storages:    []models.BuildingActionResourceStorage{},
+		Productions: []models.BuildingActionResourceProduction{},
+	}
+
+	sqlQuery := `INSERT INTO building_action
+		(id, planet, building, desired_level, created_at, completed_at)
+		VALUES ($1, $2, $3, $4, $5, $6)`
+	_, err := conn.Exec(
+		t.Context(),
+		sqlQuery,
+		action.Id,
+		planetId,
+		action.Building,
+		action.DesiredLevel,
+		action.CreatedAt,
+		action.CompletedAt,
+	)
+	require.NoError(t, err, "Actual err: %v", err)
+
+	for _, modifier := range modifiers {
+		modifier(t, conn, &action)
+	}
+
+	return action
+}
+
+func insertTestBuildingAction(
+	t *testing.T,
+	conn database.Connection,
+	modifiers ...func(*testing.T, database.Connection, *models.BuildingAction),
+) (models.BuildingAction, models.Planet) {
+	t.Helper()
+
+	planet, _, _ := insertTestPlanetForPlayer(t, conn)
+	action := insertTestBuildingActionForPlanet(t, conn, planet.Id, modifiers...)
+	planet.BuildingAction = &action
+	return action, planet
+}
+
+func addBuildingActionCost(t *testing.T, conn database.Connection, a *models.BuildingAction) {
+	t.Helper()
+
+	insertBuildingActionCost(t, conn, metalResourceId, a)
+}
+
+func insertBuildingActionCost(t *testing.T, conn database.Connection, resourceId uuid.UUID, a *models.BuildingAction) {
+	cost := models.BuildingActionCost{
+		Resource: resourceId,
+		Amount:   rand.Intn(4589),
+	}
+
+	sqlQuery := `INSERT INTO building_action_cost (action, resource, amount)
+		VALUES ($1, $2, $3)`
+	_, err := conn.Exec(
+		t.Context(),
+		sqlQuery,
+		a.Id,
+		cost.Resource,
+		cost.Amount,
+	)
+	require.NoError(t, err, "Actual err: %v", err)
+
+	a.Costs = append(a.Costs, cost)
+}
+
+func addBuildingActionStorage(t *testing.T, conn database.Connection, a *models.BuildingAction) {
+	t.Helper()
+
+	storage := models.BuildingActionResourceStorage{
+		Resource: crystalResourceId,
+		Storage:  rand.Intn(65114),
+	}
+
+	sqlQuery := `INSERT INTO building_action_resource_storage (action, resource, storage)
+		VALUES ($1, $2, $3)`
+	_, err := conn.Exec(
+		t.Context(),
+		sqlQuery,
+		a.Id,
+		storage.Resource,
+		storage.Storage,
+	)
+	require.NoError(t, err, "Actual err: %v", err)
+
+	a.Storages = append(a.Storages, storage)
+}
+
+func addBuildingActionProduction(t *testing.T, conn database.Connection, a *models.BuildingAction) {
+	t.Helper()
+
+	production := models.BuildingActionResourceProduction{
+		Resource:   crystalResourceId,
+		Production: rand.Intn(7451),
+	}
+
+	sqlQuery := `INSERT INTO building_action_resource_production (action, resource, production)
+		VALUES ($1, $2, $3)`
+	_, err := conn.Exec(
+		t.Context(),
+		sqlQuery,
+		a.Id,
+		production.Resource,
+		production.Production,
+	)
+	require.NoError(t, err, "Actual err: %v", err)
+
+	a.Productions = append(a.Productions, production)
+}
+
+func insertTestShipActionForPlanet(
+	t *testing.T,
+	conn database.Connection,
+	planetId uuid.UUID,
+	modifiers ...func(*testing.T, *models.ShipAction),
+) models.ShipAction {
+	t.Helper()
+
+	action := models.ShipAction{
+		Id:                 uuid.New(),
+		Ship:               lightFighterId,
+		Count:              5,
+		CreatedAt:          someTime,
+		NextCompletionAt:   someTime.Add(someDuration),
+		UnitCompletionTime: someDuration,
+	}
+
+	for _, modifier := range modifiers {
+		modifier(t, &action)
+	}
+
+	sqlQuery := `INSERT INTO ship_action
+		(id, planet, ship, count, created_at, next_completion_at, unit_completion_time)
+		VALUES ($1, $2, $3, $4, $5, $6, $7)`
+	_, err := conn.Exec(
+		t.Context(),
+		sqlQuery,
+		action.Id,
+		planetId,
+		action.Ship,
+		action.Count,
+		action.CreatedAt,
+		action.NextCompletionAt,
+		action.UnitCompletionTime,
+	)
+	require.NoError(t, err, "Actual err: %v", err)
+
+	return action
+}
+
+func insertTestShipAction(
+	t *testing.T,
+	conn database.Connection,
+	modifiers ...func(*testing.T, *models.ShipAction),
+) (models.ShipAction, models.Planet) {
+	t.Helper()
+
+	planet, _, _ := insertTestPlanetForPlayer(t, conn)
+	action := insertTestShipActionForPlanet(t, conn, planet.Id, modifiers...)
+	planet.ShipActions = append(planet.ShipActions, action)
+	return action, planet
+}
+
+func insertTestFleet(
+	t *testing.T,
+	conn database.Connection,
+	source models.Planet,
+	modifiers ...func(*testing.T, database.Connection, *models.Fleet),
+) models.Fleet {
+	t.Helper()
+
+	fleet := models.Fleet{
+		Id:      uuid.New(),
+		Player:  source.Player,
+		Source:  source.Id,
+		Mission: models.MissionColonize,
+		Destination: models.FleetDestination{
+			Coordinate: models.Coordinate{
+				Galaxy:      source.Coordinate.Galaxy,
+				SolarSystem: source.Coordinate.SolarSystem + 1,
+				Position:    source.Coordinate.Position,
+			},
+			Target: nil,
+		},
+		Ships: []models.FleetShip{},
+		Schedule: models.FleetFlightSchedule{
+			ArrivalAt: source.UpdatedAt.Add(1 * time.Hour),
+			ReturnAt:  source.UpdatedAt.Add(2 * time.Hour),
+			Status:    models.StatusOutbound,
+		},
+		CreatedAt: source.UpdatedAt,
+		UpdatedAt: source.UpdatedAt,
+		Version:   0,
+	}
+
+	sqlQuery := `INSERT INTO
+		fleet (id, player, source, mission, created_at, updated_at, version)
+		VALUES ($1, $2, $3, $4, $5, $6, $7)`
+	_, err := conn.Exec(
+		t.Context(),
+		sqlQuery,
+		fleet.Id,
+		fleet.Player,
+		fleet.Source,
+		fleet.Mission,
+		fleet.CreatedAt,
+		fleet.UpdatedAt,
+		fleet.Version,
+	)
+	require.NoError(t, err, "Actual err: %v", err)
+
+	sqlQuery = `INSERT INTO
+		fleet_destination (fleet, galaxy, solar_system, position, planet)
+		VALUES ($1, $2, $3, $4, $5)`
+	_, err = conn.Exec(
+		t.Context(),
+		sqlQuery,
+		fleet.Id,
+		fleet.Destination.Coordinate.Galaxy,
+		fleet.Destination.Coordinate.SolarSystem,
+		fleet.Destination.Coordinate.Position,
+		fleet.Destination.Target,
+	)
+	require.NoError(t, err, "Actual err: %v", err)
+
+	sqlQuery = `INSERT INTO
+		fleet_flight (fleet, arrival_at, return_at, status)
+		VALUES ($1, $2, $3, $4)`
+	_, err = conn.Exec(
+		t.Context(),
+		sqlQuery,
+		fleet.Id,
+		fleet.Schedule.ArrivalAt,
+		fleet.Schedule.ReturnAt,
+		fleet.Schedule.Status,
+	)
+	require.NoError(t, err, "Actual err: %v", err)
+
+	sqlQuery = `INSERT INTO
+		fleet_event (fleet, next_event_at, event_type)
+		VALUES ($1, $2, $3)`
+	_, err = conn.Exec(
+		t.Context(),
+		sqlQuery,
+		fleet.Id,
+		fleet.Schedule.ArrivalAt,
+		models.ArrivalEvent,
+	)
+	require.NoError(t, err, "Actual err: %v", err)
+
+	for _, modifier := range modifiers {
+		modifier(t, conn, &fleet)
+	}
+
+	return fleet
+}
+
+func addFleetShip(t *testing.T, conn database.Connection, f *models.Fleet) {
+	t.Helper()
+
+	ship := models.FleetShip{
+		Ship:  lightFighterId,
+		Count: 18,
+	}
+
+	sqlQuery := `INSERT INTO fleet_ship (fleet, ship, count) VALUES ($1, $2, $3)`
+	_, err := conn.Exec(
+		t.Context(),
+		sqlQuery,
+		f.Id,
+		ship.Ship,
+		ship.Count,
+	)
+	require.NoError(t, err, "Actual err: %v", err)
+
+	f.Ships = append(f.Ships, ship)
+}
+
+// upsertFleetDestination inserts the coordinates/target defined for the fleet in the
+// database, or updates them if a row already exists for this fleet. It does
+// not verify them compared to the universe the planet belongs to and will fail in
+// case the target is not nil and does not correspond to an existing planet.
+func upsertFleetDestination(t *testing.T, conn database.Connection, fleet models.Fleet) {
+	t.Helper()
+
+	sqlQuery := `INSERT INTO fleet_destination (fleet, galaxy, solar_system, position, planet)
+		VALUES($1, $2, $3, $4, $5)
+		ON CONFLICT (fleet) DO UPDATE SET
+			galaxy = excluded.galaxy,
+			solar_system = excluded.solar_system,
+			position = excluded.position,
+			planet = excluded.planet`
+	_, err := conn.Exec(
+		t.Context(),
+		sqlQuery,
+		fleet.Id,
+		fleet.Destination.Coordinate.Galaxy,
+		fleet.Destination.Coordinate.SolarSystem,
+		fleet.Destination.Coordinate.Position,
+		fleet.Destination.Target,
+	)
+	require.NoError(t, err, "Actual err: %v", err)
 }
 
 func generatePlanetSimulator(
@@ -2501,6 +2888,117 @@ func generateFleetDeleter() models.SimulationStepResolver {
 
 		return result, nil
 	}
+}
+
+func assertBuildingActionExists(t *testing.T, conn database.Connection, id uuid.UUID) {
+	t.Helper()
+
+	sqlQuery := `SELECT COUNT(*) FROM building_action WHERE id = $1`
+	value, err := db.QueryOne[int](t.Context(), conn, sqlQuery, id)
+	require.NoError(t, err, "Actual err: %v", err)
+	require.Equal(t, 1, value)
+}
+
+func assertBuildingActionDoesNotExist(t *testing.T, conn database.Connection, action uuid.UUID) {
+	t.Helper()
+
+	sqlQuery := `SELECT COUNT(*) FROM building_action WHERE id = $1`
+	value, err := db.QueryOne[int](t.Context(), conn, sqlQuery, action)
+	require.NoError(t, err, "Actual err: %v", err)
+	require.Zero(t, value)
+}
+
+func assertBuildingActionCostDoesNotExist(t *testing.T, conn database.Connection, action uuid.UUID) {
+	t.Helper()
+
+	sqlQuery := `SELECT COUNT(*) FROM building_action_cost WHERE action = $1`
+	value, err := db.QueryOne[int](t.Context(), conn, sqlQuery, action)
+	require.NoError(t, err, "Actual err: %v", err)
+	require.Zero(t, value)
+}
+
+func assertBuildingActionStorageDoesNotExist(t *testing.T, conn database.Connection, action uuid.UUID) {
+	t.Helper()
+
+	sqlQuery := `SELECT COUNT(*) FROM building_action_resource_storage WHERE action = $1`
+	value, err := db.QueryOne[int](t.Context(), conn, sqlQuery, action)
+	require.NoError(t, err, "Actual err: %v", err)
+	require.Zero(t, value)
+}
+
+func assertBuildingActionProductionDoesNotExist(t *testing.T, conn database.Connection, action uuid.UUID) {
+	t.Helper()
+
+	sqlQuery := `SELECT COUNT(*) FROM building_action_resource_production WHERE action = $1`
+	value, err := db.QueryOne[int](t.Context(), conn, sqlQuery, action)
+	require.NoError(t, err, "Actual err: %v", err)
+	require.Zero(t, value)
+}
+
+func assertPlanetResourceAmount(t *testing.T, conn database.Connection, planet uuid.UUID, resource uuid.UUID, amount float64) {
+	t.Helper()
+
+	sqlQuery := `SELECT amount FROM planet_resource WHERE planet = $1 AND resource = $2`
+	value, err := db.QueryOne[float64](t.Context(), conn, sqlQuery, planet, resource)
+	require.NoError(t, err, "Actual err: %v", err)
+	require.InDelta(t, amount, value, 0.00001)
+}
+
+func assertPlanetResourceStorage(t *testing.T, conn database.Connection, planet uuid.UUID, resource uuid.UUID, storage int) {
+	t.Helper()
+
+	sqlQuery := `SELECT storage FROM planet_resource_storage WHERE planet = $1 AND resource = $2`
+	value, err := db.QueryOne[int](t.Context(), conn, sqlQuery, planet, resource)
+	require.NoError(t, err, "Actual err: %v", err)
+	require.Equal(t, storage, value)
+}
+
+func assertPlanetResourceProduction(
+	t *testing.T,
+	conn database.Connection,
+	planet uuid.UUID,
+	resource uuid.UUID,
+	building *uuid.UUID,
+	production int,
+) {
+	t.Helper()
+
+	sqlQuery := `SELECT production
+		FROM planet_resource_production
+		WHERE
+			planet = $1
+			AND resource = $2
+			AND building IS NOT DISTINCT FROM $3`
+	value, err := db.QueryOne[int](t.Context(), conn, sqlQuery, planet, resource, building)
+	require.NoError(t, err, "Actual err: %v", err)
+	require.Equal(t, production, value)
+}
+
+func assertPlanetBuildingLevel(t *testing.T, conn database.Connection, planet uuid.UUID, building uuid.UUID, level int) {
+	t.Helper()
+
+	sqlQuery := `SELECT level FROM planet_building WHERE planet = $1 AND building = $2`
+	value, err := db.QueryOne[int](t.Context(), conn, sqlQuery, planet, building)
+	require.NoError(t, err, "Actual err: %v", err)
+	require.Equal(t, level, value)
+}
+
+func assertPlanetShipCount(t *testing.T, conn database.Connection, planet uuid.UUID, ship uuid.UUID, count int) {
+	t.Helper()
+
+	sqlQuery := `SELECT count FROM planet_ship WHERE planet = $1 AND ship = $2`
+	value, err := db.QueryOne[int](t.Context(), conn, sqlQuery, planet, ship)
+	require.NoError(t, err, "Actual err: %v", err)
+	require.Equal(t, count, value)
+}
+
+func assertPlanetVersion(t *testing.T, conn database.Connection, planet uuid.UUID, version int) {
+	t.Helper()
+
+	sqlQuery := `SELECT version FROM planet WHERE id = $1`
+	value, err := db.QueryOne[int](t.Context(), conn, sqlQuery, planet)
+	require.NoError(t, err, "Actual err: %v", err)
+	require.Equal(t, version, value)
 }
 
 func assertFleetVersion(t *testing.T, conn database.Connection, fleet uuid.UUID, version int) {

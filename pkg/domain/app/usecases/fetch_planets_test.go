@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
-	drivenports "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driven"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/usecases/drivenportstest"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -27,7 +26,6 @@ var (
 	metalMineId = uuid.MustParse("d176e82d-f2ca-4611-996b-c4804096caef")
 )
 
-type MutatorMock func(context.Context, uuid.UUID, drivenports.PlanetMutator) (models.Planet, error)
 type SimulatorMock func(context.Context, uuid.UUID, time.Time, models.SimulationStepResolver) (models.SimulationStepResult, error)
 
 type fetchPlanetsTestSuite struct {
