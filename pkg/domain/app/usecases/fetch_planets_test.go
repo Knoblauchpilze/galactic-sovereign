@@ -564,17 +564,6 @@ func setupFetchPlanetsTestSuite(t *testing.T) *fetchPlanetsTestSuite {
 	}
 }
 
-// generateApplyingMutatorMock generates a function mock for the planet mutator
-// which applies the provided mutator to a known planet.
-func generateApplyingMutatorMock(p *models.Planet) MutatorMock {
-	return func(
-		ctx context.Context, id uuid.UUID, m drivenports.PlanetMutator,
-	) (models.Planet, error) {
-		err := m(p)
-		return *p, err
-	}
-}
-
 // generatePlanetSimulatorMock genrates a function mock for the simulation step
 // exeuctor which applies the provided resolver to a known planet.
 func generatePlanetSimulatorMock(p models.Planet) SimulatorMock {

@@ -116,10 +116,10 @@ func registerShipsRoutes(
 	log *slog.Logger,
 ) {
 	shipRepo := drivenadapters.NewShipRepository(conn)
-	planetMutator := drivenadapters.NewPlanetMutator(conn)
+	simulator := drivenadapters.NewSimulationStepExecutor(conn)
 	clock := drivenadapters.NewTimeAdapter()
 
-	createUseCase := usecases.NewCreateShipActionUseCase(shipRepo, planetMutator, clock)
+	createUseCase := usecases.NewCreateShipActionUseCase(shipRepo, simulator, clock)
 
 	for _, route := range drivingadapters.ShipActionEndpoints(createUseCase) {
 		if err := s.AddRoute(route); err != nil {

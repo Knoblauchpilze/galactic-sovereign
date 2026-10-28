@@ -17,12 +17,94 @@ import (
 type createShipActionTestSuite struct {
 	ctrl         *gomock.Controller
 	mockShipRepo *drivenportstest.MockForFetchingShip
-	mockMutator  *drivenportstest.MockForMutatingPlanet
+	mockExecutor *drivenportstest.MockForExecutingSimulationStep
 	mockClock    *drivenportstest.MockForFetchingTime
 	usecase      *CreateShipActionUseCase
 }
 
 func TestUnit_CreateShipAction_Create(t *testing.T) {
+	t.Run("calls executor with planet and timestamp", func(t *testing.T) {
+		suite := setupCreateShipActionTestSuite(t)
+
+		planet := generateTestPlanetWithShip()
+		planet.ShipActions = []models.ShipAction{{Id: uuid.New()}}
+		ship := generateTestShip(planet)
+		request := generateTestShipActionRequest(planet)
+
+		suite.mockClock.EXPECT().Now(gomock.Any()).Times(1).Return(t2)
+		suite.mockShipRepo.EXPECT().
+			Get(gomock.Any(), ship.Id).
+			Times(1).
+			Return(ship, nil)
+		result := models.SimulationStepResult{
+			Resolution: models.PlanetUpdated,
+			Planet:     &planet,
+		}
+		suite.mockExecutor.EXPECT().
+			Execute(gomock.Any(), planet.Id, t2, gomock.Any()).
+			Times(1).
+			Return(result, nil)
+
+		actual, err := suite.usecase.Create(t.Context(), request)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.Equal(t, planet.ShipActions, []models.ShipAction{actual})
+	})
+
+	t.Run("retries executor when fleet event is resolved", func(t *testing.T) {
+		suite := setupCreateShipActionTestSuite(t)
+
+		planet := generateTestPlanetWithShip()
+		ship := generateTestShip(planet)
+		request := generateTestShipActionRequest(planet)
+
+		suite.mockClock.EXPECT().Now(gomock.Any()).Times(1).Return(t2)
+		suite.mockShipRepo.EXPECT().
+			Get(gomock.Any(), ship.Id).
+			Times(1).
+			Return(ship, nil)
+		fleetResult := models.SimulationStepResult{
+			Resolution: models.FleetEventResolved,
+			Fleet: &models.Fleet{
+				Id: uuid.New(),
+			},
+		}
+		suite.mockExecutor.EXPECT().
+			Execute(gomock.Any(), planet.Id, t2, gomock.Any()).
+			Times(1).
+			Return(fleetResult, nil)
+		suite.mockExecutor.EXPECT().
+			Execute(gomock.Any(), planet.Id, t2, gomock.Any()).
+			Times(1).
+			DoAndReturn(generatePlanetSimulatorRecorderMock(&planet))
+
+		actual, err := suite.usecase.Create(t.Context(), request)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		completionTime := 168480 * time.Millisecond
+
+		expected := models.ShipAction{
+			Id:                 actual.Id,
+			Ship:               request.Ship,
+			Count:              request.Count,
+			CreatedAt:          t2,
+			NextCompletionAt:   t2.Add(completionTime),
+			UnitCompletionTime: completionTime,
+			Costs: []models.ShipActionCost{
+				{
+					Resource: metalResourceId,
+					Amount:   100,
+				},
+				{
+					Resource: crystalResourceId,
+					Amount:   134,
+				},
+			},
+		}
+		assert.Equal(t, expected, actual)
+		assert.Equal(t, []models.ShipAction{expected}, planet.ShipActions)
+	})
+
 	t.Run("persists created ship action", func(t *testing.T) {
 		suite := setupCreateShipActionTestSuite(t)
 
@@ -35,10 +117,10 @@ func TestUnit_CreateShipAction_Create(t *testing.T) {
 			Get(gomock.Any(), ship.Id).
 			Times(1).
 			Return(ship, nil)
-		suite.mockMutator.EXPECT().
-			Mutate(gomock.Any(), planet.Id, gomock.Any()).
+		suite.mockExecutor.EXPECT().
+			Execute(gomock.Any(), planet.Id, t2, gomock.Any()).
 			Times(1).
-			DoAndReturn(generateApplyingMutatorMock(&planet))
+			DoAndReturn(generatePlanetSimulatorRecorderMock(&planet))
 
 		actual, err := suite.usecase.Create(t.Context(), request)
 		require.NoError(t, err, "Actual err: %v", err)
@@ -81,10 +163,10 @@ func TestUnit_CreateShipAction_Create(t *testing.T) {
 			Get(gomock.Any(), ship.Id).
 			Times(1).
 			Return(ship, nil)
-		suite.mockMutator.EXPECT().
-			Mutate(gomock.Any(), planet.Id, gomock.Any()).
+		suite.mockExecutor.EXPECT().
+			Execute(gomock.Any(), planet.Id, t2, gomock.Any()).
 			Times(1).
-			DoAndReturn(generateApplyingMutatorMock(&planet))
+			DoAndReturn(generatePlanetSimulatorRecorderMock(&planet))
 
 		_, err := suite.usecase.Create(t.Context(), request)
 		require.NoError(t, err, "Actual err: %v", err)
@@ -119,10 +201,10 @@ func TestUnit_CreateShipAction_Create(t *testing.T) {
 			Get(gomock.Any(), ship.Id).
 			Times(1).
 			Return(ship, nil)
-		suite.mockMutator.EXPECT().
-			Mutate(gomock.Any(), planet.Id, gomock.Any()).
+		suite.mockExecutor.EXPECT().
+			Execute(gomock.Any(), planet.Id, t3, gomock.Any()).
 			Times(1).
-			DoAndReturn(generateApplyingMutatorMock(&planet))
+			DoAndReturn(generatePlanetSimulatorRecorderMock(&planet))
 
 		actual, err := suite.usecase.Create(t.Context(), request)
 		require.NoError(t, err, "Actual err: %v", err)
@@ -201,10 +283,10 @@ func TestUnit_CreateShipAction_Create(t *testing.T) {
 			Get(gomock.Any(), ship.Id).
 			Times(1).
 			Return(ship, nil)
-		suite.mockMutator.EXPECT().
-			Mutate(gomock.Any(), planet.Id, gomock.Any()).
+		suite.mockExecutor.EXPECT().
+			Execute(gomock.Any(), planet.Id, t3, gomock.Any()).
 			Times(1).
-			DoAndReturn(generateApplyingMutatorMock(&planet))
+			DoAndReturn(generatePlanetSimulatorRecorderMock(&planet))
 
 		actual, err := suite.usecase.Create(t.Context(), request)
 		require.NoError(t, err, "Actual err: %v", err)
@@ -274,10 +356,10 @@ func TestUnit_CreateShipAction_Create(t *testing.T) {
 			Get(gomock.Any(), ship.Id).
 			Times(1).
 			Return(ship, nil)
-		suite.mockMutator.EXPECT().
-			Mutate(gomock.Any(), planet.Id, gomock.Any()).
+		suite.mockExecutor.EXPECT().
+			Execute(gomock.Any(), planet.Id, t2, gomock.Any()).
 			Times(1).
-			DoAndReturn(generateApplyingMutatorMock(&planet))
+			DoAndReturn(generatePlanetSimulatorMock(planet))
 
 		_, err := suite.usecase.Create(t.Context(), req)
 
@@ -312,17 +394,17 @@ func setupCreateShipActionTestSuite(t *testing.T) *createShipActionTestSuite {
 
 	ctrl := gomock.NewController(t)
 	mockShipRepo := drivenportstest.NewMockForFetchingShip(ctrl)
-	mockMutator := drivenportstest.NewMockForMutatingPlanet(ctrl)
+	mockExecutor := drivenportstest.NewMockForExecutingSimulationStep(ctrl)
 	mockClock := drivenportstest.NewMockForFetchingTime(ctrl)
 
 	return &createShipActionTestSuite{
 		ctrl:         ctrl,
 		mockShipRepo: mockShipRepo,
-		mockMutator:  mockMutator,
+		mockExecutor: mockExecutor,
 		mockClock:    mockClock,
 		usecase: NewCreateShipActionUseCase(
 			mockShipRepo,
-			mockMutator,
+			mockExecutor,
 			mockClock,
 		),
 	}
