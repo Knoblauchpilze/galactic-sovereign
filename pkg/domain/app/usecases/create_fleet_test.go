@@ -1,22 +1,18 @@
 package usecases
 
 import (
-	"context"
 	"errors"
 	"testing"
 	"time"
 
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
 	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
-	drivenports "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driven"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/usecases/drivenportstest"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 )
-
-type FleetDispatcherMock func(context.Context, uuid.UUID, drivenports.FleetCreator) (models.Fleet, error)
 
 type createFleetTestSuite struct {
 	ctrl             *gomock.Controller

@@ -5,9 +5,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driven/database"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
 	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -471,4 +473,13 @@ func newTestPlanetDeleter(t *testing.T) (*PlanetDeleter, database.Connection) {
 
 func dummyDelete(*models.Planet) error {
 	return nil
+}
+
+func assertFleetExists(t *testing.T, conn database.Connection, id uuid.UUID) {
+	t.Helper()
+
+	sqlQuery := `SELECT id FROM fleet WHERE id = $1`
+	value, err := db.QueryOne[uuid.UUID](t.Context(), conn, sqlQuery, id)
+	require.NoError(t, err, "Actual err: %v", err)
+	require.Equal(t, id, value)
 }

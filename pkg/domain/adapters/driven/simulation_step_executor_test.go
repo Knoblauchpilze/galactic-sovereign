@@ -9,6 +9,7 @@ import (
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driven/database"
+	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driven/mappers"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
 	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
 	"github.com/google/uuid"
@@ -1509,7 +1510,7 @@ func TestIT_SimulationStepExecutor_Execute_CreateFleet(t *testing.T) {
 		planet, _, _ := insertTestPlanetForPlayer(t, conn)
 		fleet := generateSampleFleet(planet)
 
-		simulate := generateFleetCreatorNew(fleet)
+		simulate := generateFleetCreator(fleet)
 
 		returned, err := adapter.Execute(t.Context(), planet.Id, planet.UpdatedAt, simulate)
 		require.NoError(t, err, "Actual err: %v", err)
@@ -1524,7 +1525,7 @@ func TestIT_SimulationStepExecutor_Execute_CreateFleet(t *testing.T) {
 		planet, _, _ := insertTestPlanetForPlayer(t, conn)
 		fleet := generateSampleFleet(planet)
 
-		simulate := generateFleetCreatorNew(fleet)
+		simulate := generateFleetCreator(fleet)
 
 		_, err := adapter.Execute(t.Context(), planet.Id, planet.UpdatedAt, simulate)
 		require.NoError(t, err, "Actual err: %v", err)
@@ -1539,7 +1540,7 @@ func TestIT_SimulationStepExecutor_Execute_CreateFleet(t *testing.T) {
 		planet, _, _ := insertTestPlanetForPlayer(t, conn)
 		fleet := generateSampleFleet(planet)
 
-		simulate := generateFleetCreatorNew(fleet)
+		simulate := generateFleetCreator(fleet)
 
 		_, err := adapter.Execute(t.Context(), planet.Id, planet.UpdatedAt, simulate)
 		require.NoError(t, err, "Actual err: %v", err)
@@ -1557,7 +1558,7 @@ func TestIT_SimulationStepExecutor_Execute_CreateFleet(t *testing.T) {
 		fleet.Mission = models.MissionTransport
 		fleet.Destination.Target = &planetB.Id
 
-		simulate := generateFleetCreatorNew(fleet)
+		simulate := generateFleetCreator(fleet)
 
 		_, err := adapter.Execute(t.Context(), planetA.Id, planetA.UpdatedAt, simulate)
 		require.NoError(t, err, "Actual err: %v", err)
@@ -1636,7 +1637,7 @@ func TestIT_SimulationStepExecutor_Execute_CreateFleet(t *testing.T) {
 		fakePlanetId := uuid.New()
 		fleet.Destination.Target = &fakePlanetId
 
-		simulate := generateFleetCreatorNew(fleet)
+		simulate := generateFleetCreator(fleet)
 
 		_, err := adapter.Execute(t.Context(), planetA.Id, planetA.UpdatedAt, simulate)
 
@@ -2199,7 +2200,7 @@ func TestIT_SimulationStepExecutor_Execute_Concurrency(t *testing.T) {
 		doneA := make(chan error, 1)
 		doneB := make(chan error, 1)
 
-		createFleetA := generateFleetCreatorNew(fleetA)
+		createFleetA := generateFleetCreator(fleetA)
 		simulateDispatchA := func(step models.SimulationStep) (models.SimulationStepResult, error) {
 			entered <- struct{}{}
 			select {
@@ -2210,7 +2211,7 @@ func TestIT_SimulationStepExecutor_Execute_Concurrency(t *testing.T) {
 			step.Planet.Ships[0].Count--
 			return createFleetA(step)
 		}
-		createFleetB := generateFleetCreatorNew(fleetB)
+		createFleetB := generateFleetCreator(fleetB)
 		simulateDispatchB := func(step models.SimulationStep) (models.SimulationStepResult, error) {
 			entered <- struct{}{}
 			select {
@@ -2282,7 +2283,7 @@ func TestIT_SimulationStepExecutor_Execute_Concurrency(t *testing.T) {
 		doneA := make(chan error, 1)
 		doneB := make(chan error, 1)
 
-		createFleetA := generateFleetCreatorNew(fleetA)
+		createFleetA := generateFleetCreator(fleetA)
 		simulateFirstDispatch := func(step models.SimulationStep) (models.SimulationStepResult, error) {
 			close(enteredA)
 			select {
@@ -2295,7 +2296,7 @@ func TestIT_SimulationStepExecutor_Execute_Concurrency(t *testing.T) {
 			return createFleetA(step)
 		}
 
-		createFleetB := generateFleetCreatorNew(fleetB)
+		createFleetB := generateFleetCreator(fleetB)
 		simulateSecondDispatch := func(step models.SimulationStep) (models.SimulationStepResult, error) {
 			close(enteredB)
 			// The second mutation should see the updated version and ship count
@@ -2352,7 +2353,7 @@ func TestIT_SimulationStepExecutor_Execute_Concurrency(t *testing.T) {
 		fleet.Destination.Target = &missingDestination
 		fleet.Ships = []models.FleetShip{{Ship: lightFighterId, Count: 1}}
 
-		createFleet := generateFleetCreatorNew(fleet)
+		createFleet := generateFleetCreator(fleet)
 		simulateDispatch := func(step models.SimulationStep) (models.SimulationStepResult, error) {
 			step.Planet.Ships[0].Count--
 			step.Planet.Resources[0].Amount++
@@ -2854,7 +2855,7 @@ func generateFleetSimulator(
 	}
 }
 
-func generateFleetCreatorNew(fleet models.Fleet) models.SimulationStepResolver {
+func generateFleetCreator(fleet models.Fleet) models.SimulationStepResolver {
 	return func(step models.SimulationStep) (models.SimulationStepResult, error) {
 		var planet *models.Planet
 		if step.Planet != nil {
@@ -2887,6 +2888,41 @@ func generateFleetDeleter() models.SimulationStepResolver {
 		}
 
 		return result, nil
+	}
+}
+
+func generateSampleFleet(p models.Planet) models.Fleet {
+	return models.Fleet{
+		Id:      uuid.New(),
+		Player:  p.Player,
+		Source:  p.Id,
+		Mission: models.MissionColonize,
+		Destination: models.FleetDestination{
+			Coordinate: models.Coordinate{
+				Galaxy:      p.Coordinate.Galaxy,
+				SolarSystem: p.Coordinate.SolarSystem + 1,
+				Position:    p.Coordinate.Position,
+			},
+			Target: nil,
+		},
+		Ships: []models.FleetShip{
+			{
+				Ship:  lightFighterId,
+				Count: 12,
+			},
+			{
+				Ship:  smallCargoId,
+				Count: 3,
+			},
+		},
+		Schedule: models.FleetFlightSchedule{
+			ArrivalAt: p.UpdatedAt.Add(1 * time.Hour),
+			ReturnAt:  p.UpdatedAt.Add(2 * time.Hour),
+			Status:    models.StatusOutbound,
+		},
+		CreatedAt: p.UpdatedAt,
+		UpdatedAt: p.UpdatedAt,
+		Version:   0,
 	}
 }
 
@@ -3008,4 +3044,44 @@ func assertFleetVersion(t *testing.T, conn database.Connection, fleet uuid.UUID,
 	value, err := db.QueryOne[int](t.Context(), conn, sqlQuery, fleet)
 	require.NoError(t, err, "Actual err: %v", err)
 	require.Equal(t, version, value)
+}
+
+func assertFleetDoesNotExist(t *testing.T, conn database.Connection, id uuid.UUID) {
+	t.Helper()
+
+	sqlQuery := `SELECT COUNT(id) FROM fleet WHERE id = $1`
+	value, err := db.QueryOne[int](t.Context(), conn, sqlQuery, id)
+	require.NoError(t, err, "Actual err: %v", err)
+	require.Zero(t, value)
+}
+
+func assertFleetEventExists(t *testing.T, conn database.Connection, fleet uuid.UUID, moment time.Time) {
+	t.Helper()
+
+	sqlQuery := `SELECT next_event_at FROM fleet_event WHERE fleet = $1`
+	value, err := db.QueryOne[time.Time](t.Context(), conn, sqlQuery, fleet)
+	require.NoError(t, err, "Actual err: %v", err)
+	require.Equal(t, moment, value)
+}
+
+func assertFleetEventTypeMatches(t *testing.T, conn database.Connection, fleet uuid.UUID, eventType models.FleetEventType) {
+	t.Helper()
+
+	sqlQuery := `SELECT event_type FROM fleet_event WHERE fleet = $1`
+	value, err := db.QueryOne[mappers.DbFleetEventType](t.Context(), conn, sqlQuery, fleet)
+	require.NoError(t, err, "Actual err: %v", err)
+	require.Equal(t, eventType, value.ToDomain())
+}
+
+func loadFleetFromDb(t *testing.T, conn database.Connection, id uuid.UUID) models.Fleet {
+	t.Helper()
+
+	tx, err := conn.BeginTx(t.Context())
+	require.NoError(t, err, "Actual err: %v", err)
+	defer tx.Close(t.Context())
+
+	fleet, err := loadFleetAndDetails(t.Context(), tx, id)
+	require.NoError(t, err, "Actual err: %v", err)
+
+	return fleet
 }
