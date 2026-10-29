@@ -2,7 +2,6 @@ package usecases
 
 import (
 	"context"
-	"time"
 
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
 	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
@@ -13,68 +12,66 @@ import (
 
 type CreateFleetUseCase struct {
 	universeRepo drivenports.ForFetchingUniverses
-	dispatcher   drivenports.ForDispatchingFleet
+	simulator    drivenports.ForExecutingSimulationStep
 	clock        drivenports.ForFetchingTime
 }
 
 func NewCreateFleetUseCase(
 	universeRepo drivenports.ForFetchingUniverses,
-	dispatcher drivenports.ForDispatchingFleet,
+	simulator drivenports.ForExecutingSimulationStep,
 	clock drivenports.ForFetchingTime,
 ) *CreateFleetUseCase {
 	return &CreateFleetUseCase{
 		universeRepo: universeRepo,
-		dispatcher:   dispatcher,
+		simulator:    simulator,
 		clock:        clock,
 	}
 }
 
-func (f *CreateFleetUseCase) Create(
+func (u *CreateFleetUseCase) Create(
 	ctx context.Context,
 	planet uuid.UUID,
 	order models.FleetOrder,
 ) (models.Fleet, error) {
-	u, err := f.universeRepo.GetByPlanetId(ctx, planet)
+	universe, err := u.universeRepo.GetByPlanetId(ctx, planet)
 	if err != nil {
 		return models.Fleet{}, err
 	}
 
-	if !u.ValidCoordinates(order.Destination) {
+	if !universe.ValidCoordinates(order.Destination) {
 		return models.Fleet{}, domainerrors.ErrCoordinatesOutOfBound
 	}
 
-	speed, err := domainservices.DetermineFleetSpeed(order, u.Ships)
+	speed, err := domainservices.DetermineFleetSpeed(order, universe.Ships)
 	if err != nil {
 		return models.Fleet{}, err
 	}
 
-	moment := f.clock.Now(ctx)
+	moment := u.clock.Now(ctx)
 
-	mutation := generateFleetMutation(moment, order, speed, u.OccupancyMap)
-	fleet, err := f.dispatcher.Dispatch(ctx, planet, mutation)
+	mutator := generateFleetCreationMutator(order, speed, universe.OccupancyMap)
+	result, err := domainservices.AdvanceSimulationUntil(ctx, u.simulator, planet, moment, mutator)
 	if err != nil {
 		return models.Fleet{}, err
 	}
 
-	return fleet, nil
+	if result.Fleet == nil {
+		return models.Fleet{}, domainerrors.ErrNotFound
+	}
+
+	return *result.Fleet, nil
 
 }
 
-func generateFleetMutation(
-	moment time.Time,
+func generateFleetCreationMutator(
 	order models.FleetOrder,
 	speed int,
 	occupancy models.OccupancyMap,
-) drivenports.FleetCreator {
-	return func(p *models.Planet) (models.Fleet, error) {
-		err := domainservices.AdvancePlanetToTime(p, moment)
-		if err != nil {
-			return models.Fleet{}, err
-		}
-
+) models.SimulationStepResolver {
+	return func(step models.SimulationStep) (models.SimulationStepResult, error) {
 		flight := models.FleetFlight{
-			StartTime:   moment,
-			Source:      p.Coordinate,
+			StartTime:   step.Timestamp,
+			Source:      step.Planet.Coordinate,
 			Destination: order.Destination,
 			Target:      nil,
 			Speed:       speed,
@@ -84,6 +81,15 @@ func generateFleetMutation(
 			flight.Target = &target
 		}
 
-		return p.CreateFleet(order, flight)
+		fleet, err := step.Planet.CreateFleet(order, flight)
+		if err != nil {
+			return models.SimulationStepResult{}, err
+		}
+
+		return models.SimulationStepResult{
+			Resolution: models.FleetCreated,
+			Planet:     step.Planet,
+			Fleet:      &fleet,
+		}, nil
 	}
 }
