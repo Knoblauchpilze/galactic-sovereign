@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"testing"
+	"time"
 
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
 	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
@@ -171,6 +172,7 @@ func TestUnit_CreateFleet_Create(t *testing.T) {
 		suite := setupCreateFleetTestSuite(t)
 
 		planet := generateTestPlanetWithShip()
+		planet.Coordinate = models.Coordinate{Galaxy: 1, SolarSystem: 2, Position: 3}
 		planet.Ships = []models.PlanetShip{
 			{Ship: uuid.New(), Count: 7},
 			{Ship: uuid.New(), Count: 6},
@@ -196,8 +198,14 @@ func TestUnit_CreateFleet_Create(t *testing.T) {
 				Orbits:       14,
 			},
 			Ships: []models.Ship{
-				{Id: planet.Ships[0].Ship},
-				{Id: planet.Ships[1].Ship},
+				{
+					Id:        planet.Ships[0].Ship,
+					BaseSpeed: 3600,
+				},
+				{
+					Id:        planet.Ships[1].Ship,
+					BaseSpeed: 7000,
+				},
 			},
 		}
 
@@ -213,6 +221,8 @@ func TestUnit_CreateFleet_Create(t *testing.T) {
 
 		actual, err := suite.usecase.Create(t.Context(), planet.Id, req)
 		require.NoError(t, err, "Actual err: %v", err)
+
+		flightTime := 9762 * time.Second
 
 		expected := models.Fleet{
 			Id:      actual.Id,
@@ -231,8 +241,8 @@ func TestUnit_CreateFleet_Create(t *testing.T) {
 				{Ship: req.Ships[1].Ship, Count: req.Ships[1].Count},
 			},
 			Schedule: models.FleetFlightSchedule{
-				ArrivalAt: t3,
-				ReturnAt:  t4,
+				ArrivalAt: t2.Add(flightTime),
+				ReturnAt:  t2.Add(2 * flightTime),
 				Status:    models.StatusOutbound,
 			},
 			CreatedAt: t2,
