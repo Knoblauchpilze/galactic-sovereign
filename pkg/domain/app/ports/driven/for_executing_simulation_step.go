@@ -16,7 +16,19 @@ import (
 // The result includes the new states of the planet and fleet. Both values will
 // be persisted back to the database.
 type ForExecutingSimulationStep interface {
+	// Execute runs the simulate step with the implicit expectation that the planet
+	// to which it applies will not be deleted but only updated.
 	Execute(
+		ctx context.Context,
+		planetId uuid.UUID,
+		timestamp time.Time,
+		simulate models.SimulationStepResolver,
+	) (models.SimulationStepResult, error)
+
+	// Execute runs the simulate step with the implicit expectation that the planet
+	// to which it applies will be deleted at the end of the step. This means that
+	// the simulation step result will never contain a planet (or a fleet).
+	ExecuteForDelete(
 		ctx context.Context,
 		planetId uuid.UUID,
 		timestamp time.Time,

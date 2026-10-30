@@ -57,3 +57,18 @@ func (mr *MockForExecutingSimulationStepMockRecorder) Execute(ctx, planetId, tim
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Execute", reflect.TypeOf((*MockForExecutingSimulationStep)(nil).Execute), ctx, planetId, timestamp, simulate)
 }
+
+// ExecuteForDelete mocks base method.
+func (m *MockForExecutingSimulationStep) ExecuteForDelete(ctx context.Context, planetId uuid.UUID, timestamp time.Time, simulate models.SimulationStepResolver) (models.SimulationStepResult, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ExecuteForDelete", ctx, planetId, timestamp, simulate)
+	ret0, _ := ret[0].(models.SimulationStepResult)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ExecuteForDelete indicates an expected call of ExecuteForDelete.
+func (mr *MockForExecutingSimulationStepMockRecorder) ExecuteForDelete(ctx, planetId, timestamp, simulate any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ExecuteForDelete", reflect.TypeOf((*MockForExecutingSimulationStep)(nil).ExecuteForDelete), ctx, planetId, timestamp, simulate)
+}

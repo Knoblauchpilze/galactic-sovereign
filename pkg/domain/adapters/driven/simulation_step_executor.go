@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
+	"github.com/Knoblauchpilze/backend-toolkit/pkg/errors"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driven/database"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driven/mappers"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
@@ -142,6 +143,15 @@ func (s *SimulationStepExecutor) Execute(
 	result.Fleet = fleet
 
 	return result, nil
+}
+
+func (s *SimulationStepExecutor) ExecuteForDelete(
+	ctx context.Context,
+	planetId uuid.UUID,
+	timestamp time.Time,
+	simulate models.SimulationStepResolver,
+) (models.SimulationStepResult, error) {
+	return models.SimulationStepResult{}, errors.ErrNotImplemented
 }
 
 func resolveNextFleetEvent(
