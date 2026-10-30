@@ -99,25 +99,9 @@ func (s *SimulationStepExecutor) Execute(
 		}
 	}
 
-	step := models.SimulationStep{
-		Timestamp:      timestamp,
-		Planet:         planet,
-		NextFleetEvent: event,
-	}
+	simulationCtx := newSimulationStepContext(timestamp, planet, event, simulate)
 
-	var expectedPlanetVersion int
-	if planet != nil {
-		expectedPlanetVersion = planet.Version
-	}
-	var expectedFleetVersion int
-	if step.NextFleetEvent != nil {
-		if step.NextFleetEvent.Planet != nil {
-			expectedPlanetVersion = step.NextFleetEvent.Planet.Version
-		}
-		expectedFleetVersion = step.NextFleetEvent.Fleet.Version
-	}
-
-	result, err := simulate(step)
+	err = simulationCtx.resolve()
 	if err != nil {
 		// There's no point in checking the error here: it is not logged
 		// and there's already an error pending.
@@ -127,22 +111,12 @@ func (s *SimulationStepExecutor) Execute(
 		return models.SimulationStepResult{}, err
 	}
 
-	if result.Planet != nil {
-		out, err := saveAndReloadPlanet(ctx, tx, *result.Planet, expectedPlanetVersion)
-		if err != nil {
-			return models.SimulationStepResult{}, err
-		}
-
-		result.Planet = &out
-	}
-
-	fleet, err := createUpdateOrDeleteFleet(ctx, tx, step, result, expectedFleetVersion)
+	out, err := simulationCtx.persist(ctx, tx)
 	if err != nil {
 		return models.SimulationStepResult{}, err
 	}
-	result.Fleet = fleet
 
-	return result, nil
+	return out, nil
 }
 
 func (s *SimulationStepExecutor) ExecuteForDelete(
@@ -218,45 +192,4 @@ func loadAndLockForNoKeyUpdatePlanet(ctx context.Context, tx database.Transactio
 	}
 
 	return &planet, nil
-}
-
-func createUpdateOrDeleteFleet(
-	ctx context.Context,
-	tx database.Transaction,
-	step models.SimulationStep,
-	result models.SimulationStepResult,
-	expectedFleetVersion int,
-) (*models.Fleet, error) {
-	if result.Resolution == models.FleetDeleted {
-		err := deleteFleetAndDetails(ctx, tx, step.NextFleetEvent.Fleet.Id)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	if result.Fleet == nil {
-		return nil, nil
-	}
-
-	if result.Resolution == models.FleetCreated {
-		err := createFleetWithDetails(ctx, tx, *result.Fleet)
-		if err != nil {
-			if isFleetMissingTargetPlanetErr(err) {
-				return nil, domainerrors.ErrFleetDestinationInvalid
-			}
-			if isFleetSourcePlanetErr(err) {
-				return nil, domainerrors.ErrPlanetNotFound
-			}
-			return nil, err
-		}
-
-		return result.Fleet, nil
-	}
-
-	out, err := saveAndReloadFleet(ctx, tx, *result.Fleet, expectedFleetVersion)
-	if err != nil {
-		return nil, err
-	}
-
-	return &out, nil
 }
