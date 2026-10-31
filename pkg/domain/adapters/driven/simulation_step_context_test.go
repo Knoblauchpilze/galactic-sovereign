@@ -99,6 +99,46 @@ func TestUnit_SimulationStepContext_NewFleetStepContext(t *testing.T) {
 	})
 }
 
+func TestUnit_SimulationStepContext_Resolve(t *testing.T) {
+	t.Run("forwards resolver error to caller", func(t *testing.T) {
+		planet := models.Planet{
+			Id:      uuid.New(),
+			Version: 3,
+		}
+
+		errSample := errors.New("stubbed error")
+		resolver := func(_ models.SimulationStep) (models.SimulationStepResult, error) {
+			return models.SimulationStepResult{}, errSample
+		}
+
+		ctx := newPlanetStepContext(planet, true, resolver)
+		_, err := ctx.resolve(t.Context(), nil, t1)
+
+		assert.ErrorIs(t, err, errSample, "Actual err: %v", err)
+	})
+
+	t.Run("returns error when resolver requests planet deletion but is not allowed", func(t *testing.T) {
+		planet := models.Planet{
+			Id:      uuid.New(),
+			Version: 3,
+		}
+
+		result := models.SimulationStepResult{
+			Resolution: models.PlanetDeleted,
+			Planet:     nil,
+			Fleet:      nil,
+		}
+
+		resolver, _ := generateCapturingResolver(result)
+
+		ctx := newPlanetStepContext(planet, false, resolver)
+
+		_, err := ctx.resolve(t.Context(), nil, t2)
+
+		assert.ErrorIs(t, err, domainerrors.ErrInvalidSimulationStepResult, "Actual err: %v", err)
+	})
+}
+
 func TestIT_SimulationStepContext_Resolve(t *testing.T) {
 	t.Run("calls resolver with correct step for planet update", func(t *testing.T) {
 		conn, tx := newTestConnectionAndTransaction(t)
@@ -160,21 +200,6 @@ func TestIT_SimulationStepContext_Resolve(t *testing.T) {
 		}
 		assert.Equal(t, expected, *captor)
 		assert.Equal(t, result, actual)
-	})
-
-	t.Run("forwards resolver error to caller", func(t *testing.T) {
-		conn, _ := newTestConnectionAndTransaction(t)
-		planet, _, _ := insertTestPlanetForPlayer(t, conn)
-
-		errSample := errors.New("stubbed error")
-		resolver := func(_ models.SimulationStep) (models.SimulationStepResult, error) {
-			return models.SimulationStepResult{}, errSample
-		}
-
-		ctx := newPlanetStepContext(planet, true, resolver)
-		_, err := ctx.resolve(t.Context(), nil, t1)
-
-		assert.ErrorIs(t, err, errSample, "Actual err: %v", err)
 	})
 
 	t.Run("returns error when resolver requests planet deletion but is not allowed", func(t *testing.T) {
