@@ -357,6 +357,7 @@ func TestIT_SimulationStepExecutor_Execute_LoadFleetBehavior(t *testing.T) {
 	})
 }
 
+// TODO: Remove this block
 func TestIT_SimulationStepExecutor_Execute_SavePlanet(t *testing.T) {
 	t.Run("returns mutated planet", func(t *testing.T) {
 		adapter, conn := newTestSimulationStepExecutor(t)
@@ -1378,6 +1379,7 @@ func TestIT_SimulationStepExecutor_Execute_SavePlanet(t *testing.T) {
 	})
 }
 
+// TODO: Remove this block
 func TestIT_SimulationStepExecutor_Execute_SaveFleet(t *testing.T) {
 	t.Run("returns mutated fleet", func(t *testing.T) {
 		adapter, conn := newTestSimulationStepExecutor(t)

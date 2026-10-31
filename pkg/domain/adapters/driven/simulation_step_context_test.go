@@ -1314,6 +1314,184 @@ func TestIT_SimulationStepContext_Resolve_SavePlanet(t *testing.T) {
 	})
 }
 
+func TestIT_SimulationStepContext_Resolve_SaveFleet(t *testing.T) {
+	t.Run("returns mutated fleet", func(t *testing.T) {
+		conn, tx := newTestConnectionAndTransaction(t)
+
+		planet, _, _ := insertTestPlanetForPlayer(t, conn)
+		fleet := insertTestFleet(t, conn, planet, addFleetShip)
+		require.NotEqual(t, fleet.UpdatedAt, yetAnotherTime)
+
+		resolver := generateFleetSimulator(func(f *models.Fleet) {
+			f.UpdatedAt = yetAnotherTime
+			f.Version++
+		})
+
+		event := models.FleetEventContext{
+			Timestamp: fleet.Schedule.ArrivalAt,
+			Fleet:     fleet,
+			Planet:    nil,
+		}
+		ctx := newFleetStepContext(event, resolver)
+
+		afterArrival := fleet.Schedule.ArrivalAt.Add(1 * time.Minute)
+		returned, err := ctx.resolve(t.Context(), tx, afterArrival)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		require.NotNil(t, returned.Fleet)
+		assert.Equal(t, yetAnotherTime, returned.Fleet.UpdatedAt)
+		assert.Equal(t, fleet.Version+1, returned.Fleet.Version)
+	})
+
+	t.Run("persists mutated fleet", func(t *testing.T) {
+		conn, tx := newTestConnectionAndTransaction(t)
+
+		planet, _, _ := insertTestPlanetForPlayer(t, conn)
+		fleet := insertTestFleet(t, conn, planet, addFleetShip)
+		require.NotEqual(t, fleet.UpdatedAt, yetAnotherTime)
+
+		resolver := generateFleetSimulator(func(f *models.Fleet) {
+			f.UpdatedAt = yetAnotherTime
+			f.Version++
+		})
+
+		event := models.FleetEventContext{
+			Timestamp: fleet.Schedule.ArrivalAt,
+			Fleet:     fleet,
+			Planet:    nil,
+		}
+		ctx := newFleetStepContext(event, resolver)
+
+		afterArrival := fleet.Schedule.ArrivalAt.Add(1 * time.Minute)
+		returned, err := ctx.resolve(t.Context(), tx, afterArrival)
+		require.NoError(t, err, "Actual err: %v", err)
+		tx.Close(t.Context())
+
+		actual := loadFleetFromDb(t, conn, fleet.Id)
+		assert.Equal(t, &actual, returned.Fleet)
+		expected := fleet
+		expected.UpdatedAt = yetAnotherTime
+		expected.Version++
+		assert.Equal(t, expected, actual)
+	})
+
+	t.Run("persists updated fleet ships", func(t *testing.T) {
+		conn, tx := newTestConnectionAndTransaction(t)
+
+		planet, _, _ := insertTestPlanetForPlayer(t, conn)
+		fleet := insertTestFleet(t, conn, planet, addFleetShip)
+		initialCount := fleet.Ships[0].Count
+
+		resolver := generateFleetSimulator(func(f *models.Fleet) {
+			f.Ships[0].Count--
+			f.Version++
+		})
+
+		event := models.FleetEventContext{
+			Timestamp: fleet.Schedule.ArrivalAt,
+			Fleet:     fleet,
+			Planet:    nil,
+		}
+		ctx := newFleetStepContext(event, resolver)
+
+		afterArrival := fleet.Schedule.ArrivalAt.Add(1 * time.Minute)
+		returned, err := ctx.resolve(t.Context(), tx, afterArrival)
+		require.NoError(t, err, "Actual err: %v", err)
+		tx.Close(t.Context())
+
+		actual := loadFleetFromDb(t, conn, fleet.Id)
+		expected := []models.FleetShip{
+			{Ship: fleet.Ships[0].Ship, Count: initialCount - 1},
+		}
+		assert.Equal(t, expected, actual.Ships)
+		assert.Equal(t, actual.Ships, returned.Fleet.Ships)
+	})
+
+	t.Run("persists deleted fleet ships", func(t *testing.T) {
+		conn, tx := newTestConnectionAndTransaction(t)
+
+		planet, _, _ := insertTestPlanetForPlayer(t, conn)
+		fleet := insertTestFleet(t, conn, planet, addFleetShip)
+
+		resolver := generateFleetSimulator(func(f *models.Fleet) {
+			f.Ships = []models.FleetShip{}
+			f.Version++
+		})
+
+		event := models.FleetEventContext{
+			Timestamp: fleet.Schedule.ArrivalAt,
+			Fleet:     fleet,
+			Planet:    nil,
+		}
+		ctx := newFleetStepContext(event, resolver)
+
+		afterArrival := fleet.Schedule.ArrivalAt.Add(1 * time.Minute)
+		returned, err := ctx.resolve(t.Context(), tx, afterArrival)
+		require.NoError(t, err, "Actual err: %v", err)
+		tx.Close(t.Context())
+
+		actual := loadFleetFromDb(t, conn, fleet.Id)
+		assert.Equal(t, actual.Ships, returned.Fleet.Ships)
+		assert.Equal(t, []models.FleetShip{}, actual.Ships)
+	})
+
+	t.Run("persists updated fleet status", func(t *testing.T) {
+		conn, tx := newTestConnectionAndTransaction(t)
+
+		planet, _, _ := insertTestPlanetForPlayer(t, conn)
+		fleet := insertTestFleet(t, conn, planet, addFleetShip)
+
+		resolver := generateFleetSimulator(func(f *models.Fleet) {
+			f.Schedule.Status = models.StatusReturning
+			f.Version++
+		})
+
+		event := models.FleetEventContext{
+			Timestamp: fleet.Schedule.ArrivalAt,
+			Fleet:     fleet,
+			Planet:    nil,
+		}
+		ctx := newFleetStepContext(event, resolver)
+
+		afterArrival := fleet.Schedule.ArrivalAt.Add(1 * time.Minute)
+		returned, err := ctx.resolve(t.Context(), tx, afterArrival)
+		require.NoError(t, err, "Actual err: %v", err)
+		tx.Close(t.Context())
+
+		actual := loadFleetFromDb(t, conn, fleet.Id)
+		assert.Equal(t, actual.Schedule.Status, returned.Fleet.Schedule.Status)
+		assert.Equal(t, models.StatusReturning, actual.Schedule.Status)
+	})
+
+	t.Run("persists updated fleet event", func(t *testing.T) {
+		conn, tx := newTestConnectionAndTransaction(t)
+
+		planet, _, _ := insertTestPlanetForPlayer(t, conn)
+		fleet := insertTestFleet(t, conn, planet, addFleetShip)
+		assertFleetEventTypeMatches(t, conn, fleet.Id, models.ArrivalEvent)
+
+		resolver := generateFleetSimulator(func(f *models.Fleet) {
+			f.Schedule.Status = models.StatusReturning
+			f.Version++
+		})
+
+		event := models.FleetEventContext{
+			Timestamp: fleet.Schedule.ArrivalAt,
+			Fleet:     fleet,
+			Planet:    nil,
+		}
+		ctx := newFleetStepContext(event, resolver)
+
+		afterArrival := fleet.Schedule.ArrivalAt.Add(1 * time.Minute)
+		returned, err := ctx.resolve(t.Context(), tx, afterArrival)
+		require.NoError(t, err, "Actual err: %v", err)
+		tx.Close(t.Context())
+
+		assert.Equal(t, models.StatusReturning, returned.Fleet.Schedule.Status)
+		assertFleetEventTypeMatches(t, conn, fleet.Id, models.ReturnEvent)
+	})
+}
+
 func newTestConnectionAndTransaction(t *testing.T) (database.Connection, database.Transaction) {
 	t.Helper()
 
