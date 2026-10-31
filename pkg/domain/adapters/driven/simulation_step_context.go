@@ -10,10 +10,11 @@ import (
 )
 
 type simulationStepContext struct {
+	step models.SimulationStep
+
 	initialPlanetVersion int
 	initialFleetVersion  int
-
-	step models.SimulationStep
+	allowPlanetDeletion  bool
 
 	resolver models.SimulationStepResolver
 
@@ -24,6 +25,7 @@ func newSimulationStepContext(
 	timestamp time.Time,
 	planet *models.Planet,
 	nextFleetEvent *models.FleetEventContext,
+	allowPlanetDeletion bool,
 	resolver models.SimulationStepResolver,
 ) *simulationStepContext {
 	ctx := simulationStepContext{
@@ -32,7 +34,8 @@ func newSimulationStepContext(
 			Planet:         planet,
 			NextFleetEvent: nextFleetEvent,
 		},
-		resolver: resolver,
+		allowPlanetDeletion: allowPlanetDeletion,
+		resolver:            resolver,
 	}
 
 	if planet != nil {
@@ -56,6 +59,10 @@ func (c *simulationStepContext) resolve() error {
 	}
 
 	c.result = result
+
+	if !c.allowPlanetDeletion && c.result.Resolution == models.PlanetDeleted {
+		return domainerrors.ErrInvalidSimulationStepResult
+	}
 
 	return nil
 }

@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
-	"github.com/Knoblauchpilze/backend-toolkit/pkg/errors"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driven/database"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driven/mappers"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
@@ -99,7 +98,7 @@ func (s *SimulationStepExecutor) Execute(
 		}
 	}
 
-	simulationCtx := newSimulationStepContext(timestamp, planet, event, simulate)
+	simulationCtx := newSimulationStepContext(timestamp, planet, event, false, simulate)
 
 	return executeSimulationStep(ctx, tx, simulationCtx)
 }
@@ -110,7 +109,28 @@ func (s *SimulationStepExecutor) ExecuteForDelete(
 	timestamp time.Time,
 	simulate models.SimulationStepResolver,
 ) (models.SimulationStepResult, error) {
-	return models.SimulationStepResult{}, errors.ErrNotImplemented
+	tx, err := s.conn.BeginTx(ctx)
+	if err != nil {
+		return models.SimulationStepResult{}, err
+	}
+	defer tx.Close(ctx)
+
+	event, err := resolveNextFleetEvent(ctx, tx, timestamp, planetId)
+	if err != nil {
+		return models.SimulationStepResult{}, err
+	}
+
+	var planet *models.Planet
+	if event == nil {
+		planet, err = loadAndLockForUpdatePlanet(ctx, tx, planetId)
+		if err != nil {
+			return models.SimulationStepResult{}, err
+		}
+	}
+
+	simulationCtx := newSimulationStepContext(timestamp, planet, event, true, simulate)
+
+	return executeSimulationStep(ctx, tx, simulationCtx)
 }
 
 func resolveNextFleetEvent(
@@ -164,6 +184,23 @@ func resolveNextFleetEvent(
 
 func loadAndLockForNoKeyUpdatePlanet(ctx context.Context, tx database.Transaction, planetId uuid.UUID) (*models.Planet, error) {
 	actual, err := db.QueryOneTx[uuid.UUID](ctx, tx, lockPlanetForNoKeyUpdateQuery, planetId)
+	if err != nil {
+		return nil, parseDbError(err)
+	}
+	if actual != planetId {
+		return nil, domainerrors.ErrNotFound
+	}
+
+	planet, err := loadPlanetAndDetails(ctx, tx, planetId)
+	if err != nil {
+		return nil, err
+	}
+
+	return &planet, nil
+}
+
+func loadAndLockForUpdatePlanet(ctx context.Context, tx database.Transaction, planetId uuid.UUID) (*models.Planet, error) {
+	actual, err := db.QueryOneTx[uuid.UUID](ctx, tx, lockPlanetForUpdateQuery, planetId)
 	if err != nil {
 		return nil, parseDbError(err)
 	}

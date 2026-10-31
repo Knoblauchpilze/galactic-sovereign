@@ -38,6 +38,7 @@ const (
 	FleetDeleted
 	FleetCreated
 	PlanetUpdated
+	PlanetDeleted
 )
 
 type SimulationStepResult struct {
