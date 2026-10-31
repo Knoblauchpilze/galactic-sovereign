@@ -101,22 +101,7 @@ func (s *SimulationStepExecutor) Execute(
 
 	simulationCtx := newSimulationStepContext(timestamp, planet, event, simulate)
 
-	err = simulationCtx.resolve()
-	if err != nil {
-		// There's no point in checking the error here: it is not logged
-		// and there's already an error pending.
-		// nolint:errcheck
-		tx.Rollback()
-
-		return models.SimulationStepResult{}, err
-	}
-
-	out, err := simulationCtx.persist(ctx, tx)
-	if err != nil {
-		return models.SimulationStepResult{}, err
-	}
-
-	return out, nil
+	return executeSimulationStep(ctx, tx, simulationCtx)
 }
 
 func (s *SimulationStepExecutor) ExecuteForDelete(
@@ -192,4 +177,27 @@ func loadAndLockForNoKeyUpdatePlanet(ctx context.Context, tx database.Transactio
 	}
 
 	return &planet, nil
+}
+
+func executeSimulationStep(
+	ctx context.Context,
+	tx database.Transaction,
+	simulationCtx *simulationStepContext,
+) (models.SimulationStepResult, error) {
+	err := simulationCtx.resolve()
+	if err != nil {
+		// There's no point in checking the error here: it is not logged
+		// and there's already an error pending.
+		// nolint:errcheck
+		tx.Rollback()
+
+		return models.SimulationStepResult{}, err
+	}
+
+	out, err := simulationCtx.persist(ctx, tx)
+	if err != nil {
+		return models.SimulationStepResult{}, err
+	}
+
+	return out, nil
 }
