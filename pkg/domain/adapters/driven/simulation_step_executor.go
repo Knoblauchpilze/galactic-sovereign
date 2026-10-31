@@ -90,17 +90,30 @@ func (s *SimulationStepExecutor) Execute(
 		return models.SimulationStepResult{}, err
 	}
 
-	var planet *models.Planet
-	if event == nil {
-		planet, err = loadAndLockForNoKeyUpdatePlanet(ctx, tx, planetId)
+	var simulationCtx simulationStepContext
+
+	if event != nil {
+		simulationCtx = *newFleetStepContext(*event, simulate)
+	} else {
+		planet, err := loadAndLockForNoKeyUpdatePlanet(ctx, tx, planetId)
 		if err != nil {
 			return models.SimulationStepResult{}, err
 		}
+
+		simulationCtx = *newPlanetStepContext(*planet, false, simulate)
 	}
 
-	simulationCtx := newSimulationStepContext(timestamp, planet, event, false, simulate)
+	result, err := simulationCtx.resolve(ctx, tx, timestamp)
+	if err != nil {
+		// There's no point in checking the error here: it is not logged
+		// and there's already an error pending.
+		// nolint:errcheck
+		tx.Rollback()
 
-	return executeSimulationStep(ctx, tx, simulationCtx)
+		return models.SimulationStepResult{}, err
+	}
+
+	return result, nil
 }
 
 func (s *SimulationStepExecutor) ExecuteForDelete(
@@ -120,17 +133,30 @@ func (s *SimulationStepExecutor) ExecuteForDelete(
 		return models.SimulationStepResult{}, err
 	}
 
-	var planet *models.Planet
-	if event == nil {
-		planet, err = loadAndLockForUpdatePlanet(ctx, tx, planetId)
+	var simulationCtx simulationStepContext
+
+	if event != nil {
+		simulationCtx = *newFleetStepContext(*event, simulate)
+	} else {
+		planet, err := loadAndLockForUpdatePlanet(ctx, tx, planetId)
 		if err != nil {
 			return models.SimulationStepResult{}, err
 		}
+
+		simulationCtx = *newPlanetStepContext(*planet, true, simulate)
 	}
 
-	simulationCtx := newSimulationStepContext(timestamp, planet, event, true, simulate)
+	result, err := simulationCtx.resolve(ctx, tx, timestamp)
+	if err != nil {
+		// There's no point in checking the error here: it is not logged
+		// and there's already an error pending.
+		// nolint:errcheck
+		tx.Rollback()
 
-	return executeSimulationStep(ctx, tx, simulationCtx)
+		return models.SimulationStepResult{}, err
+	}
+
+	return result, nil
 }
 
 func resolveNextFleetEvent(
@@ -214,27 +240,4 @@ func loadAndLockForUpdatePlanet(ctx context.Context, tx database.Transaction, pl
 	}
 
 	return &planet, nil
-}
-
-func executeSimulationStep(
-	ctx context.Context,
-	tx database.Transaction,
-	simulationCtx *simulationStepContext,
-) (models.SimulationStepResult, error) {
-	err := simulationCtx.resolve()
-	if err != nil {
-		// There's no point in checking the error here: it is not logged
-		// and there's already an error pending.
-		// nolint:errcheck
-		tx.Rollback()
-
-		return models.SimulationStepResult{}, err
-	}
-
-	out, err := simulationCtx.persist(ctx, tx)
-	if err != nil {
-		return models.SimulationStepResult{}, err
-	}
-
-	return out, nil
 }
