@@ -1707,7 +1707,7 @@ func TestIT_SimulationStepContext_Resolve_DeleteFleet(t *testing.T) {
 		resolver := generateFleetDeleter()
 
 		event := models.FleetEventContext{
-			Timestamp: t1,
+			Timestamp: fleet.Schedule.ArrivalAt,
 			Fleet:     fleet,
 			Planet:    nil,
 		}
@@ -1731,7 +1731,7 @@ func TestIT_SimulationStepContext_Resolve_DeleteFleet(t *testing.T) {
 		resolver := generateFleetDeleter()
 
 		event := models.FleetEventContext{
-			Timestamp: t1,
+			Timestamp: fleet.Schedule.ArrivalAt,
 			Fleet:     fleet,
 			Planet:    nil,
 		}
@@ -1757,7 +1757,7 @@ func TestIT_SimulationStepContext_Resolve_DeleteFleet(t *testing.T) {
 		resolver := generateFleetDeleter()
 
 		event := models.FleetEventContext{
-			Timestamp: t1,
+			Timestamp: fleet.Schedule.ArrivalAt,
 			Fleet:     fleet,
 			Planet:    nil,
 		}
