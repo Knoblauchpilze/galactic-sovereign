@@ -1697,6 +1697,82 @@ func TestIT_SimulationStepContext_Resolve_CreateFleet(t *testing.T) {
 	})
 }
 
+func TestIT_SimulationStepContext_Resolve_DeleteFleet(t *testing.T) {
+	t.Run("deletes fleet", func(t *testing.T) {
+		conn, tx := newTestConnectionAndTransaction(t)
+
+		planet, _, _ := insertTestPlanetForPlayer(t, conn)
+		fleet := insertTestFleet(t, conn, planet)
+
+		resolver := generateFleetDeleter()
+
+		event := models.FleetEventContext{
+			Timestamp: t1,
+			Fleet:     fleet,
+			Planet:    nil,
+		}
+		ctx := newFleetStepContext(event, resolver)
+
+		afterArrival := fleet.Schedule.ArrivalAt.Add(1 * time.Minute)
+		returned, err := ctx.resolve(t.Context(), tx, afterArrival)
+		require.NoError(t, err, "Actual err: %v", err)
+		tx.Close(t.Context())
+
+		require.Nil(t, returned.Fleet)
+		assertFleetDoesNotExist(t, conn, fleet.Id)
+	})
+
+	t.Run("deletes fleet with ships", func(t *testing.T) {
+		conn, tx := newTestConnectionAndTransaction(t)
+
+		planet, _, _ := insertTestPlanetForPlayer(t, conn)
+		fleet := insertTestFleet(t, conn, planet, addFleetShip)
+
+		resolver := generateFleetDeleter()
+
+		event := models.FleetEventContext{
+			Timestamp: t1,
+			Fleet:     fleet,
+			Planet:    nil,
+		}
+		ctx := newFleetStepContext(event, resolver)
+
+		afterArrival := fleet.Schedule.ArrivalAt.Add(1 * time.Minute)
+		returned, err := ctx.resolve(t.Context(), tx, afterArrival)
+		require.NoError(t, err, "Actual err: %v", err)
+		tx.Close(t.Context())
+
+		require.Nil(t, returned.Fleet)
+		assertFleetDoesNotExist(t, conn, fleet.Id)
+	})
+
+	t.Run("deletes fleet with target", func(t *testing.T) {
+		conn, tx := newTestConnectionAndTransaction(t)
+
+		planet, destination := insertTwoTestPlanets(t, conn)
+		fleet := insertTestFleet(t, conn, planet, addFleetShip)
+		fleet.Destination.Target = &destination.Id
+		upsertFleetDestination(t, conn, fleet)
+
+		resolver := generateFleetDeleter()
+
+		event := models.FleetEventContext{
+			Timestamp: t1,
+			Fleet:     fleet,
+			Planet:    nil,
+		}
+		ctx := newFleetStepContext(event, resolver)
+
+		afterArrival := fleet.Schedule.ArrivalAt.Add(1 * time.Minute)
+		returned, err := ctx.resolve(t.Context(), tx, afterArrival)
+		require.NoError(t, err, "Actual err: %v", err)
+		tx.Close(t.Context())
+
+		require.Nil(t, returned.Fleet)
+		assertFleetDoesNotExist(t, conn, fleet.Id)
+	})
+}
+
 func newTestConnectionAndTransaction(t *testing.T) (database.Connection, database.Transaction) {
 	t.Helper()
 
