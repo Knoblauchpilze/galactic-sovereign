@@ -1492,6 +1492,211 @@ func TestIT_SimulationStepContext_Resolve_SaveFleet(t *testing.T) {
 	})
 }
 
+func TestIT_SimulationStepContext_Resolve_CreateFleet(t *testing.T) {
+	t.Run("returns created fleet", func(t *testing.T) {
+		conn, tx := newTestConnectionAndTransaction(t)
+
+		planet, _, _ := insertTestPlanetForPlayer(t, conn)
+		fleet := generateSampleFleet(planet)
+
+		resolver := generateFleetCreator(fleet)
+
+		ctx := newPlanetStepContext(planet, false, resolver)
+		returned, err := ctx.resolve(t.Context(), tx, planet.UpdatedAt)
+		require.NoError(t, err, "Actual err: %v", err)
+		tx.Close(t.Context())
+
+		assert.Equal(t, &fleet, returned.Fleet)
+	})
+
+	t.Run("returns updated planet", func(t *testing.T) {
+		conn, tx := newTestConnectionAndTransaction(t)
+
+		planet, _, _ := insertTestPlanetForPlayer(t, conn)
+		fleet := generateSampleFleet(planet)
+
+		resolver := generateFleetCreator(fleet)
+
+		ctx := newPlanetStepContext(planet, false, resolver)
+		returned, err := ctx.resolve(t.Context(), tx, planet.UpdatedAt)
+		require.NoError(t, err, "Actual err: %v", err)
+		tx.Close(t.Context())
+
+		expected := planet
+		expected.Version++
+		assert.Equal(t, &expected, returned.Planet)
+	})
+
+	t.Run("persists created fleet", func(t *testing.T) {
+		conn, tx := newTestConnectionAndTransaction(t)
+
+		planet, _, _ := insertTestPlanetForPlayer(t, conn)
+		fleet := generateSampleFleet(planet)
+
+		resolver := generateFleetCreator(fleet)
+
+		ctx := newPlanetStepContext(planet, false, resolver)
+		_, err := ctx.resolve(t.Context(), tx, planet.UpdatedAt)
+		require.NoError(t, err, "Actual err: %v", err)
+		tx.Close(t.Context())
+
+		actual := loadFleetFromDb(t, conn, fleet.Id)
+		assert.Equal(t, fleet, actual)
+	})
+
+	t.Run("persists fleet event", func(t *testing.T) {
+		conn, tx := newTestConnectionAndTransaction(t)
+
+		planet, _, _ := insertTestPlanetForPlayer(t, conn)
+		fleet := generateSampleFleet(planet)
+
+		resolver := generateFleetCreator(fleet)
+
+		ctx := newPlanetStepContext(planet, false, resolver)
+		_, err := ctx.resolve(t.Context(), tx, planet.UpdatedAt)
+		require.NoError(t, err, "Actual err: %v", err)
+		tx.Close(t.Context())
+
+		assertFleetEventExists(t, conn, fleet.Id, fleet.Schedule.ArrivalAt)
+		assertFleetEventTypeMatches(t, conn, fleet.Id, models.ArrivalEvent)
+	})
+
+	t.Run("persists fleet with destination", func(t *testing.T) {
+		conn, tx := newTestConnectionAndTransaction(t)
+
+		planetA, planetB := insertTwoTestPlanets(t, conn)
+
+		fleet := generateSampleFleet(planetA)
+		fleet.Mission = models.MissionTransport
+		fleet.Destination.Target = &planetB.Id
+
+		resolver := generateFleetCreator(fleet)
+
+		ctx := newPlanetStepContext(planetA, false, resolver)
+		_, err := ctx.resolve(t.Context(), tx, planetA.UpdatedAt)
+		require.NoError(t, err, "Actual err: %v", err)
+		tx.Close(t.Context())
+
+		actual := loadFleetFromDb(t, conn, fleet.Id)
+		assert.Equal(t, fleet, actual)
+	})
+
+	t.Run("persists updated planet", func(t *testing.T) {
+		conn, tx := newTestConnectionAndTransaction(t)
+
+		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetShip)
+		fleet := generateSampleFleet(planet)
+
+		// Copying those as the slices in `newPlanetStepContext` are not copied.
+		// Using them after the resolve function has been called would lead to
+		// double increment.
+		initialFields := planet.Fields
+		initialVersion := planet.Version
+		initialShipCount := planet.Ships[0].Count
+
+		resolver := func(step models.SimulationStep) (models.SimulationStepResult, error) {
+			step.Planet.Fields++
+			step.Planet.Version++
+			step.Planet.Ships[0].Count++
+
+			result := models.SimulationStepResult{
+				Resolution: models.FleetCreated,
+				Planet:     step.Planet,
+				Fleet:      &fleet,
+			}
+
+			return result, nil
+		}
+
+		ctx := newPlanetStepContext(planet, false, resolver)
+		_, err := ctx.resolve(t.Context(), tx, planet.UpdatedAt)
+		require.NoError(t, err, "Actual err: %v", err)
+		tx.Close(t.Context())
+
+		actual := loadPlanetFromDb(t, conn, planet.Id)
+		expected := planet
+		expected.Fields = initialFields + 1
+		expected.Version = initialVersion + 1
+		expected.Ships[0].Count = initialShipCount + 1
+		assert.Equal(t, expected, actual)
+	})
+
+	t.Run("returns error when fleet source does not exist", func(t *testing.T) {
+		conn, tx := newTestConnectionAndTransaction(t)
+
+		planet, _, _ := insertTestPlanetForPlayer(t, conn)
+		fleet := generateSampleFleet(planet)
+		fleet.Source = uuid.New()
+
+		resolver := func(step models.SimulationStep) (models.SimulationStepResult, error) {
+			var planet *models.Planet
+			if step.Planet != nil {
+				planet = new(*step.Planet)
+				planet.Version++
+			}
+
+			result := models.SimulationStepResult{
+				Resolution: models.FleetCreated,
+				Planet:     planet,
+				Fleet:      &fleet,
+			}
+
+			return result, nil
+		}
+
+		ctx := newPlanetStepContext(planet, false, resolver)
+		_, err := ctx.resolve(t.Context(), tx, planet.UpdatedAt)
+		tx.Close(t.Context())
+
+		assert.ErrorIs(t, err, domainerrors.ErrPlanetNotFound, "Actual err: %v", err)
+		assertFleetDoesNotExist(t, conn, fleet.Id)
+	})
+
+	t.Run("returns error when fleet destination does not exist", func(t *testing.T) {
+		conn, tx := newTestConnectionAndTransaction(t)
+
+		planetA, _, _ := insertTestPlanetForPlayer(t, conn)
+
+		fleet := generateSampleFleet(planetA)
+		fleet.Mission = models.MissionTransport
+		fakePlanetId := uuid.New()
+		fleet.Destination.Target = &fakePlanetId
+
+		resolver := generateFleetCreator(fleet)
+
+		ctx := newPlanetStepContext(planetA, false, resolver)
+		_, err := ctx.resolve(t.Context(), tx, planetA.UpdatedAt)
+		tx.Close(t.Context())
+
+		assert.ErrorIs(t, err, domainerrors.ErrFleetDestinationInvalid, "Actual err: %v", err)
+		assertFleetDoesNotExist(t, conn, fleet.Id)
+	})
+
+	t.Run("returns error when planet version is not bumped", func(t *testing.T) {
+		conn, tx := newTestConnectionAndTransaction(t)
+
+		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetShip)
+		fleet := generateSampleFleet(planet)
+
+		resolver := func(step models.SimulationStep) (models.SimulationStepResult, error) {
+			result := models.SimulationStepResult{
+				Resolution: models.FleetCreated,
+				Planet:     step.Planet,
+				Fleet:      &fleet,
+			}
+
+			return result, nil
+		}
+
+		ctx := newPlanetStepContext(planet, false, resolver)
+		_, err := ctx.resolve(t.Context(), tx, planet.UpdatedAt)
+		tx.Close(t.Context())
+
+		assert.ErrorIs(t, err, domainerrors.ErrMutationWithoutVersionBump, "Actual err: %v", err)
+		assertFleetDoesNotExist(t, conn, fleet.Id)
+	})
+}
+
 func newTestConnectionAndTransaction(t *testing.T) (database.Connection, database.Transaction) {
 	t.Helper()
 

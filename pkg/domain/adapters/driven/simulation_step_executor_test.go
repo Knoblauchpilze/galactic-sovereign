@@ -1505,6 +1505,7 @@ func TestIT_SimulationStepExecutor_Execute_SaveFleet(t *testing.T) {
 	})
 }
 
+// TODO: Remove this block
 func TestIT_SimulationStepExecutor_Execute_CreateFleet(t *testing.T) {
 	t.Run("returns created fleet", func(t *testing.T) {
 		adapter, conn := newTestSimulationStepExecutor(t)
