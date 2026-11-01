@@ -1072,6 +1072,38 @@ func TestIT_SimulationStepExecutor_Execute_ActionCreationDeletionWorkflow(t *tes
 	assertBuildingActionDoesNotExist(t, conn, action.Id)
 }
 
+func TestIT_SimulationStepExecutor_Execute_Atomicity(t *testing.T) {
+	t.Run("rolls back planet update when fleet creation fails", func(t *testing.T) {
+		adapter, conn := newTestSimulationStepExecutor(t)
+		planet, _, _ := insertTestPlanetForPlayer(t, conn)
+
+		fleet := generateSampleFleet(planet)
+		fleet.Source = uuid.New() // Nonexistent source.
+
+		resolver := func(step models.SimulationStep) (models.SimulationStepResult, error) {
+			step.Planet.Fields++
+			step.Planet.Version++
+
+			return models.SimulationStepResult{
+				Resolution: models.FleetCreated,
+				Planet:     step.Planet,
+				Fleet:      &fleet,
+			}, nil
+		}
+
+		result, err := adapter.Execute(
+			t.Context(), planet.Id, planet.UpdatedAt, resolver,
+		)
+
+		assert.ErrorIs(t, err, domainerrors.ErrPlanetNotFound)
+		assert.Equal(t, models.SimulationStepResult{}, result)
+
+		actual := loadPlanetFromDb(t, conn, planet.Id)
+		assert.Equal(t, planet, actual)
+		assertFleetDoesNotExist(t, conn, fleet.Id)
+	})
+}
+
 func newTestSimulationStepExecutor(t *testing.T) (*SimulationStepExecutor, database.Connection) {
 	t.Helper()
 	conn := newTestConnection(t)
