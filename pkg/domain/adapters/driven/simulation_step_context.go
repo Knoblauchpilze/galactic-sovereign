@@ -72,6 +72,10 @@ func (c *simulationStepContext) resolve(
 	if !c.allowPlanetDeletion && result.Resolution == models.PlanetDeleted {
 		return models.SimulationStepResult{}, domainerrors.ErrInvalidSimulationStepResult
 	}
+	// Reject planet update when fleet event is available
+	if c.nextFleetEvent != nil && result.Resolution == models.PlanetUpdated {
+		return models.SimulationStepResult{}, domainerrors.ErrInvalidSimulationStepResult
+	}
 
 	planet, err := c.persistPlanet(ctx, tx, result)
 	if err != nil {

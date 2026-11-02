@@ -2,6 +2,7 @@ package drivenadapters
 
 import (
 	"context"
+	"errors"
 	"math/rand"
 	"sync"
 	"testing"
@@ -553,6 +554,60 @@ func TestIT_SimulationStepExecutor_ExecuteForDelete_LoadFleetBehavior(t *testing
 		assert.Equal(t, expectedResult, actual)
 	})
 
+	t.Run("loads fleet event for returning fleet with destination", func(t *testing.T) {
+		adapter, conn := newTestSimulationStepExecutor(t)
+
+		planet, destination := insertTwoTestPlanets(t, conn)
+		fleet := insertTestFleet(t, conn, planet, addFleetShip)
+		fleet.Schedule.Status = models.StatusReturning
+		upsertFleetSchedule(t, conn, fleet)
+		fleet.Destination.Target = &destination.Id
+		upsertFleetDestination(t, conn, fleet)
+
+		var captured models.SimulationStep
+		simulate := func(step models.SimulationStep) (models.SimulationStepResult, error) {
+			captured = step
+
+			planet := new(*step.NextFleetEvent.Planet)
+			planet.Version++
+
+			fleet := new(step.NextFleetEvent.Fleet)
+			fleet.Version++
+
+			result := models.SimulationStepResult{
+				Resolution: models.FleetEventResolved,
+				Planet:     planet,
+				Fleet:      fleet,
+			}
+
+			return result, nil
+		}
+
+		afterReturn := fleet.Schedule.ReturnAt.Add(1 * time.Minute)
+
+		actual, err := adapter.ExecuteForDelete(t.Context(), planet.Id, afterReturn, simulate)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		expectedStep := models.SimulationStep{
+			Timestamp: afterReturn,
+			Planet:    nil,
+			NextFleetEvent: &models.FleetEventContext{
+				Timestamp: fleet.Schedule.ReturnAt,
+				Fleet:     fleet,
+				Planet:    &planet,
+			},
+		}
+		assert.Equal(t, expectedStep, captured)
+		expectedResult := models.SimulationStepResult{
+			Resolution: models.FleetEventResolved,
+			Planet:     &planet,
+			Fleet:      &fleet,
+		}
+		expectedResult.Planet.Version++
+		expectedResult.Fleet.Version++
+		assert.Equal(t, expectedResult, actual)
+	})
+
 	t.Run("does not load fleet event when planet is not from the same universe", func(t *testing.T) {
 		adapter, conn := newTestSimulationStepExecutor(t)
 
@@ -604,6 +659,445 @@ func TestIT_SimulationStepExecutor_ExecuteForDelete_LoadFleetBehavior(t *testing
 		expectedResult.Planet.Version++
 		assert.Equal(t, expectedResult, actual)
 	})
+}
+
+func TestIT_SimulationStepExecutor_FleetBehavior(t *testing.T) {
+	executors := []struct {
+		name    string
+		execute func(
+			*SimulationStepExecutor,
+			context.Context,
+			uuid.UUID,
+			time.Time,
+			models.SimulationStepResolver,
+		) (models.SimulationStepResult, error)
+	}{
+		{"Execute", (*SimulationStepExecutor).Execute},
+		{"ExecuteForDelete", (*SimulationStepExecutor).ExecuteForDelete},
+	}
+
+	for _, executor := range executors {
+		t.Run(executor.name, func(t *testing.T) {
+			t.Run("resolves fleet event when available", func(t *testing.T) {
+				adapter, conn := newTestSimulationStepExecutor(t)
+
+				planet, _, _ := insertTestPlanetForPlayer(t, conn)
+				fleet := insertTestFleet(t, conn, planet, addFleetShip)
+
+				var captured models.SimulationStep
+				simulate := func(step models.SimulationStep) (models.SimulationStepResult, error) {
+					captured = step
+
+					fleet := new(step.NextFleetEvent.Fleet)
+					fleet.Version++
+
+					result := models.SimulationStepResult{
+						Resolution: models.FleetEventResolved,
+						Planet:     nil,
+						Fleet:      fleet,
+					}
+
+					return result, nil
+				}
+
+				afterArrival := fleet.Schedule.ArrivalAt.Add(1 * time.Minute)
+
+				actual, err := executor.execute(adapter, t.Context(), planet.Id, afterArrival, simulate)
+				require.NoError(t, err, "Actual err: %v", err)
+
+				expectedStep := models.SimulationStep{
+					Timestamp: afterArrival,
+					Planet:    nil,
+					NextFleetEvent: &models.FleetEventContext{
+						Timestamp: fleet.Schedule.ArrivalAt,
+						Fleet:     fleet,
+						Planet:    nil,
+					},
+				}
+				assert.Equal(t, expectedStep, captured)
+				expectedResult := models.SimulationStepResult{
+					Resolution: models.FleetEventResolved,
+					Planet:     nil,
+					Fleet:      &fleet,
+				}
+				expectedResult.Fleet.Version++
+				assert.Equal(t, expectedResult, actual)
+			})
+
+			t.Run("resolves fleet event with destination planet when available", func(t *testing.T) {
+				adapter, conn := newTestSimulationStepExecutor(t)
+
+				planet, destination := insertTwoTestPlanets(t, conn)
+				fleet := insertTestFleet(t, conn, planet, addFleetShip)
+				fleet.Destination.Target = &destination.Id
+				upsertFleetDestination(t, conn, fleet)
+
+				var captured models.SimulationStep
+				simulate := func(step models.SimulationStep) (models.SimulationStepResult, error) {
+					captured = step
+
+					fleet := new(step.NextFleetEvent.Fleet)
+					fleet.Version++
+
+					planet := new(*step.NextFleetEvent.Planet)
+					planet.Version++
+
+					result := models.SimulationStepResult{
+						Resolution: models.FleetEventResolved,
+						Planet:     planet,
+						Fleet:      fleet,
+					}
+
+					return result, nil
+				}
+
+				afterArrival := fleet.Schedule.ArrivalAt.Add(1 * time.Minute)
+
+				actual, err := executor.execute(adapter, t.Context(), planet.Id, afterArrival, simulate)
+				require.NoError(t, err, "Actual err: %v", err)
+
+				expectedStep := models.SimulationStep{
+					Timestamp: afterArrival,
+					Planet:    nil,
+					NextFleetEvent: &models.FleetEventContext{
+						Timestamp: fleet.Schedule.ArrivalAt,
+						Fleet:     fleet,
+						Planet:    &destination,
+					},
+				}
+				assert.Equal(t, expectedStep, captured)
+				expectedResult := models.SimulationStepResult{
+					Resolution: models.FleetEventResolved,
+					Planet:     &destination,
+					Fleet:      &fleet,
+				}
+				expectedResult.Fleet.Version++
+				expectedResult.Planet.Version++
+				assert.Equal(t, expectedResult, actual)
+			})
+
+			t.Run("resolves earliest fleet event when multiple are available", func(t *testing.T) {
+				adapter, conn := newTestSimulationStepExecutor(t)
+
+				planet, _, _ := insertTestPlanetForPlayer(t, conn)
+				fleetA := insertTestFleet(t, conn, planet)
+				fleetB := insertTestFleet(t, conn, planet)
+				fleetA.Schedule.ArrivalAt = fleetB.Schedule.ArrivalAt.Add(time.Minute)
+				upsertFleetSchedule(t, conn, fleetA)
+
+				var captured models.SimulationStep
+				simulate := func(step models.SimulationStep) (models.SimulationStepResult, error) {
+					captured = step
+
+					fleet := new(step.NextFleetEvent.Fleet)
+					fleet.Version++
+
+					result := models.SimulationStepResult{
+						Resolution: models.FleetEventResolved,
+						Planet:     nil,
+						Fleet:      fleet,
+					}
+
+					return result, nil
+				}
+
+				afterArrival := fleetA.Schedule.ArrivalAt.Add(1 * time.Minute)
+
+				actual, err := executor.execute(adapter, t.Context(), planet.Id, afterArrival, simulate)
+				require.NoError(t, err, "Actual err: %v", err)
+
+				expectedStep := models.SimulationStep{
+					Timestamp: afterArrival,
+					Planet:    nil,
+					NextFleetEvent: &models.FleetEventContext{
+						Timestamp: fleetB.Schedule.ArrivalAt,
+						Fleet:     fleetB,
+						Planet:    nil,
+					},
+				}
+				assert.Equal(t, expectedStep, captured)
+				expectedResult := models.SimulationStepResult{
+					Resolution: models.FleetEventResolved,
+					Planet:     nil,
+					Fleet:      &fleetB,
+				}
+				expectedResult.Fleet.Version++
+				assert.Equal(t, expectedResult, actual)
+			})
+
+			t.Run("does not resolve future fleet event", func(t *testing.T) {
+				adapter, conn := newTestSimulationStepExecutor(t)
+
+				planet, _, _ := insertTestPlanetForPlayer(t, conn)
+				fleet := insertTestFleet(t, conn, planet)
+
+				var captured models.SimulationStep
+				simulate := func(step models.SimulationStep) (models.SimulationStepResult, error) {
+					captured = step
+
+					planet := new(*step.Planet)
+					planet.Version++
+
+					result := models.SimulationStepResult{
+						Resolution: models.PlanetUpdated,
+						Planet:     planet,
+						Fleet:      nil,
+					}
+
+					return result, nil
+				}
+
+				beforeArrival := fleet.Schedule.ArrivalAt.Add(-1 * time.Minute)
+
+				actual, err := executor.execute(adapter, t.Context(), planet.Id, beforeArrival, simulate)
+				require.NoError(t, err, "Actual err: %v", err)
+
+				expectedStep := models.SimulationStep{
+					Timestamp:      beforeArrival,
+					Planet:         &planet,
+					NextFleetEvent: nil,
+				}
+				assert.Equal(t, expectedStep, captured)
+				expectedResult := models.SimulationStepResult{
+					Resolution: models.PlanetUpdated,
+					Planet:     &planet,
+					Fleet:      nil,
+				}
+				expectedResult.Planet.Version++
+				assert.Equal(t, expectedResult, actual)
+			})
+
+			t.Run("does not resolve fleet event in another universe", func(t *testing.T) {
+				adapter, conn := newTestSimulationStepExecutor(t)
+
+				planetA, _, universeA := insertTestPlanetForPlayer(t, conn)
+				planetB, _, universeB := insertTestPlanetForPlayer(t, conn)
+				require.NotEqual(t, universeA.Id, universeB.Id)
+				fleetA := insertTestFleet(t, conn, planetA)
+
+				var captured models.SimulationStep
+				simulate := func(step models.SimulationStep) (models.SimulationStepResult, error) {
+					captured = step
+
+					planet := new(*step.Planet)
+					planet.Version++
+
+					result := models.SimulationStepResult{
+						Resolution: models.PlanetUpdated,
+						Planet:     planet,
+						Fleet:      nil,
+					}
+
+					return result, nil
+				}
+
+				afterArrival := fleetA.Schedule.ArrivalAt.Add(time.Minute)
+
+				actual, err := executor.execute(adapter, t.Context(), planetB.Id, afterArrival, simulate)
+				require.NoError(t, err, "Actual err: %v", err)
+
+				expectedStep := models.SimulationStep{
+					Timestamp:      afterArrival,
+					Planet:         &planetB,
+					NextFleetEvent: nil,
+				}
+				assert.Equal(t, expectedStep, captured)
+				expectedResult := models.SimulationStepResult{
+					Resolution: models.PlanetUpdated,
+					Planet:     &planetB,
+					Fleet:      nil,
+				}
+				expectedResult.Planet.Version++
+				assert.Equal(t, expectedResult, actual)
+			})
+
+			t.Run("resolves fleet event exactly at selected timestamp", func(t *testing.T) {
+				adapter, conn := newTestSimulationStepExecutor(t)
+
+				planet, _, _ := insertTestPlanetForPlayer(t, conn)
+				fleet := insertTestFleet(t, conn, planet)
+
+				var captured models.SimulationStep
+				simulate := func(step models.SimulationStep) (models.SimulationStepResult, error) {
+					captured = step
+
+					fleet := new(step.NextFleetEvent.Fleet)
+					fleet.Version++
+
+					result := models.SimulationStepResult{
+						Resolution: models.FleetEventResolved,
+						Planet:     nil,
+						Fleet:      fleet,
+					}
+
+					return result, nil
+				}
+
+				atArrival := fleet.Schedule.ArrivalAt
+
+				actual, err := executor.execute(adapter, t.Context(), planet.Id, fleet.Schedule.ArrivalAt, simulate)
+				require.NoError(t, err, "Actual err: %v", err)
+
+				expectedStep := models.SimulationStep{
+					Timestamp: atArrival,
+					Planet:    nil,
+					NextFleetEvent: &models.FleetEventContext{
+						Timestamp: fleet.Schedule.ArrivalAt,
+						Fleet:     fleet,
+						Planet:    nil,
+					},
+				}
+				assert.Equal(t, expectedStep, captured)
+				expectedResult := models.SimulationStepResult{
+					Resolution: models.FleetEventResolved,
+					Planet:     nil,
+					Fleet:      &fleet,
+				}
+				expectedResult.Fleet.Version++
+				assert.Equal(t, expectedResult, actual)
+			})
+
+			t.Run("returns error when planet does not exist", func(t *testing.T) {
+				adapter, _ := newTestSimulationStepExecutor(t)
+
+				var called int
+				simulate := func(step models.SimulationStep) (models.SimulationStepResult, error) {
+					called++
+					return models.SimulationStepResult{}, errors.New("should not happen!!")
+				}
+
+				_, err := executor.execute(adapter, t.Context(), uuid.New(), t2, simulate)
+				assert.ErrorIs(t, err, domainerrors.ErrNotFound, "Actual err: %v", err)
+
+				assert.Zero(t, called)
+			})
+
+			t.Run("does not persist changes to fleet when resolver returns error", func(t *testing.T) {
+				adapter, conn := newTestSimulationStepExecutor(t)
+
+				planet, _, _ := insertTestPlanetForPlayer(t, conn)
+				fleet := insertTestFleet(t, conn, planet)
+				initialVersion := fleet.Version
+
+				errSample := errors.New("stubbed error")
+				var captured models.SimulationStep
+				simulate := func(step models.SimulationStep) (models.SimulationStepResult, error) {
+					captured = step
+
+					fleet := new(step.NextFleetEvent.Fleet)
+					fleet.Version++
+
+					result := models.SimulationStepResult{
+						Resolution: models.FleetEventResolved,
+						Planet:     nil,
+						Fleet:      fleet,
+					}
+
+					return result, errSample
+				}
+
+				afterArrival := fleet.Schedule.ArrivalAt.Add(1 * time.Minute)
+
+				_, err := executor.execute(adapter, t.Context(), planet.Id, afterArrival, simulate)
+				assert.ErrorIs(t, err, errSample, "Actual err: %v", err)
+
+				expectedStep := models.SimulationStep{
+					Timestamp: afterArrival,
+					Planet:    nil,
+					NextFleetEvent: &models.FleetEventContext{
+						Timestamp: fleet.Schedule.ArrivalAt,
+						Fleet:     fleet,
+						Planet:    nil,
+					},
+				}
+				assert.Equal(t, expectedStep, captured)
+				actual := loadFleetFromDb(t, conn, fleet.Id)
+				assert.Equal(t, initialVersion, actual.Version)
+			})
+
+			t.Run("returns error when resolver reports planet updated with a fleet event", func(t *testing.T) {
+				adapter, conn := newTestSimulationStepExecutor(t)
+
+				planet, destination := insertTwoTestPlanets(t, conn)
+				fleet := insertTestFleet(t, conn, planet, addFleetShip)
+				fleet.Destination.Target = &destination.Id
+				upsertFleetDestination(t, conn, fleet)
+
+				var captured models.SimulationStep
+				simulate := func(step models.SimulationStep) (models.SimulationStepResult, error) {
+					captured = step
+
+					planet := new(*step.NextFleetEvent.Planet)
+					planet.Version++
+
+					result := models.SimulationStepResult{
+						Resolution: models.PlanetUpdated,
+						Planet:     planet,
+						Fleet:      nil,
+					}
+
+					return result, nil
+				}
+
+				afterArrival := fleet.Schedule.ArrivalAt.Add(1 * time.Minute)
+
+				_, err := executor.execute(adapter, t.Context(), planet.Id, afterArrival, simulate)
+
+				assert.ErrorIs(t, err, domainerrors.ErrInvalidSimulationStepResult, "Actual err: %v", err)
+				expectedStep := models.SimulationStep{
+					Timestamp: afterArrival,
+					Planet:    nil,
+					NextFleetEvent: &models.FleetEventContext{
+						Timestamp: fleet.Schedule.ArrivalAt,
+						Fleet:     fleet,
+						Planet:    &destination,
+					},
+				}
+				assert.Equal(t, expectedStep, captured)
+			})
+
+			t.Run("returns error when resolver reports planet deleted with a fleet event", func(t *testing.T) {
+				adapter, conn := newTestSimulationStepExecutor(t)
+
+				planet, destination := insertTwoTestPlanets(t, conn)
+				fleet := insertTestFleet(t, conn, planet, addFleetShip)
+				fleet.Destination.Target = &destination.Id
+				upsertFleetDestination(t, conn, fleet)
+
+				var captured models.SimulationStep
+				simulate := func(step models.SimulationStep) (models.SimulationStepResult, error) {
+					captured = step
+
+					planet := new(*step.NextFleetEvent.Planet)
+					planet.Version++
+
+					result := models.SimulationStepResult{
+						Resolution: models.PlanetDeleted,
+						Planet:     planet,
+						Fleet:      nil,
+					}
+
+					return result, nil
+				}
+
+				afterArrival := fleet.Schedule.ArrivalAt.Add(1 * time.Minute)
+
+				_, err := executor.execute(adapter, t.Context(), planet.Id, afterArrival, simulate)
+
+				assert.ErrorIs(t, err, domainerrors.ErrInvalidSimulationStepResult, "Actual err: %v", err)
+				expectedStep := models.SimulationStep{
+					Timestamp: afterArrival,
+					Planet:    nil,
+					NextFleetEvent: &models.FleetEventContext{
+						Timestamp: fleet.Schedule.ArrivalAt,
+						Fleet:     fleet,
+						Planet:    &destination,
+					},
+				}
+				assert.Equal(t, expectedStep, captured)
+			})
+		})
+	}
 }
 
 func TestIT_SimulationStepExecutor_Execute_Concurrency(t *testing.T) {
