@@ -873,48 +873,6 @@ func TestIT_SimulationStepExecutor_FleetBehavior(t *testing.T) {
 				assert.Equal(t, expectedResult, actual)
 			})
 
-			t.Run("does not resolve future fleet event", func(t *testing.T) {
-				adapter, conn := newTestSimulationStepExecutor(t)
-
-				planet, _, _ := insertTestPlanetForPlayer(t, conn)
-				fleet := insertTestFleet(t, conn, planet)
-
-				var captured models.SimulationStep
-				simulate := func(step models.SimulationStep) (models.SimulationStepResult, error) {
-					captured = step
-
-					planet := new(*step.Planet)
-					planet.Version++
-
-					result := models.SimulationStepResult{
-						Resolution: models.PlanetUpdated,
-						Planet:     planet,
-						Fleet:      nil,
-					}
-
-					return result, nil
-				}
-
-				beforeArrival := fleet.Schedule.ArrivalAt.Add(-1 * time.Minute)
-
-				actual, err := executor.execute(adapter, t.Context(), planet.Id, beforeArrival, simulate)
-				require.NoError(t, err, "Actual err: %v", err)
-
-				expectedStep := models.SimulationStep{
-					Timestamp:      beforeArrival,
-					Planet:         &planet,
-					NextFleetEvent: nil,
-				}
-				assert.Equal(t, expectedStep, captured)
-				expectedResult := models.SimulationStepResult{
-					Resolution: models.PlanetUpdated,
-					Planet:     &planet,
-					Fleet:      nil,
-				}
-				expectedResult.Planet.Version++
-				assert.Equal(t, expectedResult, actual)
-			})
-
 			t.Run("does not resolve fleet event in another universe", func(t *testing.T) {
 				adapter, conn := newTestSimulationStepExecutor(t)
 
@@ -1146,6 +1104,86 @@ func TestIT_SimulationStepExecutor_FleetBehavior(t *testing.T) {
 			})
 		})
 	}
+
+	t.Run("does not resolve future fleet event when execute is called", func(t *testing.T) {
+		adapter, conn := newTestSimulationStepExecutor(t)
+
+		planet, _, _ := insertTestPlanetForPlayer(t, conn)
+		fleet := insertTestFleet(t, conn, planet)
+
+		var captured models.SimulationStep
+		simulate := func(step models.SimulationStep) (models.SimulationStepResult, error) {
+			captured = step
+
+			planet := new(*step.Planet)
+			planet.Version++
+
+			result := models.SimulationStepResult{
+				Resolution: models.PlanetUpdated,
+				Planet:     planet,
+				Fleet:      nil,
+			}
+
+			return result, nil
+		}
+
+		beforeArrival := fleet.Schedule.ArrivalAt.Add(-1 * time.Minute)
+
+		actual, err := adapter.Execute(t.Context(), planet.Id, beforeArrival, simulate)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		expectedStep := models.SimulationStep{
+			Timestamp:      beforeArrival,
+			Planet:         &planet,
+			NextFleetEvent: nil,
+		}
+		assert.Equal(t, expectedStep, captured)
+		expectedResult := models.SimulationStepResult{
+			Resolution: models.PlanetUpdated,
+			Planet:     &planet,
+			Fleet:      nil,
+		}
+		expectedResult.Planet.Version++
+		assert.Equal(t, expectedResult, actual)
+	})
+
+	t.Run("does not resolve future fleet event when execute for delete is called", func(t *testing.T) {
+		adapter, conn := newTestSimulationStepExecutor(t)
+
+		planet, _, _ := insertTestPlanetForPlayer(t, conn)
+		fleet := insertTestFleet(t, conn, planet)
+
+		var captured models.SimulationStep
+		simulate := func(step models.SimulationStep) (models.SimulationStepResult, error) {
+			captured = step
+
+			result := models.SimulationStepResult{
+				Resolution: models.PlanetDeleted,
+				Planet:     nil,
+				Fleet:      nil,
+			}
+
+			return result, nil
+		}
+
+		beforeArrival := fleet.Schedule.ArrivalAt.Add(-1 * time.Minute)
+
+		actual, err := adapter.ExecuteForDelete(t.Context(), planet.Id, beforeArrival, simulate)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		expectedStep := models.SimulationStep{
+			Timestamp:      beforeArrival,
+			Planet:         &planet,
+			NextFleetEvent: nil,
+		}
+		assert.Equal(t, expectedStep, captured)
+		expectedResult := models.SimulationStepResult{
+			Resolution: models.PlanetDeleted,
+			Planet:     nil,
+			Fleet:      nil,
+		}
+		assert.Equal(t, expectedResult, actual)
+	})
 }
 
 func TestIT_SimulationStepExecutor_Execute_Concurrency(t *testing.T) {
