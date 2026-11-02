@@ -680,13 +680,9 @@ func TestIT_SimulationStepExecutor_ExecuteForDelete_LoadFleetBehavior(t *testing
 		simulate := func(step models.SimulationStep) (models.SimulationStepResult, error) {
 			captured = step
 
-			planet := new(*step.Planet)
-			planet.Fields++
-			planet.Version++
-
 			result := models.SimulationStepResult{
-				Resolution: models.PlanetUpdated,
-				Planet:     planet,
+				Resolution: models.PlanetDeleted,
+				Planet:     nil,
 				Fleet:      nil,
 			}
 
@@ -705,12 +701,10 @@ func TestIT_SimulationStepExecutor_ExecuteForDelete_LoadFleetBehavior(t *testing
 		}
 		assert.Equal(t, expectedStep, captured)
 		expectedResult := models.SimulationStepResult{
-			Resolution: models.PlanetUpdated,
-			Planet:     &planet1,
+			Resolution: models.PlanetDeleted,
+			Planet:     nil,
 			Fleet:      nil,
 		}
-		expectedResult.Planet.Fields++
-		expectedResult.Planet.Version++
 		assert.Equal(t, expectedResult, actual)
 	})
 }

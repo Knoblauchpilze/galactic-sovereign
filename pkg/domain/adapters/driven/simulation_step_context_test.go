@@ -136,6 +136,74 @@ func TestUnit_SimulationStepContext_Resolve(t *testing.T) {
 		assert.ErrorIs(t, err, domainerrors.ErrInvalidSimulationStepResult, "Actual err: %v", err)
 	})
 
+	t.Run("returns error when resolver requests planet update and planet deletion is allowed", func(t *testing.T) {
+		planet := models.Planet{
+			Id:      uuid.New(),
+			Version: 3,
+		}
+
+		result := models.SimulationStepResult{
+			Resolution: models.PlanetUpdated,
+			Planet:     new(planet),
+			Fleet:      nil,
+		}
+
+		resolver, _ := generateCapturingResolver(result)
+
+		ctx := newPlanetStepContext(planet, true, resolver)
+
+		_, err := ctx.resolve(t.Context(), nil, t2)
+
+		assert.ErrorIs(t, err, domainerrors.ErrInvalidSimulationStepResult, "Actual err: %v", err)
+	})
+
+	t.Run("returns error when resolver requests fleet creation and planet deletion is allowed", func(t *testing.T) {
+		planet := models.Planet{
+			Id:      uuid.New(),
+			Player:  uuid.New(),
+			Version: 3,
+		}
+
+		result := models.SimulationStepResult{
+			Resolution: models.FleetCreated,
+			Planet:     new(planet),
+			Fleet: &models.Fleet{
+				Id:     uuid.New(),
+				Player: planet.Player,
+				Source: planet.Id,
+			},
+		}
+
+		resolver, _ := generateCapturingResolver(result)
+
+		ctx := newPlanetStepContext(planet, true, resolver)
+
+		_, err := ctx.resolve(t.Context(), nil, t2)
+
+		assert.ErrorIs(t, err, domainerrors.ErrInvalidSimulationStepResult, "Actual err: %v", err)
+	})
+
+	t.Run("returns error when resolver requests fleet deletion and planet deletion is allowed", func(t *testing.T) {
+		planet := models.Planet{
+			Id:      uuid.New(),
+			Version: 3,
+		}
+
+		result := models.SimulationStepResult{
+			Resolution: models.FleetDeleted,
+			Planet:     new(planet),
+			Fleet:      nil,
+		}
+
+		resolver, _ := generateCapturingResolver(result)
+
+		ctx := newPlanetStepContext(planet, true, resolver)
+
+		_, err := ctx.resolve(t.Context(), nil, t2)
+
+		assert.ErrorIs(t, err, domainerrors.ErrInvalidSimulationStepResult, "Actual err: %v", err)
+	})
+
 	t.Run("returns error when resolver requests planet deletion for a fleet event", func(t *testing.T) {
 		event := models.FleetEventContext{
 			Timestamp: someTime,
@@ -193,11 +261,10 @@ func TestIT_SimulationStepContext_Resolve(t *testing.T) {
 		planet, _, _ := insertTestPlanetForPlayer(t, conn)
 
 		result := models.SimulationStepResult{
-			Resolution: models.PlanetUpdated,
-			Planet:     new(planet),
+			Resolution: models.PlanetDeleted,
+			Planet:     nil,
 			Fleet:      nil,
 		}
-		result.Planet.Version++
 
 		resolver, captor := generateCapturingResolver(result)
 
