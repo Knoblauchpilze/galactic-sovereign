@@ -873,50 +873,6 @@ func TestIT_SimulationStepExecutor_FleetBehavior(t *testing.T) {
 				assert.Equal(t, expectedResult, actual)
 			})
 
-			t.Run("does not resolve fleet event in another universe", func(t *testing.T) {
-				adapter, conn := newTestSimulationStepExecutor(t)
-
-				planetA, _, universeA := insertTestPlanetForPlayer(t, conn)
-				planetB, _, universeB := insertTestPlanetForPlayer(t, conn)
-				require.NotEqual(t, universeA.Id, universeB.Id)
-				fleetA := insertTestFleet(t, conn, planetA)
-
-				var captured models.SimulationStep
-				simulate := func(step models.SimulationStep) (models.SimulationStepResult, error) {
-					captured = step
-
-					planet := new(*step.Planet)
-					planet.Version++
-
-					result := models.SimulationStepResult{
-						Resolution: models.PlanetUpdated,
-						Planet:     planet,
-						Fleet:      nil,
-					}
-
-					return result, nil
-				}
-
-				afterArrival := fleetA.Schedule.ArrivalAt.Add(time.Minute)
-
-				actual, err := executor.execute(adapter, t.Context(), planetB.Id, afterArrival, simulate)
-				require.NoError(t, err, "Actual err: %v", err)
-
-				expectedStep := models.SimulationStep{
-					Timestamp:      afterArrival,
-					Planet:         &planetB,
-					NextFleetEvent: nil,
-				}
-				assert.Equal(t, expectedStep, captured)
-				expectedResult := models.SimulationStepResult{
-					Resolution: models.PlanetUpdated,
-					Planet:     &planetB,
-					Fleet:      nil,
-				}
-				expectedResult.Planet.Version++
-				assert.Equal(t, expectedResult, actual)
-			})
-
 			t.Run("resolves fleet event exactly at selected timestamp", func(t *testing.T) {
 				adapter, conn := newTestSimulationStepExecutor(t)
 
@@ -1104,6 +1060,90 @@ func TestIT_SimulationStepExecutor_FleetBehavior(t *testing.T) {
 			})
 		})
 	}
+
+	t.Run("does not resolve fleet event in another universe when execute is called", func(t *testing.T) {
+		adapter, conn := newTestSimulationStepExecutor(t)
+
+		planetA, _, universeA := insertTestPlanetForPlayer(t, conn)
+		planetB, _, universeB := insertTestPlanetForPlayer(t, conn)
+		require.NotEqual(t, universeA.Id, universeB.Id)
+		fleetA := insertTestFleet(t, conn, planetA)
+
+		var captured models.SimulationStep
+		simulate := func(step models.SimulationStep) (models.SimulationStepResult, error) {
+			captured = step
+
+			planet := new(*step.Planet)
+			planet.Version++
+
+			result := models.SimulationStepResult{
+				Resolution: models.PlanetUpdated,
+				Planet:     planet,
+				Fleet:      nil,
+			}
+
+			return result, nil
+		}
+
+		afterArrival := fleetA.Schedule.ArrivalAt.Add(time.Minute)
+
+		actual, err := adapter.Execute(t.Context(), planetB.Id, afterArrival, simulate)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		expectedStep := models.SimulationStep{
+			Timestamp:      afterArrival,
+			Planet:         &planetB,
+			NextFleetEvent: nil,
+		}
+		assert.Equal(t, expectedStep, captured)
+		expectedResult := models.SimulationStepResult{
+			Resolution: models.PlanetUpdated,
+			Planet:     &planetB,
+			Fleet:      nil,
+		}
+		expectedResult.Planet.Version++
+		assert.Equal(t, expectedResult, actual)
+	})
+
+	t.Run("does not resolve fleet event in another universe when execute for delete is called", func(t *testing.T) {
+		adapter, conn := newTestSimulationStepExecutor(t)
+
+		planetA, _, universeA := insertTestPlanetForPlayer(t, conn)
+		planetB, _, universeB := insertTestPlanetForPlayer(t, conn)
+		require.NotEqual(t, universeA.Id, universeB.Id)
+		fleetA := insertTestFleet(t, conn, planetA)
+
+		var captured models.SimulationStep
+		simulate := func(step models.SimulationStep) (models.SimulationStepResult, error) {
+			captured = step
+
+			result := models.SimulationStepResult{
+				Resolution: models.PlanetDeleted,
+				Planet:     nil,
+				Fleet:      nil,
+			}
+
+			return result, nil
+		}
+
+		afterArrival := fleetA.Schedule.ArrivalAt.Add(time.Minute)
+
+		actual, err := adapter.ExecuteForDelete(t.Context(), planetB.Id, afterArrival, simulate)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		expectedStep := models.SimulationStep{
+			Timestamp:      afterArrival,
+			Planet:         &planetB,
+			NextFleetEvent: nil,
+		}
+		assert.Equal(t, expectedStep, captured)
+		expectedResult := models.SimulationStepResult{
+			Resolution: models.PlanetDeleted,
+			Planet:     nil,
+			Fleet:      nil,
+		}
+		assert.Equal(t, expectedResult, actual)
+	})
 
 	t.Run("does not resolve future fleet event when execute is called", func(t *testing.T) {
 		adapter, conn := newTestSimulationStepExecutor(t)
