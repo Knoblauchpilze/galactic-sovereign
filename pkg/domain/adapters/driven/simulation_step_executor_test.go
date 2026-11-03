@@ -737,6 +737,8 @@ func TestIT_SimulationStepExecutor_FleetBehavior(t *testing.T) {
 					captured = step
 
 					fleet := new(step.NextFleetEvent.Fleet)
+					fleet.Schedule.Status = models.StatusReturning
+					fleet.UpdatedAt = step.NextFleetEvent.Timestamp
 					fleet.Version++
 
 					result := models.SimulationStepResult{
@@ -766,10 +768,21 @@ func TestIT_SimulationStepExecutor_FleetBehavior(t *testing.T) {
 				expectedResult := models.SimulationStepResult{
 					Resolution: models.FleetEventResolved,
 					Planet:     nil,
-					Fleet:      &fleet,
+					Fleet:      new(fleet),
 				}
+				expectedResult.Fleet.UpdatedAt = fleet.Schedule.ArrivalAt
+				expectedResult.Fleet.Schedule.Status = models.StatusReturning
 				expectedResult.Fleet.Version++
 				assert.Equal(t, expectedResult, actual)
+
+				fleetFromDb := loadFleetFromDb(t, conn, fleet.Id)
+				expectedFleet := fleet
+				expectedFleet.UpdatedAt = fleet.Schedule.ArrivalAt
+				expectedFleet.Schedule.Status = models.StatusReturning
+				expectedFleet.Version++
+				assert.Equal(t, expectedFleet, fleetFromDb)
+				assertFleetEventExists(t, conn, fleet.Id, fleet.Schedule.ReturnAt)
+				assertFleetEventTypeMatches(t, conn, fleet.Id, models.ReturnEvent)
 			})
 
 			t.Run("resolves fleet event with destination planet when available", func(t *testing.T) {
@@ -785,9 +798,12 @@ func TestIT_SimulationStepExecutor_FleetBehavior(t *testing.T) {
 					captured = step
 
 					fleet := new(step.NextFleetEvent.Fleet)
+					fleet.UpdatedAt = step.NextFleetEvent.Timestamp
 					fleet.Version++
 
 					planet := new(*step.NextFleetEvent.Planet)
+					planet.UpdatedAt = step.NextFleetEvent.Timestamp
+					planet.Fields++
 					planet.Version++
 
 					result := models.SimulationStepResult{
@@ -819,9 +835,19 @@ func TestIT_SimulationStepExecutor_FleetBehavior(t *testing.T) {
 					Planet:     &destination,
 					Fleet:      &fleet,
 				}
+				expectedResult.Fleet.UpdatedAt = fleet.Schedule.ArrivalAt
 				expectedResult.Fleet.Version++
+				expectedResult.Planet.UpdatedAt = fleet.Schedule.ArrivalAt
+				expectedResult.Planet.Fields++
 				expectedResult.Planet.Version++
 				assert.Equal(t, expectedResult, actual)
+
+				planetFromDb := loadPlanetFromDb(t, conn, planet.Id)
+				assert.Equal(t, planet, planetFromDb)
+				destinationFromDb := loadPlanetFromDb(t, conn, destination.Id)
+				assert.Equal(t, *expectedResult.Planet, destinationFromDb)
+				fleetFromDb := loadFleetFromDb(t, conn, fleet.Id)
+				assert.Equal(t, *expectedResult.Fleet, fleetFromDb)
 			})
 
 			t.Run("resolves earliest fleet event when multiple are available", func(t *testing.T) {
@@ -829,7 +855,7 @@ func TestIT_SimulationStepExecutor_FleetBehavior(t *testing.T) {
 
 				planet, _, _ := insertTestPlanetForPlayer(t, conn)
 				fleetA := insertTestFleet(t, conn, planet)
-				fleetB := insertTestFleet(t, conn, planet)
+				fleetB := insertTestFleet(t, conn, planet, addFleetShip)
 				fleetA.Schedule.ArrivalAt = fleetB.Schedule.ArrivalAt.Add(time.Minute)
 				upsertFleetSchedule(t, conn, fleetA)
 
@@ -838,6 +864,11 @@ func TestIT_SimulationStepExecutor_FleetBehavior(t *testing.T) {
 					captured = step
 
 					fleet := new(step.NextFleetEvent.Fleet)
+					// Deep copy: otherwise the captured step will also be impacted by the
+					// change to the slice as new does not deep copy slices.
+					fleet.Ships = make([]models.FleetShip, len(step.NextFleetEvent.Fleet.Ships))
+					copy(fleet.Ships, step.NextFleetEvent.Fleet.Ships)
+					fleet.Ships[0].Count++
 					fleet.Version++
 
 					result := models.SimulationStepResult{
@@ -869,15 +900,24 @@ func TestIT_SimulationStepExecutor_FleetBehavior(t *testing.T) {
 					Planet:     nil,
 					Fleet:      &fleetB,
 				}
+				expectedResult.Fleet.Ships[0].Count++
 				expectedResult.Fleet.Version++
 				assert.Equal(t, expectedResult, actual)
+
+				fleetBFromDb := loadFleetFromDb(t, conn, fleetB.Id)
+				assert.Equal(t, *expectedResult.Fleet, fleetBFromDb)
+				fleetAFromDb := loadFleetFromDb(t, conn, fleetA.Id)
+				assert.Equal(t, fleetA, fleetAFromDb)
 			})
 
 			t.Run("resolves fleet event exactly at selected timestamp", func(t *testing.T) {
 				adapter, conn := newTestSimulationStepExecutor(t)
 
-				planet, _, _ := insertTestPlanetForPlayer(t, conn)
-				fleet := insertTestFleet(t, conn, planet)
+				planet, destination := insertTwoTestPlanets(t, conn)
+				addPlanetResource(t, conn, &destination)
+				fleet := insertTestFleet(t, conn, planet, addFleetShip)
+				fleet.Destination.Target = &destination.Id
+				upsertFleetDestination(t, conn, fleet)
 
 				var captured models.SimulationStep
 				simulate := func(step models.SimulationStep) (models.SimulationStepResult, error) {
@@ -886,9 +926,17 @@ func TestIT_SimulationStepExecutor_FleetBehavior(t *testing.T) {
 					fleet := new(step.NextFleetEvent.Fleet)
 					fleet.Version++
 
+					planet := new(*step.NextFleetEvent.Planet)
+					// Deep copy: otherwise the captured step will also be impacted by the
+					// change to the slice as new does not deep copy slices.
+					planet.Resources = make([]models.PlanetResource, len(step.NextFleetEvent.Planet.Resources))
+					copy(planet.Resources, step.NextFleetEvent.Planet.Resources)
+					planet.Resources[0].Amount++
+					planet.Version++
+
 					result := models.SimulationStepResult{
 						Resolution: models.FleetEventResolved,
-						Planet:     nil,
+						Planet:     planet,
 						Fleet:      fleet,
 					}
 
@@ -906,17 +954,26 @@ func TestIT_SimulationStepExecutor_FleetBehavior(t *testing.T) {
 					NextFleetEvent: &models.FleetEventContext{
 						Timestamp: fleet.Schedule.ArrivalAt,
 						Fleet:     fleet,
-						Planet:    nil,
+						Planet:    &destination,
 					},
 				}
 				assert.Equal(t, expectedStep, captured)
 				expectedResult := models.SimulationStepResult{
 					Resolution: models.FleetEventResolved,
-					Planet:     nil,
+					Planet:     &destination,
 					Fleet:      &fleet,
 				}
+				expectedResult.Planet.Resources[0].Amount++
+				expectedResult.Planet.Version++
 				expectedResult.Fleet.Version++
 				assert.Equal(t, expectedResult, actual)
+
+				fleetFromDb := loadFleetFromDb(t, conn, fleet.Id)
+				assert.Equal(t, *expectedResult.Fleet, fleetFromDb)
+				planbetFromDb := loadPlanetFromDb(t, conn, planet.Id)
+				assert.Equal(t, planet, planbetFromDb)
+				destinationFromDb := loadPlanetFromDb(t, conn, destination.Id)
+				assert.Equal(t, *expectedResult.Planet, destinationFromDb)
 			})
 
 			t.Run("resolves fleet event and performs deletion when requested", func(t *testing.T) {
@@ -1071,6 +1128,9 @@ func TestIT_SimulationStepExecutor_FleetBehavior(t *testing.T) {
 					},
 				}
 				assert.Equal(t, expectedStep, captured)
+
+				planetFromDb := loadPlanetFromDb(t, conn, planet.Id)
+				assert.Equal(t, planet, planetFromDb)
 			})
 
 			t.Run("returns error when resolver reports planet deleted with a fleet event", func(t *testing.T) {
@@ -1112,6 +1172,9 @@ func TestIT_SimulationStepExecutor_FleetBehavior(t *testing.T) {
 					},
 				}
 				assert.Equal(t, expectedStep, captured)
+
+				planetFromDb := loadPlanetFromDb(t, conn, planet.Id)
+				assert.Equal(t, planet, planetFromDb)
 			})
 		})
 	}
@@ -1158,6 +1221,13 @@ func TestIT_SimulationStepExecutor_FleetBehavior(t *testing.T) {
 		}
 		expectedResult.Planet.Version++
 		assert.Equal(t, expectedResult, actual)
+
+		fleetFromDb := loadFleetFromDb(t, conn, fleetA.Id)
+		assert.Equal(t, fleetA, fleetFromDb)
+		planetAFromDb := loadPlanetFromDb(t, conn, planetA.Id)
+		assert.Equal(t, planetA, planetAFromDb)
+		planetBFromDb := loadPlanetFromDb(t, conn, planetB.Id)
+		assert.Equal(t, *expectedResult.Planet, planetBFromDb)
 	})
 
 	t.Run("does not resolve fleet event in another universe when execute for delete is called", func(t *testing.T) {
@@ -1198,6 +1268,14 @@ func TestIT_SimulationStepExecutor_FleetBehavior(t *testing.T) {
 			Fleet:      nil,
 		}
 		assert.Equal(t, expectedResult, actual)
+
+		fleetFromDb := loadFleetFromDb(t, conn, fleetA.Id)
+		assert.Equal(t, fleetA, fleetFromDb)
+		planetAFromDb := loadPlanetFromDb(t, conn, planetA.Id)
+		assert.Equal(t, planetA, planetAFromDb)
+		// TODO: Should be deleted
+		planetBFromDb := loadPlanetFromDb(t, conn, planetB.Id)
+		assert.Equal(t, planetB, planetBFromDb)
 	})
 
 	t.Run("does not resolve future fleet event when execute is called", func(t *testing.T) {
@@ -1240,6 +1318,11 @@ func TestIT_SimulationStepExecutor_FleetBehavior(t *testing.T) {
 		}
 		expectedResult.Planet.Version++
 		assert.Equal(t, expectedResult, actual)
+
+		fleetFromDb := loadFleetFromDb(t, conn, fleet.Id)
+		assert.Equal(t, fleet, fleetFromDb)
+		planetFromDb := loadPlanetFromDb(t, conn, planet.Id)
+		assert.Equal(t, *expectedResult.Planet, planetFromDb)
 	})
 
 	t.Run("does not resolve future fleet event when execute for delete is called", func(t *testing.T) {
@@ -1278,6 +1361,12 @@ func TestIT_SimulationStepExecutor_FleetBehavior(t *testing.T) {
 			Fleet:      nil,
 		}
 		assert.Equal(t, expectedResult, actual)
+
+		fleetFromDb := loadFleetFromDb(t, conn, fleet.Id)
+		assert.Equal(t, fleet, fleetFromDb)
+		// TODO: Should be deleted
+		planetFromDb := loadPlanetFromDb(t, conn, planet.Id)
+		assert.Equal(t, planet, planetFromDb)
 	})
 }
 
