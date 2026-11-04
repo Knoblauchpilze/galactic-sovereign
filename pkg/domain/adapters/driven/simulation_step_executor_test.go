@@ -976,6 +976,61 @@ func TestIT_SimulationStepExecutor_FleetBehavior(t *testing.T) {
 				assert.Equal(t, *expectedResult.Planet, destinationFromDb)
 			})
 
+			t.Run("resolves fleet event affecting other planet in same universe", func(t *testing.T) {
+				adapter, conn := newTestSimulationStepExecutor(t)
+
+				planetA, planetB := insertTwoTestPlanets(t, conn)
+				fleet := insertTestFleet(t, conn, planetA, addFleetShip)
+
+				var captured models.SimulationStep
+				simulate := func(step models.SimulationStep) (models.SimulationStepResult, error) {
+					captured = step
+
+					fleet := new(step.NextFleetEvent.Fleet)
+					fleet.UpdatedAt = step.NextFleetEvent.Timestamp
+					fleet.Version++
+
+					result := models.SimulationStepResult{
+						Resolution: models.FleetEventResolved,
+						Planet:     nil,
+						Fleet:      fleet,
+					}
+
+					return result, nil
+				}
+
+				afterArrival := fleet.Schedule.ArrivalAt.Add(1 * time.Minute)
+
+				actual, err := executor.execute(adapter, t.Context(), planetB.Id, afterArrival, simulate)
+				require.NoError(t, err, "Actual err: %v", err)
+
+				expectedStep := models.SimulationStep{
+					Timestamp: afterArrival,
+					Planet:    nil,
+					NextFleetEvent: &models.FleetEventContext{
+						Timestamp: fleet.Schedule.ArrivalAt,
+						Fleet:     fleet,
+						Planet:    nil,
+					},
+				}
+				assert.Equal(t, expectedStep, captured)
+				expectedResult := models.SimulationStepResult{
+					Resolution: models.FleetEventResolved,
+					Planet:     nil,
+					Fleet:      &fleet,
+				}
+				expectedResult.Fleet.UpdatedAt = fleet.Schedule.ArrivalAt
+				expectedResult.Fleet.Version++
+				assert.Equal(t, expectedResult, actual)
+
+				planetAFromDb := loadPlanetFromDb(t, conn, planetA.Id)
+				assert.Equal(t, planetA, planetAFromDb)
+				planetBFromDb := loadPlanetFromDb(t, conn, planetB.Id)
+				assert.Equal(t, planetB, planetBFromDb)
+				fleetFromDb := loadFleetFromDb(t, conn, fleet.Id)
+				assert.Equal(t, *expectedResult.Fleet, fleetFromDb)
+			})
+
 			t.Run("resolves fleet event and performs deletion when requested", func(t *testing.T) {
 				adapter, conn := newTestSimulationStepExecutor(t)
 
