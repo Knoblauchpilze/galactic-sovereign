@@ -404,6 +404,31 @@ func insertTestPlanetForPlayer(
 	return planet, player, universe
 }
 
+// insertTestPlanetInUniverse creates a test planet. The returned planet belongs
+// to a fresh player registered in the provided universe.
+// The player also has a homeworld: this is a necessary precondition to make the
+// tests realistic.
+func insertTestPlanetInUniverse(
+	t *testing.T,
+	conn database.Connection,
+	universe uuid.UUID,
+	modifiers ...func(*testing.T, database.Connection, *models.Planet),
+) (models.Planet, models.Player) {
+	t.Helper()
+
+	player := insertTestPlayer(t, conn, universe)
+	planet := insertTestPlanet(t, conn, player.Id, modifiers...)
+
+	playerPlanet := models.PlayerPlanet{
+		Id:         planet.Id,
+		Name:       planet.Name,
+		Coordinate: planet.Coordinate,
+	}
+	player.Planets = append(player.Planets, playerPlanet)
+
+	return planet, player
+}
+
 func loadPlanetFromDb(t *testing.T, conn database.Connection, id uuid.UUID) models.Planet {
 	t.Helper()
 

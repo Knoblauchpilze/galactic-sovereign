@@ -1656,7 +1656,7 @@ func TestIT_SimulationStepContext_Resolve_CreateFleet(t *testing.T) {
 	t.Run("persists fleet with destination", func(t *testing.T) {
 		conn, tx := newTestConnectionAndTransaction(t)
 
-		planetA, planetB := insertTwoTestPlanets(t, conn)
+		planetA, planetB, _ := insertTwoTestPlanets(t, conn)
 
 		fleet := generateSampleFleet(planetA)
 		fleet.Mission = models.MissionTransport
@@ -1841,7 +1841,7 @@ func TestIT_SimulationStepContext_Resolve_DeleteFleet(t *testing.T) {
 	t.Run("deletes fleet with target", func(t *testing.T) {
 		conn, tx := newTestConnectionAndTransaction(t)
 
-		planet, destination := insertTwoTestPlanets(t, conn)
+		planet, destination, _ := insertTwoTestPlanets(t, conn)
 		fleet := insertTestFleet(t, conn, planet, addFleetShip)
 		fleet.Destination.Target = &destination.Id
 		upsertFleetDestination(t, conn, fleet)

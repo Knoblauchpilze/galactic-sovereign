@@ -247,7 +247,7 @@ func TestIT_SimulationStepExecutor_Execute_LoadFleetBehavior(t *testing.T) {
 	t.Run("loads fleet event when fleet has a destination", func(t *testing.T) {
 		adapter, conn := newTestSimulationStepExecutor(t)
 
-		planet, destination := insertTwoTestPlanets(t, conn)
+		planet, destination, _ := insertTwoTestPlanets(t, conn)
 		fleet := insertTestFleet(t, conn, planet, addFleetShip)
 		fleet.Destination.Target = &destination.Id
 		upsertFleetDestination(t, conn, fleet)
@@ -352,7 +352,7 @@ func TestIT_SimulationStepExecutor_Execute_LoadFleetBehavior(t *testing.T) {
 	t.Run("loads fleet event for returning fleet with destination", func(t *testing.T) {
 		adapter, conn := newTestSimulationStepExecutor(t)
 
-		planet, destination := insertTwoTestPlanets(t, conn)
+		planet, destination, _ := insertTwoTestPlanets(t, conn)
 		fleet := insertTestFleet(t, conn, planet, addFleetShip)
 		fleet.Schedule.Status = models.StatusReturning
 		upsertFleetSchedule(t, conn, fleet)
@@ -506,7 +506,7 @@ func TestIT_SimulationStepExecutor_ExecuteForDelete_LoadFleetBehavior(t *testing
 	t.Run("loads fleet event when fleet has a destination", func(t *testing.T) {
 		adapter, conn := newTestSimulationStepExecutor(t)
 
-		planet, destination := insertTwoTestPlanets(t, conn)
+		planet, destination, _ := insertTwoTestPlanets(t, conn)
 		fleet := insertTestFleet(t, conn, planet, addFleetShip)
 		fleet.Destination.Target = &destination.Id
 		upsertFleetDestination(t, conn, fleet)
@@ -611,7 +611,7 @@ func TestIT_SimulationStepExecutor_ExecuteForDelete_LoadFleetBehavior(t *testing
 	t.Run("loads fleet event for returning fleet with destination", func(t *testing.T) {
 		adapter, conn := newTestSimulationStepExecutor(t)
 
-		planet, destination := insertTwoTestPlanets(t, conn)
+		planet, destination, _ := insertTwoTestPlanets(t, conn)
 		fleet := insertTestFleet(t, conn, planet, addFleetShip)
 		fleet.Schedule.Status = models.StatusReturning
 		upsertFleetSchedule(t, conn, fleet)
@@ -788,7 +788,7 @@ func TestIT_SimulationStepExecutor_FleetBehavior(t *testing.T) {
 			t.Run("resolves fleet event with destination planet when available", func(t *testing.T) {
 				adapter, conn := newTestSimulationStepExecutor(t)
 
-				planet, destination := insertTwoTestPlanets(t, conn)
+				planet, destination, _ := insertTwoTestPlanets(t, conn)
 				fleet := insertTestFleet(t, conn, planet, addFleetShip)
 				fleet.Destination.Target = &destination.Id
 				upsertFleetDestination(t, conn, fleet)
@@ -913,7 +913,7 @@ func TestIT_SimulationStepExecutor_FleetBehavior(t *testing.T) {
 			t.Run("resolves fleet event exactly at selected timestamp", func(t *testing.T) {
 				adapter, conn := newTestSimulationStepExecutor(t)
 
-				planet, destination := insertTwoTestPlanets(t, conn)
+				planet, destination, _ := insertTwoTestPlanets(t, conn)
 				addPlanetResource(t, conn, &destination)
 				fleet := insertTestFleet(t, conn, planet, addFleetShip)
 				fleet.Destination.Target = &destination.Id
@@ -970,16 +970,77 @@ func TestIT_SimulationStepExecutor_FleetBehavior(t *testing.T) {
 
 				fleetFromDb := loadFleetFromDb(t, conn, fleet.Id)
 				assert.Equal(t, *expectedResult.Fleet, fleetFromDb)
-				planbetFromDb := loadPlanetFromDb(t, conn, planet.Id)
-				assert.Equal(t, planet, planbetFromDb)
+				planetFromDb := loadPlanetFromDb(t, conn, planet.Id)
+				assert.Equal(t, planet, planetFromDb)
 				destinationFromDb := loadPlanetFromDb(t, conn, destination.Id)
 				assert.Equal(t, *expectedResult.Planet, destinationFromDb)
+			})
+
+			t.Run("resolves fleet event with fleet identifier in case timestamp tie", func(t *testing.T) {
+				adapter, conn := newTestSimulationStepExecutor(t)
+
+				planetA, planetB, universe := insertTwoTestPlanets(t, conn)
+				planetC, _ := insertTestPlanetInUniverse(t, conn, universe)
+				fleetA := insertTestFleetWithId(t, conn, uuid.MustParse("7f8e8adc-5957-417b-931b-64afc528c3d8"), planetA, addFleetShip)
+				fleetB := insertTestFleetWithId(t, conn, uuid.MustParse("6e25a02b-625f-4161-8bb4-b30d46d94f29"), planetB, addFleetShip)
+				fleetB.Schedule.ArrivalAt = fleetA.Schedule.ArrivalAt
+				upsertFleetSchedule(t, conn, fleetB)
+
+				var captured models.SimulationStep
+				simulate := func(step models.SimulationStep) (models.SimulationStepResult, error) {
+					captured = step
+
+					fleet := new(step.NextFleetEvent.Fleet)
+					fleet.Version++
+
+					result := models.SimulationStepResult{
+						Resolution: models.FleetEventResolved,
+						Planet:     nil,
+						Fleet:      fleet,
+					}
+
+					return result, nil
+				}
+
+				afterArrival := fleetA.Schedule.ArrivalAt.Add(1 * time.Minute)
+
+				actual, err := executor.execute(adapter, t.Context(), planetC.Id, afterArrival, simulate)
+				require.NoError(t, err, "Actual err: %v", err)
+
+				expectedStep := models.SimulationStep{
+					Timestamp: afterArrival,
+					Planet:    nil,
+					NextFleetEvent: &models.FleetEventContext{
+						Timestamp: fleetB.Schedule.ArrivalAt,
+						Fleet:     fleetB,
+						Planet:    nil,
+					},
+				}
+				assert.Equal(t, expectedStep, captured)
+				expectedResult := models.SimulationStepResult{
+					Resolution: models.FleetEventResolved,
+					Planet:     nil,
+					Fleet:      &fleetB,
+				}
+				expectedResult.Fleet.Version++
+				assert.Equal(t, expectedResult, actual)
+
+				fleetAFromDb := loadFleetFromDb(t, conn, fleetA.Id)
+				assert.Equal(t, fleetA, fleetAFromDb)
+				fleetBFromDb := loadFleetFromDb(t, conn, fleetB.Id)
+				assert.Equal(t, *expectedResult.Fleet, fleetBFromDb)
+				planetAFromDb := loadPlanetFromDb(t, conn, planetA.Id)
+				assert.Equal(t, planetA, planetAFromDb)
+				planetBFromDb := loadPlanetFromDb(t, conn, planetB.Id)
+				assert.Equal(t, planetB, planetBFromDb)
+				planetCFromDb := loadPlanetFromDb(t, conn, planetC.Id)
+				assert.Equal(t, planetC, planetCFromDb)
 			})
 
 			t.Run("resolves fleet event affecting other planet in same universe", func(t *testing.T) {
 				adapter, conn := newTestSimulationStepExecutor(t)
 
-				planetA, planetB := insertTwoTestPlanets(t, conn)
+				planetA, planetB, _ := insertTwoTestPlanets(t, conn)
 				fleet := insertTestFleet(t, conn, planetA, addFleetShip)
 
 				var captured models.SimulationStep
@@ -1147,7 +1208,7 @@ func TestIT_SimulationStepExecutor_FleetBehavior(t *testing.T) {
 			t.Run("returns error when resolver reports planet updated with a fleet event", func(t *testing.T) {
 				adapter, conn := newTestSimulationStepExecutor(t)
 
-				planet, destination := insertTwoTestPlanets(t, conn)
+				planet, destination, _ := insertTwoTestPlanets(t, conn)
 				fleet := insertTestFleet(t, conn, planet, addFleetShip)
 				fleet.Destination.Target = &destination.Id
 				upsertFleetDestination(t, conn, fleet)
@@ -1191,7 +1252,7 @@ func TestIT_SimulationStepExecutor_FleetBehavior(t *testing.T) {
 			t.Run("returns error when resolver reports planet deleted with a fleet event", func(t *testing.T) {
 				adapter, conn := newTestSimulationStepExecutor(t)
 
-				planet, destination := insertTwoTestPlanets(t, conn)
+				planet, destination, _ := insertTwoTestPlanets(t, conn)
 				fleet := insertTestFleet(t, conn, planet, addFleetShip)
 				fleet.Destination.Target = &destination.Id
 				upsertFleetDestination(t, conn, fleet)
@@ -1429,7 +1490,7 @@ func TestIT_SimulationStepExecutor_Execute_Concurrency(t *testing.T) {
 	t.Run("prevents concurrent modification of different planets when fleet event is resolved", func(t *testing.T) {
 		adapter, conn := newTestSimulationStepExecutor(t)
 
-		planetA, planetB := insertTwoTestPlanets(t, conn)
+		planetA, planetB, _ := insertTwoTestPlanets(t, conn)
 		fleet := insertTestFleet(t, conn, planetA)
 		timestamp := fleet.Schedule.ArrivalAt.Add(time.Minute)
 
@@ -1568,7 +1629,7 @@ func TestIT_SimulationStepExecutor_Execute_Concurrency(t *testing.T) {
 	t.Run("performs planet mutation after fleet event lock is released", func(t *testing.T) {
 		adapter, conn := newTestSimulationStepExecutor(t)
 
-		planetA, planetB := insertTwoTestPlanets(t, conn)
+		planetA, planetB, _ := insertTwoTestPlanets(t, conn)
 		fleet := insertTestFleet(t, conn, planetA)
 		timestamp := fleet.Schedule.ArrivalAt.Add(time.Minute)
 
@@ -1647,7 +1708,7 @@ func TestIT_SimulationStepExecutor_Execute_Concurrency(t *testing.T) {
 	t.Run("allows concurrent modification of planets when no fleet event is pending", func(t *testing.T) {
 		adapter, conn := newTestSimulationStepExecutor(t)
 
-		planetA, planetB := insertTwoTestPlanets(t, conn)
+		planetA, planetB, _ := insertTwoTestPlanets(t, conn)
 		enteredA := make(chan struct{})
 		releaseA := make(chan struct{})
 		var releaseOnce sync.Once
@@ -1769,7 +1830,7 @@ func TestIT_SimulationStepExecutor_Execute_Concurrency(t *testing.T) {
 	t.Run("allows concurrent modification of planets when a fleet event is not yet due", func(t *testing.T) {
 		adapter, conn := newTestSimulationStepExecutor(t)
 
-		planetA, planetB := insertTwoTestPlanets(t, conn)
+		planetA, planetB, _ := insertTwoTestPlanets(t, conn)
 		fleet := insertTestFleet(t, conn, planetA)
 		timestamp := fleet.Schedule.ArrivalAt.Add(-time.Minute)
 		require.True(t, timestamp.Before(fleet.Schedule.ArrivalAt))
@@ -2178,51 +2239,9 @@ func newTestSimulationStepExecutor(t *testing.T) (*SimulationStepExecutor, datab
 	return NewSimulationStepExecutor(conn), conn
 }
 
-// upsertFleetSchedule persists the fleet's last update time, schedule, and next event.
-func upsertFleetSchedule(t *testing.T, conn database.Connection, fleet models.Fleet) {
-	t.Helper()
-
-	sqlQuery := `UPDATE fleet SET updated_at = $1 WHERE id = $2`
-	affected, err := conn.Exec(t.Context(), sqlQuery, fleet.UpdatedAt, fleet.Id)
-	require.NoError(t, err, "Actual err: %v", err)
-	require.Equal(t, int64(1), affected)
-
-	sqlQuery = `INSERT INTO fleet_flight (fleet, arrival_at, return_at, status)
-		VALUES($1, $2, $3, $4)
-		ON CONFLICT (fleet) DO UPDATE SET
-			arrival_at = excluded.arrival_at,
-			return_at = excluded.return_at,
-			status = excluded.status`
-	_, err = conn.Exec(
-		t.Context(),
-		sqlQuery,
-		fleet.Id,
-		fleet.Schedule.ArrivalAt,
-		fleet.Schedule.ReturnAt,
-		fleet.Schedule.Status,
-	)
-	require.NoError(t, err, "Actual err: %v", err)
-
-	nextEvent, err := fleet.NextEvent()
-	require.NoError(t, err, "Actual err: %v", err)
-
-	sqlQuery = `INSERT INTO fleet_event (fleet, next_event_at, event_type)
-		VALUES($1, $2, $3)
-		ON CONFLICT (fleet) DO UPDATE SET
-			next_event_at = excluded.next_event_at,
-			event_type = excluded.event_type`
-	_, err = conn.Exec(
-		t.Context(),
-		sqlQuery,
-		fleet.Id,
-		nextEvent.Timestamp,
-		nextEvent.Event,
-	)
-	require.NoError(t, err, "Actual err: %v", err)
-}
-
 // insertTwoTestPlanets inserts two planets in the same universe for two different players
-func insertTwoTestPlanets(t *testing.T, conn database.Connection) (models.Planet, models.Planet) {
+// returning both planets and the identifier of the universe they belong to
+func insertTwoTestPlanets(t *testing.T, conn database.Connection) (models.Planet, models.Planet, uuid.UUID) {
 	universe := insertTestUniverse(t, conn)
 
 	player1 := insertTestPlayer(t, conn, universe.Id)
@@ -2231,7 +2250,7 @@ func insertTwoTestPlanets(t *testing.T, conn database.Connection) (models.Planet
 	planet1 := insertTestPlanet(t, conn, player1.Id)
 	planet2 := insertTestPlanet(t, conn, player2.Id)
 
-	return planet1, planet2
+	return planet1, planet2, universe.Id
 }
 
 func insertTestBuildingActionForPlanet(
@@ -2420,9 +2439,20 @@ func insertTestFleet(
 	modifiers ...func(*testing.T, database.Connection, *models.Fleet),
 ) models.Fleet {
 	t.Helper()
+	return insertTestFleetWithId(t, conn, uuid.New(), source, modifiers...)
+}
+
+func insertTestFleetWithId(
+	t *testing.T,
+	conn database.Connection,
+	id uuid.UUID,
+	source models.Planet,
+	modifiers ...func(*testing.T, database.Connection, *models.Fleet),
+) models.Fleet {
+	t.Helper()
 
 	fleet := models.Fleet{
-		Id:      uuid.New(),
+		Id:      id,
 		Player:  source.Player,
 		Source:  source.Id,
 		Mission: models.MissionColonize,
@@ -2550,6 +2580,49 @@ func upsertFleetDestination(t *testing.T, conn database.Connection, fleet models
 		fleet.Destination.Coordinate.SolarSystem,
 		fleet.Destination.Coordinate.Position,
 		fleet.Destination.Target,
+	)
+	require.NoError(t, err, "Actual err: %v", err)
+}
+
+// upsertFleetSchedule persists the fleet's last update time, schedule, and next event.
+func upsertFleetSchedule(t *testing.T, conn database.Connection, fleet models.Fleet) {
+	t.Helper()
+
+	sqlQuery := `UPDATE fleet SET updated_at = $1 WHERE id = $2`
+	affected, err := conn.Exec(t.Context(), sqlQuery, fleet.UpdatedAt, fleet.Id)
+	require.NoError(t, err, "Actual err: %v", err)
+	require.Equal(t, int64(1), affected)
+
+	sqlQuery = `INSERT INTO fleet_flight (fleet, arrival_at, return_at, status)
+		VALUES($1, $2, $3, $4)
+		ON CONFLICT (fleet) DO UPDATE SET
+			arrival_at = excluded.arrival_at,
+			return_at = excluded.return_at,
+			status = excluded.status`
+	_, err = conn.Exec(
+		t.Context(),
+		sqlQuery,
+		fleet.Id,
+		fleet.Schedule.ArrivalAt,
+		fleet.Schedule.ReturnAt,
+		fleet.Schedule.Status,
+	)
+	require.NoError(t, err, "Actual err: %v", err)
+
+	nextEvent, err := fleet.NextEvent()
+	require.NoError(t, err, "Actual err: %v", err)
+
+	sqlQuery = `INSERT INTO fleet_event (fleet, next_event_at, event_type)
+		VALUES($1, $2, $3)
+		ON CONFLICT (fleet) DO UPDATE SET
+			next_event_at = excluded.next_event_at,
+			event_type = excluded.event_type`
+	_, err = conn.Exec(
+		t.Context(),
+		sqlQuery,
+		fleet.Id,
+		nextEvent.Timestamp,
+		nextEvent.Event,
 	)
 	require.NoError(t, err, "Actual err: %v", err)
 }
