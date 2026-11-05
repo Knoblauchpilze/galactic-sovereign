@@ -1656,7 +1656,70 @@ func TestIT_SimulationStepExecutor_Execute_PlanetBehavior(t *testing.T) {
 }
 
 func TestIT_SimulationStepExecutor_ExecuteForDelete_PlanetBehavior(t *testing.T) {
-	// TODO: Implement tests
+	t.Run("does not persist planet changes when resolver returns error", func(t *testing.T) {
+		adapter, conn := newTestSimulationStepExecutor(t)
+
+		planet, _, _ := insertTestPlanetForPlayer(t, conn)
+
+		errSample := errors.New("stubbed error")
+		simulate := func(step models.SimulationStep) (models.SimulationStepResult, error) {
+			step.Planet.Version++
+
+			result := models.SimulationStepResult{
+				Resolution: models.PlanetDeleted,
+				Planet:     nil,
+			}
+
+			return result, errSample
+		}
+
+		_, err := adapter.ExecuteForDelete(t.Context(), planet.Id, planet.UpdatedAt, simulate)
+		assert.ErrorIs(t, err, errSample, "Actual err: %v", err)
+
+		actual := loadPlanetFromDb(t, conn, planet.Id)
+		assert.Equal(t, planet, actual)
+	})
+
+	t.Run("returns error when resolver reports planet updated on deletion path", func(t *testing.T) {
+		adapter, conn := newTestSimulationStepExecutor(t)
+
+		planet, _, _ := insertTestPlanetForPlayer(t, conn)
+
+		simulate := func(step models.SimulationStep) (models.SimulationStepResult, error) {
+			step.Planet.Version++
+
+			return models.SimulationStepResult{
+				Resolution: models.PlanetUpdated,
+				Planet:     step.Planet,
+			}, nil
+		}
+
+		_, err := adapter.ExecuteForDelete(t.Context(), planet.Id, planet.UpdatedAt, simulate)
+		assert.ErrorIs(t, err, domainerrors.ErrInvalidSimulationStepResult, "Actual err: %v", err)
+
+		actual := loadPlanetFromDb(t, conn, planet.Id)
+		assert.Equal(t, planet, actual)
+	})
+
+	t.Run("deletes planet when resolver reports planet deleted", func(t *testing.T) {
+		adapter, conn := newTestSimulationStepExecutor(t)
+
+		planet, _, _ := insertTestPlanetForPlayer(t, conn)
+
+		simulate := func(_ models.SimulationStep) (models.SimulationStepResult, error) {
+			return models.SimulationStepResult{
+				Resolution: models.PlanetDeleted,
+			}, nil
+		}
+
+		result, err := adapter.ExecuteForDelete(t.Context(), planet.Id, planet.UpdatedAt, simulate)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		expected := models.SimulationStepResult{Resolution: models.PlanetDeleted}
+		assert.Equal(t, expected, result)
+
+		assertPlanetDoesNotExist(t, conn, planet.Id)
+	})
 }
 
 func TestIT_SimulationStepExecutor_Execute_Concurrency(t *testing.T) {
@@ -2281,10 +2344,6 @@ func TestIT_SimulationStepExecutor_Execute_Concurrency(t *testing.T) {
 		assert.Equal(t, planet.Ships[0].Count-2, loadPlanetFromDb(t, conn, planet.Id).Ships[0].Count)
 		assertPlanetVersion(t, conn, planet.Id, planet.Version+2)
 	})
-}
-
-func TestIT_SimulationStepExecutor_Execute_ActionCreationDeletionWorkflow(t *testing.T) {
-
 }
 
 func TestIT_SimulationStepExecutor_Execute_Atomicity(t *testing.T) {
