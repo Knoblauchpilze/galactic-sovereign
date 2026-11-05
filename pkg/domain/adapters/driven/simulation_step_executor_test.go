@@ -1618,7 +1618,7 @@ func TestIT_SimulationStepExecutor_Execute_PlanetBehavior(t *testing.T) {
 		assert.Equal(t, planet, actual)
 	})
 
-	t.Run("persists planet resource and ship changes", func(t *testing.T) {
+	t.Run("persists planet updates when simulation step succeeds", func(t *testing.T) {
 		adapter, conn := newTestSimulationStepExecutor(t)
 
 		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetShip, addPlanetResource)
@@ -1653,8 +1653,6 @@ func TestIT_SimulationStepExecutor_Execute_PlanetBehavior(t *testing.T) {
 		assert.Equal(t, expected, actual)
 		assert.Equal(t, expectedResult, result)
 	})
-
-	// TODO: Implement tests
 }
 
 func TestIT_SimulationStepExecutor_ExecuteForDelete_PlanetBehavior(t *testing.T) {
