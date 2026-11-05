@@ -1667,7 +1667,7 @@ func TestIT_SimulationStepExecutor_ExecuteForDelete_PlanetBehavior(t *testing.T)
 
 			result := models.SimulationStepResult{
 				Resolution: models.PlanetDeleted,
-				Planet:     nil,
+				Planet:     step.Planet,
 			}
 
 			return result, errSample
