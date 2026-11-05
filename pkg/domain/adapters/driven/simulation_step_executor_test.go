@@ -1487,6 +1487,173 @@ func TestIT_SimulationStepExecutor_FleetBehavior(t *testing.T) {
 }
 
 func TestIT_SimulationStepExecutor_Execute_PlanetBehavior(t *testing.T) {
+	t.Run("rolls back source planet changes when fleet creation fails", func(t *testing.T) {
+		adapter, conn := newTestSimulationStepExecutor(t)
+
+		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetShip, addPlanetResource)
+		fleet := generateSampleFleet(planet)
+		fleet.Mission = models.MissionTransport
+		missingDestination := uuid.New()
+		fleet.Destination.Target = &missingDestination
+		fleet.Ships = []models.FleetShip{{Ship: lightFighterId, Count: 1}}
+
+		createFleet := generateFleetCreator(fleet)
+		simulateDispatch := func(step models.SimulationStep) (models.SimulationStepResult, error) {
+			step.Planet.Ships[0].Count--
+			step.Planet.Resources[0].Amount++
+			return createFleet(step)
+		}
+		_, err := adapter.Execute(t.Context(), planet.Id, planet.UpdatedAt, simulateDispatch)
+
+		assert.ErrorIs(t, err, domainerrors.ErrFleetDestinationInvalid, "Actual err: %v", err)
+
+		actual := loadPlanetFromDb(t, conn, planet.Id)
+		assert.Equal(t, planet, actual)
+		assertFleetDoesNotExist(t, conn, fleet.Id)
+	})
+
+	t.Run("building action creation deletion workflow", func(t *testing.T) {
+		adapter, conn := newTestSimulationStepExecutor(t)
+
+		action := models.BuildingAction{
+			Id:           uuid.New(),
+			Building:     metalMineId,
+			DesiredLevel: 27,
+			CreatedAt:    time.Date(2024, time.December, 7, 20, 26, 47, 0, time.UTC),
+			CompletedAt:  time.Date(2024, time.December, 7, 21, 26, 47, 0, time.UTC),
+			Costs:        []models.BuildingActionCost{},
+			Storages:     []models.BuildingActionResourceStorage{},
+			Productions:  []models.BuildingActionResourceProduction{},
+		}
+
+		planet, _, _ := insertTestPlanetForPlayer(t, conn)
+
+		mutation := func(step models.SimulationStep) (models.SimulationStepResult, error) {
+			require.NotNil(t, step.Planet)
+			require.Nil(t, step.NextFleetEvent)
+
+			step.Planet.BuildingAction = &action
+			step.Planet.Version++
+
+			result := models.SimulationStepResult{
+				Resolution: models.PlanetUpdated,
+				Planet:     step.Planet,
+			}
+			return result, nil
+		}
+		result, err := adapter.Execute(t.Context(), planet.Id, action.CreatedAt, mutation)
+		require.NoError(t, err, "Actual err: %v", err)
+		assert.Equal(t, models.PlanetUpdated, result.Resolution)
+		require.NotNil(t, result.Planet)
+		assert.Equal(t, &action, result.Planet.BuildingAction)
+		assertBuildingActionExists(t, conn, action.Id)
+
+		func() {
+			actual := loadPlanetFromDb(t, conn, planet.Id)
+
+			require.NotNil(t, actual.BuildingAction)
+			assert.Equal(t, action, *actual.BuildingAction)
+		}()
+
+		mutation = func(step models.SimulationStep) (models.SimulationStepResult, error) {
+			require.NotNil(t, step.Planet)
+			require.Nil(t, step.NextFleetEvent)
+
+			step.Planet.BuildingAction = nil
+			step.Planet.Version++
+
+			result := models.SimulationStepResult{
+				Resolution: models.PlanetUpdated,
+				Planet:     step.Planet,
+			}
+
+			return result, nil
+		}
+		result, err = adapter.Execute(t.Context(), planet.Id, action.CreatedAt, mutation)
+		require.NoError(t, err, "Actual err: %v", err)
+		require.NotNil(t, result.Planet)
+		assert.Nil(t, result.Planet.BuildingAction)
+		assertBuildingActionDoesNotExist(t, conn, action.Id)
+	})
+
+	t.Run("returns error when resolver reports planet deleted on planet path", func(t *testing.T) {
+		adapter, conn := newTestSimulationStepExecutor(t)
+
+		planet, _, _ := insertTestPlanetForPlayer(t, conn)
+
+		simulate := func(_ models.SimulationStep) (models.SimulationStepResult, error) {
+			return models.SimulationStepResult{
+				Resolution: models.PlanetDeleted,
+			}, nil
+		}
+
+		_, err := adapter.Execute(t.Context(), planet.Id, planet.UpdatedAt, simulate)
+		assert.ErrorIs(t, err, domainerrors.ErrInvalidSimulationStepResult, "Actual err: %v", err)
+
+		actual := loadPlanetFromDb(t, conn, planet.Id)
+		assert.Equal(t, planet, actual)
+	})
+
+	t.Run("does not persist planet changes when resolver returns error", func(t *testing.T) {
+		adapter, conn := newTestSimulationStepExecutor(t)
+
+		planet, _, _ := insertTestPlanetForPlayer(t, conn)
+
+		errSample := errors.New("stubbed error")
+		simulate := func(step models.SimulationStep) (models.SimulationStepResult, error) {
+			step.Planet.Version++
+
+			result := models.SimulationStepResult{
+				Resolution: models.PlanetUpdated,
+				Planet:     step.Planet,
+			}
+
+			return result, errSample
+		}
+
+		_, err := adapter.Execute(t.Context(), planet.Id, planet.UpdatedAt, simulate)
+		assert.ErrorIs(t, err, errSample, "Actual err: %v", err)
+
+		actual := loadPlanetFromDb(t, conn, planet.Id)
+		assert.Equal(t, planet, actual)
+	})
+
+	t.Run("persists planet resource and ship changes", func(t *testing.T) {
+		adapter, conn := newTestSimulationStepExecutor(t)
+
+		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetShip, addPlanetResource)
+
+		simulate := func(step models.SimulationStep) (models.SimulationStepResult, error) {
+			step.Planet.Ships[0].Count--
+			step.Planet.Resources[0].Amount++
+			step.Planet.Version++
+
+			result := models.SimulationStepResult{
+				Resolution: models.PlanetUpdated,
+				Planet:     step.Planet,
+			}
+
+			return result, nil
+		}
+
+		result, err := adapter.Execute(t.Context(), planet.Id, planet.UpdatedAt, simulate)
+		require.NoError(t, err, "Actual err: %v", err)
+		assert.Equal(t, models.PlanetUpdated, result.Resolution)
+
+		expected := planet
+		expected.Ships[0].Count--
+		expected.Resources[0].Amount++
+		expected.Version++
+		expectedResult := models.SimulationStepResult{
+			Resolution: models.PlanetUpdated,
+			Planet:     &expected,
+			Fleet:      nil,
+		}
+		actual := loadPlanetFromDb(t, conn, planet.Id)
+		assert.Equal(t, expected, actual)
+		assert.Equal(t, expectedResult, result)
+	})
+
 	// TODO: Implement tests
 }
 
@@ -2116,97 +2283,10 @@ func TestIT_SimulationStepExecutor_Execute_Concurrency(t *testing.T) {
 		assert.Equal(t, planet.Ships[0].Count-2, loadPlanetFromDb(t, conn, planet.Id).Ships[0].Count)
 		assertPlanetVersion(t, conn, planet.Id, planet.Version+2)
 	})
-
-	t.Run("rolls back source planet changes when fleet creation fails", func(t *testing.T) {
-		adapter, conn := newTestSimulationStepExecutor(t)
-
-		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetShip, addPlanetResource)
-		fleet := generateSampleFleet(planet)
-		fleet.Mission = models.MissionTransport
-		missingDestination := uuid.New()
-		fleet.Destination.Target = &missingDestination
-		fleet.Ships = []models.FleetShip{{Ship: lightFighterId, Count: 1}}
-
-		createFleet := generateFleetCreator(fleet)
-		simulateDispatch := func(step models.SimulationStep) (models.SimulationStepResult, error) {
-			step.Planet.Ships[0].Count--
-			step.Planet.Resources[0].Amount++
-			return createFleet(step)
-		}
-		_, err := adapter.Execute(t.Context(), planet.Id, planet.UpdatedAt, simulateDispatch)
-
-		assert.ErrorIs(t, err, domainerrors.ErrFleetDestinationInvalid, "Actual err: %v", err)
-
-		actual := loadPlanetFromDb(t, conn, planet.Id)
-		assert.Equal(t, planet, actual)
-		assertFleetDoesNotExist(t, conn, fleet.Id)
-	})
 }
 
 func TestIT_SimulationStepExecutor_Execute_ActionCreationDeletionWorkflow(t *testing.T) {
-	conn := newTestConnection(t)
-	simulator := NewSimulationStepExecutor(conn)
 
-	action := models.BuildingAction{
-		Id:           uuid.New(),
-		Building:     metalMineId,
-		DesiredLevel: 27,
-		CreatedAt:    time.Date(2024, time.December, 7, 20, 26, 47, 0, time.UTC),
-		CompletedAt:  time.Date(2024, time.December, 7, 21, 26, 47, 0, time.UTC),
-		Costs:        []models.BuildingActionCost{},
-		Storages:     []models.BuildingActionResourceStorage{},
-		Productions:  []models.BuildingActionResourceProduction{},
-	}
-
-	planet, _, _ := insertTestPlanetForPlayer(t, conn)
-
-	mutation := func(step models.SimulationStep) (models.SimulationStepResult, error) {
-		require.NotNil(t, step.Planet)
-		require.Nil(t, step.NextFleetEvent)
-
-		step.Planet.BuildingAction = &action
-		step.Planet.Version++
-
-		result := models.SimulationStepResult{
-			Resolution: models.PlanetUpdated,
-			Planet:     step.Planet,
-		}
-		return result, nil
-	}
-	result, err := simulator.Execute(t.Context(), planet.Id, action.CreatedAt, mutation)
-	require.NoError(t, err, "Actual err: %v", err)
-	assert.Equal(t, models.PlanetUpdated, result.Resolution)
-	require.NotNil(t, result.Planet)
-	require.NotNil(t, result.Planet.BuildingAction)
-	assert.Equal(t, action, *result.Planet.BuildingAction)
-	assertBuildingActionExists(t, conn, action.Id)
-
-	func() {
-		actual := loadPlanetFromDb(t, conn, planet.Id)
-
-		require.NotNil(t, actual.BuildingAction)
-		assert.Equal(t, action, *actual.BuildingAction)
-	}()
-
-	mutation = func(step models.SimulationStep) (models.SimulationStepResult, error) {
-		require.NotNil(t, step.Planet)
-		require.Nil(t, step.NextFleetEvent)
-
-		step.Planet.BuildingAction = nil
-		step.Planet.Version++
-
-		result := models.SimulationStepResult{
-			Resolution: models.PlanetUpdated,
-			Planet:     step.Planet,
-		}
-
-		return result, nil
-	}
-	result, err = simulator.Execute(t.Context(), planet.Id, action.CreatedAt, mutation)
-	require.NoError(t, err, "Actual err: %v", err)
-	require.NotNil(t, result.Planet)
-	assert.Nil(t, result.Planet.BuildingAction)
-	assertBuildingActionDoesNotExist(t, conn, action.Id)
 }
 
 func TestIT_SimulationStepExecutor_Execute_Atomicity(t *testing.T) {

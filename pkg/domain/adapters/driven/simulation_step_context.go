@@ -80,6 +80,10 @@ func (c *simulationStepContext) resolve(
 	if c.nextFleetEvent == nil && c.allowPlanetDeletion && result.Resolution != models.PlanetDeleted {
 		return models.SimulationStepResult{}, domainerrors.ErrInvalidSimulationStepResult
 	}
+	// Reject fleet deletion when fleet event is not available
+	if c.nextFleetEvent == nil && result.Resolution == models.FleetDeleted {
+		return models.SimulationStepResult{}, domainerrors.ErrInvalidSimulationStepResult
+	}
 
 	planet, err := c.persistPlanet(ctx, tx, result)
 	if err != nil {

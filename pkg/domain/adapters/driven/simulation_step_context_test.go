@@ -204,6 +204,27 @@ func TestUnit_SimulationStepContext_Resolve(t *testing.T) {
 		assert.ErrorIs(t, err, domainerrors.ErrInvalidSimulationStepResult, "Actual err: %v", err)
 	})
 
+	t.Run("returns error when resolver requests fleet deletion without a fleet event", func(t *testing.T) {
+		planet := models.Planet{
+			Id:      uuid.New(),
+			Version: 3,
+		}
+
+		result := models.SimulationStepResult{
+			Resolution: models.FleetDeleted,
+			Planet:     nil,
+			Fleet:      nil,
+		}
+
+		resolver, _ := generateCapturingResolver(result)
+
+		ctx := newPlanetStepContext(planet, false, resolver)
+
+		_, err := ctx.resolve(t.Context(), nil, t2)
+
+		assert.ErrorIs(t, err, domainerrors.ErrInvalidSimulationStepResult, "Actual err: %v", err)
+	})
+
 	t.Run("returns error when resolver requests planet deletion for a fleet event", func(t *testing.T) {
 		event := models.FleetEventContext{
 			Timestamp: someTime,
