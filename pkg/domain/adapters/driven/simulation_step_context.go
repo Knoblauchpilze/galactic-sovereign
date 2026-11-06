@@ -107,6 +107,13 @@ func (c *simulationStepContext) persistPlanet(
 	tx database.Transaction,
 	result models.SimulationStepResult,
 ) (*models.Planet, error) {
+	if result.Resolution == models.PlanetDeleted {
+		err := deletePlanetAndDetails(ctx, tx, c.planet.Id)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	if result.Planet == nil {
 		return nil, nil
 	}

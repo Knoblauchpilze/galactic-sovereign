@@ -1427,6 +1427,271 @@ func TestIT_SimulationStepContext_Resolve_SavePlanet(t *testing.T) {
 	})
 }
 
+func TestIT_SimulationStepContext_Resolve_DeletePlanet(t *testing.T) {
+	t.Run("deletes planet", func(t *testing.T) {
+		conn, tx := newTestConnectionAndTransaction(t)
+
+		planet, _, _ := insertTestPlanetForPlayer(t, conn)
+
+		resolver := generatePlanetDeleter()
+		ctx := newPlanetStepContext(planet, true, resolver)
+
+		actual, err := ctx.resolve(t.Context(), tx, planet.UpdatedAt)
+		require.NoError(t, err, "Actual err: %v", err)
+		tx.Close(t.Context())
+
+		expected := models.SimulationStepResult{
+			Resolution: models.PlanetDeleted,
+		}
+		assert.Equal(t, expected, actual)
+		assertPlanetDoesNotExist(t, conn, planet.Id)
+	})
+
+	t.Run("deletes homeworld", func(t *testing.T) {
+		conn, tx := newTestConnectionAndTransaction(t)
+
+		universe := insertTestUniverse(t, conn)
+		player := insertTestPlayer(t, conn, universe.Id)
+		homeworld := insertTestPlanet(t, conn, player.Id, addPlanetHomeworld)
+
+		resolver := generatePlanetDeleter()
+		ctx := newPlanetStepContext(homeworld, true, resolver)
+
+		actual, err := ctx.resolve(t.Context(), tx, homeworld.UpdatedAt)
+		require.NoError(t, err, "Actual err: %v", err)
+		tx.Close(t.Context())
+
+		expected := models.SimulationStepResult{
+			Resolution: models.PlanetDeleted,
+		}
+		assert.Equal(t, expected, actual)
+		assertPlanetDoesNotExist(t, conn, player.Homeworld)
+		assertPlanetIsNotHomeworld(t, conn, player.Homeworld)
+	})
+
+	t.Run("deletes planet with resources", func(t *testing.T) {
+		conn, tx := newTestConnectionAndTransaction(t)
+
+		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetResource)
+
+		resolver := generatePlanetDeleter()
+		ctx := newPlanetStepContext(planet, true, resolver)
+
+		actual, err := ctx.resolve(t.Context(), tx, planet.UpdatedAt)
+		require.NoError(t, err, "Actual err: %v", err)
+		tx.Close(t.Context())
+
+		expected := models.SimulationStepResult{
+			Resolution: models.PlanetDeleted,
+		}
+		assert.Equal(t, expected, actual)
+		assertPlanetDoesNotExist(t, conn, planet.Id)
+		assertPlanetResourceDoesNotExist(t, conn, planet.Id)
+	})
+
+	t.Run("deletes planet with storages", func(t *testing.T) {
+		conn, tx := newTestConnectionAndTransaction(t)
+
+		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetStorage)
+
+		resolver := generatePlanetDeleter()
+		ctx := newPlanetStepContext(planet, true, resolver)
+
+		actual, err := ctx.resolve(t.Context(), tx, planet.UpdatedAt)
+		require.NoError(t, err, "Actual err: %v", err)
+		tx.Close(t.Context())
+
+		expected := models.SimulationStepResult{
+			Resolution: models.PlanetDeleted,
+		}
+		assert.Equal(t, expected, actual)
+		assertPlanetDoesNotExist(t, conn, planet.Id)
+		assertPlanetStorageDoesNotExist(t, conn, planet.Id)
+	})
+
+	t.Run("deletes planet with productions", func(t *testing.T) {
+		conn, tx := newTestConnectionAndTransaction(t)
+
+		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetProduction)
+
+		resolver := generatePlanetDeleter()
+		ctx := newPlanetStepContext(planet, true, resolver)
+
+		actual, err := ctx.resolve(t.Context(), tx, planet.UpdatedAt)
+		require.NoError(t, err, "Actual err: %v", err)
+		tx.Close(t.Context())
+
+		expected := models.SimulationStepResult{
+			Resolution: models.PlanetDeleted,
+		}
+		assert.Equal(t, expected, actual)
+		assertPlanetDoesNotExist(t, conn, planet.Id)
+		assertPlanetProductionDoesNotExist(t, conn, planet.Id)
+	})
+
+	t.Run("deletes planet with production for building", func(t *testing.T) {
+		conn, tx := newTestConnectionAndTransaction(t)
+
+		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetProductionForBuilding)
+
+		resolver := generatePlanetDeleter()
+		ctx := newPlanetStepContext(planet, true, resolver)
+
+		actual, err := ctx.resolve(t.Context(), tx, planet.UpdatedAt)
+		require.NoError(t, err, "Actual err: %v", err)
+		tx.Close(t.Context())
+
+		expected := models.SimulationStepResult{
+			Resolution: models.PlanetDeleted,
+		}
+		assert.Equal(t, expected, actual)
+		assertPlanetDoesNotExist(t, conn, planet.Id)
+		assertPlanetProductionDoesNotExist(t, conn, planet.Id)
+	})
+
+	t.Run("deletes planet with buildings", func(t *testing.T) {
+		conn, tx := newTestConnectionAndTransaction(t)
+
+		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetBuilding)
+
+		resolver := generatePlanetDeleter()
+		ctx := newPlanetStepContext(planet, true, resolver)
+
+		actual, err := ctx.resolve(t.Context(), tx, planet.UpdatedAt)
+		require.NoError(t, err, "Actual err: %v", err)
+		tx.Close(t.Context())
+
+		expected := models.SimulationStepResult{
+			Resolution: models.PlanetDeleted,
+		}
+		assert.Equal(t, expected, actual)
+		assertPlanetDoesNotExist(t, conn, planet.Id)
+		assertPlanetBuildingDoesNotExist(t, conn, planet.Id)
+	})
+
+	t.Run("deletes planet with buildings with ship speedup", func(t *testing.T) {
+		conn, tx := newTestConnectionAndTransaction(t)
+
+		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetBuildingWithShipSpeedup)
+
+		resolver := generatePlanetDeleter()
+		ctx := newPlanetStepContext(planet, true, resolver)
+
+		actual, err := ctx.resolve(t.Context(), tx, planet.UpdatedAt)
+		require.NoError(t, err, "Actual err: %v", err)
+		tx.Close(t.Context())
+
+		expected := models.SimulationStepResult{
+			Resolution: models.PlanetDeleted,
+		}
+		assert.Equal(t, expected, actual)
+		assertPlanetDoesNotExist(t, conn, planet.Id)
+		assertPlanetBuildingDoesNotExist(t, conn, planet.Id)
+		assertBuildingShipSpeedupValue(t, conn, planet.Buildings[0].Building, *planet.Buildings[0].ShipSpeedup)
+	})
+
+	t.Run("deletes planet with ships", func(t *testing.T) {
+		conn, tx := newTestConnectionAndTransaction(t)
+
+		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetShip)
+
+		resolver := generatePlanetDeleter()
+		ctx := newPlanetStepContext(planet, true, resolver)
+
+		actual, err := ctx.resolve(t.Context(), tx, planet.UpdatedAt)
+		require.NoError(t, err, "Actual err: %v", err)
+		tx.Close(t.Context())
+
+		expected := models.SimulationStepResult{
+			Resolution: models.PlanetDeleted,
+		}
+		assert.Equal(t, expected, actual)
+		assertPlanetDoesNotExist(t, conn, planet.Id)
+		assertPlanetShipDoesNotExist(t, conn, planet.Id)
+	})
+
+	t.Run("deletes planet with building action", func(t *testing.T) {
+		conn, tx := newTestConnectionAndTransaction(t)
+
+		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetBuildingAction)
+
+		resolver := generatePlanetDeleter()
+		ctx := newPlanetStepContext(planet, true, resolver)
+
+		actual, err := ctx.resolve(t.Context(), tx, planet.UpdatedAt)
+		require.NoError(t, err, "Actual err: %v", err)
+		tx.Close(t.Context())
+
+		expected := models.SimulationStepResult{
+			Resolution: models.PlanetDeleted,
+		}
+		assert.Equal(t, expected, actual)
+		assertPlanetDoesNotExist(t, conn, planet.Id)
+		require.NotNil(t, planet.BuildingAction)
+		assertBuildingActionDoesNotExist(t, conn, planet.BuildingAction.Id)
+	})
+
+	t.Run("deletes planet with ship action", func(t *testing.T) {
+		conn, tx := newTestConnectionAndTransaction(t)
+
+		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetShipAction)
+
+		resolver := generatePlanetDeleter()
+		ctx := newPlanetStepContext(planet, true, resolver)
+
+		actual, err := ctx.resolve(t.Context(), tx, planet.UpdatedAt)
+		require.NoError(t, err, "Actual err: %v", err)
+		tx.Close(t.Context())
+
+		expected := models.SimulationStepResult{
+			Resolution: models.PlanetDeleted,
+		}
+		assert.Equal(t, expected, actual)
+		assertPlanetDoesNotExist(t, conn, planet.Id)
+		assertShipActionDoesNotExist(t, conn, planet.Id)
+	})
+
+	t.Run("does not delete planet and returns error when planet is source for a fleet", func(t *testing.T) {
+		conn, tx := newTestConnectionAndTransaction(t)
+
+		planet, _, _ := insertTestPlanetForPlayer(t, conn)
+		fleet := insertTestFleet(t, conn, planet, addFleetShip)
+
+		resolver := generatePlanetDeleter()
+		ctx := newPlanetStepContext(planet, true, resolver)
+
+		_, err := ctx.resolve(t.Context(), tx, planet.UpdatedAt)
+		tx.Close(t.Context())
+
+		assert.ErrorIs(t, err, domainerrors.ErrFleetInFlight, "Actual err: %v", err)
+		assertPlanetExists(t, conn, planet.Id)
+		assertFleetExists(t, conn, fleet.Id)
+	})
+
+	t.Run("does not delete planet and returns error when planet has a fleet targeting it", func(t *testing.T) {
+		conn, tx := newTestConnectionAndTransaction(t)
+
+		planet, destination, _ := insertTwoTestPlanets(t, conn)
+		fleet := insertTestFleet(t, conn, planet, addFleetShip)
+		fleet.Destination = models.FleetDestination{
+			Coordinate: destination.Coordinate,
+			Target:     &destination.Id,
+		}
+		upsertFleetDestination(t, conn, fleet)
+
+		resolver := generatePlanetDeleter()
+		ctx := newPlanetStepContext(destination, true, resolver)
+
+		_, err := ctx.resolve(t.Context(), tx, planet.UpdatedAt)
+		tx.Close(t.Context())
+
+		assert.ErrorIs(t, err, domainerrors.ErrFleetInFlight, "Actual err: %v", err)
+		assertPlanetExists(t, conn, planet.Id)
+		assertPlanetExists(t, conn, destination.Id)
+		assertFleetExists(t, conn, fleet.Id)
+	})
+}
+
 func TestIT_SimulationStepContext_Resolve_SaveFleet(t *testing.T) {
 	t.Run("returns mutated fleet", func(t *testing.T) {
 		conn, tx := newTestConnectionAndTransaction(t)
@@ -1909,6 +2174,18 @@ func generateCapturingResolver(result models.SimulationStepResult) (models.Simul
 	}
 
 	return resolver, &captor
+}
+
+func generatePlanetDeleter() models.SimulationStepResolver {
+	return func(_ models.SimulationStep) (models.SimulationStepResult, error) {
+		result := models.SimulationStepResult{
+			Resolution: models.PlanetDeleted,
+			Planet:     nil,
+			Fleet:      nil,
+		}
+
+		return result, nil
+	}
 }
 
 func dummyResolver(_ models.SimulationStep) (models.SimulationStepResult, error) {
