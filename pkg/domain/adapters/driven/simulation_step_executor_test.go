@@ -1610,6 +1610,7 @@ func TestIT_SimulationStepExecutor_FleetBehavior(t *testing.T) {
 			Resolution: models.PlanetDeleted,
 			Planet:     nil,
 		}
+		assert.Equal(t, expected, result)
 
 		assertPlanetDoesNotExist(t, conn, planet.Id)
 	})
@@ -1848,6 +1849,205 @@ func TestIT_SimulationStepExecutor_ExecuteForDelete_PlanetBehavior(t *testing.T)
 		assert.Equal(t, expected, result)
 
 		assertPlanetDoesNotExist(t, conn, planet.Id)
+	})
+}
+
+func TestIT_SimulationStepExecutor_FleetConcurrency(t *testing.T) {
+	t.Run("Execute", func(t *testing.T) {
+		t.Run("resolves competing due fleet event once and proceeds with committed state", func(t *testing.T) {
+			adapter, conn := newTestSimulationStepExecutor(t)
+
+			planetA, planetB, _ := insertTwoTestPlanets(t, conn)
+			fleet := insertTestFleet(t, conn, planetA)
+
+			afterArrival := fleet.Schedule.ArrivalAt.Add(1 * time.Minute)
+
+			enteredFleetEvent := make(chan struct{})
+			releaseFleetEvent := make(chan struct{})
+			var releaseOnce sync.Once
+			release := func() {
+				releaseOnce.Do(func() { close(releaseFleetEvent) })
+			}
+			t.Cleanup(release)
+
+			// First resolver is processing the fleet event
+			resolveFleetEvent := generateFleetSimulator(func(f *models.Fleet) {
+				f.Schedule.Status = models.StatusReturning
+				f.Version++
+			})
+			simulateFleetEvent := func(step models.SimulationStep) (models.SimulationStepResult, error) {
+				close(enteredFleetEvent)
+				<-releaseFleetEvent
+				return resolveFleetEvent(step)
+			}
+
+			firstDone := make(chan error, 1)
+			go func() {
+				_, err := adapter.Execute(t.Context(), planetA.Id, afterArrival, simulateFleetEvent)
+				firstDone <- err
+			}()
+
+			select {
+			case <-enteredFleetEvent:
+			case <-time.After(5 * time.Second):
+				t.Fatal("first execution did not reach the fleet event resolver")
+			}
+
+			// Second resolver is processing the planet
+			waitingEntered := make(chan struct{})
+			var waitingSawPending bool
+			var waitingSawVersion int
+			simulateWaiting := generatePlanetSimulator(func(p *models.Planet) { p.Version++ })
+			recordWaiting := func(step models.SimulationStep) (models.SimulationStepResult, error) {
+				waitingSawPending = step.NextFleetEvent != nil
+				waitingSawVersion = step.Planet.Version
+				close(waitingEntered)
+				return simulateWaiting(step)
+			}
+
+			waitingCtx, cancelWaiting := context.WithTimeout(t.Context(), 10*time.Second)
+			defer cancelWaiting()
+			waitingDone := make(chan error, 1)
+			go func() {
+				_, err := adapter.Execute(waitingCtx, planetB.Id, afterArrival, recordWaiting)
+				waitingDone <- err
+			}()
+
+			// Pragmatic check only: the waiting call must not resolve anything while the
+			// due event is held. Correctness is asserted below on the committed outcome.
+			select {
+			case <-waitingEntered:
+				t.Fatal("waiting execution proceeded before the fleet event was released")
+			case <-time.After(100 * time.Millisecond):
+			}
+
+			release()
+
+			select {
+			case err := <-firstDone:
+				require.NoError(t, err, "first execution failed, actual err: %v", err)
+			case <-time.After(5 * time.Second):
+				t.Fatal("first execution did not complete after release")
+			}
+
+			select {
+			case err := <-waitingDone:
+				require.NoError(t, err, "waiting execution failed, actual err: %v", err)
+			case <-time.After(5 * time.Second):
+				t.Fatal("waiting execution did not complete after release")
+			}
+
+			assert.False(t, waitingSawPending, "waiting execution should not see the resolved fleet event as pending")
+			assert.Equal(t, planetB.Version, waitingSawVersion, "waiting execution should see planet B at its committed version")
+
+			actualFleet := loadFleetFromDb(t, conn, fleet.Id)
+			expectedFleet := fleet
+			expectedFleet.Version++
+			expectedFleet.Schedule.Status = models.StatusReturning
+			assert.Equal(t, expectedFleet, actualFleet)
+
+			planetAFromDb := loadPlanetFromDb(t, conn, planetA.Id)
+			assert.Equal(t, planetA, planetAFromDb)
+			planetBFromDb := loadPlanetFromDb(t, conn, planetB.Id)
+			expectedPlanetB := planetB
+			expectedPlanetB.Version++
+			assert.Equal(t, expectedPlanetB, planetBFromDb)
+		})
+	})
+
+	t.Run("ExecuteForDelete", func(t *testing.T) {
+		t.Run("resolves competing due fleet event once and proceeds with committed state", func(t *testing.T) {
+			adapter, conn := newTestSimulationStepExecutor(t)
+
+			planetA, planetB, _ := insertTwoTestPlanets(t, conn)
+			fleet := insertTestFleet(t, conn, planetA)
+
+			afterArrival := fleet.Schedule.ArrivalAt.Add(1 * time.Minute)
+
+			enteredFleetEvent := make(chan struct{})
+			releaseFleetEvent := make(chan struct{})
+			var releaseOnce sync.Once
+			release := func() {
+				releaseOnce.Do(func() { close(releaseFleetEvent) })
+			}
+			t.Cleanup(release)
+
+			// First resolver is processing the fleet event
+			resolveFleetEvent := generateFleetSimulator(func(f *models.Fleet) {
+				f.Schedule.Status = models.StatusReturning
+				f.Version++
+			})
+			simulateFleetEvent := func(step models.SimulationStep) (models.SimulationStepResult, error) {
+				close(enteredFleetEvent)
+				<-releaseFleetEvent
+				return resolveFleetEvent(step)
+			}
+
+			firstDone := make(chan error, 1)
+			go func() {
+				_, err := adapter.ExecuteForDelete(t.Context(), planetA.Id, afterArrival, simulateFleetEvent)
+				firstDone <- err
+			}()
+
+			select {
+			case <-enteredFleetEvent:
+			case <-time.After(5 * time.Second):
+				t.Fatal("first execution did not reach the fleet event resolver")
+			}
+
+			// Second resolver is processing the planet
+			waitingEntered := make(chan struct{})
+			var waitingSawPending bool
+			simulateWaiting := func(step models.SimulationStep) (models.SimulationStepResult, error) {
+				waitingSawPending = step.NextFleetEvent != nil
+				close(waitingEntered)
+				return models.SimulationStepResult{Resolution: models.PlanetDeleted}, nil
+			}
+
+			waitingCtx, cancelWaiting := context.WithTimeout(t.Context(), 10*time.Second)
+			defer cancelWaiting()
+			waitingDone := make(chan error, 1)
+			go func() {
+				_, err := adapter.ExecuteForDelete(waitingCtx, planetB.Id, afterArrival, simulateWaiting)
+				waitingDone <- err
+			}()
+
+			// Pragmatic check only: the waiting call must not resolve anything while the
+			// due event is held. Correctness is asserted below on the committed outcome.
+			select {
+			case <-waitingEntered:
+				t.Fatal("waiting execution proceeded before the fleet event was released")
+			case <-time.After(100 * time.Millisecond):
+			}
+
+			release()
+
+			select {
+			case err := <-firstDone:
+				require.NoError(t, err, "first execution failed, actual err: %v", err)
+			case <-time.After(5 * time.Second):
+				t.Fatal("first execution did not complete after release")
+			}
+
+			select {
+			case err := <-waitingDone:
+				require.NoError(t, err, "waiting execution failed, actual err: %v", err)
+			case <-time.After(5 * time.Second):
+				t.Fatal("waiting execution did not complete after release")
+			}
+
+			assert.False(t, waitingSawPending, "waiting execution should not see the resolved fleet event as pending")
+
+			actualFleet := loadFleetFromDb(t, conn, fleet.Id)
+			expectedFleet := fleet
+			expectedFleet.Version++
+			expectedFleet.Schedule.Status = models.StatusReturning
+			assert.Equal(t, expectedFleet, actualFleet)
+
+			planetAFromDb := loadPlanetFromDb(t, conn, planetA.Id)
+			assert.Equal(t, planetA, planetAFromDb)
+			assertPlanetDoesNotExist(t, conn, planetB.Id)
+		})
 	})
 }
 
