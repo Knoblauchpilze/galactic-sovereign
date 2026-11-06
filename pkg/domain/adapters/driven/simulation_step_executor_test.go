@@ -1482,6 +1482,137 @@ func TestIT_SimulationStepExecutor_FleetBehavior(t *testing.T) {
 		planetBFromDb := loadPlanetFromDb(t, conn, planetB.Id)
 		assert.Equal(t, planetB, planetBFromDb)
 	})
+
+	t.Run("resolves multiple fleet events before resolving planet event with execute", func(t *testing.T) {
+		adapter, conn := newTestSimulationStepExecutor(t)
+
+		planet, _, _ := insertTestPlanetForPlayer(t, conn)
+		fleet := insertTestFleet(t, conn, planet)
+		fleet.Schedule.ArrivalAt = fleet.CreatedAt.Add(time.Minute)
+		fleet.Schedule.ReturnAt = fleet.CreatedAt.Add(2 * time.Minute)
+		upsertFleetSchedule(t, conn, fleet)
+
+		afterReturn := fleet.CreatedAt.Add(3 * time.Minute)
+
+		// First resolution should resolve the arrival event
+		resolver := generateFleetSimulator(func(f *models.Fleet) {
+			f.Version++
+			f.UpdatedAt = f.Schedule.ArrivalAt
+			f.Schedule.Status = models.StatusReturning
+		})
+		result, err := adapter.Execute(t.Context(), planet.Id, afterReturn, resolver)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		expected := models.SimulationStepResult{
+			Resolution: models.FleetEventResolved,
+			Fleet:      new(fleet),
+			Planet:     nil,
+		}
+		expected.Fleet.Version++
+		expected.Fleet.UpdatedAt = fleet.Schedule.ArrivalAt
+		expected.Fleet.Schedule.Status = models.StatusReturning
+		assert.Equal(t, expected, result)
+
+		actual := loadFleetFromDb(t, conn, fleet.Id)
+		assert.Equal(t, expected.Fleet, &actual)
+
+		// Second resolution should resolve the return event
+		resolver = generateFleetDeleter()
+		result, err = adapter.Execute(t.Context(), planet.Id, afterReturn, resolver)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		expected = models.SimulationStepResult{
+			Resolution: models.FleetDeleted,
+			Fleet:      nil,
+			Planet:     new(planet),
+		}
+		expected.Planet.Version++
+		assert.Equal(t, expected, result)
+
+		assertFleetDoesNotExist(t, conn, fleet.Id)
+
+		// Third resolution applies planet modification
+		resolver = generatePlanetSimulator(func(p *models.Planet) {
+			p.Version++
+			p.Fields++
+		})
+		result, err = adapter.Execute(t.Context(), planet.Id, afterReturn, resolver)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		expected = models.SimulationStepResult{
+			Resolution: models.PlanetUpdated,
+			Planet:     new(planet),
+		}
+		// The two comes from the fleet deletion (+1) and the planet update
+		// from this mutation
+		expected.Planet.Version += 2
+		expected.Planet.Fields++
+		assert.Equal(t, expected, result)
+
+		actualPlanet := loadPlanetFromDb(t, conn, planet.Id)
+		assert.Equal(t, expected.Planet, &actualPlanet)
+	})
+
+	t.Run("resolves multiple fleet events before resolving planet event with execute for delete", func(t *testing.T) {
+		adapter, conn := newTestSimulationStepExecutor(t)
+
+		planet, _, _ := insertTestPlanetForPlayer(t, conn)
+		fleet := insertTestFleet(t, conn, planet)
+		fleet.Schedule.ArrivalAt = fleet.CreatedAt.Add(time.Minute)
+		fleet.Schedule.ReturnAt = fleet.CreatedAt.Add(2 * time.Minute)
+		upsertFleetSchedule(t, conn, fleet)
+
+		afterReturn := fleet.CreatedAt.Add(3 * time.Minute)
+
+		// First resolution should resolve the arrival event
+		resolver := generateFleetSimulator(func(f *models.Fleet) {
+			f.Version++
+			f.UpdatedAt = f.Schedule.ArrivalAt
+			f.Schedule.Status = models.StatusReturning
+		})
+		result, err := adapter.ExecuteForDelete(t.Context(), planet.Id, afterReturn, resolver)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		expected := models.SimulationStepResult{
+			Resolution: models.FleetEventResolved,
+			Fleet:      new(fleet),
+			Planet:     nil,
+		}
+		expected.Fleet.Version++
+		expected.Fleet.UpdatedAt = fleet.Schedule.ArrivalAt
+		expected.Fleet.Schedule.Status = models.StatusReturning
+		assert.Equal(t, expected, result)
+
+		actual := loadFleetFromDb(t, conn, fleet.Id)
+		assert.Equal(t, expected.Fleet, &actual)
+
+		// Second resolution should resolve the return event
+		resolver = generateFleetDeleter()
+		result, err = adapter.ExecuteForDelete(t.Context(), planet.Id, afterReturn, resolver)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		expected = models.SimulationStepResult{
+			Resolution: models.FleetDeleted,
+			Fleet:      nil,
+			Planet:     new(planet),
+		}
+		expected.Planet.Version++
+		assert.Equal(t, expected, result)
+
+		assertFleetDoesNotExist(t, conn, fleet.Id)
+
+		// Third resolution applies planet deletion
+		resolver = generatePlanetDeleter()
+		result, err = adapter.ExecuteForDelete(t.Context(), planet.Id, afterReturn, resolver)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		expected = models.SimulationStepResult{
+			Resolution: models.PlanetDeleted,
+			Planet:     nil,
+		}
+
+		assertPlanetDoesNotExist(t, conn, planet.Id)
+	})
 }
 
 func TestIT_SimulationStepExecutor_Execute_PlanetBehavior(t *testing.T) {
@@ -2121,55 +2252,6 @@ func TestIT_SimulationStepExecutor_Execute_Concurrency(t *testing.T) {
 		assertPlanetVersion(t, conn, planetA.Id, planetA.Version+1)
 		assertFleetEventExists(t, conn, fleet.Id, fleet.Schedule.ArrivalAt)
 		assertFleetEventTypeMatches(t, conn, fleet.Id, models.ArrivalEvent)
-	})
-
-	t.Run("resolves multiple fleet events before resolving planet event", func(t *testing.T) {
-		adapter, conn := newTestSimulationStepExecutor(t)
-
-		planet, _, _ := insertTestPlanetForPlayer(t, conn)
-		fleetA := insertTestFleet(t, conn, planet)
-		fleetB := insertTestFleet(t, conn, planet)
-		fleetB.Schedule.ArrivalAt = fleetA.Schedule.ArrivalAt.Add(time.Minute)
-		upsertFleetSchedule(t, conn, fleetB)
-
-		timestamp := fleetB.Schedule.ArrivalAt.Add(2 * time.Minute)
-
-		var resolvedFleetIds []uuid.UUID
-		planetEventResolved := false
-		simulate := func(step models.SimulationStep) (models.SimulationStepResult, error) {
-			if step.NextFleetEvent == nil {
-				planetEventResolved = true
-				step.Planet.Version++
-				return models.SimulationStepResult{
-					Resolution: models.PlanetUpdated,
-					Planet:     step.Planet,
-				}, nil
-			}
-
-			fleet := step.NextFleetEvent.Fleet
-			resolvedFleetIds = append(resolvedFleetIds, fleet.Id)
-			fleet.Schedule.Status = models.StatusReturning
-			fleet.Version++
-			return models.SimulationStepResult{
-				Resolution: models.FleetEventResolved,
-				Fleet:      &fleet,
-			}, nil
-		}
-
-		for range 2 {
-			result, err := adapter.Execute(t.Context(), planet.Id, timestamp, simulate)
-			require.NoError(t, err, "Actual err: %v", err)
-			assert.Equal(t, models.FleetEventResolved, result.Resolution)
-		}
-
-		require.False(t, planetEventResolved, "planet event was resolved while fleet events were still pending")
-		assert.Equal(t, []uuid.UUID{fleetA.Id, fleetB.Id}, resolvedFleetIds)
-
-		result, err := adapter.Execute(t.Context(), planet.Id, timestamp, simulate)
-		require.NoError(t, err, "Actual err: %v", err)
-		assert.Equal(t, models.PlanetUpdated, result.Resolution)
-		require.True(t, planetEventResolved)
-		assertPlanetVersion(t, conn, planet.Id, planet.Version+1)
 	})
 
 	t.Run("allows concurrent reciprocal fleet dispatches", func(t *testing.T) {
