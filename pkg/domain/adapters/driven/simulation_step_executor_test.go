@@ -1389,9 +1389,7 @@ func TestIT_SimulationStepExecutor_FleetBehavior(t *testing.T) {
 		assert.Equal(t, fleetA, fleetFromDb)
 		planetAFromDb := loadPlanetFromDb(t, conn, planetA.Id)
 		assert.Equal(t, planetA, planetAFromDb)
-		// TODO: Should be deleted
-		planetBFromDb := loadPlanetFromDb(t, conn, planetB.Id)
-		assert.Equal(t, planetB, planetBFromDb)
+		assertPlanetDoesNotExist(t, conn, planetB.Id)
 	})
 
 	t.Run("does not resolve future fleet event when execute is called", func(t *testing.T) {
@@ -1444,8 +1442,8 @@ func TestIT_SimulationStepExecutor_FleetBehavior(t *testing.T) {
 	t.Run("does not resolve future fleet event when execute for delete is called", func(t *testing.T) {
 		adapter, conn := newTestSimulationStepExecutor(t)
 
-		planet, _, _ := insertTestPlanetForPlayer(t, conn)
-		fleet := insertTestFleet(t, conn, planet)
+		planetA, planetB, _ := insertTwoTestPlanets(t, conn)
+		fleet := insertTestFleet(t, conn, planetB)
 
 		var captured models.SimulationStep
 		simulate := func(step models.SimulationStep) (models.SimulationStepResult, error) {
@@ -1462,12 +1460,12 @@ func TestIT_SimulationStepExecutor_FleetBehavior(t *testing.T) {
 
 		beforeArrival := fleet.Schedule.ArrivalAt.Add(-1 * time.Minute)
 
-		actual, err := adapter.ExecuteForDelete(t.Context(), planet.Id, beforeArrival, simulate)
+		actual, err := adapter.ExecuteForDelete(t.Context(), planetA.Id, beforeArrival, simulate)
 		require.NoError(t, err, "Actual err: %v", err)
 
 		expectedStep := models.SimulationStep{
 			Timestamp:      beforeArrival,
-			Planet:         &planet,
+			Planet:         &planetA,
 			NextFleetEvent: nil,
 		}
 		assert.Equal(t, expectedStep, captured)
@@ -1480,9 +1478,9 @@ func TestIT_SimulationStepExecutor_FleetBehavior(t *testing.T) {
 
 		fleetFromDb := loadFleetFromDb(t, conn, fleet.Id)
 		assert.Equal(t, fleet, fleetFromDb)
-		// TODO: Should be deleted
-		planetFromDb := loadPlanetFromDb(t, conn, planet.Id)
-		assert.Equal(t, planet, planetFromDb)
+		assertPlanetDoesNotExist(t, conn, planetA.Id)
+		planetBFromDb := loadPlanetFromDb(t, conn, planetB.Id)
+		assert.Equal(t, planetB, planetBFromDb)
 	})
 }
 
