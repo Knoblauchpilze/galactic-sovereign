@@ -1871,11 +1871,11 @@ func TestIT_SimulationStepExecutor_FleetConcurrency(t *testing.T) {
 				f.Version++
 			}))
 
-			firstDone := make(chan error, 1)
-			go func() {
-				_, err := adapter.Execute(t.Context(), planetA.Id, afterArrival, fleetEventResolver)
-				firstDone <- err
-			}()
+			fleetEventSimulator := func() (models.SimulationStepResult, error) {
+				return adapter.Execute(t.Context(), planetA.Id, afterArrival, fleetEventResolver)
+			}
+			fleetEventHelper := newAsyncExecutionHelper(fleetEventSimulator)
+			fleetEventHelper.run()
 
 			require.True(t, gate.waitUntilEntered(5*time.Second), "first execution did not reach the fleet event resolver")
 
@@ -1893,11 +1893,10 @@ func TestIT_SimulationStepExecutor_FleetConcurrency(t *testing.T) {
 
 			waitingCtx, cancelWaiting := context.WithTimeout(t.Context(), 10*time.Second)
 			defer cancelWaiting()
-			waitingDone := make(chan error, 1)
-			go func() {
-				_, err := adapter.Execute(waitingCtx, planetB.Id, afterArrival, recordWaiting)
-				waitingDone <- err
-			}()
+			waitingHelper := newAsyncExecutionHelper(func() (models.SimulationStepResult, error) {
+				return adapter.Execute(waitingCtx, planetB.Id, afterArrival, recordWaiting)
+			})
+			waitingHelper.run()
 
 			// Pragmatic check only: the waiting call must not resolve anything while the
 			// due event is held. Correctness is asserted below on the committed outcome.
@@ -1909,19 +1908,8 @@ func TestIT_SimulationStepExecutor_FleetConcurrency(t *testing.T) {
 
 			gate.open()
 
-			select {
-			case err := <-firstDone:
-				require.NoError(t, err, "first execution failed, actual err: %v", err)
-			case <-time.After(5 * time.Second):
-				t.Fatal("first execution did not complete after release")
-			}
-
-			select {
-			case err := <-waitingDone:
-				require.NoError(t, err, "waiting execution failed, actual err: %v", err)
-			case <-time.After(5 * time.Second):
-				t.Fatal("waiting execution did not complete after release")
-			}
+			fleetEventHelper.assertReturnWithNoError(t, 5*time.Second)
+			waitingHelper.assertReturnWithNoError(t, 5*time.Second)
 
 			assert.False(t, waitingSawPending, "waiting execution should not see the resolved fleet event as pending")
 			assert.Equal(t, planetB.Version, waitingSawVersion, "waiting execution should see planet B at its committed version")
@@ -1960,11 +1948,10 @@ func TestIT_SimulationStepExecutor_FleetConcurrency(t *testing.T) {
 			})
 			fleetEventResolver := gate.createGatedResolver(resolveFleetEvent)
 
-			firstDone := make(chan error, 1)
-			go func() {
-				_, err := adapter.Execute(t.Context(), planetA.Id, afterFleetBArrival, fleetEventResolver)
-				firstDone <- err
-			}()
+			fleetEventHelper := newAsyncExecutionHelper(func() (models.SimulationStepResult, error) {
+				return adapter.Execute(t.Context(), planetA.Id, afterFleetBArrival, fleetEventResolver)
+			})
+			fleetEventHelper.run()
 
 			require.True(t, gate.waitUntilEntered(5*time.Second), "first execution did not reach the fleet event resolver")
 
@@ -1979,11 +1966,10 @@ func TestIT_SimulationStepExecutor_FleetConcurrency(t *testing.T) {
 
 			waitingCtx, cancelWaiting := context.WithTimeout(t.Context(), 10*time.Second)
 			defer cancelWaiting()
-			waitingDone := make(chan error, 1)
-			go func() {
-				_, err := adapter.Execute(waitingCtx, planetB.Id, afterFleetBArrival, simulateWaiting)
-				waitingDone <- err
-			}()
+			waitingHelper := newAsyncExecutionHelper(func() (models.SimulationStepResult, error) {
+				return adapter.Execute(waitingCtx, planetB.Id, afterFleetBArrival, simulateWaiting)
+			})
+			waitingHelper.run()
 
 			// Pragmatic check only: the waiting call must not resolve anything while fleet A is held.
 			// Correctness is asserted below on the committed outcome.
@@ -1995,19 +1981,8 @@ func TestIT_SimulationStepExecutor_FleetConcurrency(t *testing.T) {
 
 			gate.open()
 
-			select {
-			case err := <-firstDone:
-				require.NoError(t, err, "first execution failed, actual err: %v", err)
-			case <-time.After(5 * time.Second):
-				t.Fatal("first execution did not complete after release")
-			}
-
-			select {
-			case err := <-waitingDone:
-				require.NoError(t, err, "waiting execution failed, actual err: %v", err)
-			case <-time.After(5 * time.Second):
-				t.Fatal("waiting execution did not complete after release")
-			}
+			fleetEventHelper.assertReturnWithNoError(t, 5*time.Second)
+			waitingHelper.assertReturnWithNoError(t, 5*time.Second)
 
 			assert.Equal(t, fleetB.Id, waitingResolvedFleet, "waiting execution should resolve fleet B, the next due event")
 
@@ -2059,11 +2034,10 @@ func TestIT_SimulationStepExecutor_FleetConcurrency(t *testing.T) {
 				}, nil
 			})
 
-			firstDone := make(chan error, 1)
-			go func() {
-				_, err := adapter.Execute(t.Context(), planetA.Id, afterArrival, fleetEventResolver)
-				firstDone <- err
-			}()
+			fleetEventHelper := newAsyncExecutionHelper(func() (models.SimulationStepResult, error) {
+				return adapter.Execute(t.Context(), planetA.Id, afterArrival, fleetEventResolver)
+			})
+			fleetEventHelper.run()
 
 			require.True(t, gate.waitUntilEntered(5*time.Second), "first execution did not reach the fleet event resolver")
 
@@ -2082,11 +2056,10 @@ func TestIT_SimulationStepExecutor_FleetConcurrency(t *testing.T) {
 
 			waitingCtx, cancelWaiting := context.WithTimeout(t.Context(), 10*time.Second)
 			defer cancelWaiting()
-			waitingDone := make(chan error, 1)
-			go func() {
-				_, err := adapter.Execute(waitingCtx, planetB.Id, afterArrival, simulateWaiting)
-				waitingDone <- err
-			}()
+			waitingHelper := newAsyncExecutionHelper(func() (models.SimulationStepResult, error) {
+				return adapter.Execute(waitingCtx, planetB.Id, afterArrival, simulateWaiting)
+			})
+			waitingHelper.run()
 
 			// Pragmatic check only: the planet operation must not run while the fleet event is held.
 			// Correctness is asserted below on the committed outcome.
@@ -2098,19 +2071,8 @@ func TestIT_SimulationStepExecutor_FleetConcurrency(t *testing.T) {
 
 			gate.open()
 
-			select {
-			case err := <-firstDone:
-				require.NoError(t, err, "first execution failed, actual err: %v", err)
-			case <-time.After(5 * time.Second):
-				t.Fatal("first execution did not complete after release")
-			}
-
-			select {
-			case err := <-waitingDone:
-				require.NoError(t, err, "waiting execution failed, actual err: %v", err)
-			case <-time.After(5 * time.Second):
-				t.Fatal("waiting execution did not complete after release")
-			}
+			fleetEventHelper.assertReturnWithNoError(t, 5*time.Second)
+			waitingHelper.assertReturnWithNoError(t, 5*time.Second)
 
 			assert.Equal(t, planetB.Resources[0].Amount+10, waitingSawAmount, "planet operation should observe the committed fleet event amount")
 
@@ -2162,11 +2124,10 @@ func TestIT_SimulationStepExecutor_FleetConcurrency(t *testing.T) {
 				}, nil
 			})
 
-			firstDone := make(chan error, 1)
-			go func() {
-				_, err := adapter.Execute(t.Context(), planetA.Id, afterArrival, failingFleetEventResolver)
-				firstDone <- err
-			}()
+			firstHelper := newAsyncExecutionHelper(func() (models.SimulationStepResult, error) {
+				return adapter.Execute(t.Context(), planetA.Id, afterArrival, failingFleetEventResolver)
+			})
+			firstHelper.run()
 
 			require.True(t, gate.waitUntilEntered(5*time.Second), "first execution did not reach the fleet event resolver")
 
@@ -2191,11 +2152,10 @@ func TestIT_SimulationStepExecutor_FleetConcurrency(t *testing.T) {
 
 			waitingCtx, cancelWaiting := context.WithTimeout(t.Context(), 10*time.Second)
 			defer cancelWaiting()
-			waitingDone := make(chan error, 1)
-			go func() {
-				_, err := adapter.Execute(waitingCtx, planetB.Id, afterArrival, simulateWaiting)
-				waitingDone <- err
-			}()
+			waitingHelper := newAsyncExecutionHelper(func() (models.SimulationStepResult, error) {
+				return adapter.Execute(waitingCtx, planetB.Id, afterArrival, simulateWaiting)
+			})
+			waitingHelper.run()
 
 			// Pragmatic check only: the waiting call must not resolve anything while the first call is held.
 			// Correctness is asserted below on the committed outcome.
@@ -2207,19 +2167,10 @@ func TestIT_SimulationStepExecutor_FleetConcurrency(t *testing.T) {
 
 			gate.open()
 
-			select {
-			case err := <-firstDone:
-				require.ErrorIs(t, err, domainerrors.ErrMutationWithoutVersionBump, "first execution should fail, actual err: %v", err)
-			case <-time.After(5 * time.Second):
-				t.Fatal("first execution did not complete after release")
-			}
+			err := firstHelper.waitForReturn(t, 5*time.Second)
+			require.ErrorIs(t, err, domainerrors.ErrMutationWithoutVersionBump, "first execution should fail, actual err: %v", err)
 
-			select {
-			case err := <-waitingDone:
-				require.NoError(t, err, "waiting execution failed, actual err: %v", err)
-			case <-time.After(5 * time.Second):
-				t.Fatal("waiting execution did not complete after release")
-			}
+			waitingHelper.assertReturnWithNoError(t, 5*time.Second)
 
 			assert.Equal(t, fleet, waitingSawFleet, "waiting execution should see the fleet as it was before the failed attempt")
 			assert.Equal(t, planetB, waitingSawPlanet, "waiting execution should see planet B as it was before the failed attempt")
@@ -2254,11 +2205,10 @@ func TestIT_SimulationStepExecutor_FleetConcurrency(t *testing.T) {
 				f.Version++
 			}))
 
-			holdDone := make(chan error, 1)
-			go func() {
-				_, err := adapter.Execute(t.Context(), planetB.Id, afterArrival, fleetEventResolver)
-				holdDone <- err
-			}()
+			holdHelper := newAsyncExecutionHelper(func() (models.SimulationStepResult, error) {
+				return adapter.Execute(t.Context(), planetB.Id, afterArrival, fleetEventResolver)
+			})
+			holdHelper.run()
 
 			require.True(t, gate.waitUntilEntered(5*time.Second), "first execution did not reach the fleet event resolver")
 
@@ -2272,27 +2222,17 @@ func TestIT_SimulationStepExecutor_FleetConcurrency(t *testing.T) {
 				return simulatePlanet(step)
 			}
 
-			operationDone := make(chan error, 1)
-			go func() {
-				_, err := adapter.Execute(t.Context(), planetA.Id, afterArrival, simulateOperation)
-				operationDone <- err
-			}()
+			operationHelper := newAsyncExecutionHelper(func() (models.SimulationStepResult, error) {
+				return adapter.Execute(t.Context(), planetA.Id, afterArrival, simulateOperation)
+			})
+			operationHelper.run()
 
-			select {
-			case err := <-operationDone:
-				require.NoError(t, err, "operation on planet A failed, actual err: %v", err)
-			case <-time.After(5 * time.Second):
-				t.Fatal("operation on planet A was blocked by the due fleet event of another universe")
-			}
+			// Operation on planet A must complete while the fleet event of universe B is still held
+			operationHelper.assertReturnWithNoError(t, 5*time.Second)
 
 			gate.open()
 
-			select {
-			case err := <-holdDone:
-				require.NoError(t, err, "first execution failed, actual err: %v", err)
-			case <-time.After(5 * time.Second):
-				t.Fatal("first execution did not complete after release")
-			}
+			holdHelper.assertReturnWithNoError(t, 5*time.Second)
 
 			assert.False(t, sawNextFleetEvent, "operation on planet A should not see the fleet event of another universe")
 
@@ -3351,6 +3291,51 @@ func (g *executionGate) waitUntilEntered(timeout time.Duration) bool {
 
 func (g *executionGate) open() {
 	g.openOnce.Do(func() { close(g.released) })
+}
+
+// asyncExecutionHelper runs a simulation step in the background, so that the
+// test can check its outcome later.
+type asyncExecutionHelper struct {
+	simulate func() (models.SimulationStepResult, error)
+	done     chan struct{}
+	err      error
+}
+
+func newAsyncExecutionHelper(simulate func() (models.SimulationStepResult, error)) *asyncExecutionHelper {
+	return &asyncExecutionHelper{
+		simulate: simulate,
+		done:     make(chan struct{}),
+	}
+}
+
+func (h *asyncExecutionHelper) run() {
+	go func() {
+		_, h.err = h.simulate()
+		close(h.done)
+	}()
+}
+
+func (h *asyncExecutionHelper) assertReturnWithNoError(t *testing.T, timeout time.Duration) {
+	t.Helper()
+
+	select {
+	case <-h.done:
+		require.NoError(t, h.err, "execution failed, actual err: %v", h.err)
+	case <-time.After(timeout):
+		t.Fatal("execution did not complete in time")
+	}
+}
+
+func (h *asyncExecutionHelper) waitForReturn(t *testing.T, timeout time.Duration) error {
+	t.Helper()
+
+	select {
+	case <-h.done:
+		return h.err
+	case <-time.After(timeout):
+		t.Fatal("execution did not complete in time")
+		return nil
+	}
 }
 
 func newTestSimulationStepExecutor(t *testing.T) (*SimulationStepExecutor, database.Connection) {
