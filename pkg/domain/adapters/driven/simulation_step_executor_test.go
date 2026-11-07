@@ -2269,11 +2269,10 @@ func TestIT_SimulationStepExecutor_FleetConcurrency(t *testing.T) {
 				f.Version++
 			}))
 
-			firstDone := make(chan error, 1)
-			go func() {
-				_, err := adapter.ExecuteForDelete(t.Context(), planetA.Id, afterArrival, fleetEventResolver)
-				firstDone <- err
-			}()
+			fleetEventHelper := newAsyncExecutionHelper(func() (models.SimulationStepResult, error) {
+				return adapter.ExecuteForDelete(t.Context(), planetA.Id, afterArrival, fleetEventResolver)
+			})
+			fleetEventHelper.run()
 
 			require.True(t, gate.waitUntilEntered(5*time.Second), "first execution did not reach the fleet event resolver")
 
@@ -2288,11 +2287,10 @@ func TestIT_SimulationStepExecutor_FleetConcurrency(t *testing.T) {
 
 			waitingCtx, cancelWaiting := context.WithTimeout(t.Context(), 10*time.Second)
 			defer cancelWaiting()
-			waitingDone := make(chan error, 1)
-			go func() {
-				_, err := adapter.ExecuteForDelete(waitingCtx, planetB.Id, afterArrival, simulateWaiting)
-				waitingDone <- err
-			}()
+			waitingHelper := newAsyncExecutionHelper(func() (models.SimulationStepResult, error) {
+				return adapter.ExecuteForDelete(waitingCtx, planetB.Id, afterArrival, simulateWaiting)
+			})
+			waitingHelper.run()
 
 			// Pragmatic check only: the waiting call must not resolve anything while the
 			// due event is held. Correctness is asserted below on the committed outcome.
@@ -2304,19 +2302,8 @@ func TestIT_SimulationStepExecutor_FleetConcurrency(t *testing.T) {
 
 			gate.open()
 
-			select {
-			case err := <-firstDone:
-				require.NoError(t, err, "first execution failed, actual err: %v", err)
-			case <-time.After(5 * time.Second):
-				t.Fatal("first execution did not complete after release")
-			}
-
-			select {
-			case err := <-waitingDone:
-				require.NoError(t, err, "waiting execution failed, actual err: %v", err)
-			case <-time.After(5 * time.Second):
-				t.Fatal("waiting execution did not complete after release")
-			}
+			fleetEventHelper.assertReturnWithNoError(t, 5*time.Second)
+			waitingHelper.assertReturnWithNoError(t, 5*time.Second)
 
 			assert.False(t, waitingSawPending, "waiting execution should not see the resolved fleet event as pending")
 
@@ -2351,11 +2338,10 @@ func TestIT_SimulationStepExecutor_FleetConcurrency(t *testing.T) {
 			})
 			fleetEventResolver := gate.createGatedResolver(resolveFleetEvent)
 
-			firstDone := make(chan error, 1)
-			go func() {
-				_, err := adapter.ExecuteForDelete(t.Context(), planetA.Id, afterFleetBArrival, fleetEventResolver)
-				firstDone <- err
-			}()
+			fleetEventHelper := newAsyncExecutionHelper(func() (models.SimulationStepResult, error) {
+				return adapter.ExecuteForDelete(t.Context(), planetA.Id, afterFleetBArrival, fleetEventResolver)
+			})
+			fleetEventHelper.run()
 
 			require.True(t, gate.waitUntilEntered(5*time.Second), "first execution did not reach the fleet event resolver")
 
@@ -2370,11 +2356,10 @@ func TestIT_SimulationStepExecutor_FleetConcurrency(t *testing.T) {
 
 			waitingCtx, cancelWaiting := context.WithTimeout(t.Context(), 10*time.Second)
 			defer cancelWaiting()
-			waitingDone := make(chan error, 1)
-			go func() {
-				_, err := adapter.ExecuteForDelete(waitingCtx, planetB.Id, afterFleetBArrival, simulateWaiting)
-				waitingDone <- err
-			}()
+			waitingHelper := newAsyncExecutionHelper(func() (models.SimulationStepResult, error) {
+				return adapter.ExecuteForDelete(waitingCtx, planetB.Id, afterFleetBArrival, simulateWaiting)
+			})
+			waitingHelper.run()
 
 			// Pragmatic check only: the waiting call must not resolve anything while fleet A is held.
 			// Correctness is asserted below on the committed outcome.
@@ -2386,19 +2371,8 @@ func TestIT_SimulationStepExecutor_FleetConcurrency(t *testing.T) {
 
 			gate.open()
 
-			select {
-			case err := <-firstDone:
-				require.NoError(t, err, "first execution failed, actual err: %v", err)
-			case <-time.After(5 * time.Second):
-				t.Fatal("first execution did not complete after release")
-			}
-
-			select {
-			case err := <-waitingDone:
-				require.NoError(t, err, "waiting execution failed, actual err: %v", err)
-			case <-time.After(5 * time.Second):
-				t.Fatal("waiting execution did not complete after release")
-			}
+			fleetEventHelper.assertReturnWithNoError(t, 5*time.Second)
+			waitingHelper.assertReturnWithNoError(t, 5*time.Second)
 
 			assert.Equal(t, fleetB.Id, waitingResolvedFleet, "waiting execution should resolve fleet B, the next due event")
 
@@ -2435,11 +2409,10 @@ func TestIT_SimulationStepExecutor_FleetConcurrency(t *testing.T) {
 				f.Version++
 			}))
 
-			firstDone := make(chan error, 1)
-			go func() {
-				_, err := adapter.ExecuteForDelete(t.Context(), planetA.Id, afterArrival, fleetEventResolver)
-				firstDone <- err
-			}()
+			fleetEventHelper := newAsyncExecutionHelper(func() (models.SimulationStepResult, error) {
+				return adapter.ExecuteForDelete(t.Context(), planetA.Id, afterArrival, fleetEventResolver)
+			})
+			fleetEventHelper.run()
 
 			require.True(t, gate.waitUntilEntered(5*time.Second), "first execution did not reach the fleet event resolver")
 
@@ -2454,11 +2427,10 @@ func TestIT_SimulationStepExecutor_FleetConcurrency(t *testing.T) {
 
 			waitingCtx, cancelWaiting := context.WithTimeout(t.Context(), 10*time.Second)
 			defer cancelWaiting()
-			waitingDone := make(chan error, 1)
-			go func() {
-				_, err := adapter.ExecuteForDelete(waitingCtx, planetB.Id, afterArrival, simulateWaiting)
-				waitingDone <- err
-			}()
+			waitingHelper := newAsyncExecutionHelper(func() (models.SimulationStepResult, error) {
+				return adapter.ExecuteForDelete(waitingCtx, planetB.Id, afterArrival, simulateWaiting)
+			})
+			waitingHelper.run()
 
 			// Pragmatic check only: the deletion must not run while the fleet event is held.
 			// Correctness is asserted below on the committed outcome.
@@ -2470,19 +2442,8 @@ func TestIT_SimulationStepExecutor_FleetConcurrency(t *testing.T) {
 
 			gate.open()
 
-			select {
-			case err := <-firstDone:
-				require.NoError(t, err, "first execution failed, actual err: %v", err)
-			case <-time.After(5 * time.Second):
-				t.Fatal("first execution did not complete after release")
-			}
-
-			select {
-			case err := <-waitingDone:
-				require.NoError(t, err, "waiting execution failed, actual err: %v", err)
-			case <-time.After(5 * time.Second):
-				t.Fatal("waiting execution did not complete after release")
-			}
+			fleetEventHelper.assertReturnWithNoError(t, 5*time.Second)
+			waitingHelper.assertReturnWithNoError(t, 5*time.Second)
 
 			assert.False(t, waitingSawPending, "waiting execution should not see the resolved fleet event as pending")
 
@@ -2527,11 +2488,10 @@ func TestIT_SimulationStepExecutor_FleetConcurrency(t *testing.T) {
 				}, nil
 			})
 
-			firstDone := make(chan error, 1)
-			go func() {
-				_, err := adapter.ExecuteForDelete(t.Context(), planetA.Id, afterArrival, failingFleetEventResolver)
-				firstDone <- err
-			}()
+			firstHelper := newAsyncExecutionHelper(func() (models.SimulationStepResult, error) {
+				return adapter.ExecuteForDelete(t.Context(), planetA.Id, afterArrival, failingFleetEventResolver)
+			})
+			firstHelper.run()
 
 			require.True(t, gate.waitUntilEntered(5*time.Second), "first execution did not reach the fleet event resolver")
 
@@ -2556,11 +2516,10 @@ func TestIT_SimulationStepExecutor_FleetConcurrency(t *testing.T) {
 
 			waitingCtx, cancelWaiting := context.WithTimeout(t.Context(), 10*time.Second)
 			defer cancelWaiting()
-			waitingDone := make(chan error, 1)
-			go func() {
-				_, err := adapter.ExecuteForDelete(waitingCtx, planetB.Id, afterArrival, simulateWaiting)
-				waitingDone <- err
-			}()
+			waitingHelper := newAsyncExecutionHelper(func() (models.SimulationStepResult, error) {
+				return adapter.ExecuteForDelete(waitingCtx, planetB.Id, afterArrival, simulateWaiting)
+			})
+			waitingHelper.run()
 
 			// Pragmatic check only: the waiting call must not resolve anything while the first call is held.
 			// Correctness is asserted below on the committed outcome.
@@ -2572,19 +2531,10 @@ func TestIT_SimulationStepExecutor_FleetConcurrency(t *testing.T) {
 
 			gate.open()
 
-			select {
-			case err := <-firstDone:
-				require.ErrorIs(t, err, domainerrors.ErrMutationWithoutVersionBump, "first execution should fail, actual err: %v", err)
-			case <-time.After(5 * time.Second):
-				t.Fatal("first execution did not complete after release")
-			}
+			err := firstHelper.waitForReturn(t, 5*time.Second)
+			require.ErrorIs(t, err, domainerrors.ErrMutationWithoutVersionBump, "first execution should fail, actual err: %v", err)
 
-			select {
-			case err := <-waitingDone:
-				require.NoError(t, err, "waiting execution failed, actual err: %v", err)
-			case <-time.After(5 * time.Second):
-				t.Fatal("waiting execution did not complete after release")
-			}
+			waitingHelper.assertReturnWithNoError(t, 5*time.Second)
 
 			assert.Equal(t, fleet, waitingSawFleet, "waiting execution should see the fleet as it was before the failed attempt")
 			assert.Equal(t, planetB, waitingSawPlanet, "waiting execution should see planet B as it was before the failed attempt")
@@ -2619,11 +2569,10 @@ func TestIT_SimulationStepExecutor_FleetConcurrency(t *testing.T) {
 				f.Version++
 			}))
 
-			holdDone := make(chan error, 1)
-			go func() {
-				_, err := adapter.ExecuteForDelete(t.Context(), planetB.Id, afterArrival, fleetEventResolver)
-				holdDone <- err
-			}()
+			holdHelper := newAsyncExecutionHelper(func() (models.SimulationStepResult, error) {
+				return adapter.ExecuteForDelete(t.Context(), planetB.Id, afterArrival, fleetEventResolver)
+			})
+			holdHelper.run()
 
 			require.True(t, gate.waitUntilEntered(5*time.Second), "first execution did not reach the fleet event resolver")
 
@@ -2634,27 +2583,16 @@ func TestIT_SimulationStepExecutor_FleetConcurrency(t *testing.T) {
 				return models.SimulationStepResult{Resolution: models.PlanetDeleted}, nil
 			}
 
-			deletionDone := make(chan error, 1)
-			go func() {
-				_, err := adapter.ExecuteForDelete(t.Context(), planetA.Id, afterArrival, simulateDeletion)
-				deletionDone <- err
-			}()
+			deletionHelper := newAsyncExecutionHelper(func() (models.SimulationStepResult, error) {
+				return adapter.ExecuteForDelete(t.Context(), planetA.Id, afterArrival, simulateDeletion)
+			})
+			deletionHelper.run()
 
-			select {
-			case err := <-deletionDone:
-				require.NoError(t, err, "deletion of planet A failed, actual err: %v", err)
-			case <-time.After(5 * time.Second):
-				t.Fatal("deletion of planet A was blocked by the due fleet event of another universe")
-			}
+			deletionHelper.assertReturnWithNoError(t, 5*time.Second)
 
 			gate.open()
 
-			select {
-			case err := <-holdDone:
-				require.NoError(t, err, "first execution failed, actual err: %v", err)
-			case <-time.After(5 * time.Second):
-				t.Fatal("first execution did not complete after release")
-			}
+			holdHelper.assertReturnWithNoError(t, 5*time.Second)
 
 			assert.False(t, sawNextFleetEvent, "deletion of planet A should not see the fleet event of another universe")
 
