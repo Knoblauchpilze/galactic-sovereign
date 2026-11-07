@@ -1863,36 +1863,21 @@ func TestIT_SimulationStepExecutor_FleetConcurrency(t *testing.T) {
 
 			afterArrival := fleet.Schedule.ArrivalAt.Add(1 * time.Minute)
 
-			enteredFleetEvent := make(chan struct{})
-			releaseFleetEvent := make(chan struct{})
-			var releaseOnce sync.Once
-			release := func() {
-				releaseOnce.Do(func() { close(releaseFleetEvent) })
-			}
-			t.Cleanup(release)
+			gate := newExecutionGate(t)
 
 			// First resolver is processing the fleet event
-			resolveFleetEvent := generateFleetSimulator(func(f *models.Fleet) {
+			fleetEventResolver := gate.createGatedResolver(generateFleetSimulator(func(f *models.Fleet) {
 				f.Schedule.Status = models.StatusReturning
 				f.Version++
-			})
-			simulateFleetEvent := func(step models.SimulationStep) (models.SimulationStepResult, error) {
-				close(enteredFleetEvent)
-				<-releaseFleetEvent
-				return resolveFleetEvent(step)
-			}
+			}))
 
 			firstDone := make(chan error, 1)
 			go func() {
-				_, err := adapter.Execute(t.Context(), planetA.Id, afterArrival, simulateFleetEvent)
+				_, err := adapter.Execute(t.Context(), planetA.Id, afterArrival, fleetEventResolver)
 				firstDone <- err
 			}()
 
-			select {
-			case <-enteredFleetEvent:
-			case <-time.After(5 * time.Second):
-				t.Fatal("first execution did not reach the fleet event resolver")
-			}
+			require.True(t, gate.waitUntilEntered(5*time.Second), "first execution did not reach the fleet event resolver")
 
 			// Second resolver is processing the planet
 			waitingEntered := make(chan struct{})
@@ -1922,7 +1907,7 @@ func TestIT_SimulationStepExecutor_FleetConcurrency(t *testing.T) {
 			case <-time.After(100 * time.Millisecond):
 			}
 
-			release()
+			gate.open()
 
 			select {
 			case err := <-firstDone:
@@ -1966,36 +1951,22 @@ func TestIT_SimulationStepExecutor_FleetConcurrency(t *testing.T) {
 
 			afterFleetBArrival := fleetB.Schedule.ArrivalAt.Add(1 * time.Minute)
 
-			enteredFleetA := make(chan struct{})
-			releaseFleetA := make(chan struct{})
-			var releaseOnce sync.Once
-			release := func() {
-				releaseOnce.Do(func() { close(releaseFleetA) })
-			}
-			t.Cleanup(release)
+			gate := newExecutionGate(t)
 
 			// First resolver holds the lock on fleet A until released
 			resolveFleetEvent := generateFleetSimulator(func(f *models.Fleet) {
 				f.Schedule.Status = models.StatusReturning
 				f.Version++
 			})
-			simulateFleetA := func(step models.SimulationStep) (models.SimulationStepResult, error) {
-				close(enteredFleetA)
-				<-releaseFleetA
-				return resolveFleetEvent(step)
-			}
+			fleetEventResolver := gate.createGatedResolver(resolveFleetEvent)
 
 			firstDone := make(chan error, 1)
 			go func() {
-				_, err := adapter.Execute(t.Context(), planetA.Id, afterFleetBArrival, simulateFleetA)
+				_, err := adapter.Execute(t.Context(), planetA.Id, afterFleetBArrival, fleetEventResolver)
 				firstDone <- err
 			}()
 
-			select {
-			case <-enteredFleetA:
-			case <-time.After(5 * time.Second):
-				t.Fatal("first execution did not reach the fleet event resolver")
-			}
+			require.True(t, gate.waitUntilEntered(5*time.Second), "first execution did not reach the fleet event resolver")
 
 			// Waiting call must resolve fleet B, the next due event, once fleet A is committed
 			waitingEntered := make(chan struct{})
@@ -2022,7 +1993,7 @@ func TestIT_SimulationStepExecutor_FleetConcurrency(t *testing.T) {
 			case <-time.After(100 * time.Millisecond):
 			}
 
-			release()
+			gate.open()
 
 			select {
 			case err := <-firstDone:
@@ -2069,19 +2040,10 @@ func TestIT_SimulationStepExecutor_FleetConcurrency(t *testing.T) {
 
 			afterArrival := fleet.Schedule.ArrivalAt.Add(1 * time.Minute)
 
-			enteredFleetEvent := make(chan struct{})
-			releaseFleetEvent := make(chan struct{})
-			var releaseOnce sync.Once
-			release := func() {
-				releaseOnce.Do(func() { close(releaseFleetEvent) })
-			}
-			t.Cleanup(release)
+			gate := newExecutionGate(t)
 
 			// Fleet event adds to the first resource of planet B and returns the fleet
-			simulateFleetEvent := func(step models.SimulationStep) (models.SimulationStepResult, error) {
-				close(enteredFleetEvent)
-				<-releaseFleetEvent
-
+			fleetEventResolver := gate.createGatedResolver(func(step models.SimulationStep) (models.SimulationStepResult, error) {
 				planet := *step.NextFleetEvent.Planet
 				planet.Resources[0].Amount += 10
 				planet.Version++
@@ -2095,19 +2057,15 @@ func TestIT_SimulationStepExecutor_FleetConcurrency(t *testing.T) {
 					Planet:     &planet,
 					Fleet:      &f,
 				}, nil
-			}
+			})
 
 			firstDone := make(chan error, 1)
 			go func() {
-				_, err := adapter.Execute(t.Context(), planetA.Id, afterArrival, simulateFleetEvent)
+				_, err := adapter.Execute(t.Context(), planetA.Id, afterArrival, fleetEventResolver)
 				firstDone <- err
 			}()
 
-			select {
-			case <-enteredFleetEvent:
-			case <-time.After(5 * time.Second):
-				t.Fatal("first execution did not reach the fleet event resolver")
-			}
+			require.True(t, gate.waitUntilEntered(5*time.Second), "first execution did not reach the fleet event resolver")
 
 			// Planet operation on planet B records the amount it observes, then bumps fields
 			waitingEntered := make(chan struct{})
@@ -2138,7 +2096,7 @@ func TestIT_SimulationStepExecutor_FleetConcurrency(t *testing.T) {
 			case <-time.After(100 * time.Millisecond):
 			}
 
-			release()
+			gate.open()
 
 			select {
 			case err := <-firstDone:
@@ -2185,20 +2143,11 @@ func TestIT_SimulationStepExecutor_FleetConcurrency(t *testing.T) {
 
 			afterArrival := fleet.Schedule.ArrivalAt.Add(1 * time.Minute)
 
-			enteredFleetEvent := make(chan struct{})
-			releaseFleetEvent := make(chan struct{})
-			var releaseOnce sync.Once
-			release := func() {
-				releaseOnce.Do(func() { close(releaseFleetEvent) })
-			}
-			t.Cleanup(release)
+			gate := newExecutionGate(t)
 
 			// Planet B is written first, then persisting the fleet fails because its version is not bumped.
 			// The planet write must be rolled back along with the failed transaction.
-			simulateFailingFleetEvent := func(step models.SimulationStep) (models.SimulationStepResult, error) {
-				close(enteredFleetEvent)
-				<-releaseFleetEvent
-
+			failingFleetEventResolver := gate.createGatedResolver(func(step models.SimulationStep) (models.SimulationStepResult, error) {
 				planet := *step.NextFleetEvent.Planet
 				planet.Resources[0].Amount += 10
 				planet.Version++
@@ -2211,19 +2160,15 @@ func TestIT_SimulationStepExecutor_FleetConcurrency(t *testing.T) {
 					Planet:     &planet,
 					Fleet:      &f,
 				}, nil
-			}
+			})
 
 			firstDone := make(chan error, 1)
 			go func() {
-				_, err := adapter.Execute(t.Context(), planetA.Id, afterArrival, simulateFailingFleetEvent)
+				_, err := adapter.Execute(t.Context(), planetA.Id, afterArrival, failingFleetEventResolver)
 				firstDone <- err
 			}()
 
-			select {
-			case <-enteredFleetEvent:
-			case <-time.After(5 * time.Second):
-				t.Fatal("first execution did not reach the fleet event resolver")
-			}
+			require.True(t, gate.waitUntilEntered(5*time.Second), "first execution did not reach the fleet event resolver")
 
 			// Waiting call must resolve the same fleet event, seeing planet B as it was before the failed attempt
 			waitingEntered := make(chan struct{})
@@ -2260,7 +2205,7 @@ func TestIT_SimulationStepExecutor_FleetConcurrency(t *testing.T) {
 			case <-time.After(100 * time.Millisecond):
 			}
 
-			release()
+			gate.open()
 
 			select {
 			case err := <-firstDone:
@@ -2301,36 +2246,21 @@ func TestIT_SimulationStepExecutor_FleetConcurrency(t *testing.T) {
 			fleetB := insertTestFleet(t, conn, planetB)
 			afterArrival := fleetB.Schedule.ArrivalAt.Add(1 * time.Minute)
 
-			enteredFleetEvent := make(chan struct{})
-			releaseFleetEvent := make(chan struct{})
-			var releaseOnce sync.Once
-			release := func() {
-				releaseOnce.Do(func() { close(releaseFleetEvent) })
-			}
-			t.Cleanup(release)
+			gate := newExecutionGate(t)
 
 			// Holds the due fleet event of universe B until released
-			resolveFleetEvent := generateFleetSimulator(func(f *models.Fleet) {
+			fleetEventResolver := gate.createGatedResolver(generateFleetSimulator(func(f *models.Fleet) {
 				f.Schedule.Status = models.StatusReturning
 				f.Version++
-			})
-			simulateFleetEvent := func(step models.SimulationStep) (models.SimulationStepResult, error) {
-				close(enteredFleetEvent)
-				<-releaseFleetEvent
-				return resolveFleetEvent(step)
-			}
+			}))
 
 			holdDone := make(chan error, 1)
 			go func() {
-				_, err := adapter.Execute(t.Context(), planetB.Id, afterArrival, simulateFleetEvent)
+				_, err := adapter.Execute(t.Context(), planetB.Id, afterArrival, fleetEventResolver)
 				holdDone <- err
 			}()
 
-			select {
-			case <-enteredFleetEvent:
-			case <-time.After(5 * time.Second):
-				t.Fatal("first execution did not reach the fleet event resolver")
-			}
+			require.True(t, gate.waitUntilEntered(5*time.Second), "first execution did not reach the fleet event resolver")
 
 			// Operation on planet A must complete while the fleet event of universe B is still held
 			var sawNextFleetEvent bool
@@ -2355,7 +2285,7 @@ func TestIT_SimulationStepExecutor_FleetConcurrency(t *testing.T) {
 				t.Fatal("operation on planet A was blocked by the due fleet event of another universe")
 			}
 
-			release()
+			gate.open()
 
 			select {
 			case err := <-holdDone:
@@ -2391,36 +2321,21 @@ func TestIT_SimulationStepExecutor_FleetConcurrency(t *testing.T) {
 
 			afterArrival := fleet.Schedule.ArrivalAt.Add(1 * time.Minute)
 
-			enteredFleetEvent := make(chan struct{})
-			releaseFleetEvent := make(chan struct{})
-			var releaseOnce sync.Once
-			release := func() {
-				releaseOnce.Do(func() { close(releaseFleetEvent) })
-			}
-			t.Cleanup(release)
+			gate := newExecutionGate(t)
 
 			// First resolver is processing the fleet event
-			resolveFleetEvent := generateFleetSimulator(func(f *models.Fleet) {
+			fleetEventResolver := gate.createGatedResolver(generateFleetSimulator(func(f *models.Fleet) {
 				f.Schedule.Status = models.StatusReturning
 				f.Version++
-			})
-			simulateFleetEvent := func(step models.SimulationStep) (models.SimulationStepResult, error) {
-				close(enteredFleetEvent)
-				<-releaseFleetEvent
-				return resolveFleetEvent(step)
-			}
+			}))
 
 			firstDone := make(chan error, 1)
 			go func() {
-				_, err := adapter.ExecuteForDelete(t.Context(), planetA.Id, afterArrival, simulateFleetEvent)
+				_, err := adapter.ExecuteForDelete(t.Context(), planetA.Id, afterArrival, fleetEventResolver)
 				firstDone <- err
 			}()
 
-			select {
-			case <-enteredFleetEvent:
-			case <-time.After(5 * time.Second):
-				t.Fatal("first execution did not reach the fleet event resolver")
-			}
+			require.True(t, gate.waitUntilEntered(5*time.Second), "first execution did not reach the fleet event resolver")
 
 			// Second resolver is processing the planet
 			waitingEntered := make(chan struct{})
@@ -2447,7 +2362,7 @@ func TestIT_SimulationStepExecutor_FleetConcurrency(t *testing.T) {
 			case <-time.After(100 * time.Millisecond):
 			}
 
-			release()
+			gate.open()
 
 			select {
 			case err := <-firstDone:
@@ -2487,36 +2402,22 @@ func TestIT_SimulationStepExecutor_FleetConcurrency(t *testing.T) {
 
 			afterFleetBArrival := fleetB.Schedule.ArrivalAt.Add(1 * time.Minute)
 
-			enteredFleetA := make(chan struct{})
-			releaseFleetA := make(chan struct{})
-			var releaseOnce sync.Once
-			release := func() {
-				releaseOnce.Do(func() { close(releaseFleetA) })
-			}
-			t.Cleanup(release)
+			gate := newExecutionGate(t)
 
 			// First resolver holds the lock on fleet A until released
 			resolveFleetEvent := generateFleetSimulator(func(f *models.Fleet) {
 				f.Schedule.Status = models.StatusReturning
 				f.Version++
 			})
-			simulateFleetA := func(step models.SimulationStep) (models.SimulationStepResult, error) {
-				close(enteredFleetA)
-				<-releaseFleetA
-				return resolveFleetEvent(step)
-			}
+			fleetEventResolver := gate.createGatedResolver(resolveFleetEvent)
 
 			firstDone := make(chan error, 1)
 			go func() {
-				_, err := adapter.ExecuteForDelete(t.Context(), planetA.Id, afterFleetBArrival, simulateFleetA)
+				_, err := adapter.ExecuteForDelete(t.Context(), planetA.Id, afterFleetBArrival, fleetEventResolver)
 				firstDone <- err
 			}()
 
-			select {
-			case <-enteredFleetA:
-			case <-time.After(5 * time.Second):
-				t.Fatal("first execution did not reach the fleet event resolver")
-			}
+			require.True(t, gate.waitUntilEntered(5*time.Second), "first execution did not reach the fleet event resolver")
 
 			// Waiting call must resolve fleet B, the next due event, once fleet A is committed
 			waitingEntered := make(chan struct{})
@@ -2543,7 +2444,7 @@ func TestIT_SimulationStepExecutor_FleetConcurrency(t *testing.T) {
 			case <-time.After(100 * time.Millisecond):
 			}
 
-			release()
+			gate.open()
 
 			select {
 			case err := <-firstDone:
@@ -2587,35 +2488,20 @@ func TestIT_SimulationStepExecutor_FleetConcurrency(t *testing.T) {
 
 			afterArrival := fleet.Schedule.ArrivalAt.Add(1 * time.Minute)
 
-			enteredFleetEvent := make(chan struct{})
-			releaseFleetEvent := make(chan struct{})
-			var releaseOnce sync.Once
-			release := func() {
-				releaseOnce.Do(func() { close(releaseFleetEvent) })
-			}
-			t.Cleanup(release)
+			gate := newExecutionGate(t)
 
-			resolveFleetEvent := generateFleetSimulator(func(f *models.Fleet) {
+			fleetEventResolver := gate.createGatedResolver(generateFleetSimulator(func(f *models.Fleet) {
 				f.Schedule.Status = models.StatusReturning
 				f.Version++
-			})
-			simulateFleetEvent := func(step models.SimulationStep) (models.SimulationStepResult, error) {
-				close(enteredFleetEvent)
-				<-releaseFleetEvent
-				return resolveFleetEvent(step)
-			}
+			}))
 
 			firstDone := make(chan error, 1)
 			go func() {
-				_, err := adapter.ExecuteForDelete(t.Context(), planetA.Id, afterArrival, simulateFleetEvent)
+				_, err := adapter.ExecuteForDelete(t.Context(), planetA.Id, afterArrival, fleetEventResolver)
 				firstDone <- err
 			}()
 
-			select {
-			case <-enteredFleetEvent:
-			case <-time.After(5 * time.Second):
-				t.Fatal("first execution did not reach the fleet event resolver")
-			}
+			require.True(t, gate.waitUntilEntered(5*time.Second), "first execution did not reach the fleet event resolver")
 
 			// Deletion of planet B must only run once the fleet event is no longer due
 			waitingEntered := make(chan struct{})
@@ -2642,7 +2528,7 @@ func TestIT_SimulationStepExecutor_FleetConcurrency(t *testing.T) {
 			case <-time.After(100 * time.Millisecond):
 			}
 
-			release()
+			gate.open()
 
 			select {
 			case err := <-firstDone:
@@ -2682,20 +2568,11 @@ func TestIT_SimulationStepExecutor_FleetConcurrency(t *testing.T) {
 
 			afterArrival := fleet.Schedule.ArrivalAt.Add(1 * time.Minute)
 
-			enteredFleetEvent := make(chan struct{})
-			releaseFleetEvent := make(chan struct{})
-			var releaseOnce sync.Once
-			release := func() {
-				releaseOnce.Do(func() { close(releaseFleetEvent) })
-			}
-			t.Cleanup(release)
+			gate := newExecutionGate(t)
 
 			// Planet B is written first, then persisting the fleet fails because its version is not bumped.
 			// The planet write must be rolled back along with the failed transaction.
-			simulateFailingFleetEvent := func(step models.SimulationStep) (models.SimulationStepResult, error) {
-				close(enteredFleetEvent)
-				<-releaseFleetEvent
-
+			failingFleetEventResolver := gate.createGatedResolver(func(step models.SimulationStep) (models.SimulationStepResult, error) {
 				planet := *step.NextFleetEvent.Planet
 				planet.Resources[0].Amount += 10
 				planet.Version++
@@ -2708,19 +2585,15 @@ func TestIT_SimulationStepExecutor_FleetConcurrency(t *testing.T) {
 					Planet:     &planet,
 					Fleet:      &f,
 				}, nil
-			}
+			})
 
 			firstDone := make(chan error, 1)
 			go func() {
-				_, err := adapter.ExecuteForDelete(t.Context(), planetA.Id, afterArrival, simulateFailingFleetEvent)
+				_, err := adapter.ExecuteForDelete(t.Context(), planetA.Id, afterArrival, failingFleetEventResolver)
 				firstDone <- err
 			}()
 
-			select {
-			case <-enteredFleetEvent:
-			case <-time.After(5 * time.Second):
-				t.Fatal("first execution did not reach the fleet event resolver")
-			}
+			require.True(t, gate.waitUntilEntered(5*time.Second), "first execution did not reach the fleet event resolver")
 
 			// Waiting call must resolve the same fleet event, seeing planet B as it was before the failed attempt
 			waitingEntered := make(chan struct{})
@@ -2757,7 +2630,7 @@ func TestIT_SimulationStepExecutor_FleetConcurrency(t *testing.T) {
 			case <-time.After(100 * time.Millisecond):
 			}
 
-			release()
+			gate.open()
 
 			select {
 			case err := <-firstDone:
@@ -2798,36 +2671,21 @@ func TestIT_SimulationStepExecutor_FleetConcurrency(t *testing.T) {
 			fleetB := insertTestFleet(t, conn, planetB)
 			afterArrival := fleetB.Schedule.ArrivalAt.Add(1 * time.Minute)
 
-			enteredFleetEvent := make(chan struct{})
-			releaseFleetEvent := make(chan struct{})
-			var releaseOnce sync.Once
-			release := func() {
-				releaseOnce.Do(func() { close(releaseFleetEvent) })
-			}
-			t.Cleanup(release)
+			gate := newExecutionGate(t)
 
 			// Holds the due fleet event of universe B until released
-			resolveFleetEvent := generateFleetSimulator(func(f *models.Fleet) {
+			fleetEventResolver := gate.createGatedResolver(generateFleetSimulator(func(f *models.Fleet) {
 				f.Schedule.Status = models.StatusReturning
 				f.Version++
-			})
-			simulateFleetEvent := func(step models.SimulationStep) (models.SimulationStepResult, error) {
-				close(enteredFleetEvent)
-				<-releaseFleetEvent
-				return resolveFleetEvent(step)
-			}
+			}))
 
 			holdDone := make(chan error, 1)
 			go func() {
-				_, err := adapter.ExecuteForDelete(t.Context(), planetB.Id, afterArrival, simulateFleetEvent)
+				_, err := adapter.ExecuteForDelete(t.Context(), planetB.Id, afterArrival, fleetEventResolver)
 				holdDone <- err
 			}()
 
-			select {
-			case <-enteredFleetEvent:
-			case <-time.After(5 * time.Second):
-				t.Fatal("first execution did not reach the fleet event resolver")
-			}
+			require.True(t, gate.waitUntilEntered(5*time.Second), "first execution did not reach the fleet event resolver")
 
 			// Deletion of planet A must complete while the fleet event of universe B is still held
 			var sawNextFleetEvent bool
@@ -2849,7 +2707,7 @@ func TestIT_SimulationStepExecutor_FleetConcurrency(t *testing.T) {
 				t.Fatal("deletion of planet A was blocked by the due fleet event of another universe")
 			}
 
-			release()
+			gate.open()
 
 			select {
 			case err := <-holdDone:
@@ -3446,6 +3304,53 @@ func TestIT_SimulationStepExecutor_Execute_Concurrency(t *testing.T) {
 		assert.Equal(t, planet.Ships[0].Count-2, loadPlanetFromDb(t, conn, planet.Id).Ships[0].Count)
 		assertPlanetVersion(t, conn, planet.Id, planet.Version+2)
 	})
+}
+
+// executionGate holds a single resolver call until it is opened, so that
+// concurrent executions can be ordered deterministically.
+type executionGate struct {
+	entered   chan struct{}
+	released  chan struct{}
+	enterOnce sync.Once
+	openOnce  sync.Once
+}
+
+func newExecutionGate(t *testing.T) *executionGate {
+	t.Helper()
+
+	g := &executionGate{
+		entered:  make(chan struct{}),
+		released: make(chan struct{}),
+	}
+	t.Cleanup(g.open)
+
+	return g
+}
+
+// createGatedResolver returns a resolver that signals entry, waits for the gate
+// to be opened and then delegates to next.
+func (g *executionGate) createGatedResolver(next models.SimulationStepResolver) models.SimulationStepResolver {
+	return func(step models.SimulationStep) (models.SimulationStepResult, error) {
+		g.enterOnce.Do(func() { close(g.entered) })
+		<-g.released
+
+		return next(step)
+	}
+}
+
+// waitUntilEntered reports whether a resolver created by the gate was entered
+// within the given timeout.
+func (g *executionGate) waitUntilEntered(timeout time.Duration) bool {
+	select {
+	case <-g.entered:
+		return true
+	case <-time.After(timeout):
+		return false
+	}
+}
+
+func (g *executionGate) open() {
+	g.openOnce.Do(func() { close(g.released) })
 }
 
 func newTestSimulationStepExecutor(t *testing.T) (*SimulationStepExecutor, database.Connection) {
