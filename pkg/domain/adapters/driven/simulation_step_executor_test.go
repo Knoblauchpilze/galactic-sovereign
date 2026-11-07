@@ -2290,6 +2290,96 @@ func TestIT_SimulationStepExecutor_FleetConcurrency(t *testing.T) {
 			planetBFromDb := loadPlanetFromDb(t, conn, planetB.Id)
 			assert.Equal(t, planetB, planetBFromDb)
 		})
+
+		t.Run("does not block operation on planet in another universe with due fleet event", func(t *testing.T) {
+			adapter, conn := newTestSimulationStepExecutor(t)
+
+			planetA, _, universeA := insertTestPlanetForPlayer(t, conn)
+			planetB, _, universeB := insertTestPlanetForPlayer(t, conn)
+			require.NotEqual(t, universeA.Id, universeB.Id)
+
+			fleetB := insertTestFleet(t, conn, planetB)
+			afterArrival := fleetB.Schedule.ArrivalAt.Add(1 * time.Minute)
+
+			enteredFleetEvent := make(chan struct{})
+			releaseFleetEvent := make(chan struct{})
+			var releaseOnce sync.Once
+			release := func() {
+				releaseOnce.Do(func() { close(releaseFleetEvent) })
+			}
+			t.Cleanup(release)
+
+			// Holds the due fleet event of universe B until released
+			resolveFleetEvent := generateFleetSimulator(func(f *models.Fleet) {
+				f.Schedule.Status = models.StatusReturning
+				f.Version++
+			})
+			simulateFleetEvent := func(step models.SimulationStep) (models.SimulationStepResult, error) {
+				close(enteredFleetEvent)
+				<-releaseFleetEvent
+				return resolveFleetEvent(step)
+			}
+
+			holdDone := make(chan error, 1)
+			go func() {
+				_, err := adapter.Execute(t.Context(), planetB.Id, afterArrival, simulateFleetEvent)
+				holdDone <- err
+			}()
+
+			select {
+			case <-enteredFleetEvent:
+			case <-time.After(5 * time.Second):
+				t.Fatal("first execution did not reach the fleet event resolver")
+			}
+
+			// Operation on planet A must complete while the fleet event of universe B is still held
+			var sawNextFleetEvent bool
+			simulatePlanet := generatePlanetSimulator(func(p *models.Planet) {
+				p.Version++
+			})
+			simulateOperation := func(step models.SimulationStep) (models.SimulationStepResult, error) {
+				sawNextFleetEvent = step.NextFleetEvent != nil
+				return simulatePlanet(step)
+			}
+
+			operationDone := make(chan error, 1)
+			go func() {
+				_, err := adapter.Execute(t.Context(), planetA.Id, afterArrival, simulateOperation)
+				operationDone <- err
+			}()
+
+			select {
+			case err := <-operationDone:
+				require.NoError(t, err, "operation on planet A failed, actual err: %v", err)
+			case <-time.After(5 * time.Second):
+				t.Fatal("operation on planet A was blocked by the due fleet event of another universe")
+			}
+
+			release()
+
+			select {
+			case err := <-holdDone:
+				require.NoError(t, err, "first execution failed, actual err: %v", err)
+			case <-time.After(5 * time.Second):
+				t.Fatal("first execution did not complete after release")
+			}
+
+			assert.False(t, sawNextFleetEvent, "operation on planet A should not see the fleet event of another universe")
+
+			expectedPlanetA := planetA
+			expectedPlanetA.Version++
+			planetAFromDb := loadPlanetFromDb(t, conn, planetA.Id)
+			assert.Equal(t, expectedPlanetA, planetAFromDb)
+
+			expectedFleetB := fleetB
+			expectedFleetB.Version++
+			expectedFleetB.Schedule.Status = models.StatusReturning
+			fleetBFromDb := loadFleetFromDb(t, conn, fleetB.Id)
+			assert.Equal(t, expectedFleetB, fleetBFromDb)
+
+			planetBFromDb := loadPlanetFromDb(t, conn, planetB.Id)
+			assert.Equal(t, planetB, planetBFromDb)
+		})
 	})
 
 	t.Run("ExecuteForDelete", func(t *testing.T) {
@@ -2694,6 +2784,89 @@ func TestIT_SimulationStepExecutor_FleetConcurrency(t *testing.T) {
 
 			planetAFromDb := loadPlanetFromDb(t, conn, planetA.Id)
 			assert.Equal(t, planetA, planetAFromDb)
+			planetBFromDb := loadPlanetFromDb(t, conn, planetB.Id)
+			assert.Equal(t, planetB, planetBFromDb)
+		})
+
+		t.Run("does not block deletion of planet in another universe with due fleet event", func(t *testing.T) {
+			adapter, conn := newTestSimulationStepExecutor(t)
+
+			planetA, _, universeA := insertTestPlanetForPlayer(t, conn)
+			planetB, _, universeB := insertTestPlanetForPlayer(t, conn)
+			require.NotEqual(t, universeA.Id, universeB.Id)
+
+			fleetB := insertTestFleet(t, conn, planetB)
+			afterArrival := fleetB.Schedule.ArrivalAt.Add(1 * time.Minute)
+
+			enteredFleetEvent := make(chan struct{})
+			releaseFleetEvent := make(chan struct{})
+			var releaseOnce sync.Once
+			release := func() {
+				releaseOnce.Do(func() { close(releaseFleetEvent) })
+			}
+			t.Cleanup(release)
+
+			// Holds the due fleet event of universe B until released
+			resolveFleetEvent := generateFleetSimulator(func(f *models.Fleet) {
+				f.Schedule.Status = models.StatusReturning
+				f.Version++
+			})
+			simulateFleetEvent := func(step models.SimulationStep) (models.SimulationStepResult, error) {
+				close(enteredFleetEvent)
+				<-releaseFleetEvent
+				return resolveFleetEvent(step)
+			}
+
+			holdDone := make(chan error, 1)
+			go func() {
+				_, err := adapter.ExecuteForDelete(t.Context(), planetB.Id, afterArrival, simulateFleetEvent)
+				holdDone <- err
+			}()
+
+			select {
+			case <-enteredFleetEvent:
+			case <-time.After(5 * time.Second):
+				t.Fatal("first execution did not reach the fleet event resolver")
+			}
+
+			// Deletion of planet A must complete while the fleet event of universe B is still held
+			var sawNextFleetEvent bool
+			simulateDeletion := func(step models.SimulationStep) (models.SimulationStepResult, error) {
+				sawNextFleetEvent = step.NextFleetEvent != nil
+				return models.SimulationStepResult{Resolution: models.PlanetDeleted}, nil
+			}
+
+			deletionDone := make(chan error, 1)
+			go func() {
+				_, err := adapter.ExecuteForDelete(t.Context(), planetA.Id, afterArrival, simulateDeletion)
+				deletionDone <- err
+			}()
+
+			select {
+			case err := <-deletionDone:
+				require.NoError(t, err, "deletion of planet A failed, actual err: %v", err)
+			case <-time.After(5 * time.Second):
+				t.Fatal("deletion of planet A was blocked by the due fleet event of another universe")
+			}
+
+			release()
+
+			select {
+			case err := <-holdDone:
+				require.NoError(t, err, "first execution failed, actual err: %v", err)
+			case <-time.After(5 * time.Second):
+				t.Fatal("first execution did not complete after release")
+			}
+
+			assert.False(t, sawNextFleetEvent, "deletion of planet A should not see the fleet event of another universe")
+
+			expectedFleetB := fleetB
+			expectedFleetB.Version++
+			expectedFleetB.Schedule.Status = models.StatusReturning
+			fleetBFromDb := loadFleetFromDb(t, conn, fleetB.Id)
+			assert.Equal(t, expectedFleetB, fleetBFromDb)
+
+			assertPlanetDoesNotExist(t, conn, planetA.Id)
 			planetBFromDb := loadPlanetFromDb(t, conn, planetB.Id)
 			assert.Equal(t, planetB, planetBFromDb)
 		})
