@@ -1866,10 +1866,7 @@ func TestIT_SimulationStepExecutor_FleetConcurrency(t *testing.T) {
 			gate := newExecutionGate(t)
 
 			// First resolver is processing the fleet event
-			fleetEventResolver := gate.createGatedResolver(generateFleetSimulator(func(f *models.Fleet) {
-				f.Schedule.Status = models.StatusReturning
-				f.Version++
-			}))
+			fleetEventResolver := gate.createGatedResolver(generateReturningFleetResolver())
 
 			fleetEventSimulator := func() (models.SimulationStepResult, error) {
 				return adapter.Execute(t.Context(), planetA.Id, afterArrival, fleetEventResolver)
@@ -1942,10 +1939,7 @@ func TestIT_SimulationStepExecutor_FleetConcurrency(t *testing.T) {
 			gate := newExecutionGate(t)
 
 			// First resolver holds the lock on fleet A until released
-			resolveFleetEvent := generateFleetSimulator(func(f *models.Fleet) {
-				f.Schedule.Status = models.StatusReturning
-				f.Version++
-			})
+			resolveFleetEvent := generateReturningFleetResolver()
 			fleetEventResolver := gate.createGatedResolver(resolveFleetEvent)
 
 			fleetEventHelper := newAsyncExecutionHelper(func() (models.SimulationStepResult, error) {
@@ -2200,10 +2194,7 @@ func TestIT_SimulationStepExecutor_FleetConcurrency(t *testing.T) {
 			gate := newExecutionGate(t)
 
 			// Holds the due fleet event of universe B until released
-			fleetEventResolver := gate.createGatedResolver(generateFleetSimulator(func(f *models.Fleet) {
-				f.Schedule.Status = models.StatusReturning
-				f.Version++
-			}))
+			fleetEventResolver := gate.createGatedResolver(generateReturningFleetResolver())
 
 			holdHelper := newAsyncExecutionHelper(func() (models.SimulationStepResult, error) {
 				return adapter.Execute(t.Context(), planetB.Id, afterArrival, fleetEventResolver)
@@ -2264,10 +2255,7 @@ func TestIT_SimulationStepExecutor_FleetConcurrency(t *testing.T) {
 			gate := newExecutionGate(t)
 
 			// First resolver is processing the fleet event
-			fleetEventResolver := gate.createGatedResolver(generateFleetSimulator(func(f *models.Fleet) {
-				f.Schedule.Status = models.StatusReturning
-				f.Version++
-			}))
+			fleetEventResolver := gate.createGatedResolver(generateReturningFleetResolver())
 
 			fleetEventHelper := newAsyncExecutionHelper(func() (models.SimulationStepResult, error) {
 				return adapter.ExecuteForDelete(t.Context(), planetA.Id, afterArrival, fleetEventResolver)
@@ -2332,10 +2320,7 @@ func TestIT_SimulationStepExecutor_FleetConcurrency(t *testing.T) {
 			gate := newExecutionGate(t)
 
 			// First resolver holds the lock on fleet A until released
-			resolveFleetEvent := generateFleetSimulator(func(f *models.Fleet) {
-				f.Schedule.Status = models.StatusReturning
-				f.Version++
-			})
+			resolveFleetEvent := generateReturningFleetResolver()
 			fleetEventResolver := gate.createGatedResolver(resolveFleetEvent)
 
 			fleetEventHelper := newAsyncExecutionHelper(func() (models.SimulationStepResult, error) {
@@ -2404,10 +2389,7 @@ func TestIT_SimulationStepExecutor_FleetConcurrency(t *testing.T) {
 
 			gate := newExecutionGate(t)
 
-			fleetEventResolver := gate.createGatedResolver(generateFleetSimulator(func(f *models.Fleet) {
-				f.Schedule.Status = models.StatusReturning
-				f.Version++
-			}))
+			fleetEventResolver := gate.createGatedResolver(generateReturningFleetResolver())
 
 			fleetEventHelper := newAsyncExecutionHelper(func() (models.SimulationStepResult, error) {
 				return adapter.ExecuteForDelete(t.Context(), planetA.Id, afterArrival, fleetEventResolver)
@@ -2564,10 +2546,7 @@ func TestIT_SimulationStepExecutor_FleetConcurrency(t *testing.T) {
 			gate := newExecutionGate(t)
 
 			// Holds the due fleet event of universe B until released
-			fleetEventResolver := gate.createGatedResolver(generateFleetSimulator(func(f *models.Fleet) {
-				f.Schedule.Status = models.StatusReturning
-				f.Version++
-			}))
+			fleetEventResolver := gate.createGatedResolver(generateReturningFleetResolver())
 
 			holdHelper := newAsyncExecutionHelper(func() (models.SimulationStepResult, error) {
 				return adapter.ExecuteForDelete(t.Context(), planetB.Id, afterArrival, fleetEventResolver)
@@ -2628,10 +2607,7 @@ func TestIT_SimulationStepExecutor_Execute_Concurrency(t *testing.T) {
 		enteredB := make(chan struct{})
 		doneA := make(chan error, 1)
 		doneB := make(chan error, 1)
-		resolveFleetEvent := generateFleetSimulator(func(f *models.Fleet) {
-			f.Schedule.Status = models.StatusReturning
-			f.Version++
-		})
+		resolveFleetEvent := generateReturningFleetResolver()
 
 		simulateFleetEvent := func(step models.SimulationStep) (models.SimulationStepResult, error) {
 			close(enteredA)
@@ -2698,10 +2674,7 @@ func TestIT_SimulationStepExecutor_Execute_Concurrency(t *testing.T) {
 		}
 		t.Cleanup(release)
 		doneA := make(chan error, 1)
-		resolveFleetEvent := generateFleetSimulator(func(f *models.Fleet) {
-			f.Schedule.Status = models.StatusReturning
-			f.Version++
-		})
+		resolveFleetEvent := generateReturningFleetResolver()
 		simulateFleetEvent := func(step models.SimulationStep) (models.SimulationStepResult, error) {
 			close(enteredA)
 			select {
@@ -2766,10 +2739,7 @@ func TestIT_SimulationStepExecutor_Execute_Concurrency(t *testing.T) {
 
 		doneA := make(chan error, 1)
 		doneB := make(chan error, 1)
-		resolveFleetEvent := generateFleetSimulator(func(f *models.Fleet) {
-			f.Schedule.Status = models.StatusReturning
-			f.Version++
-		})
+		resolveFleetEvent := generateReturningFleetResolver()
 		simulateFleetEvent := func(step models.SimulationStep) (models.SimulationStepResult, error) {
 			close(enteredA)
 			<-releaseA
@@ -3706,6 +3676,14 @@ func generateFleetSimulator(
 
 		return result, nil
 	}
+}
+
+func generateReturningFleetResolver() models.SimulationStepResolver {
+	markFleetReturning := func(f *models.Fleet) {
+		f.Schedule.Status = models.StatusReturning
+		f.Version++
+	}
+	return generateFleetSimulator(markFleetReturning)
 }
 
 func generateFleetCreator(fleet models.Fleet) models.SimulationStepResolver {
