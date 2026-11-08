@@ -2588,6 +2588,12 @@ func TestIT_SimulationStepExecutor_FleetConcurrency(t *testing.T) {
 	})
 }
 
+func TestIT_SimulationStepExecutor_PlanetConcurrency(t *testing.T) {
+	t.Run("Execute", func(t *testing.T) {})
+
+	t.Run("ExecuteForDelete", func(t *testing.T) {})
+}
+
 func TestIT_SimulationStepExecutor_Execute_Concurrency(t *testing.T) {
 	t.Run("prevents concurrent modification of different planets when fleet event is resolved", func(t *testing.T) {
 		adapter, conn := newTestSimulationStepExecutor(t)
