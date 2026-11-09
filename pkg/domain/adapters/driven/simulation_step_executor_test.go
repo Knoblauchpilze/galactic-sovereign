@@ -2589,9 +2589,224 @@ func TestIT_SimulationStepExecutor_FleetConcurrency(t *testing.T) {
 }
 
 func TestIT_SimulationStepExecutor_PlanetConcurrency(t *testing.T) {
-	t.Run("Execute", func(t *testing.T) {})
+	t.Run("allows deletion of another planet while an execution holds a different planet", func(t *testing.T) {
+		adapter, conn := newTestSimulationStepExecutor(t)
 
-	t.Run("ExecuteForDelete", func(t *testing.T) {})
+		planetA, planetB, _ := insertTwoTestPlanets(t, conn)
+
+		gateA := newExecutionGate(t)
+		simulatePlanetA := gateA.createGatedResolver(generatePlanetSimulator(func(p *models.Planet) { p.Version++ }))
+		executeA := newAsyncExecutionHelper(func() (models.SimulationStepResult, error) {
+			return adapter.Execute(t.Context(), planetA.Id, planetA.UpdatedAt, simulatePlanetA)
+		})
+		executeA.run()
+
+		require.True(t, gateA.waitUntilEntered(5*time.Second), "execution of planet A did not reach its simulator")
+
+		simulateDeletionB := func(_ models.SimulationStep) (models.SimulationStepResult, error) {
+			return models.SimulationStepResult{Resolution: models.PlanetDeleted}, nil
+		}
+		deleteB := newAsyncExecutionHelper(func() (models.SimulationStepResult, error) {
+			return adapter.ExecuteForDelete(t.Context(), planetB.Id, planetB.UpdatedAt, simulateDeletionB)
+		})
+		deleteB.run()
+		deleteB.assertReturnWithNoError(t, 5*time.Second)
+
+		assertPlanetDoesNotExist(t, conn, planetB.Id)
+		assertPlanetVersion(t, conn, planetA.Id, planetA.Version)
+
+		gateA.open()
+		executeA.assertReturnWithNoError(t, 5*time.Second)
+
+		expectedPlanetA := planetA
+		expectedPlanetA.Version++
+		actualPlanetA := loadPlanetFromDb(t, conn, planetA.Id)
+		assert.Equal(t, expectedPlanetA, actualPlanetA)
+	})
+
+	t.Run("allows execution of another planet while a planet deletion holds a different planet", func(t *testing.T) {
+		adapter, conn := newTestSimulationStepExecutor(t)
+
+		planetA, planetB, _ := insertTwoTestPlanets(t, conn)
+
+		gateA := newExecutionGate(t)
+		simulateDeletionA := gateA.createGatedResolver(func(_ models.SimulationStep) (models.SimulationStepResult, error) {
+			return models.SimulationStepResult{Resolution: models.PlanetDeleted}, nil
+		})
+		deleteA := newAsyncExecutionHelper(func() (models.SimulationStepResult, error) {
+			return adapter.ExecuteForDelete(t.Context(), planetA.Id, planetA.UpdatedAt, simulateDeletionA)
+		})
+		deleteA.run()
+
+		require.True(t, gateA.waitUntilEntered(5*time.Second), "deletion of planet A did not reach its simulator")
+
+		simulatePlanetB := generatePlanetSimulator(func(p *models.Planet) { p.Version++ })
+		executeB := newAsyncExecutionHelper(func() (models.SimulationStepResult, error) {
+			return adapter.Execute(t.Context(), planetB.Id, planetB.UpdatedAt, simulatePlanetB)
+		})
+		executeB.run()
+		executeB.assertReturnWithNoError(t, 5*time.Second)
+
+		assertPlanetExists(t, conn, planetA.Id)
+		assertPlanetVersion(t, conn, planetA.Id, planetA.Version)
+
+		expectedPlanetB := planetB
+		expectedPlanetB.Version++
+		actualPlanetB := loadPlanetFromDb(t, conn, planetB.Id)
+		assert.Equal(t, expectedPlanetB, actualPlanetB)
+
+		gateA.open()
+		deleteA.assertReturnWithNoError(t, 5*time.Second)
+
+		assertPlanetDoesNotExist(t, conn, planetA.Id)
+	})
+
+	t.Run("allows execution of another planet while an execution holds a different planet", func(t *testing.T) {
+		adapter, conn := newTestSimulationStepExecutor(t)
+
+		planetA, planetB, _ := insertTwoTestPlanets(t, conn)
+
+		gateA := newExecutionGate(t)
+		simulatePlanetA := gateA.createGatedResolver(generatePlanetSimulator(func(p *models.Planet) { p.Version++ }))
+		executeA := newAsyncExecutionHelper(func() (models.SimulationStepResult, error) {
+			return adapter.Execute(t.Context(), planetA.Id, planetA.UpdatedAt, simulatePlanetA)
+		})
+		executeA.run()
+
+		require.True(t, gateA.waitUntilEntered(5*time.Second), "execution of planet A did not reach its simulator")
+
+		simulatePlanetB := generatePlanetSimulator(func(p *models.Planet) { p.Version++ })
+		executeB := newAsyncExecutionHelper(func() (models.SimulationStepResult, error) {
+			return adapter.Execute(t.Context(), planetB.Id, planetB.UpdatedAt, simulatePlanetB)
+		})
+		executeB.run()
+		executeB.assertReturnWithNoError(t, 5*time.Second)
+
+		assertPlanetVersion(t, conn, planetA.Id, planetA.Version)
+
+		expectedPlanetB := planetB
+		expectedPlanetB.Version++
+		actualPlanetB := loadPlanetFromDb(t, conn, planetB.Id)
+		assert.Equal(t, expectedPlanetB, actualPlanetB)
+
+		gateA.open()
+		executeA.assertReturnWithNoError(t, 5*time.Second)
+
+		expectedPlanetA := planetA
+		expectedPlanetA.Version++
+		actualPlanetA := loadPlanetFromDb(t, conn, planetA.Id)
+		assert.Equal(t, expectedPlanetA, actualPlanetA)
+	})
+
+	t.Run("allows deletion of another planet while a deletion holds a different planet", func(t *testing.T) {
+		adapter, conn := newTestSimulationStepExecutor(t)
+
+		planetA, planetB, _ := insertTwoTestPlanets(t, conn)
+
+		gateA := newExecutionGate(t)
+		simulateDeletionA := gateA.createGatedResolver(func(_ models.SimulationStep) (models.SimulationStepResult, error) {
+			return models.SimulationStepResult{Resolution: models.PlanetDeleted}, nil
+		})
+		deleteA := newAsyncExecutionHelper(func() (models.SimulationStepResult, error) {
+			return adapter.ExecuteForDelete(t.Context(), planetA.Id, planetA.UpdatedAt, simulateDeletionA)
+		})
+		deleteA.run()
+
+		require.True(t, gateA.waitUntilEntered(5*time.Second), "deletion of planet A did not reach its simulator")
+
+		simulateDeletionB := func(_ models.SimulationStep) (models.SimulationStepResult, error) {
+			return models.SimulationStepResult{Resolution: models.PlanetDeleted}, nil
+		}
+		deleteB := newAsyncExecutionHelper(func() (models.SimulationStepResult, error) {
+			return adapter.ExecuteForDelete(t.Context(), planetB.Id, planetB.UpdatedAt, simulateDeletionB)
+		})
+		deleteB.run()
+		deleteB.assertReturnWithNoError(t, 5*time.Second)
+
+		assertPlanetDoesNotExist(t, conn, planetB.Id)
+		assertPlanetExists(t, conn, planetA.Id)
+		assertPlanetVersion(t, conn, planetA.Id, planetA.Version)
+
+		gateA.open()
+		deleteA.assertReturnWithNoError(t, 5*time.Second)
+
+		assertPlanetDoesNotExist(t, conn, planetA.Id)
+	})
+
+	t.Run("returns not found for a second deletion of the same planet without resolving it", func(t *testing.T) {
+		adapter, conn := newTestSimulationStepExecutor(t)
+
+		planet, _, _ := insertTestPlanetForPlayer(t, conn)
+
+		gate := newExecutionGate(t)
+		simulateFirstDeletion := gate.createGatedResolver(func(_ models.SimulationStep) (models.SimulationStepResult, error) {
+			return models.SimulationStepResult{Resolution: models.PlanetDeleted}, nil
+		})
+		deleteFirst := newAsyncExecutionHelper(func() (models.SimulationStepResult, error) {
+			return adapter.ExecuteForDelete(t.Context(), planet.Id, planet.UpdatedAt, simulateFirstDeletion)
+		})
+		deleteFirst.run()
+
+		require.True(t, gate.waitUntilEntered(5*time.Second), "first deletion did not reach its simulator")
+
+		simulateSecondDeletion := func(_ models.SimulationStep) (models.SimulationStepResult, error) {
+			t.Error("second deletion resolver should not be called for a planet being deleted")
+			return models.SimulationStepResult{Resolution: models.PlanetDeleted}, nil
+		}
+		deleteSecond := newAsyncExecutionHelper(func() (models.SimulationStepResult, error) {
+			return adapter.ExecuteForDelete(t.Context(), planet.Id, planet.UpdatedAt, simulateSecondDeletion)
+		})
+		deleteSecond.run()
+
+		select {
+		case <-deleteSecond.done:
+			t.Fatal("second deletion completed while the first deletion held the planet")
+		case <-time.After(100 * time.Millisecond):
+		}
+
+		assertPlanetExists(t, conn, planet.Id)
+
+		gate.open()
+		deleteFirst.assertReturnWithNoError(t, 5*time.Second)
+
+		err := deleteSecond.waitForReturn(t, 5*time.Second)
+		assert.ErrorIs(t, err, domainerrors.ErrNotFound, "Actual err: %v", err)
+
+		assertPlanetDoesNotExist(t, conn, planet.Id)
+	})
+
+	t.Run("blocks deletion of a planet while another deletion holds it", func(t *testing.T) {
+		adapter, conn := newTestSimulationStepExecutor(t)
+
+		planet, _, _ := insertTestPlanetForPlayer(t, conn)
+
+		gate := newExecutionGate(t)
+		simulateFirstDeletion := gate.createGatedResolver(func(_ models.SimulationStep) (models.SimulationStepResult, error) {
+			return models.SimulationStepResult{Resolution: models.PlanetDeleted}, nil
+		})
+		deleteFirst := newAsyncExecutionHelper(func() (models.SimulationStepResult, error) {
+			return adapter.ExecuteForDelete(t.Context(), planet.Id, planet.UpdatedAt, simulateFirstDeletion)
+		})
+		deleteFirst.run()
+
+		require.True(t, gate.waitUntilEntered(5*time.Second), "first deletion did not reach its simulator")
+
+		simulateSecondDeletion := func(_ models.SimulationStep) (models.SimulationStepResult, error) {
+			t.Error("second deletion resolver should not be called while the planet is held")
+			return models.SimulationStepResult{Resolution: models.PlanetDeleted}, nil
+		}
+		blockingCtx, cancel := context.WithTimeout(t.Context(), 100*time.Millisecond)
+		defer cancel()
+		_, err := adapter.ExecuteForDelete(blockingCtx, planet.Id, planet.UpdatedAt, simulateSecondDeletion)
+		require.ErrorIs(t, err, context.DeadlineExceeded, "Actual err: %v", err)
+
+		assertPlanetExists(t, conn, planet.Id)
+
+		gate.open()
+		deleteFirst.assertReturnWithNoError(t, 5*time.Second)
+
+		assertPlanetDoesNotExist(t, conn, planet.Id)
+	})
 }
 
 func TestIT_SimulationStepExecutor_Execute_Concurrency(t *testing.T) {
