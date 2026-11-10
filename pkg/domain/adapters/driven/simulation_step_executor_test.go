@@ -2903,6 +2903,128 @@ func TestIT_SimulationStepExecutor_PlanetConcurrency(t *testing.T) {
 
 		assertPlanetDoesNotExist(t, conn, planet.Id)
 	})
+
+	t.Run("preserves a committed dispatch when source deletion waits for it", func(t *testing.T) {
+		adapter, conn := newTestSimulationStepExecutor(t)
+		planet, _, _ := insertTestPlanetForPlayer(t, conn, addPlanetShip)
+		fleet := generateSampleFleet(planet)
+
+		gate := newExecutionGate(t)
+		createFleet := generateFleetCreator(fleet)
+		simulateDispatch := gate.createGatedResolver(
+			func(step models.SimulationStep) (models.SimulationStepResult, error) {
+				step.Planet.Ships[0].Count--
+				return createFleet(step)
+			},
+		)
+		dispatch := newAsyncExecutionHelper(func() (models.SimulationStepResult, error) {
+			return adapter.Execute(t.Context(), planet.Id, planet.UpdatedAt, simulateDispatch)
+		})
+		dispatch.run()
+
+		require.True(t, gate.waitUntilEntered(5*time.Second), "dispatch did not reach its simulator")
+
+		var captured models.SimulationStep
+		deletionEntered := make(chan struct{})
+		simulateDeletion := func(step models.SimulationStep) (models.SimulationStepResult, error) {
+			captured = step
+			close(deletionEntered)
+			return models.SimulationStepResult{Resolution: models.PlanetDeleted}, nil
+		}
+		deletion := newAsyncExecutionHelper(func() (models.SimulationStepResult, error) {
+			return adapter.ExecuteForDelete(t.Context(), planet.Id, planet.UpdatedAt, simulateDeletion)
+		})
+		deletion.run()
+
+		select {
+		case <-deletionEntered:
+			t.Fatal("deletion reached its simulator while dispatch held the source planet")
+		case <-deletion.done:
+			t.Fatal("deletion completed while dispatch held the source planet")
+		case <-time.After(100 * time.Millisecond):
+		}
+
+		actualPlanet := loadPlanetFromDb(t, conn, planet.Id)
+		assert.Equal(t, planet, actualPlanet)
+
+		gate.open()
+		dispatch.assertReturnWithNoError(t, 5*time.Second)
+
+		err := deletion.waitForReturn(t, 5*time.Second)
+		assert.ErrorIs(t, err, domainerrors.ErrFleetInFlight, "Actual err: %v", err)
+
+		expectedPlanet := planet
+		expectedPlanet.Ships = slices.Clone(planet.Ships)
+		expectedPlanet.Ships[0].Count--
+		expectedPlanet.Version++
+		expectedStep := models.SimulationStep{
+			Timestamp: planet.UpdatedAt,
+			Planet:    &expectedPlanet,
+		}
+		assert.Equal(t, expectedStep, captured)
+		actualPlanet = loadPlanetFromDb(t, conn, planet.Id)
+		assert.Equal(t, expectedPlanet, actualPlanet)
+		actualFleet := loadFleetFromDb(t, conn, fleet.Id)
+		assert.Equal(t, fleet, actualFleet)
+		assertFleetEventExists(t, conn, fleet.Id, fleet.Schedule.ArrivalAt)
+	})
+
+	t.Run("returns not found for dispatch when source deletion holds the planet first", func(t *testing.T) {
+		adapter, conn := newTestSimulationStepExecutor(t)
+		planet, _, _ := insertTestPlanetForPlayer(t, conn)
+		fleet := generateSampleFleet(planet)
+
+		gate := newExecutionGate(t)
+		simulateDeletion := gate.createGatedResolver(
+			func(_ models.SimulationStep) (models.SimulationStepResult, error) {
+				return models.SimulationStepResult{Resolution: models.PlanetDeleted}, nil
+			},
+		)
+		deletion := newAsyncExecutionHelper(func() (models.SimulationStepResult, error) {
+			return adapter.ExecuteForDelete(t.Context(), planet.Id, planet.UpdatedAt, simulateDeletion)
+		})
+		deletion.run()
+
+		require.True(t, gate.waitUntilEntered(5*time.Second), "deletion did not reach its simulator")
+
+		dispatchEntered := make(chan struct{})
+		createFleet := generateFleetCreator(fleet)
+		simulateDispatch := func(step models.SimulationStep) (models.SimulationStepResult, error) {
+			close(dispatchEntered)
+			t.Error("dispatch resolver should not be called for a deleted source")
+			return createFleet(step)
+		}
+		dispatch := newAsyncExecutionHelper(func() (models.SimulationStepResult, error) {
+			return adapter.Execute(t.Context(), planet.Id, planet.UpdatedAt, simulateDispatch)
+		})
+		dispatch.run()
+
+		select {
+		case <-dispatchEntered:
+			t.Fatal("dispatch reached its simulator while deletion held the source planet")
+		case <-dispatch.done:
+			t.Fatal("dispatch completed while deletion held the source planet")
+		case <-time.After(100 * time.Millisecond):
+		}
+
+		assertPlanetExists(t, conn, planet.Id)
+
+		gate.open()
+		deletion.assertReturnWithNoError(t, 5*time.Second)
+
+		err := dispatch.waitForReturn(t, 5*time.Second)
+		assert.ErrorIs(t, err, domainerrors.ErrNotFound, "Actual err: %v", err)
+
+		select {
+		case <-dispatchEntered:
+			t.Error("dispatch resolver ran after source deletion")
+		default:
+		}
+
+		assertPlanetDoesNotExist(t, conn, planet.Id)
+		assertFleetDoesNotExist(t, conn, fleet.Id)
+		assertFleetEventDoesNotExist(t, conn, fleet.Id)
+	})
 }
 
 func TestIT_SimulationStepExecutor_Execute_Concurrency(t *testing.T) {
@@ -4210,6 +4332,15 @@ func assertFleetEventExists(t *testing.T, conn database.Connection, fleet uuid.U
 	value, err := db.QueryOne[time.Time](t.Context(), conn, sqlQuery, fleet)
 	require.NoError(t, err, "Actual err: %v", err)
 	require.Equal(t, moment, value)
+}
+
+func assertFleetEventDoesNotExist(t *testing.T, conn database.Connection, fleet uuid.UUID) {
+	t.Helper()
+
+	sqlQuery := `SELECT COUNT(*) FROM fleet_event WHERE fleet = $1`
+	value, err := db.QueryOne[int](t.Context(), conn, sqlQuery, fleet)
+	require.NoError(t, err, "Actual err: %v", err)
+	require.Zero(t, value)
 }
 
 func assertFleetEventTypeMatches(t *testing.T, conn database.Connection, fleet uuid.UUID, eventType models.FleetEventType) {
