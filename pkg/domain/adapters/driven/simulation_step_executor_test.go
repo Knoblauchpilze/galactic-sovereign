@@ -2807,6 +2807,102 @@ func TestIT_SimulationStepExecutor_PlanetConcurrency(t *testing.T) {
 
 		assertPlanetDoesNotExist(t, conn, planet.Id)
 	})
+
+	t.Run("deletion sees the committed update when execution holds the planet first", func(t *testing.T) {
+		adapter, conn := newTestSimulationStepExecutor(t)
+		planet, _, _ := insertTestPlanetForPlayer(t, conn)
+
+		gate := newExecutionGate(t)
+		simulateUpdate := gate.createGatedResolver(
+			generatePlanetSimulator(func(p *models.Planet) { p.Version++ }),
+		)
+		update := newAsyncExecutionHelper(func() (models.SimulationStepResult, error) {
+			return adapter.Execute(t.Context(), planet.Id, planet.UpdatedAt, simulateUpdate)
+		})
+		update.run()
+
+		require.True(t, gate.waitUntilEntered(5*time.Second), "execution did not reach its simulator")
+
+		var captured models.SimulationStep
+		deletionEntered := make(chan struct{})
+		simulateDeletion := func(step models.SimulationStep) (models.SimulationStepResult, error) {
+			captured = step
+			close(deletionEntered)
+			return models.SimulationStepResult{Resolution: models.PlanetDeleted}, nil
+		}
+		deletion := newAsyncExecutionHelper(func() (models.SimulationStepResult, error) {
+			return adapter.ExecuteForDelete(t.Context(), planet.Id, planet.UpdatedAt, simulateDeletion)
+		})
+		deletion.run()
+
+		select {
+		case <-deletionEntered:
+			t.Fatal("deletion reached its simulator while execution held the planet")
+		case <-deletion.done:
+			t.Fatal("deletion completed while execution held the planet")
+		case <-time.After(100 * time.Millisecond):
+		}
+
+		assertPlanetVersion(t, conn, planet.Id, planet.Version)
+
+		gate.open()
+		update.assertReturnWithNoError(t, 5*time.Second)
+		deletion.assertReturnWithNoError(t, 5*time.Second)
+
+		expectedStep := models.SimulationStep{
+			Timestamp: planet.UpdatedAt,
+			Planet:    &planet,
+		}
+		expectedStep.Planet.Version++
+		assert.Equal(t, expectedStep, captured)
+		assertPlanetDoesNotExist(t, conn, planet.Id)
+	})
+
+	t.Run("execution returns not found when deletion holds the planet first without resolving it", func(t *testing.T) {
+		adapter, conn := newTestSimulationStepExecutor(t)
+		planet, _, _ := insertTestPlanetForPlayer(t, conn)
+
+		gate := newExecutionGate(t)
+		simulateDeletion := gate.createGatedResolver(func(_ models.SimulationStep) (models.SimulationStepResult, error) {
+			return models.SimulationStepResult{Resolution: models.PlanetDeleted}, nil
+		})
+		deletion := newAsyncExecutionHelper(func() (models.SimulationStepResult, error) {
+			return adapter.ExecuteForDelete(t.Context(), planet.Id, planet.UpdatedAt, simulateDeletion)
+		})
+		deletion.run()
+
+		require.True(t, gate.waitUntilEntered(5*time.Second), "deletion did not reach its simulator")
+
+		updateEntered := make(chan struct{})
+		simulateUpdate := func(_ models.SimulationStep) (models.SimulationStepResult, error) {
+			close(updateEntered)
+			t.Error("execution resolver should not be called for a planet being deleted")
+			return models.SimulationStepResult{}, nil
+		}
+		update := newAsyncExecutionHelper(func() (models.SimulationStepResult, error) {
+			return adapter.Execute(t.Context(), planet.Id, planet.UpdatedAt, simulateUpdate)
+		})
+		update.run()
+
+		select {
+		case <-updateEntered:
+			t.Fatal("execution reached its simulator while deletion held the planet")
+		case <-update.done:
+			t.Fatal("execution completed while deletion held the planet")
+		case <-time.After(100 * time.Millisecond):
+		}
+
+		assertPlanetExists(t, conn, planet.Id)
+		assertPlanetVersion(t, conn, planet.Id, planet.Version)
+
+		gate.open()
+		deletion.assertReturnWithNoError(t, 5*time.Second)
+
+		err := update.waitForReturn(t, 5*time.Second)
+		assert.ErrorIs(t, err, domainerrors.ErrNotFound, "Actual err: %v", err)
+
+		assertPlanetDoesNotExist(t, conn, planet.Id)
+	})
 }
 
 func TestIT_SimulationStepExecutor_Execute_Concurrency(t *testing.T) {
