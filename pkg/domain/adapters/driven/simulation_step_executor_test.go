@@ -3025,6 +3025,81 @@ func TestIT_SimulationStepExecutor_PlanetConcurrency(t *testing.T) {
 		assertFleetDoesNotExist(t, conn, fleet.Id)
 		assertFleetEventDoesNotExist(t, conn, fleet.Id)
 	})
+
+	t.Run("rolls back dispatch when destination deletion holds the planet first", func(t *testing.T) {
+		adapter, conn := newTestSimulationStepExecutor(t)
+		planetA, planetB, _ := insertTwoTestPlanets(t, conn)
+		addPlanetShip(t, conn, &planetA)
+		addPlanetResource(t, conn, &planetA)
+
+		fleet := generateSampleFleet(planetA)
+		fleet.Mission = models.MissionTransport
+		fleet.Destination.Target = &planetB.Id
+		fleet.Destination.Coordinate = planetB.Coordinate
+
+		executionCtx, cancel := context.WithTimeout(t.Context(), 10*time.Second)
+		defer cancel()
+
+		gate := newExecutionGate(t)
+		simulateDeletion := gate.createGatedResolver(
+			func(_ models.SimulationStep) (models.SimulationStepResult, error) {
+				return models.SimulationStepResult{Resolution: models.PlanetDeleted}, nil
+			},
+		)
+		deletion := newAsyncExecutionHelper(func() (models.SimulationStepResult, error) {
+			return adapter.ExecuteForDelete(executionCtx, planetB.Id, planetA.UpdatedAt, simulateDeletion)
+		})
+		deletion.run()
+
+		require.True(t, gate.waitUntilEntered(5*time.Second), "deletion did not reach its simulator")
+
+		dispatchEntered := make(chan struct{})
+		createFleet := generateFleetCreator(fleet)
+		simulateDispatch := func(step models.SimulationStep) (models.SimulationStepResult, error) {
+			step.Planet.Ships[0].Count--
+			step.Planet.Resources[0].Amount++
+			close(dispatchEntered)
+			return createFleet(step)
+		}
+		dispatch := newAsyncExecutionHelper(func() (models.SimulationStepResult, error) {
+			return adapter.Execute(executionCtx, planetA.Id, planetA.UpdatedAt, simulateDispatch)
+		})
+		dispatch.run()
+
+		// Dispatch can reach its resolver while deletion holds the destination.
+		// Watch done here to report an early exit without waiting for the timeout.
+		select {
+		case <-dispatchEntered:
+		case <-dispatch.done:
+			t.Fatal("dispatch completed without reaching its simulator")
+		case <-time.After(5 * time.Second):
+			t.Fatal("dispatch did not reach its simulator while deletion held the destination")
+		}
+
+		// After the resolver runs, persistence must wait for destination deletion.
+		// This short observation checks non-completion, not that SQL has reached the lock.
+		select {
+		case <-dispatch.done:
+			t.Fatal("dispatch completed while deletion held the destination planet")
+		case <-time.After(100 * time.Millisecond):
+		}
+
+		actualPlanetA := loadPlanetFromDb(t, conn, planetA.Id)
+		assert.Equal(t, planetA, actualPlanetA)
+		assertPlanetExists(t, conn, planetB.Id)
+
+		gate.open()
+		deletion.assertReturnWithNoError(t, 5*time.Second)
+
+		err := dispatch.waitForReturn(t, 5*time.Second)
+		assert.ErrorIs(t, err, domainerrors.ErrFleetDestinationInvalid, "Actual err: %v", err)
+
+		actualPlanetA = loadPlanetFromDb(t, conn, planetA.Id)
+		assert.Equal(t, planetA, actualPlanetA)
+		assertPlanetDoesNotExist(t, conn, planetB.Id)
+		assertFleetDoesNotExist(t, conn, fleet.Id)
+		assertFleetEventDoesNotExist(t, conn, fleet.Id)
+	})
 }
 
 func TestIT_SimulationStepExecutor_Execute_Concurrency(t *testing.T) {
