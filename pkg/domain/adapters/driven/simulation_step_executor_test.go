@@ -1860,6 +1860,11 @@ func TestIT_SimulationStepExecutor_FleetConcurrency(t *testing.T) {
 
 			planetA, planetB, _ := insertTwoTestPlanets(t, conn)
 			fleet := insertTestFleet(t, conn, planetA)
+			fleet.Destination = models.FleetDestination{
+				Coordinate: planetB.Coordinate,
+				Target:     &planetB.Id,
+			}
+			upsertFleetDestination(t, conn, fleet)
 
 			afterArrival := fleet.Schedule.ArrivalAt.Add(1 * time.Minute)
 
@@ -1876,7 +1881,21 @@ func TestIT_SimulationStepExecutor_FleetConcurrency(t *testing.T) {
 
 			require.True(t, gate.waitUntilEntered(5*time.Second), "first execution did not reach the fleet event resolver")
 
-			// Second resolver is processing the planet
+			// The due event is held, so a call on planet B must time out without reaching its resolver
+			blockedCtx, cancelBlocked := context.WithTimeout(t.Context(), 100*time.Millisecond)
+			defer cancelBlocked()
+			_, err := adapter.Execute(blockedCtx, planetB.Id, afterArrival, func(_ models.SimulationStep) (models.SimulationStepResult, error) {
+				t.Error("blocked execution reached its resolver while the fleet event was held")
+				return models.SimulationStepResult{}, nil
+			})
+			require.ErrorIs(t, err, context.DeadlineExceeded, "Actual err: %v", err)
+
+			actualFleetWhileHeld := loadFleetFromDb(t, conn, fleet.Id)
+			assert.Equal(t, fleet, actualFleetWhileHeld)
+			actualPlanetBWhileHeld := loadPlanetFromDb(t, conn, planetB.Id)
+			assert.Equal(t, planetB, actualPlanetBWhileHeld)
+
+			// Waiting execution must block on the held event and proceed once it is committed
 			waitingEntered := make(chan struct{})
 			var waitingSawPending bool
 			var waitingSawVersion int
@@ -1908,8 +1927,9 @@ func TestIT_SimulationStepExecutor_FleetConcurrency(t *testing.T) {
 			fleetEventHelper.assertReturnWithNoError(t, 5*time.Second)
 			waitingHelper.assertReturnWithNoError(t, 5*time.Second)
 
+			// The waiting execution sees planet B bumped by the fleet event
 			assert.False(t, waitingSawPending, "waiting execution should not see the resolved fleet event as pending")
-			assert.Equal(t, planetB.Version, waitingSawVersion, "waiting execution should see planet B at its committed version")
+			assert.Equal(t, planetB.Version+1, waitingSawVersion, "waiting execution should see planet B updated by the fleet event")
 
 			actualFleet := loadFleetFromDb(t, conn, fleet.Id)
 			expectedFleet := fleet
@@ -1921,7 +1941,8 @@ func TestIT_SimulationStepExecutor_FleetConcurrency(t *testing.T) {
 			assert.Equal(t, planetA, planetAFromDb)
 			planetBFromDb := loadPlanetFromDb(t, conn, planetB.Id)
 			expectedPlanetB := planetB
-			expectedPlanetB.Version++
+			// The plus 2 comes from the fleet event resolution + the planet mutation
+			expectedPlanetB.Version += 2
 			assert.Equal(t, expectedPlanetB, planetBFromDb)
 		})
 
@@ -3103,72 +3124,6 @@ func TestIT_SimulationStepExecutor_PlanetConcurrency(t *testing.T) {
 }
 
 func TestIT_SimulationStepExecutor_Execute_Concurrency(t *testing.T) {
-	t.Run("prevents concurrent modification of different planets when fleet event is resolved", func(t *testing.T) {
-		adapter, conn := newTestSimulationStepExecutor(t)
-
-		planetA, planetB, _ := insertTwoTestPlanets(t, conn)
-		fleet := insertTestFleet(t, conn, planetA)
-		timestamp := fleet.Schedule.ArrivalAt.Add(time.Minute)
-
-		enteredA := make(chan struct{})
-		releaseA := make(chan struct{})
-		var releaseOnce sync.Once
-		release := func() {
-			releaseOnce.Do(func() { close(releaseA) })
-		}
-		t.Cleanup(release)
-
-		enteredB := make(chan struct{})
-		doneA := make(chan error, 1)
-		doneB := make(chan error, 1)
-		resolveFleetEvent := generateReturningFleetResolver()
-
-		simulateFleetEvent := func(step models.SimulationStep) (models.SimulationStepResult, error) {
-			close(enteredA)
-			<-releaseA
-			return resolveFleetEvent(step)
-		}
-		executeFleetEvent := func() {
-			_, err := adapter.Execute(t.Context(), planetA.Id, timestamp, simulateFleetEvent)
-			doneA <- err
-		}
-		go executeFleetEvent()
-
-		<-enteredA
-
-		blockingCtx, cancel := context.WithTimeout(t.Context(), 100*time.Millisecond)
-		defer cancel()
-		simulateOtherPlanet := generatePlanetSimulator(func(p *models.Planet) { p.Version++ })
-		observeBlockedExecution := func(step models.SimulationStep) (models.SimulationStepResult, error) {
-			close(enteredB)
-			return simulateOtherPlanet(step)
-		}
-		executeOtherPlanet := func() {
-			_, err := adapter.Execute(blockingCtx, planetB.Id, timestamp, observeBlockedExecution)
-			doneB <- err
-		}
-		go executeOtherPlanet()
-
-		err := <-doneB
-		require.ErrorIs(t, err, context.DeadlineExceeded, "Expected deadline exceeded, got err: %v", err)
-		select {
-		case <-enteredB:
-			t.Fatalf("second execution reached its callback while a fleet event was being resolved")
-		default:
-		}
-
-		assertFleetVersion(t, conn, fleet.Id, fleet.Version)
-
-		release()
-		require.NoError(t, <-doneA)
-
-		assertPlanetVersion(t, conn, planetA.Id, planetA.Version)
-		assertPlanetVersion(t, conn, planetB.Id, planetB.Version)
-		actual := loadFleetFromDb(t, conn, fleet.Id)
-		assert.Equal(t, models.StatusReturning, actual.Schedule.Status)
-		assert.Equal(t, fleet.Version+1, actual.Version)
-	})
-
 	t.Run("serializes concurrent executions on the same planet", func(t *testing.T) {
 		adapter, conn := newTestSimulationStepExecutor(t)
 
