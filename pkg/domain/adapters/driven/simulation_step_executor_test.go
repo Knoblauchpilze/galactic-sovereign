@@ -2019,6 +2019,9 @@ func TestIT_SimulationStepExecutor_FleetConcurrency(t *testing.T) {
 			assert.Equal(t, planetB, planetBFromDb)
 		})
 
+		// TODO: Modify:
+		// 	* fleet event to modify planet
+		//	* assert that mutator receives modified planet
 		t.Run("resolves fleet event and then planet update in order under contention", func(t *testing.T) {
 			adapter, conn := newTestSimulationStepExecutor(t)
 
@@ -2307,6 +2310,10 @@ func TestIT_SimulationStepExecutor_FleetConcurrency(t *testing.T) {
 			assert.Equal(t, planetB, planetBFromDb)
 		})
 
+		// TODO: Modify:
+		// 	* fleet to be returning
+		// 	* fleet event to modify planet
+		//	* assert that deleter receives modified planet
 		t.Run("resolves fleet event and then planet deletion in order under contention", func(t *testing.T) {
 			adapter, conn := newTestSimulationStepExecutor(t)
 
@@ -2424,6 +2431,7 @@ func TestIT_SimulationStepExecutor_FleetConcurrency(t *testing.T) {
 }
 
 func TestIT_SimulationStepExecutor_PlanetConcurrency(t *testing.T) {
+
 	t.Run("allows deletion of another planet while an execution holds a different planet", func(t *testing.T) {
 		adapter, conn := newTestSimulationStepExecutor(t)
 
@@ -2567,6 +2575,8 @@ func TestIT_SimulationStepExecutor_PlanetConcurrency(t *testing.T) {
 
 		assertPlanetDoesNotExist(t, conn, planetA.Id)
 	})
+
+	// TODO: Add a test for Execute/Execute
 
 	t.Run("returns not found for a second deletion of the same planet without resolving it", func(t *testing.T) {
 		adapter, conn := newTestSimulationStepExecutor(t)
