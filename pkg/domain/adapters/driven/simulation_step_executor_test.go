@@ -1946,7 +1946,7 @@ func TestIT_SimulationStepExecutor_FleetConcurrency(t *testing.T) {
 			assert.Equal(t, expectedPlanetB, planetBFromDb)
 		})
 
-		t.Run("resolves fleet events in order under contention", func(t *testing.T) {
+		t.Run("resolves multiple fleet events in order under contention", func(t *testing.T) {
 			adapter, conn := newTestSimulationStepExecutor(t)
 
 			planetA, planetB, _ := insertTwoTestPlanets(t, conn)
@@ -2019,7 +2019,7 @@ func TestIT_SimulationStepExecutor_FleetConcurrency(t *testing.T) {
 			assert.Equal(t, planetB, planetBFromDb)
 		})
 
-		t.Run("preserves fleet event and planet operation changes under contention", func(t *testing.T) {
+		t.Run("resolves fleet event and then planet update in order under contention", func(t *testing.T) {
 			adapter, conn := newTestSimulationStepExecutor(t)
 
 			planetA, planetB, _ := insertTwoTestPlanets(t, conn)
@@ -2234,7 +2234,7 @@ func TestIT_SimulationStepExecutor_FleetConcurrency(t *testing.T) {
 			assertPlanetDoesNotExist(t, conn, planetB.Id)
 		})
 
-		t.Run("resolves fleet events in order under contention", func(t *testing.T) {
+		t.Run("resolves multiple fleet events in order under contention", func(t *testing.T) {
 			adapter, conn := newTestSimulationStepExecutor(t)
 
 			planetA, planetB, _ := insertTwoTestPlanets(t, conn)
@@ -2307,7 +2307,7 @@ func TestIT_SimulationStepExecutor_FleetConcurrency(t *testing.T) {
 			assert.Equal(t, planetB, planetBFromDb)
 		})
 
-		t.Run("orders fleet event before proceeding with planet deletion under contention", func(t *testing.T) {
+		t.Run("resolves fleet event and then planet deletion in order under contention", func(t *testing.T) {
 			adapter, conn := newTestSimulationStepExecutor(t)
 
 			planetA, planetB, _ := insertTwoTestPlanets(t, conn)
