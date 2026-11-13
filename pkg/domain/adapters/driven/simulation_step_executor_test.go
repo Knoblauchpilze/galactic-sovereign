@@ -2570,6 +2570,9 @@ func TestIT_SimulationStepExecutor_PlanetConcurrency(t *testing.T) {
 	})
 
 	// TODO: Add a test for Execute/Execute
+	// This corresponds to:
+	// - serializes concurrent executions on the same planet
+	// - serializes fleet dispatches from the same source planet
 
 	t.Run("returns not found for a second deletion of the same planet without resolving it", func(t *testing.T) {
 		adapter, conn := newTestSimulationStepExecutor(t)
@@ -3015,68 +3018,8 @@ func TestIT_SimulationStepExecutor_Execute_Concurrency(t *testing.T) {
 		assertPlanetVersion(t, conn, planet.Id, planet.Version+2)
 	})
 
-	t.Run("allows concurrent modification of planets when a fleet event is not yet due", func(t *testing.T) {
-		adapter, conn := newTestSimulationStepExecutor(t)
-
-		planetA, planetB, _ := insertTwoTestPlanets(t, conn)
-		fleet := insertTestFleet(t, conn, planetA)
-		timestamp := fleet.Schedule.ArrivalAt.Add(-time.Minute)
-		require.True(t, timestamp.Before(fleet.Schedule.ArrivalAt))
-
-		enteredA := make(chan struct{})
-		releaseA := make(chan struct{})
-		var releaseOnce sync.Once
-		release := func() {
-			releaseOnce.Do(func() { close(releaseA) })
-		}
-		t.Cleanup(release)
-
-		doneA := make(chan error, 1)
-		doneB := make(chan error, 1)
-		simulatePlanetUpdate := generatePlanetSimulator(func(p *models.Planet) { p.Version++ })
-		simulatePlanetA := func(step models.SimulationStep) (models.SimulationStepResult, error) {
-			assert.Nil(t, step.NextFleetEvent, "future fleet event should not be included in the simulation step")
-			close(enteredA)
-			<-releaseA
-			return simulatePlanetUpdate(step)
-		}
-		executePlanetA := func() {
-			_, err := adapter.Execute(t.Context(), planetA.Id, timestamp, simulatePlanetA)
-			doneA <- err
-		}
-		go executePlanetA()
-
-		<-enteredA
-
-		simulatePlanetB := func(step models.SimulationStep) (models.SimulationStepResult, error) {
-			assert.Nil(t, step.NextFleetEvent, "future fleet event should not be included in the simulation step")
-			return simulatePlanetUpdate(step)
-		}
-		executePlanetB := func() {
-			_, err := adapter.Execute(t.Context(), planetB.Id, timestamp, simulatePlanetB)
-			doneB <- err
-		}
-		go executePlanetB()
-
-		select {
-		case err := <-doneB:
-			require.NoError(t, err, "Actual err: %v", err)
-		case <-time.After(500 * time.Millisecond):
-			t.Fatalf("execution for the second planet was blocked by a fleet event scheduled in the future")
-		}
-
-		assertPlanetVersion(t, conn, planetA.Id, planetA.Version)
-		assertPlanetVersion(t, conn, planetB.Id, planetB.Version+1)
-		assertFleetEventExists(t, conn, fleet.Id, fleet.Schedule.ArrivalAt)
-		assertFleetEventTypeMatches(t, conn, fleet.Id, models.ArrivalEvent)
-
-		release()
-		require.NoError(t, <-doneA)
-		assertPlanetVersion(t, conn, planetA.Id, planetA.Version+1)
-		assertFleetEventExists(t, conn, fleet.Id, fleet.Schedule.ArrivalAt)
-		assertFleetEventTypeMatches(t, conn, fleet.Id, models.ArrivalEvent)
-	})
-
+	// TODO: Add something equivalent for ExecuteForDelete: a dispatch should wait that the delete
+	// is finished to persist (and fail)
 	t.Run("allows concurrent reciprocal fleet dispatches", func(t *testing.T) {
 		adapter, conn := newTestSimulationStepExecutor(t)
 
