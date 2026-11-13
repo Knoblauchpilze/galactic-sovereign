@@ -2019,9 +2019,6 @@ func TestIT_SimulationStepExecutor_FleetConcurrency(t *testing.T) {
 			assert.Equal(t, planetB, planetBFromDb)
 		})
 
-		// TODO: Modify:
-		// 	* fleet event to modify planet
-		//	* assert that mutator receives modified planet
 		t.Run("resolves fleet event and then planet update in order under contention", func(t *testing.T) {
 			adapter, conn := newTestSimulationStepExecutor(t)
 
