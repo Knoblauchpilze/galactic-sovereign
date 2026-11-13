@@ -2307,10 +2307,6 @@ func TestIT_SimulationStepExecutor_FleetConcurrency(t *testing.T) {
 			assert.Equal(t, planetB, planetBFromDb)
 		})
 
-		// TODO: Modify:
-		// 	* fleet to be returning
-		// 	* fleet event to modify planet
-		//	* assert that deleter receives modified planet
 		t.Run("resolves fleet event and then planet deletion in order under contention", func(t *testing.T) {
 			adapter, conn := newTestSimulationStepExecutor(t)
 
