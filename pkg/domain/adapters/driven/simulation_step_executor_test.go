@@ -3126,9 +3126,6 @@ func TestIT_SimulationStepExecutor_PlanetConcurrency(t *testing.T) {
 		assertFleetDoesNotExist(t, conn, fleet.Id)
 		assertFleetEventDoesNotExist(t, conn, fleet.Id)
 	})
-}
-
-func TestIT_SimulationStepExecutor_Execute_Concurrency(t *testing.T) {
 
 	// TODO: Add something equivalent for ExecuteForDelete: a dispatch should wait that the delete
 	// is finished to persist (and fail)
@@ -3150,60 +3147,35 @@ func TestIT_SimulationStepExecutor_Execute_Concurrency(t *testing.T) {
 		fleetB.Destination.Coordinate = planetA.Coordinate
 		fleetB.Ships = []models.FleetShip{{Ship: lightFighterId, Count: 1}}
 
-		executionCtx, cancel := context.WithTimeout(t.Context(), 10*time.Second)
-		defer cancel()
-		entered := make(chan struct{}, 2)
-		releaseSimulations := make(chan struct{})
-		var releaseOnce sync.Once
-		release := func() { releaseOnce.Do(func() { close(releaseSimulations) }) }
-		t.Cleanup(release)
-		doneA := make(chan error, 1)
-		doneB := make(chan error, 1)
-
+		gateA := newExecutionGate(t)
 		createFleetA := generateFleetCreator(fleetA)
-		simulateDispatchA := func(step models.SimulationStep) (models.SimulationStepResult, error) {
-			entered <- struct{}{}
-			select {
-			case <-releaseSimulations:
-			case <-executionCtx.Done():
-				return models.SimulationStepResult{}, executionCtx.Err()
-			}
+		simulateDispatchA := gateA.createGatedResolver(func(step models.SimulationStep) (models.SimulationStepResult, error) {
 			step.Planet.Ships[0].Count--
 			return createFleetA(step)
-		}
+		})
+		executeDispatchA := newAsyncExecutionHelper(func() (models.SimulationStepResult, error) {
+			return adapter.Execute(t.Context(), planetA.Id, planetA.UpdatedAt, simulateDispatchA)
+		})
+		executeDispatchA.run()
+
+		gateB := newExecutionGate(t)
 		createFleetB := generateFleetCreator(fleetB)
-		simulateDispatchB := func(step models.SimulationStep) (models.SimulationStepResult, error) {
-			entered <- struct{}{}
-			select {
-			case <-releaseSimulations:
-			case <-executionCtx.Done():
-				return models.SimulationStepResult{}, executionCtx.Err()
-			}
+		simulateDispatchB := gateB.createGatedResolver(func(step models.SimulationStep) (models.SimulationStepResult, error) {
 			step.Planet.Ships[0].Count--
 			return createFleetB(step)
-		}
-		executeDispatchA := func() {
-			_, err := adapter.Execute(executionCtx, planetA.Id, planetA.UpdatedAt, simulateDispatchA)
-			doneA <- err
-		}
-		executeDispatchB := func() {
-			_, err := adapter.Execute(executionCtx, planetB.Id, planetB.UpdatedAt, simulateDispatchB)
-			doneB <- err
-		}
-		go executeDispatchA()
-		go executeDispatchB()
+		})
+		executeDispatchB := newAsyncExecutionHelper(func() (models.SimulationStepResult, error) {
+			return adapter.Execute(t.Context(), planetB.Id, planetB.UpdatedAt, simulateDispatchB)
+		})
+		executeDispatchB.run()
 
-		for range 2 {
-			select {
-			case <-entered:
-			case <-executionCtx.Done():
-				t.Fatal("both dispatches did not acquire their source planet locks")
-			}
-		}
-		release()
-		errA, errB := <-doneA, <-doneB
-		require.NoError(t, errA, "Actual err: %v", errA)
-		require.NoError(t, errB, "Actual err: %v", errB)
+		require.True(t, gateA.waitUntilEntered(5*time.Second), "dispatch from planet A did not reach its simulator")
+		require.True(t, gateB.waitUntilEntered(5*time.Second), "dispatch from planet B did not reach its simulator")
+
+		gateA.open()
+		gateB.open()
+		executeDispatchA.assertReturnWithNoError(t, 5*time.Second)
+		executeDispatchB.assertReturnWithNoError(t, 5*time.Second)
 
 		actualFleetA := loadFleetFromDb(t, conn, fleetA.Id)
 		assert.Equal(t, fleetA, actualFleetA)
