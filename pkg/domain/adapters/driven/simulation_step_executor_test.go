@@ -3909,15 +3909,6 @@ func assertPlanetVersion(t *testing.T, conn database.Connection, planet uuid.UUI
 	require.Equal(t, version, value)
 }
 
-func assertFleetVersion(t *testing.T, conn database.Connection, fleet uuid.UUID, version int) {
-	t.Helper()
-
-	sqlQuery := `SELECT version FROM fleet WHERE id = $1`
-	value, err := db.QueryOne[int](t.Context(), conn, sqlQuery, fleet)
-	require.NoError(t, err, "Actual err: %v", err)
-	require.Equal(t, version, value)
-}
-
 func assertFleetDoesNotExist(t *testing.T, conn database.Connection, id uuid.UUID) {
 	t.Helper()
 
