@@ -1,13 +1,11 @@
 package usecases
 
 import (
-	"context"
 	"errors"
 	"testing"
 
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
 	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
-	drivenports "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driven"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/usecases/drivenportstest"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -15,25 +13,54 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
-type DeleterMock func(context.Context, uuid.UUID, drivenports.PlanetDeleter) error
-
 type deletePlanetTestSuite struct {
-	ctrl        *gomock.Controller
-	mockDeleter *drivenportstest.MockForDeletingPlanet
-	mockClock   *drivenportstest.MockForFetchingTime
-	usecase     *DeletePlanetUseCase
+	ctrl         *gomock.Controller
+	mockExecutor *drivenportstest.MockForExecutingSimulationStep
+	mockClock    *drivenportstest.MockForFetchingTime
+	usecase      *DeletePlanetUseCase
 }
 
 func TestUnit_DeletePlanet_Delete(t *testing.T) {
-	t.Run("deletes existing planet through deleter", func(t *testing.T) {
+	t.Run("calls executor with planet and timestamp", func(t *testing.T) {
 		suite := setupDeletePlanetTestSuite(t)
 		id := uuid.New()
 
 		suite.mockClock.EXPECT().Now(gomock.Any()).Times(1).Return(t2)
-		suite.mockDeleter.EXPECT().
-			Delete(gomock.Any(), id, gomock.Any()).
+		result := models.SimulationStepResult{
+			Resolution: models.PlanetDeleted,
+		}
+		suite.mockExecutor.EXPECT().
+			// TODO: Here and in other tests, it should be ExecuteForDelete
+			Execute(gomock.Any(), id, t2, gomock.Any()).
 			Times(1).
-			Return(nil)
+			Return(result, nil)
+
+		err := suite.usecase.Delete(t.Context(), id)
+		require.NoError(t, err, "Actual err: %v", err)
+	})
+
+	t.Run("retries executor when fleet event is resolved", func(t *testing.T) {
+		suite := setupDeletePlanetTestSuite(t)
+		id := uuid.New()
+
+		suite.mockClock.EXPECT().Now(gomock.Any()).Times(1).Return(t2)
+		fleetResult := models.SimulationStepResult{
+			Resolution: models.FleetEventResolved,
+			Fleet: &models.Fleet{
+				Id: uuid.New(),
+			},
+		}
+		suite.mockExecutor.EXPECT().
+			Execute(gomock.Any(), id, t2, gomock.Any()).
+			Times(1).
+			Return(fleetResult, nil)
+		result := models.SimulationStepResult{
+			Resolution: models.PlanetDeleted,
+		}
+		suite.mockExecutor.EXPECT().
+			Execute(gomock.Any(), id, t2, gomock.Any()).
+			Times(1).
+			Return(result, nil)
 
 		err := suite.usecase.Delete(t.Context(), id)
 		require.NoError(t, err, "Actual err: %v", err)
@@ -49,10 +76,10 @@ func TestUnit_DeletePlanet_Delete(t *testing.T) {
 		}
 
 		suite.mockClock.EXPECT().Now(gomock.Any()).Times(1).Return(t2)
-		suite.mockDeleter.EXPECT().
-			Delete(gomock.Any(), planet.Id, gomock.Any()).
+		suite.mockExecutor.EXPECT().
+			Execute(gomock.Any(), planet.Id, t2, gomock.Any()).
 			Times(1).
-			DoAndReturn(generateApplyingDeleterMock(&planet))
+			DoAndReturn(generatePlanetSimulatorRecorderMock(&planet))
 
 		err := suite.usecase.Delete(t.Context(), planet.Id)
 		require.NoError(t, err, "Actual err: %v", err)
@@ -71,10 +98,10 @@ func TestUnit_DeletePlanet_Delete(t *testing.T) {
 		}
 
 		suite.mockClock.EXPECT().Now(gomock.Any()).Times(1).Return(t2)
-		suite.mockDeleter.EXPECT().
-			Delete(gomock.Any(), planet.Id, gomock.Any()).
+		suite.mockExecutor.EXPECT().
+			Execute(gomock.Any(), planet.Id, t2, gomock.Any()).
 			Times(1).
-			DoAndReturn(generateApplyingDeleterMock(&planet))
+			DoAndReturn(generatePlanetSimulatorRecorderMock(&planet))
 
 		err := suite.usecase.Delete(t.Context(), planet.Id)
 
@@ -97,10 +124,10 @@ func TestUnit_DeletePlanet_Delete(t *testing.T) {
 		}
 
 		suite.mockClock.EXPECT().Now(gomock.Any()).Times(1).Return(t2)
-		suite.mockDeleter.EXPECT().
-			Delete(gomock.Any(), planet.Id, gomock.Any()).
+		suite.mockExecutor.EXPECT().
+			Execute(gomock.Any(), planet.Id, t2, gomock.Any()).
 			Times(1).
-			DoAndReturn(generateApplyingDeleterMock(&planet))
+			DoAndReturn(generatePlanetSimulatorRecorderMock(&planet))
 
 		err := suite.usecase.Delete(t.Context(), planet.Id)
 
@@ -128,10 +155,10 @@ func TestUnit_DeletePlanet_Delete(t *testing.T) {
 		}
 
 		suite.mockClock.EXPECT().Now(gomock.Any()).Times(1).Return(t2)
-		suite.mockDeleter.EXPECT().
-			Delete(gomock.Any(), planet.Id, gomock.Any()).
+		suite.mockExecutor.EXPECT().
+			Execute(gomock.Any(), planet.Id, t2, gomock.Any()).
 			Times(1).
-			DoAndReturn(generateApplyingDeleterMock(&planet))
+			DoAndReturn(generatePlanetSimulatorRecorderMock(&planet))
 
 		err := suite.usecase.Delete(t.Context(), planet.Id)
 
@@ -144,10 +171,10 @@ func TestUnit_DeletePlanet_Delete(t *testing.T) {
 
 		suite.mockClock.EXPECT().Now(gomock.Any()).Times(1).Return(t2)
 		expected := errors.New("stubbed error")
-		suite.mockDeleter.EXPECT().
-			Delete(gomock.Any(), id, gomock.Any()).
+		suite.mockExecutor.EXPECT().
+			Execute(gomock.Any(), id, t2, gomock.Any()).
 			Times(1).
-			Return(expected)
+			Return(models.SimulationStepResult{}, expected)
 
 		err := suite.usecase.Delete(t.Context(), id)
 
@@ -159,24 +186,13 @@ func setupDeletePlanetTestSuite(t *testing.T) *deletePlanetTestSuite {
 	t.Helper()
 
 	ctrl := gomock.NewController(t)
-	mockDeleter := drivenportstest.NewMockForDeletingPlanet(ctrl)
+	mockExecutor := drivenportstest.NewMockForExecutingSimulationStep(ctrl)
 	mockClock := drivenportstest.NewMockForFetchingTime(ctrl)
 
 	return &deletePlanetTestSuite{
-		ctrl:        ctrl,
-		mockDeleter: mockDeleter,
-		mockClock:   mockClock,
-		usecase:     NewDeletePlanetUseCase(mockDeleter, mockClock),
-	}
-}
-
-// generateApplyingDeleterMock generates a function mock for the planet deleter
-// which applies the provided deleter to a known planet.
-func generateApplyingDeleterMock(p *models.Planet) DeleterMock {
-	return func(
-		ctx context.Context, id uuid.UUID, m drivenports.PlanetDeleter,
-	) error {
-		err := m(p)
-		return err
+		ctrl:         ctrl,
+		mockExecutor: mockExecutor,
+		mockClock:    mockClock,
+		usecase:      NewDeletePlanetUseCase(mockExecutor, mockClock),
 	}
 }

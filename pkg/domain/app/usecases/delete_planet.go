@@ -11,44 +11,49 @@ import (
 )
 
 type DeletePlanetUseCase struct {
-	deleter drivenports.ForDeletingPlanet
-	clock   drivenports.ForFetchingTime
+	simulator drivenports.ForExecutingSimulationStep
+	clock     drivenports.ForFetchingTime
 }
 
 func NewDeletePlanetUseCase(
-	deleter drivenports.ForDeletingPlanet,
+	simulator drivenports.ForExecutingSimulationStep,
 	clock drivenports.ForFetchingTime,
 ) *DeletePlanetUseCase {
 	return &DeletePlanetUseCase{
-		deleter: deleter,
-		clock:   clock,
+		simulator: simulator,
+		clock:     clock,
 	}
 }
 
 func (p *DeletePlanetUseCase) Delete(ctx context.Context, id uuid.UUID) error {
 	moment := p.clock.Now(ctx)
 
-	deleter := domainservices.AdvancePlanetToTimeThen(moment, planetDeletionGuard)
-	err := p.deleter.Delete(ctx, id, deleter)
+	// TODO: Should allow to select ExecuteForDelete
+	result, err := domainservices.AdvanceSimulationUntil(ctx, p.simulator, id, moment, planetDeletionGuard)
 	if err != nil {
 		return err
+	}
+
+	if result.Resolution != models.PlanetDeleted {
+		return domainerrors.ErrInvalidSimulationStepResult
 	}
 
 	return nil
 }
 
-func planetDeletionGuard(p *models.Planet) error {
-	if p.Homeworld {
-		return domainerrors.ErrHomeworldCannotBeDeleted
+func planetDeletionGuard(step models.SimulationStep) (models.SimulationStepResult, error) {
+	// func planetDeletionGuard(p *models.Planet) error {
+	if step.Planet.Homeworld {
+		return models.SimulationStepResult{}, domainerrors.ErrHomeworldCannotBeDeleted
 	}
 
-	if p.BuildingAction != nil {
-		return domainerrors.ErrBuildingActionNotCompleted
+	if step.Planet.BuildingAction != nil {
+		return models.SimulationStepResult{}, domainerrors.ErrBuildingActionNotCompleted
 	}
 
-	if len(p.ShipActions) > 0 {
-		return domainerrors.ErrShipActionNotCompleted
+	if len(step.Planet.ShipActions) > 0 {
+		return models.SimulationStepResult{}, domainerrors.ErrShipActionNotCompleted
 	}
 
-	return nil
+	return models.SimulationStepResult{Resolution: models.PlanetDeleted}, nil
 }
