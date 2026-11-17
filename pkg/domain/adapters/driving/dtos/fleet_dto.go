@@ -35,7 +35,7 @@ type FleetDtoResponse struct {
 	CreatedAt time.Time `json:"created_at" format:"date-time" binding:"required"`
 	UpdatedAt time.Time `json:"updated_at" format:"date-time" binding:"required"`
 
-	Ships []FleetShipDtoResponse `json:"costs" binding:"required,min=1,dive"`
+	Ships []FleetShipDtoResponse `json:"ships" binding:"required,min=1,dive"`
 }
 
 type FleetDestinationDtoResponse struct {
