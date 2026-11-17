@@ -117,8 +117,13 @@ func TestUnit_Fleets_CreateFleet(t *testing.T) {
 		}
 
 		fleet := models.Fleet{
-			Id:        uuid.New(),
-			CreatedAt: someTime,
+			Id:      uuid.New(),
+			Player:  uuid.New(),
+			Source:  sampleUuid,
+			Mission: expectedRequest.Mission,
+			Destination: models.FleetDestination{
+				Coordinate: expectedRequest.Destination,
+			},
 			Ships: []models.FleetShip{
 				{
 					Ship:  dto.Ships[0].Ship,
@@ -129,6 +134,13 @@ func TestUnit_Fleets_CreateFleet(t *testing.T) {
 					Count: dto.Ships[1].Count,
 				},
 			},
+			Schedule: models.FleetFlightSchedule{
+				ArrivalAt: someTime,
+				ReturnAt:  someOtherTime,
+				Status:    models.StatusOutbound,
+			},
+			CreatedAt: someTime,
+			UpdatedAt: someOtherTime,
 		}
 
 		mockUsecase.EXPECT().
@@ -147,12 +159,27 @@ func TestUnit_Fleets_CreateFleet(t *testing.T) {
 		assert.Equal(t, http.StatusCreated, rw.Code)
 		actual := decodeResponseBody[dtos.FleetDtoResponse](t, rw)
 		expected := dtos.FleetDtoResponse{
-			Id:        fleet.Id,
-			CreatedAt: fleet.CreatedAt,
+			Id:      fleet.Id,
+			Player:  fleet.Player,
+			Source:  fleet.Source,
+			Mission: fleet.Mission,
+			Destination: dtos.FleetDestinationDtoResponse{
+				Galaxy:      fleet.Destination.Coordinate.Galaxy,
+				SolarSystem: fleet.Destination.Coordinate.SolarSystem,
+				Position:    fleet.Destination.Coordinate.Position,
+				Target:      nil,
+			},
 			Ships: []dtos.FleetShipDtoResponse{
 				{Ship: fleet.Ships[0].Ship, Count: fleet.Ships[0].Count},
 				{Ship: fleet.Ships[1].Ship, Count: fleet.Ships[1].Count},
 			},
+			Schedule: dtos.FleetScheduleDtoResponse{
+				ArrivalAt: fleet.Schedule.ArrivalAt,
+				ReturnAt:  fleet.Schedule.ReturnAt,
+				Status:    fleet.Schedule.Status,
+			},
+			CreatedAt: fleet.CreatedAt,
+			UpdatedAt: fleet.UpdatedAt,
 		}
 		assert.Equal(t, expected, actual)
 	})
@@ -183,11 +210,26 @@ func TestUnit_Fleets_CreateFleet(t *testing.T) {
 		}
 
 		fleet := models.Fleet{
-			Id:        uuid.New(),
-			CreatedAt: someTime,
-			Ships: []models.FleetShip{
-				{Ship: dto.Ships[0].Ship, Count: dto.Ships[0].Count},
+			Id:      uuid.New(),
+			Player:  uuid.New(),
+			Source:  sampleUuid,
+			Mission: expectedRequest.Mission,
+			Destination: models.FleetDestination{
+				Coordinate: expectedRequest.Destination,
 			},
+			Ships: []models.FleetShip{
+				{
+					Ship:  dto.Ships[0].Ship,
+					Count: dto.Ships[0].Count,
+				},
+			},
+			Schedule: models.FleetFlightSchedule{
+				ArrivalAt: someTime,
+				ReturnAt:  someOtherTime,
+				Status:    models.StatusOutbound,
+			},
+			CreatedAt: someTime,
+			UpdatedAt: someOtherTime,
 		}
 
 		mockUsecase.EXPECT().
@@ -206,11 +248,116 @@ func TestUnit_Fleets_CreateFleet(t *testing.T) {
 		assert.Equal(t, http.StatusCreated, rw.Code)
 		actual := decodeResponseBody[dtos.FleetDtoResponse](t, rw)
 		expected := dtos.FleetDtoResponse{
-			Id:        fleet.Id,
-			CreatedAt: fleet.CreatedAt,
+			Id:      fleet.Id,
+			Player:  fleet.Player,
+			Source:  fleet.Source,
+			Mission: fleet.Mission,
+			Destination: dtos.FleetDestinationDtoResponse{
+				Galaxy:      fleet.Destination.Coordinate.Galaxy,
+				SolarSystem: fleet.Destination.Coordinate.SolarSystem,
+				Position:    fleet.Destination.Coordinate.Position,
+				Target:      nil,
+			},
 			Ships: []dtos.FleetShipDtoResponse{
 				{Ship: fleet.Ships[0].Ship, Count: fleet.Ships[0].Count},
 			},
+			Schedule: dtos.FleetScheduleDtoResponse{
+				ArrivalAt: fleet.Schedule.ArrivalAt,
+				ReturnAt:  fleet.Schedule.ReturnAt,
+				Status:    fleet.Schedule.Status,
+			},
+			CreatedAt: fleet.CreatedAt,
+			UpdatedAt: fleet.UpdatedAt,
+		}
+		assert.Equal(t, expected, actual)
+	})
+
+	t.Run("returns target when available", func(t *testing.T) {
+		dto := dtos.FleetDtoRequest{
+			Mission: dtos.MissionColonize,
+			Destination: dtos.FleetDestinationDtoRequest{
+				Galaxy:      new(0),
+				SolarSystem: new(0),
+				Position:    new(0),
+			},
+			Ships: []dtos.FleetShipDtoRequest{
+				{Ship: uuid.New(), Count: 2},
+			},
+		}
+
+		expectedRequest := models.FleetOrder{
+			Mission: models.MissionColonize,
+			Destination: models.Coordinate{
+				Galaxy:      0,
+				SolarSystem: 0,
+				Position:    0,
+			},
+			Ships: []models.FleetShip{
+				{Ship: dto.Ships[0].Ship, Count: dto.Ships[0].Count},
+			},
+		}
+
+		destination := uuid.New()
+		fleet := models.Fleet{
+			Id:      uuid.New(),
+			Player:  uuid.New(),
+			Source:  sampleUuid,
+			Mission: expectedRequest.Mission,
+			Destination: models.FleetDestination{
+				Coordinate: expectedRequest.Destination,
+				Target:     &destination,
+			},
+			Ships: []models.FleetShip{
+				{
+					Ship:  dto.Ships[0].Ship,
+					Count: dto.Ships[0].Count,
+				},
+			},
+			Schedule: models.FleetFlightSchedule{
+				ArrivalAt: someTime,
+				ReturnAt:  someOtherTime,
+				Status:    models.StatusOutbound,
+			},
+			CreatedAt: someTime,
+			UpdatedAt: someOtherTime,
+		}
+
+		mockUsecase.EXPECT().
+			Create(gomock.Any(), sampleUuid, expectedRequest).
+			Times(1).
+			Return(fleet, nil)
+
+		handler := generateHandler[drivingports.ForCreatingFleet](createFleet, mockUsecase)
+		r := createTestGinRouter(t, http.MethodPost, "/planets/:id/fleets", handler)
+
+		req := generateTestRequestWithJsonBody(t, http.MethodPost, dto)
+		addRequestPath(t, req, "/planets/%s/fleets", sampleUuid)
+		rw := httptest.NewRecorder()
+		r.ServeHTTP(rw, req)
+
+		assert.Equal(t, http.StatusCreated, rw.Code)
+		actual := decodeResponseBody[dtos.FleetDtoResponse](t, rw)
+		expected := dtos.FleetDtoResponse{
+			Id:      fleet.Id,
+			Player:  fleet.Player,
+			Source:  fleet.Source,
+			Mission: fleet.Mission,
+			Destination: dtos.FleetDestinationDtoResponse{
+				Galaxy:      fleet.Destination.Coordinate.Galaxy,
+				SolarSystem: fleet.Destination.Coordinate.SolarSystem,
+				Position:    fleet.Destination.Coordinate.Position,
+				Target:      &destination,
+			},
+			Ships: []dtos.FleetShipDtoResponse{
+				{Ship: fleet.Ships[0].Ship, Count: fleet.Ships[0].Count},
+			},
+			Schedule: dtos.FleetScheduleDtoResponse{
+				ArrivalAt: fleet.Schedule.ArrivalAt,
+				ReturnAt:  fleet.Schedule.ReturnAt,
+				Status:    fleet.Schedule.Status,
+			},
+			CreatedAt: fleet.CreatedAt,
+			UpdatedAt: fleet.UpdatedAt,
 		}
 		assert.Equal(t, expected, actual)
 	})

@@ -360,6 +360,7 @@ func TestIT_Server(t *testing.T) {
 		assert.Equal(t, homeworld.ShipActions, []dtos.ShipActionDtoResponse{action1, action2})
 	})
 
+	// TODO: Include assertions on ships, schedule and destination
 	t.Run("create a fleet with a planet as destination", func(t *testing.T) {
 		conn := dbContainer.NewTestConnection(t)
 		conf := newTestServerConfig()

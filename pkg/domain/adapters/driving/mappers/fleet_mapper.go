@@ -67,8 +67,23 @@ func toFleetShips(
 
 func ToFleetResponse(fleet models.Fleet) dtos.FleetDtoResponse {
 	return dtos.FleetDtoResponse{
-		Id:        fleet.Id,
+		Id:      fleet.Id,
+		Player:  fleet.Player,
+		Source:  fleet.Source,
+		Mission: fleet.Mission,
+		Destination: dtos.FleetDestinationDtoResponse{
+			Galaxy:      fleet.Destination.Coordinate.Galaxy,
+			SolarSystem: fleet.Destination.Coordinate.SolarSystem,
+			Position:    fleet.Destination.Coordinate.Position,
+			Target:      fleet.Destination.Target,
+		},
+		Schedule: dtos.FleetScheduleDtoResponse{
+			ArrivalAt: fleet.Schedule.ArrivalAt,
+			ReturnAt:  fleet.Schedule.ReturnAt,
+			Status:    fleet.Schedule.Status,
+		},
 		CreatedAt: fleet.CreatedAt,
+		UpdatedAt: fleet.UpdatedAt,
 		Ships:     toFleetShipsResponse(fleet.Ships),
 	}
 }
