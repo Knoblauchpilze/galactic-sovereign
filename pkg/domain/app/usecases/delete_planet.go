@@ -28,8 +28,7 @@ func NewDeletePlanetUseCase(
 func (p *DeletePlanetUseCase) Delete(ctx context.Context, id uuid.UUID) error {
 	moment := p.clock.Now(ctx)
 
-	// TODO: Should allow to select ExecuteForDelete
-	result, err := domainservices.AdvanceSimulationUntil(ctx, p.simulator, id, moment, planetDeletionGuard)
+	result, err := domainservices.AdvanceSimulationForDeleteUntil(ctx, p.simulator, id, moment, planetDeletionGuard)
 	if err != nil {
 		return err
 	}

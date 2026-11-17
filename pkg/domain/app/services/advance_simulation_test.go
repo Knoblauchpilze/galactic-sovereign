@@ -185,6 +185,147 @@ func TestUnit_AdvanceSimulationUntil(t *testing.T) {
 	})
 }
 
+func TestUnit_AdvanceSimulationForDeleteUntil(t *testing.T) {
+	t.Run("calls executor with correct parameter", func(t *testing.T) {
+		suite := setupSimulationStepTestSuite(t)
+
+		planet := generateSamplePlanet()
+
+		expected := models.SimulationStepResult{
+			Resolution: models.PlanetDeleted,
+		}
+		suite.mockExecutor.EXPECT().
+			ExecuteForDelete(gomock.Any(), planet.Id, t2, gomock.Any()).
+			Times(1).
+			Return(expected, nil)
+
+		resolver := generateDummyResolver()
+		result, err := AdvanceSimulationForDeleteUntil(t.Context(), suite.mockExecutor, planet.Id, t2, resolver)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.Equal(t, expected, result)
+	})
+
+	t.Run("calls resolver again when it returns FleetEventResolved", func(t *testing.T) {
+		suite := setupSimulationStepTestSuite(t)
+
+		planet := generateSamplePlanet()
+		fleet := generateSampleFleet(planet)
+
+		result1 := models.SimulationStepResult{
+			Resolution: models.FleetEventResolved,
+			Fleet:      &fleet,
+		}
+		suite.mockExecutor.EXPECT().
+			ExecuteForDelete(gomock.Any(), planet.Id, t2, gomock.Any()).
+			Times(1).
+			Return(result1, nil)
+		result2 := models.SimulationStepResult{
+			Resolution: models.PlanetDeleted,
+		}
+		suite.mockExecutor.EXPECT().
+			ExecuteForDelete(gomock.Any(), planet.Id, t2, gomock.Any()).
+			Times(1).
+			Return(result2, nil)
+
+		resolver := generateDummyResolver()
+		result, err := AdvanceSimulationForDeleteUntil(t.Context(), suite.mockExecutor, planet.Id, t2, resolver)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.Equal(t, result2, result)
+	})
+
+	t.Run("calls resolver again when it returns FleetDeleted", func(t *testing.T) {
+		suite := setupSimulationStepTestSuite(t)
+
+		planet := generateSamplePlanet()
+
+		result1 := models.SimulationStepResult{
+			Resolution: models.FleetDeleted,
+		}
+		suite.mockExecutor.EXPECT().
+			ExecuteForDelete(gomock.Any(), planet.Id, t2, gomock.Any()).
+			Times(1).
+			Return(result1, nil)
+		result2 := models.SimulationStepResult{
+			Resolution: models.PlanetDeleted,
+		}
+		suite.mockExecutor.EXPECT().
+			ExecuteForDelete(gomock.Any(), planet.Id, t2, gomock.Any()).
+			Times(1).
+			Return(result2, nil)
+
+		resolver := generateDummyResolver()
+		result, err := AdvanceSimulationForDeleteUntil(t.Context(), suite.mockExecutor, planet.Id, t2, resolver)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.Equal(t, result2, result)
+	})
+
+	t.Run("stops calling resolver when it returns PlanetDeleted", func(t *testing.T) {
+		suite := setupSimulationStepTestSuite(t)
+
+		planet := generateSamplePlanet()
+
+		result := models.SimulationStepResult{
+			Resolution: models.PlanetDeleted,
+		}
+		suite.mockExecutor.EXPECT().
+			ExecuteForDelete(gomock.Any(), planet.Id, t2, gomock.Any()).
+			Times(1).
+			Return(result, nil)
+
+		resolver := generateDummyResolver()
+		result, err := AdvanceSimulationForDeleteUntil(t.Context(), suite.mockExecutor, planet.Id, t2, resolver)
+		require.NoError(t, err, "Actual err: %v", err)
+
+		assert.Equal(t, result, result)
+	})
+
+	t.Run("returns error when executor returns an error", func(t *testing.T) {
+		suite := setupSimulationStepTestSuite(t)
+
+		planet := generateSamplePlanet()
+
+		errSample := errors.New("stubbed error")
+		suite.mockExecutor.EXPECT().
+			ExecuteForDelete(gomock.Any(), planet.Id, t2, gomock.Any()).
+			Times(1).
+			Return(models.SimulationStepResult{}, errSample)
+
+		resolver := generateDummyResolver()
+		_, err := AdvanceSimulationForDeleteUntil(t.Context(), suite.mockExecutor, planet.Id, t2, resolver)
+
+		assert.ErrorIs(t, err, errSample, "Actual err: %v", err)
+	})
+
+	t.Run("returns error when subsequent calls to executor return an error", func(t *testing.T) {
+		suite := setupSimulationStepTestSuite(t)
+
+		planet := generateSamplePlanet()
+		fleet := generateSampleFleet(planet)
+
+		result := models.SimulationStepResult{
+			Resolution: models.FleetEventResolved,
+			Fleet:      &fleet,
+		}
+		suite.mockExecutor.EXPECT().
+			ExecuteForDelete(gomock.Any(), planet.Id, t2, gomock.Any()).
+			Times(1).
+			Return(result, nil)
+		errSample := errors.New("stubbed error")
+		suite.mockExecutor.EXPECT().
+			ExecuteForDelete(gomock.Any(), planet.Id, t2, gomock.Any()).
+			Times(1).
+			Return(models.SimulationStepResult{}, errSample)
+
+		resolver := generateDummyResolver()
+		_, err := AdvanceSimulationForDeleteUntil(t.Context(), suite.mockExecutor, planet.Id, t2, resolver)
+
+		assert.ErrorIs(t, err, errSample, "Actual err: %v", err)
+	})
+}
+
 func setupSimulationStepTestSuite(t *testing.T) *simulationStepTestSuite {
 	t.Helper()
 

@@ -30,8 +30,7 @@ func TestUnit_DeletePlanet_Delete(t *testing.T) {
 			Resolution: models.PlanetDeleted,
 		}
 		suite.mockExecutor.EXPECT().
-			// TODO: Here and in other tests, it should be ExecuteForDelete
-			Execute(gomock.Any(), id, t2, gomock.Any()).
+			ExecuteForDelete(gomock.Any(), id, t2, gomock.Any()).
 			Times(1).
 			Return(result, nil)
 
@@ -51,14 +50,14 @@ func TestUnit_DeletePlanet_Delete(t *testing.T) {
 			},
 		}
 		suite.mockExecutor.EXPECT().
-			Execute(gomock.Any(), id, t2, gomock.Any()).
+			ExecuteForDelete(gomock.Any(), id, t2, gomock.Any()).
 			Times(1).
 			Return(fleetResult, nil)
 		result := models.SimulationStepResult{
 			Resolution: models.PlanetDeleted,
 		}
 		suite.mockExecutor.EXPECT().
-			Execute(gomock.Any(), id, t2, gomock.Any()).
+			ExecuteForDelete(gomock.Any(), id, t2, gomock.Any()).
 			Times(1).
 			Return(result, nil)
 
@@ -77,7 +76,7 @@ func TestUnit_DeletePlanet_Delete(t *testing.T) {
 
 		suite.mockClock.EXPECT().Now(gomock.Any()).Times(1).Return(t2)
 		suite.mockExecutor.EXPECT().
-			Execute(gomock.Any(), planet.Id, t2, gomock.Any()).
+			ExecuteForDelete(gomock.Any(), planet.Id, t2, gomock.Any()).
 			Times(1).
 			DoAndReturn(generatePlanetSimulatorRecorderMock(&planet))
 
@@ -99,7 +98,7 @@ func TestUnit_DeletePlanet_Delete(t *testing.T) {
 
 		suite.mockClock.EXPECT().Now(gomock.Any()).Times(1).Return(t2)
 		suite.mockExecutor.EXPECT().
-			Execute(gomock.Any(), planet.Id, t2, gomock.Any()).
+			ExecuteForDelete(gomock.Any(), planet.Id, t2, gomock.Any()).
 			Times(1).
 			DoAndReturn(generatePlanetSimulatorRecorderMock(&planet))
 
@@ -125,7 +124,7 @@ func TestUnit_DeletePlanet_Delete(t *testing.T) {
 
 		suite.mockClock.EXPECT().Now(gomock.Any()).Times(1).Return(t2)
 		suite.mockExecutor.EXPECT().
-			Execute(gomock.Any(), planet.Id, t2, gomock.Any()).
+			ExecuteForDelete(gomock.Any(), planet.Id, t2, gomock.Any()).
 			Times(1).
 			DoAndReturn(generatePlanetSimulatorRecorderMock(&planet))
 
@@ -156,7 +155,7 @@ func TestUnit_DeletePlanet_Delete(t *testing.T) {
 
 		suite.mockClock.EXPECT().Now(gomock.Any()).Times(1).Return(t2)
 		suite.mockExecutor.EXPECT().
-			Execute(gomock.Any(), planet.Id, t2, gomock.Any()).
+			ExecuteForDelete(gomock.Any(), planet.Id, t2, gomock.Any()).
 			Times(1).
 			DoAndReturn(generatePlanetSimulatorRecorderMock(&planet))
 
@@ -172,7 +171,7 @@ func TestUnit_DeletePlanet_Delete(t *testing.T) {
 		suite.mockClock.EXPECT().Now(gomock.Any()).Times(1).Return(t2)
 		expected := errors.New("stubbed error")
 		suite.mockExecutor.EXPECT().
-			Execute(gomock.Any(), id, t2, gomock.Any()).
+			ExecuteForDelete(gomock.Any(), id, t2, gomock.Any()).
 			Times(1).
 			Return(models.SimulationStepResult{}, expected)
 
