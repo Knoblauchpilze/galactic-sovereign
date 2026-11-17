@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driving/dtos"
+	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
 	integrationdb "github.com/Knoblauchpilze/galactic-sovereign/pkg/testing/integrationdb"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -360,7 +361,6 @@ func TestIT_Server(t *testing.T) {
 		assert.Equal(t, homeworld.ShipActions, []dtos.ShipActionDtoResponse{action1, action2})
 	})
 
-	// TODO: Include assertions on ships, schedule and destination
 	t.Run("create a fleet with a planet as destination", func(t *testing.T) {
 		conn := dbContainer.NewTestConnection(t)
 		conf := newTestServerConfig()
@@ -418,6 +418,15 @@ func TestIT_Server(t *testing.T) {
 		expectedShips := []dtos.FleetShipDtoResponse{
 			{Ship: lightFighterId, Count: 3},
 		}
+		assert.Equal(t, models.MissionTransport, fleet.Mission)
+		expectedDestination := dtos.FleetDestinationDtoResponse{
+			Galaxy:      player2.Planets[0].Coordinate.Galaxy,
+			SolarSystem: player2.Planets[0].Coordinate.SolarSystem,
+			Position:    player2.Planets[0].Coordinate.Position,
+			Target:      &player2.Homeworld,
+		}
+		assert.Equal(t, expectedDestination, fleet.Destination)
+		assert.Equal(t, models.StatusOutbound, fleet.Schedule.Status)
 		assert.Equal(t, expectedShips, fleet.Ships)
 
 		// Fetch the planet to verify ship counts
