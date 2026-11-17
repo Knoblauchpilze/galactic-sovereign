@@ -3127,8 +3127,6 @@ func TestIT_SimulationStepExecutor_PlanetConcurrency(t *testing.T) {
 		assertFleetEventDoesNotExist(t, conn, fleet.Id)
 	})
 
-	// TODO: Add something equivalent for ExecuteForDelete: a dispatch should wait that the delete
-	// is finished to persist (and fail)
 	t.Run("allows concurrent reciprocal fleet dispatches", func(t *testing.T) {
 		adapter, conn := newTestSimulationStepExecutor(t)
 
