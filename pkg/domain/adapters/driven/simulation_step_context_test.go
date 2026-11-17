@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driven/database"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
 	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
@@ -2194,4 +2195,13 @@ func dummyResolver(_ models.SimulationStep) (models.SimulationStepResult, error)
 		Planet:     &models.Planet{},
 		Fleet:      nil,
 	}, nil
+}
+
+func assertFleetExists(t *testing.T, conn database.Connection, id uuid.UUID) {
+	t.Helper()
+
+	sqlQuery := `SELECT id FROM fleet WHERE id = $1`
+	value, err := db.QueryOne[uuid.UUID](t.Context(), conn, sqlQuery, id)
+	require.NoError(t, err, "Actual err: %v", err)
+	require.Equal(t, id, value)
 }
