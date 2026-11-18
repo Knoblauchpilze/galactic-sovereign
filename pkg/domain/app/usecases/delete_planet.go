@@ -25,10 +25,10 @@ func NewDeletePlanetUseCase(
 	}
 }
 
-func (p *DeletePlanetUseCase) Delete(ctx context.Context, id uuid.UUID) error {
-	moment := p.clock.Now(ctx)
+func (u *DeletePlanetUseCase) Delete(ctx context.Context, id uuid.UUID) error {
+	moment := u.clock.Now(ctx)
 
-	result, err := domainservices.AdvanceSimulationForDeleteUntil(ctx, p.simulator, id, moment, planetDeletionGuard)
+	result, err := domainservices.AdvanceSimulationForDeleteUntil(ctx, u.simulator, id, moment, planetDeletionGuard)
 	if err != nil {
 		return err
 	}

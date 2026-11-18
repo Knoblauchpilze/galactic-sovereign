@@ -28,10 +28,10 @@ func NewFetchPlanetsUseCase(
 	}
 }
 
-func (p *FetchPlanetsUseCase) Get(ctx context.Context, id uuid.UUID) (models.Planet, error) {
-	moment := p.clock.Now(ctx)
+func (u *FetchPlanetsUseCase) Get(ctx context.Context, id uuid.UUID) (models.Planet, error) {
+	moment := u.clock.Now(ctx)
 
-	result, err := domainservices.AdvanceSimulationUntil(ctx, p.simulator, id, moment, noOpMutator)
+	result, err := domainservices.AdvanceSimulationUntil(ctx, u.simulator, id, moment, noOpMutator)
 	if err != nil {
 		return models.Planet{}, err
 	}
@@ -43,10 +43,10 @@ func (p *FetchPlanetsUseCase) Get(ctx context.Context, id uuid.UUID) (models.Pla
 	return *result.Planet, nil
 }
 
-func (p *FetchPlanetsUseCase) ListForPlayer(ctx context.Context, player uuid.UUID) ([]models.Planet, error) {
-	moment := p.clock.Now(ctx)
+func (u *FetchPlanetsUseCase) ListForPlayer(ctx context.Context, player uuid.UUID) ([]models.Planet, error) {
+	moment := u.clock.Now(ctx)
 
-	ids, err := p.planetRepo.ListForPlayer(ctx, player)
+	ids, err := u.planetRepo.ListForPlayer(ctx, player)
 	if err != nil {
 		return nil, err
 	}
@@ -55,7 +55,7 @@ func (p *FetchPlanetsUseCase) ListForPlayer(ctx context.Context, player uuid.UUI
 
 	for _, id := range ids {
 
-		result, err := domainservices.AdvanceSimulationUntil(ctx, p.simulator, id, moment, noOpMutator)
+		result, err := domainservices.AdvanceSimulationUntil(ctx, u.simulator, id, moment, noOpMutator)
 		if err != nil {
 			return nil, err
 		}

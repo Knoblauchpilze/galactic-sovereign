@@ -16,7 +16,7 @@ func NewCheckHealthUseCase(checker drivenports.ForCheckingDatabaseConnection) *C
 	}
 }
 
-func (c *CheckHealthUseCase) Healthy(ctx context.Context) bool {
-	err := c.checker.Ping(ctx)
+func (u *CheckHealthUseCase) Healthy(ctx context.Context) bool {
+	err := u.checker.Ping(ctx)
 	return err == nil
 }

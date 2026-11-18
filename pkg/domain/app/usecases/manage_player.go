@@ -25,13 +25,13 @@ func NewPlayerUseCase(
 	}
 }
 
-func (p *PlayerUseCase) Create(
+func (u *PlayerUseCase) Create(
 	ctx context.Context,
 	req request.PlayerCreationRequest,
 ) (models.Player, error) {
 	player := request.FromPlayerCreationRequest(req)
 
-	universe, err := p.universeRepo.Get(ctx, player.Universe)
+	universe, err := u.universeRepo.Get(ctx, player.Universe)
 	if err != nil {
 		if err == domainerrors.ErrNotFound {
 			return models.Player{}, domainerrors.ErrUniverseNotFound
@@ -42,7 +42,7 @@ func (p *PlayerUseCase) Create(
 	homeworld := player.CreateHomeworld(universe)
 
 	// TODO: Could be that the planet was used, in which case an optimistic lock error will be returned
-	err = p.playerRepo.Create(ctx, player, homeworld)
+	err = u.playerRepo.Create(ctx, player, homeworld)
 	if err != nil {
 		return models.Player{}, err
 	}
@@ -50,17 +50,17 @@ func (p *PlayerUseCase) Create(
 	return player, nil
 }
 
-func (p *PlayerUseCase) Get(ctx context.Context, id uuid.UUID) (models.Player, error) {
-	return p.playerRepo.Get(ctx, id)
+func (u *PlayerUseCase) Get(ctx context.Context, id uuid.UUID) (models.Player, error) {
+	return u.playerRepo.Get(ctx, id)
 }
 
-func (p *PlayerUseCase) ListForApiUser(ctx context.Context, apiUser uuid.UUID) ([]models.Player, error) {
-	return p.playerRepo.ListForApiUser(ctx, apiUser)
+func (u *PlayerUseCase) ListForApiUser(ctx context.Context, apiUser uuid.UUID) ([]models.Player, error) {
+	return u.playerRepo.ListForApiUser(ctx, apiUser)
 }
 
-func (p *PlayerUseCase) Delete(ctx context.Context, id uuid.UUID) error {
+func (u *PlayerUseCase) Delete(ctx context.Context, id uuid.UUID) error {
 	// TODO: The simulation step should probably be ran to get the updated planet count
-	player, err := p.playerRepo.Get(ctx, id)
+	player, err := u.playerRepo.Get(ctx, id)
 	if err != nil {
 		if err == domainerrors.ErrNotFound {
 			return nil
@@ -69,7 +69,7 @@ func (p *PlayerUseCase) Delete(ctx context.Context, id uuid.UUID) error {
 		return err
 	}
 
-	err = p.playerRepo.Delete(ctx, player)
+	err = u.playerRepo.Delete(ctx, player)
 	if err != nil {
 		return err
 	}

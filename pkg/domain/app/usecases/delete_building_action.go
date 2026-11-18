@@ -25,14 +25,14 @@ func NewDeleteBuildingActionUseCase(
 	}
 }
 
-func (b *DeleteBuildingActionUseCase) DeleteForPlanet(
+func (u *DeleteBuildingActionUseCase) DeleteForPlanet(
 	ctx context.Context,
 	planet uuid.UUID,
 ) error {
-	moment := b.clock.Now(ctx)
+	moment := u.clock.Now(ctx)
 
 	mutator := generateBuildingActionDeletionMutator()
-	_, err := domainservices.AdvanceSimulationUntil(ctx, b.simulator, planet, moment, mutator)
+	_, err := domainservices.AdvanceSimulationUntil(ctx, u.simulator, planet, moment, mutator)
 	if err != nil {
 		return err
 	}

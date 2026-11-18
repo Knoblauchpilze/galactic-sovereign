@@ -28,13 +28,13 @@ func NewCreateBuildingActionUseCase(
 	}
 }
 
-func (b *CreateBuildingActionUseCase) Create(
+func (u *CreateBuildingActionUseCase) Create(
 	ctx context.Context,
 	req request.BuildingActionCreationRequest,
 ) (models.BuildingAction, error) {
-	moment := b.clock.Now(ctx)
+	moment := u.clock.Now(ctx)
 
-	building, err := b.buildingRepo.Get(ctx, req.Building)
+	building, err := u.buildingRepo.Get(ctx, req.Building)
 	if err != nil {
 		if err == domainerrors.ErrNotFound {
 			return models.BuildingAction{}, domainerrors.ErrBuildingNotFound
@@ -44,7 +44,7 @@ func (b *CreateBuildingActionUseCase) Create(
 	}
 
 	mutator := generateBuildingActionMutator(building)
-	result, err := domainservices.AdvanceSimulationUntil(ctx, b.simulator, req.Planet, moment, mutator)
+	result, err := domainservices.AdvanceSimulationUntil(ctx, u.simulator, req.Planet, moment, mutator)
 	if err != nil {
 		return models.BuildingAction{}, err
 	}
