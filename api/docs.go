@@ -299,6 +299,32 @@ const docTemplate = `{
                 ],
                 "type": "object"
             },
+            "dtos.FleetDestinationDtoResponse": {
+                "properties": {
+                    "galaxy": {
+                        "minimum": 0,
+                        "type": "integer"
+                    },
+                    "position": {
+                        "minimum": 0,
+                        "type": "integer"
+                    },
+                    "solar_system": {
+                        "minimum": 0,
+                        "type": "integer"
+                    },
+                    "target": {
+                        "format": "uuid",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "galaxy",
+                    "position",
+                    "solar_system"
+                ],
+                "type": "object"
+            },
             "dtos.FleetDtoRequest": {
                 "properties": {
                     "destination": {
@@ -325,26 +351,54 @@ const docTemplate = `{
             },
             "dtos.FleetDtoResponse": {
                 "properties": {
-                    "costs": {
-                        "items": {
-                            "$ref": "#/components/schemas/dtos.FleetShipDtoResponse"
-                        },
-                        "type": "array",
-                        "uniqueItems": false
-                    },
                     "created_at": {
                         "format": "date-time",
                         "type": "string"
                     },
+                    "destination": {
+                        "$ref": "#/components/schemas/dtos.FleetDestinationDtoResponse"
+                    },
                     "id": {
                         "format": "uuid",
+                        "type": "string"
+                    },
+                    "mission": {
+                        "$ref": "#/components/schemas/models.FleetMission"
+                    },
+                    "player": {
+                        "format": "uuid",
+                        "type": "string"
+                    },
+                    "schedule": {
+                        "$ref": "#/components/schemas/dtos.FleetScheduleDtoResponse"
+                    },
+                    "ships": {
+                        "items": {
+                            "$ref": "#/components/schemas/dtos.FleetShipDtoResponse"
+                        },
+                        "minItems": 1,
+                        "type": "array",
+                        "uniqueItems": false
+                    },
+                    "source": {
+                        "format": "uuid",
+                        "type": "string"
+                    },
+                    "updated_at": {
+                        "format": "date-time",
                         "type": "string"
                     }
                 },
                 "required": [
-                    "costs",
                     "created_at",
-                    "id"
+                    "destination",
+                    "id",
+                    "mission",
+                    "player",
+                    "schedule",
+                    "ships",
+                    "source",
+                    "updated_at"
                 ],
                 "type": "object"
             },
@@ -358,6 +412,27 @@ const docTemplate = `{
                     "MissionColonize",
                     "MissionTransport"
                 ]
+            },
+            "dtos.FleetScheduleDtoResponse": {
+                "properties": {
+                    "arrival_at": {
+                        "format": "date-time",
+                        "type": "string"
+                    },
+                    "return_at": {
+                        "format": "date-time",
+                        "type": "string"
+                    },
+                    "status": {
+                        "$ref": "#/components/schemas/models.FleetStatus"
+                    }
+                },
+                "required": [
+                    "arrival_at",
+                    "return_at",
+                    "status"
+                ],
+                "type": "object"
             },
             "dtos.FleetShipDtoRequest": {
                 "properties": {
@@ -1038,6 +1113,28 @@ const docTemplate = `{
                 ],
                 "type": "object"
             },
+            "models.FleetMission": {
+                "enum": [
+                    "COLONIZE",
+                    "TRANSPORT"
+                ],
+                "type": "string",
+                "x-enum-varnames": [
+                    "MissionColonize",
+                    "MissionTransport"
+                ]
+            },
+            "models.FleetStatus": {
+                "enum": [
+                    "OUTBOUND",
+                    "RETURNING"
+                ],
+                "type": "string",
+                "x-enum-varnames": [
+                    "StatusOutbound",
+                    "StatusReturning"
+                ]
+            },
             "models.ScalingMode": {
                 "enum": [
                     "LINEAR",
@@ -1048,6 +1145,36 @@ const docTemplate = `{
                     "LinearScaling",
                     "GeometricScaling"
                 ]
+            },
+            "rest.ResponseEnvelope-array_dtos_FleetDtoResponse": {
+                "properties": {
+                    "details": {
+                        "items": {
+                            "$ref": "#/components/schemas/dtos.FleetDtoResponse"
+                        },
+                        "type": "array",
+                        "uniqueItems": false
+                    },
+                    "request_id": {
+                        "example": "669cd40f-ea15-40a8-ab03-81e704a3ecf9",
+                        "format": "uuid",
+                        "type": "string"
+                    },
+                    "status": {
+                        "$ref": "#/components/schemas/rest.Status"
+                    },
+                    "status_code": {
+                        "example": 200,
+                        "type": "integer"
+                    }
+                },
+                "required": [
+                    "details",
+                    "request_id",
+                    "status",
+                    "status_code"
+                ],
+                "type": "object"
             },
             "rest.ResponseEnvelope-array_dtos_PlanetDtoResponse": {
                 "properties": {
@@ -1965,6 +2092,59 @@ const docTemplate = `{
                     }
                 },
                 "summary": "Get player",
+                "tags": [
+                    "players"
+                ]
+            }
+        },
+        "/players/{id}/fleets": {
+            "get": {
+                "description": "Returns fleets belonging to a player or targeting a player's planet.",
+                "parameters": [
+                    {
+                        "description": "Player id (UUID)",
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "format": "uuid",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/rest.ResponseEnvelope-array_dtos_FleetDtoResponse"
+                                }
+                            }
+                        },
+                        "description": "OK"
+                    },
+                    "400": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/rest.ResponseEnvelope-string"
+                                }
+                            }
+                        },
+                        "description": "Bad Request"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/rest.ResponseEnvelope-string"
+                                }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                },
+                "summary": "List fleets",
                 "tags": [
                     "players"
                 ]

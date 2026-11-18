@@ -136,9 +136,10 @@ func registerFleetsRoutes(
 	similator := drivenadapters.NewSimulationStepExecutor(conn)
 	clock := drivenadapters.NewTimeAdapter()
 
+	fetchUsecase := usecases.NewFetchFleetsUseCase()
 	createUseCase := usecases.NewCreateFleetUseCase(universeRepo, similator, clock)
 
-	for _, route := range drivingadapters.FleetEndpoints(createUseCase) {
+	for _, route := range drivingadapters.FleetEndpoints(createUseCase, fetchUsecase) {
 		if err := s.AddRoute(route); err != nil {
 			log.Error("Failed to register route", slog.String("route", route.Path()), slog.Any("error", err))
 		}

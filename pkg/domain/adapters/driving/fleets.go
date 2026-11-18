@@ -15,12 +15,17 @@ import (
 
 func FleetEndpoints(
 	createUsecase drivingports.ForCreatingFleet,
+	fetchUsecase drivingports.ForFetchingFleets,
 ) Routes {
 	var out Routes
 
 	handler := generateHandler(createFleet, createUsecase)
 	post := rest.NewRoute(http.MethodPost, "/planets/:id/fleets", handler)
 	out = append(out, post)
+
+	handler = generateHandler(listFleetsForPlayer, fetchUsecase)
+	list := rest.NewRoute(http.MethodGet, "/players/:id/fleets", handler)
+	out = append(out, list)
 
 	return out
 }
@@ -88,4 +93,36 @@ func createFleet(c *gin.Context, usecase drivingports.ForCreatingFleet) {
 
 	out := mappers.ToFleetResponse(fleet)
 	c.JSON(http.StatusCreated, out)
+}
+
+// listFleetsForPlayer godoc
+//
+//	@Summary		List fleets
+//	@Description	Returns fleets belonging to a player or targeting a player's planet.
+//	@Tags			players
+//	@Produce		json
+//	@Param			id	path		string	true	"Player id (UUID)"	Format(uuid)
+//	@Success		200		{object}	rest.ResponseEnvelope[[]dtos.FleetDtoResponse]
+//	@Failure		400		{object}	rest.ResponseEnvelope[string]
+//	@Failure		500		{object}	rest.ResponseEnvelope[string]
+//	@Router			/players/{id}/fleets [get]
+func listFleetsForPlayer(c *gin.Context, usecase drivingports.ForFetchingFleets) {
+	maybeId := c.Param("id")
+	playerId, err := uuid.Parse(maybeId)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, "invalid id syntax")
+		return
+	}
+
+	fleets, err := usecase.ListForPlayer(c.Request.Context(), playerId)
+
+	if err != nil {
+		logError(c.Request, "Failed to list fleets", slog.Any("error", err))
+		c.AbortWithStatusJSON(http.StatusInternalServerError, "failed to list fleets")
+		return
+	}
+
+	out := mappers.ToFleetsResponse(fleets)
+
+	c.JSON(http.StatusOK, out)
 }

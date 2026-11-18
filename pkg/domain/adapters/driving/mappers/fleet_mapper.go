@@ -109,3 +109,14 @@ func toFleetShipsResponse(
 
 	return out
 }
+
+func ToFleetsResponse(fleets []models.Fleet) []dtos.FleetDtoResponse {
+	out := make([]dtos.FleetDtoResponse, 0, len(fleets))
+
+	for _, f := range fleets {
+		dto := ToFleetResponse(f)
+		out = append(out, dto)
+	}
+
+	return out
+}
