@@ -12,15 +12,12 @@ import (
 	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/request"
 	drivingports "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driving"
-	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 )
 
 func TestUnit_Universes_CreateUniverse(t *testing.T) {
-	gin.SetMode(gin.TestMode)
-
 	ctrl := gomock.NewController(t)
 	mockUsecase := drivingportstest.NewMockForManagingUniverse(ctrl)
 
@@ -229,8 +226,6 @@ func TestUnit_Universes_CreateUniverse(t *testing.T) {
 }
 
 func TestUnit_Universes_GetUniverse(t *testing.T) {
-	gin.SetMode(gin.TestMode)
-
 	ctrl := gomock.NewController(t)
 	mockUsecase := drivingportstest.NewMockForManagingUniverse(ctrl)
 
@@ -464,8 +459,6 @@ func TestUnit_Universes_GetUniverse(t *testing.T) {
 }
 
 func TestUnit_Universes_ListUniverses(t *testing.T) {
-	gin.SetMode(gin.TestMode)
-
 	ctrl := gomock.NewController(t)
 	mockUsecase := drivingportstest.NewMockForManagingUniverse(ctrl)
 
@@ -683,8 +676,6 @@ func TestUnit_Universes_ListUniverses(t *testing.T) {
 }
 
 func TestUnit_Universes_DeleteUniverse(t *testing.T) {
-	gin.SetMode(gin.TestMode)
-
 	ctrl := gomock.NewController(t)
 	mockUsecase := drivingportstest.NewMockForManagingUniverse(ctrl)
 
@@ -767,8 +758,6 @@ func TestUnit_Universes_DeleteUniverse(t *testing.T) {
 }
 
 func TestUnit_Universes_GetSolarSystem(t *testing.T) {
-	gin.SetMode(gin.TestMode)
-
 	ctrl := gomock.NewController(t)
 	mockUsecase := drivingportstest.NewMockForFetchingSolarSystem(ctrl)
 

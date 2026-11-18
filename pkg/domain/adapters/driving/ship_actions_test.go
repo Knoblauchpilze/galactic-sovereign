@@ -12,15 +12,12 @@ import (
 	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/request"
 	drivingports "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driving"
-	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 )
 
 func TestUnit_Ships_CreateShipAction(t *testing.T) {
-	gin.SetMode(gin.TestMode)
-
 	ctrl := gomock.NewController(t)
 	mockUsecase := drivingportstest.NewMockForCreatingShipAction(ctrl)
 

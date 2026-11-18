@@ -12,15 +12,12 @@ import (
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
 	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
 	drivingports "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driving"
-	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 )
 
 func TestUnit_Planets_GetPlanet(t *testing.T) {
-	gin.SetMode(gin.TestMode)
-
 	ctrl := gomock.NewController(t)
 	mockUsecase := drivingportstest.NewMockForFetchingPlanets(ctrl)
 
@@ -280,8 +277,6 @@ func TestUnit_Planets_GetPlanet(t *testing.T) {
 }
 
 func TestUnit_Planets_ListPlanetsForPlayer(t *testing.T) {
-	gin.SetMode(gin.TestMode)
-
 	ctrl := gomock.NewController(t)
 	mockUsecase := drivingportstest.NewMockForFetchingPlanets(ctrl)
 
@@ -420,8 +415,6 @@ func TestUnit_Planets_ListPlanetsForPlayer(t *testing.T) {
 }
 
 func TestUnit_Planets_DeletePlanet(t *testing.T) {
-	gin.SetMode(gin.TestMode)
-
 	ctrl := gomock.NewController(t)
 	mockUsecase := drivingportstest.NewMockForDeletingPlanet(ctrl)
 

@@ -8,6 +8,7 @@ import (
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 	"time"
 
@@ -24,6 +25,11 @@ var (
 	sampleUuid       = uuid.New()
 	sampleResourceId = uuid.New()
 )
+
+func TestMain(m *testing.M) {
+	gin.SetMode(gin.TestMode)
+	os.Exit(m.Run())
+}
 
 func generateTestRequest(
 	t *testing.T,

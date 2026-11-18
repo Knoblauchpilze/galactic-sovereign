@@ -7,14 +7,11 @@ import (
 
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driving/drivingportstest"
 	drivingports "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driving"
-	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 )
 
 func TestUnit_Healthcheck_Healthcheck(t *testing.T) {
-	gin.SetMode(gin.TestMode)
-
 	ctrl := gomock.NewController(t)
 	mockUsecase := drivingportstest.NewMockForCheckingServiceHealth(ctrl)
 
