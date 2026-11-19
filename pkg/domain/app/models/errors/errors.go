@@ -42,6 +42,7 @@ const (
 	wrongFleetTarget             errors.ErrorCode = 637
 	unsupportedFleetEventType    errors.ErrorCode = 638
 	invalidSimulationStepResult  errors.ErrorCode = 639
+	noFleetEvent                 errors.ErrorCode = 640
 )
 
 var (
@@ -84,4 +85,5 @@ var (
 	ErrWrongFleetTarget            = errors.FromCode(wrongFleetTarget)
 	ErrUnsupportedFleetEventType   = errors.FromCode(unsupportedFleetEventType)
 	ErrInvalidSimulationStepResult = errors.FromCode(invalidSimulationStepResult)
+	ErrNoFleetEvent                = errors.FromCode(noFleetEvent)
 )

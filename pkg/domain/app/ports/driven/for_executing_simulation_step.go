@@ -25,6 +25,19 @@ type ForExecutingSimulationStep interface {
 		simulate models.SimulationStepResolver,
 	) (models.SimulationStepResult, error)
 
+	// Execute runs the simulate step for the specific universe without tying it to
+	// a specific planet. In case no fleet event is available in the universe, the
+	// result will be a no-op and the port should return a sentinel error allowing
+	// to recognize this fact.
+	// Valid values for the result are describing a fleet update or deletion but no
+	// planet update or deletion is allowed.
+	ExecuteFleetForUniverse(
+		ctx context.Context,
+		universeId uuid.UUID,
+		timestamp time.Time,
+		simulate models.SimulationStepResolver,
+	) (models.SimulationStepResult, error)
+
 	// Execute runs the simulate step with the implicit expectation that the planet
 	// to which it applies will be deleted at the end of the step. This means that
 	// the simulation step result will never contain a planet (or a fleet).

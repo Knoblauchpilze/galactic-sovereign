@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
+	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
 	drivenports "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/ports/driven"
 	"github.com/google/uuid"
 )
@@ -36,6 +37,43 @@ func AdvanceSimulationUntil(
 			continue
 		default:
 			return result, nil
+		}
+	}
+}
+
+// AdvanceSimulationForUniverseUntil executes simulation steps related to a universe.
+// The function will repeatedly call the simulation step executor targeting the input
+// universe and continue resolving events until no fleet events are pending.
+// All updates will be done with the provided timestamp meaning that the simulation
+// will be updated up to this point in time.
+func AdvanceSimulationForUniverseUntil(
+	ctx context.Context,
+	executor drivenports.ForExecutingSimulationStep,
+	universeId uuid.UUID,
+	timestamp time.Time,
+) error {
+	// The resolver is not supposed to be called on a planet and therefore returns an
+	// error in case it is called.
+	errResolver := func(_ models.SimulationStep) (models.SimulationStepResult, error) {
+		return models.SimulationStepResult{}, domainerrors.ErrInvalidSimulationStepResult
+	}
+
+	simulate := ResolveSimulationStepThen(errResolver)
+
+	for {
+		result, err := executor.ExecuteFleetForUniverse(ctx, universeId, timestamp, simulate)
+		if err != nil {
+			if err == domainerrors.ErrNoFleetEvent {
+				return nil
+			}
+			return err
+		}
+
+		switch result.Resolution {
+		case models.FleetEventResolved, models.FleetDeleted:
+			continue
+		default:
+			return domainerrors.ErrInvalidSimulationStepResult
 		}
 	}
 }

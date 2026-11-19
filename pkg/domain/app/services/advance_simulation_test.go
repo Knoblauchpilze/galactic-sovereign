@@ -1,10 +1,13 @@
 package domainservices
 
 import (
+	"context"
 	"errors"
 	"testing"
+	"time"
 
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
+	domainerrors "github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models/errors"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/services/drivenportstest"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -16,6 +19,8 @@ type simulationStepTestSuite struct {
 	ctrl         *gomock.Controller
 	mockExecutor *drivenportstest.MockForExecutingSimulationStep
 }
+
+type SimulatorMock func(context.Context, uuid.UUID, time.Time, models.SimulationStepResolver) (models.SimulationStepResult, error)
 
 func TestUnit_AdvanceSimulationUntil(t *testing.T) {
 	t.Run("calls executor with correct parameter", func(t *testing.T) {
@@ -182,6 +187,181 @@ func TestUnit_AdvanceSimulationUntil(t *testing.T) {
 		_, err := AdvanceSimulationUntil(t.Context(), suite.mockExecutor, planet.Id, t2, resolver)
 
 		assert.ErrorIs(t, err, errSample, "Actual err: %v", err)
+	})
+}
+
+func TestUnit_AdvanceSimulationForUniverseUntil(t *testing.T) {
+	t.Run("calls executor with correct parameter", func(t *testing.T) {
+		suite := setupSimulationStepTestSuite(t)
+
+		universe := uuid.New()
+
+		suite.mockExecutor.EXPECT().
+			ExecuteFleetForUniverse(gomock.Any(), universe, t2, gomock.Any()).
+			Times(1).
+			Return(models.SimulationStepResult{}, domainerrors.ErrNoFleetEvent)
+
+		err := AdvanceSimulationForUniverseUntil(t.Context(), suite.mockExecutor, universe, t2)
+		require.NoError(t, err, "Actual err: %v", err)
+	})
+
+	t.Run("calls resolver again when it returns FleetEventResolved", func(t *testing.T) {
+		suite := setupSimulationStepTestSuite(t)
+
+		universe := uuid.New()
+		planet := generateSamplePlanet()
+		fleet := generateSampleFleet(planet)
+
+		result1 := models.SimulationStepResult{
+			Resolution: models.FleetEventResolved,
+			Fleet:      &fleet,
+		}
+		suite.mockExecutor.EXPECT().
+			ExecuteFleetForUniverse(gomock.Any(), universe, t2, gomock.Any()).
+			Times(1).
+			Return(result1, nil)
+		suite.mockExecutor.EXPECT().
+			ExecuteFleetForUniverse(gomock.Any(), universe, t2, gomock.Any()).
+			Times(1).
+			Return(models.SimulationStepResult{}, domainerrors.ErrNoFleetEvent)
+
+		err := AdvanceSimulationForUniverseUntil(t.Context(), suite.mockExecutor, universe, t2)
+		require.NoError(t, err, "Actual err: %v", err)
+	})
+
+	t.Run("calls resolver again when it returns FleetDeleted", func(t *testing.T) {
+		suite := setupSimulationStepTestSuite(t)
+
+		universe := uuid.New()
+
+		result1 := models.SimulationStepResult{
+			Resolution: models.FleetDeleted,
+		}
+		suite.mockExecutor.EXPECT().
+			ExecuteFleetForUniverse(gomock.Any(), universe, t2, gomock.Any()).
+			Times(1).
+			Return(result1, nil)
+		suite.mockExecutor.EXPECT().
+			ExecuteFleetForUniverse(gomock.Any(), universe, t2, gomock.Any()).
+			Times(1).
+			Return(models.SimulationStepResult{}, domainerrors.ErrNoFleetEvent)
+
+		err := AdvanceSimulationForUniverseUntil(t.Context(), suite.mockExecutor, universe, t2)
+		require.NoError(t, err, "Actual err: %v", err)
+	})
+
+	t.Run("returns error when resolver returns FleetCreated", func(t *testing.T) {
+		suite := setupSimulationStepTestSuite(t)
+
+		universe := uuid.New()
+		planet := generateSamplePlanet()
+		fleet := generateSampleFleet(planet)
+
+		result := models.SimulationStepResult{
+			Resolution: models.FleetCreated,
+			Planet:     &planet,
+			Fleet:      &fleet,
+		}
+		suite.mockExecutor.EXPECT().
+			ExecuteFleetForUniverse(gomock.Any(), universe, t2, gomock.Any()).
+			Times(1).
+			Return(result, nil)
+
+		err := AdvanceSimulationForUniverseUntil(t.Context(), suite.mockExecutor, universe, t2)
+
+		assert.ErrorIs(t, err, domainerrors.ErrInvalidSimulationStepResult, "Actual err: %v", err)
+	})
+
+	t.Run("stops calling resolver when it returns PlanetUpdated", func(t *testing.T) {
+		suite := setupSimulationStepTestSuite(t)
+
+		universe := uuid.New()
+		planet := generateSamplePlanet()
+
+		result := models.SimulationStepResult{
+			Resolution: models.PlanetUpdated,
+			Planet:     &planet,
+		}
+		suite.mockExecutor.EXPECT().
+			ExecuteFleetForUniverse(gomock.Any(), universe, t2, gomock.Any()).
+			Times(1).
+			Return(result, nil)
+
+		err := AdvanceSimulationForUniverseUntil(t.Context(), suite.mockExecutor, universe, t2)
+
+		assert.ErrorIs(t, err, domainerrors.ErrInvalidSimulationStepResult, "Actual err: %v", err)
+	})
+
+	t.Run("returns error when executor returns an error", func(t *testing.T) {
+		suite := setupSimulationStepTestSuite(t)
+
+		universe := uuid.New()
+
+		errSample := errors.New("stubbed error")
+		suite.mockExecutor.EXPECT().
+			ExecuteFleetForUniverse(gomock.Any(), universe, t2, gomock.Any()).
+			Times(1).
+			Return(models.SimulationStepResult{}, errSample)
+
+		err := AdvanceSimulationForUniverseUntil(t.Context(), suite.mockExecutor, universe, t2)
+
+		assert.ErrorIs(t, err, errSample, "Actual err: %v", err)
+	})
+
+	t.Run("returns error when subsequent calls to executor return an error", func(t *testing.T) {
+		suite := setupSimulationStepTestSuite(t)
+
+		universe := uuid.New()
+		planet := generateSamplePlanet()
+		fleet := generateSampleFleet(planet)
+
+		result := models.SimulationStepResult{
+			Resolution: models.FleetEventResolved,
+			Fleet:      &fleet,
+		}
+		suite.mockExecutor.EXPECT().
+			ExecuteFleetForUniverse(gomock.Any(), universe, t2, gomock.Any()).
+			Times(1).
+			Return(result, nil)
+		errSample := errors.New("stubbed error")
+		suite.mockExecutor.EXPECT().
+			ExecuteFleetForUniverse(gomock.Any(), universe, t2, gomock.Any()).
+			Times(1).
+			Return(models.SimulationStepResult{}, errSample)
+
+		err := AdvanceSimulationForUniverseUntil(t.Context(), suite.mockExecutor, universe, t2)
+
+		assert.ErrorIs(t, err, errSample, "Actual err: %v", err)
+	})
+
+	t.Run("returns error when resolver is called no fleet event", func(t *testing.T) {
+		suite := setupSimulationStepTestSuite(t)
+
+		universe := uuid.New()
+		planet := generateSamplePlanet()
+
+		applyingSimulator := func(
+			ctx context.Context,
+			universe uuid.UUID,
+			timestamp time.Time,
+			resolver models.SimulationStepResolver,
+		) (models.SimulationStepResult, error) {
+			step := models.SimulationStep{
+				Timestamp:      timestamp,
+				Planet:         &planet,
+				NextFleetEvent: nil,
+			}
+			return resolver(step)
+		}
+
+		suite.mockExecutor.EXPECT().
+			ExecuteFleetForUniverse(gomock.Any(), universe, t2, gomock.Any()).
+			Times(1).
+			DoAndReturn(applyingSimulator)
+
+		err := AdvanceSimulationForUniverseUntil(t.Context(), suite.mockExecutor, universe, t2)
+
+		assert.ErrorIs(t, err, domainerrors.ErrInvalidSimulationStepResult, "Actual err: %v", err)
 	})
 }
 
@@ -368,5 +548,17 @@ func generateSampleFleet(source models.Planet) models.Fleet {
 func generateDummyResolver() models.SimulationStepResolver {
 	return func(_ models.SimulationStep) (models.SimulationStepResult, error) {
 		return models.SimulationStepResult{}, nil
+	}
+}
+
+func generateApplyingNoFleetEventExecutor(step models.SimulationStep) SimulatorMock {
+	return func(
+		ctx context.Context,
+		universe uuid.UUID,
+		timestamp time.Time,
+		resolver models.SimulationStepResolver,
+	) (models.SimulationStepResult, error) {
+		step.Timestamp = timestamp
+		return resolver(step)
 	}
 }

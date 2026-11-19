@@ -58,6 +58,21 @@ func (mr *MockForExecutingSimulationStepMockRecorder) Execute(ctx, planetId, tim
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Execute", reflect.TypeOf((*MockForExecutingSimulationStep)(nil).Execute), ctx, planetId, timestamp, simulate)
 }
 
+// ExecuteFleetForUniverse mocks base method.
+func (m *MockForExecutingSimulationStep) ExecuteFleetForUniverse(ctx context.Context, universeId uuid.UUID, timestamp time.Time, simulate models.SimulationStepResolver) (models.SimulationStepResult, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ExecuteFleetForUniverse", ctx, universeId, timestamp, simulate)
+	ret0, _ := ret[0].(models.SimulationStepResult)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ExecuteFleetForUniverse indicates an expected call of ExecuteFleetForUniverse.
+func (mr *MockForExecutingSimulationStepMockRecorder) ExecuteFleetForUniverse(ctx, universeId, timestamp, simulate any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ExecuteFleetForUniverse", reflect.TypeOf((*MockForExecutingSimulationStep)(nil).ExecuteFleetForUniverse), ctx, universeId, timestamp, simulate)
+}
+
 // ExecuteForDelete mocks base method.
 func (m *MockForExecutingSimulationStep) ExecuteForDelete(ctx context.Context, planetId uuid.UUID, timestamp time.Time, simulate models.SimulationStepResolver) (models.SimulationStepResult, error) {
 	m.ctrl.T.Helper()

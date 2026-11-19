@@ -133,11 +133,11 @@ func registerFleetsRoutes(
 	log *slog.Logger,
 ) {
 	universeRepo := drivenadapters.NewUniverseRepository(conn)
-	similator := drivenadapters.NewSimulationStepExecutor(conn)
+	simulator := drivenadapters.NewSimulationStepExecutor(conn)
 	clock := drivenadapters.NewTimeAdapter()
 
 	fetchUsecase := usecases.NewFetchFleetsUseCase()
-	createUseCase := usecases.NewCreateFleetUseCase(universeRepo, similator, clock)
+	createUseCase := usecases.NewCreateFleetUseCase(universeRepo, simulator, clock)
 
 	for _, route := range drivingadapters.FleetEndpoints(createUseCase, fetchUsecase) {
 		if err := s.AddRoute(route); err != nil {
