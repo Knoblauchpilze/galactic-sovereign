@@ -132,11 +132,12 @@ func registerFleetsRoutes(
 	s HttpServer,
 	log *slog.Logger,
 ) {
+	playerRepo := drivenadapters.NewPlayerRepository(conn)
 	universeRepo := drivenadapters.NewUniverseRepository(conn)
 	simulator := drivenadapters.NewSimulationStepExecutor(conn)
 	clock := drivenadapters.NewTimeAdapter()
 
-	fetchUsecase := usecases.NewFetchFleetsUseCase()
+	fetchUsecase := usecases.NewFetchFleetsUseCase(playerRepo, simulator, clock)
 	createUseCase := usecases.NewCreateFleetUseCase(universeRepo, simulator, clock)
 
 	for _, route := range drivingadapters.FleetEndpoints(createUseCase, fetchUsecase) {
