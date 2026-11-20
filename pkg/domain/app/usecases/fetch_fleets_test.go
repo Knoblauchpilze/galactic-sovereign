@@ -117,6 +117,38 @@ func TestUnit_FetchFleetsUseCase_ListForPlayer(t *testing.T) {
 		assert.ErrorIs(t, err, domainerrors.ErrInvalidSimulationStepResult, "Actual err: %v", err)
 	})
 
+	t.Run("returns error when executor indicates that a fleet has been created", func(t *testing.T) {
+		suite := setupFetchFleetsTestSuite(t)
+
+		player := models.Player{
+			Id:       uuid.New(),
+			Universe: uuid.New(),
+			Name:     "the-player",
+		}
+
+		suite.mockClock.EXPECT().Now(gomock.Any()).Times(1).Return(t2)
+
+		suite.mockPlayerRepo.EXPECT().
+			Get(gomock.Any(), player.Id).
+			Times(1).
+			Return(player, nil)
+		result := models.SimulationStepResult{
+			Resolution: models.FleetCreated,
+			Fleet: &models.Fleet{
+				Id:     uuid.New(),
+				Player: player.Id,
+			},
+		}
+		suite.mockExecutor.EXPECT().
+			ExecuteFleetForUniverse(gomock.Any(), player.Universe, t2, gomock.Any()).
+			Times(1).
+			Return(result, nil)
+
+		_, err := suite.usecase.ListForPlayer(t.Context(), player.Id)
+
+		assert.ErrorIs(t, err, domainerrors.ErrInvalidSimulationStepResult, "Actual err: %v", err)
+	})
+
 	t.Run("returns not found when player does not exist", func(t *testing.T) {
 		suite := setupFetchFleetsTestSuite(t)
 
