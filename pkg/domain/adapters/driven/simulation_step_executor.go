@@ -42,6 +42,24 @@ ORDER BY
 LIMIT 1
 FOR UPDATE OF fe`
 
+	lockFirstUnresolvedFleetEventByUniverseForUpdateQuery = `
+SELECT
+	fe.fleet,
+	fe.next_event_at,
+	fe.event_type
+FROM
+	fleet_event AS fe
+	INNER JOIN fleet AS f ON f.id = fe.fleet
+	INNER JOIN player AS p ON p.id = f.player
+WHERE
+	fe.next_event_at <= $1
+	AND p.universe = $2
+ORDER BY
+	fe.next_event_at ASC,
+	fe.fleet ASC
+LIMIT 1
+FOR UPDATE OF fe`
+
 	// https://www.postgresql.org/docs/current/explicit-locking.html#LOCKING-ROWS
 	// This variant allows to lock a planet and allow foreign key checks
 	// typically to insert a fleet while checking that the corresponding
@@ -86,7 +104,11 @@ func (s *SimulationStepExecutor) Execute(
 	}
 	defer tx.Close(ctx)
 
-	event, err := resolveNextFleetEvent(ctx, tx, timestamp, planetId)
+	fleetEvent, err := resolveNextFleetEvent(ctx, tx, timestamp, planetId)
+	if err != nil {
+		return models.SimulationStepResult{}, err
+	}
+	event, err := maybeLoadFleetEvent(ctx, tx, fleetEvent)
 	if err != nil {
 		return models.SimulationStepResult{}, err
 	}
@@ -123,6 +145,21 @@ func (s *SimulationStepExecutor) ExecuteFleetForUniverse(
 	timestamp time.Time,
 	simulate models.SimulationStepResolver,
 ) (models.SimulationStepResult, error) {
+	tx, err := s.conn.BeginTx(ctx)
+	if err != nil {
+		return models.SimulationStepResult{}, err
+	}
+	defer tx.Close(ctx)
+
+	fleetEvent, err := resolveNextFleetEvent(ctx, tx, timestamp, universeId)
+	if err != nil {
+		return models.SimulationStepResult{}, err
+	}
+	if fleetEvent == nil {
+		return models.SimulationStepResult{}, domainerrors.ErrNoFleetEvent
+	}
+
+	// TODO: Handle case where there is a fleet event
 	return models.SimulationStepResult{}, errors.ErrNotImplemented
 }
 
@@ -138,7 +175,11 @@ func (s *SimulationStepExecutor) ExecuteForDelete(
 	}
 	defer tx.Close(ctx)
 
-	event, err := resolveNextFleetEvent(ctx, tx, timestamp, planetId)
+	fleetEvent, err := resolveNextFleetEvent(ctx, tx, timestamp, planetId)
+	if err != nil {
+		return models.SimulationStepResult{}, err
+	}
+	event, err := maybeLoadFleetEvent(ctx, tx, fleetEvent)
 	if err != nil {
 		return models.SimulationStepResult{}, err
 	}
@@ -174,7 +215,7 @@ func resolveNextFleetEvent(
 	tx database.Transaction,
 	timestamp time.Time,
 	planetId uuid.UUID,
-) (*models.FleetEventContext, error) {
+) (*fleetEvent, error) {
 	maybeFleetEvent, err := db.QueryOneTx[fleetEvent](
 		ctx,
 		tx,
@@ -189,13 +230,47 @@ func resolveNextFleetEvent(
 		return nil, err
 	}
 
-	fleet, err := loadFleetAndDetails(ctx, tx, maybeFleetEvent.Fleet)
+	return &maybeFleetEvent, nil
+}
+
+func resolveNextFleetEventByUniverse(
+	ctx context.Context,
+	tx database.Transaction,
+	timestamp time.Time,
+	universeId uuid.UUID,
+) (*fleetEvent, error) {
+	maybeFleetEvent, err := db.QueryOneTx[fleetEvent](
+		ctx,
+		tx,
+		lockFirstUnresolvedFleetEventByUniverseForUpdateQuery,
+		timestamp,
+		universeId,
+	)
+	if err == db.ErrNoMatchingRows {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	return &maybeFleetEvent, nil
+}
+
+func maybeLoadFleetEvent(ctx context.Context,
+	tx database.Transaction,
+	event *fleetEvent,
+) (*models.FleetEventContext, error) {
+	if event == nil {
+		return nil, nil
+	}
+
+	fleet, err := loadFleetAndDetails(ctx, tx, event.Fleet)
 	if err != nil {
 		return nil, err
 	}
 
 	var planet *models.Planet
-	switch maybeFleetEvent.EventType.ToDomain() {
+	switch event.EventType.ToDomain() {
 	case models.ArrivalEvent:
 		if fleet.Destination.Target != nil {
 			planet, err = loadAndLockForNoKeyUpdatePlanet(ctx, tx, *fleet.Destination.Target)
@@ -210,7 +285,7 @@ func resolveNextFleetEvent(
 	}
 
 	out := &models.FleetEventContext{
-		Timestamp: maybeFleetEvent.NextEventAt,
+		Timestamp: event.NextEventAt,
 		Fleet:     fleet,
 		Planet:    planet,
 	}
