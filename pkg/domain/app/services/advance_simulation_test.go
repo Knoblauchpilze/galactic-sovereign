@@ -550,15 +550,3 @@ func generateDummyResolver() models.SimulationStepResolver {
 		return models.SimulationStepResult{}, nil
 	}
 }
-
-func generateApplyingNoFleetEventExecutor(step models.SimulationStep) SimulatorMock {
-	return func(
-		ctx context.Context,
-		universe uuid.UUID,
-		timestamp time.Time,
-		resolver models.SimulationStepResolver,
-	) (models.SimulationStepResult, error) {
-		step.Timestamp = timestamp
-		return resolver(step)
-	}
-}
