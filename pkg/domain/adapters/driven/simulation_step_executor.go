@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/Knoblauchpilze/backend-toolkit/pkg/db"
-	"github.com/Knoblauchpilze/backend-toolkit/pkg/errors"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driven/database"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driven/mappers"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
@@ -151,16 +150,36 @@ func (s *SimulationStepExecutor) ExecuteFleetForUniverse(
 	}
 	defer tx.Close(ctx)
 
-	fleetEvent, err := resolveNextFleetEvent(ctx, tx, timestamp, universeId)
+	fleetEvent, err := resolveNextFleetEventByUniverse(ctx, tx, timestamp, universeId)
 	if err != nil {
 		return models.SimulationStepResult{}, err
 	}
+
+	// This is the main difference between this function and Execute or ExecuteForDelete:
+	// in case there are no fleet events available, the function returns a sentinel error.
+	// This allows callers to stop whenever all pending fleet events have been resolved.
 	if fleetEvent == nil {
 		return models.SimulationStepResult{}, domainerrors.ErrNoFleetEvent
 	}
 
-	// TODO: Handle case where there is a fleet event
-	return models.SimulationStepResult{}, errors.ErrNotImplemented
+	event, err := maybeLoadFleetEvent(ctx, tx, fleetEvent)
+	if err != nil {
+		return models.SimulationStepResult{}, err
+	}
+
+	simulationCtx := *newFleetStepContext(*event, simulate)
+
+	result, err := simulationCtx.resolve(ctx, tx, timestamp)
+	if err != nil {
+		// There's no point in checking the error here: it is not logged
+		// and there's already an error pending.
+		// nolint:errcheck
+		tx.Rollback()
+
+		return models.SimulationStepResult{}, err
+	}
+
+	return result, nil
 }
 
 func (s *SimulationStepExecutor) ExecuteForDelete(
