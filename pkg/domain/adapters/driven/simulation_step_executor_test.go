@@ -3197,11 +3197,12 @@ func TestIT_SimulationStepExecutor_FleetConcurrency(t *testing.T) {
 			require.True(t, gate.waitUntilEntered(5*time.Second), "first execution did not reach the fleet event resolver")
 
 			// Operation on planet A must complete while the fleet event of universe B is still held
-			var sawNextFleetEvent bool
+			var operationRan, sawNextFleetEvent bool
 			simulatePlanet := generatePlanetSimulator(func(p *models.Planet) {
 				p.Version++
 			})
 			simulateOperation := func(step models.SimulationStep) (models.SimulationStepResult, error) {
+				operationRan = true
 				sawNextFleetEvent = step.NextFleetEvent != nil
 				return simulatePlanet(step)
 			}
@@ -3218,6 +3219,7 @@ func TestIT_SimulationStepExecutor_FleetConcurrency(t *testing.T) {
 
 			holdHelper.assertReturnWithNoError(t, 5*time.Second)
 
+			require.True(t, operationRan, "operation on planet A was not resolved")
 			assert.False(t, sawNextFleetEvent, "operation on planet A should not see the fleet event of another universe")
 
 			expectedPlanetA := planetA
@@ -3456,8 +3458,9 @@ func TestIT_SimulationStepExecutor_FleetConcurrency(t *testing.T) {
 			require.True(t, gate.waitUntilEntered(5*time.Second), "first execution did not reach the fleet event resolver")
 
 			// Deletion of planet A must complete while the fleet event of universe B is still held
-			var sawNextFleetEvent bool
+			var deletionRan, sawNextFleetEvent bool
 			simulateDeletion := func(step models.SimulationStep) (models.SimulationStepResult, error) {
+				deletionRan = true
 				sawNextFleetEvent = step.NextFleetEvent != nil
 				return models.SimulationStepResult{Resolution: models.PlanetDeleted}, nil
 			}
@@ -3473,6 +3476,7 @@ func TestIT_SimulationStepExecutor_FleetConcurrency(t *testing.T) {
 
 			holdHelper.assertReturnWithNoError(t, 5*time.Second)
 
+			require.True(t, deletionRan, "deletion of planet A was not resolved")
 			assert.False(t, sawNextFleetEvent, "deletion of planet A should not see the fleet event of another universe")
 
 			expectedFleetB := fleetB
