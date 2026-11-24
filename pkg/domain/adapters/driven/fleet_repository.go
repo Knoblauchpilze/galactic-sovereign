@@ -99,7 +99,59 @@ SET
 	deleteFleetDestinationQuery = `DELETE FROM fleet_destination WHERE fleet = $1`
 	deleteFleetShipsQuery       = `DELETE FROM fleet_ship WHERE fleet = $1`
 	deleteFleetQuery            = `DELETE FROM fleet WHERE id = $1`
+
+	listFleetForPlayerQuery = `
+SELECT
+	f.id
+FROM
+	fleet AS f
+	INNER JOIN planet AS psource ON psource.id = f.source
+	INNER JOIN fleet_destination AS fd ON fd.fleet = f.id
+	LEFT JOIN planet AS pdest ON pdest.id = fd.planet
+	INNER JOIN fleet_event AS fe ON fe.fleet = f.id
+WHERE
+	psource.player = $1
+	OR pdest.player = $1
+ORDER BY
+	fe.next_event_at,
+	f.created_at,
+	f.id`
 )
+
+type FleetRepository struct {
+	conn database.Connection
+}
+
+func NewFleetRepository(conn database.Connection) *FleetRepository {
+	return &FleetRepository{
+		conn: conn,
+	}
+}
+
+func (r *FleetRepository) ListForPlayer(ctx context.Context, player uuid.UUID) ([]models.Fleet, error) {
+	tx, err := r.conn.BeginTx(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Close(ctx)
+
+	fleetIds, err := db.QueryAllTx[uuid.UUID](ctx, tx, listFleetForPlayerQuery, player)
+	if err != nil {
+		return nil, err
+	}
+
+	fleets := make([]models.Fleet, 0, len(fleetIds))
+	for _, id := range fleetIds {
+		fleet, err := loadFleetAndDetails(ctx, tx, id)
+		if err != nil {
+			return nil, err
+		}
+
+		fleets = append(fleets, fleet)
+	}
+
+	return fleets, nil
+}
 
 func createFleetWithDetails(
 	ctx context.Context,

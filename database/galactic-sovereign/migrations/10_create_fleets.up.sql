@@ -1,6 +1,7 @@
 
 CREATE TABLE fleet(
   id UUID NOT NULL,
+  -- TODO: Maybe the player could be removed? It is duplicated with the source
   player UUID NOT NULL,
   source UUID NOT NULL,
   mission TEXT NOT NULL CHECK (mission IN ('COLONIZE', 'TRANSPORT')),
