@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"slices"
 	"testing"
+	"time"
 
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/adapters/driving/dtos"
 	"github.com/Knoblauchpilze/galactic-sovereign/pkg/domain/app/models"
@@ -388,6 +389,16 @@ func TestIT_Server(t *testing.T) {
 			t, urlFor(baseUrl, "players"), playerReq,
 		)
 
+		// Verify both players have no fleets
+		fleets1 := doGet[[]dtos.FleetDtoResponse](
+			t, urlFor(baseUrl, "players", player1.Id.String(), "fleets"),
+		)
+		fleets2 := doGet[[]dtos.FleetDtoResponse](
+			t, urlFor(baseUrl, "players", player2.Id.String(), "fleets"),
+		)
+		assert.Equal(t, []dtos.FleetDtoResponse{}, fleets1)
+		assert.Equal(t, []dtos.FleetDtoResponse{}, fleets2)
+
 		bumpPlanetShip(t, conn, player1.Homeworld, lightFighterId, 5)
 
 		// Create a fleet
@@ -428,6 +439,22 @@ func TestIT_Server(t *testing.T) {
 		assert.Equal(t, expectedDestination, fleet.Destination)
 		assert.Equal(t, models.StatusOutbound, fleet.Schedule.Status)
 		assert.Equal(t, expectedShips, fleet.Ships)
+
+		// Verify the fleet is visible to both players
+		fleets1 = doGet[[]dtos.FleetDtoResponse](
+			t, urlFor(baseUrl, "players", player1.Id.String(), "fleets"),
+		)
+		fleets2 = doGet[[]dtos.FleetDtoResponse](
+			t, urlFor(baseUrl, "players", player2.Id.String(), "fleets"),
+		)
+		// PostgreSQL stores timestamps with microsecond precision
+		expectedFleet := fleet
+		expectedFleet.CreatedAt = fleet.CreatedAt.UTC().Truncate(time.Microsecond)
+		expectedFleet.UpdatedAt = fleet.UpdatedAt.UTC().Truncate(time.Microsecond)
+		expectedFleet.Schedule.ArrivalAt = fleet.Schedule.ArrivalAt.UTC().Truncate(time.Microsecond)
+		expectedFleet.Schedule.ReturnAt = fleet.Schedule.ReturnAt.UTC().Truncate(time.Microsecond)
+		assert.Equal(t, []dtos.FleetDtoResponse{expectedFleet}, fleets1)
+		assert.Equal(t, []dtos.FleetDtoResponse{expectedFleet}, fleets2)
 
 		// Fetch the planet to verify ship counts
 		homeworld := doGet[dtos.PlanetDtoResponse](
@@ -483,6 +510,20 @@ func TestIT_Server(t *testing.T) {
 			{Ship: lightFighterId, Count: 3},
 		}
 		assert.Equal(t, expectedShips, fleet.Ships)
+
+		// Verify the fleet with no target is visible to the player
+		fleets := doGet[[]dtos.FleetDtoResponse](
+			t, urlFor(baseUrl, "players", player.Id.String(), "fleets"),
+		)
+		require.Len(t, fleets, 1)
+		assert.Nil(t, fleets[0].Destination.Target)
+		// PostgreSQL stores timestamps with microsecond precision
+		expectedFleet := fleet
+		expectedFleet.CreatedAt = fleet.CreatedAt.UTC().Truncate(time.Microsecond)
+		expectedFleet.UpdatedAt = fleet.UpdatedAt.UTC().Truncate(time.Microsecond)
+		expectedFleet.Schedule.ArrivalAt = fleet.Schedule.ArrivalAt.UTC().Truncate(time.Microsecond)
+		expectedFleet.Schedule.ReturnAt = fleet.Schedule.ReturnAt.UTC().Truncate(time.Microsecond)
+		assert.Equal(t, expectedFleet, fleets[0])
 	})
 
 	t.Run("prevent deletion of planet when a fleet is in flight", func(t *testing.T) {

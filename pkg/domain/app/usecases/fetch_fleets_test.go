@@ -22,7 +22,6 @@ type fetchFleetsTestSuite struct {
 	usecase        *FetchFleetsUseCase
 }
 
-// TODO: Extend those tests when the fleets are fetched
 func TestUnit_FetchFleetsUseCase_ListForPlayer(t *testing.T) {
 	t.Run("calls executor with universe and timestamp", func(t *testing.T) {
 		suite := setupFetchFleetsTestSuite(t)
