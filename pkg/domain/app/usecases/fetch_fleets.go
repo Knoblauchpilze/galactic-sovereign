@@ -48,9 +48,16 @@ func (u *FetchFleetsUseCase) ListForPlayer(ctx context.Context, player uuid.UUID
 		return []models.Fleet{}, err
 	}
 
-	// TODO: Explain that it's acceptable to update the simulation and then read the fleets.
-	// The delay between both operation is small and there's no real way to make it work in
-	// an atomic way without acquiring some sort of 'lock' on the whole universe.
+	// It's acceptable to update the simulation first and then read the fleets in another
+	// transaction. The delay between both operations is small and this flow only reads so
+	// it does not modify the state of fleets.
+	// A way to make it atomic would be to extend the simulator to allow performing not only
+	// an update of a fleet or planet but also to fetch additional data. This seems out of
+	// proportion for the use cases available at the moment.
+	fleets, err := u.fleetRepo.ListForPlayer(ctx, player)
+	if err != nil {
+		return []models.Fleet{}, err
+	}
 
-	return []models.Fleet{}, nil
+	return fleets, nil
 }

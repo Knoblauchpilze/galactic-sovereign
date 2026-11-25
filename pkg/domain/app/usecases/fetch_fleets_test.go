@@ -43,11 +43,19 @@ func TestUnit_FetchFleetsUseCase_ListForPlayer(t *testing.T) {
 			ExecuteFleetForUniverse(gomock.Any(), player.Universe, t2, gomock.Any()).
 			Times(1).
 			Return(models.SimulationStepResult{}, domainerrors.ErrNoFleetEvent)
+		fleets := []models.Fleet{
+			{Id: uuid.New()},
+			{Id: uuid.New()},
+		}
+		suite.mockFleetRepo.EXPECT().
+			ListForPlayer(gomock.Any(), player.Id).
+			Times(1).
+			Return(fleets, nil)
 
 		actual, err := suite.usecase.ListForPlayer(t.Context(), player.Id)
 		require.NoError(t, err, "Actual err: %v", err)
 
-		assert.Equal(t, []models.Fleet{}, actual)
+		assert.Equal(t, fleets, actual)
 	})
 
 	t.Run("retries executor when fleet event is resolved", func(t *testing.T) {
@@ -79,11 +87,19 @@ func TestUnit_FetchFleetsUseCase_ListForPlayer(t *testing.T) {
 			ExecuteFleetForUniverse(gomock.Any(), player.Universe, t2, gomock.Any()).
 			Times(1).
 			Return(models.SimulationStepResult{}, domainerrors.ErrNoFleetEvent)
+		fleets := []models.Fleet{
+			{Id: uuid.New()},
+			{Id: uuid.New()},
+		}
+		suite.mockFleetRepo.EXPECT().
+			ListForPlayer(gomock.Any(), player.Id).
+			Times(1).
+			Return(fleets, nil)
 
 		actual, err := suite.usecase.ListForPlayer(t.Context(), player.Id)
 		require.NoError(t, err, "Actual err: %v", err)
 
-		assert.Equal(t, []models.Fleet{}, actual)
+		assert.Equal(t, fleets, actual)
 	})
 
 	t.Run("returns error when executor indicates that a planet has been updated", func(t *testing.T) {
@@ -183,6 +199,36 @@ func TestUnit_FetchFleetsUseCase_ListForPlayer(t *testing.T) {
 			Get(gomock.Any(), player.Id).
 			Times(1).
 			Return(models.Player{}, errSample)
+
+		_, err := suite.usecase.ListForPlayer(t.Context(), player.Id)
+
+		assert.ErrorIs(t, err, errSample, "Actual err: %v", err)
+	})
+
+	t.Run("returns error when fetching fleets fails", func(t *testing.T) {
+		suite := setupFetchFleetsTestSuite(t)
+
+		player := models.Player{
+			Id:       uuid.New(),
+			Universe: uuid.New(),
+			Name:     "the-player",
+		}
+
+		suite.mockClock.EXPECT().Now(gomock.Any()).Times(1).Return(t2)
+
+		suite.mockPlayerRepo.EXPECT().
+			Get(gomock.Any(), player.Id).
+			Times(1).
+			Return(player, nil)
+		suite.mockExecutor.EXPECT().
+			ExecuteFleetForUniverse(gomock.Any(), player.Universe, t2, gomock.Any()).
+			Times(1).
+			Return(models.SimulationStepResult{}, domainerrors.ErrNoFleetEvent)
+		errSample := errors.New("sample err")
+		suite.mockFleetRepo.EXPECT().
+			ListForPlayer(gomock.Any(), player.Id).
+			Times(1).
+			Return([]models.Fleet{}, errSample)
 
 		_, err := suite.usecase.ListForPlayer(t.Context(), player.Id)
 
