@@ -117,6 +117,11 @@ func listFleetsForPlayer(c *gin.Context, usecase drivingports.ForFetchingFleets)
 	fleets, err := usecase.ListForPlayer(c.Request.Context(), playerId)
 
 	if err != nil {
+		if err == domainerrors.ErrPlayerNotFound {
+			c.AbortWithStatusJSON(http.StatusNotFound, "no such player")
+			return
+		}
+
 		logError(c.Request, "Failed to list fleets", slog.Any("error", err))
 		c.AbortWithStatusJSON(http.StatusInternalServerError, "failed to list fleets")
 		return

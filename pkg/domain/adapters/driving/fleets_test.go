@@ -584,6 +584,28 @@ func TestUnit_Fleets_ListFleetsForPlayer(t *testing.T) {
 		assert.Equal(t, []dtos.FleetDtoResponse{}, actual)
 	})
 
+	t.Run("returns 404 when universe does not exist", func(t *testing.T) {
+		mockUsecase.EXPECT().
+			ListForPlayer(gomock.Any(), sampleUuid).
+			Times(1).
+			Return([]models.Fleet{}, domainerrors.ErrPlayerNotFound)
+
+		handler := generateHandler[drivingports.ForFetchingFleets](
+			listFleetsForPlayer,
+			mockUsecase,
+		)
+		r := createTestGinRouter(t, http.MethodGet, "/players/:id/fleets", handler)
+
+		req := generateTestRequest(t, http.MethodGet, addSampleUuidPathParam)
+		addRequestPath(t, req, "/players/%s/fleets", sampleUuid)
+		rw := httptest.NewRecorder()
+		r.ServeHTTP(rw, req)
+
+		assert.Equal(t, http.StatusNotFound, rw.Code)
+		actual := decodeResponseBody[string](t, rw)
+		assert.Equal(t, "no such player", actual)
+	})
+
 	t.Run("returns 500 when use cas fails", func(t *testing.T) {
 		mockUsecase.EXPECT().
 			ListForPlayer(gomock.Any(), sampleUuid).
