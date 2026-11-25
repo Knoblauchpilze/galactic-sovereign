@@ -17,6 +17,7 @@ type fetchFleetsTestSuite struct {
 	ctrl           *gomock.Controller
 	mockPlayerRepo *drivenportstest.MockForManagingPlayers
 	mockExecutor   *drivenportstest.MockForExecutingSimulationStep
+	mockFleetRepo  *drivenportstest.MockForListingFleets
 	mockClock      *drivenportstest.MockForFetchingTime
 	usecase        *FetchFleetsUseCase
 }
@@ -195,13 +196,15 @@ func setupFetchFleetsTestSuite(t *testing.T) *fetchFleetsTestSuite {
 	ctrl := gomock.NewController(t)
 	mockPlayerRepo := drivenportstest.NewMockForManagingPlayers(ctrl)
 	mockExecutor := drivenportstest.NewMockForExecutingSimulationStep(ctrl)
+	mockFleetRepo := drivenportstest.NewMockForListingFleets(ctrl)
 	mockClock := drivenportstest.NewMockForFetchingTime(ctrl)
 
 	return &fetchFleetsTestSuite{
 		ctrl:           ctrl,
 		mockPlayerRepo: mockPlayerRepo,
 		mockExecutor:   mockExecutor,
+		mockFleetRepo:  mockFleetRepo,
 		mockClock:      mockClock,
-		usecase:        NewFetchFleetsUseCase(mockPlayerRepo, mockExecutor, mockClock),
+		usecase:        NewFetchFleetsUseCase(mockPlayerRepo, mockExecutor, mockFleetRepo, mockClock),
 	}
 }

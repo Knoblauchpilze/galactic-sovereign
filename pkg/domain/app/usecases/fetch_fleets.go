@@ -13,17 +13,20 @@ import (
 type FetchFleetsUseCase struct {
 	playerRepo drivenports.ForManagingPlayers
 	simulator  drivenports.ForExecutingSimulationStep
+	fleetRepo  drivenports.ForListingFleets
 	clock      drivenports.ForFetchingTime
 }
 
 func NewFetchFleetsUseCase(
 	playerRepo drivenports.ForManagingPlayers,
 	simulator drivenports.ForExecutingSimulationStep,
+	fleetRepo drivenports.ForListingFleets,
 	clock drivenports.ForFetchingTime,
 ) *FetchFleetsUseCase {
 	return &FetchFleetsUseCase{
 		playerRepo: playerRepo,
 		simulator:  simulator,
+		fleetRepo:  fleetRepo,
 		clock:      clock,
 	}
 }
