@@ -4976,8 +4976,8 @@ func upsertFleetDestination(t *testing.T, conn database.Connection, fleet models
 func upsertFleetSchedule(t *testing.T, conn database.Connection, fleet models.Fleet) {
 	t.Helper()
 
-	sqlQuery := `UPDATE fleet SET updated_at = $1 WHERE id = $2`
-	affected, err := conn.Exec(t.Context(), sqlQuery, fleet.UpdatedAt, fleet.Id)
+	sqlQuery := `UPDATE fleet SET created_at = $1, updated_at = $2 WHERE id = $3`
+	affected, err := conn.Exec(t.Context(), sqlQuery, fleet.CreatedAt, fleet.UpdatedAt, fleet.Id)
 	require.NoError(t, err, "Actual err: %v", err)
 	require.Equal(t, int64(1), affected)
 
