@@ -44,9 +44,11 @@ func registerUniversesRoutes(
 ) {
 	universeRepo := drivenadapters.NewUniverseRepository(conn)
 	solarSystemRepo := drivenadapters.NewSolarSystemRepository(conn)
+	simulator := drivenadapters.NewSimulationStepExecutor(conn)
+	clock := drivenadapters.NewTimeAdapter()
 
 	universeUsecase := usecases.NewUniverseUseCase(universeRepo, universeRepo)
-	listSolarSystemUsecase := usecases.NewFetchSolarSystemUseCase(solarSystemRepo)
+	listSolarSystemUsecase := usecases.NewFetchSolarSystemUseCase(simulator, solarSystemRepo, clock)
 
 	for _, route := range drivingadapters.UniverseEndpoints(universeUsecase, listSolarSystemUsecase) {
 		if err := s.AddRoute(route); err != nil {
