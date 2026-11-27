@@ -365,10 +365,6 @@ const docTemplate = `{
                     "mission": {
                         "$ref": "#/components/schemas/models.FleetMission"
                     },
-                    "player": {
-                        "format": "uuid",
-                        "type": "string"
-                    },
                     "schedule": {
                         "$ref": "#/components/schemas/dtos.FleetScheduleDtoResponse"
                     },
@@ -394,7 +390,6 @@ const docTemplate = `{
                     "destination",
                     "id",
                     "mission",
-                    "player",
                     "schedule",
                     "ships",
                     "source",

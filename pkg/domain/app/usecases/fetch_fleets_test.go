@@ -151,8 +151,7 @@ func TestUnit_FetchFleetsUseCase_ListForPlayer(t *testing.T) {
 		result := models.SimulationStepResult{
 			Resolution: models.FleetCreated,
 			Fleet: &models.Fleet{
-				Id:     uuid.New(),
-				Player: player.Id,
+				Id: uuid.New(),
 			},
 		}
 		suite.mockExecutor.EXPECT().

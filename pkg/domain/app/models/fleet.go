@@ -9,7 +9,6 @@ import (
 
 type Fleet struct {
 	Id          uuid.UUID
-	Player      uuid.UUID
 	Source      uuid.UUID
 	Mission     FleetMission
 	Destination FleetDestination
@@ -47,7 +46,6 @@ func NewFleet(origin FleetOrigin, order FleetOrder, flight FleetFlight) (Fleet, 
 
 	fleet := Fleet{
 		Id:      uuid.New(),
-		Player:  origin.Player,
 		Source:  origin.Source,
 		Mission: order.Mission,
 		Destination: FleetDestination{

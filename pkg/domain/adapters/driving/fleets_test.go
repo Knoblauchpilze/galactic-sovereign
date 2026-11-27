@@ -115,7 +115,6 @@ func TestUnit_Fleets_CreateFleet(t *testing.T) {
 
 		fleet := models.Fleet{
 			Id:      uuid.New(),
-			Player:  uuid.New(),
 			Source:  sampleUuid,
 			Mission: expectedRequest.Mission,
 			Destination: models.FleetDestination{
@@ -157,7 +156,6 @@ func TestUnit_Fleets_CreateFleet(t *testing.T) {
 		actual := decodeResponseBody[dtos.FleetDtoResponse](t, rw)
 		expected := dtos.FleetDtoResponse{
 			Id:      fleet.Id,
-			Player:  fleet.Player,
 			Source:  fleet.Source,
 			Mission: fleet.Mission,
 			Destination: dtos.FleetDestinationDtoResponse{
@@ -208,7 +206,6 @@ func TestUnit_Fleets_CreateFleet(t *testing.T) {
 
 		fleet := models.Fleet{
 			Id:      uuid.New(),
-			Player:  uuid.New(),
 			Source:  sampleUuid,
 			Mission: expectedRequest.Mission,
 			Destination: models.FleetDestination{
@@ -246,7 +243,6 @@ func TestUnit_Fleets_CreateFleet(t *testing.T) {
 		actual := decodeResponseBody[dtos.FleetDtoResponse](t, rw)
 		expected := dtos.FleetDtoResponse{
 			Id:      fleet.Id,
-			Player:  fleet.Player,
 			Source:  fleet.Source,
 			Mission: fleet.Mission,
 			Destination: dtos.FleetDestinationDtoResponse{
@@ -297,7 +293,6 @@ func TestUnit_Fleets_CreateFleet(t *testing.T) {
 		destination := uuid.New()
 		fleet := models.Fleet{
 			Id:      uuid.New(),
-			Player:  uuid.New(),
 			Source:  sampleUuid,
 			Mission: expectedRequest.Mission,
 			Destination: models.FleetDestination{
@@ -336,7 +331,6 @@ func TestUnit_Fleets_CreateFleet(t *testing.T) {
 		actual := decodeResponseBody[dtos.FleetDtoResponse](t, rw)
 		expected := dtos.FleetDtoResponse{
 			Id:      fleet.Id,
-			Player:  fleet.Player,
 			Source:  fleet.Source,
 			Mission: fleet.Mission,
 			Destination: dtos.FleetDestinationDtoResponse{

@@ -1,15 +1,12 @@
 
 CREATE TABLE fleet(
   id UUID NOT NULL,
-  -- TODO: Maybe the player could be removed? It is duplicated with the source
-  player UUID NOT NULL,
   source UUID NOT NULL,
   mission TEXT NOT NULL CHECK (mission IN ('COLONIZE', 'TRANSPORT')),
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
   updated_at TIMESTAMP WITH TIME ZONE NOT NULL,
   version INTEGER DEFAULT 0,
   PRIMARY KEY (id),
-  FOREIGN KEY (player) REFERENCES player(id),
   FOREIGN KEY (source) REFERENCES planet(id)
 );
 

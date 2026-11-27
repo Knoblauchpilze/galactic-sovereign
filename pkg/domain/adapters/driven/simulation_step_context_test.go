@@ -170,7 +170,6 @@ func TestUnit_SimulationStepContext_Resolve(t *testing.T) {
 			Planet:     new(planet),
 			Fleet: &models.Fleet{
 				Id:     uuid.New(),
-				Player: planet.Player,
 				Source: planet.Id,
 			},
 		}

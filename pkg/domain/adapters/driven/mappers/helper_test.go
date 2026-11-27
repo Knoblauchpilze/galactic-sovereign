@@ -33,7 +33,6 @@ func newTestConnection(t *testing.T) database.Connection {
 func generateSampleFleet(mission models.FleetMission, status models.FleetStatus) models.Fleet {
 	return models.Fleet{
 		Id:          uuid.New(),
-		Player:      uuid.New(),
 		Source:      uuid.New(),
 		Mission:     mission,
 		Destination: models.FleetDestination{},
@@ -54,10 +53,9 @@ func insertTestFleet(t *testing.T, conn database.Connection, fleet models.Fleet)
 
 	_, err := conn.Exec(
 		t.Context(),
-		`INSERT INTO fleet (id, player, source, mission, created_at, updated_at, version)
-					VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+		`INSERT INTO fleet (id, source, mission, created_at, updated_at, version)
+					VALUES ($1, $2, $3, $4, $5, $6)`,
 		fleet.Id,
-		fleet.Player,
 		fleet.Source,
 		fleet.Mission,
 		fleet.CreatedAt,
@@ -100,13 +98,15 @@ func insertFleetDependencies(
 	)
 	require.NoError(t, err, "Actual err: %v", err)
 
+	playerId := uuid.New()
+
 	_, err = conn.Exec(
 		t.Context(),
 		`INSERT INTO player (id, api_user, universe, name) VALUES ($1, $2, $3, $4)`,
-		fleet.Player,
+		playerId,
 		uuid.New(),
 		universeId,
-		fmt.Sprintf("test-player-%s", fleet.Player),
+		fmt.Sprintf("test-player-%s", playerId),
 	)
 	require.NoError(t, err, "Actual err: %v", err)
 
@@ -114,7 +114,7 @@ func insertFleetDependencies(
 		t.Context(),
 		`INSERT INTO planet (id, player, name, fields, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6)`,
 		fleet.Source,
-		fleet.Player,
+		playerId,
 		fmt.Sprintf("test-planet-%s", fleet.Source),
 		36,
 		time.Now().UTC(),

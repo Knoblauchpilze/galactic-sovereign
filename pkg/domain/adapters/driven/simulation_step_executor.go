@@ -49,10 +49,11 @@ SELECT
 FROM
 	fleet_event AS fe
 	INNER JOIN fleet AS f ON f.id = fe.fleet
-	INNER JOIN player AS p ON p.id = f.player
+	INNER JOIN planet AS p ON p.id = f.source
+	INNER JOIN player AS pl ON pl.id = p.player
 WHERE
 	fe.next_event_at <= $1
-	AND p.universe = $2
+	AND pl.universe = $2
 ORDER BY
 	fe.next_event_at ASC,
 	fe.fleet ASC

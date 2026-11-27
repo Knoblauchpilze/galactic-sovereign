@@ -26,7 +26,6 @@ type FleetShipDtoRequest struct {
 
 type FleetDtoResponse struct {
 	Id          uuid.UUID                   `json:"id" format:"uuid" binding:"required"`
-	Player      uuid.UUID                   `json:"player" format:"uuid" binding:"required"`
 	Source      uuid.UUID                   `json:"source" format:"uuid" binding:"required"`
 	Mission     models.FleetMission         `json:"mission" binding:"required"`
 	Destination FleetDestinationDtoResponse `json:"destination" binding:"required"`

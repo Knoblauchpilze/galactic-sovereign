@@ -23,7 +23,6 @@ func TestUnit_Fleet_New(t *testing.T) {
 		origin := FleetOrigin{
 			Source:     uuid.New(),
 			Coordinate: Coordinate{1, 3, 5},
-			Player:     uuid.New(),
 		}
 		order := FleetOrder{
 			Mission:     MissionColonize,
@@ -47,7 +46,6 @@ func TestUnit_Fleet_New(t *testing.T) {
 		flightDuration := 6311 * time.Second
 		expected := Fleet{
 			Id:      fleet.Id,
-			Player:  origin.Player,
 			Source:  origin.Source,
 			Mission: order.Mission,
 			Destination: FleetDestination{
@@ -71,7 +69,6 @@ func TestUnit_Fleet_New(t *testing.T) {
 		origin := FleetOrigin{
 			Source:     uuid.New(),
 			Coordinate: Coordinate{1, 3, 5},
-			Player:     uuid.New(),
 		}
 		order := FleetOrder{
 			Mission:     MissionColonize,
@@ -97,7 +94,6 @@ func TestUnit_Fleet_New(t *testing.T) {
 		origin := FleetOrigin{
 			Source:     uuid.New(),
 			Coordinate: Coordinate{1, 3, 5},
-			Player:     uuid.New(),
 		}
 		order := FleetOrder{
 			Mission:     MissionTransport,
@@ -121,7 +117,6 @@ func TestUnit_Fleet_New(t *testing.T) {
 		flightDuration := 6311 * time.Second
 		expected := Fleet{
 			Id:      fleet.Id,
-			Player:  origin.Player,
 			Source:  origin.Source,
 			Mission: order.Mission,
 			Destination: FleetDestination{
@@ -145,7 +140,6 @@ func TestUnit_Fleet_New(t *testing.T) {
 		origin := FleetOrigin{
 			Source:     uuid.New(),
 			Coordinate: Coordinate{1, 3, 5},
-			Player:     uuid.New(),
 		}
 		order := FleetOrder{
 			Mission:     MissionTransport,
@@ -171,7 +165,6 @@ func TestUnit_Fleet_New(t *testing.T) {
 		origin := FleetOrigin{
 			Source:     uuid.New(),
 			Coordinate: Coordinate{1, 3, 5},
-			Player:     uuid.New(),
 		}
 		order := FleetOrder{
 			Mission:     MissionTransport,

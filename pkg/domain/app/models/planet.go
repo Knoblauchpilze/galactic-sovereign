@@ -266,7 +266,6 @@ func (p *Planet) CreateFleet(order FleetOrder, flight FleetFlight) (Fleet, error
 	origin := FleetOrigin{
 		Source:     p.Id,
 		Coordinate: p.Coordinate,
-		Player:     p.Player,
 	}
 
 	fleet, err := NewFleet(origin, order, flight)

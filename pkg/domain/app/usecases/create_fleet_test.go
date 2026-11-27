@@ -54,7 +54,6 @@ func TestUnit_CreateFleet_Create(t *testing.T) {
 
 		fleet := models.Fleet{
 			Id:      uuid.New(),
-			Player:  planet.Player,
 			Source:  planet.Id,
 			Mission: models.MissionColonize,
 			Destination: models.FleetDestination{
@@ -222,7 +221,6 @@ func TestUnit_CreateFleet_Create(t *testing.T) {
 
 		expected := models.Fleet{
 			Id:      actual.Id,
-			Player:  planet.Player,
 			Source:  planet.Id,
 			Mission: models.MissionColonize,
 			Destination: models.FleetDestination{

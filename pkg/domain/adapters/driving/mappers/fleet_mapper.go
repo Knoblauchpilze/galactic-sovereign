@@ -68,7 +68,6 @@ func toFleetShips(
 func ToFleetResponse(fleet models.Fleet) dtos.FleetDtoResponse {
 	return dtos.FleetDtoResponse{
 		Id:      fleet.Id,
-		Player:  fleet.Player,
 		Source:  fleet.Source,
 		Mission: fleet.Mission,
 		Destination: dtos.FleetDestinationDtoResponse{

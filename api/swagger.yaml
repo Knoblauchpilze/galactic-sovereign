@@ -256,9 +256,6 @@ components:
           type: string
         mission:
           $ref: '#/components/schemas/models.FleetMission'
-        player:
-          format: uuid
-          type: string
         schedule:
           $ref: '#/components/schemas/dtos.FleetScheduleDtoResponse'
         ships:
@@ -278,7 +275,6 @@ components:
       - destination
       - id
       - mission
-      - player
       - schedule
       - ships
       - source

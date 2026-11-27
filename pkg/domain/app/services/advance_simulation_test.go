@@ -531,7 +531,6 @@ func generateSamplePlanet() models.Planet {
 func generateSampleFleet(source models.Planet) models.Fleet {
 	return models.Fleet{
 		Id:      uuid.New(),
-		Player:  source.Player,
 		Source:  source.Id,
 		Mission: models.MissionColonize,
 		Schedule: models.FleetFlightSchedule{

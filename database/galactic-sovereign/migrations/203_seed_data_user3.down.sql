@@ -2,21 +2,32 @@
 -- fleets
 DELETE FROM fleet_event
 WHERE fleet IN (
-	SELECT id FROM fleet WHERE player = 'e8db2006-3e35-49cd-8e1f-726491660a00'
+	SELECT f.id FROM fleet AS f
+		INNER JOIN planet AS p ON p.id = f.source
+		WHERE player = 'e8db2006-3e35-49cd-8e1f-726491660a00'
 );
 DELETE FROM fleet_flight
 WHERE fleet IN (
-	SELECT id FROM fleet WHERE player = 'e8db2006-3e35-49cd-8e1f-726491660a00'
+	SELECT f.id FROM fleet AS f
+		INNER JOIN planet AS p ON p.id = f.source
+		WHERE player = 'e8db2006-3e35-49cd-8e1f-726491660a00'
 );
 DELETE FROM fleet_destination
 WHERE fleet IN (
-	SELECT id FROM fleet WHERE player = 'e8db2006-3e35-49cd-8e1f-726491660a00'
+	SELECT f.id FROM fleet AS f
+		INNER JOIN planet AS p ON p.id = f.source
+		WHERE player = 'e8db2006-3e35-49cd-8e1f-726491660a00'
 );
 DELETE FROM fleet_ship
 WHERE fleet IN (
-	SELECT id FROM fleet WHERE player = 'e8db2006-3e35-49cd-8e1f-726491660a00'
+	SELECT f.id FROM fleet AS f
+		INNER JOIN planet AS p ON p.id = f.source
+		WHERE player = 'e8db2006-3e35-49cd-8e1f-726491660a00'
 );
-DELETE FROM fleet WHERE player = 'e8db2006-3e35-49cd-8e1f-726491660a00';
+DELETE FROM fleet AS f
+USING planet AS p
+WHERE p.id = f.source
+  AND p.player = 'e8db2006-3e35-49cd-8e1f-726491660a00';
 
 -- ship actions
 DELETE FROM ship_action

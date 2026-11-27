@@ -113,8 +113,7 @@ func TestUnit_FetchSolarSystem_GetSolarSystem(t *testing.T) {
 		result := models.SimulationStepResult{
 			Resolution: models.FleetCreated,
 			Fleet: &models.Fleet{
-				Id:     uuid.New(),
-				Player: uuid.New(),
+				Id: uuid.New(),
 			},
 		}
 		suite.mockExecutor.EXPECT().
@@ -172,7 +171,7 @@ func TestUnit_FetchSolarSystem_GetSolarSystem(t *testing.T) {
 			Times(1).
 			Return(models.SolarSystem{}, domainerrors.ErrNotFound)
 
-		_, err := suite.usecase.GetSolarSystem(t.Context(), uuid.New(), 2, 4)
+		_, err := suite.usecase.GetSolarSystem(t.Context(), universeId, 2, 4)
 
 		assert.ErrorIs(t, err, domainerrors.ErrNotFound, "Actual err: %v", err)
 	})

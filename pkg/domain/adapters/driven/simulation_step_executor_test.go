@@ -4841,7 +4841,6 @@ func insertTestFleetWithId(
 
 	fleet := models.Fleet{
 		Id:      id,
-		Player:  source.Player,
 		Source:  source.Id,
 		Mission: models.MissionColonize,
 		Destination: models.FleetDestination{
@@ -4864,13 +4863,12 @@ func insertTestFleetWithId(
 	}
 
 	sqlQuery := `INSERT INTO
-		fleet (id, player, source, mission, created_at, updated_at, version)
-		VALUES ($1, $2, $3, $4, $5, $6, $7)`
+		fleet (id, source, mission, created_at, updated_at, version)
+		VALUES ($1, $2, $3, $4, $5, $6)`
 	_, err := conn.Exec(
 		t.Context(),
 		sqlQuery,
 		fleet.Id,
-		fleet.Player,
 		fleet.Source,
 		fleet.Mission,
 		fleet.CreatedAt,
@@ -5100,7 +5098,6 @@ func generateFleetDeleter() models.SimulationStepResolver {
 func generateSampleFleet(p models.Planet) models.Fleet {
 	return models.Fleet{
 		Id:      uuid.New(),
-		Player:  p.Player,
 		Source:  p.Id,
 		Mission: models.MissionColonize,
 		Destination: models.FleetDestination{
